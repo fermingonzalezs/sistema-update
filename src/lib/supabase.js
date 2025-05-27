@@ -1,0 +1,870 @@
+// src/lib/supabase.js
+import { createClient } from '@supabase/supabase-js'
+import { useState } from 'react'
+
+// 🔑 Variables de entorno
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('❌ Faltan variables de entorno de Supabase. Verifica tu archivo .env')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+// 📊 Servicios para manejar el inventario de computadoras
+export const inventarioService = {
+  // Obtener todas las computadoras disponibles
+  async getAll() {
+    console.log('📡 Obteniendo todas las computadoras...')
+    
+    const { data, error } = await supabase
+      .from('inventario')
+      .select('*')
+      .eq('disponible', true)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('❌ Error obteniendo datos:', error)
+      throw error
+    }
+    
+    console.log(`✅ ${data.length} computadoras obtenidas`)
+    return data
+  },
+
+  // Crear nueva computadora
+  async create(computadora) {
+    console.log('💾 Creando computadora:', computadora.serial)
+    
+    // Validar que no exista el serial
+    const existing = await this.findBySerial(computadora.serial)
+    if (existing) {
+      throw new Error(`Ya existe una computadora con serial: ${computadora.serial}`)
+    }
+    
+    const { data, error } = await supabase
+      .from('inventario')
+      .insert([{
+        ...computadora,
+        // Asegurar tipos correctos
+        precio_compra_usd: parseFloat(computadora.precio_compra_usd) || 0,
+        precio_repuestos_usd: parseFloat(computadora.precio_repuestos_usd) || 0,
+        precio_compra_total: parseFloat(computadora.precio_compra_total) || 0,
+        precio_venta_usd: parseFloat(computadora.precio_venta_usd) || 0,
+        porcentaje_de_bateria: parseInt(computadora.porcentaje_de_bateria) || 0,
+        disponible: computadora.disponible !== false
+      }])
+      .select()
+    
+    if (error) {
+      console.error('❌ Error creando:', error)
+      throw error
+    }
+    
+    console.log('✅ Computadora creada exitosamente')
+    return data[0]
+  },
+
+  // Actualizar computadora
+  async update(id, updates) {
+    console.log(`🔄 Actualizando computadora ID: ${id}`)
+    
+    const { data, error } = await supabase
+      .from('inventario')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+    
+    if (error) {
+      console.error('❌ Error actualizando:', error)
+      throw error
+    }
+    
+    console.log('✅ Computadora actualizada')
+    return data[0]
+  },
+
+  // Eliminar computadora
+  async delete(id) {
+    console.log(`🗑️ Eliminando computadora ID: ${id}`)
+    
+    const { error } = await supabase
+      .from('inventario')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error eliminando:', error)
+      throw error
+    }
+    
+    console.log('✅ Computadora eliminada')
+    return true
+  },
+
+  // Buscar por serial
+  async findBySerial(serial) {
+    const { data, error } = await supabase
+      .from('inventario')
+      .select('*')
+      .eq('serial', serial)
+      .maybeSingle()
+    
+    if (error) {
+      console.error('❌ Error buscando por serial:', error)
+      throw error
+    }
+    
+    return data
+  }
+}
+
+// 📱 Servicios para manejar el inventario de celulares
+export const celularesService = {
+  // Obtener todos los celulares disponibles
+  async getAll() {
+    console.log('📡 Obteniendo todos los celulares...')
+    
+    const { data, error } = await supabase
+      .from('celulares')
+      .select('*')
+      .eq('disponible', true)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('❌ Error obteniendo celulares:', error)
+      throw error
+    }
+    
+    console.log(`✅ ${data.length} celulares obtenidos`)
+    return data
+  },
+
+  // Crear nuevo celular
+  async create(celular) {
+    console.log('💾 Creando celular:', celular.serial)
+    
+    // Validar que no exista el serial
+    const existing = await this.findBySerial(celular.serial)
+    if (existing) {
+      throw new Error(`Ya existe un celular con serial: ${celular.serial}`)
+    }
+    
+    const { data, error } = await supabase
+      .from('celulares')
+      .insert([{
+        ...celular,
+        // Asegurar tipos correctos
+        precio_compra_usd: parseFloat(celular.precio_compra_usd) || 0,
+        precio_venta_usd: parseFloat(celular.precio_venta_usd) || 0,
+        ciclos: parseInt(celular.ciclos) || 0,
+        disponible: celular.disponible !== false
+      }])
+      .select()
+    
+    if (error) {
+      console.error('❌ Error creando celular:', error)
+      throw error
+    }
+    
+    console.log('✅ Celular creado exitosamente')
+    return data[0]
+  },
+
+  // Actualizar celular
+  async update(id, updates) {
+    console.log(`🔄 Actualizando celular ID: ${id}`)
+    
+    const { data, error } = await supabase
+      .from('celulares')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+    
+    if (error) {
+      console.error('❌ Error actualizando celular:', error)
+      throw error
+    }
+    
+    console.log('✅ Celular actualizado')
+    return data[0]
+  },
+
+  // Eliminar celular
+  async delete(id) {
+    console.log(`🗑️ Eliminando celular ID: ${id}`)
+    
+    const { error } = await supabase
+      .from('celulares')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error eliminando celular:', error)
+      throw error
+    }
+    
+    console.log('✅ Celular eliminado')
+    return true
+  },
+
+  // Buscar por serial
+  async findBySerial(serial) {
+    const { data, error } = await supabase
+      .from('celulares')
+      .select('*')
+      .eq('serial', serial)
+      .maybeSingle()
+    
+    if (error) {
+      console.error('❌ Error buscando celular por serial:', error)
+      throw error
+    }
+    
+    return data
+  }
+}
+
+// 🔧 Servicios para manejar OTROS productos
+export const otrosService = {
+  // Obtener todos los productos otros disponibles
+  async getAll() {
+    console.log('📡 Obteniendo todos los productos otros...')
+    
+    const { data, error } = await supabase
+      .from('otros')
+      .select('*')
+      .eq('disponible', true)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('❌ Error obteniendo otros:', error)
+      throw error
+    }
+    
+    console.log(`✅ ${data.length} productos otros obtenidos`)
+    return data
+  },
+
+  // Crear nuevo producto otro
+  async create(producto) {
+    console.log('💾 Creando producto otro:', producto.descripcion_producto)
+    
+    const { data, error } = await supabase
+      .from('otros')
+      .insert([{
+        ...producto,
+        precio_compra_usd: parseFloat(producto.precio_compra_usd) || 0,
+        precio_venta_usd: parseFloat(producto.precio_venta_usd) || 0,
+        cantidad: parseInt(producto.cantidad) || 1,
+        disponible: producto.disponible !== false
+      }])
+      .select()
+    
+    if (error) {
+      console.error('❌ Error creando producto otro:', error)
+      throw error
+    }
+    
+    console.log('✅ Producto otro creado exitosamente')
+    return data[0]
+  },
+
+  // Actualizar producto otro
+  async update(id, updates) {
+    console.log(`🔄 Actualizando producto otro ID: ${id}`)
+    
+    const { data, error } = await supabase
+      .from('otros')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+    
+    if (error) {
+      console.error('❌ Error actualizando producto otro:', error)
+      throw error
+    }
+    
+    console.log('✅ Producto otro actualizado')
+    return data[0]
+  },
+
+  // Eliminar producto otro
+  async delete(id) {
+    console.log(`🗑️ Eliminando producto otro ID: ${id}`)
+    
+    const { error } = await supabase
+      .from('otros')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error eliminando producto otro:', error)
+      throw error
+    }
+    
+    console.log('✅ Producto otro eliminado')
+    return true
+  },
+
+  // Reducir cantidad cuando se vende
+  async reducirCantidad(id, cantidadVendida) {
+    const producto = await this.getById(id)
+    if (!producto) throw new Error('Producto no encontrado')
+    
+    const nuevaCantidad = producto.cantidad - cantidadVendida
+    
+    if (nuevaCantidad <= 0) {
+      // Si no queda stock, marcar como no disponible
+      return await this.update(id, { cantidad: 0, disponible: false })
+    } else {
+      // Solo reducir la cantidad
+      return await this.update(id, { cantidad: nuevaCantidad })
+    }
+  },
+
+  // Obtener por ID
+  async getById(id) {
+    const { data, error } = await supabase
+      .from('otros')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+}
+
+// 💰 Servicios para manejar las ventas (actualizado para transacciones)
+export const ventasService = {
+  // Obtener todas las transacciones con sus items
+  async getAll() {
+    console.log('📡 Obteniendo todas las transacciones...')
+    
+    const { data, error } = await supabase
+      .from('transacciones')
+      .select(`
+        *,
+        venta_items (
+          id,
+          tipo_producto,
+          producto_id,
+          serial_producto,
+          modelo_producto,
+          cantidad,
+          precio_unitario,
+          precio_total,
+          precio_costo,
+          margen_item
+        )
+      `)
+      .order('fecha_venta', { ascending: false })
+    
+    if (error) {
+      console.error('❌ Error obteniendo transacciones:', error)
+      throw error
+    }
+    
+    console.log(`✅ ${data.length} transacciones obtenidas`)
+    return data
+  },
+
+  // Crear nueva transacción con múltiples items
+  async createTransaction(datosCliente, carritoItems) {
+    console.log('💾 Creando transacción con', carritoItems.length, 'items')
+    
+    // Generar número de transacción único
+    const numeroTransaccion = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
+    
+    // Calcular totales
+    const totalVenta = carritoItems.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0)
+    const totalCosto = carritoItems.reduce((sum, item) => {
+      const costo = item.tipo === 'computadora' 
+        ? (item.producto.precio_compra_total || item.producto.precio_compra_usd || 0)
+        : (item.producto.precio_compra_usd || 0)
+      return sum + (costo * item.cantidad)
+    }, 0)
+    const margenTotal = totalVenta - totalCosto
+
+    try {
+      // Crear la transacción principal
+      const { data: transaccion, error: errorTransaccion } = await supabase
+        .from('transacciones')
+        .insert([{
+          numero_transaccion: numeroTransaccion,
+          cliente_nombre: datosCliente.cliente_nombre,
+          cliente_email: datosCliente.cliente_email,
+          cliente_telefono: datosCliente.cliente_telefono,
+          metodo_pago: datosCliente.metodo_pago,
+          total_venta: totalVenta,
+          total_costo: totalCosto,
+          margen_total: margenTotal,
+          observaciones: datosCliente.observaciones,
+          vendedor: datosCliente.vendedor,
+          sucursal: datosCliente.sucursal
+        }])
+        .select()
+        .single()
+
+      if (errorTransaccion) throw errorTransaccion
+
+      // Crear los items de la venta
+      const ventaItems = carritoItems.map(item => {
+        const precioCosto = item.tipo === 'computadora' 
+          ? (item.producto.precio_compra_total || item.producto.precio_compra_usd || 0)
+          : (item.producto.precio_compra_usd || 0)
+        
+        const precioTotal = item.precio_unitario * item.cantidad
+        const margenItem = precioTotal - (precioCosto * item.cantidad)
+
+        return {
+          transaccion_id: transaccion.id,
+          tipo_producto: item.tipo,
+          producto_id: item.producto.id,
+          serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
+          modelo_producto: item.producto.modelo || item.producto.descripcion_producto,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          precio_total: precioTotal,
+          precio_costo: precioCosto,
+          margen_item: margenItem
+        }
+      })
+
+      const { data: items, error: errorItems } = await supabase
+        .from('venta_items')
+        .insert(ventaItems)
+        .select()
+
+      if (errorItems) throw errorItems
+
+      console.log('✅ Transacción creada exitosamente:', numeroTransaccion)
+      
+      return {
+        ...transaccion,
+        venta_items: items
+      }
+    } catch (error) {
+      console.error('❌ Error creando transacción:', error)
+      throw error
+    }
+  },
+
+  // Marcar producto como vendido
+  async marcarProductoVendido(tipoProducto, productoId) {
+    const tabla = tipoProducto === 'computadora' ? 'inventario' : 'celulares'
+    
+    const { error } = await supabase
+      .from(tabla)
+      .update({ disponible: false })
+      .eq('id', productoId)
+    
+    if (error) {
+      console.error('❌ Error marcando producto como vendido:', error)
+      throw error
+    }
+    
+    console.log(`✅ Producto marcado como vendido en ${tabla}`)
+  },
+
+  // Obtener estadísticas de ventas
+  async getEstadisticas() {
+    const { data, error } = await supabase
+      .from('transacciones')
+      .select('total_venta, total_costo, margen_total, fecha_venta')
+    
+    if (error) throw error
+    
+    const totalTransacciones = data.length
+    const totalIngresos = data.reduce((sum, txn) => sum + parseFloat(txn.total_venta), 0)
+    const totalCostos = data.reduce((sum, txn) => sum + parseFloat(txn.total_costo || 0), 0)
+    const totalGanancias = data.reduce((sum, txn) => sum + parseFloat(txn.margen_total || 0), 0)
+    
+    // Obtener estadísticas por tipo de producto
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('venta_items')
+      .select('tipo_producto, cantidad')
+    
+    if (itemsError) throw itemsError
+    
+    const ventasComputadoras = itemsData.filter(item => item.tipo_producto === 'computadora').length
+    const ventasCelulares = itemsData.filter(item => item.tipo_producto === 'celular').length
+    const ventasOtros = itemsData.filter(item => item.tipo_producto === 'otro')
+      .reduce((sum, item) => sum + item.cantidad, 0)
+    
+    return {
+      totalVentas: totalTransacciones,
+      totalIngresos,
+      totalCostos,
+      totalGanancias,
+      ventasComputadoras,
+      ventasCelulares,
+      ventasOtros
+    }
+  }
+}
+
+// 🎣 Hook personalizado para React - Computadoras
+export function useInventario() {
+  const [computers, setComputers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchComputers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await inventarioService.getAll()
+      setComputers(data)
+    } catch (err) {
+      console.error('Error en useInventario:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addComputer = async (computer) => {
+    try {
+      setError(null)
+      const newComputer = await inventarioService.create(computer)
+      setComputers(prev => [newComputer, ...prev])
+      return newComputer
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const updateComputer = async (id, updates) => {
+    try {
+      setError(null)
+      const updated = await inventarioService.update(id, updates)
+      setComputers(prev => prev.map(comp => 
+        comp.id === id ? updated : comp
+      ))
+      return updated
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const deleteComputer = async (id) => {
+    try {
+      setError(null)
+      await inventarioService.delete(id)
+      setComputers(prev => prev.filter(comp => comp.id !== id))
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  return {
+    computers,
+    loading,
+    error,
+    fetchComputers,
+    addComputer,
+    updateComputer,
+    deleteComputer
+  }
+}
+
+// 🎣 Hook personalizado para React - Celulares
+export function useCelulares() {
+  const [celulares, setCelulares] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchCelulares = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await celularesService.getAll()
+      setCelulares(data)
+    } catch (err) {
+      console.error('Error en useCelulares:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addCelular = async (celular) => {
+    try {
+      setError(null)
+      const newCelular = await celularesService.create(celular)
+      setCelulares(prev => [newCelular, ...prev])
+      return newCelular
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const updateCelular = async (id, updates) => {
+    try {
+      setError(null)
+      const updated = await celularesService.update(id, updates)
+      setCelulares(prev => prev.map(cel => 
+        cel.id === id ? updated : cel
+      ))
+      return updated
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const deleteCelular = async (id) => {
+    try {
+      setError(null)
+      await celularesService.delete(id)
+      setCelulares(prev => prev.filter(cel => cel.id !== id))
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  return {
+    celulares,
+    loading,
+    error,
+    fetchCelulares,
+    addCelular,
+    updateCelular,
+    deleteCelular
+  }
+}
+
+// 🎣 Hook personalizado para React - Otros
+export function useOtros() {
+  const [otros, setOtros] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchOtros = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await otrosService.getAll()
+      setOtros(data)
+    } catch (err) {
+      console.error('Error en useOtros:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addOtro = async (producto) => {
+    try {
+      setError(null)
+      const newOtro = await otrosService.create(producto)
+      setOtros(prev => [newOtro, ...prev])
+      return newOtro
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const updateOtro = async (id, updates) => {
+    try {
+      setError(null)
+      const updated = await otrosService.update(id, updates)
+      setOtros(prev => prev.map(item => 
+        item.id === id ? updated : item
+      ))
+      return updated
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const deleteOtro = async (id) => {
+    try {
+      setError(null)
+      await otrosService.delete(id)
+      setOtros(prev => prev.filter(item => item.id !== id))
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  return {
+    otros,
+    loading,
+    error,
+    fetchOtros,
+    addOtro,
+    updateOtro,
+    deleteOtro
+  }
+}
+
+// 🎣 Hook personalizado para React - Ventas (actualizado para transacciones)
+export function useVentas() {
+  const [ventas, setVentas] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchVentas = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await ventasService.getAll()
+      setVentas(data)
+    } catch (err) {
+      console.error('Error en useVentas:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const registrarVenta = async (ventaData, tipoProducto, productoId) => {
+    try {
+      setError(null)
+      // Esta función mantiene compatibilidad con ventas individuales
+      // pero ahora usaremos procesarCarrito para múltiples items
+      console.warn('registrarVenta está deprecado, usar procesarCarrito')
+      throw new Error('Usar procesarCarrito para nuevas ventas')
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  // Nueva función para procesar carrito completo como transacción
+  const procesarCarrito = async (carrito, datosCliente) => {
+    try {
+      setError(null)
+      
+      // Crear la transacción con todos los items
+      const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito)
+      
+      // Actualizar inventario según el tipo de cada item
+      for (const item of carrito) {
+        if (item.tipo === 'otro') {
+          // Para productos "otros", reducir cantidad
+          await otrosService.reducirCantidad(item.producto.id, item.cantidad)
+        } else {
+          // Para computadoras y celulares, marcar como no disponible
+          await ventasService.marcarProductoVendido(item.tipo, item.producto.id)
+        }
+      }
+      
+      setVentas(prev => [nuevaTransaccion, ...prev])
+      console.log('✅ Transacción procesada exitosamente:', nuevaTransaccion.numero_transaccion)
+      return nuevaTransaccion
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const obtenerEstadisticas = async () => {
+    try {
+      setError(null)
+      return await ventasService.getEstadisticas()
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  return {
+    ventas,
+    loading,
+    error,
+    fetchVentas,
+    registrarVenta, // Mantener por compatibilidad
+    procesarCarrito,
+    obtenerEstadisticas
+  }
+}
+
+// 🛒 Hook para el carrito de compras
+export function useCarrito() {
+  const [carrito, setCarrito] = useState([])
+
+  const agregarAlCarrito = (producto, tipo, cantidad = 1) => {
+    const itemExistente = carrito.find(
+      item => item.producto.id === producto.id && item.tipo === tipo
+    )
+
+    if (itemExistente) {
+      // Si ya existe, aumentar cantidad
+      setCarrito(prev => prev.map(item =>
+        item.producto.id === producto.id && item.tipo === tipo
+          ? { ...item, cantidad: item.cantidad + cantidad }
+          : item
+      ))
+    } else {
+      // Agregar nuevo item
+      const nuevoItem = {
+        id: `${tipo}-${producto.id}`,
+        producto,
+        tipo, // 'computadora', 'celular', 'otro'
+        cantidad,
+        precio_unitario: producto.precio_venta_usd || producto.precio_venta || 0
+      }
+      setCarrito(prev => [...prev, nuevoItem])
+    }
+  }
+
+  const removerDelCarrito = (itemId) => {
+    setCarrito(prev => prev.filter(item => item.id !== itemId))
+  }
+
+  const actualizarCantidad = (itemId, nuevaCantidad) => {
+    if (nuevaCantidad <= 0) {
+      removerDelCarrito(itemId)
+    } else {
+      setCarrito(prev => prev.map(item =>
+        item.id === itemId ? { ...item, cantidad: nuevaCantidad } : item
+      ))
+    }
+  }
+
+  const limpiarCarrito = () => {
+    setCarrito([])
+  }
+
+  const calcularTotal = () => {
+    return carrito.reduce((total, item) => 
+      total + (item.precio_unitario * item.cantidad), 0
+    )
+  }
+
+  const calcularCantidadTotal = () => {
+    return carrito.reduce((total, item) => total + item.cantidad, 0)
+  }
+
+  return {
+    carrito,
+    agregarAlCarrito,
+    removerDelCarrito,
+    actualizarCantidad,
+    limpiarCarrito,
+    calcularTotal,
+    calcularCantidadTotal
+  }
+}
