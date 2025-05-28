@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import InventarioSection from './components/InventarioSection';
-import AgregarSection from './components/AgregarSection';
+import CargaEquiposUnificada from './components/CargaEquiposUnificada';
 import CelularesSection from './components/CelularesSection';
-import AgregarCelularSection from './components/AgregarCelularSection';
 import OtrosSection from './components/OtrosSection';
-import AgregarOtroSection from './components/AgregarOtroSection';
 import ProcesarVentaSection from './components/ProcesarVentaSection';
 import VentasSection from './components/VentasSection';
 import CarritoWidget from './components/CarritoWidget';
+import EmailReceiptService from './services/emailService';
+import ReparacionesSection from './components/ReparacionesSection';
 import { useInventario, useCelulares, useOtros, useVentas, useCarrito } from './lib/supabase';
 
 const App = () => {
   const [activeSection, setActiveSection] = useState('inventario');
-  
+
   // Hooks para computadoras
   const {
     computers,
@@ -67,8 +67,23 @@ const App = () => {
     calcularCantidadTotal
   } = useCarrito();
 
+  // Configurar EmailJS al iniciar la aplicación
   useEffect(() => {
     console.log('🚀 Aplicación iniciada - Conectando con Supabase');
+
+    // ✅ Crear instancia del servicio de email
+    const emailService = new EmailReceiptService();
+
+    // ✅ Configurar usando método de instancia
+    emailService.configure(
+      'H2PWp2ZNPXjz6AGsT',
+      'service_79n27ne',
+      'template_6vkh1vp'  // ← Usar el ID correcto de emailConfig.js
+    );
+
+    console.log('📧 EmailService inicializado correctamente');
+
+    // Cargar datos iniciales
     fetchComputers();
     fetchCelulares();
     fetchOtros();
@@ -127,20 +142,26 @@ const App = () => {
     }
   };
 
-  // Handler para procesar carrito completo
+  // Handler para procesar carrito completo CON ENVÍO DE EMAIL
   const handleProcesarCarrito = async (carritoItems, datosCliente) => {
     try {
+      console.log('🛒 Procesando carrito con datos:', { carritoItems, datosCliente });
+
+      // Procesar la venta en la base de datos
       await procesarCarrito(carritoItems, datosCliente);
-      
+
       // Actualizar todos los inventarios
       fetchComputers();
       fetchCelulares();
       fetchOtros();
       fetchVentas();
-      
+
       // Limpiar carrito
       limpiarCarrito();
+
+      console.log('✅ Carrito procesado exitosamente');
     } catch (err) {
+      console.error('❌ Error procesando carrito:', err);
       throw err;
     }
   };
@@ -155,7 +176,7 @@ const App = () => {
         return;
       }
       // Verificar si ya está en el carrito
-      const yaEnCarrito = carrito.find(item => 
+      const yaEnCarrito = carrito.find(item =>
         item.producto.id === producto.id && item.tipo === tipo
       );
       if (yaEnCarrito) {
@@ -167,7 +188,7 @@ const App = () => {
       const cantidadEnCarrito = carrito
         .filter(item => item.producto.id === producto.id && item.tipo === tipo)
         .reduce((total, item) => total + item.cantidad, 0);
-      
+
       if (cantidadEnCarrito + cantidad > producto.cantidad) {
         alert(`Stock insuficiente. Disponible: ${producto.cantidad - cantidadEnCarrito}`);
         return;
@@ -182,7 +203,6 @@ const App = () => {
   const getCurrentStatus = () => {
     switch (activeSection) {
       case 'celulares':
-      case 'agregar-celular':
         return {
           loading: celularesLoading,
           error: celularesError,
@@ -190,7 +210,6 @@ const App = () => {
           type: 'celulares'
         };
       case 'otros':
-      case 'agregar-otro':
         return {
           loading: otrosLoading,
           error: otrosError,
@@ -204,6 +223,14 @@ const App = () => {
           error: ventasError,
           count: ventas.length,
           type: 'ventas'
+        };
+      case 'carga-equipos':
+        // Para carga de equipos, mostrar un estado combinado
+        return {
+          loading: computersLoading || celularesLoading || otrosLoading,
+          error: computersError || celularesError || otrosError,
+          count: computers.length + celulares.length + otros.length,
+          type: 'productos totales'
         };
       default:
         return {
@@ -238,16 +265,19 @@ const App = () => {
   const handleRetry = () => {
     switch (activeSection) {
       case 'celulares':
-      case 'agregar-celular':
         fetchCelulares();
         break;
       case 'otros':
-      case 'agregar-otro':
         fetchOtros();
         break;
       case 'procesar-venta':
       case 'ventas':
         fetchVentas();
+        break;
+      case 'carga-equipos':
+        fetchComputers();
+        fetchCelulares();
+        fetchOtros();
         break;
       default:
         fetchComputers();
@@ -256,8 +286,8 @@ const App = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar 
-        activeSection={activeSection} 
+      <Sidebar
+        activeSection={activeSection}
         setActiveSection={setActiveSection}
         cantidadCarrito={calcularCantidadTotal()}
       />
@@ -272,7 +302,7 @@ const App = () => {
             </div>
             {status.error && (
               <div className="mt-2 text-sm">
-                <button 
+                <button
                   onClick={handleRetry}
                   className="text-red-600 hover:underline"
                 >
@@ -283,64 +313,57 @@ const App = () => {
             {!status.error && !status.loading && (
               <div className="mt-2 text-sm opacity-75">
                 🚀 Conectado exitosamente a PostgreSQL via Supabase
+                <br />
+                📧 Sistema de recibos por email: Listo (configuración de EmailJS pendiente)
               </div>
             )}
           </div>
 
           {/* Renderizado de secciones */}
           {activeSection === 'inventario' && (
-            <InventarioSection 
-              computers={computers} 
-              loading={computersLoading} 
+            <InventarioSection
+              computers={computers}
+              loading={computersLoading}
               error={computersError}
               onDelete={handleDeleteComputer}
               onAddToCart={handleAddToCart}
             />
           )}
-          
-          {activeSection === 'agregar' && (
-            <AgregarSection 
-              onAdd={addComputer}
-              loading={computersLoading}
+
+          {activeSection === 'carga-equipos' && (
+            <CargaEquiposUnificada
+              onAddComputer={addComputer}
+              onAddCelular={addCelular}
+              onAddOtro={addOtro}
+              loading={computersLoading || celularesLoading || otrosLoading}
             />
           )}
 
+          {activeSection === 'reparaciones' && (
+            <ReparacionesSection />
+          )}
           {activeSection === 'celulares' && (
-            <CelularesSection 
-              celulares={celulares} 
-              loading={celularesLoading} 
+            <CelularesSection
+              celulares={celulares}
+              loading={celularesLoading}
               error={celularesError}
               onDelete={handleDeleteCelular}
               onAddToCart={handleAddToCart}
             />
           )}
-          
-          {activeSection === 'agregar-celular' && (
-            <AgregarCelularSection 
-              onAdd={addCelular}
-              loading={celularesLoading}
-            />
-          )}
 
           {activeSection === 'otros' && (
-            <OtrosSection 
-              otros={otros} 
-              loading={otrosLoading} 
+            <OtrosSection
+              otros={otros}
+              loading={otrosLoading}
               error={otrosError}
               onDelete={handleDeleteOtro}
               onAddToCart={handleAddToCart}
             />
           )}
-          
-          {activeSection === 'agregar-otro' && (
-            <AgregarOtroSection 
-              onAdd={addOtro}
-              loading={otrosLoading}
-            />
-          )}
 
           {activeSection === 'procesar-venta' && (
-            <ProcesarVentaSection 
+            <ProcesarVentaSection
               onVenta={handleProcesarVenta}
               loading={ventasLoading}
               carrito={carrito}
@@ -349,7 +372,7 @@ const App = () => {
           )}
 
           {activeSection === 'ventas' && (
-            <VentasSection 
+            <VentasSection
               ventas={ventas}
               loading={ventasLoading}
               error={ventasError}
@@ -359,8 +382,8 @@ const App = () => {
         </main>
       </div>
 
-      {/* Widget del carrito flotante */}
-      <CarritoWidget 
+      {/* Widget del carrito flotante CON FUNCIONALIDAD DE EMAIL */}
+      <CarritoWidget
         carrito={carrito}
         onUpdateCantidad={actualizarCantidad}
         onRemover={removerDelCarrito}

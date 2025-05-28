@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Mail, Download, Loader } from 'lucide-react';
+import EmailReceiptService from '../services/emailService'; // Ajustar la ruta según tu estructura
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [enviandoEmail, setEnviandoEmail] = useState(false);
   const [datosCliente, setDatosCliente] = useState({
     cliente_nombre: '',
     cliente_email: '',
@@ -11,8 +13,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     metodo_pago: 'efectivo',
     observaciones: '',
     vendedor: '',
-    sucursal: ''
+    sucursal: '',
+    enviar_recibo: true // Nueva opción
   });
+
+  const emailService = new EmailReceiptService();
 
   const calcularTotal = () => {
     return carrito.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0);
@@ -32,8 +37,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setDatosCliente(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setDatosCliente(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleProcesarVenta = async (e) => {
@@ -43,8 +51,45 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       return;
     }
 
+    // Validar email si quiere recibo por email
+    if (datosCliente.enviar_recibo && !datosCliente.cliente_email) {
+      alert('Por favor ingresa el email del cliente para enviar el recibo');
+      return;
+    }
+
     try {
-      await onProcesarVenta(carrito, datosCliente);
+      setEnviandoEmail(true);
+
+      // Generar número de transacción único
+      const numeroTransaccion = `VT-${Date.now()}`;
+      const datosVentaCompletos = {
+        ...datosCliente,
+        numeroTransaccion,
+        fecha_venta: new Date().toISOString()
+      };
+
+      // Procesar la venta en la base de datos
+      await onProcesarVenta(carrito, datosVentaCompletos);
+
+      // Enviar recibo por email si está habilitado
+      if (datosCliente.enviar_recibo && datosCliente.cliente_email) {
+        try {
+          await emailService.sendReceiptEmail(datosVentaCompletos, carrito);
+          alert('✅ Venta procesada y recibo enviado por email exitosamente!');
+        } catch (emailError) {
+          console.error('Error enviando email:', emailError);
+          // Ofrecer descargar PDF como alternativa
+          emailService.downloadReceipt(datosVentaCompletos, carrito);
+          alert('✅ Venta procesada exitosamente!\n⚠️ No se pudo enviar el email, pero se descargó el recibo PDF.');
+        }
+      } else {
+        // Solo descargar PDF si no quiere email
+        if (datosCliente.cliente_email) {
+          emailService.downloadReceipt(datosVentaCompletos, carrito);
+        }
+        alert('✅ Venta procesada exitosamente!');
+      }
+
       // Limpiar formulario y carrito
       setDatosCliente({
         cliente_nombre: '',
@@ -53,14 +98,30 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
         metodo_pago: 'efectivo',
         observaciones: '',
         vendedor: '',
-        sucursal: ''
+        sucursal: '',
+        enviar_recibo: true
       });
       setMostrarFormulario(false);
       setIsOpen(false);
-      alert('✅ Venta procesada exitosamente!');
+
     } catch (err) {
+      console.error('Error procesando venta:', err);
       alert('❌ Error procesando venta: ' + err.message);
+    } finally {
+      setEnviandoEmail(false);
     }
+  };
+
+  const handleDescargarRecibo = () => {
+    if (carrito.length === 0) return;
+    
+    const datosTemp = {
+      ...datosCliente,
+      numeroTransaccion: `PREVIEW-${Date.now()}`,
+      cliente_nombre: datosCliente.cliente_nombre || 'Cliente',
+    };
+    
+    emailService.downloadReceipt(datosTemp, carrito);
   };
 
   return (
@@ -96,12 +157,23 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       Carrito de Compras ({calcularCantidadTotal()} items)
                     </h2>
                   </div>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    {carrito.length > 0 && (
+                      <button
+                        onClick={handleDescargarRecibo}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Descargar recibo preview"
+                      >
+                        <Download className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Contenido del carrito */}
@@ -224,13 +296,16 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email {datosCliente.enviar_recibo && '*'}
+                        </label>
                         <input
                           type="email"
                           name="cliente_email"
                           value={datosCliente.cliente_email}
                           onChange={handleInputChange}
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required={datosCliente.enviar_recibo}
                         />
                       </div>
                       <div>
@@ -275,8 +350,31 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           value={datosCliente.sucursal}
                           onChange={handleInputChange}
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          placeholder="UPDATE TECH"
                         />
                       </div>
+                    </div>
+
+                    {/* Opción de envío de recibo */}
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          name="enviar_recibo"
+                          checked={datosCliente.enviar_recibo}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-blue-600" />
+                          <label className="text-sm font-medium text-gray-700">
+                            Enviar recibo por email
+                          </label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2 ml-7">
+                        Se enviará un PDF con el recibo de compra al email del cliente
+                      </p>
                     </div>
 
                     <div className="mb-6">
@@ -304,15 +402,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         type="button"
                         onClick={() => setMostrarFormulario(false)}
                         className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+                        disabled={enviandoEmail}
                       >
                         Volver
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                        disabled={enviandoEmail}
+                        className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
-                        <ShoppingCart className="w-5 h-5" />
-                        <span>Vender</span>
+                        {enviandoEmail ? (
+                          <>
+                            <Loader className="w-5 h-5 animate-spin" />
+                            <span>Procesando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-5 h-5" />
+                            <span>Vender</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>

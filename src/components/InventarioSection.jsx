@@ -3,7 +3,7 @@ import { Trash2, Edit } from 'lucide-react';
 
 const InventarioSection = ({ computers, loading, error, onDelete }) => (
   <div className="p-8">
-    <h2 className="text-2xl font-bold mb-4 text-gray-800">Inventario de Computadoras</h2>
+    <h2 className="text-2xl font-bold mb-4 text-gray-800">Stock de Notebooks</h2>
     {loading && <p className="text-blue-600">Cargando desde Supabase...</p>}
     {error && <p className="text-red-600">Error: {error}</p>}
     {!loading && !error && (
