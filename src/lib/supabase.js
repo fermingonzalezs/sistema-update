@@ -1184,3 +1184,103 @@ export function useCarrito() {
     calcularCantidadTotal
   }
 }
+
+// 📊 Servicios para Plan de Cuentas
+export const planCuentasService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('plan_cuentas')
+      .select('*')
+      .eq('activa', true)
+      .order('codigo');
+    if (error) throw error;
+    return data;
+  },
+
+  async create(cuenta) {
+    const { data, error } = await supabase
+      .from('plan_cuentas')
+      .insert([cuenta])
+      .select();
+    if (error) throw error;
+    return data[0];
+  },
+
+  async update(id, updates) {
+    const { data, error } = await supabase
+      .from('plan_cuentas')
+      .update(updates)
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    return data[0];
+  },
+
+  async delete(id) {
+    const { error } = await supabase
+      .from('plan_cuentas')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+};
+
+// 📚 Servicios para Asientos Contables
+export const asientosService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('asientos_contables')
+      .select(`
+        *,
+        movimientos_contables (
+          *,
+          plan_cuentas (codigo, nombre)
+        )
+      `)
+      .order('numero', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async create(asientoData) {
+    // Crear asiento y movimientos en transacción
+    const { data: asiento, error: errorAsiento } = await supabase
+      .from('asientos_contables')
+      .insert([{
+        numero: await this.getNextNumero(),
+        fecha: asientoData.fecha,
+        descripcion: asientoData.descripcion,
+        total_debe: asientoData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.debe || 0), 0),
+        total_haber: asientoData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0),
+        estado: 'registrado'
+      }])
+      .select()
+      .single();
+    
+    if (errorAsiento) throw errorAsiento;
+    
+    const movimientos = asientoData.movimientos.map(mov => ({
+      asiento_id: asiento.id,
+      cuenta_id: mov.cuenta_id,
+      debe: parseFloat(mov.debe || 0),
+      haber: parseFloat(mov.haber || 0)
+    }));
+    
+    const { error: errorMovimientos } = await supabase
+      .from('movimientos_contables')
+      .insert(movimientos);
+    
+    if (errorMovimientos) throw errorMovimientos;
+    return asiento;
+  },
+
+  async getNextNumero() {
+    const { data } = await supabase
+      .from('asientos_contables')
+      .select('numero')
+      .order('numero', { ascending: false })
+      .limit(1);
+    return (data?.[0]?.numero || 0) + 1;
+  }
+};

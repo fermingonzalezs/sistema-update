@@ -15,6 +15,7 @@ import {
   TrendingUp,
   ArrowUpDown,
   Settings,
+  BookOpen,
   AlertCircle
 } from 'lucide-react';
 
@@ -116,7 +117,24 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           disabled: true
         }
       ]
+    },{
+  title: 'CONTABILIDAD',
+  color: 'from-indigo-500 to-purple-600',
+  items: [
+    { 
+      id: 'plan-cuentas', 
+      label: 'Plan de Cuentas', 
+      icon: BookOpen,
+      description: 'Estructura contable'
+    },
+    { 
+      id: 'libro-diario', 
+      label: 'Libro Diario', 
+      icon: FileText,
+      description: 'Asientos contables'
     }
+  ]
+}
   ];
 
   const getGroupColorClasses = (color) => {

@@ -10,6 +10,8 @@ import VentasSection from './components/VentasSection';
 import CarritoWidget from './components/CarritoWidget';
 import EmailReceiptService from './services/emailService';
 import ReparacionesSection from './components/ReparacionesSection';
+import PlanCuentasSection from './components/PlanCuentasSection';
+import LibroDiarioSection from './components/LibroDiarioSection';
 import { useInventario, useCelulares, useOtros, useVentas, useCarrito } from './lib/supabase';
 
 const App = () => {
@@ -232,6 +234,14 @@ const App = () => {
           count: computers.length + celulares.length + otros.length,
           type: 'productos totales'
         };
+      case 'plan-cuentas':
+      case 'libro-diario':
+        return {
+          loading: false,
+          error: null,
+          count: 0,
+          type: 'contabilidad'
+        };
       default:
         return {
           loading: computersLoading,
@@ -259,6 +269,7 @@ const App = () => {
   const getStatusText = () => {
     if (status.error) return `Error: ${status.error}`;
     if (status.loading) return 'Conectando con Supabase...';
+    if (status.type === 'contabilidad') return 'Módulo contable activo';
     return `${status.count} ${status.type} en Supabase`;
   };
 
@@ -315,6 +326,12 @@ const App = () => {
                 🚀 Conectado exitosamente a PostgreSQL via Supabase
                 <br />
                 📧 Sistema de recibos por email: Listo (configuración de EmailJS pendiente)
+                {status.type === 'contabilidad' && (
+                  <>
+                    <br />
+                    📊 Sistema contable: Plan de cuentas y libro diario disponibles
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -342,6 +359,7 @@ const App = () => {
           {activeSection === 'reparaciones' && (
             <ReparacionesSection />
           )}
+
           {activeSection === 'celulares' && (
             <CelularesSection
               celulares={celulares}
@@ -378,6 +396,15 @@ const App = () => {
               error={ventasError}
               onLoadStats={obtenerEstadisticas}
             />
+          )}
+
+          {/* 📊 NUEVAS SECCIONES DE CONTABILIDAD */}
+          {activeSection === 'plan-cuentas' && (
+            <PlanCuentasSection />
+          )}
+
+          {activeSection === 'libro-diario' && (
+            <LibroDiarioSection />
           )}
         </main>
       </div>
