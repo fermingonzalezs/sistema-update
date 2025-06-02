@@ -17,12 +17,12 @@ const libroDiarioService = {
         )
       `)
       .order('numero', { ascending: false });
-    
+
     if (error) {
       console.error('❌ Error obteniendo asientos:', error);
       throw error;
     }
-    
+
     console.log(`✅ ${data.length} asientos obtenidos`);
     return data;
   },
@@ -35,12 +35,12 @@ const libroDiarioService = {
       .select('id, codigo, nombre')
       .eq('activa', true)
       .order('codigo');
-    
+
     if (error) {
       console.error('❌ Error obteniendo cuentas:', error);
       throw error;
     }
-    
+
     console.log(`✅ ${data.length} cuentas obtenidas`);
     return data;
   },
@@ -257,7 +257,7 @@ const LibroDiarioSection = () => {
   const nuevoAsiento = () => {
     console.log('➕ Creando nuevo asiento...');
     console.log('🔍 Cuentas disponibles para seleccionar:', cuentasImputables);
-    
+
     setFormData({
       fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
@@ -478,32 +478,32 @@ const LibroDiarioSection = () => {
               {asientosFiltrados.map(asiento => (
                 <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
                   {/* Fila principal del asiento - COLAPSADA */}
-                  <div 
+                  <div
                     className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                     onClick={() => toggleAsiento(asiento.id)}
                   >
                     <div className="flex items-center space-x-4">
                       <button className="p-1 hover:bg-gray-200 rounded transition-colors">
-                        {expandedAsientos[asiento.id] ? 
-                          <ChevronDown size={16} className="text-gray-600" /> : 
+                        {expandedAsientos[asiento.id] ?
+                          <ChevronDown size={16} className="text-gray-600" /> :
                           <ChevronRight size={16} className="text-gray-600" />
                         }
                       </button>
-                      
+
                       <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                         N° {asiento.numero}
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <Calendar size={14} />
                         <span>{new Date(asiento.fecha).toLocaleDateString()}</span>
                       </div>
-                      
+
                       <div className="font-medium text-gray-900">
                         {asiento.descripcion}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <div className="text-sm text-gray-500">Total</div>
@@ -511,7 +511,7 @@ const LibroDiarioSection = () => {
                           ${asiento.total_debe.toLocaleString()}
                         </div>
                       </div>
-                      
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -541,7 +541,7 @@ const LibroDiarioSection = () => {
                             {asiento.movimientos_contables.map((mov, index) => (
                               <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                                 <td className="py-3 px-6">
-                                  <div>
+                                  <div className={mov.haber > 0 ? "ml-50" : ""}>
                                     <code className="text-sm text-blue-600 font-mono">
                                       {mov.plan_cuentas.codigo}
                                     </code>
@@ -760,11 +760,10 @@ const LibroDiarioSection = () => {
                           </span>
                         </td>
                         <td className="text-center py-3 px-4">
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            totales.balanceado 
-                              ? 'bg-green-100 text-green-800' 
+                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${totales.balanceado
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                          }`}>
+                            }`}>
                             {totales.balanceado ? (
                               <>
                                 <Calculator size={12} className="mr-1" />
@@ -811,11 +810,10 @@ const LibroDiarioSection = () => {
               <button
                 onClick={guardarAsiento}
                 disabled={!totales.balanceado || cuentasImputables.length === 0}
-                className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                  totales.balanceado && cuentasImputables.length > 0
+                className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                  }`}
               >
                 <Save size={16} />
                 Guardar Asiento

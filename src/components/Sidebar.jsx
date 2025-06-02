@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  ShoppingCart, 
-  Plus, 
-  Package, 
-  Smartphone, 
-  BarChart3, 
+import {
+  ShoppingCart,
+  Plus,
+  Package,
+  Smartphone,
+  BarChart3,
   Box,
   Wrench,
   FileText,
@@ -15,8 +15,9 @@ import {
   TrendingUp,
   ArrowUpDown,
   Settings,
+  List,
   BookOpen,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
@@ -25,63 +26,79 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
       title: 'VENTAS',
       color: 'from-green-500 to-blue-600',
       items: [
-        { 
-          id: 'inventario', 
-          label: 'Notebooks', 
+        {
+          id: 'inventario',
+          label: 'Notebooks',
           icon: Package,
           description: 'Stock de notebooks'
         },
-        { 
-          id: 'celulares', 
-          label: 'Celulares', 
+        {
+          id: 'celulares',
+          label: 'Celulares',
           icon: Smartphone,
           description: 'Stock de celulares'
         },
-        { 
-          id: 'otros', 
-          label: 'Otros Productos', 
+        {
+          id: 'otros',
+          label: 'Otros Productos',
           icon: Box,
           description: 'Stock de otros'
         },
-        { 
-          id: 'procesar-venta', 
-          label: 'Venta', 
+        {
+          id: 'procesar-venta',
+          label: 'Venta',
           icon: ShoppingCart,
           description: 'Carrito de ventas',
           badge: cantidadCarrito > 0 ? cantidadCarrito : null
         },
+        {
+          id: 'gestion-fotos',
+          label: 'Gestión de Fotos',
+          icon: Camera,
+          description: 'Fotos de productos'
+        },
+        {
+          id: 'copys',
+          label: 'Generador Copys',
+          icon: FileText,
+          description: 'Copys para redes sociales'
+        }
       ]
     },
     {
       title: 'SOPORTE',
       color: 'from-orange-500 to-red-600',
       items: [
-        { 
-          id: 'carga-equipos', 
-          label: 'Carga de Equipos', 
+        {
+          id: 'carga-equipos',
+          label: 'Carga de Equipos',
           icon: Plus,
           description: 'Agregar productos'
         },
-        { 
-          id: 'reparaciones', 
-          label: 'Reparaciones', 
+        {
+          id: 'reparaciones',
+          label: 'Reparaciones',
           icon: Wrench,
           description: 'Gestión de reparaciones',
           disabled: false
         },
-        { 
-          id: 'presupuestos', 
-          label: 'Presupuestos', 
-          icon: FileText,
-          description: 'Generar presupuestos',
-          disabled: true
+        {
+          id: 'repuestos',
+          label: 'Repuestos',
+          icon: Wrench,
+          description: 'Inventario de repuestos'
         },
-        { 
-          id: 'egresos', 
-          label: 'Egresos', 
-          icon: ClipboardList,
-          description: 'Comprobantes de egreso',
-          disabled: true
+        {
+          id: 'recuento-repuestos',
+          label: 'Recuento Repuestos',
+          icon: Calculator,
+          description: 'Contar repuestos físicos'
+        },
+        {
+          id: 'presupuestos-reparacion',
+          label: 'Presupuestos',
+          icon: FileText,
+          description: 'Generar presupuestos'
         }
       ]
     },
@@ -89,60 +106,90 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
       title: 'ADMINISTRACIÓN',
       color: 'from-purple-500 to-indigo-600',
       items: [
-        { 
-          id: 'ventas', 
-          label: 'Historial Ventas', 
+        {
+          id: 'ventas',
+          label: 'Historial Ventas',
           icon: BarChart3,
           description: 'Registro de ventas'
         },
-        { 
-          id: 'movimientos', 
-          label: 'Movimientos', 
+        {
+          id: 'movimientos',
+          label: 'Movimientos',
           icon: ArrowUpDown,
           description: 'Movimientos de caja',
           disabled: true
         },
-        { 
-          id: 'comisiones', 
-          label: 'Comisiones', 
+        {
+          id: 'comisiones',
+          label: 'Comisiones',
           icon: Calculator,
           description: 'Calc. de comisiones',
-          disabled: true
+          disabled: false  // Cambiar de true a false
         },
-        { 
-          id: 'graficos', 
-          label: 'Gráficos', 
-          icon: TrendingUp,
-          description: 'Analytics y reportes',
-          disabled: true
+        {
+          id: 'dashboard-reportes',
+          label: 'Dashboard',
+          icon: BarChart3,
+          description: 'Reportes visuales'
+        },
+        {
+          id: 'recuento-stock',
+          label: 'Recuento Stock',
+          icon: Package,
+          description: 'Contar inventario'
         }
       ]
-    },{
-  title: 'CONTABILIDAD',
-  color: 'from-indigo-500 to-purple-600',
-  items: [
-    { 
-      id: 'plan-cuentas', 
-      label: 'Plan de Cuentas', 
-      icon: BookOpen,
-      description: 'Estructura contable'
-    },
-    { 
-      id: 'libro-diario', 
-      label: 'Libro Diario', 
-      icon: FileText,
-      description: 'Asientos contables'
+    }, {
+      title: 'CONTABILIDAD',
+      color: 'from-indigo-500 to-purple-600',
+      items: [
+        {
+          id: 'plan-cuentas',
+          label: 'Plan de Cuentas',
+          icon: BookOpen,
+          description: 'Estructura contable'
+        },
+        {
+          id: 'libro-diario',
+          label: 'Libro Diario',
+          icon: FileText,
+          description: 'Asientos contables'
+        },
+        {
+          id: 'reporte-movimientos',
+          label: 'Reporte Movimientos',
+          icon: ArrowUpDown,
+          description: 'Análisis de movimientos'
+        },
+        {
+          id: 'libro-mayor',
+          label: 'Libro Mayor',
+          icon: BookOpen,
+          description: 'Mayor por cuenta'
+        },
+        {
+          id: 'conciliacion-caja',
+          label: 'Conciliación Caja',
+          icon: DollarSign,
+          description: 'Verificar efectivo'
+        },
+        {
+          id: 'gastos-operativos',
+          name: 'Gastos Operativos',
+          icon: DollarSign,
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-100'
+        },
+      ]
     }
-  ]
-}
   ];
 
   const getGroupColorClasses = (color) => {
     return {
       gradient: `bg-gradient-to-r ${color}`,
       light: color.includes('orange') ? 'bg-orange-50 text-orange-700 border-orange-200' :
-             color.includes('green') ? 'bg-green-50 text-green-700 border-green-200' :
-             'bg-purple-50 text-purple-700 border-purple-200'
+        color.includes('green') ? 'bg-green-50 text-green-700 border-green-200' :
+          'bg-purple-50 text-purple-700 border-purple-200'
     };
   };
 
@@ -162,18 +209,17 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
               </div>
             </div>
           </div>
-          
+
           <nav className="space-y-8">
             {menuGroups.map((group, groupIndex) => {
               const colorClasses = getGroupColorClasses(group.color);
               const isGroupDisabled = group.disabled;
-              
+
               return (
                 <div key={groupIndex}>
                   {/* Título del grupo con color específico */}
-                  <div className={`${colorClasses.gradient} p-2 rounded-lg mb-4 relative ${
-                    isGroupDisabled ? 'opacity-60' : ''
-                  }`}>
+                  <div className={`${colorClasses.gradient} p-2 rounded-lg mb-4 relative ${isGroupDisabled ? 'opacity-60' : ''
+                    }`}>
                     <h3 className="text-sm font-bold text-white text-center tracking-wider flex items-center justify-center space-x-2">
                       <span>{group.title}</span>
                       {isGroupDisabled && (
@@ -186,68 +232,64 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
                       )}
                     </h3>
                   </div>
-                  
+
                   {/* Items del grupo */}
                   <div className="space-y-2">
                     {group.items.map((item) => {
                       const Icon = item.icon;
                       const isActive = activeSection === item.id;
                       const isItemDisabled = item.disabled || isGroupDisabled;
-                      
+
                       return (
                         <button
                           key={item.id}
                           onClick={() => !isItemDisabled && setActiveSection(item.id)}
                           disabled={isItemDisabled}
-                          className={`w-full group relative overflow-hidden rounded-xl p-3 transition-all duration-300 ${
-                            isItemDisabled 
-                              ? 'opacity-50 cursor-not-allowed' 
-                              : isActive
-                                ? 'bg-white/20 shadow-lg transform scale-105 backdrop-blur-sm border border-white/30'
-                                : 'hover:bg-white/10 hover:transform hover:scale-102 border border-transparent'
-                          }`}
+                          className={`w-full group relative overflow-hidden rounded-xl p-3 transition-all duration-300 ${isItemDisabled
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isActive
+                              ? 'bg-white/20 shadow-lg transform scale-105 backdrop-blur-sm border border-white/30'
+                              : 'hover:bg-white/10 hover:transform hover:scale-102 border border-transparent'
+                            }`}
                         >
                           {isActive && !isItemDisabled && (
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
                           )}
-                          
+
                           <div className="relative flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg transition-colors ${
-                                isItemDisabled
-                                  ? 'bg-white/5 text-slate-500'
-                                  : isActive 
-                                    ? 'bg-white/20 text-white shadow-sm' 
-                                    : 'bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white'
-                              }`}>
+                              <div className={`p-2 rounded-lg transition-colors ${isItemDisabled
+                                ? 'bg-white/5 text-slate-500'
+                                : isActive
+                                  ? 'bg-white/20 text-white shadow-sm'
+                                  : 'bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white'
+                                }`}>
                                 <Icon className="w-4 h-4" />
                               </div>
-                              
+
                               <div className="text-left">
-                                <div className={`text-sm font-semibold transition-colors flex items-center space-x-2 ${
-                                  isItemDisabled
-                                    ? 'text-slate-500'
-                                    : isActive 
-                                      ? 'text-white' 
-                                      : 'text-slate-200 group-hover:text-white'
-                                }`}>
+                                <div className={`text-sm font-semibold transition-colors flex items-center space-x-2 ${isItemDisabled
+                                  ? 'text-slate-500'
+                                  : isActive
+                                    ? 'text-white'
+                                    : 'text-slate-200 group-hover:text-white'
+                                  }`}>
                                   <span>{item.label}</span>
                                   {isItemDisabled && (
                                     <AlertCircle className="w-3 h-3 opacity-50" />
                                   )}
                                 </div>
-                                <div className={`text-xs transition-colors ${
-                                  isItemDisabled
-                                    ? 'text-slate-600'
-                                    : isActive 
-                                      ? 'text-slate-200' 
-                                      : 'text-slate-400 group-hover:text-slate-300'
-                                }`}>
+                                <div className={`text-xs transition-colors ${isItemDisabled
+                                  ? 'text-slate-600'
+                                  : isActive
+                                    ? 'text-slate-200'
+                                    : 'text-slate-400 group-hover:text-slate-300'
+                                  }`}>
                                   {item.description}
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                               {/* Badge para carrito */}
                               {item.badge && !isItemDisabled && (
@@ -255,7 +297,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
                                   {item.badge}
                                 </div>
                               )}
-                              
+
                               {/* Indicador activo */}
                               {isActive && !isItemDisabled && (
                                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-sm" />
@@ -289,7 +331,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
               <span><span className="text-orange-400 font-medium">{cantidadCarrito}</span> items pendientes</span>
             </div>
           )}
-          
+
         </div>
       </div>
 
