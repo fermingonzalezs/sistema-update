@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Mail, Download, Loader } from 'lucide-react';
-import EmailReceiptService from '../services/emailService'; // Ajustar la ruta según tu estructura
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Loader } from 'lucide-react';
+import ClienteSelector from './ClienteSelector';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [enviandoEmail, setEnviandoEmail] = useState(false);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [datosCliente, setDatosCliente] = useState({
-    cliente_nombre: '',
-    cliente_email: '',
-    cliente_telefono: '',
     metodo_pago: 'efectivo',
     observaciones: '',
     vendedor: '',
-    sucursal: '',
-    enviar_recibo: true // Nueva opción
+    sucursal: ''
   });
-
-  const emailService = new EmailReceiptService();
 
   const calcularTotal = () => {
     return carrito.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0);
@@ -37,23 +32,53 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setDatosCliente(prev => ({ 
       ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+      [name]: value 
     }));
   };
 
   const handleProcesarVenta = async (e) => {
     e.preventDefault();
-    if (!datosCliente.cliente_nombre) {
-      alert('Por favor ingresa el nombre del cliente');
+
+    console.log('🔄 Iniciando proceso de venta...');
+    console.log('Cliente seleccionado:', clienteSeleccionado);
+    console.log('Datos del cliente:', datosCliente);
+    console.log('Carrito:', carrito);
+
+    // ✅ VALIDACIÓN MEJORADA: Verificar que hay cliente seleccionado
+    if (!clienteSeleccionado || !clienteSeleccionado.id) {
+      console.error('❌ No hay cliente seleccionado');
+      
+      // ✅ Foco en el selector de cliente para mejor UX
+      const clienteInput = document.querySelector('input[placeholder*="Buscar cliente"]');
+      if (clienteInput) {
+        clienteInput.focus();
+        clienteInput.style.border = '2px solid red';
+        setTimeout(() => {
+          clienteInput.style.border = '';
+        }, 3000);
+      }
+      
+      alert('⚠️ Debe seleccionar un cliente antes de procesar la venta');
       return;
     }
 
-    // Validar email si quiere recibo por email
-    if (datosCliente.enviar_recibo && !datosCliente.cliente_email) {
-      alert('Por favor ingresa el email del cliente para enviar el recibo');
+    // ✅ VALIDACIÓN: Verificar que hay productos en el carrito
+    if (!carrito || carrito.length === 0) {
+      console.error('❌ Carrito vacío');
+      alert('⚠️ El carrito está vacío. Agregue productos antes de procesar la venta.');
+      return;
+    }
+
+    // ✅ CONFIRMACIÓN antes de procesar
+    const confirmacion = window.confirm(
+      `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?`
+    );
+    
+    if (!confirmacion) {
+      console.log('🚫 Venta cancelada por el usuario');
       return;
     }
 
@@ -62,66 +87,65 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
       // Generar número de transacción único
       const numeroTransaccion = `VT-${Date.now()}`;
+      
+      // ✅ DATOS COMPLETOS: Usar información del cliente seleccionado
       const datosVentaCompletos = {
-        ...datosCliente,
+        cliente_id: clienteSeleccionado.id,
+        cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
+        cliente_email: clienteSeleccionado.email || null,
+        cliente_telefono: clienteSeleccionado.telefono || null,
+        metodo_pago: datosCliente.metodo_pago,
+        observaciones: datosCliente.observaciones,
+        vendedor: datosCliente.vendedor,
+        sucursal: datosCliente.sucursal,
         numeroTransaccion,
         fecha_venta: new Date().toISOString()
       };
 
+      console.log('📦 Datos completos de la venta:', datosVentaCompletos);
+
       // Procesar la venta en la base de datos
+      console.log('💾 Enviando venta a la base de datos...');
       await onProcesarVenta(carrito, datosVentaCompletos);
+      console.log('✅ Venta procesada exitosamente en la BD');
 
-      // Enviar recibo por email si está habilitado
-      if (datosCliente.enviar_recibo && datosCliente.cliente_email) {
-        try {
-          await emailService.sendReceiptEmail(datosVentaCompletos, carrito);
-          alert('✅ Venta procesada y recibo enviado por email exitosamente!');
-        } catch (emailError) {
-          console.error('Error enviando email:', emailError);
-          // Ofrecer descargar PDF como alternativa
-          emailService.downloadReceipt(datosVentaCompletos, carrito);
-          alert('✅ Venta procesada exitosamente!\n⚠️ No se pudo enviar el email, pero se descargó el recibo PDF.');
-        }
-      } else {
-        // Solo descargar PDF si no quiere email
-        if (datosCliente.cliente_email) {
-          emailService.downloadReceipt(datosVentaCompletos, carrito);
-        }
-        alert('✅ Venta procesada exitosamente!');
-      }
+      // ✅ MOSTRAR MENSAJE DE ÉXITO antes de limpiar
+      alert(`✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`);
 
-      // Limpiar formulario y carrito
+      // ✅ LIMPIAR TODO después del éxito
+      setClienteSeleccionado(null);
       setDatosCliente({
-        cliente_nombre: '',
-        cliente_email: '',
-        cliente_telefono: '',
         metodo_pago: 'efectivo',
         observaciones: '',
         vendedor: '',
-        sucursal: '',
-        enviar_recibo: true
+        sucursal: ''
       });
       setMostrarFormulario(false);
       setIsOpen(false);
 
+      console.log('🎉 Proceso completado exitosamente');
+
     } catch (err) {
-      console.error('Error procesando venta:', err);
-      alert('❌ Error procesando venta: ' + err.message);
+      console.error('❌ Error procesando venta:', err);
+      
+      // ✅ ERROR MÁS ESPECÍFICO
+      let errorMessage = 'Error procesando venta';
+      
+      if (err.message.includes('cliente')) {
+        errorMessage = 'Error con los datos del cliente';
+      } else if (err.message.includes('stock') || err.message.includes('inventario')) {
+        errorMessage = 'Error de inventario - verifique el stock disponible';
+      } else if (err.message.includes('network') || err.message.includes('fetch')) {
+        errorMessage = 'Error de conexión - verifique su internet';
+      }
+      
+      alert(`❌ ${errorMessage}:\n\n${err.message}\n\nIntente nuevamente o contacte al administrador.`);
+      
+      // ✅ NO cerrar el formulario en caso de error para que puedan reintentar
+      
     } finally {
       setEnviandoEmail(false);
     }
-  };
-
-  const handleDescargarRecibo = () => {
-    if (carrito.length === 0) return;
-    
-    const datosTemp = {
-      ...datosCliente,
-      numeroTransaccion: `PREVIEW-${Date.now()}`,
-      cliente_nombre: datosCliente.cliente_nombre || 'Cliente',
-    };
-    
-    emailService.downloadReceipt(datosTemp, carrito);
   };
 
   return (
@@ -157,23 +181,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       Carrito de Compras ({calcularCantidadTotal()} items)
                     </h2>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {carrito.length > 0 && (
-                      <button
-                        onClick={handleDescargarRecibo}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Descargar recibo preview"
-                      >
-                        <Download className="w-5 h-5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setIsOpen(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
 
                 {/* Contenido del carrito */}
@@ -281,43 +294,32 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
                 <div className="flex-1 overflow-y-auto">
                   <form onSubmit={handleProcesarVenta} className="p-6">
+                    {/* ✅ Selector de cliente */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cliente *
+                      </label>
+                      <ClienteSelector
+                        selectedCliente={clienteSeleccionado}
+                        onSelectCliente={setClienteSeleccionado}
+                        required={true}
+                      />
+                      {clienteSeleccionado && (
+                        <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <p className="text-sm text-green-800">
+                            ✅ Cliente seleccionado: <strong>{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</strong>
+                          </p>
+                          {clienteSeleccionado.email && (
+                            <p className="text-xs text-green-600">📧 {clienteSeleccionado.email}</p>
+                          )}
+                          {clienteSeleccionado.telefono && (
+                            <p className="text-xs text-green-600">📞 {clienteSeleccionado.telefono}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nombre del Cliente *
-                        </label>
-                        <input
-                          type="text"
-                          name="cliente_nombre"
-                          value={datosCliente.cliente_nombre}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email {datosCliente.enviar_recibo && '*'}
-                        </label>
-                        <input
-                          type="email"
-                          name="cliente_email"
-                          value={datosCliente.cliente_email}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          required={datosCliente.enviar_recibo}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
-                        <input
-                          type="tel"
-                          name="cliente_telefono"
-                          value={datosCliente.cliente_telefono}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
                         <select
@@ -340,9 +342,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           value={datosCliente.vendedor}
                           onChange={handleInputChange}
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          placeholder="Nombre del vendedor"
                         />
                       </div>
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
                         <input
                           type="text"
@@ -355,28 +358,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       </div>
                     </div>
 
-                    {/* Opción de envío de recibo */}
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          name="enviar_recibo"
-                          checked={datosCliente.enviar_recibo}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                        <div className="flex items-center space-x-2">
-                          <Mail className="w-5 h-5 text-blue-600" />
-                          <label className="text-sm font-medium text-gray-700">
-                            Enviar recibo por email
-                          </label>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-2 ml-7">
-                        Se enviará un PDF con el recibo de compra al email del cliente
-                      </p>
-                    </div>
-
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
                       <textarea
@@ -385,6 +366,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         onChange={handleInputChange}
                         rows="2"
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Observaciones adicionales..."
                       />
                     </div>
 
@@ -392,6 +374,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
                       <h3 className="font-medium text-gray-700 mb-2">Resumen de la Venta</h3>
                       <div className="text-sm space-y-1">
+                        {clienteSeleccionado && (
+                          <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
+                        )}
                         <p>Items: {calcularCantidadTotal()}</p>
                         <p className="text-lg font-bold">Total: ${calcularTotal().toFixed(2)}</p>
                       </div>
@@ -408,7 +393,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       </button>
                       <button
                         type="submit"
-                        disabled={enviandoEmail}
+                        disabled={enviandoEmail || !clienteSeleccionado}
                         className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
                         {enviandoEmail ? (
@@ -419,7 +404,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         ) : (
                           <>
                             <ShoppingCart className="w-5 h-5" />
-                            <span>Vender</span>
+                            <span>Procesar Venta</span>
                           </>
                         )}
                       </button>

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,6 +13,7 @@
     "@emailjs/browser": "^4.4.1",
     "@supabase/supabase-js": "^2.49.8",
     "@tailwindcss/vite": "^4.1.7",
+    "claude": "^0.0.6",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",

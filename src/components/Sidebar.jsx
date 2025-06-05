@@ -15,6 +15,7 @@ import {
   TrendingUp,
   ArrowUpDown,
   Settings,
+  Users,
   List,
   BookOpen,
   AlertCircle,
@@ -62,6 +63,12 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           label: 'Generador Copys',
           icon: FileText,
           description: 'Copys para redes sociales'
+        },
+        {
+          id: 'clientes',
+          label: 'Clientes',
+          icon: Users,
+          description: 'Gestión de clientes'
         }
       ]
     },
@@ -176,6 +183,8 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
         {
           id: 'gastos-operativos',
           name: 'Gastos Operativos',
+          label: 'Gastos opertaivos',
+          description: 'Registro de gastos',
           icon: DollarSign,
           color: 'text-orange-600',
           bgColor: 'bg-orange-100'

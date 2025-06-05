@@ -8,7 +8,6 @@ import OtrosSection from './components/OtrosSection';
 import ProcesarVentaSection from './components/ProcesarVentaSection';
 import VentasSection from './components/VentasSection';
 import CarritoWidget from './components/CarritoWidget';
-import EmailReceiptService from './services/emailService';
 import ReparacionesSection from './components/ReparacionesSection';
 import PlanCuentasSection from './components/PlanCuentasSection';
 import LibroDiarioSection from './components/LibroDiarioSection';
@@ -24,13 +23,21 @@ import ComisionesSection from './components/ComisionesSection';
 import GestionFotosSection from './components/GestionFotosSection';
 import CopysSection from './components/CopysSection';
 import GastosOperativosSection from './components/GastosOperativosSection';
-import { useInventario, useCelulares, useOtros, useVentas, useCarrito, useGastosOperativos } from './lib/supabase';
+import ClientesSection from './components/ClientesSection';
 
+// 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
+import { useInventario } from './lib/inventario.js';
+import { useCelulares } from './lib/celulares.js';
+import { useOtros } from './lib/otros.js';
+import { useVentas } from './lib/ventas.js';
+import { useCarrito } from './lib/supabase.js'; // Este se queda en supabase.js
+import { useGastosOperativos } from './lib/gastosOperativos.js';
+import { useClientes } from './lib/clientes.js';
 
 const App = () => {
  const [activeSection, setActiveSection] = useState('inventario');
 
- // Hooks para computadoras
+ // 🖥️ Hooks para computadoras
  const {
    computers,
    loading: computersLoading,
@@ -40,7 +47,7 @@ const App = () => {
    deleteComputer
  } = useInventario();
 
- // Hooks para celulares
+ // 📱 Hooks para celulares
  const {
    celulares,
    loading: celularesLoading,
@@ -50,7 +57,7 @@ const App = () => {
    deleteCelular
  } = useCelulares();
 
- // Hooks para otros productos
+ // 📦 Hooks para otros productos
  const {
    otros,
    loading: otrosLoading,
@@ -60,7 +67,7 @@ const App = () => {
    deleteOtro
  } = useOtros();
 
- // Hooks para ventas
+ // 💰 Hooks para ventas
  const {
    ventas,
    loading: ventasLoading,
@@ -71,7 +78,7 @@ const App = () => {
    obtenerEstadisticas
  } = useVentas();
 
- // Hook para carrito
+ // 🛒 Hook para carrito
  const {
    carrito,
    agregarAlCarrito,
@@ -82,7 +89,7 @@ const App = () => {
    calcularCantidadTotal
  } = useCarrito();
 
- // Hook para gastos operativos
+ // 💸 Hook para gastos operativos
  const {
    gastos,
    loading: gastosLoading,
@@ -93,31 +100,30 @@ const App = () => {
    eliminarGasto
  } = useGastosOperativos();
 
- // Configurar EmailJS al iniciar la aplicación
+ // 👥 Hook para clientes (NUEVO)
+ const {
+   clientes,
+   loading: clientesLoading,
+   error: clientesError,
+   fetchClientes
+ } = useClientes();
+
+ // ⚡ Inicialización al cargar la aplicación
  useEffect(() => {
    console.log('🚀 Aplicación iniciada - Conectando con Supabase');
 
-   // ✅ Crear instancia del servicio de email
-   const emailService = new EmailReceiptService();
-
-   // ✅ Configurar usando método de instancia
-   emailService.configure(
-     'H2PWp2ZNPXjz6AGsT',
-     'service_79n27ne',
-     'template_6vkh1vp'  // ← Usar el ID correcto de emailConfig.js
-   );
-
-   console.log('📧 EmailService inicializado correctamente');
-
-   // Cargar datos iniciales
+   // 📊 Cargar datos iniciales
    fetchComputers();
    fetchCelulares();
    fetchOtros();
    fetchVentas();
    fetchGastos();
- }, []);
+   fetchClientes();
 
- // Handlers para eliminar
+   console.log('✅ Hooks de datos inicializados');
+ }, []); // ✅ Sin dependencias para evitar loops infinitos
+
+ // 🗑️ Handlers para eliminar
  const handleDeleteComputer = async (id) => {
    if (window.confirm('¿Estás seguro de que quieres eliminar esta computadora?')) {
      try {
@@ -151,7 +157,7 @@ const App = () => {
    }
  };
 
- // Handler para procesar venta individual (desde ProcesarVentaSection)
+ // 💰 Handler para procesar venta individual (desde ProcesarVentaSection)
  const handleProcesarVenta = async (ventaData, tipoProducto, productoId) => {
    try {
      await registrarVenta(ventaData, tipoProducto, productoId);
@@ -169,7 +175,7 @@ const App = () => {
    }
  };
 
- // Handler para procesar carrito completo CON ENVÍO DE EMAIL
+ // 🛒 Handler para procesar carrito completo
  const handleProcesarCarrito = async (carritoItems, datosCliente) => {
    try {
      console.log('🛒 Procesando carrito con datos:', { carritoItems, datosCliente });
@@ -187,13 +193,14 @@ const App = () => {
      limpiarCarrito();
 
      console.log('✅ Carrito procesado exitosamente');
+     alert('✅ Venta procesada exitosamente!');
    } catch (err) {
      console.error('❌ Error procesando carrito:', err);
      throw err;
    }
  };
 
- // Handler para agregar al carrito
+ // ➕ Handler para agregar al carrito
  const handleAddToCart = (producto, tipo, cantidad = 1) => {
    // Validaciones específicas por tipo
    if (tipo === 'computadora' || tipo === 'celular') {
@@ -226,7 +233,7 @@ const App = () => {
    alert('✅ Producto agregado al carrito');
  };
 
- // Determinar estado general basado en la sección activa
+ // 📊 Determinar estado general basado en la sección activa
  const getCurrentStatus = () => {
    switch (activeSection) {
      case 'celulares':
@@ -257,6 +264,13 @@ const App = () => {
          error: gastosError,
          count: gastos.length,
          type: 'gastos operativos'
+       };
+     case 'clientes': // ✅ NUEVO: Estado para clientes
+       return {
+         loading: clientesLoading,
+         error: clientesError,
+         count: clientes.length,
+         type: 'clientes'
        };
      case 'carga-equipos':
        // Para carga de equipos, mostrar un estado combinado
@@ -320,6 +334,9 @@ const App = () => {
      case 'gastos-operativos':
        fetchGastos();
        break;
+     case 'clientes': // ✅ NUEVO: Retry para clientes
+       fetchClientes();
+       break;
      case 'carga-equipos':
        fetchComputers();
        fetchCelulares();
@@ -360,7 +377,7 @@ const App = () => {
              <div className="mt-2 text-sm opacity-75">
                🚀 Conectado exitosamente a PostgreSQL via Supabase
                <br />
-               📧 Sistema de recibos por email: Listo (configuración de EmailJS pendiente)
+               👥 Sistema de clientes: Activo y funcionando
                {status.type === 'contabilidad' && (
                  <>
                    <br />
@@ -371,7 +388,7 @@ const App = () => {
            )}
          </div>
 
-         {/* Renderizado de secciones */}
+         {/* 📋 Renderizado de secciones */}
          {activeSection === 'inventario' && (
            <InventarioSection
              computers={computers}
@@ -432,6 +449,12 @@ const App = () => {
              onLoadStats={obtenerEstadisticas}
            />
          )}
+
+         {/* 👥 NUEVA SECCIÓN DE CLIENTES */}
+         {activeSection === 'clientes' && (
+           <ClientesSection />
+         )}
+
          {activeSection === 'gestion-fotos' && (
            <GestionFotosSection
              computers={computers}
@@ -441,11 +464,12 @@ const App = () => {
              error={computersError || celularesError || otrosError}
            />
          )}
+
          {activeSection === 'presupuestos-reparacion' && (
            <PresupuestosReparacionSection />
          )}
 
-         {/* 📊 NUEVAS SECCIONES DE CONTABILIDAD */}
+         {/* 📊 SECCIONES DE CONTABILIDAD */}
          {activeSection === 'plan-cuentas' && (
            <PlanCuentasSection />
          )}
@@ -453,17 +477,20 @@ const App = () => {
          {activeSection === 'libro-diario' && (
            <LibroDiarioSection />
          )}
+
          {activeSection === 'reporte-movimientos' && (
            <ReporteMovimientosSection />
          )}
+
          {activeSection === 'libro-mayor' && (
            <LibroMayorSection />
          )}
+
          {activeSection === 'conciliacion-caja' && (
            <ConciliacionCajaSection />
          )}
 
-         {/* 💰 NUEVA SECCIÓN DE GASTOS OPERATIVOS */}
+         {/* 💰 SECCIÓN DE GASTOS OPERATIVOS */}
          {activeSection === 'gastos-operativos' && (
            <GastosOperativosSection />
          )}
@@ -475,12 +502,15 @@ const App = () => {
          {activeSection === 'repuestos' && (
            <RepuestosSection />
          )}
+
          {activeSection === 'recuento-repuestos' && (
            <RecuentoRepuestosSection />
          )}
+
          {activeSection === 'dashboard-reportes' && (
            <DashboardReportesSection />
          )}
+
          {activeSection === 'comisiones' && (
            <ComisionesSection
              ventas={ventas}
@@ -489,6 +519,7 @@ const App = () => {
              onLoadStats={obtenerEstadisticas}
            />
          )}
+
          {activeSection === 'copys' && (
            <CopysSection
              computers={computers}
@@ -502,7 +533,7 @@ const App = () => {
        </main>
      </div>
 
-     {/* Widget del carrito flotante CON FUNCIONALIDAD DE EMAIL */}
+     {/* 🛒 Widget del carrito flotante */}
      <CarritoWidget
        carrito={carrito}
        onUpdateCantidad={actualizarCantidad}
