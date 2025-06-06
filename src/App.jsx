@@ -24,6 +24,7 @@ import GestionFotosSection from './components/GestionFotosSection';
 import CopysSection from './components/CopysSection';
 import GastosOperativosSection from './components/GastosOperativosSection';
 import ClientesSection from './components/ClientesSection';
+import CuentasCorrientesSection from './components/CuentasCorrientesSection'; // ✅ NUEVO
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
 import { useInventario } from './lib/inventario.js';
@@ -33,6 +34,7 @@ import { useVentas } from './lib/ventas.js';
 import { useCarrito } from './lib/supabase.js'; // Este se queda en supabase.js
 import { useGastosOperativos } from './lib/gastosOperativos.js';
 import { useClientes } from './lib/clientes.js';
+import { useCuentasCorrientes } from './lib/cuentasCorrientes.js'; // ✅ NUEVO
 
 const App = () => {
  const [activeSection, setActiveSection] = useState('inventario');
@@ -100,13 +102,21 @@ const App = () => {
    eliminarGasto
  } = useGastosOperativos();
 
- // 👥 Hook para clientes (NUEVO)
+ // 👥 Hook para clientes
  const {
    clientes,
    loading: clientesLoading,
    error: clientesError,
    fetchClientes
  } = useClientes();
+
+ // 🏦 Hook para cuentas corrientes (NUEVO)
+ const {
+   registrarVentaFiado,
+   fetchSaldos: fetchSaldosCuentasCorrientes,
+   loading: cuentasCorrientesLoading,
+   error: cuentasCorrientesError
+ } = useCuentasCorrientes();
 
  // ⚡ Inicialización al cargar la aplicación
  useEffect(() => {
@@ -119,6 +129,7 @@ const App = () => {
    fetchVentas();
    fetchGastos();
    fetchClientes();
+   fetchSaldosCuentasCorrientes(); // ✅ NUEVO
 
    console.log('✅ Hooks de datos inicializados');
  }, []); // ✅ Sin dependencias para evitar loops infinitos
@@ -175,15 +186,35 @@ const App = () => {
    }
  };
 
- // 🛒 Handler para procesar carrito completo
+ // 🛒 Handler para procesar carrito completo (MODIFICADO)
  const handleProcesarCarrito = async (carritoItems, datosCliente) => {
    try {
      console.log('🛒 Procesando carrito con datos:', { carritoItems, datosCliente });
 
-     // Procesar la venta en la base de datos
-     await procesarCarrito(carritoItems, datosCliente);
+     // Procesar la venta en la base de datos (como siempre)
+     const ventaResult = await procesarCarrito(carritoItems, datosCliente);
+     console.log('✅ Venta procesada en BD:', ventaResult);
 
-     // Actualizar todos los inventarios
+     // ✅ NUEVO: Si es cuenta corriente, registrar en cuentas corrientes
+     if (datosCliente.esCuentaCorriente && datosCliente.metodo_pago === 'cuenta_corriente') {
+       console.log('🏷️ Registrando venta en cuenta corriente...');
+       
+       await registrarVentaFiado({
+         cliente_id: datosCliente.cliente_id,
+         total: datosCliente.total,
+         numeroTransaccion: datosCliente.numeroTransaccion,
+         venta_id: ventaResult.id || ventaResult[0]?.id, // ID de la venta recién creada
+         observaciones: datosCliente.observaciones,
+         vendedor: datosCliente.vendedor
+       });
+       
+       console.log('✅ Movimiento registrado en cuenta corriente');
+       
+       // Actualizar saldos de cuentas corrientes
+       await fetchSaldosCuentasCorrientes();
+     }
+
+     // Actualizar todos los inventarios (como siempre)
      fetchComputers();
      fetchCelulares();
      fetchOtros();
@@ -193,7 +224,7 @@ const App = () => {
      limpiarCarrito();
 
      console.log('✅ Carrito procesado exitosamente');
-     alert('✅ Venta procesada exitosamente!');
+     
    } catch (err) {
      console.error('❌ Error procesando carrito:', err);
      throw err;
@@ -233,7 +264,7 @@ const App = () => {
    alert('✅ Producto agregado al carrito');
  };
 
- // 📊 Determinar estado general basado en la sección activa
+ // 📊 Determinar estado general basado en la sección activa (MODIFICADO)
  const getCurrentStatus = () => {
    switch (activeSection) {
      case 'celulares':
@@ -265,12 +296,19 @@ const App = () => {
          count: gastos.length,
          type: 'gastos operativos'
        };
-     case 'clientes': // ✅ NUEVO: Estado para clientes
+     case 'clientes':
        return {
          loading: clientesLoading,
          error: clientesError,
          count: clientes.length,
          type: 'clientes'
+       };
+     case 'cuentas-corrientes': // ✅ NUEVO
+       return {
+         loading: cuentasCorrientesLoading,
+         error: cuentasCorrientesError,
+         count: 0, // Se calculará dinámicamente
+         type: 'cuentas corrientes'
        };
      case 'carga-equipos':
        // Para carga de equipos, mostrar un estado combinado
@@ -316,6 +354,7 @@ const App = () => {
    if (status.error) return `Error: ${status.error}`;
    if (status.loading) return 'Conectando con Supabase...';
    if (status.type === 'contabilidad') return 'Módulo contable activo';
+   if (status.type === 'cuentas corrientes') return 'Sistema de cuentas corrientes activo';
    return `${status.count} ${status.type} en Supabase`;
  };
 
@@ -334,8 +373,11 @@ const App = () => {
      case 'gastos-operativos':
        fetchGastos();
        break;
-     case 'clientes': // ✅ NUEVO: Retry para clientes
+     case 'clientes':
        fetchClientes();
+       break;
+     case 'cuentas-corrientes': // ✅ NUEVO
+       fetchSaldosCuentasCorrientes();
        break;
      case 'carga-equipos':
        fetchComputers();
@@ -378,6 +420,8 @@ const App = () => {
                🚀 Conectado exitosamente a PostgreSQL via Supabase
                <br />
                👥 Sistema de clientes: Activo y funcionando
+               <br />
+               🏦 Sistema de cuentas corrientes: Activo y funcionando
                {status.type === 'contabilidad' && (
                  <>
                    <br />
@@ -450,9 +494,14 @@ const App = () => {
            />
          )}
 
-         {/* 👥 NUEVA SECCIÓN DE CLIENTES */}
+         {/* 👥 SECCIÓN DE CLIENTES */}
          {activeSection === 'clientes' && (
            <ClientesSection />
+         )}
+
+         {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
+         {activeSection === 'cuentas-corrientes' && (
+           <CuentasCorrientesSection />
          )}
 
          {activeSection === 'gestion-fotos' && (

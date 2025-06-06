@@ -10,6 +10,7 @@ import {
   FileText,
   ClipboardList,
   Camera,
+  CreditCard,
   DollarSign,
   Calculator,
   TrendingUp,
@@ -183,12 +184,18 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
         {
           id: 'gastos-operativos',
           name: 'Gastos Operativos',
-          label: 'Gastos opertaivos',
+          label: 'Gastos operativos',
           description: 'Registro de gastos',
           icon: DollarSign,
           color: 'text-orange-600',
           bgColor: 'bg-orange-100'
         },
+        {
+          id: 'cuentas-corrientes',
+          label: 'Cuentas Corrientes',
+          icon: CreditCard,
+          description: 'Deudas y saldos'
+        }
       ]
     }
   ];

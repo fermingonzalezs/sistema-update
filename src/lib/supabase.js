@@ -22,6 +22,7 @@ export { ventasService, useVentas } from './ventas.js'
 export { clientesService, useClientes } from './clientes.js'
 export { gastosOperativosService, useGastosOperativos } from './gastosOperativos.js'
 export { fotosService, useFotos } from './fotos.js'
+// ✅ COMENTADA: export { cuentasCorrientesService, useCuentasCorrientes } from './cuentasCorrientes.js'
 
 // 🛒 Hook del carrito (mantener aquí porque es simple y no necesita archivo propio)
 export function useCarrito() {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Loader } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Loader, CreditCard } from 'lucide-react';
 import ClienteSelector from './ClienteSelector';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
@@ -47,11 +47,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     console.log('Datos del cliente:', datosCliente);
     console.log('Carrito:', carrito);
 
-    // ✅ VALIDACIÓN MEJORADA: Verificar que hay cliente seleccionado
+    // ✅ VALIDACIÓN: Verificar que hay cliente seleccionado
     if (!clienteSeleccionado || !clienteSeleccionado.id) {
       console.error('❌ No hay cliente seleccionado');
       
-      // ✅ Foco en el selector de cliente para mejor UX
       const clienteInput = document.querySelector('input[placeholder*="Buscar cliente"]');
       if (clienteInput) {
         clienteInput.focus();
@@ -72,14 +71,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       return;
     }
 
-    // ✅ CONFIRMACIÓN antes de procesar
-    const confirmacion = window.confirm(
-      `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?`
-    );
-    
-    if (!confirmacion) {
-      console.log('🚫 Venta cancelada por el usuario');
-      return;
+    // ✅ VALIDACIÓN ESPECIAL: Si es cuenta corriente, confirmar
+    if (datosCliente.metodo_pago === 'cuenta_corriente') {
+      const confirmacion = window.confirm(
+        `¿Confirmar venta a CUENTA CORRIENTE por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
+      );
+      
+      if (!confirmacion) {
+        console.log('🚫 Venta a cuenta corriente cancelada por el usuario');
+        return;
+      }
+    } else {
+      // Confirmación normal para otros métodos de pago
+      const confirmacion = window.confirm(
+        `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?`
+      );
+      
+      if (!confirmacion) {
+        console.log('🚫 Venta cancelada por el usuario');
+        return;
+      }
     }
 
     try {
@@ -99,7 +110,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
         vendedor: datosCliente.vendedor,
         sucursal: datosCliente.sucursal,
         numeroTransaccion,
-        fecha_venta: new Date().toISOString()
+        fecha_venta: new Date().toISOString(),
+        // ✅ NUEVO: Información para cuenta corriente
+        esCuentaCorriente: datosCliente.metodo_pago === 'cuenta_corriente',
+        total: calcularTotal()
       };
 
       console.log('📦 Datos completos de la venta:', datosVentaCompletos);
@@ -109,8 +123,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       await onProcesarVenta(carrito, datosVentaCompletos);
       console.log('✅ Venta procesada exitosamente en la BD');
 
-      // ✅ MOSTRAR MENSAJE DE ÉXITO antes de limpiar
-      alert(`✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`);
+      // ✅ MOSTRAR MENSAJE DE ÉXITO personalizado
+      const mensajeExito = datosCliente.metodo_pago === 'cuenta_corriente' 
+        ? `✅ Venta a CUENTA CORRIENTE procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}\n\n📝 El saldo se registró en la cuenta corriente del cliente.`
+        : `✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`;
+
+      alert(mensajeExito);
 
       // ✅ LIMPIAR TODO después del éxito
       setClienteSeleccionado(null);
@@ -128,7 +146,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     } catch (err) {
       console.error('❌ Error procesando venta:', err);
       
-      // ✅ ERROR MÁS ESPECÍFICO
       let errorMessage = 'Error procesando venta';
       
       if (err.message.includes('cliente')) {
@@ -140,8 +157,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       }
       
       alert(`❌ ${errorMessage}:\n\n${err.message}\n\nIntente nuevamente o contacte al administrador.`);
-      
-      // ✅ NO cerrar el formulario en caso de error para que puedan reintentar
       
     } finally {
       setEnviandoEmail(false);
@@ -321,19 +336,40 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
-                        <select
-                          name="metodo_pago"
-                          value={datosCliente.metodo_pago}
-                          onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        >
-                          <option value="efectivo">Efectivo</option>
-                          <option value="tarjeta">Tarjeta</option>
-                          <option value="transferencia">Transferencia</option>
-                          <option value="cheque">Cheque</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Método de Pago *
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="metodo_pago"
+                            value={datosCliente.metodo_pago}
+                            onChange={handleInputChange}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
+                          >
+                            <option value="efectivo">💵 Efectivo</option>
+                            <option value="tarjeta">💳 Tarjeta</option>
+                            <option value="transferencia">🏦 Transferencia</option>
+                            <option value="cheque">📝 Cheque</option>
+                            <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                          </select>
+                        </div>
+                        
+                        {/* ✅ ALERTA para cuenta corriente */}
+                        {datosCliente.metodo_pago === 'cuenta_corriente' && (
+                          <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <CreditCard className="w-4 h-4 text-orange-600" />
+                              <p className="text-sm text-orange-800 font-medium">
+                                Venta a Cuenta Corriente
+                              </p>
+                            </div>
+                            <p className="text-xs text-orange-600 mt-1">
+                              El saldo quedará registrado como deuda pendiente del cliente
+                            </p>
+                          </div>
+                        )}
                       </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Vendedor</label>
                         <input
@@ -345,6 +381,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           placeholder="Nombre del vendedor"
                         />
                       </div>
+                      
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
                         <input
@@ -378,7 +415,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
                         )}
                         <p>Items: {calcularCantidadTotal()}</p>
+                        <p>Método: <span className="font-medium capitalize">{datosCliente.metodo_pago.replace('_', ' ')}</span></p>
                         <p className="text-lg font-bold">Total: ${calcularTotal().toFixed(2)}</p>
+                        
+                        {/* ✅ RESUMEN especial para cuenta corriente */}
+                        {datosCliente.metodo_pago === 'cuenta_corriente' && (
+                          <div className="mt-2 p-2 bg-orange-100 rounded text-orange-800 text-xs">
+                            💡 Esta venta se registrará como deuda en la cuenta corriente del cliente
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -394,7 +439,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       <button
                         type="submit"
                         disabled={enviandoEmail || !clienteSeleccionado}
-                        className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                          datosCliente.metodo_pago === 'cuenta_corriente' 
+                            ? 'bg-orange-600 text-white hover:bg-orange-700' 
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
                       >
                         {enviandoEmail ? (
                           <>
@@ -403,8 +452,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           </>
                         ) : (
                           <>
-                            <ShoppingCart className="w-5 h-5" />
-                            <span>Procesar Venta</span>
+                            {datosCliente.metodo_pago === 'cuenta_corriente' ? (
+                              <>
+                                <CreditCard className="w-5 h-5" />
+                                <span>Procesar a Cuenta Corriente</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingCart className="w-5 h-5" />
+                                <span>Procesar Venta</span>
+                              </>
+                            )}
                           </>
                         )}
                       </button>
