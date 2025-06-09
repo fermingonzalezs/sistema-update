@@ -1,43 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import InventarioSection from './components/InventarioSection';
-import CargaEquiposUnificada from './components/CargaEquiposUnificada';
-import CelularesSection from './components/CelularesSection';
-import OtrosSection from './components/OtrosSection';
-import ProcesarVentaSection from './components/ProcesarVentaSection';
-import VentasSection from './components/VentasSection';
-import CarritoWidget from './components/CarritoWidget';
-import ReparacionesSection from './components/ReparacionesSection';
-import PlanCuentasSection from './components/PlanCuentasSection';
-import LibroDiarioSection from './components/LibroDiarioSection';
-import ReporteMovimientosSection from './components/ReporteMovimientosSection';
-import LibroMayorSection from './components/LibroMayorSection';
-import ConciliacionCajaSection from './components/ConciliacionCajaSection';
-import RecuentoStockSection from './components/RecuentoStockSection';
-import RepuestosSection from './components/RepuestosSection';
-import RecuentoRepuestosSection from './components/RecuentoRepuestosSection';
-import PresupuestosReparacionSection from './components/PresupuestosReparacionSection';
-import DashboardReportesSection from './components/DashboardReportesSection';
-import ComisionesSection from './components/ComisionesSection';
-import GestionFotosSection from './components/GestionFotosSection';
-import CopysSection from './components/CopysSection';
-import GastosOperativosSection from './components/GastosOperativosSection';
-import ClientesSection from './components/ClientesSection';
-import CuentasCorrientesSection from './components/CuentasCorrientesSection'; // ✅ NUEVO
+import { Sidebar, Header, CarritoWidget } from './shared/components/layout';
+import { AuthProvider, useAuthContext } from './context/AuthContext';
+import Login from './components/Login';
+import { 
+  InventarioSection,
+  CelularesSection,
+  OtrosSection,
+  ProcesarVentaSection,
+  ClientesSection,
+  AgregarOtroSection,
+  AgregarSection,
+  AgregarCelularSection,
+  CopysSection,
+  GestionFotosSection
+} from './modules/ventas/components';
+import {
+  CargaEquiposUnificada,
+  ReparacionesSection,
+  RepuestosSection,
+  RecuentoRepuestosSection,
+  PresupuestosReparacionSection
+} from './modules/soporte/components';
+import {
+  VentasSection,
+  ComisionesSection,
+  DashboardReportesSection,
+  RecuentoStockSection
+} from './modules/administracion/components';
+import {
+  PlanCuentasSection,
+  LibroDiarioSection,
+  ReporteMovimientosSection,
+  LibroMayorSection,
+  ConciliacionCajaSection,
+  GastosOperativosSection,
+  CuentasCorrientesSection
+} from './modules/contabilidad/components';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
-import { useInventario } from './lib/inventario.js';
-import { useCelulares } from './lib/celulares.js';
-import { useOtros } from './lib/otros.js';
-import { useVentas } from './lib/ventas.js';
-import { useCarrito } from './lib/supabase.js'; // Este se queda en supabase.js
-import { useGastosOperativos } from './lib/gastosOperativos.js';
-import { useClientes } from './lib/clientes.js';
-import { useCuentasCorrientes } from './lib/cuentasCorrientes.js'; // ✅ NUEVO
+import { useInventario } from './modules/ventas/hooks/useInventario';
+import { useCelulares } from './modules/ventas/hooks/useCelulares';
+import { useOtros } from './modules/ventas/hooks/useOtros';
+import { useVentas } from './modules/ventas/hooks/useVentas';
+import { useCarrito } from './lib/supabase'; // Este se queda en supabase.js
+import { useGastosOperativos } from './modules/contabilidad/hooks/useGastosOperativos';
+import { useClientes } from './modules/ventas/hooks/useClientes';
+import { useCuentasCorrientes } from './modules/contabilidad/hooks/useCuentasCorrientes';
+import { useReparaciones } from './modules/soporte/hooks/useReparaciones';
 
-const App = () => {
- const [activeSection, setActiveSection] = useState('inventario');
+// Componente principal protegido
+const AppContent = () => {
+  const { isAuthenticated, hasAccess } = useAuthContext();
+  const [activeSection, setActiveSection] = useState('inventario');
 
  // 🖥️ Hooks para computadoras
  const {
@@ -46,7 +60,8 @@ const App = () => {
    error: computersError,
    fetchComputers,
    addComputer,
-   deleteComputer
+   deleteComputer,
+   updateComputer,
  } = useInventario();
 
  // 📱 Hooks para celulares
@@ -120,19 +135,33 @@ const App = () => {
 
  // ⚡ Inicialización al cargar la aplicación
  useEffect(() => {
-   console.log('🚀 Aplicación iniciada - Conectando con Supabase');
+   if (isAuthenticated) {
+     console.log('🚀 Usuario autenticado - Conectando con Supabase');
 
-   // 📊 Cargar datos iniciales
-   fetchComputers();
-   fetchCelulares();
-   fetchOtros();
-   fetchVentas();
-   fetchGastos();
-   fetchClientes();
-   fetchSaldosCuentasCorrientes(); // ✅ NUEVO
+     // 📊 Cargar datos iniciales solo si está autenticado
+     fetchComputers();
+     fetchCelulares();
+     fetchOtros();
+     fetchVentas();
+     fetchGastos();
+     fetchClientes();
+     fetchSaldosCuentasCorrientes(); // ✅ NUEVO
 
-   console.log('✅ Hooks de datos inicializados');
- }, []); // ✅ Sin dependencias para evitar loops infinitos
+     console.log('✅ Hooks de datos inicializados');
+   }
+ }, [isAuthenticated]); // Ejecutar cuando cambie el estado de autenticación
+
+ // Verificar acceso a la sección activa
+ useEffect(() => {
+   if (isAuthenticated && !hasAccess(activeSection)) {
+     // Si no tiene acceso a la sección activa, redirigir a la primera permitida
+     const firstAllowedSection = ['inventario', 'carga-equipos', 'ventas', 'plan-cuentas']
+       .find(section => hasAccess(section));
+     if (firstAllowedSection) {
+       setActiveSection(firstAllowedSection);
+     }
+   }
+ }, [activeSection, isAuthenticated, hasAccess]);
 
  // 🗑️ Handlers para eliminar
  const handleDeleteComputer = async (id) => {
@@ -339,9 +368,9 @@ const App = () => {
  const status = getCurrentStatus();
 
  const getStatusColor = () => {
-   if (status.error) return 'bg-red-100 text-red-800 border-red-200';
-   if (status.loading) return 'bg-blue-100 text-blue-800 border-blue-200';
-   return 'bg-green-100 text-green-800 border-green-200';
+   if (status.error) return 'text-red-600 bg-red-50 border-red-200';
+   if (status.loading) return 'text-blue-600 bg-blue-50 border-blue-200';
+   return 'text-green-600 bg-green-50 border-green-200';
  };
 
  const getStatusIcon = () => {
@@ -389,18 +418,27 @@ const App = () => {
    }
  };
 
+ // Protección de acceso a secciones
+ const handleSectionChange = (newSection) => {
+   if (hasAccess(newSection)) {
+     setActiveSection(newSection);
+   } else {
+     console.warn('Acceso denegado a la sección:', newSection);
+   }
+ };
+
  return (
-   <div className="flex h-screen bg-gray-100">
+   <div className="flex h-screen bg-white">
      <Sidebar
        activeSection={activeSection}
-       setActiveSection={setActiveSection}
+       setActiveSection={handleSectionChange}
        cantidadCarrito={calcularCantidadTotal()}
      />
      <div className="flex-1 flex flex-col overflow-hidden">
        <Header />
        <main className="flex-1 overflow-auto">
          {/* Panel de estado */}
-         <div className={`m-6 p-4 rounded-lg border-l-4 ${getStatusColor()}`}>
+         <div className="m-6 p-4 rounded-lg border-l-4 bg-green-100 text-green-800 shadow-sm">
            <div className="flex items-center space-x-2">
              <span className="text-lg">{getStatusIcon()}</span>
              <span className="font-medium">{getStatusText()}</span>
@@ -432,18 +470,19 @@ const App = () => {
            )}
          </div>
 
-         {/* 📋 Renderizado de secciones */}
-         {activeSection === 'inventario' && (
+         {/* 📋 Renderizado de secciones protegidas */}
+         {activeSection === 'inventario' && hasAccess('inventario') && (
            <InventarioSection
              computers={computers}
              loading={computersLoading}
              error={computersError}
              onDelete={handleDeleteComputer}
              onAddToCart={handleAddToCart}
+             onUpdate={updateComputer}
            />
          )}
 
-         {activeSection === 'carga-equipos' && (
+         {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
            <CargaEquiposUnificada
              onAddComputer={addComputer}
              onAddCelular={addCelular}
@@ -452,11 +491,11 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'reparaciones' && (
+         {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
            <ReparacionesSection />
          )}
 
-         {activeSection === 'celulares' && (
+         {activeSection === 'celulares' && hasAccess('celulares') && (
            <CelularesSection
              celulares={celulares}
              loading={celularesLoading}
@@ -466,7 +505,7 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'otros' && (
+         {activeSection === 'otros' && hasAccess('otros') && (
            <OtrosSection
              otros={otros}
              loading={otrosLoading}
@@ -476,7 +515,7 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'procesar-venta' && (
+         {activeSection === 'procesar-venta' && hasAccess('procesar-venta') && (
            <ProcesarVentaSection
              onVenta={handleProcesarVenta}
              loading={ventasLoading}
@@ -485,7 +524,7 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'ventas' && (
+         {activeSection === 'ventas' && hasAccess('ventas') && (
            <VentasSection
              ventas={ventas}
              loading={ventasLoading}
@@ -495,16 +534,16 @@ const App = () => {
          )}
 
          {/* 👥 SECCIÓN DE CLIENTES */}
-         {activeSection === 'clientes' && (
+         {activeSection === 'clientes' && hasAccess('clientes') && (
            <ClientesSection />
          )}
 
          {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
-         {activeSection === 'cuentas-corrientes' && (
+         {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
            <CuentasCorrientesSection />
          )}
 
-         {activeSection === 'gestion-fotos' && (
+         {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
            <GestionFotosSection
              computers={computers}
              celulares={celulares}
@@ -514,53 +553,53 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'presupuestos-reparacion' && (
+         {activeSection === 'presupuestos-reparacion' && hasAccess('presupuestos-reparacion') && (
            <PresupuestosReparacionSection />
          )}
 
          {/* 📊 SECCIONES DE CONTABILIDAD */}
-         {activeSection === 'plan-cuentas' && (
+         {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
            <PlanCuentasSection />
          )}
 
-         {activeSection === 'libro-diario' && (
+         {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
            <LibroDiarioSection />
          )}
 
-         {activeSection === 'reporte-movimientos' && (
+         {activeSection === 'reporte-movimientos' && hasAccess('reporte-movimientos') && (
            <ReporteMovimientosSection />
          )}
 
-         {activeSection === 'libro-mayor' && (
+         {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
            <LibroMayorSection />
          )}
 
-         {activeSection === 'conciliacion-caja' && (
+         {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
            <ConciliacionCajaSection />
          )}
 
          {/* 💰 SECCIÓN DE GASTOS OPERATIVOS */}
-         {activeSection === 'gastos-operativos' && (
+         {activeSection === 'gastos-operativos' && hasAccess('gastos-operativos') && (
            <GastosOperativosSection />
          )}
 
-         {activeSection === 'recuento-stock' && (
+         {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
            <RecuentoStockSection />
          )}
 
-         {activeSection === 'repuestos' && (
+         {activeSection === 'repuestos' && hasAccess('repuestos') && (
            <RepuestosSection />
          )}
 
-         {activeSection === 'recuento-repuestos' && (
+         {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (
            <RecuentoRepuestosSection />
          )}
 
-         {activeSection === 'dashboard-reportes' && (
+         {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
            <DashboardReportesSection />
          )}
 
-         {activeSection === 'comisiones' && (
+         {activeSection === 'comisiones' && hasAccess('comisiones') && (
            <ComisionesSection
              ventas={ventas}
              loading={ventasLoading}
@@ -569,7 +608,7 @@ const App = () => {
            />
          )}
 
-         {activeSection === 'copys' && (
+         {activeSection === 'copys' && hasAccess('copys') && (
            <CopysSection
              computers={computers}
              celulares={celulares}
@@ -592,6 +631,41 @@ const App = () => {
      />
    </div>
  );
+};
+
+// Componente principal de la aplicación con autenticación
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppWithAuth />
+    </AuthProvider>
+  );
+};
+
+// Componente que maneja login vs contenido principal
+const AppWithAuth = () => {
+  const { isAuthenticated, loading, error, login } = useAuthContext();
+  // Mostrar loading mientras se verifica autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-900">
+            Verificando autenticación...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autenticado, mostrar login
+  if (!isAuthenticated) {
+    return <Login onLogin={login} error={error} loading={loading} />;
+  }
+
+  // Si está autenticado, mostrar la aplicación principal
+  return <AppContent />;
 };
 
 export default App;

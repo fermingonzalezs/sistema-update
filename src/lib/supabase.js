@@ -14,15 +14,15 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // 📦 SERVICIOS Y HOOKS - Importar y reexportar desde archivos modulares
-export { inventarioService, useInventario } from './inventario.js'
-export { celularesService, useCelulares } from './celulares.js'
-export { otrosService, useOtros } from './otros.js'
-export { reparacionesService, useReparaciones } from './reparaciones.js'
-export { ventasService, useVentas } from './ventas.js'
-export { clientesService, useClientes } from './clientes.js'
-export { gastosOperativosService, useGastosOperativos } from './gastosOperativos.js'
-export { fotosService, useFotos } from './fotos.js'
-// ✅ COMENTADA: export { cuentasCorrientesService, useCuentasCorrientes } from './cuentasCorrientes.js'
+export { inventarioService, useInventario } from '../modules/ventas/hooks/useInventario.js'
+export { celularesService, useCelulares } from '../modules/ventas/hooks/useCelulares.js'
+export { otrosService, useOtros } from '../modules/ventas/hooks/useOtros.js'
+export { reparacionesService, useReparaciones } from '../modules/soporte/hooks/useReparaciones.js'
+export { ventasService, useVentas } from '../modules/ventas/hooks/useVentas.js'
+export { clientesService, useClientes } from '../modules/ventas/hooks/useClientes.js'
+export { gastosOperativosService, useGastosOperativos } from '../modules/contabilidad/hooks/useGastosOperativos.js'
+export { fotosService, useFotos } from '../modules/ventas/hooks/useFotos.js'
+// ✅ COMENTADA: export { cuentasCorrientesService, useCuentasCorrientes } from '../modules/contabilidad/hooks/useCuentasCorrientes.js'
 
 // 🛒 Hook del carrito (mantener aquí porque es simple y no necesita archivo propio)
 export function useCarrito() {
