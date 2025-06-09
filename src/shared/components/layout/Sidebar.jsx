@@ -21,6 +21,8 @@ import {
   BookOpen,
   AlertCircle,
   LogOut,
+  Globe,
+  Truck,
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
@@ -78,6 +80,37 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
       ]
     },
     {
+      title: 'IMPORTACIONES',
+      color: 'from-cyan-600 to-blue-600',
+      level: 'importaciones',
+      items: [
+        {
+          id: 'cotizaciones',
+          label: 'Cotizaciones',
+          icon: FileText,
+          description: 'Cotizaciones de importaciones'
+        },
+        {
+          id: 'pendientes-compra',
+          label: 'Pendientes de Compra',
+          icon: ClipboardList,
+          description: 'Importaciones pendientes de compra'
+        },
+        {
+          id: 'en-transito',
+          label: 'En Tránsito',
+          icon: Truck,
+          description: 'Importaciones en tránsito'
+        },
+        {
+          id: 'historial-importaciones',
+          label: 'Historial',
+          icon: BarChart3,
+          description: 'Historial de importaciones finalizadas'
+        }
+      ]
+    },
+    {
       title: 'SOPORTE',
       color: 'from-orange-500 to-red-600',
       level: 'soporte',
@@ -127,13 +160,6 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           description: 'Registro de ventas'
         },
         {
-          id: 'movimientos',
-          label: 'Movimientos',
-          icon: ArrowUpDown,
-          description: 'Movimientos de caja',
-          disabled: true
-        },
-        {
           id: 'comisiones',
           label: 'Comisiones',
           icon: Calculator,
@@ -170,12 +196,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           icon: FileText,
           description: 'Asientos contables'
         },
-        {
-          id: 'reporte-movimientos',
-          label: 'Reporte Movimientos',
-          icon: ArrowUpDown,
-          description: 'Análisis de movimientos'
-        },
+        // Eliminado Reporte Movimientos
         {
           id: 'libro-mayor',
           label: 'Libro Mayor',

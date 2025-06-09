@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar, Header, CarritoWidget } from './shared/components/layout';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import Login from './components/Login';
+import {
+  ImportacionesSection,
+  CotizacionesSection,
+  PendientesCompraSection,
+  EnTransitoSection,
+  HistorialImportacionesSection
+} from './modules/importaciones/components';
 import { 
   InventarioSection,
   CelularesSection,
@@ -16,7 +23,7 @@ import {
 } from './modules/ventas/components';
 import {
   CargaEquiposUnificada,
-  ReparacionesSection,
+  ReparacionesMain,
   RepuestosSection,
   RecuentoRepuestosSection,
   PresupuestosReparacionSection
@@ -471,6 +478,21 @@ const AppContent = () => {
          </div>
 
          {/* 📋 Renderizado de secciones protegidas */}
+         {activeSection === 'importaciones' && hasAccess('importaciones') && (
+           <ImportacionesSection />
+         )}
+         {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
+           <CotizacionesSection />
+         )}
+         {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
+           <PendientesCompraSection />
+         )}
+         {activeSection === 'en-transito' && hasAccess('importaciones') && (
+           <EnTransitoSection />
+         )}
+         {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
+           <HistorialImportacionesSection />
+         )}
          {activeSection === 'inventario' && hasAccess('inventario') && (
            <InventarioSection
              computers={computers}
@@ -492,7 +514,7 @@ const AppContent = () => {
          )}
 
          {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
-           <ReparacionesSection />
+           <ReparacionesMain />
          )}
 
          {activeSection === 'celulares' && hasAccess('celulares') && (

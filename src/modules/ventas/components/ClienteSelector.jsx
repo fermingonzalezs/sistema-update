@@ -321,12 +321,17 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
     fetchClientes();
   }, [fetchClientes]);
 
+
+  // Debounce para búsqueda de clientes
   useEffect(() => {
-    if (searchTerm.length >= 2) {
-      searchClientes(searchTerm);
-    } else if (searchTerm.length === 0) {
-      setFilteredClientes(clientes);
-    }
+    const handler = setTimeout(() => {
+      if (searchTerm.length >= 2) {
+        searchClientes(searchTerm);
+      } else if (searchTerm.length === 0) {
+        setFilteredClientes(clientes);
+      }
+    }, 300);
+    return () => clearTimeout(handler);
   }, [searchTerm, searchClientes, clientes]);
 
   useEffect(() => {

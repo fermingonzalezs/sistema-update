@@ -1,5 +1,5 @@
 // src/lib/reparaciones.js - Service + Hook completo
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 // 📊 SERVICE: Operaciones de reparaciones
@@ -209,7 +209,7 @@ export function useReparaciones() {
   const [error, setError] = useState(null)
 
   // Cargar todas las reparaciones
-  const fetchReparaciones = async () => {
+  const fetchReparaciones = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -221,7 +221,7 @@ export function useReparaciones() {
     } finally {
       setLoading(false)
     }
-  }
+  }, []);
 
   // Crear nueva reparación
   const crearReparacion = async (reparacionData) => {

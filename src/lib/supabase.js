@@ -22,6 +22,8 @@ export { ventasService, useVentas } from '../modules/ventas/hooks/useVentas.js'
 export { clientesService, useClientes } from '../modules/ventas/hooks/useClientes.js'
 export { gastosOperativosService, useGastosOperativos } from '../modules/contabilidad/hooks/useGastosOperativos.js'
 export { fotosService, useFotos } from '../modules/ventas/hooks/useFotos.js'
+export { serviciosService, useServicios } from '../modules/soporte/hooks/useServicios.js'
+export { presupuestosService, usePresupuestos } from '../modules/soporte/hooks/usePresupuestos.js'
 // ✅ COMENTADA: export { cuentasCorrientesService, useCuentasCorrientes } from '../modules/contabilidad/hooks/useCuentasCorrientes.js'
 
 // 🛒 Hook del carrito (mantener aquí porque es simple y no necesita archivo propio)
