@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
 
 // Servicio para Conciliación de Caja
 const conciliacionCajaService = {
@@ -9,7 +10,7 @@ const conciliacionCajaService = {
 
     const { data, error } = await supabase
       .from('plan_cuentas')
-      .select('*')
+      .select('*, moneda_original')
       .eq('activa', true)
       .ilike('nombre', '%caja%')
       .order('codigo');
@@ -329,10 +330,8 @@ const ConciliacionCajaSection = () => {
   };
 
   const formatearMoneda = (valor) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(valor);
+    const moneda = cuentaSeleccionada?.moneda_original || 'USD';
+    return formatearMonedaGeneral(valor, moneda);
   };
 
   const formatearFecha = (fecha) => {

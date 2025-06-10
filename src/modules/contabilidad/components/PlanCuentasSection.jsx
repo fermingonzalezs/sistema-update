@@ -70,22 +70,33 @@ const planCuentasService = {
   },
 
   async delete(id) {
-    console.log('🗑️ Eliminando cuenta:', id);
+    console.log('🗑️ Verificando dependencias antes de eliminar cuenta:', id);
     
-    // Verificar que no tenga movimientos contables asociados
-    const { data: movimientos, error: errorMovimientos } = await supabase
-      .from('movimientos_contables')
-      .select('id')
-      .eq('cuenta_id', id);
+    // Lista de todas las tablas que pueden referenciar plan_cuentas
+    const dependencias = [
+      { tabla: 'movimientos_contables', campo: 'cuenta_id', nombre: 'movimientos contables' },
+      { tabla: 'conciliaciones_caja', campo: 'cuenta_caja_id', nombre: 'conciliaciones de caja' },
+      { tabla: 'gastos_operativos', campo: 'cuenta_pago_id', nombre: 'gastos operativos' }
+    ];
     
-    if (errorMovimientos) {
-      console.error('❌ Error verificando movimientos:', errorMovimientos);
-      throw errorMovimientos;
+    // Verificar cada dependencia
+    for (const dep of dependencias) {
+      const { data, error } = await supabase
+        .from(dep.tabla)
+        .select('id')
+        .eq(dep.campo, id);
+      
+      if (error) {
+        console.error(`❌ Error verificando ${dep.nombre}:`, error);
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        throw new Error(`No se puede eliminar la cuenta porque tiene ${data.length} ${dep.nombre} asociados. Primero debe eliminar o reasignar estos registros.`);
+      }
     }
     
-    if (movimientos && movimientos.length > 0) {
-      throw new Error('No se puede eliminar una cuenta que tiene movimientos contables asociados');
-    }
+    console.log('✅ No hay dependencias, procediendo a eliminar...');
     
     const { error } = await supabase
       .from('plan_cuentas')
@@ -97,7 +108,29 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log('✅ Cuenta eliminada');
+    console.log('✅ Cuenta eliminada exitosamente');
+    return true;
+  },
+
+  // Nueva función para desactivar en lugar de eliminar
+  async deactivate(id, motivo = 'Desactivada por el usuario') {
+    console.log('🔒 Desactivando cuenta:', id);
+    
+    const { error } = await supabase
+      .from('plan_cuentas')
+      .update({ 
+        activa: false, 
+        observaciones: motivo,
+        fecha_desactivacion: new Date().toISOString()
+      })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('❌ Error desactivando cuenta:', error);
+      throw error;
+    }
+    
+    console.log('✅ Cuenta desactivada');
     return true;
   },
 
@@ -172,6 +205,18 @@ function usePlanCuentas() {
     }
   };
 
+  const desactivarCuenta = async (id, motivo) => {
+    try {
+      setError(null);
+      await planCuentasService.deactivate(id, motivo);
+      // Refrescar la lista para que no aparezca la cuenta desactivada
+      await fetchCuentas();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return {
     cuentas,
     loading,
@@ -179,7 +224,8 @@ function usePlanCuentas() {
     fetchCuentas,
     crearCuenta,
     actualizarCuenta,
-    eliminarCuenta
+    eliminarCuenta,
+    desactivarCuenta
   };
 }
 
@@ -192,7 +238,8 @@ const PlanCuentasSection = () => {
     fetchCuentas,
     crearCuenta,
     actualizarCuenta,
-    eliminarCuenta
+    eliminarCuenta,
+    desactivarCuenta
   } = usePlanCuentas();
 
   const [showModal, setShowModal] = useState(false);
@@ -253,9 +300,44 @@ const PlanCuentasSection = () => {
     setShowModal(true);
   };
 
-  const confirmarEliminar = (cuenta) => {
-    if (confirm(`¿Está seguro de eliminar la cuenta "${cuenta.codigo} - ${cuenta.nombre}"?`)) {
-      eliminarCuenta(cuenta.id);
+  const confirmarEliminar = async (cuenta) => {
+    const mensaje = `La cuenta "${cuenta.codigo} - ${cuenta.nombre}" puede tener registros asociados.\n\n` +
+                   `Opciones:\n` +
+                   `• CANCELAR - No hacer nada\n` +
+                   `• OK - Intentar eliminar (puede fallar si tiene dependencias)\n` +
+                   `• Si falla, puede desactivar la cuenta en su lugar`;
+    
+    if (confirm(mensaje)) {
+      try {
+        await eliminarCuenta(cuenta.id);
+        alert('✅ Cuenta eliminada exitosamente');
+      } catch (error) {
+        console.error('Error eliminando cuenta:', error);
+        
+        // Si falla la eliminación, ofrecer desactivar
+        const confirmarDesactivar = confirm(
+          `❌ No se pudo eliminar la cuenta porque tiene registros asociados.\n\n` +
+          `Error: ${error.message}\n\n` +
+          `¿Desea DESACTIVAR la cuenta en su lugar?\n` +
+          `(La cuenta no aparecerá en nuevos registros pero mantendrá el historial)`
+        );
+        
+        if (confirmarDesactivar) {
+          try {
+            const motivo = prompt(
+              'Ingrese el motivo para desactivar la cuenta:',
+              'Cuenta desactivada por tener registros asociados'
+            );
+            
+            if (motivo) {
+              await desactivarCuenta(cuenta.id, motivo);
+              alert('✅ Cuenta desactivada exitosamente');
+            }
+          } catch (desactivarError) {
+            alert('❌ Error desactivando cuenta: ' + desactivarError.message);
+          }
+        }
+      }
     }
   };
 

@@ -443,38 +443,6 @@ const AppContent = () => {
      <div className="flex-1 flex flex-col overflow-hidden">
        <Header />
        <main className="flex-1 overflow-auto">
-         {/* Panel de estado */}
-         <div className="m-6 p-4 rounded-lg border-l-4 bg-green-100 text-green-800 shadow-sm">
-           <div className="flex items-center space-x-2">
-             <span className="text-lg">{getStatusIcon()}</span>
-             <span className="font-medium">{getStatusText()}</span>
-           </div>
-           {status.error && (
-             <div className="mt-2 text-sm">
-               <button
-                 onClick={handleRetry}
-                 className="text-red-600 hover:underline"
-               >
-                 Reintentar conexión
-               </button>
-             </div>
-           )}
-           {!status.error && !status.loading && (
-             <div className="mt-2 text-sm opacity-75">
-               🚀 Conectado exitosamente a PostgreSQL via Supabase
-               <br />
-               👥 Sistema de clientes: Activo y funcionando
-               <br />
-               🏦 Sistema de cuentas corrientes: Activo y funcionando
-               {status.type === 'contabilidad' && (
-                 <>
-                   <br />
-                   📊 Sistema contable: Plan de cuentas y libro diario disponibles
-                 </>
-               )}
-             </div>
-           )}
-         </div>
 
          {/* 📋 Renderizado de secciones protegidas */}
          {activeSection === 'importaciones' && hasAccess('importaciones') && (

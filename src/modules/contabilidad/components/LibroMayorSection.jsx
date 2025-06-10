@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -10,7 +11,7 @@ const libroMayorService = {
     const { data, error } = await supabase
       .from('plan_cuentas')
       .select(`
-        id, codigo, nombre,
+        id, codigo, nombre, moneda_original,
         movimientos_contables!inner (id)
       `)
       .eq('activa', true)
@@ -29,6 +30,7 @@ const libroMayorService = {
           id: cuenta.id,
           codigo: cuenta.codigo,
           nombre: cuenta.nombre,
+          moneda_original: cuenta.moneda_original,
           cantidadMovimientos: data.filter(c => c.id === cuenta.id).length
         });
       }
@@ -45,7 +47,7 @@ const libroMayorService = {
     // Primero obtener información de la cuenta
     const { data: cuenta, error: errorCuenta } = await supabase
       .from('plan_cuentas')
-      .select('*')
+      .select('*, moneda_original')
       .eq('id', cuentaId)
       .single();
 
@@ -270,10 +272,8 @@ const LibroMayorSection = () => {
   };
 
   const formatearMoneda = (valor) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(valor);
+    // En el libro mayor todos los valores se muestran como USD con U$
+    return formatearMonedaLibroDiario(valor, true);
   };
 
   const formatearFecha = (fecha) => {

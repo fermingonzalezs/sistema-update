@@ -3,8 +3,9 @@
 // Maneja cuentas en ARS (con cotización) y USD (directo)
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, DollarSign, TrendingUp, Info, Calculator } from 'lucide-react';
+import { AlertCircle, DollarSign, TrendingUp, Info, Calculator, RefreshCw } from 'lucide-react';
 import { conversionService } from '../services/conversionService';
+import { cotizacionSimple } from '../services/cotizacionSimpleService';
 
 const SelectorCuentaConCotizacion = ({
   cuentaSeleccionada,
@@ -30,12 +31,16 @@ const SelectorCuentaConCotizacion = ({
         const data = await conversionService.obtenerCuentasConMoneda();
         setCuentas(data);
         
-        // Obtener última cotización para ayudar al usuario (solo si la tabla existe)
+        // Obtener cotización actual para ayudar al usuario
         try {
-          const ultima = await conversionService.obtenerUltimaCotizacion();
-          setUltimaCotizacion(ultima);
+          const cotizacionActual = await cotizacionSimple.obtenerCotizacion();
+          setUltimaCotizacion({
+            cotizacion: cotizacionActual.valor,
+            fuente: cotizacionActual.fuente,
+            timestamp: cotizacionActual.timestamp
+          });
         } catch (err) {
-          console.warn('No se pudo obtener última cotización:', err);
+          console.warn('No se pudo obtener cotización actual:', err);
           setUltimaCotizacion(null);
         }
       } catch (err) {
@@ -102,6 +107,26 @@ const SelectorCuentaConCotizacion = ({
   const usarUltimaCotizacion = () => {
     if (ultimaCotizacion?.cotizacion) {
       onCotizacionChange(ultimaCotizacion.cotizacion);
+    }
+  };
+
+  // Obtener cotización automática actualizada
+  const obtenerCotizacionAutomatica = async () => {
+    try {
+      setLoading(true);
+      const cotizacionActual = await cotizacionSimple.forzarActualizacion();
+      const nuevaCotizacion = {
+        cotizacion: cotizacionActual.valor,
+        fuente: cotizacionActual.fuente,
+        timestamp: cotizacionActual.timestamp
+      };
+      setUltimaCotizacion(nuevaCotizacion);
+      onCotizacionChange(cotizacionActual.valor);
+    } catch (err) {
+      console.error('Error obteniendo cotización automática:', err);
+      setError('Error obteniendo cotización: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -176,18 +201,33 @@ const SelectorCuentaConCotizacion = ({
           {/* Input de Cotización (solo para cuentas ARS) */}
           {requiereCotizacion && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cotización USD *
-                {ultimaCotizacion && (
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Cotización USD *
+                </label>
+                <div className="flex items-center space-x-2">
+                  {ultimaCotizacion && (
+                    <button
+                      type="button"
+                      onClick={usarUltimaCotizacion}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      title={`Última cotización: ${ultimaCotizacion.fuente}`}
+                    >
+                      Usar ${ultimaCotizacion.cotizacion}
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={usarUltimaCotizacion}
-                    className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                    onClick={obtenerCotizacionAutomatica}
+                    disabled={loading}
+                    className="flex items-center space-x-1 text-xs text-green-600 hover:text-green-800 underline disabled:opacity-50"
+                    title="Obtener cotización actualizada automáticamente"
                   >
-                    (usar última: ${ultimaCotizacion.cotizacion})
+                    <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                    <span>Auto</span>
                   </button>
-                )}
-              </label>
+                </div>
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   $

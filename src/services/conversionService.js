@@ -3,16 +3,17 @@
 // Todas las operaciones se guardan en USD como moneda base
 
 import { supabase } from '../lib/supabase';
+import { cotizacionSimple } from './cotizacionSimpleService';
 
 export const conversionService = {
-  // 🔄 Convertir ARS a USD
+  // 🔄 Convertir ARS a USD (método original - mantener por compatibilidad)
   convertirArsAUsd(montoArs, cotizacion) {
     if (!cotizacion || cotizacion <= 0) {
       throw new Error('Cotización inválida. Debe ser mayor a 0');
     }
     
-    if (cotizacion < 500 || cotizacion > 5000) {
-      throw new Error('Cotización fuera del rango válido (500-5000)');
+    if (cotizacion < 500 || cotizacion > 10000) {
+      throw new Error('Cotización fuera del rango válido (500-10000)');
     }
     
     if (!montoArs || montoArs < 0) {
@@ -22,7 +23,90 @@ export const conversionService = {
     return montoArs / cotizacion;
   },
 
-  // 📝 Preparar movimiento para guardar (siempre en USD)
+  // 🆕 Convertir ARS a USD usando cotización automática simple
+  async convertirArsAUsdAutomatico(montoArs) {
+    console.log('💱 Conversión automática ARS → USD:', { montoArs });
+    
+    if (!montoArs || montoArs < 0) {
+      throw new Error('Monto en ARS inválido');
+    }
+    
+    try {
+      const resultado = await cotizacionSimple.convertirARSaUSD(montoArs);
+      console.log('✅ Conversión automática exitosa:', resultado);
+      return resultado;
+      
+    } catch (error) {
+      console.error('❌ Error en conversión automática:', error);
+      throw new Error(`Error obteniendo cotización automática: ${error.message}`);
+    }
+  },
+
+  // 🆕 Convertir USD a ARS usando cotización automática simple
+  async convertirUsdAArsAutomatico(montoUsd) {
+    console.log('💱 Conversión automática USD → ARS:', { montoUsd });
+    
+    if (!montoUsd || montoUsd < 0) {
+      throw new Error('Monto en USD inválido');
+    }
+    
+    try {
+      const resultado = await cotizacionSimple.convertirUSDaARS(montoUsd);
+      console.log('✅ Conversión automática exitosa:', resultado);
+      return resultado;
+      
+    } catch (error) {
+      console.error('❌ Error en conversión automática:', error);
+      throw new Error(`Error obteniendo cotización automática: ${error.message}`);
+    }
+  },
+
+  // 📝 Preparar movimiento para guardar (siempre en USD) - Versión simplificada
+  async prepararMovimientoConCotizacionAutomatica(movimientoData, cuenta) {
+    const { monto, tipo, cotizacionManual } = movimientoData; // tipo: 'debe' o 'haber'
+    
+    if (cuenta.requiere_cotizacion || cuenta.moneda_original === 'ARS') {
+      // 🇦🇷 Cuenta en ARS - convertir a USD
+      let resultadoConversion;
+      
+      if (cotizacionManual && cotizacionManual > 0) {
+        // Usar cotización manual si se especifica
+        console.log('💰 Usando cotización manual:', cotizacionManual);
+        const montoUSD = this.convertirArsAUsd(monto, cotizacionManual);
+        resultadoConversion = {
+          montoOriginalARS: monto,
+          montoUSD: montoUSD,
+          cotizacionUsada: cotizacionManual,
+          fuenteCotizacion: 'MANUAL'
+        };
+      } else {
+        // Usar cotización automática
+        console.log('🤖 Usando cotización automática...');
+        resultadoConversion = await this.convertirArsAUsdAutomatico(monto);
+      }
+      
+      return {
+        cuenta_id: cuenta.id,
+        debe: tipo === 'debe' ? resultadoConversion.montoUSD : 0,
+        haber: tipo === 'haber' ? resultadoConversion.montoUSD : 0,
+        monto_original_ars: resultadoConversion.montoOriginalARS,
+        cotizacion_manual: resultadoConversion.cotizacionUsada,
+        observaciones_cambio: `Convertido: $${monto} ARS → $${resultadoConversion.montoUSD.toFixed(4)} USD (${resultadoConversion.fuenteCotizacion}: $${resultadoConversion.cotizacionUsada})`
+      };
+    } else {
+      // 🇺🇸 Cuenta en USD - guardar directo
+      return {
+        cuenta_id: cuenta.id,
+        debe: tipo === 'debe' ? monto : 0,
+        haber: tipo === 'haber' ? monto : 0,
+        monto_original_ars: null,
+        cotizacion_manual: null,
+        observaciones_cambio: null
+      };
+    }
+  },
+
+  // 📝 Preparar movimiento para guardar (versión original - mantener compatibilidad)
   prepararMovimiento(movimientoData, cuenta) {
     const { monto, cotizacion, tipo } = movimientoData; // tipo: 'debe' o 'haber'
     
@@ -99,22 +183,48 @@ export const conversionService = {
     return sumaMontos > 0 ? sumaPonderada / sumaMontos : null;
   },
 
-  // ✅ Validar balance en USD
-  validarBalanceUSD(movimientosConvertidos) {
-    const totalDebe = movimientosConvertidos.reduce((sum, mov) => sum + (mov.debe || 0), 0);
-    const totalHaber = movimientosConvertidos.reduce((sum, mov) => sum + (mov.haber || 0), 0);
+  // ✅ Validar balance en USD - Versión simplificada
+  validarBalanceUSD(movimientosConvertidos, tolerancia = 0.01) {
+    const totalDebe = movimientosConvertidos.reduce((sum, mov) => sum + (parseFloat(mov.debe) || 0), 0);
+    const totalHaber = movimientosConvertidos.reduce((sum, mov) => sum + (parseFloat(mov.haber) || 0), 0);
     const diferencia = Math.abs(totalDebe - totalHaber);
+    const esBalanceado = diferencia <= tolerancia;
     
-    if (diferencia > 0.01) {
+    const resultado = {
+      totalDebe: parseFloat(totalDebe.toFixed(4)),
+      totalHaber: parseFloat(totalHaber.toFixed(4)),
+      diferencia: parseFloat(diferencia.toFixed(4)),
+      balanceado: esBalanceado
+    };
+    
+    console.log('🔍 Validación de balance USD:', resultado);
+    
+    if (!esBalanceado) {
       throw new Error(
         `Asiento no balanceado en USD:\n` +
-        `Debe: $${totalDebe.toFixed(2)} USD\n` +
-        `Haber: $${totalHaber.toFixed(2)} USD\n` +
-        `Diferencia: $${diferencia.toFixed(2)} USD`
+        `Debe: $${resultado.totalDebe.toFixed(4)} USD\n` +
+        `Haber: $${resultado.totalHaber.toFixed(4)} USD\n` +
+        `Diferencia: $${resultado.diferencia.toFixed(4)} USD`
       );
     }
     
-    return { totalDebe, totalHaber, balanceado: true };
+    return resultado;
+  },
+
+
+  // 🆕 Obtener cotización actual
+  async obtenerCotizacionActual() {
+    try {
+      const cotizacion = await cotizacionSimple.obtenerCotizacion();
+      return {
+        valor: cotizacion.valor,
+        fuente: cotizacion.fuente,
+        timestamp: cotizacion.timestamp
+      };
+    } catch (error) {
+      console.error('❌ Error obteniendo cotización:', error);
+      throw error;
+    }
   },
 
   // 🔍 Obtener cuentas con información de moneda
@@ -218,17 +328,23 @@ export const conversionService = {
     };
   },
 
-  // 🎨 Formatear monto para mostrar
+  // 🎨 Formatear monto para mostrar - DEPRECADO: usar formatters.js
   formatearMonto(monto, moneda = 'USD', mostrarMoneda = true) {
     if (!monto && monto !== 0) return '';
     
-    const montoFormateado = new Intl.NumberFormat('es-AR', {
-      style: 'decimal',
+    const numero = parseFloat(monto).toFixed(2);
+    const formateado = parseFloat(numero).toLocaleString('es-AR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(monto);
+    });
     
-    return mostrarMoneda ? `$${montoFormateado} ${moneda}` : `$${montoFormateado}`;
+    if (mostrarMoneda && moneda === 'USD') {
+      return `U$${formateado}`;
+    } else if (mostrarMoneda && moneda === 'ARS') {
+      return `$${formateado}`;
+    }
+    
+    return mostrarMoneda ? `U$${formateado}` : formateado;
   },
 
   // 📋 Crear resumen de conversión para mostrar al usuario

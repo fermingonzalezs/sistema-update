@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
 import { conversionService } from '../../../services/conversionService';
+import { cotizacionService } from '../../../services/cotizacionService';
+import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
 
 // Servicio para el Libro Diario
 const libroDiarioService = {
@@ -667,7 +669,7 @@ const LibroDiarioSection = () => {
                       <div className="text-right">
                         <div className="text-sm text-gray-500">Total</div>
                         <div className="font-semibold text-green-600">
-                          ${asiento.total_debe.toLocaleString()}
+                          {formatearMonedaLibroDiario(asiento.total_debe)}
                         </div>
                       </div>
 
@@ -740,12 +742,12 @@ const LibroDiarioSection = () => {
                                 <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
                                   {/* Columna DEBE - Importes */}
                                   <div className="text-center font-medium">
-                                    {mov.debe > 0 ? `$${mov.debe.toLocaleString()}` : ''}
+                                    {mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}
                                   </div>
                                   
                                   {/* Columna HABER - Importes */}
                                   <div className="text-center font-medium">
-                                    {mov.haber > 0 ? `$${mov.haber.toLocaleString()}` : ''}
+                                    {mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}
                                   </div>
                                 </div>
                               ))}
@@ -784,7 +786,7 @@ const LibroDiarioSection = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  ${asientos.reduce((sum, a) => sum + a.total_debe, 0).toLocaleString()}
+                  {formatearMonedaLibroDiario(asientos.reduce((sum, a) => sum + a.total_debe, 0))}
                 </div>
                 <div className="text-sm text-gray-600">Movimiento Total</div>
               </div>
@@ -948,13 +950,13 @@ const LibroDiarioSection = () => {
                     <div className="flex justify-between">
                       <span>Total Debe USD:</span>
                       <span className={`font-medium ${totales.totalDebe > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                        ${totales.totalDebe.toFixed(2)}
+                        {formatearMonedaLibroDiario(totales.totalDebe)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Haber USD:</span>
                       <span className={`font-medium ${totales.totalHaber > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
-                        ${totales.totalHaber.toFixed(2)}
+                        {formatearMonedaLibroDiario(totales.totalHaber)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -972,7 +974,7 @@ const LibroDiarioSection = () => {
                         ) : (
                           <>
                             <AlertCircle size={12} className="mr-1" />
-                            Diferencia: ${Math.abs(totales.diferencia).toFixed(2)}
+                            Diferencia: {formatearMonedaLibroDiario(Math.abs(totales.diferencia))}
                           </>
                         )}
                       </div>

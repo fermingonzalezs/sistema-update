@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpDown, Filter, Eye, Calendar, FileText, TrendingUp, DollarSign, Search, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
 
 // Servicio para Reportes de Movimientos
 const reporteMovimientosService = {
@@ -286,10 +287,8 @@ const ReporteMovimientosSection = () => {
   const asientosAgrupados = Object.values(movimientosPorAsiento);
 
   const formatearMoneda = (valor) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(valor);
+    // En reportes todos los valores se muestran como USD con U$
+    return formatearMonedaLibroDiario(valor, true);
   };
 
   const formatearFecha = (fecha) => {

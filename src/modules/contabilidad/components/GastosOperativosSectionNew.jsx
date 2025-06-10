@@ -1,10 +1,10 @@
+// Componente Gastos Operativos - Versión Nueva y Limpia
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, DollarSign, Calendar, Filter, FileText, CheckCircle, Clock } from 'lucide-react';
-import { useGastosOperativos } from '../hooks/useGastosOperativos.js';
+import { Plus, Edit2, Trash2, Save, X, DollarSign, Calendar, Filter, AlertCircle } from 'lucide-react';
+import { useGastosOperativos } from '../hooks/useGastosOperativosNew';
+import { conversionService } from '../../../services/conversionService';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 import { asientoAutomaticoService } from '../../../services/asientoAutomaticoService';
-import { conversionService } from '../../../services/conversionService';
-import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
 
 const GastosOperativosSection = () => {
   const {
@@ -14,13 +14,14 @@ const GastosOperativosSection = () => {
     fetchGastos,
     crearGasto,
     actualizarGasto,
-    eliminarGasto
+    eliminarGasto,
+    obtenerEstadisticas
   } = useGastosOperativos();
 
   const [showModal, setShowModal] = useState(false);
   const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
   const [cotizacionActual, setCotizacionActual] = useState(null);
-  const [cuentasPago, setCuentasPago] = useState([]);
+  const [cuentasDisponibles, setCuentasDisponibles] = useState([]);
   
   const [filtros, setFiltros] = useState({
     fechaDesde: '',
@@ -32,32 +33,32 @@ const GastosOperativosSection = () => {
     categoria: '',
     descripcion: '',
     monto: '',
-    moneda: 'USD', // 'USD' o 'ARS'
-    cotizacion_manual: '', // Solo para ARS
-    cuenta_pago_id: '', // Cuenta desde donde se paga
+    moneda: 'USD',
+    cotizacion_manual: '',
+    cuenta_pago_id: '',
+    metodo_pago: 'efectivo',
     observaciones: ''
   });
 
   // Categorías disponibles
   const categorias = [
-    { value: 'proveedor', label: 'Proveedores (Mercadería)', color: 'bg-blue-100 text-blue-800' },
+    { value: 'proveedor', label: 'Proveedores', color: 'bg-blue-100 text-blue-800' },
     { value: 'servicios', label: 'Servicios Básicos', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'alquiler', label: 'Alquiler y Expensas', color: 'bg-purple-100 text-purple-800' },
-    { value: 'sueldos', label: 'Sueldos y Cargas', color: 'bg-green-100 text-green-800' },
-    { value: 'impuestos', label: 'Impuestos y Tasas', color: 'bg-red-100 text-red-800' },
+    { value: 'alquiler', label: 'Alquiler', color: 'bg-purple-100 text-purple-800' },
+    { value: 'sueldos', label: 'Sueldos', color: 'bg-green-100 text-green-800' },
+    { value: 'impuestos', label: 'Impuestos', color: 'bg-red-100 text-red-800' },
     { value: 'transporte', label: 'Transporte', color: 'bg-indigo-100 text-indigo-800' },
     { value: 'marketing', label: 'Marketing', color: 'bg-pink-100 text-pink-800' },
     { value: 'mantenimiento', label: 'Mantenimiento', color: 'bg-orange-100 text-orange-800' },
-    { value: 'administrativos', label: 'Gastos Administrativos', color: 'bg-gray-100 text-gray-800' },
-    { value: 'otros', label: 'Otros Gastos', color: 'bg-teal-100 text-teal-800' }
+    { value: 'administrativos', label: 'Administrativos', color: 'bg-gray-100 text-gray-800' },
+    { value: 'otros', label: 'Otros', color: 'bg-teal-100 text-teal-800' }
   ];
 
   useEffect(() => {
-    console.log('🚀 Iniciando carga de gastos operativos...');
-    cargarDatosIniciales();
+    cargarDatos();
   }, []);
 
-  const cargarDatosIniciales = async () => {
+  const cargarDatos = async () => {
     try {
       // Cargar gastos
       await fetchGastos(filtros);
@@ -66,13 +67,14 @@ const GastosOperativosSection = () => {
       const cotizacion = await cotizacionSimple.obtenerCotizacion();
       setCotizacionActual(cotizacion);
       
-      // Cargar todas las cuentas disponibles
+      // Cargar cuentas disponibles
       const cuentas = await conversionService.obtenerCuentasConMoneda();
-      console.log('📋 Cuentas cargadas para selector:', cuentas);
-      setCuentasPago(cuentas); // Mostrar todas las cuentas disponibles
+      setCuentasDisponibles(cuentas);
+      
+      console.log('✅ Datos iniciales cargados');
       
     } catch (err) {
-      console.error('Error cargando datos iniciales:', err);
+      console.error('❌ Error cargando datos:', err);
     }
   };
 
@@ -86,6 +88,7 @@ const GastosOperativosSection = () => {
       moneda: 'USD',
       cotizacion_manual: '',
       cuenta_pago_id: '',
+      metodo_pago: 'efectivo',
       observaciones: ''
     });
     setShowModal(true);
@@ -99,8 +102,9 @@ const GastosOperativosSection = () => {
       descripcion: gasto.descripcion,
       monto: gasto.monto.toString(),
       moneda: gasto.moneda || 'USD',
-      cotizacion_manual: gasto.cotizacion_manual || '',
+      cotizacion_manual: gasto.cotizacion_manual?.toString() || '',
       cuenta_pago_id: gasto.cuenta_pago_id || '',
+      metodo_pago: gasto.metodo_pago || 'efectivo',
       observaciones: gasto.observaciones || ''
     });
     setShowModal(true);
@@ -108,69 +112,59 @@ const GastosOperativosSection = () => {
 
   const guardarGasto = async () => {
     try {
-      // Validaciones
-      if (!formData.fecha_gasto) {
-        alert('La fecha es obligatoria');
+      // Validaciones básicas
+      if (!formData.fecha_gasto || !formData.categoria || !formData.descripcion.trim()) {
+        alert('❌ Campos obligatorios: Fecha, Categoría, Descripción');
         return;
       }
-      if (!formData.categoria) {
-        alert('La categoría es obligatoria');
-        return;
-      }
-      if (!formData.descripcion.trim()) {
-        alert('La descripción es obligatoria');
-        return;
-      }
+      
       if (!formData.monto || parseFloat(formData.monto) <= 0) {
-        alert('El monto debe ser mayor a 0');
+        alert('❌ El monto debe ser mayor a 0');
         return;
       }
-      if (!formData.cuenta_pago_id) {
-        alert('Debe seleccionar la cuenta de pago');
-        return;
-      }
+      
       if (formData.moneda === 'ARS' && (!formData.cotizacion_manual || parseFloat(formData.cotizacion_manual) <= 0)) {
-        alert('Para gastos en ARS debe especificar la cotización');
+        alert('❌ Para gastos en ARS debe especificar la cotización');
         return;
       }
 
       const gastoData = {
         ...formData,
         monto: parseFloat(formData.monto),
-        cotizacion_manual: formData.moneda === 'ARS' ? parseFloat(formData.cotizacion_manual) : null
+        cotizacion_manual: formData.cotizacion_manual ? parseFloat(formData.cotizacion_manual) : null
       };
 
-      let gastoCreado;
+      let gastoGuardado;
       if (gastoSeleccionado) {
-        gastoCreado = await actualizarGasto(gastoSeleccionado.id, gastoData);
+        gastoGuardado = await actualizarGasto(gastoSeleccionado.id, gastoData);
         alert('✅ Gasto actualizado exitosamente');
       } else {
-        gastoCreado = await crearGasto(gastoData);
+        gastoGuardado = await crearGasto(gastoData);
         alert('✅ Gasto creado exitosamente');
-      }
-
-      // Generar asiento automático
-      if (!gastoSeleccionado) { // Solo para gastos nuevos
+        
+        // Generar asiento automático solo para gastos nuevos
         try {
-          console.log('🚀 Intentando generar asiento automático para:', gastoCreado);
-          await generarAsientoAutomatico(gastoCreado || { ...gastoData, id: Date.now() });
-          alert('📝 Asiento contable creado como borrador - Revisar en "Asientos Contables"');
+          await generarAsientoAutomatico(gastoGuardado);
+          alert('📝 Asiento contable creado como borrador');
         } catch (asientoError) {
           console.error('❌ Error generando asiento:', asientoError);
-          alert('⚠️ Gasto guardado pero no se pudo generar el asiento automático: ' + asientoError.message);
+          alert('⚠️ Gasto guardado pero error en asiento: ' + asientoError.message);
         }
       }
       
       setShowModal(false);
-      await fetchGastos(filtros); // Refrescar lista
+      await fetchGastos(filtros);
       
     } catch (err) {
+      console.error('❌ Error guardando gasto:', err);
       alert('❌ Error: ' + err.message);
     }
   };
 
   const generarAsientoAutomatico = async (gasto) => {
     try {
+      console.log('🚀 Generando asiento para gasto:', gasto);
+      
       const gastoParaAsiento = {
         id: gasto.id,
         fecha: gasto.fecha_gasto,
@@ -179,12 +173,13 @@ const GastosOperativosSection = () => {
         moneda: gasto.moneda,
         cotizacion_manual: gasto.cotizacion_manual,
         cuenta_pago_id: gasto.cuenta_pago_id,
-        categoria: gasto.categoria || 'operativo',
+        categoria: gasto.categoria,
+        metodo_pago: gasto.metodo_pago,
         usuario: 'Usuario'
       };
 
       await asientoAutomaticoService.crearAsientoGasto(gastoParaAsiento);
-      console.log('✅ Asiento automático creado para el gasto');
+      console.log('✅ Asiento automático creado');
       
     } catch (error) {
       console.error('❌ Error creando asiento automático:', error);
@@ -193,7 +188,7 @@ const GastosOperativosSection = () => {
   };
 
   const confirmarEliminar = (gasto) => {
-    if (confirm(`¿Está seguro de eliminar el gasto "${gasto.descripcion}"?`)) {
+    if (confirm(`¿Eliminar gasto "${gasto.descripcion}"?`)) {
       eliminarGasto(gasto.id);
     }
   };
@@ -221,32 +216,23 @@ const GastosOperativosSection = () => {
   };
 
   const formatearMoneda = (valor, moneda = 'USD') => {
-    return formatearMonedaGeneral(valor, moneda);
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: moneda
+    }).format(valor || 0);
   };
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-AR');
   };
 
-  const calcularTotales = () => {
-    const totalUSD = gastos
-      .filter(g => g.moneda === 'USD')
-      .reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
-    
-    const totalARS = gastos
-      .filter(g => g.moneda === 'ARS')
-      .reduce((sum, gasto) => sum + parseFloat(gasto.monto), 0);
-    
-    return { totalUSD, totalARS };
-  };
-
-  const { totalUSD, totalARS } = calcularTotales();
+  const estadisticas = obtenerEstadisticas();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-        <span className="ml-3 text-gray-600">Cargando gastos operativos...</span>
+        <span className="ml-3 text-gray-600">Cargando gastos...</span>
       </div>
     );
   }
@@ -261,12 +247,12 @@ const GastosOperativosSection = () => {
               <DollarSign size={28} />
               <div>
                 <h2 className="text-4xl font-bold">Gastos Operativos</h2>
-                <p className="text-orange-100 mt-1">Registro de gastos en ARS y USD con asientos automáticos</p>
+                <p className="text-orange-100 mt-1">Gestión de gastos en ARS y USD</p>
               </div>
             </div>
             <button
               onClick={nuevoGasto}
-              className="bg-white text-orange-600 px-6 py-3 rounded-lg hover:bg-orange-50 flex items-center gap-2 font-medium transition-colors"
+              className="bg-white text-orange-600 px-6 py-3 rounded-lg hover:bg-orange-50 flex items-center gap-2 font-medium"
             >
               <Plus size={18} />
               Nuevo Gasto
@@ -282,7 +268,9 @@ const GastosOperativosSection = () => {
                 <DollarSign className="w-5 h-5 text-green-600" />
                 <div>
                   <div className="text-sm text-gray-600">Total USD</div>
-                  <div className="text-xl font-bold text-green-600">{formatearMoneda(totalUSD, 'USD')}</div>
+                  <div className="text-xl font-bold text-green-600">
+                    {formatearMoneda(estadisticas.totalUSD, 'USD')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -291,16 +279,18 @@ const GastosOperativosSection = () => {
                 <DollarSign className="w-5 h-5 text-blue-600" />
                 <div>
                   <div className="text-sm text-gray-600">Total ARS</div>
-                  <div className="text-xl font-bold text-blue-600">{formatearMoneda(totalARS, 'ARS')}</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {formatearMoneda(estadisticas.totalARS, 'ARS')}
+                  </div>
                 </div>
               </div>
             </div>
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-purple-600" />
+                <Calendar className="w-5 h-5 text-purple-600" />
                 <div>
                   <div className="text-sm text-gray-600">Total Gastos</div>
-                  <div className="text-xl font-bold text-purple-600">{gastos.length}</div>
+                  <div className="text-xl font-bold text-purple-600">{estadisticas.totalGastos}</div>
                 </div>
               </div>
             </div>
@@ -316,7 +306,7 @@ const GastosOperativosSection = () => {
                 type="date"
                 value={filtros.fechaDesde}
                 onChange={(e) => setFiltros({ ...filtros, fechaDesde: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
               />
             </div>
             <div>
@@ -325,7 +315,7 @@ const GastosOperativosSection = () => {
                 type="date"
                 value={filtros.fechaHasta}
                 onChange={(e) => setFiltros({ ...filtros, fechaHasta: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
               />
             </div>
             <div className="flex items-end space-x-2">
@@ -350,7 +340,10 @@ const GastosOperativosSection = () => {
         <div className="p-6">
           {error ? (
             <div className="bg-red-50 border-l-4 border-red-400 p-4">
-              <span className="text-red-800">{error}</span>
+              <div className="flex">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <span className="ml-2 text-red-800">{error}</span>
+              </div>
             </div>
           ) : gastos.length === 0 ? (
             <div className="text-center py-8">
@@ -373,7 +366,7 @@ const GastosOperativosSection = () => {
                 <tbody>
                   {gastos.map((gasto) => (
                     <tr key={gasto.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm">
                         {formatearFecha(gasto.fecha_gasto)}
                       </td>
                       <td className="py-3 px-4">
@@ -393,13 +386,13 @@ const GastosOperativosSection = () => {
                       </td>
                       <td className="text-right py-3 px-4">
                         <div className="font-bold text-lg">
-                          {formatearMoneda(gasto.monto, gasto.moneda || 'USD')}
+                          {formatearMoneda(gasto.monto, gasto.moneda)}
                         </div>
                         {gasto.moneda === 'ARS' && gasto.cotizacion_manual && (
                           <div className="text-xs text-gray-500">
                             Cotización: ${gasto.cotizacion_manual}
                             <br />
-                            USD: {formatearMonedaGeneral(gasto.monto / gasto.cotizacion_manual, 'USD')}
+                            USD: {formatearMoneda(gasto.monto / gasto.cotizacion_manual, 'USD')}
                           </div>
                         )}
                       </td>
@@ -458,7 +451,7 @@ const GastosOperativosSection = () => {
                   type="date"
                   value={formData.fecha_gasto}
                   onChange={(e) => setFormData({ ...formData, fecha_gasto: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                   required
                 />
               </div>
@@ -471,7 +464,7 @@ const GastosOperativosSection = () => {
                 <select
                   value={formData.categoria}
                   onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                   required
                 >
                   <option value="">Seleccionar categoría...</option>
@@ -493,7 +486,7 @@ const GastosOperativosSection = () => {
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   placeholder="Descripción del gasto..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                   required
                 />
               </div>
@@ -544,7 +537,7 @@ const GastosOperativosSection = () => {
                     value={formData.monto}
                     onChange={(e) => setFormData({ ...formData, monto: e.target.value })}
                     placeholder={`0.00 ${formData.moneda}`}
-                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                     required
                   />
                 </div>
@@ -577,36 +570,54 @@ const GastosOperativosSection = () => {
                       value={formData.cotizacion_manual}
                       onChange={(e) => setFormData({ ...formData, cotizacion_manual: e.target.value })}
                       placeholder="Ej: 1200.00"
-                      className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                       required
                     />
                   </div>
+                  {/* Vista previa de conversión */}
+                  {formData.monto && formData.cotizacion_manual && (
+                    <div className="mt-2 text-sm text-blue-600">
+                      = {formatearMoneda(parseFloat(formData.monto) / parseFloat(formData.cotizacion_manual), 'USD')}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Cuenta de Pago */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cuenta de Pago *
+                  Cuenta de Pago
                 </label>
                 <select
                   value={formData.cuenta_pago_id}
                   onChange={(e) => setFormData({ ...formData, cuenta_pago_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="">Seleccionar cuenta...</option>
-                  {cuentasPago.map(cuenta => (
+                  {cuentasDisponibles.map(cuenta => (
                     <option key={cuenta.id} value={cuenta.id}>
                       {cuenta.codigo} - {cuenta.nombre}
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Cuenta desde donde se pagó el gasto
-                </p>
               </div>
 
+              {/* Método de Pago */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Método de Pago
+                </label>
+                <select
+                  value={formData.metodo_pago}
+                  onChange={(e) => setFormData({ ...formData, metodo_pago: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="efectivo">Efectivo</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="cheque">Cheque</option>
+                  <option value="tarjeta">Tarjeta</option>
+                </select>
+              </div>
 
               {/* Observaciones */}
               <div>
@@ -618,45 +629,22 @@ const GastosOperativosSection = () => {
                   onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
                   placeholder="Observaciones adicionales..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500"
                 />
               </div>
-
-              {/* Vista previa de conversión */}
-              {formData.moneda === 'ARS' && formData.monto && formData.cotizacion_manual && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="text-sm font-medium text-blue-800 mb-1">Conversión a USD</div>
-                  <div className="text-sm text-blue-700">
-                    ${parseFloat(formData.monto).toLocaleString()} ARS ÷ ${formData.cotizacion_manual} = ${(parseFloat(formData.monto) / parseFloat(formData.cotizacion_manual)).toFixed(4)} USD
-                  </div>
-                </div>
-              )}
-
-              {/* Información sobre asiento automático */}
-              {!gastoSeleccionado && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">Asiento Automático</span>
-                  </div>
-                  <div className="text-sm text-green-700 mt-1">
-                    Se generará automáticamente un asiento contable como borrador para revisión
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="p-6 border-t bg-gray-50">
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={guardarGasto}
-                  className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2"
                 >
                   <Save size={16} />
                   {gastoSeleccionado ? 'Actualizar' : 'Guardar'}

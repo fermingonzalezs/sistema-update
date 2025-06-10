@@ -19,10 +19,11 @@ import {
 } from 'lucide-react';
 import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
+import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
 
 const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filtroSaldo, setFiltroSaldo] = useState('todos'); // 'todos', 'deudores', 'acreedores', 'saldados'
+  const [filtroSaldo, setFiltroSaldo] = useState('con_deuda'); // 'todos', 'deudores', 'acreedores', 'saldados', 'con_deuda'
   const [estadisticas, setEstadisticas] = useState(null);
   const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
@@ -319,6 +320,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
       case 'saldados':
         cumpleFiltro = parseFloat(cliente.saldo_total || 0) === 0;
         break;
+      case 'con_deuda':
+        cumpleFiltro = parseFloat(cliente.saldo_total || 0) !== 0; // Solo con deuda (cualquier dirección)
+        break;
       default: // 'todos'
         cumpleFiltro = true;
     }
@@ -387,7 +391,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
               <div>
                 <p className="text-sm text-gray-600">Deudas de la Empresa</p>
                 <p className="text-2xl font-bold text-red-600">
-                  ${estadisticas.totalPorPagar.toFixed(2)}
+                  {formatearMonedaGeneral(estadisticas.totalPorPagar, 'USD')}
                 </p>
               </div>
             </div>
@@ -401,7 +405,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
               <div>
                 <p className="text-sm text-gray-600">Créditos a Favor</p>
                 <p className="text-2xl font-bold text-green-600">
-                  ${estadisticas.totalPorCobrar.toFixed(2)}
+                  {formatearMonedaGeneral(estadisticas.totalPorCobrar, 'USD')}
                 </p>
               </div>
             </div>
@@ -417,7 +421,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
                 <p className={`text-2xl font-bold ${
                   estadisticas.saldoNeto <= 0 ? 'text-red-600' : 'text-green-600'
                 }`}>
-                  ${Math.abs(estadisticas.saldoNeto).toFixed(2)}
+                  {formatearMonedaGeneral(Math.abs(estadisticas.saldoNeto), 'USD')}
                 </p>
               </div>
             </div>
@@ -461,9 +465,10 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
               onChange={(e) => setFiltroSaldo(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="todos">Todas las personas</option>
+              <option value="con_deuda">Solo con deuda</option>
               <option value="deudores">Deudas de la empresa (les debemos)</option>
               <option value="acreedores">Créditos a favor (nos deben)</option>
+              <option value="todos">Todas las personas</option>
               <option value="saldados">Saldados</option>
             </select>
           </div>
@@ -517,7 +522,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
                         
                         {/* Saldo */}
                         <div className={`px-3 py-1 rounded-full text-sm font-medium ${saldoInfo.bgColor} ${saldoInfo.color}`}>
-                          {saldoInfo.texto}: ${saldoInfo.valor.toFixed(2)}
+                          {saldoInfo.texto}: {formatearMonedaGeneral(saldoInfo.valor, 'USD')}
                         </div>
                       </div>
 

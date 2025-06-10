@@ -48,6 +48,9 @@ export const gastosOperativosService = {
         proveedor_nombre: gastoData.proveedor_nombre || null,
         numero_comprobante: gastoData.numero_comprobante || null,
         monto: parseFloat(gastoData.monto),
+        moneda: gastoData.moneda || 'USD',
+        cotizacion_manual: gastoData.cotizacion_manual ? parseFloat(gastoData.cotizacion_manual) : null,
+        cuenta_pago_id: gastoData.cuenta_pago_id || null,
         metodo_pago: gastoData.metodo_pago || 'efectivo',
         estado: gastoData.estado || 'pagado',
         observaciones: gastoData.observaciones || null

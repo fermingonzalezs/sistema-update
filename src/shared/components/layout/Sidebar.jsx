@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShoppingCart,
   Plus,
@@ -23,11 +23,50 @@ import {
   LogOut,
   Globe,
   Truck,
+  RefreshCw
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
   const { user, logout, hasAccess, getAllowedSections } = useAuthContext();
+  
+  // Estado para cotización USD/ARS
+  const [cotizacion, setCotizacion] = useState(null);
+  const [loadingCotizacion, setLoadingCotizacion] = useState(false);
+
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    cargarCotizacion();
+    // Actualizar cada 5 minutos
+    const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const cargarCotizacion = async () => {
+    try {
+      setLoadingCotizacion(true);
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setCotizacion(cotizacionData);
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+    } finally {
+      setLoadingCotizacion(false);
+    }
+  };
+
+  const actualizarCotizacion = async () => {
+    try {
+      setLoadingCotizacion(true);
+      const cotizacionData = await cotizacionSimple.forzarActualizacion();
+      setCotizacion(cotizacionData);
+    } catch (error) {
+      console.error('❌ Error actualizando cotización:', error);
+    } finally {
+      setLoadingCotizacion(false);
+    }
+  };
+
   const menuGroups = [
     {
       title: 'VENTAS',
@@ -398,6 +437,45 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
             <div className="text-xs text-orange-300 mt-1 flex items-center space-x-1">
               <ShoppingCart className="w-3 h-3" />
               <span><span className="text-orange-400 font-medium">{cantidadCarrito}</span> items pendientes</span>
+            </div>
+          )}
+        </div>
+
+        {/* Cotización USD/ARS */}
+        <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <span className="text-sm font-medium text-white">USD/ARS</span>
+            </div>
+            <button
+              onClick={actualizarCotizacion}
+              disabled={loadingCotizacion}
+              className="p-1 hover:bg-white/10 rounded transition-colors"
+              title="Actualizar cotización"
+            >
+              <RefreshCw className={`w-3 h-3 text-slate-300 ${loadingCotizacion ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+          
+          {cotizacion ? (
+            <div>
+              <div className="text-lg font-bold text-green-400">
+                ${cotizacion.valor?.toFixed(2) || 'N/A'}
+              </div>
+              <div className="text-xs text-slate-300">
+                {cotizacion.fuente} • {cotizacion.timestamp}
+              </div>
+              {cotizacion.error && (
+                <div className="text-xs text-orange-300 mt-1 flex items-center space-x-1">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Sin conexión</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-slate-400">
+              {loadingCotizacion ? 'Cargando...' : 'No disponible'}
             </div>
           )}
         </div>
