@@ -4,6 +4,79 @@ import { supabase } from '../../../lib/supabase';
 
 // 📊 SERVICE: Operaciones de reparaciones
 export const reparacionesService = {
+  // Guardar presupuesto en la reparación
+  async guardarPresupuesto(id, presupuestoData) {
+    console.log(`💾 Guardando presupuesto para reparación ID: ${id}`)
+    
+    const { error } = await supabase
+      .from('reparaciones')
+      .update({
+        presupuesto_json: presupuestoData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error guardando presupuesto:', error)
+      throw error
+    }
+    
+    console.log('✅ Presupuesto guardado exitosamente')
+    return true
+  },
+  
+  // Obtener presupuesto de una reparación
+  async obtenerPresupuesto(id) {
+    console.log(`🔍 Obteniendo presupuesto para reparación ID: ${id}`)
+    
+    const { data, error } = await supabase
+      .from('reparaciones')
+      .select('presupuesto_json')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      console.error('❌ Error obteniendo presupuesto:', error)
+      throw error
+    }
+    
+    return data.presupuesto_json
+  },
+  
+  // Eliminar presupuesto de una reparación
+  async eliminarPresupuesto(id) {
+    console.log(`🗑️ Eliminando presupuesto para reparación ID: ${id}`)
+    
+    const { error } = await supabase
+      .from('reparaciones')
+      .update({
+        presupuesto_json: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error eliminando presupuesto:', error)
+      throw error
+    }
+    
+    console.log('✅ Presupuesto eliminado exitosamente')
+    return true
+  },
+  
+  // Verificar si una reparación tiene presupuesto
+  async tienePresupuesto(id) {
+    const { data, error } = await supabase
+      .from('reparaciones')
+      .select('presupuesto_json')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    
+    return data.presupuesto_json !== null
+  },
+  
   // 📋 Obtener todas las reparaciones
   async getAll() {
     console.log('📡 Obteniendo todas las reparaciones...')
@@ -203,89 +276,177 @@ export const reparacionesService = {
 };
 
 // 🎣 HOOK: Lógica de React para reparaciones
-export function useReparaciones() {
+export const useReparaciones = () => {
   const [reparaciones, setReparaciones] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [presupuesto, setPresupuesto] = useState(null)
 
-  // Cargar todas las reparaciones
-  const fetchReparaciones = useCallback(async () => {
+  // Obtener todas las reparaciones
+  const obtenerReparaciones = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       const data = await reparacionesService.getAll()
       setReparaciones(data)
     } catch (err) {
-      console.error('Error en useReparaciones:', err)
       setError(err.message)
+      console.error('Error obteniendo reparaciones:', err)
     } finally {
       setLoading(false)
     }
-  }, []);
+  }, [])
 
   // Crear nueva reparación
-  const crearReparacion = async (reparacionData) => {
+  const crearReparacion = useCallback(async (data) => {
     try {
-      setError(null)
-      const nuevaReparacion = await reparacionesService.create(reparacionData)
-      setReparaciones(prev => [nuevaReparacion, ...prev]) // Agregar al inicio
+      const nuevaReparacion = await reparacionesService.create(data)
+      setReparaciones(prev => [nuevaReparacion, ...prev])
       return nuevaReparacion
     } catch (err) {
       setError(err.message)
+      console.error('Error creando reparación:', err)
       throw err
     }
-  }
+  }, [])
 
-  // Actualizar reparación existente
-  const actualizarReparacion = async (id, updates) => {
+  // Actualizar reparación
+  const actualizarReparacion = useCallback(async (id, updates) => {
     try {
-      setError(null)
       const reparacionActualizada = await reparacionesService.update(id, updates)
-      setReparaciones(prev => prev.map(rep => 
-        rep.id === id ? reparacionActualizada : rep
-      ))
+      setReparaciones(prev => 
+        prev.map(r => r.id === id ? reparacionActualizada : r)
+      )
       return reparacionActualizada
     } catch (err) {
       setError(err.message)
+      console.error('Error actualizando reparación:', err)
       throw err
     }
-  }
+  }, [])
 
-  // Eliminar reparación  
-  const eliminarReparacion = async (id) => {
+  // Eliminar reparación
+  const eliminarReparacion = useCallback(async (id) => {
     try {
-      setError(null)
       await reparacionesService.delete(id)
-      setReparaciones(prev => prev.filter(rep => rep.id !== id))
+      setReparaciones(prev => prev.filter(r => r.id !== id))
     } catch (err) {
       setError(err.message)
+      console.error('Error eliminando reparación:', err)
       throw err
     }
-  }
+  }, [])
+
+  // Buscar por cliente
+  const buscarPorCliente = useCallback(async (nombre) => {
+    try {
+      const resultados = await reparacionesService.buscarPorCliente(nombre)
+      setReparaciones(resultados)
+      return resultados
+    } catch (err) {
+      setError(err.message)
+      console.error('Error buscando por cliente:', err)
+      throw err
+    }
+  }, [])
+
+  // Buscar por número
+  const buscarPorNumero = useCallback(async (numero) => {
+    try {
+      const resultado = await reparacionesService.buscarPorNumero(numero)
+      setReparaciones(resultado ? [resultado] : [])
+      return resultado
+    } catch (err) {
+      setError(err.message)
+      console.error('Error buscando por número:', err)
+      throw err
+    }
+  }, [])
 
   // Cambiar estado de reparación
-  const cambiarEstado = async (id, nuevoEstado) => {
+  const cambiarEstado = useCallback(async (id, nuevoEstado) => {
     try {
-      setError(null)
       const reparacionActualizada = await reparacionesService.cambiarEstado(id, nuevoEstado)
-      setReparaciones(prev => prev.map(rep => 
-        rep.id === id ? reparacionActualizada : rep
-      ))
+      setReparaciones(prev => 
+        prev.map(r => r.id === id ? reparacionActualizada : r)
+      )
       return reparacionActualizada
     } catch (err) {
       setError(err.message)
+      console.error('Error cambiando estado:', err)
       throw err
     }
-  }
+  }, [])
+
+  // Obtener estadísticas
+  const obtenerEstadisticas = useCallback(async () => {
+    try {
+      return await reparacionesService.getEstadisticas()
+    } catch (err) {
+      setError(err.message)
+      console.error('Error obteniendo estadísticas:', err)
+      throw err
+    }
+  }, [])
+
+  // Funciones de presupuesto
+  const guardarPresupuesto = useCallback(async (id, presupuestoData) => {
+    try {
+      await reparacionesService.guardarPresupuesto(id, presupuestoData)
+      return true
+    } catch (error) {
+      console.error('Error guardando presupuesto:', error)
+      throw error
+    }
+  }, [])
+
+  const obtenerPresupuesto = useCallback(async (id) => {
+    try {
+      const data = await reparacionesService.obtenerPresupuesto(id)
+      setPresupuesto(data)
+      return data
+    } catch (error) {
+      console.error('Error obteniendo presupuesto:', error)
+      throw error
+    }
+  }, [])
+
+  const eliminarPresupuesto = useCallback(async (id) => {
+    try {
+      await reparacionesService.eliminarPresupuesto(id)
+      setPresupuesto(null)
+      return true
+    } catch (error) {
+      console.error('Error eliminando presupuesto:', error)
+      throw error
+    }
+  }, [])
+
+  const tienePresupuesto = useCallback(async (id) => {
+    try {
+      return await reparacionesService.tienePresupuesto(id)
+    } catch (error) {
+      console.error('Error verificando presupuesto:', error)
+      throw error
+    }
+  }, [])
 
   return {
     reparaciones,
     loading,
     error,
-    fetchReparaciones,
+    presupuesto,
+    obtenerReparaciones,
     crearReparacion,
     actualizarReparacion,
     eliminarReparacion,
-    cambiarEstado
+    buscarPorCliente,
+    buscarPorNumero,
+    cambiarEstado,
+    obtenerEstadisticas,
+    guardarPresupuesto,
+    obtenerPresupuesto,
+    eliminarPresupuesto,
+    tienePresupuesto
   }
 }

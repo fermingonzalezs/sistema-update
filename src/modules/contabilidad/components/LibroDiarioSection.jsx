@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
+import { conversionService } from '../../../services/conversionService';
 
 // Servicio para el Libro Diario
 const libroDiarioService = {
@@ -30,60 +32,109 @@ const libroDiarioService = {
   async getCuentasImputables() {
     console.log('📡 Obteniendo cuentas disponibles...');
 
-    const { data, error } = await supabase
-      .from('plan_cuentas')
-      .select('id, codigo, nombre')
-      .eq('activa', true)
-      .order('codigo');
+    try {
+      const { data, error } = await supabase
+        .from('plan_cuentas')
+        .select('id, codigo, nombre, moneda_original, requiere_cotizacion')
+        .eq('activa', true)
+        .order('codigo');
 
-    if (error) {
+      if (error) {
+        console.warn('⚠️ Columnas de moneda no disponibles, usando datos básicos');
+        // Fallback a datos básicos
+        const { data: dataBasica, error: errorBasico } = await supabase
+          .from('plan_cuentas')
+          .select('id, codigo, nombre')
+          .eq('activa', true)
+          .order('codigo');
+        
+        if (errorBasico) {
+          throw errorBasico;
+        }
+        
+        // Agregar valores por defecto
+        const cuentasConDefecto = dataBasica.map(cuenta => ({
+          ...cuenta,
+          moneda_original: 'USD',
+          requiere_cotizacion: false
+        }));
+        
+        console.log(`✅ ${cuentasConDefecto.length} cuentas obtenidas (modo básico)`);
+        return cuentasConDefecto;
+      }
+
+      console.log(`✅ ${data.length} cuentas obtenidas`);
+      return data;
+    } catch (error) {
       console.error('❌ Error obteniendo cuentas:', error);
       throw error;
     }
-
-    console.log(`✅ ${data.length} cuentas obtenidas`);
-    return data;
   },
 
   async createAsiento(asientoData) {
-    console.log('💾 Creando asiento contable:', asientoData);
+    console.log('💾 Creando asiento contable con USD:', asientoData);
 
-    // Validar que esté balanceado
-    const totalDebe = asientoData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.debe || 0), 0);
-    const totalHaber = asientoData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
+    // Si hay movimientos convertidos (del nuevo sistema), usar esos
+    const movimientosParaGuardar = asientoData.movimientosConvertidos || asientoData.movimientos;
+    
+    // Validar que esté balanceado en USD
+    const totalDebe = asientoData.totalDebeUSD || movimientosParaGuardar.reduce((sum, mov) => sum + parseFloat(mov.debe || 0), 0);
+    const totalHaber = asientoData.totalHaberUSD || movimientosParaGuardar.reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
 
     if (Math.abs(totalDebe - totalHaber) > 0.01) {
-      throw new Error('El asiento no está balanceado. Debe = Haber');
+      throw new Error('El asiento no está balanceado en USD. Debe = Haber');
     }
 
     try {
       // Obtener siguiente número
       const numeroAsiento = await this.getNextNumero();
 
-      // Crear el asiento principal
+      // Crear el asiento principal (con o sin cotización promedio)
+      const asientoDataToInsert = {
+        numero: numeroAsiento,
+        fecha: asientoData.fecha,
+        descripcion: asientoData.descripcion,
+        total_debe: totalDebe,
+        total_haber: totalHaber,
+        estado: 'registrado',
+        usuario: 'admin'
+      };
+      
+      // Solo agregar cotización_promedio si está disponible
+      if (asientoData.cotizacionPromedio) {
+        asientoDataToInsert.cotizacion_promedio = asientoData.cotizacionPromedio;
+      }
+
       const { data: asiento, error: errorAsiento } = await supabase
         .from('asientos_contables')
-        .insert([{
-          numero: numeroAsiento,
-          fecha: asientoData.fecha,
-          descripcion: asientoData.descripcion,
-          total_debe: totalDebe,
-          total_haber: totalHaber,
-          estado: 'registrado',
-          usuario: 'admin'
-        }])
+        .insert([asientoDataToInsert])
         .select()
         .single();
 
       if (errorAsiento) throw errorAsiento;
 
-      // Crear los movimientos
-      const movimientos = asientoData.movimientos.map(mov => ({
-        asiento_id: asiento.id,
-        cuenta_id: mov.cuenta_id,
-        debe: parseFloat(mov.debe || 0),
-        haber: parseFloat(mov.haber || 0)
-      }));
+      // Crear los movimientos (básicos o con información de conversión)
+      const movimientos = movimientosParaGuardar.map(mov => {
+        const movimientoBasico = {
+          asiento_id: asiento.id,
+          cuenta_id: mov.cuenta_id,
+          debe: parseFloat(mov.debe || 0),
+          haber: parseFloat(mov.haber || 0)
+        };
+        
+        // Solo agregar campos de conversión si están disponibles
+        if (mov.cotizacion_manual !== undefined) {
+          movimientoBasico.cotizacion_manual = mov.cotizacion_manual;
+        }
+        if (mov.monto_original_ars !== undefined) {
+          movimientoBasico.monto_original_ars = mov.monto_original_ars;
+        }
+        if (mov.observaciones_cambio !== undefined) {
+          movimientoBasico.observaciones_cambio = mov.observaciones_cambio;
+        }
+        
+        return movimientoBasico;
+      });
 
       const { data: movimientosCreados, error: errorMovimientos } = await supabase
         .from('movimientos_contables')
@@ -92,7 +143,25 @@ const libroDiarioService = {
 
       if (errorMovimientos) throw errorMovimientos;
 
-      console.log('✅ Asiento creado exitosamente:', numeroAsiento);
+      // Guardar cotizaciones en el historial si es necesario (solo si la tabla existe)
+      if (asientoData.cotizacionPromedio) {
+        try {
+          await supabase
+            .from('cotizaciones_manuales')
+            .insert({
+              fecha: asientoData.fecha,
+              cotizacion: asientoData.cotizacionPromedio,
+              usuario: 'admin',
+              observaciones: `Asiento contable N° ${numeroAsiento}`,
+              operacion_tipo: 'libro_diario',
+              operacion_id: asiento.id
+            });
+        } catch (cotError) {
+          console.warn('⚠️ Tabla cotizaciones_manuales no disponible:', cotError.message);
+        }
+      }
+
+      console.log('✅ Asiento creado exitosamente en USD:', numeroAsiento);
 
       // Retornar el asiento completo con sus movimientos
       return {
@@ -231,8 +300,24 @@ const LibroDiarioSection = () => {
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
     movimientos: [
-      { cuenta_id: '', cuenta: null, debe: '', haber: '' },
-      { cuenta_id: '', cuenta: null, debe: '', haber: '' }
+      { 
+        cuenta_id: '', 
+        cuenta: null, 
+        monto: 0,
+        cotizacion: 0,
+        tipo: 'debe', // 'debe' o 'haber'
+        debe: '', 
+        haber: '' 
+      },
+      { 
+        cuenta_id: '', 
+        cuenta: null, 
+        monto: 0,
+        cotizacion: 0,
+        tipo: 'haber', // 'debe' o 'haber'
+        debe: '', 
+        haber: '' 
+      }
     ]
   });
 
@@ -262,8 +347,24 @@ const LibroDiarioSection = () => {
       fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
       movimientos: [
-        { cuenta_id: '', cuenta: null, debe: '', haber: '' },
-        { cuenta_id: '', cuenta: null, debe: '', haber: '' }
+        { 
+          cuenta_id: '', 
+          cuenta: null, 
+          monto: 0,
+          cotizacion: 0,
+          tipo: 'debe',
+          debe: '', 
+          haber: '' 
+        },
+        { 
+          cuenta_id: '', 
+          cuenta: null, 
+          monto: 0,
+          cotizacion: 0,
+          tipo: 'haber',
+          debe: '', 
+          haber: '' 
+        }
       ]
     });
     setShowModal(true);
@@ -272,7 +373,15 @@ const LibroDiarioSection = () => {
   const agregarMovimiento = () => {
     setFormData(prev => ({
       ...prev,
-      movimientos: [...prev.movimientos, { cuenta_id: '', cuenta: null, debe: '', haber: '' }]
+      movimientos: [...prev.movimientos, { 
+        cuenta_id: '', 
+        cuenta: null, 
+        monto: 0,
+        cotizacion: 0,
+        tipo: 'debe',
+        debe: '', 
+        haber: '' 
+      }]
     }));
   };
 
@@ -292,9 +401,15 @@ const LibroDiarioSection = () => {
       ...prev,
       movimientos: prev.movimientos.map((mov, i) => {
         if (i === index) {
-          if (campo === 'cuenta_id') {
-            const cuenta = cuentasImputables.find(c => c.id == valor);
-            return { ...mov, cuenta_id: valor, cuenta };
+          if (campo === 'cuenta') {
+            // Cuando se selecciona una cuenta completa desde SelectorCuentaConCotizacion
+            return { 
+              ...mov, 
+              cuenta_id: valor?.id || '', 
+              cuenta: valor,
+              // Limpiar cotización si la nueva cuenta no la requiere
+              cotizacion: valor?.requiere_cotizacion ? mov.cotizacion : 0
+            };
           } else {
             return { ...mov, [campo]: valor };
           }
@@ -305,16 +420,49 @@ const LibroDiarioSection = () => {
   };
 
   const calcularTotales = () => {
-    const totalDebe = formData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.debe || 0), 0);
-    const totalHaber = formData.movimientos.reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
-    const diferencia = totalDebe - totalHaber;
+    try {
+      // Intentar convertir los movimientos a USD usando el servicio
+      const movimientosConvertidos = formData.movimientos
+        .filter(mov => mov.cuenta && mov.monto > 0)
+        .map(mov => {
+          try {
+            return conversionService.prepararMovimiento(mov, mov.cuenta);
+          } catch (error) {
+            // Si hay error en la conversión, retornar valores en 0
+            return { debe: 0, haber: 0 };
+          }
+        });
 
-    return { totalDebe, totalHaber, diferencia, balanceado: Math.abs(diferencia) < 0.01 };
+      const totalDebe = movimientosConvertidos.reduce((sum, mov) => sum + (mov.debe || 0), 0);
+      const totalHaber = movimientosConvertidos.reduce((sum, mov) => sum + (mov.haber || 0), 0);
+      const diferencia = totalDebe - totalHaber;
+
+      return { 
+        totalDebe, 
+        totalHaber, 
+        diferencia, 
+        balanceado: Math.abs(diferencia) < 0.01,
+        movimientosConvertidos 
+      };
+    } catch (error) {
+      // En caso de error, retornar totales básicos
+      const totalDebe = formData.movimientos.reduce((sum, mov) => {
+        return sum + (mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0);
+      }, 0);
+      const totalHaber = formData.movimientos.reduce((sum, mov) => {
+        return sum + (mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0);
+      }, 0);
+      const diferencia = totalDebe - totalHaber;
+
+      return { totalDebe, totalHaber, diferencia, balanceado: false, error: error.message };
+    }
   };
 
   const guardarAsiento = async () => {
     try {
-      // Validaciones
+      console.log('💾 Iniciando guardado de asiento con conversión USD...');
+      
+      // Validaciones básicas
       if (!formData.fecha) {
         alert('La fecha es obligatoria');
         return;
@@ -325,40 +473,51 @@ const LibroDiarioSection = () => {
       }
 
       // Validar que todos los movimientos tengan cuenta
-      const movimientosSinCuenta = formData.movimientos.filter(mov => !mov.cuenta_id);
+      const movimientosSinCuenta = formData.movimientos.filter(mov => !mov.cuenta);
       if (movimientosSinCuenta.length > 0) {
         alert('Todos los movimientos deben tener una cuenta seleccionada');
         return;
       }
 
-      // Validar que todos los movimientos tengan debe o haber
-      const movimientosSinImporte = formData.movimientos.filter(mov =>
-        (!mov.debe || parseFloat(mov.debe) === 0) && (!mov.haber || parseFloat(mov.haber) === 0)
+      // Validar que todos los movimientos tengan monto
+      const movimientosSinMonto = formData.movimientos.filter(mov => !mov.monto || mov.monto <= 0);
+      if (movimientosSinMonto.length > 0) {
+        alert('Todos los movimientos deben tener un monto válido');
+        return;
+      }
+
+      // Validar cotizaciones para cuentas ARS
+      const movimientosSinCotizacion = formData.movimientos.filter(mov => 
+        mov.cuenta?.requiere_cotizacion && (!mov.cotizacion || mov.cotizacion <= 0)
       );
-      if (movimientosSinImporte.length > 0) {
-        alert('Todos los movimientos deben tener un importe en debe o haber');
+      if (movimientosSinCotizacion.length > 0) {
+        const cuentasSinCotizacion = movimientosSinCotizacion.map(mov => mov.cuenta.nombre).join(', ');
+        alert(`Faltan cotizaciones para cuentas en ARS: ${cuentasSinCotizacion}`);
         return;
       }
 
-      // Validar que no haya debe y haber en el mismo movimiento
-      const movimientosConAmbos = formData.movimientos.filter(mov =>
-        mov.debe && parseFloat(mov.debe) > 0 && mov.haber && parseFloat(mov.haber) > 0
-      );
-      if (movimientosConAmbos.length > 0) {
-        alert('Un movimiento no puede tener importe en debe Y haber al mismo tiempo');
+      // Usar el servicio de conversión para validar y convertir
+      const resultado = await conversionService.convertirAsientoAUSD(formData);
+      
+      if (!resultado.balanceado) {
+        alert(`El asiento no está balanceado en USD:\nDebe: $${resultado.totalDebeUSD.toFixed(2)}\nHaber: $${resultado.totalHaberUSD.toFixed(2)}`);
         return;
       }
 
-      const totales = calcularTotales();
-      if (!totales.balanceado) {
-        alert(`El asiento no está balanceado. Diferencia: $${totales.diferencia.toFixed(2)}`);
-        return;
-      }
-
-      await crearAsiento(formData);
+      // Crear el asiento usando el servicio actualizado
+      await crearAsiento({
+        ...formData,
+        movimientosConvertidos: resultado.movimientosConvertidos,
+        totalDebeUSD: resultado.totalDebeUSD,
+        totalHaberUSD: resultado.totalHaberUSD,
+        cotizacionPromedio: resultado.cotizacionPromedio
+      });
+      
       setShowModal(false);
-      alert('✅ Asiento creado exitosamente');
+      alert('✅ Asiento creado exitosamente en USD');
+      
     } catch (err) {
+      console.error('Error guardando asiento:', err);
       alert('❌ Error: ' + err.message);
     }
   };
@@ -529,46 +688,70 @@ const LibroDiarioSection = () => {
                   {expandedAsientos[asiento.id] && (
                     <div className="border-t bg-white">
                       <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-gray-100">
-                            <tr>
-                              <th className="text-left py-3 px-6 font-medium text-gray-700">Cuenta</th>
-                              <th className="text-right py-3 px-6 font-medium text-gray-700">Debe</th>
-                              <th className="text-right py-3 px-6 font-medium text-gray-700">Haber</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {asiento.movimientos_contables.map((mov, index) => (
-                              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-3 px-6">
-                                  <div className={mov.haber > 0 ? "ml-50" : ""}>
-                                    <code className="text-sm text-blue-600 font-mono">
-                                      {mov.plan_cuentas.codigo}
-                                    </code>
-                                    <div className="text-gray-700">{mov.plan_cuentas.nombre}</div>
+                        <div className="flex">
+                          {/* Sección izquierda - Cuentas */}
+                          <div className="w-1/2 max-w-md">
+                            <div className="grid grid-cols-2 bg-gray-100 py-3 px-2">
+                              <div className="text-center font-medium text-gray-700">Debe</div>
+                              <div className="text-center font-medium text-gray-700">Haber</div>
+                            </div>
+                            <div>
+                              {asiento.movimientos_contables.map((mov, index) => (
+                                <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-2">
+                                  {/* Columna DEBE - Cuentas */}
+                                  <div className="text-center">
+                                    {mov.debe > 0 && (
+                                      <div>
+                                        <code className="text-sm text-blue-600 font-mono">
+                                          {mov.plan_cuentas.codigo}
+                                        </code>
+                                        <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                      </div>
+                                    )}
                                   </div>
-                                </td>
-                                <td className="text-right py-3 px-6 font-medium">
-                                  {mov.debe > 0 ? `$${mov.debe.toLocaleString()}` : ''}
-                                </td>
-                                <td className="text-right py-3 px-6 font-medium">
-                                  {mov.haber > 0 ? `$${mov.haber.toLocaleString()}` : ''}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="bg-gray-50">
-                            <tr className="font-semibold">
-                              <td className="py-3 px-6 text-gray-700">TOTALES</td>
-                              <td className="text-right py-3 px-6 text-green-600">
-                                ${asiento.total_debe.toLocaleString()}
-                              </td>
-                              <td className="text-right py-3 px-6 text-green-600">
-                                ${asiento.total_haber.toLocaleString()}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
+                                  
+                                  {/* Columna HABER - Cuentas */}
+                                  <div className="text-center">
+                                    {mov.haber > 0 && (
+                                      <div>
+                                        <code className="text-sm text-blue-600 font-mono">
+                                          {mov.plan_cuentas.codigo}
+                                        </code>
+                                        <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Espacio separador */}
+                          <div className="flex-1"></div>
+
+                          {/* Sección derecha - Importes */}
+                          <div className="w-1/3">
+                            <div className="grid grid-cols-2 bg-gray-100 py-3 px-4">
+                              <div className="text-center font-medium text-gray-700">Debe</div>
+                              <div className="text-center font-medium text-gray-700">Haber</div>
+                            </div>
+                            <div>
+                              {asiento.movimientos_contables.map((mov, index) => (
+                                <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
+                                  {/* Columna DEBE - Importes */}
+                                  <div className="text-center font-medium">
+                                    {mov.debe > 0 ? `$${mov.debe.toLocaleString()}` : ''}
+                                  </div>
+                                  
+                                  {/* Columna HABER - Importes */}
+                                  <div className="text-center font-medium">
+                                    {mov.haber > 0 ? `$${mov.haber.toLocaleString()}` : ''}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -673,113 +856,134 @@ const LibroDiarioSection = () => {
                 </div>
               )}
 
-              {/* Movimientos */}
+              {/* Movimientos con Sistema de Conversión USD */}
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-medium text-lg">Movimientos Contables</h4>
+                  <div>
+                    <h4 className="font-medium text-lg flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                      Movimientos Contables (Sistema USD)
+                    </h4>
+                    <p className="text-sm text-gray-600">Todas las operaciones se guardan en dólares americanos</p>
+                  </div>
                   <button
                     onClick={agregarMovimiento}
-                    className="text-green-600 hover:text-green-800 font-medium text-sm"
+                    className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center gap-1"
                   >
-                    + Agregar movimiento
+                    <Plus size={16} />
+                    Agregar movimiento
                   </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border border-gray-200 rounded-lg">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left py-3 px-4 font-medium text-gray-700">Cuenta</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-700">Debe</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-700">Haber</th>
-                        <th className="text-center py-3 px-4 font-medium text-gray-700">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {formData.movimientos.map((mov, index) => (
-                        <tr key={index} className="border-b border-gray-100">
-                          <td className="py-3 px-4">
-                            <select
-                              value={mov.cuenta_id}
-                              onChange={(e) => actualizarMovimiento(index, 'cuenta_id', e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                {/* Lista de Movimientos con SelectorCuentaConCotizacion */}
+                <div className="space-y-6">
+                  {formData.movimientos.map((mov, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-start mb-4">
+                        <h5 className="font-medium text-gray-700">Movimiento {index + 1}</h5>
+                        <div className="flex items-center space-x-2">
+                          {/* Toggle Debe/Haber */}
+                          <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => actualizarMovimiento(index, 'tipo', 'debe')}
+                              className={`px-3 py-1 text-sm font-medium transition-colors ${
+                                mov.tipo === 'debe' 
+                                  ? 'bg-green-600 text-white' 
+                                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                              }`}
                             >
-                              <option value="">Seleccionar cuenta...</option>
-                              {cuentasImputables.map(cuenta => (
-                                <option key={cuenta.id} value={cuenta.id}>
-                                  {cuenta.codigo} - {cuenta.nombre}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="py-3 px-4">
-                            <input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              value={mov.debe}
-                              onChange={(e) => actualizarMovimiento(index, 'debe', e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-right focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            />
-                          </td>
-                          <td className="py-3 px-4">
-                            <input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              value={mov.haber}
-                              onChange={(e) => actualizarMovimiento(index, 'haber', e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-right focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            />
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            {formData.movimientos.length > 2 && (
-                              <button
-                                onClick={() => eliminarMovimiento(index)}
-                                className="text-red-600 hover:text-red-800 p-1"
-                                title="Eliminar movimiento"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50">
-                      <tr className="font-semibold">
-                        <td className="py-3 px-4 text-gray-700">TOTALES</td>
-                        <td className="text-right py-3 px-4">
-                          <span className={`${totales.totalDebe > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                            ${totales.totalDebe.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="text-right py-3 px-4">
-                          <span className={`${totales.totalHaber > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                            ${totales.totalHaber.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${totales.balanceado
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                            }`}>
-                            {totales.balanceado ? (
-                              <>
-                                <Calculator size={12} className="mr-1" />
-                                Balanceado
-                              </>
-                            ) : (
-                              <>
-                                <AlertCircle size={12} className="mr-1" />
-                                Dif: ${Math.abs(totales.diferencia).toFixed(2)}
-                              </>
-                            )}
+                              DEBE
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => actualizarMovimiento(index, 'tipo', 'haber')}
+                              className={`px-3 py-1 text-sm font-medium transition-colors ${
+                                mov.tipo === 'haber' 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              HABER
+                            </button>
                           </div>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                          
+                          {/* Botón Eliminar */}
+                          {formData.movimientos.length > 2 && (
+                            <button
+                              onClick={() => eliminarMovimiento(index)}
+                              className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
+                              title="Eliminar movimiento"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Componente SelectorCuentaConCotizacion */}
+                      <SelectorCuentaConCotizacion
+                        cuentaSeleccionada={mov.cuenta}
+                        onCuentaChange={(cuenta) => actualizarMovimiento(index, 'cuenta', cuenta)}
+                        monto={mov.monto}
+                        onMontoChange={(monto) => actualizarMovimiento(index, 'monto', monto)}
+                        cotizacion={mov.cotizacion}
+                        onCotizacionChange={(cotizacion) => actualizarMovimiento(index, 'cotizacion', cotizacion)}
+                        tipo={mov.tipo}
+                        required={true}
+                        className="mt-4"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Resumen de Totales en USD */}
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Calculator className="w-5 h-5 text-blue-600" />
+                    <h5 className="font-medium text-blue-800">Resumen del Asiento (en USD)</h5>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span>Total Debe USD:</span>
+                      <span className={`font-medium ${totales.totalDebe > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        ${totales.totalDebe.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Haber USD:</span>
+                      <span className={`font-medium ${totales.totalHaber > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                        ${totales.totalHaber.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Estado:</span>
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        totales.balanceado 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {totales.balanceado ? (
+                          <>
+                            <Calculator size={12} className="mr-1" />
+                            Balanceado ✓
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle size={12} className="mr-1" />
+                            Diferencia: ${Math.abs(totales.diferencia).toFixed(2)}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {totales.error && (
+                    <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+                      <strong>Error:</strong> {totales.error}
+                    </div>
+                  )}
                 </div>
 
                 {/* Información de ayuda */}

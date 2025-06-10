@@ -4,7 +4,11 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "Bash(/home/fermin/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"text-(xl|2xl|3xl|5xl|6xl)\" /media/fermin/DATOS/fermin/proyectos/sistema-update/src/modules)",
-      "Bash(/home/fermin/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"text-4xl\" /media/fermin/DATOS/fermin/proyectos/sistema-update/src/modules/ventas/components/GestionFotosSection.jsx)"
+      "Bash(/home/fermin/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"text-4xl\" /media/fermin/DATOS/fermin/proyectos/sistema-update/src/modules/ventas/components/GestionFotosSection.jsx)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(grep:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

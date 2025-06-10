@@ -3,7 +3,9 @@ import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCh
 import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
+import ModalVistaPreviaPresupuesto from './ModalVistaPreviaPresupuesto';
 import { useReparaciones } from '../hooks/useReparaciones';
+import jsPDF from 'jspdf';
 
 const estados = {
   ingresado: { label: 'Ingresado', color: 'bg-orange-100 text-orange-700' },
@@ -40,6 +42,7 @@ function ReparacionesMain() {
   const [modalNueva, setModalNueva] = useState(false);
   const [modalPresupuesto, setModalPresupuesto] = useState(false);
   const [modalVista, setModalVista] = useState(false);
+  const [modalVistaPreviaPresupuesto, setModalVistaPreviaPresupuesto] = useState(false);
   
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -63,7 +66,7 @@ function ReparacionesMain() {
   // Hook de reparaciones
   const {
     reparaciones,
-    fetchReparaciones,
+    obtenerReparaciones,
     crearReparacion,
     eliminarReparacion,
     cambiarEstado,
@@ -72,8 +75,8 @@ function ReparacionesMain() {
 
   // Cargar reparaciones al iniciar
   useEffect(() => {
-    fetchReparaciones();
-  }, [fetchReparaciones]);
+    obtenerReparaciones();
+  }, [obtenerReparaciones]);
 
   // Handlers
   const handleNuevaReparacion = async (form) => {
@@ -131,6 +134,17 @@ function ReparacionesMain() {
     } catch (err) {
       alert('Error al cambiar estado: ' + err.message);
     }
+  };
+
+  const handleGenerarPDFPresupuesto = (reparacion) => {
+    if (!reparacion.presupuesto_json) {
+      alert('Esta reparación no tiene presupuesto guardado');
+      return;
+    }
+
+    // En lugar de generar PDF directamente, mostrar vista previa
+    setReparacionSeleccionada(reparacion);
+    setModalVistaPreviaPresupuesto(true);
   };
 
   // Filtrar reparaciones
@@ -310,11 +324,27 @@ function ReparacionesMain() {
                         <Eye className="w-5 h-5" />
                       </button>
                       <button 
-                        title="Crear presupuesto" 
+                        title={r.presupuesto_json ? "Ver/Editar presupuesto" : "Crear presupuesto"} 
                         onClick={() => handleAbrirPresupuesto(r)} 
-                        className="p-2 rounded hover:bg-orange-200 text-orange-600 transition-colors"
+                        className={`p-2 rounded transition-colors ${
+                          r.presupuesto_json 
+                            ? 'hover:bg-green-200 text-green-600' 
+                            : 'hover:bg-orange-200 text-orange-600'
+                        }`}
                       >
                         <FileText className="w-5 h-5" />
+                      </button>
+                      <button 
+                        title={r.presupuesto_json ? "Descargar PDF del presupuesto" : "Sin presupuesto guardado"} 
+                        onClick={() => handleGenerarPDFPresupuesto(r)} 
+                        disabled={!r.presupuesto_json}
+                        className={`p-2 rounded transition-colors ${
+                          r.presupuesto_json 
+                            ? 'hover:bg-blue-200 text-blue-600 cursor-pointer' 
+                            : 'text-gray-400 cursor-not-allowed opacity-50'
+                        }`}
+                      >
+                        <FileDown className="w-5 h-5" />
                       </button>
                       <button 
                         title="Eliminar reparación" 
@@ -398,8 +428,11 @@ function ReparacionesMain() {
       {modalPresupuesto && (
         <ModalPresupuesto 
           open={modalPresupuesto} 
-          onClose={() => setModalPresupuesto(false)} 
-          onVistaPrevia={handleVistaPrevia}
+          onClose={() => {
+            setModalPresupuesto(false);
+            // Recargar reparaciones para refrescar el estado del presupuesto
+            obtenerReparaciones();
+          }} 
           reparacion={reparacionSeleccionada}
         />
       )}
@@ -409,6 +442,15 @@ function ReparacionesMain() {
           open={modalVista} 
           onClose={() => setModalVista(false)}
           presupuestoData={presupuestoData}
+        />
+      )}
+      
+      {modalVistaPreviaPresupuesto && reparacionSeleccionada && (
+        <ModalVistaPreviaPresupuesto 
+          open={modalVistaPreviaPresupuesto} 
+          onClose={() => setModalVistaPreviaPresupuesto(false)}
+          reparacion={reparacionSeleccionada}
+          presupuesto={reparacionSeleccionada.presupuesto_json}
         />
       )}
     </div>

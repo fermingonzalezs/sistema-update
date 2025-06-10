@@ -25,8 +25,7 @@ import {
   CargaEquiposUnificada,
   ReparacionesMain,
   RepuestosSection,
-  RecuentoRepuestosSection,
-  PresupuestosReparacionSection
+  RecuentoRepuestosSection
 } from './modules/soporte/components';
 import {
   VentasSection,
@@ -575,9 +574,6 @@ const AppContent = () => {
            />
          )}
 
-         {activeSection === 'presupuestos-reparacion' && hasAccess('presupuestos-reparacion') && (
-           <PresupuestosReparacionSection />
-         )}
 
          {/* 📊 SECCIONES DE CONTABILIDAD */}
          {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (

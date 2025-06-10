@@ -139,12 +139,6 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           label: 'Recuento Repuestos',
           icon: Calculator,
           description: 'Contar repuestos físicos'
-        },
-        {
-          id: 'presupuestos-reparacion',
-          label: 'Presupuestos',
-          icon: FileText,
-          description: 'Generar presupuestos'
         }
       ]
     },

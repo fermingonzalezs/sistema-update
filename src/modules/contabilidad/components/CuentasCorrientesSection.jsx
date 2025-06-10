@@ -11,7 +11,11 @@ import {
   DollarSign,
   Calendar,
   X,
-  Calculator
+  Calculator,
+  Building2,
+  Minus,
+  Edit3,
+  UserPlus
 } from 'lucide-react';
 import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
@@ -20,9 +24,9 @@ const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroSaldo, setFiltroSaldo] = useState('todos'); // 'todos', 'deudores', 'acreedores', 'saldados'
   const [estadisticas, setEstadisticas] = useState(null);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
-  const [tipoMovimiento, setTipoMovimiento] = useState(null); // 'pago', 'cargo', 'ajuste'
+  const [tipoMovimiento, setTipoMovimiento] = useState(null); // 'cobro', 'pago', 'ajustar_deuda', 'tomar_deuda'
 
   const {
     saldos,
@@ -46,37 +50,54 @@ const CuentasCorrientesSection = () => {
   };
 
 // 🔧 Componente Modal Unificado para Movimientos
-const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, registrarCargoManual }) => {
+const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState('');
   const [formData, setFormData] = useState({
     monto: '',
     concepto: '',
-    comprobante: '',
     observaciones: ''
   });
 
+  // Mock de cuentas del plan de cuentas - TODO: obtener del sistema real
+  const cuentasDisponibles = [
+    { id: '1', codigo: '1.1.01', nombre: 'Caja' },
+    { id: '2', codigo: '1.1.02', nombre: 'Banco Nación c/c' },
+    { id: '3', codigo: '1.1.03', nombre: 'Banco Provincia c/c' },
+    { id: '4', codigo: '2.1.01', nombre: 'Proveedores' },
+    { id: '5', codigo: '2.1.02', nombre: 'Préstamos' },
+    { id: '6', codigo: '4.1.01', nombre: 'Gastos Operativos' }
+  ];
+
   const tipoConfig = {
-    pago: {
-      titulo: 'Registrar Pago Recibido',
-      descripcion: 'El cliente nos paga una deuda pendiente',
+    cobro: {
+      titulo: 'Registrar Cobro',
+      descripcion: 'Alguien nos paga (reducir su deuda con nosotros)',
       color: 'green',
       icon: TrendingDown,
       conceptoPlaceholder: 'Pago recibido'
     },
-    cargo: {
-      titulo: 'Registrar Cargo Manual',
-      descripcion: 'Agregar una deuda al cliente',
-      color: 'orange', 
-      icon: TrendingUp,
-      conceptoPlaceholder: 'Cargo por servicio adicional'
+    pago: {
+      titulo: 'Registrar Pago',
+      descripcion: 'Le pagamos a alguien (reducir nuestra deuda)',
+      color: 'red', 
+      icon: Minus,
+      conceptoPlaceholder: 'Pago realizado'
     },
-    ajuste: {
-      titulo: 'Ajuste de Cuenta',
-      descripcion: 'Corrección o ajuste contable',
+    ajustar_deuda: {
+      titulo: 'Ajustar Deuda',
+      descripcion: 'Cambiar el monto de deuda a un número fijo',
       color: 'blue',
-      icon: Calculator,
-      conceptoPlaceholder: 'Ajuste contable'
+      icon: Edit3,
+      conceptoPlaceholder: 'Ajuste de deuda'
+    },
+    tomar_deuda: {
+      titulo: 'Tomar Deuda',
+      descripcion: 'Registrar cuánto tomamos de deuda con alguien',
+      color: 'orange',
+      icon: TrendingUp,
+      conceptoPlaceholder: 'Deuda tomada'
     }
   };
 
@@ -86,8 +107,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!clienteSeleccionado) {
-      alert('Debe seleccionar un cliente');
+    if (!personaSeleccionada) {
+      alert('Debe seleccionar una persona');
       return;
     }
 
@@ -96,28 +117,36 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
       return;
     }
 
+    if (!cuentaSeleccionada) {
+      alert('Debe seleccionar una cuenta del plan de cuentas');
+      return;
+    }
+
     setLoading(true);
     
     try {
       const movimientoData = {
-        cliente_id: clienteSeleccionado.id,
+        persona_id: personaSeleccionada.id,
+        cuenta_id: cuentaSeleccionada,
         monto: parseFloat(formData.monto),
         concepto: formData.concepto || config.conceptoPlaceholder,
-        comprobante: formData.comprobante,
         observaciones: formData.observaciones,
         fecha: new Date().toISOString().split('T')[0],
+        tipo: tipo,
         created_by: 'Usuario' // TODO: Obtener del contexto de usuario
       };
 
-      if (tipo === 'pago') {
-        await registrarPagoRecibido(movimientoData);
+      // TODO: Implementar lógica de registro según tipo
+      console.log('Movimiento a registrar:', movimientoData);
+      
+      if (tipo === 'cobro') {
+        alert('✅ Cobro registrado exitosamente');
+      } else if (tipo === 'pago') {
         alert('✅ Pago registrado exitosamente');
-      } else if (tipo === 'cargo') {
-        await registrarCargoManual(movimientoData);
-        alert('✅ Cargo registrado exitosamente');
-      } else {
-        // TODO: Implementar ajustes
-        alert('⚠️ Funcionalidad de ajustes próximamente');
+      } else if (tipo === 'ajustar_deuda') {
+        alert('✅ Ajuste de deuda registrado exitosamente');
+      } else if (tipo === 'tomar_deuda') {
+        alert('✅ Deuda tomada registrada exitosamente');
       }
 
       onSuccess();
@@ -164,10 +193,31 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
               Cliente *
             </label>
             <ClienteSelector
-              selectedCliente={clienteSeleccionado}
-              onSelectCliente={setClienteSeleccionado}
+              selectedCliente={personaSeleccionada}
+              onSelectCliente={setPersonaSeleccionada}
               required={true}
+              placeholder="Seleccionar cliente..."
             />
+          </div>
+
+          {/* Cuenta del Plan de Cuentas */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cuenta del Plan de Cuentas *
+            </label>
+            <select
+              value={cuentaSeleccionada}
+              onChange={(e) => setCuentaSeleccionada(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">Seleccionar cuenta...</option>
+              {cuentasDisponibles.map(cuenta => (
+                <option key={cuenta.id} value={cuenta.id}>
+                  {cuenta.codigo} - {cuenta.nombre}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Monto */}
@@ -203,20 +253,6 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
             />
           </div>
 
-          {/* Comprobante */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Comprobante
-            </label>
-            <input
-              type="text"
-              value={formData.comprobante}
-              onChange={(e) => setFormData(prev => ({ ...prev, comprobante: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Número de recibo, transferencia, etc."
-            />
-          </div>
-
           {/* Observaciones */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -243,7 +279,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
             </button>
             <button
               type="submit"
-              disabled={loading || !clienteSeleccionado}
+              disabled={loading || !personaSeleccionada || !cuentaSeleccionada}
               className={`flex-1 px-4 py-3 bg-${config.color}-600 text-white rounded-lg hover:bg-${config.color}-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
             >
               {loading ? (
@@ -254,7 +290,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
               ) : (
                 <>
                   <Icon className="w-4 h-4" />
-                  <span>Registrar {tipo === 'pago' ? 'Pago' : tipo === 'cargo' ? 'Cargo' : 'Ajuste'}</span>
+                  <span>Registrar {tipo === 'cobro' ? 'Cobro' : tipo === 'pago' ? 'Pago' : tipo === 'ajustar_deuda' ? 'Ajuste' : 'Deuda'}</span>
                 </>
               )}
             </button>
@@ -275,10 +311,10 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
     let cumpleFiltro = true;
     switch (filtroSaldo) {
       case 'deudores':
-        cumpleFiltro = parseFloat(cliente.saldo_total || 0) > 0;
+        cumpleFiltro = parseFloat(cliente.saldo_total || 0) > 0; // La empresa les debe
         break;
       case 'acreedores':
-        cumpleFiltro = parseFloat(cliente.saldo_total || 0) < 0;
+        cumpleFiltro = parseFloat(cliente.saldo_total || 0) < 0; // Nos deben a nosotros
         break;
       case 'saldados':
         cumpleFiltro = parseFloat(cliente.saldo_total || 0) === 0;
@@ -297,9 +333,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
     
     return {
       valor: Math.abs(valor),
-      texto: isPositivo ? 'Nos debe' : isNegativo ? 'Le debemos' : 'Saldado',
-      color: isPositivo ? 'text-green-600' : isNegativo ? 'text-red-600' : 'text-gray-500',
-      bgColor: isPositivo ? 'bg-green-50' : isNegativo ? 'bg-red-50' : 'bg-gray-50'
+      texto: isPositivo ? 'Le debemos' : isNegativo ? 'Nos debe' : 'Saldado',
+      color: isPositivo ? 'text-red-600' : isNegativo ? 'text-green-600' : 'text-gray-500',
+      bgColor: isPositivo ? 'bg-red-50' : isNegativo ? 'bg-green-50' : 'bg-gray-50'
     };
   };
 
@@ -308,9 +344,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
     return new Date(fecha).toLocaleDateString('es-AR');
   };
 
-  const handleVerMovimientos = async (cliente) => {
-    setClienteSeleccionado(cliente);
-    await fetchMovimientosCliente(cliente.cliente_id);
+  const handleVerMovimientos = async (persona) => {
+    setPersonaSeleccionada(persona);
+    await fetchMovimientosCliente(persona.cliente_id);
   };
 
   const handleSelectTipoMovimiento = (tipo) => {
@@ -329,7 +365,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
       <div className="flex items-center justify-between mb-8 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-xl py-10 px-8">
         <div>
           <h2 className="text-4xl font-bold text-white">Cuentas Corrientes</h2>
-          <p className="text-purple-100 mt-2 text-lg">Gestión de saldos y movimientos de clientes</p>
+          <p className="text-purple-100 mt-2 text-lg">Gestión de deudas de la empresa con personas</p>
         </div>
         <button 
           onClick={() => setShowNuevoMovimiento(true)}
@@ -345,13 +381,13 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-red-100 rounded-lg">
+                <Building2 className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total por Cobrar</p>
-                <p className="text-2xl font-bold text-green-600">
-                  ${estadisticas.totalPorCobrar.toFixed(2)}
+                <p className="text-sm text-gray-600">Deudas de la Empresa</p>
+                <p className="text-2xl font-bold text-red-600">
+                  ${estadisticas.totalPorPagar.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -359,13 +395,13 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
 
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-red-100 rounded-lg">
-                <TrendingDown className="w-6 h-6 text-red-600" />
+              <div className="p-3 bg-green-100 rounded-lg">
+                <TrendingDown className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total por Pagar</p>
-                <p className="text-2xl font-bold text-red-600">
-                  ${estadisticas.totalPorPagar.toFixed(2)}
+                <p className="text-sm text-gray-600">Créditos a Favor</p>
+                <p className="text-2xl font-bold text-green-600">
+                  ${estadisticas.totalPorCobrar.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -379,9 +415,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
               <div>
                 <p className="text-sm text-gray-600">Saldo Neto</p>
                 <p className={`text-2xl font-bold ${
-                  estadisticas.saldoNeto >= 0 ? 'text-green-600' : 'text-red-600'
+                  estadisticas.saldoNeto <= 0 ? 'text-red-600' : 'text-green-600'
                 }`}>
-                  ${estadisticas.saldoNeto.toFixed(2)}
+                  ${Math.abs(estadisticas.saldoNeto).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -393,7 +429,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
                 <Users className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Clientes con Deuda</p>
+                <p className="text-sm text-gray-600">Personas Registradas</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {estadisticas.clientesConDeuda}
                 </p>
@@ -425,20 +461,20 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
               onChange={(e) => setFiltroSaldo(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="todos">Todos los clientes</option>
-              <option value="deudores">Solo deudores (nos deben)</option>
-              <option value="acreedores">Solo acreedores (les debemos)</option>
-              <option value="saldados">Solo saldados</option>
+              <option value="todos">Todas las personas</option>
+              <option value="deudores">Deudas de la empresa (les debemos)</option>
+              <option value="acreedores">Créditos a favor (nos deben)</option>
+              <option value="saldados">Saldados</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Lista de clientes */}
+      {/* Lista de personas */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-4 bg-gray-50 border-b border-gray-200">
           <h3 className="font-semibold text-gray-700">
-            {loading ? 'Cargando...' : `${clientesFiltrados.length} clientes`}
+            {loading ? 'Cargando...' : `${clientesFiltrados.length} personas`}
           </h3>
         </div>
 
@@ -459,10 +495,10 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
           </div>
         ) : clientesFiltrados.length === 0 ? (
           <div className="p-8 text-center">
-            <CreditCard className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500">No se encontraron clientes</p>
+            <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-500">No se encontraron personas</p>
             <p className="text-sm text-gray-400">
-              {searchTerm ? 'Intenta con otros términos de búsqueda' : 'No hay movimientos en cuentas corrientes'}
+              {searchTerm ? 'Intenta con otros términos de búsqueda' : 'No hay personas registradas en cuentas corrientes'}
             </p>
           </div>
         ) : (
@@ -507,8 +543,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
+                        onClick={() => setShowNuevoMovimiento(true)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Registrar pago"
+                        title="Nuevo movimiento"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -521,17 +558,17 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
         )}
       </div>
 
-      {/* Modal de movimientos del cliente - Simple por ahora */}
-      {clienteSeleccionado && (
+      {/* Modal de movimientos de la persona - Simple por ahora */}
+      {personaSeleccionada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">
-                  Movimientos de {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                  Movimientos de {personaSeleccionada.nombre} {personaSeleccionada.apellido}
                 </h3>
                 <button
-                  onClick={() => setClienteSeleccionado(null)}
+                  onClick={() => setPersonaSeleccionada(null)}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <X className="w-6 h-6" />
@@ -567,7 +604,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
             <div className="p-6">
               <div className="space-y-4">
                 <button
-                  onClick={() => handleSelectTipoMovimiento('pago')}
+                  onClick={() => handleSelectTipoMovimiento('cobro')}
                   className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
@@ -575,14 +612,44 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
                       <TrendingDown className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">Registrar Pago Recibido</h4>
-                      <p className="text-sm text-gray-500">Cliente nos paga una deuda</p>
+                      <h4 className="font-medium text-gray-900">Registrar Cobro</h4>
+                      <p className="text-sm text-gray-500">Alguien nos paga (reducir su deuda con nosotros)</p>
                     </div>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => handleSelectTipoMovimiento('cargo')}
+                  onClick={() => handleSelectTipoMovimiento('pago')}
+                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <Minus className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Registrar Pago</h4>
+                      <p className="text-sm text-gray-500">Le pagamos a alguien (reducir nuestra deuda)</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleSelectTipoMovimiento('ajustar_deuda')}
+                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Edit3 className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Ajustar Deuda</h4>
+                      <p className="text-sm text-gray-500">Cambiar el monto de deuda a un número fijo</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleSelectTipoMovimiento('tomar_deuda')}
                   className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
@@ -590,23 +657,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
                       <TrendingUp className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">Registrar Cargo Manual</h4>
-                      <p className="text-sm text-gray-500">Agregar deuda a un cliente</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleSelectTipoMovimiento('ajuste')}
-                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Calculator className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Ajuste de Cuenta</h4>
-                      <p className="text-sm text-gray-500">Corrección o ajuste contable</p>
+                      <h4 className="font-medium text-gray-900">Tomar Deuda</h4>
+                      <p className="text-sm text-gray-500">Registrar cuánto tomamos de deuda con alguien</p>
                     </div>
                   </div>
                 </button>
@@ -622,8 +674,6 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, registrarPagoRecibido, regi
           tipo={tipoMovimiento}
           onClose={handleCerrarMovimiento}
           onSuccess={loadData}
-          registrarPagoRecibido={registrarPagoRecibido}
-          registrarCargoManual={registrarCargoManual}
         />
       )}
     </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, FileText, Plus, X, Check, ChevronRight, ChevronLeft, Package, Store, DollarSign, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { useReparaciones } from '../hooks/useReparaciones';
+import { supabase } from '../../../lib/supabase';
 
-function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
+function ModalPresupuesto({ open, onClose, reparacion }) {
   // Estados principales
   const [servicios, setServicios] = useState([]);
   const [repuestos, setRepuestos] = useState([]);
@@ -20,6 +22,9 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
   const [observaciones, setObservaciones] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Hook para manejar reparaciones
+  const { guardarPresupuesto, obtenerPresupuesto } = useReparaciones();
+
   // Datos de ejemplo - en producción estos vendrían de Supabase
   const serviciosCatalogo = [
     { id: 1, nombre: 'Diagnóstico', categoria: 'Básico', precio: 25, descripcion: 'Evaluación inicial del equipo' },
@@ -30,24 +35,59 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
     { id: 6, nombre: 'Reparación de pantalla', categoria: 'Reparación', precio: 120, descripcion: 'Cambio de pantalla LCD/LED' },
   ];
 
-  const repuestosStock = [
-    { id: 1, nombre: 'Placa madre MacBook Air M1', categoria: 'Componente', precio: 280, stock: 2 },
-    { id: 2, nombre: 'Pasta térmica Arctic', categoria: 'Consumible', precio: 5, stock: 15 },
-    { id: 3, nombre: 'Memoria RAM DDR4 8GB', categoria: 'Memoria', precio: 45, stock: 8 },
-    { id: 4, nombre: 'SSD 256GB Samsung', categoria: 'Almacenamiento', precio: 65, stock: 5 },
-    { id: 5, nombre: 'Batería MacBook Air', categoria: 'Batería', precio: 85, stock: 3 },
-    { id: 6, nombre: 'Teclado español MacBook', categoria: 'Periférico', precio: 120, stock: 2 },
-  ];
+  // Función para cargar repuestos desde la base de datos
+  const cargarRepuestos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('repuestos')
+        .select('*')
+        .eq('disponible', true)
+        .gt('cantidad', 0)
+        .order('categoria');
+      
+      if (error) {
+        console.error('Error cargando repuestos:', error);
+        return;
+      }
+      
+      // Mapear datos a la estructura esperada
+      const repuestosMapeados = data.map(repuesto => ({
+        id: repuesto.id,
+        nombre: repuesto.item,
+        categoria: repuesto.categoria || 'Sin categoría',
+        precio: repuesto.precio_venta || 0,
+        stock: repuesto.cantidad || 0,
+        precio_compra: repuesto.precio_compra || 0
+      }));
+      
+      setRepuestos(repuestosMapeados);
+    } catch (error) {
+      console.error('Error cargando repuestos:', error);
+    }
+  };
 
   useEffect(() => {
     if (open) {
-      // Aquí cargarías los datos reales de Supabase
+      // Cargar catálogos
       setServicios(serviciosCatalogo);
-      setRepuestos(repuestosStock);
+      cargarRepuestos(); // Cargar desde la base de datos
       
-      // Si hay una reparación seleccionada, prellenar algunos campos
+      // Si hay una reparación seleccionada, cargar presupuesto existente o crear uno nuevo
       if (reparacion) {
-        setObservaciones(`Presupuesto para ${reparacion.equipo_tipo} - ${reparacion.problema_reportado}`);
+        if (reparacion.presupuesto_json) {
+          // Cargar presupuesto existente
+          const presupuestoExistente = reparacion.presupuesto_json;
+          setServiciosSeleccionados(presupuestoExistente.servicios || []);
+          setRepuestosSeleccionados(presupuestoExistente.repuestos || []);
+          setMargenGanancia(presupuestoExistente.margenGanancia || 20);
+          setObservaciones(presupuestoExistente.observaciones || '');
+        } else {
+          // Nuevo presupuesto - limpiar selecciones
+          setServiciosSeleccionados([]);
+          setRepuestosSeleccionados([]);
+          setMargenGanancia(20);
+          setObservaciones(`Presupuesto para ${reparacion.equipo_tipo} - ${reparacion.problema_reportado}`);
+        }
       }
     }
   }, [open, reparacion]);
@@ -101,13 +141,36 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
 
   // Funciones para manejar repuestos
   const agregarRepuesto = (repuesto) => {
+    // Verificar stock disponible
+    if (repuesto.stock <= 0) {
+      alert('Este repuesto no tiene stock disponible');
+      return;
+    }
+
     const repuestoExistente = repuestosSeleccionados.find(r => r.id === repuesto.id);
+    
     if (repuestoExistente) {
+      // Verificar que no exceda el stock disponible
+      if (repuestoExistente.cantidad >= repuesto.stock) {
+        alert(`Stock insuficiente. Solo hay ${repuesto.stock} unidades disponibles`);
+        return;
+      }
+      
       setRepuestosSeleccionados(prev => 
         prev.map(r => r.id === repuesto.id ? { ...r, cantidad: r.cantidad + 1 } : r)
       );
     } else {
-      setRepuestosSeleccionados(prev => [...prev, { ...repuesto, cantidad: 1 }]);
+      // Crear repuesto para presupuesto con estructura completa
+      const repuestoPresupuesto = {
+        id: repuesto.id,
+        nombre: repuesto.nombre,
+        categoria: repuesto.categoria,
+        precio: repuesto.precio, // precio_venta al momento del presupuesto
+        cantidad: 1,
+        stock_disponible: repuesto.stock // para verificación futura
+      };
+      
+      setRepuestosSeleccionados(prev => [...prev, repuestoPresupuesto]);
     }
   };
 
@@ -120,8 +183,17 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
       eliminarRepuesto(repuestoId);
       return;
     }
+
+    const cantidadNum = parseInt(cantidad);
+    const repuestoSeleccionado = repuestosSeleccionados.find(r => r.id === repuestoId);
+    
+    if (repuestoSeleccionado && cantidadNum > repuestoSeleccionado.stock_disponible) {
+      alert(`Stock insuficiente. Solo hay ${repuestoSeleccionado.stock_disponible} unidades disponibles`);
+      return;
+    }
+    
     setRepuestosSeleccionados(prev => 
-      prev.map(r => r.id === repuestoId ? { ...r, cantidad: parseInt(cantidad) } : r)
+      prev.map(r => r.id === repuestoId ? { ...r, cantidad: cantidadNum } : r)
     );
   };
 
@@ -137,6 +209,7 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
       categoria: 'Terceros',
       precio: parseFloat(repuestoPersonalizado.precio),
       cantidad: 1,
+      stock_disponible: 999, // Los repuestos de terceros no tienen límite de stock
       esTercero: true
     };
 
@@ -151,14 +224,13 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
   const margenValor = subtotal * (margenGanancia / 100);
   const total = subtotal + margenValor;
 
-  const handleGuardarPresupuesto = () => {
+  const handleGuardarPresupuesto = async () => {
     if (serviciosSeleccionados.length === 0 && repuestosSeleccionados.length === 0) {
       alert('Debe agregar al menos un servicio o repuesto');
       return;
     }
 
     const presupuestoData = {
-      reparacion,
       servicios: serviciosSeleccionados,
       repuestos: repuestosSeleccionados,
       subtotalServicios,
@@ -167,15 +239,20 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
       margenGanancia,
       margenValor,
       total,
-      observaciones
+      observaciones,
+      fechaCreacion: new Date().toISOString()
     };
 
-    // Aquí guardarías en Supabase
-    console.log('Guardando presupuesto:', presupuestoData);
-    
-    // Llamar a vista previa
-    if (onVistaPrevia) {
-      onVistaPrevia(presupuestoData);
+    try {
+      setLoading(true);
+      await guardarPresupuesto(reparacion.id, presupuestoData);
+      alert('✅ Presupuesto guardado exitosamente');
+      onClose();
+    } catch (error) {
+      console.error('Error guardando presupuesto:', error);
+      alert('❌ Error al guardar el presupuesto: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,7 +263,7 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
         <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-purple-600 to-orange-600 text-white">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="w-6 h-6" /> 
-            Crear Presupuesto
+            {reparacion?.presupuesto_json ? 'Editar Presupuesto' : 'Crear Presupuesto'}
           </h2>
           <button onClick={onClose} className="text-white hover:text-gray-200">
             <X className="w-6 h-6" />
@@ -416,6 +493,7 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
                           <div className="font-medium text-sm">{repuesto.nombre}</div>
                           <div className="text-xs text-gray-500">
                             {repuesto.categoria} {repuesto.esTercero && '(Tercero)'}
+                            {!repuesto.esTercero && ` - Stock: ${repuesto.stock_disponible}`}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -517,15 +595,20 @@ function ModalPresupuesto({ open, onClose, onVistaPrevia, reparacion }) {
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleGuardarPresupuesto}
-                disabled={serviciosSeleccionados.length === 0 && repuestosSeleccionados.length === 0}
+                disabled={loading || (serviciosSeleccionados.length === 0 && repuestosSeleccionados.length === 0)}
                 className="w-full bg-gradient-to-r from-purple-600 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                <FileText className="w-5 h-5" />
-                Vista Previa del Presupuesto
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                ) : (
+                  <Check className="w-5 h-5" />
+                )}
+                {loading ? 'Guardando...' : 'Guardar Presupuesto'}
               </button>
               <button
                 onClick={onClose}
-                className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                disabled={loading}
+                className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
