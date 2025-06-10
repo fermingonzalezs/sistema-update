@@ -25,7 +25,8 @@ const ReparacionesSection = () => {
     fetchReparaciones, 
     crearReparacion, 
     cambiarEstado, 
-    eliminarReparacion 
+    eliminarReparacion, 
+    actualizarReparacion // <-- agregar esto
   } = useReparaciones();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +47,7 @@ const ReparacionesSection = () => {
   const [detalleReparacion, setDetalleReparacion] = useState(null);
   const [servicioInput, setServicioInput] = useState({ nombre: '', precio: '' });
   const [repuestoInput, setRepuestoInput] = useState({ nombre: '', precio: '' });
+  const [presupuestoTemp, setPresupuestoTemp] = useState(null);
 
   // Estados de reparación
   const estados = [
@@ -205,6 +207,24 @@ const ReparacionesSection = () => {
 
   const handleOpenDetalle = (reparacion) => setDetalleReparacion(reparacion);
   const handleCloseDetalle = () => setDetalleReparacion(null);
+
+  const handleConfirmarPresupuesto = async () => {
+    if (!detalleReparacion) return;
+    // Guardar servicios y repuestos como presupuesto en la reparación
+    const presupuesto = {
+      servicios: detalleReparacion.servicios || [],
+      repuestos: detalleReparacion.repuestos || [],
+      fecha: new Date().toISOString(),
+    };
+    try {
+      await actualizarReparacion(detalleReparacion.id, { presupuesto });
+      alert('✅ Presupuesto guardado en la reparación');
+      fetchReparaciones();
+      setDetalleReparacion(null);
+    } catch (err) {
+      alert('❌ Error al guardar presupuesto: ' + err.message);
+    }
+  };
 
   return (
     <div className="p-8">
@@ -635,43 +655,71 @@ const ReparacionesSection = () => {
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl relative">
             <button onClick={handleCloseDetalle} className="absolute top-2 right-2 text-gray-500 hover:text-red-600">✕</button>
             <h2 className="text-2xl font-bold mb-4">Detalle de Reparación #{detalleReparacion.numero}</h2>
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Servicios</h3>
-              <ul className="mb-2">
-                {(detalleReparacion.servicios || []).map((s, i) => (
-                  <li key={i} className="flex justify-between items-center">
-                    <span>{s.nombre} - ${s.precio}</span>
-                    <button onClick={() => handleRemoveServicio(i)} className="text-red-500 ml-2">Eliminar</button>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-2 mb-2">
-                <input type="text" placeholder="Servicio" value={servicioInput.nombre} onChange={e => setServicioInput(si => ({ ...si, nombre: e.target.value }))} className="border p-1 rounded" />
-                <input type="number" placeholder="Precio" value={servicioInput.precio} onChange={e => setServicioInput(si => ({ ...si, precio: e.target.value }))} className="border p-1 rounded w-24" />
-                <button onClick={handleAddServicio} className="bg-orange-500 text-white px-2 rounded">Agregar</button>
+            {/* Si hay presupuesto guardado, mostrarlo solo lectura */}
+            {detalleReparacion.presupuesto ? (
+              <div>
+                <h3 className="font-semibold mb-2">Presupuesto Confirmado</h3>
+                <div className="mb-4">
+                  <h4 className="font-semibold">Servicios</h4>
+                  <ul>
+                    {detalleReparacion.presupuesto.servicios?.map((s, i) => (
+                      <li key={i}>{s.nombre} - ${s.precio}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <h4 className="font-semibold">Repuestos</h4>
+                  <ul>
+                    {detalleReparacion.presupuesto.repuestos?.map((r, i) => (
+                      <li key={i}>{r.nombre} - ${r.precio}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex gap-4 mt-6">
+                  <button onClick={handleGenerarPresupuestoPDF} className="bg-blue-600 text-white px-4 py-2 rounded">Presupuesto PDF</button>
+                  <button onClick={handleGenerarIngresoPDF} className="bg-green-600 text-white px-4 py-2 rounded">Ingreso PDF</button>
+                  <button onClick={handleGenerarEgresoPDF} className="bg-red-600 text-white px-4 py-2 rounded">Egreso PDF</button>
+                </div>
               </div>
-            </div>
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Repuestos</h3>
-              <ul className="mb-2">
-                {(detalleReparacion.repuestos || []).map((r, i) => (
-                  <li key={i} className="flex justify-between items-center">
-                    <span>{r.nombre} - ${r.precio}</span>
-                    <button onClick={() => handleRemoveRepuesto(i)} className="text-red-500 ml-2">Eliminar</button>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-2 mb-2">
-                <input type="text" placeholder="Repuesto" value={repuestoInput.nombre} onChange={e => setRepuestoInput(ri => ({ ...ri, nombre: e.target.value }))} className="border p-1 rounded" />
-                <input type="number" placeholder="Precio" value={repuestoInput.precio} onChange={e => setRepuestoInput(ri => ({ ...ri, precio: e.target.value }))} className="border p-1 rounded w-24" />
-                <button onClick={handleAddRepuesto} className="bg-orange-500 text-white px-2 rounded">Agregar</button>
-              </div>
-            </div>
-            <div className="flex gap-4 mt-6">
-              <button onClick={handleGenerarPresupuestoPDF} className="bg-blue-600 text-white px-4 py-2 rounded">Presupuesto PDF</button>
-              <button onClick={handleGenerarIngresoPDF} className="bg-green-600 text-white px-4 py-2 rounded">Ingreso PDF</button>
-              <button onClick={handleGenerarEgresoPDF} className="bg-red-600 text-white px-4 py-2 rounded">Egreso PDF</button>
-            </div>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Servicios</h3>
+                  <ul className="mb-2">
+                    {(detalleReparacion.servicios || []).map((s, i) => (
+                      <li key={i} className="flex justify-between items-center">
+                        <span>{s.nombre} - ${s.precio}</span>
+                        <button onClick={() => handleRemoveServicio(i)} className="text-red-500 ml-2">Eliminar</button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex gap-2 mb-2">
+                    <input type="text" placeholder="Servicio" value={servicioInput.nombre} onChange={e => setServicioInput(si => ({ ...si, nombre: e.target.value }))} className="border p-1 rounded" />
+                    <input type="number" placeholder="Precio" value={servicioInput.precio} onChange={e => setServicioInput(si => ({ ...si, precio: e.target.value }))} className="border p-1 rounded w-24" />
+                    <button onClick={handleAddServicio} className="bg-orange-500 text-white px-2 rounded">Agregar</button>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Repuestos</h3>
+                  <ul className="mb-2">
+                    {(detalleReparacion.repuestos || []).map((r, i) => (
+                      <li key={i} className="flex justify-between items-center">
+                        <span>{r.nombre} - ${r.precio}</span>
+                        <button onClick={() => handleRemoveRepuesto(i)} className="text-red-500 ml-2">Eliminar</button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex gap-2 mb-2">
+                    <input type="text" placeholder="Repuesto" value={repuestoInput.nombre} onChange={e => setRepuestoInput(ri => ({ ...ri, nombre: e.target.value }))} className="border p-1 rounded" />
+                    <input type="number" placeholder="Precio" value={repuestoInput.precio} onChange={e => setRepuestoInput(ri => ({ ...ri, precio: e.target.value }))} className="border p-1 rounded w-24" />
+                    <button onClick={handleAddRepuesto} className="bg-orange-500 text-white px-2 rounded">Agregar</button>
+                  </div>
+                </div>
+                <div className="flex gap-4 mt-6">
+                  <button onClick={handleConfirmarPresupuesto} className="bg-purple-600 text-white px-4 py-2 rounded">Confirmar Presupuesto</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
