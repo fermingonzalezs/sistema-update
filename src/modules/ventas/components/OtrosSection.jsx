@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { Trash2, Box, ShoppingCart } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Trash2, Box, ShoppingCart, X } from 'lucide-react';
 
 const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
   const [cotizacionDolar, setCotizacionDolar] = useState(1150);
+
+  // Estados para filtros y ordenamiento
+  const [filters, setFilters] = useState({
+    categoria: '',
+    condicion: '',
+    precioMax: ''
+  });
+  const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   const handleEdit = (producto) => {
     setEditingId(producto.id);
@@ -116,6 +125,100 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
     return option ? option.label : categoria?.toUpperCase() || 'SIN CATEGORÍA';
   };
 
+  // Obtener valores únicos para filtros
+  const uniqueValues = useMemo(() => {
+    const categorias = [...new Set(otros.map(p => p.categoria).filter(Boolean))];
+    const condiciones = [...new Set(otros.map(p => p.condicion).filter(Boolean))];
+    
+    // Calcular precio máximo para el slider
+    const precios = otros.map(p => parseFloat(p.precio_venta_usd) || 0).filter(p => p > 0);
+    const precioMax = Math.max(...precios) || 1000;
+    
+    return { categorias, condiciones, precioMax };
+  }, [otros]);
+
+  // Función para aplicar filtros y ordenamiento
+  const filteredAndSortedOtros = useMemo(() => {
+    let filtered = otros.filter(producto => {
+      // Filtro por categoría
+      if (filters.categoria && producto.categoria !== filters.categoria) return false;
+      
+      // Filtro por condición
+      if (filters.condicion && producto.condicion !== filters.condicion) return false;
+      
+      // Filtro por precio máximo
+      const precio = parseFloat(producto.precio_venta_usd) || 0;
+      if (filters.precioMax && precio > parseFloat(filters.precioMax)) return false;
+      
+      return true;
+    });
+
+    // Aplicar ordenamiento
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        let valueA, valueB;
+        
+        switch (sortBy) {
+          case 'precio_venta_usd':
+            valueA = parseFloat(a.precio_venta_usd) || 0;
+            valueB = parseFloat(b.precio_venta_usd) || 0;
+            break;
+          case 'ganancia':
+            // Calcular ganancia: precio_venta - precio_compra
+            valueA = (parseFloat(a.precio_venta_usd) || 0) - (parseFloat(a.precio_compra_usd) || 0);
+            valueB = (parseFloat(b.precio_venta_usd) || 0) - (parseFloat(b.precio_compra_usd) || 0);
+            break;
+          case 'ingreso':
+            valueA = new Date(a.ingreso || '1970-01-01');
+            valueB = new Date(b.ingreso || '1970-01-01');
+            break;
+          case 'categoria':
+            valueA = (a.categoria || '').toString();
+            valueB = (b.categoria || '').toString();
+            break;
+          case 'cantidad':
+            valueA = parseInt(a.cantidad) || 0;
+            valueB = parseInt(b.cantidad) || 0;
+            break;
+          default:
+            valueA = (a[sortBy] || '').toString();
+            valueB = (b[sortBy] || '').toString();
+        }
+        
+        if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+        if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [otros, filters, sortBy, sortOrder]);
+
+  // Limpiar filtros
+  const clearFilters = () => {
+    setFilters({
+      categoria: '',
+      condicion: '',
+      precioMax: ''
+    });
+    setSortBy('');
+    setSortOrder('asc');
+  };
+
+  // Manejar cambio de filtros
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Opciones de ordenamiento
+  const sortOptions = [
+    { value: '', label: 'Sin ordenar' },
+    { value: 'precio_venta_usd', label: 'Precio venta' },
+    { value: 'ganancia', label: 'Ganancia' },
+    { value: 'cantidad', label: 'Cantidad' },
+    { value: 'categoria', label: 'Categoría' }
+  ];
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -141,10 +244,115 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
       
       {!loading && !error && (
         <>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="font-semibold text-green-600">📦 {otros.length} productos en inventario</p>
-            <div className="text-sm text-gray-600">
-              💡 Haz doble clic en cualquier celda para editarla
+          {/* Controles de filtrado y ordenamiento - Siempre visibles en una fila */}
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <p className="font-semibold text-green-600">
+                  📦 {filteredAndSortedOtros.length} de {otros.length} productos
+                </p>
+                {(Object.values(filters).some(f => f) || sortBy) && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors"
+                  >
+                    <X size={14} />
+                    <span>Limpiar</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="text-sm text-gray-600 flex items-center space-x-4">
+                <span>💡 Haz doble clic en cualquier celda para editarla</span>
+              </div>
+            </div>
+
+            {/* Filtros en una sola fila */}
+            <div className="flex items-end space-x-4">
+              {/* Ordenamiento - Al principio */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Ordenar por</label>
+                <div className="flex space-x-1">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md text-sm min-w-[130px]"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {sortBy && (
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="px-2 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                      title={`Orden ${sortOrder === 'asc' ? 'ascendente' : 'descendente'}`}
+                    >
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filtro por categoría */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Categoría</label>
+                <select
+                  value={filters.categoria}
+                  onChange={(e) => handleFilterChange('categoria', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[160px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.categorias.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {getCategoriaLabel(categoria)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por condición */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+                <select
+                  value={filters.condicion}
+                  onChange={(e) => handleFilterChange('condicion', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.condiciones.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {condicion.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro de precio máximo con slider simple */}
+              <div className="flex-1 min-w-[250px]">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Precio máximo USD: ${filters.precioMax || uniqueValues.precioMax}
+                </label>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max={uniqueValues.precioMax}
+                    value={filters.precioMax || uniqueValues.precioMax}
+                    onChange={(e) => handleFilterChange('precioMax', e.target.value)}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>$0</span>
+                    <span>${uniqueValues.precioMax}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -165,7 +373,7 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
                 </tr>
               </thead>
               <tbody>
-                {otros.map((producto, index) => (
+                {filteredAndSortedOtros.map((producto, index) => (
                   <tr key={producto.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(producto.id) ? 'bg-blue-100' : ''}`}>
                     <td className="px-2 py-3 text-sm text-gray-900 font-medium whitespace-nowrap" title={producto.descripcion_producto}>
                       {producto.descripcion_producto}

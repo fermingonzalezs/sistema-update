@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Trash2, Filter, X, ChevronDown } from 'lucide-react';
 
 const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
@@ -7,6 +7,15 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   const [editingData, setEditingData] = useState({});
   const [cotizacionDolar, setCotizacionDolar] = useState(1150);
   const inputRef = useRef(null);
+
+  // Estados para filtros y ordenamiento
+  const [filters, setFilters] = useState({
+    sucursal: '',
+    condicion: '',
+    precioMax: ''
+  });
+  const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   // Estado para el modal de edición
   const [modalOpen, setModalOpen] = useState(false);
@@ -273,6 +282,98 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     { value: 'sin reparacion', label: 'SIN REPARACION' },
   ];
 
+  // Obtener valores únicos para filtros
+  const uniqueValues = useMemo(() => {
+    const sucursales = [...new Set(computers.map(c => c.sucursal).filter(Boolean))];
+    const condiciones = [...new Set(computers.map(c => c.condicion).filter(Boolean))];
+    
+    // Calcular precio máximo para el slider
+    const precios = computers.map(c => parseFloat(c.precio_venta_usd) || 0).filter(p => p > 0);
+    const precioMax = Math.max(...precios) || 1000;
+    
+    return { sucursales, condiciones, precioMax };
+  }, [computers]);
+
+  // Función para aplicar filtros y ordenamiento
+  const filteredAndSortedComputers = useMemo(() => {
+    let filtered = computers.filter(computer => {
+      // Filtro por sucursal
+      if (filters.sucursal && computer.sucursal !== filters.sucursal) return false;
+      
+      // Filtro por condición
+      if (filters.condicion && computer.condicion !== filters.condicion) return false;
+      
+      // Filtro por precio máximo
+      const precio = parseFloat(computer.precio_venta_usd) || 0;
+      if (filters.precioMax && precio > parseFloat(filters.precioMax)) return false;
+      
+      return true;
+    });
+
+    // Aplicar ordenamiento
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        let valueA, valueB;
+        
+        switch (sortBy) {
+          case 'precio_venta_usd':
+            valueA = parseFloat(a.precio_venta_usd) || 0;
+            valueB = parseFloat(b.precio_venta_usd) || 0;
+            break;
+          case 'ganancia':
+            // Calcular ganancia: precio_venta - precio_costo_total
+            const costoA = parseFloat(a.precio_costo_total) || ((parseFloat(a.precio_costo_usd) || 0) + (parseFloat(a.envios_repuestos) || 0));
+            const costoB = parseFloat(b.precio_costo_total) || ((parseFloat(b.precio_costo_usd) || 0) + (parseFloat(b.envios_repuestos) || 0));
+            valueA = (parseFloat(a.precio_venta_usd) || 0) - costoA;
+            valueB = (parseFloat(b.precio_venta_usd) || 0) - costoB;
+            break;
+          case 'ingreso':
+            valueA = new Date(a.ingreso || '1970-01-01');
+            valueB = new Date(b.ingreso || '1970-01-01');
+            break;
+          case 'sucursal':
+            valueA = (a.sucursal || '').toString();
+            valueB = (b.sucursal || '').toString();
+            break;
+          default:
+            valueA = (a[sortBy] || '').toString();
+            valueB = (b[sortBy] || '').toString();
+        }
+        
+        if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+        if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [computers, filters, sortBy, sortOrder]);
+
+  // Limpiar filtros
+  const clearFilters = () => {
+    setFilters({
+      sucursal: '',
+      condicion: '',
+      precioMax: ''
+    });
+    setSortBy('');
+    setSortOrder('asc');
+  };
+
+  // Manejar cambio de filtros
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Opciones de ordenamiento
+  const sortOptions = [
+    { value: '', label: 'Sin ordenar' },
+    { value: 'precio_venta_usd', label: 'Precio venta' },
+    { value: 'ganancia', label: 'Ganancia' },
+    { value: 'ingreso', label: 'Fecha de ingreso' },
+    { value: 'sucursal', label: 'Ubicación' }
+  ];
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -298,11 +399,116 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
       
       {!loading && !error && (
         <>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="font-semibold text-green-600">✅ {computers.length} computadoras en inventario</p>
-            <div className="text-sm text-gray-600 flex items-center space-x-4">
-              <span>💡 Clic en cualquier celda para editarla</span>
-              <span>⌨️ Enter para guardar, Esc para cancelar</span>
+          {/* Controles de filtrado y ordenamiento - Siempre visibles en una fila */}
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <p className="font-semibold text-green-600">
+                  ✅ {filteredAndSortedComputers.length} de {computers.length} computadoras
+                </p>
+                {(Object.values(filters).some(f => f) || sortBy) && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors"
+                  >
+                    <X size={14} />
+                    <span>Limpiar</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="text-sm text-gray-600 flex items-center space-x-4">
+                <span>💡 Clic en cualquier celda para editarla</span>
+                <span>⌨️ Enter para guardar, Esc para cancelar</span>
+              </div>
+            </div>
+
+            {/* Filtros en una sola fila */}
+            <div className="flex items-end space-x-4">
+              {/* Ordenamiento - Al principio */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Ordenar por</label>
+                <div className="flex space-x-1">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md text-sm min-w-[130px]"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {sortBy && (
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="px-2 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                      title={`Orden ${sortOrder === 'asc' ? 'ascendente' : 'descendente'}`}
+                    >
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filtro por sucursal */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Sucursal</label>
+                <select
+                  value={filters.sucursal}
+                  onChange={(e) => handleFilterChange('sucursal', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.sucursales.map(sucursal => (
+                    <option key={sucursal} value={sucursal}>
+                      {sucursal.replace('_', ' ').toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por condición */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+                <select
+                  value={filters.condicion}
+                  onChange={(e) => handleFilterChange('condicion', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.condiciones.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {condicion.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro de precio máximo con slider simple */}
+              <div className="flex-1 min-w-[250px]">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Precio máximo USD: ${filters.precioMax || uniqueValues.precioMax}
+                </label>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max={uniqueValues.precioMax}
+                    value={filters.precioMax || uniqueValues.precioMax}
+                    onChange={(e) => handleFilterChange('precioMax', e.target.value)}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>$0</span>
+                    <span>${uniqueValues.precioMax}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -345,7 +551,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                 </tr>
               </thead>
               <tbody>
-                {computers.map((computer, index) => (
+                {filteredAndSortedComputers.map((computer, index) => (
                   <tr key={computer.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(computer.id) ? 'bg-blue-50' : ''}`}>
                     <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{computer.serial}</td>
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={computer.modelo}>

@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Trash2, X } from 'lucide-react';
 
 const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
-  const [cotizacionDolar, setCotizacionDolar] = useState(1150); // Cotización del dólar blue
+  const [cotizacionDolar, setCotizacionDolar] = useState(1150);
+
+  // Estados para filtros y ordenamiento
+  const [filters, setFilters] = useState({
+    ubicacion: '',
+    condicion: '',
+    precioMax: ''
+  });
+  const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   const handleEdit = (celular) => {
     setEditingId(celular.id);
@@ -119,6 +128,98 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     { value: 'en_camino', label: 'EN CAMINO' }
   ];
 
+  // Obtener valores únicos para filtros
+  const uniqueValues = useMemo(() => {
+    const ubicaciones = [...new Set(celulares.map(c => c.ubicacion).filter(Boolean))];
+    const condiciones = [...new Set(celulares.map(c => c.condicion).filter(Boolean))];
+    
+    // Calcular precio máximo para el slider
+    const precios = celulares.map(c => parseFloat(c.precio_venta_usd) || 0).filter(p => p > 0);
+    const precioMax = Math.max(...precios) || 1000;
+    
+    return { ubicaciones, condiciones, precioMax };
+  }, [celulares]);
+
+  // Función para aplicar filtros y ordenamiento
+  const filteredAndSortedCelulares = useMemo(() => {
+    let filtered = celulares.filter(celular => {
+      // Filtro por ubicación
+      if (filters.ubicacion && celular.ubicacion !== filters.ubicacion) return false;
+      
+      // Filtro por condición
+      if (filters.condicion && celular.condicion !== filters.condicion) return false;
+      
+      // Filtro por precio máximo
+      const precio = parseFloat(celular.precio_venta_usd) || 0;
+      if (filters.precioMax && precio > parseFloat(filters.precioMax)) return false;
+      
+      return true;
+    });
+
+    // Aplicar ordenamiento
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        let valueA, valueB;
+        
+        switch (sortBy) {
+          case 'precio_venta_usd':
+            valueA = parseFloat(a.precio_venta_usd) || 0;
+            valueB = parseFloat(b.precio_venta_usd) || 0;
+            break;
+          case 'ganancia':
+            // Calcular ganancia: precio_venta - precio_costo_total
+            const costoA = (parseFloat(a.precio_compra_usd) || 0) + (parseFloat(a.repuestos_usd) || 0);
+            const costoB = (parseFloat(b.precio_compra_usd) || 0) + (parseFloat(b.repuestos_usd) || 0);
+            valueA = (parseFloat(a.precio_venta_usd) || 0) - costoA;
+            valueB = (parseFloat(b.precio_venta_usd) || 0) - costoB;
+            break;
+          case 'ingreso':
+            valueA = new Date(a.ingreso || '1970-01-01');
+            valueB = new Date(b.ingreso || '1970-01-01');
+            break;
+          case 'ubicacion':
+            valueA = (a.ubicacion || '').toString();
+            valueB = (b.ubicacion || '').toString();
+            break;
+          default:
+            valueA = (a[sortBy] || '').toString();
+            valueB = (b[sortBy] || '').toString();
+        }
+        
+        if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+        if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [celulares, filters, sortBy, sortOrder]);
+
+  // Limpiar filtros
+  const clearFilters = () => {
+    setFilters({
+      ubicacion: '',
+      condicion: '',
+      precioMax: ''
+    });
+    setSortBy('');
+    setSortOrder('asc');
+  };
+
+  // Manejar cambio de filtros
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Opciones de ordenamiento
+  const sortOptions = [
+    { value: '', label: 'Sin ordenar' },
+    { value: 'precio_venta_usd', label: 'Precio venta' },
+    { value: 'ganancia', label: 'Ganancia' },
+    { value: 'ingreso', label: 'Fecha de ingreso' },
+    { value: 'ubicacion', label: 'Ubicación' }
+  ];
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -144,10 +245,115 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
       
       {!loading && !error && (
         <>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="font-semibold text-green-600">📱 {celulares.length} celulares en inventario</p>
-            <div className="text-sm text-gray-600">
-              💡 Haz doble clic en cualquier celda para editarla
+          {/* Controles de filtrado y ordenamiento - Siempre visibles en una fila */}
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <p className="font-semibold text-green-600">
+                  📱 {filteredAndSortedCelulares.length} de {celulares.length} celulares
+                </p>
+                {(Object.values(filters).some(f => f) || sortBy) && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors"
+                  >
+                    <X size={14} />
+                    <span>Limpiar</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="text-sm text-gray-600 flex items-center space-x-4">
+                <span>💡 Haz doble clic en cualquier celda para editarla</span>
+              </div>
+            </div>
+
+            {/* Filtros en una sola fila */}
+            <div className="flex items-end space-x-4">
+              {/* Ordenamiento - Al principio */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Ordenar por</label>
+                <div className="flex space-x-1">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md text-sm min-w-[130px]"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {sortBy && (
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="px-2 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                      title={`Orden ${sortOrder === 'asc' ? 'ascendente' : 'descendente'}`}
+                    >
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filtro por ubicación */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación</label>
+                <select
+                  value={filters.ubicacion}
+                  onChange={(e) => handleFilterChange('ubicacion', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.ubicaciones.map(ubicacion => (
+                    <option key={ubicacion} value={ubicacion}>
+                      {ubicacion.replace('_', ' ').toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por condición */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+                <select
+                  value={filters.condicion}
+                  onChange={(e) => handleFilterChange('condicion', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.condiciones.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {condicion.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro de precio máximo con slider simple */}
+              <div className="flex-1 min-w-[250px]">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Precio máximo USD: ${filters.precioMax || uniqueValues.precioMax}
+                </label>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max={uniqueValues.precioMax}
+                    value={filters.precioMax || uniqueValues.precioMax}
+                    onChange={(e) => handleFilterChange('precioMax', e.target.value)}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb ${((filters.precioMax || uniqueValues.precioMax) / uniqueValues.precioMax) * 100}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>$0</span>
+                    <span>${uniqueValues.precioMax}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -177,7 +383,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                 </tr>
               </thead>
               <tbody>
-                {celulares.map((celular, index) => (
+                {filteredAndSortedCelulares.map((celular, index) => (
                   <tr key={celular.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(celular.id) ? 'bg-blue-100' : ''}`}>
                     <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{celular.serial}</td>
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={celular.modelo}>
