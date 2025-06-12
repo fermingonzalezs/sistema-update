@@ -25,7 +25,8 @@ import {
   CargaEquiposUnificada,
   ReparacionesMain,
   RepuestosSection,
-  RecuentoRepuestosSection
+  RecuentoRepuestosSection,
+  TesteoEquiposSection
 } from './modules/soporte/components';
 import {
   VentasSection,
@@ -579,6 +580,10 @@ const AppContent = () => {
 
          {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (
            <RecuentoRepuestosSection />
+         )}
+
+         {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
+           <TesteoEquiposSection />
          )}
 
          {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (

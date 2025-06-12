@@ -23,7 +23,8 @@ import {
   LogOut,
   Globe,
   Truck,
-  RefreshCw
+  RefreshCw,
+  Monitor
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
@@ -178,6 +179,12 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           label: 'Recuento Repuestos',
           icon: Calculator,
           description: 'Contar repuestos físicos'
+        },
+        {
+          id: 'testeo-equipos',
+          label: 'Testeo Equipos',
+          icon: Monitor,
+          description: 'Testeo de notebooks y celulares'
         }
       ]
     },
