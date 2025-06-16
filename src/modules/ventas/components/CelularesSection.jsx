@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Trash2, X } from 'lucide-react';
+import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 
 const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
@@ -363,6 +364,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                 <tr>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Repuestos USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
@@ -389,6 +391,11 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={celular.modelo}>
                       {celular.modelo}
                     </td>
+                    <FotoProductoAvanzado 
+                      productoId={celular.id} 
+                      tipoProducto="celular" 
+                      nombreProducto={celular.modelo || ''}
+                    />
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">${celular.precio_compra_usd}</td>
                     <td className="px-2 py-3 whitespace-nowrap">
                       <EditableCell celular={celular} field="repuestos_usd" type="currency" />
@@ -519,5 +526,6 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     </div>
   );
 };
+
 
 export default CelularesSection;

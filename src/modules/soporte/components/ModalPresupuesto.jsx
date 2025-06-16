@@ -18,7 +18,6 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
   const [tabRepuestos, setTabRepuestos] = useState('stock');
   
   // Estados para el presupuesto
-  const [margenGanancia, setMargenGanancia] = useState(20);
   const [observaciones, setObservaciones] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -79,13 +78,11 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
           const presupuestoExistente = reparacion.presupuesto_json;
           setServiciosSeleccionados(presupuestoExistente.servicios || []);
           setRepuestosSeleccionados(presupuestoExistente.repuestos || []);
-          setMargenGanancia(presupuestoExistente.margenGanancia || 20);
           setObservaciones(presupuestoExistente.observaciones || '');
         } else {
           // Nuevo presupuesto - limpiar selecciones
           setServiciosSeleccionados([]);
           setRepuestosSeleccionados([]);
-          setMargenGanancia(20);
           setObservaciones(`Presupuesto para ${reparacion.equipo_tipo} - ${reparacion.problema_reportado}`);
         }
       }
@@ -221,8 +218,7 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
   const subtotalServicios = serviciosSeleccionados.reduce((acc, s) => acc + (s.precio * s.cantidad), 0);
   const subtotalRepuestos = repuestosSeleccionados.reduce((acc, r) => acc + (r.precio * r.cantidad), 0);
   const subtotal = subtotalServicios + subtotalRepuestos;
-  const margenValor = subtotal * (margenGanancia / 100);
-  const total = subtotal + margenValor;
+  const total = subtotal;
 
   const handleGuardarPresupuesto = async () => {
     if (serviciosSeleccionados.length === 0 && repuestosSeleccionados.length === 0) {
@@ -236,8 +232,6 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
       subtotalServicios,
       subtotalRepuestos,
       subtotal,
-      margenGanancia,
-      margenValor,
       total,
       observaciones,
       fechaCreacion: new Date().toISOString()
@@ -548,25 +542,6 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between pt-2">
-                  <span>Margen de ganancia:</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={margenGanancia}
-                      onChange={e => setMargenGanancia(Number(e.target.value))}
-                      className="w-20"
-                    />
-                    <span className="font-semibold w-12">{margenGanancia}%</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>Valor del margen:</span>
-                  <span>+${margenValor.toFixed(2)}</span>
-                </div>
                 
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-lg font-bold text-orange-700">

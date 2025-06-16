@@ -312,6 +312,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [creatingClient, setCreatingClient] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -324,19 +325,37 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
 
   // Debounce para búsqueda de clientes
   useEffect(() => {
-    const handler = setTimeout(() => {
+    const handler = setTimeout(async () => {
       if (searchTerm.length >= 2) {
-        searchClientes(searchTerm);
+        setSearchLoading(true);
+        try {
+          const resultados = await searchClientes(searchTerm);
+          setFilteredClientes(resultados);
+        } finally {
+          setSearchLoading(false);
+        }
       } else if (searchTerm.length === 0) {
         setFilteredClientes(clientes);
+        setSearchLoading(false);
+      } else {
+        // Si tiene 1 carácter, mostrar lista vacía
+        setFilteredClientes([]);
+        setSearchLoading(false);
       }
     }, 300);
-    return () => clearTimeout(handler);
-  }, [searchTerm, searchClientes, clientes]);
+    
+    return () => {
+      clearTimeout(handler);
+      setSearchLoading(false);
+    };
+  }, [searchTerm, searchClientes]);
 
+  // Inicializar filteredClientes con todos los clientes cuando estos cambien
   useEffect(() => {
-    setFilteredClientes(clientes);
-  }, [clientes]);
+    if (searchTerm.length === 0) {
+      setFilteredClientes(clientes);
+    }
+  }, [clientes, searchTerm]);
 
   // ✅ CERRAR DROPDOWN - Sin interferir con el modal
   useEffect(() => {
@@ -461,7 +480,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
             <span className="font-medium">Crear nuevo cliente</span>
           </button>
 
-          {loading ? (
+          {searchLoading ? (
             <div className="px-4 py-8 text-center text-gray-500">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
               Buscando clientes...

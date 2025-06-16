@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Trash2, Box, ShoppingCart, X } from 'lucide-react';
+import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 
 const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
@@ -361,6 +362,7 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
               <thead className="bg-green-100">
                 <tr>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Descripción</th>
+                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Cantidad</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
@@ -378,6 +380,11 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
                     <td className="px-2 py-3 text-sm text-gray-900 font-medium whitespace-nowrap" title={producto.descripcion_producto}>
                       {producto.descripcion_producto}
                     </td>
+                    <FotoProductoAvanzado 
+                      productoId={producto.id} 
+                      tipoProducto="otro" 
+                      nombreProducto={producto.descripcion_producto || ''}
+                    />
                     <td className="px-2 py-3 text-sm text-center whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         producto.cantidad > 10 ? 'bg-green-100 text-green-800' :

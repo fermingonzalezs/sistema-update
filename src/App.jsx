@@ -32,7 +32,8 @@ import {
   VentasSection,
   ComisionesSection,
   DashboardReportesSection,
-  RecuentoStockSection
+  RecuentoStockSection,
+  GarantiasSection
 } from './modules/administracion/components';
 import {
   PlanCuentasSection,
@@ -588,6 +589,10 @@ const AppContent = () => {
 
          {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
            <DashboardReportesSection />
+         )}
+
+         {activeSection === 'garantias' && hasAccess('garantias') && (
+           <GarantiasSection />
          )}
 
          {activeSection === 'comisiones' && hasAccess('comisiones') && (

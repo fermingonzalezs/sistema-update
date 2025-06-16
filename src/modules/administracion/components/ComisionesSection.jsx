@@ -6,8 +6,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaFin, setFechaFin] = useState('');
   const [vendedorSeleccionado, setVendedorSeleccionado] = useState('todos');
   const [porcentajes, setPorcentajes] = useState({
-    computadora: 5.0,
-    celular: 7.0,
+    computadora_nuevo: 6.0,
+    computadora_usado: 4.0,
+    celular_nuevo: 8.0,
+    celular_usado: 6.0,
     otro: 3.0
   });
   const [editandoPorcentajes, setEditandoPorcentajes] = useState(false);
@@ -85,8 +87,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
         comisionesPorVendedor[vendedor] = {
           vendedor,
           categorias: {
-            computadora: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
-            celular: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
+            computadora_nuevo: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
+            computadora_usado: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
+            celular_nuevo: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
+            celular_usado: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 },
             otro: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 }
           },
           totales: { ventas: 0, ganancias: 0, comision: 0, unidades: 0 }
@@ -95,7 +99,18 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
       // Procesar cada item de la venta
       venta.venta_items.forEach(item => {
-        const categoria = item.tipo_producto;
+        // Determinar categoría basada en tipo y condición
+        const getCategoriaCompleta = (tipoProducto, condicion) => {
+          if (tipoProducto === 'computadora') {
+            return condicion === 'nuevo' ? 'computadora_nuevo' : 'computadora_usado';
+          } else if (tipoProducto === 'celular') {
+            return condicion === 'nuevo' ? 'celular_nuevo' : 'celular_usado';
+          } else {
+            return 'otro';
+          }
+        };
+
+        const categoria = getCategoriaCompleta(item.tipo_producto, item.condicion);
         const ventaItem = item.precio_total || 0;
         const gananciaItem = item.margen_item || 0;
         const unidades = item.cantidad || 1;
@@ -170,8 +185,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   const getColorCategoria = (categoria) => {
     switch (categoria) {
-      case 'computadora': return 'text-blue-600';
-      case 'celular': return 'text-green-600';
+      case 'computadora_nuevo': return 'text-blue-600';
+      case 'computadora_usado': return 'text-blue-400';
+      case 'celular_nuevo': return 'text-green-600';
+      case 'celular_usado': return 'text-green-400';
       case 'otro': return 'text-purple-600';
       default: return 'text-gray-600';
     }
@@ -179,10 +196,23 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   const getIconoCategoria = (categoria) => {
     switch (categoria) {
-      case 'computadora': return '💻';
-      case 'celular': return '📱';
+      case 'computadora_nuevo': return '💻';
+      case 'computadora_usado': return '🖥️';
+      case 'celular_nuevo': return '📱';
+      case 'celular_usado': return '📞';
       case 'otro': return '📦';
       default: return '❓';
+    }
+  };
+
+  const getNombreCategoria = (categoria) => {
+    switch (categoria) {
+      case 'computadora_nuevo': return 'PC Nuevas';
+      case 'computadora_usado': return 'PC Usadas';
+      case 'celular_nuevo': return 'Celulares Nuevos';
+      case 'celular_usado': return 'Celulares Usados';
+      case 'otro': return 'Otros';
+      default: return categoria;
     }
   };
 
@@ -305,11 +335,11 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(editandoPorcentajes ? porcentajesTemp : porcentajes).map(([categoria, porcentaje]) => (
-              <div key={categoria} className="flex items-center space-x-3">
-                <span className="text-2xl">{getIconoCategoria(categoria)}</span>
-                <span className="font-medium capitalize flex-1">{categoria}s:</span>
+              <div key={categoria} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <span className="text-xl">{getIconoCategoria(categoria)}</span>
+                <span className="font-medium flex-1 text-sm">{getNombreCategoria(categoria)}:</span>
                 {editandoPorcentajes ? (
                   <div className="flex items-center space-x-1">
                     <input
@@ -322,12 +352,12 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                       step="0.1"
                       min="0"
                       max="100"
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm"
                     />
-                    <span className="text-sm text-gray-500">%</span>
+                    <span className="text-xs text-gray-500">%</span>
                   </div>
                 ) : (
-                  <span className={`font-semibold ${getColorCategoria(categoria)}`}>
+                  <span className={`font-semibold text-sm ${getColorCategoria(categoria)}`}>
                     {porcentaje}%
                   </span>
                 )}
@@ -393,74 +423,98 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gradient-to-r from-green-500 to-blue-500">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Notebooks</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Celulares</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Otros</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total Ventas</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">PC Nuevas</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">PC Usadas</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cel. Nuevos</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cel. Usados</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Otros</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {comisionesCalculadas.map((vendedorData, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <User className="w-5 h-5 text-gray-400 mr-2" />
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
                           <div className="text-sm font-medium text-gray-900">{vendedorData.vendedor}</div>
-                          <div className="text-sm text-gray-500">{vendedorData.totales.unidades} unidades</div>
+                          <div className="text-xs text-gray-500">{vendedorData.totales.unidades} unidades</div>
                         </div>
                       </div>
                     </td>
                     
-                    {/* Computadoras */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* PC Nuevas */}
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-blue-600 font-medium">
-                          {formatearMoneda(vendedorData.categorias.computadora.comision)}
+                          {formatearMoneda(vendedorData.categorias.computadora_nuevo.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          {vendedorData.categorias.computadora.unidades} unidades
-                        </div>
-                        <div className="text-gray-500 text-xs">
-                          Ganancia: {formatearMoneda(vendedorData.categorias.computadora.ganancias)}
+                          {vendedorData.categorias.computadora_nuevo.unidades} u.
                         </div>
                       </div>
                     </td>
 
-                    {/* Celulares */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* PC Usadas */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="text-blue-400 font-medium">
+                          {formatearMoneda(vendedorData.categorias.computadora_usado.comision)}
+                        </div>
+                        <div className="text-gray-500 text-xs">
+                          {vendedorData.categorias.computadora_usado.unidades} u.
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Celulares Nuevos */}
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          {formatearMoneda(vendedorData.categorias.celular.comision)}
+                          {formatearMoneda(vendedorData.categorias.celular_nuevo.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          {vendedorData.categorias.celular.unidades} unidades
+                          {vendedorData.categorias.celular_nuevo.unidades} u.
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Celulares Usados */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="text-green-400 font-medium">
+                          {formatearMoneda(vendedorData.categorias.celular_usado.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          Ganancia: {formatearMoneda(vendedorData.categorias.celular.ganancias)}
+                          {vendedorData.categorias.celular_usado.unidades} u.
                         </div>
                       </div>
                     </td>
 
                     {/* Otros */}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-purple-600 font-medium">
                           {formatearMoneda(vendedorData.categorias.otro.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          {vendedorData.categorias.otro.unidades} unidades
-                        </div>
-                        <div className="text-gray-500 text-xs">
-                          Ganancia: {formatearMoneda(vendedorData.categorias.otro.ganancias)}
+                          {vendedorData.categorias.otro.unidades} u.
                         </div>
                       </div>
                     </td>
 
-                    {/* Total Ventas */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatearMoneda(vendedorData.totales.ventas)}
+                    {/* Total */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="font-bold text-gray-900">
+                          {formatearMoneda(vendedorData.totales.comision)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Ventas: {formatearMoneda(vendedorData.totales.ventas)}
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))}

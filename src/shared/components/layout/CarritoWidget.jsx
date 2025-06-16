@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, Loader, CreditCard } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
+import ConversionMonedas from '../../../components/ConversionMonedas';
+import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [enviandoEmail, setEnviandoEmail] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [datosCliente, setDatosCliente] = useState({
-    metodo_pago: 'efectivo',
+    metodo_pago: 'efectivo_pesos',
     observaciones: '',
     vendedor: '',
     sucursal: ''
   });
+
+  // Usar el hook de vendedores
+  const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
+
+  useEffect(() => {
+    fetchVendedores();
+  }, [fetchVendedores]);
+
 
   const calcularTotal = () => {
     return carrito.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0);
@@ -94,7 +103,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     }
 
     try {
-      setEnviandoEmail(true);
 
       // Generar número de transacción único
       const numeroTransaccion = `VT-${Date.now()}`;
@@ -133,7 +141,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       // ✅ LIMPIAR TODO después del éxito
       setClienteSeleccionado(null);
       setDatosCliente({
-        metodo_pago: 'efectivo',
+        metodo_pago: 'efectivo_pesos',
         observaciones: '',
         vendedor: '',
         sucursal: ''
@@ -157,9 +165,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       }
       
       alert(`❌ ${errorMessage}:\n\n${err.message}\n\nIntente nuevamente o contacte al administrador.`);
-      
-    } finally {
-      setEnviandoEmail(false);
     }
   };
 
@@ -346,10 +351,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             onChange={handleInputChange}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
                           >
-                            <option value="efectivo">💵 Efectivo</option>
-                            <option value="tarjeta">💳 Tarjeta</option>
+                            <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
+                            <option value="dolares_billete">💸 Dólares Billete</option>
                             <option value="transferencia">🏦 Transferencia</option>
-                            <option value="cheque">📝 Cheque</option>
+                            <option value="criptomonedas">₿ Criptomonedas</option>
+                            <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
                             <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                           </select>
                         </div>
@@ -372,15 +378,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Vendedor</label>
-                        <input
-                          type="text"
+                        <select
                           name="vendedor"
                           value={datosCliente.vendedor}
                           onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          placeholder="Nombre del vendedor"
-                        />
+                          disabled={loadingVendedores}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                        >
+                          <option value="">
+                            {loadingVendedores ? 'Cargando vendedores...' : 'Seleccionar vendedor'}
+                          </option>
+                          {vendedores.map((vendedor) => (
+                            <option key={vendedor.id} value={vendedor.id}>
+                              {vendedor.nombre} {vendedor.apellido}
+                            </option>
+                          ))}
+                        </select>
                       </div>
+
+
+                      
                       
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
@@ -409,14 +426,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
                     {/* Resumen */}
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                      <h3 className="font-medium text-gray-700 mb-2">Resumen de la Venta</h3>
-                      <div className="text-sm space-y-1">
+                      <h3 className="font-medium text-gray-700 mb-3">Resumen de la Venta</h3>
+                      <div className="text-sm space-y-2">
                         {clienteSeleccionado && (
                           <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
                         )}
                         <p>Items: {calcularCantidadTotal()}</p>
-                        <p>Método: <span className="font-medium capitalize">{datosCliente.metodo_pago.replace('_', ' ')}</span></p>
-                        <p className="text-lg font-bold">Total: ${calcularTotal().toFixed(2)}</p>
+                        <p>Método: <span className="font-medium capitalize">{datosCliente.metodo_pago.replace(/_/g, ' ')}</span></p>
                         
                         {/* ✅ RESUMEN especial para cuenta corriente */}
                         {datosCliente.metodo_pago === 'cuenta_corriente' && (
@@ -425,6 +441,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           </div>
                         )}
                       </div>
+                      
+                      {/* ✅ CONVERSIÓN DE MONEDAS */}
+                      <div className="mt-4">
+                        <ConversionMonedas 
+                          montoUSD={calcularTotal()} 
+                          mostrarActualizacion={true}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex space-x-4">
@@ -432,37 +456,27 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         type="button"
                         onClick={() => setMostrarFormulario(false)}
                         className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
-                        disabled={enviandoEmail}
                       >
                         Volver
                       </button>
                       <button
                         type="submit"
-                        disabled={enviandoEmail || !clienteSeleccionado}
+                        disabled={!clienteSeleccionado}
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed ${
                           datosCliente.metodo_pago === 'cuenta_corriente' 
                             ? 'bg-orange-600 text-white hover:bg-orange-700' 
                             : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                       >
-                        {enviandoEmail ? (
+                        {datosCliente.metodo_pago === 'cuenta_corriente' ? (
                           <>
-                            <Loader className="w-5 h-5 animate-spin" />
-                            <span>Procesando...</span>
+                            <CreditCard className="w-5 h-5" />
+                            <span>Procesar a Cuenta Corriente</span>
                           </>
                         ) : (
                           <>
-                            {datosCliente.metodo_pago === 'cuenta_corriente' ? (
-                              <>
-                                <CreditCard className="w-5 h-5" />
-                                <span>Procesar a Cuenta Corriente</span>
-                              </>
-                            ) : (
-                              <>
-                                <ShoppingCart className="w-5 h-5" />
-                                <span>Procesar Venta</span>
-                              </>
-                            )}
+                            <ShoppingCart className="w-5 h-5" />
+                            <span>Procesar Venta</span>
                           </>
                         )}
                       </button>

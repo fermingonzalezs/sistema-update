@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight } from 'lucide-react';
+import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download, Shield } from 'lucide-react';
+import { Eye } from 'lucide-react';
+import { generarYDescargarRecibo } from '../../../components/ReciboVentaPDF';
+import { generarYDescargarGarantia } from '../../../components/GarantiaPDF';
+import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [estadisticas, setEstadisticas] = useState(null);
   const [filtroTipo, setFiltroTipo] = useState('todos');
-  const [filtroFecha, setFiltroFecha] = useState('todos');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
+  const [modalVistaPrevia, setModalVistaPrevia] = useState({ open: false, transaccion: null, tipo: 'recibo' });
+
+  // Establecer fechas por defecto (último mes)
+  useEffect(() => {
+    const hoy = new Date();
+    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    
+    setFechaInicio(primerDiaMes.toISOString().split('T')[0]);
+    setFechaFin(hoy.toISOString().split('T')[0]);
+  }, []);
 
   useEffect(() => {
     if (onLoadStats) {
@@ -40,26 +55,18 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
     
     let cumpleFecha = true;
-    if (filtroFecha !== 'todos') {
+    if (fechaInicio || fechaFin) {
       const fechaVenta = new Date(transaccion.fecha_venta);
-      const hoy = new Date();
       
-      switch (filtroFecha) {
-        case 'hoy':
-          cumpleFecha = fechaVenta.toDateString() === hoy.toDateString();
-          break;
-        case 'semana':
-          const unaSemanaAtras = new Date(hoy);
-          unaSemanaAtras.setDate(hoy.getDate() - 7);
-          cumpleFecha = fechaVenta >= unaSemanaAtras;
-          break;
-        case 'mes':
-          const unMesAtras = new Date(hoy);
-          unMesAtras.setMonth(hoy.getMonth() - 1);
-          cumpleFecha = fechaVenta >= unMesAtras;
-          break;
-        default:
-          cumpleFecha = true;
+      if (fechaInicio) {
+        const fechaInicioDate = new Date(fechaInicio);
+        cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
+      }
+      
+      if (fechaFin) {
+        const fechaFinDate = new Date(fechaFin);
+        fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
+        cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
       }
     }
     
@@ -94,6 +101,32 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
 
   const getProductosResumen = (items) => {
     return items.map(item => item.modelo_producto).join(' • ');
+  };
+
+  const manejarDescargarRecibo = async (transaccion) => {
+    const exito = await generarYDescargarRecibo(transaccion);
+    if (!exito) {
+      alert('Error al generar el recibo. Por favor, intente nuevamente.');
+    }
+  };
+
+  const manejarDescargarGarantia = async (transaccion) => {
+    const exito = await generarYDescargarGarantia(transaccion, transaccion.venta_items);
+    if (!exito.success) {
+      alert('Error al generar la garantía. Por favor, intente nuevamente.');
+    }
+  };
+
+  const abrirVistaPreviaRecibo = (transaccion) => {
+    setModalVistaPrevia({ open: true, transaccion, tipo: 'recibo' });
+  };
+
+  const abrirVistaPreviaGarantia = (transaccion) => {
+    setModalVistaPrevia({ open: true, transaccion, tipo: 'garantia' });
+  };
+
+  const cerrarVistaPrevia = () => {
+    setModalVistaPrevia({ open: false, transaccion: null, tipo: 'recibo' });
   };
 
   return (
@@ -243,17 +276,81 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Período</label>
-          <select
-            value={filtroFecha}
-            onChange={(e) => setFiltroFecha(e.target.value)}
+          <label className="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+          <input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+          <input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* Botones de acceso rápido para fechas */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          <button
+            onClick={() => {
+              const hoy = new Date();
+              setFechaInicio(hoy.toISOString().split('T')[0]);
+              setFechaFin(hoy.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
           >
-            <option value="todos">Todos</option>
-            <option value="hoy">Hoy</option>
-            <option value="semana">Última semana</option>
-            <option value="mes">Último mes</option>
-          </select>
+            Hoy
+          </button>
+          <button
+            onClick={() => {
+              const hoy = new Date();
+              const unaSemanaAtras = new Date(hoy);
+              unaSemanaAtras.setDate(hoy.getDate() - 7);
+              setFechaInicio(unaSemanaAtras.toISOString().split('T')[0]);
+              setFechaFin(hoy.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+          >
+            Última semana
+          </button>
+          <button
+            onClick={() => {
+              const hoy = new Date();
+              const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+              setFechaInicio(primerDiaMes.toISOString().split('T')[0]);
+              setFechaFin(hoy.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+          >
+            Este mes
+          </button>
+          <button
+            onClick={() => {
+              const hoy = new Date();
+              const unMesAtras = new Date(hoy);
+              unMesAtras.setMonth(hoy.getMonth() - 1);
+              setFechaInicio(unMesAtras.toISOString().split('T')[0]);
+              setFechaFin(hoy.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+          >
+            Último mes
+          </button>
+          <button
+            onClick={() => {
+              setFechaInicio('');
+              setFechaFin('');
+            }}
+            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+          >
+            Todos los períodos
+          </button>
         </div>
       </div>
 
@@ -280,7 +377,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Método Pago</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Margen</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Detalles</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -335,17 +432,52 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => toggleTransaccion(transaccion.id)}
-                          className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                        >
-                          {transaccionesExpandidas.has(transaccion.id) ? (
-                            <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4" />
-                          )}
-                          <span>Ver</span>
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => toggleTransaccion(transaccion.id)}
+                            className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                          >
+                            {transaccionesExpandidas.has(transaccion.id) ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                            <span>Ver</span>
+                          </button>
+                          <div className="flex items-center space-x-1">
+                            {/* Recibo */}
+                            <button
+                              onClick={() => abrirVistaPreviaRecibo(transaccion)}
+                              className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-emerald-50"
+                              title="Vista previa recibo"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => manejarDescargarRecibo(transaccion)}
+                              className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-emerald-50"
+                              title="Descargar recibo PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Garantía */}
+                            <button
+                              onClick={() => abrirVistaPreviaGarantia(transaccion)}
+                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-blue-50"
+                              title="Vista previa garantía"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => manejarDescargarGarantia(transaccion)}
+                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-blue-50"
+                              title="Descargar garantía PDF"
+                            >
+                              <Shield className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                     
@@ -387,6 +519,13 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           </div>
         </div>
       )}
+      {/* Modal de vista previa */}
+      <ModalVistaPreviaPDF
+        open={modalVistaPrevia.open}
+        onClose={cerrarVistaPrevia}
+        transaccion={modalVistaPrevia.transaccion}
+        tipo={modalVistaPrevia.tipo}
+      />
     </div>
   );
 };

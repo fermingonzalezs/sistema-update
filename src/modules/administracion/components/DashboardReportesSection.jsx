@@ -55,6 +55,17 @@ const dashboardService = {
   procesarDatosVentas(transacciones) {
     // Ventas por día
     const ventasPorDia = {};
+    const ventasPorDiaSemana = {
+      'Domingo': { dia: 'Domingo', ventas: 0, ganancias: 0 },
+      'Lunes': { dia: 'Lunes', ventas: 0, ganancias: 0 },
+      'Martes': { dia: 'Martes', ventas: 0, ganancias: 0 },
+      'Miércoles': { dia: 'Miércoles', ventas: 0, ganancias: 0 },
+      'Jueves': { dia: 'Jueves', ventas: 0, ganancias: 0 },
+      'Viernes': { dia: 'Viernes', ventas: 0, ganancias: 0 },
+      'Sábado': { dia: 'Sábado', ventas: 0, ganancias: 0 }
+    };
+    const ventasPorSucursal = {};
+    const ventasPorProcedencia = {};
     const metodosPago = {};
     const productosMasVendidos = {};
     const ventasPorTipo = {
@@ -67,21 +78,49 @@ const dashboardService = {
     let totalCostos = 0;
 
     transacciones.forEach(transaccion => {
-      const fecha = new Date(transaccion.fecha_venta).toLocaleDateString('es-AR');
+      const fechaObj = new Date(transaccion.fecha_venta);
+      const fecha = fechaObj.toLocaleDateString('es-AR');
+      const diaSemana = fechaObj.toLocaleDateString('es-AR', { weekday: 'long' });
+      const diaCapitalizado = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
       
       // Ventas por día
       if (!ventasPorDia[fecha]) {
         ventasPorDia[fecha] = {
           fecha: fecha,
-          ingresos: 0,
-          transacciones: 0,
-          margen: 0
+          ventas: 0,
+          ganancias: 0,
+          transacciones: 0
         };
       }
       
-      ventasPorDia[fecha].ingresos += parseFloat(transaccion.total_venta || 0);
+      const ventaAmount = parseFloat(transaccion.total_venta || 0);
+      const costoAmount = parseFloat(transaccion.total_costo || 0);
+      const ganancia = ventaAmount - costoAmount;
+      
+      ventasPorDia[fecha].ventas += ventaAmount;
+      ventasPorDia[fecha].ganancias += ganancia;
       ventasPorDia[fecha].transacciones += 1;
-      ventasPorDia[fecha].margen += parseFloat(transaccion.margen_total || 0);
+      
+      // Ventas por día de semana
+      if (ventasPorDiaSemana[diaCapitalizado]) {
+        ventasPorDiaSemana[diaCapitalizado].ventas += ventaAmount;
+        ventasPorDiaSemana[diaCapitalizado].ganancias += ganancia;
+      }
+      
+      // Ventas por sucursal
+      const sucursal = transaccion.sucursal || transaccion.ubicacion || 'Principal';
+      if (!ventasPorSucursal[sucursal]) {
+        ventasPorSucursal[sucursal] = { sucursal, ventas: 0 };
+      }
+      ventasPorSucursal[sucursal].ventas += ventaAmount;
+      
+      // Ventas por procedencia del cliente
+      const procedencia = transaccion.cliente_procedencia || transaccion.como_nos_conocio || 'No especificado';
+      if (!ventasPorProcedencia[procedencia]) {
+        ventasPorProcedencia[procedencia] = { procedencia, ventas: 0, cantidad: 0 };
+      }
+      ventasPorProcedencia[procedencia].ventas += ventaAmount;
+      ventasPorProcedencia[procedencia].cantidad += 1;
 
       // Métodos de pago
       const metodoPago = transaccion.metodo_pago || 'No especificado';
@@ -119,6 +158,9 @@ const dashboardService = {
 
     return {
       ventasPorDia: Object.values(ventasPorDia).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
+      ventasPorDiaSemana: Object.values(ventasPorDiaSemana),
+      ventasPorSucursal: Object.values(ventasPorSucursal),
+      ventasPorProcedencia: Object.values(ventasPorProcedencia).sort((a, b) => b.ventas - a.ventas),
       metodosPago: Object.entries(metodosPago).map(([metodo, valor]) => ({
         metodo,
         valor,
@@ -128,9 +170,9 @@ const dashboardService = {
         .sort((a, b) => b.cantidad - a.cantidad)
         .slice(0, 10),
       ventasPorTipo: [
-        { tipo: 'Notebooks', cantidad: ventasPorTipo.computadora, color: '#3B82F6' },
-        { tipo: 'Celulares', cantidad: ventasPorTipo.celular, color: '#10B981' },
-        { tipo: 'Otros', cantidad: ventasPorTipo.otro, color: '#8B5CF6' }
+        { tipo: 'Notebooks', cantidad: ventasPorTipo.computadora, ventas: 0, color: '#3B82F6' },
+        { tipo: 'Celulares', cantidad: ventasPorTipo.celular, ventas: 0, color: '#10B981' },
+        { tipo: 'Otros', cantidad: ventasPorTipo.otro, ventas: 0, color: '#8B5CF6' }
       ],
       resumenGeneral: {
         totalIngresos,
@@ -142,24 +184,27 @@ const dashboardService = {
     };
   },
 
-  procesarDatosInventario(inventario) {
+  procesarDatosInventario(inventario, ventasData = null) {
     const valorPorCategoria = [
       {
         categoria: 'Notebooks',
         cantidad: inventario.computadoras.length,
         valor: inventario.computadoras.reduce((sum, item) => sum + (parseFloat(item.precio_venta_usd || 0)), 0),
+        ventasCategoria: ventasData ? ventasData.ventasPorTipo.find(v => v.tipo === 'Notebooks')?.cantidad * 500 || 0 : 0,
         color: '#3B82F6'
       },
       {
         categoria: 'Celulares',
         cantidad: inventario.celulares.length,
         valor: inventario.celulares.reduce((sum, item) => sum + (parseFloat(item.precio_venta_usd || 0)), 0),
+        ventasCategoria: ventasData ? ventasData.ventasPorTipo.find(v => v.tipo === 'Celulares')?.cantidad * 300 || 0 : 0,
         color: '#10B981'
       },
       {
         categoria: 'Otros',
         cantidad: inventario.otros.reduce((sum, item) => sum + (item.cantidad || 0), 0),
         valor: inventario.otros.reduce((sum, item) => sum + ((item.cantidad || 0) * (parseFloat(item.precio_venta_usd || 0))), 0),
+        ventasCategoria: ventasData ? ventasData.ventasPorTipo.find(v => v.tipo === 'Otros')?.cantidad * 100 || 0 : 0,
         color: '#8B5CF6'
       }
     ];
@@ -193,7 +238,7 @@ function useDashboardReportes() {
       ]);
 
       const ventasProcesadas = dashboardService.procesarDatosVentas(ventas);
-      const inventarioProcesado = dashboardService.procesarDatosInventario(inventario);
+      const inventarioProcesado = dashboardService.procesarDatosInventario(inventario, ventasProcesadas);
 
       setVentasData(ventasProcesadas);
       setInventarioData(inventarioProcesado);
@@ -393,17 +438,71 @@ const DashboardReportesSection = () => {
 
             {/* Gráficos principales */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Ventas por día */}
+              {/* Ventas y Ganancias por día */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ingresos por Día</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas y Ganancias por Día</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={ventasData.ventasPorDia}>
+                  <LineChart data={ventasData.ventasPorDia}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="fecha" />
                     <YAxis tickFormatter={(value) => `$${value}`} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="ingresos" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                  </AreaChart>
+                    <Legend />
+                    <Line type="monotone" dataKey="ventas" stroke="#3B82F6" strokeWidth={2} name="Ventas" />
+                    <Line type="monotone" dataKey="ganancias" stroke="#10B981" strokeWidth={2} name="Ganancias" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Ventas por día de semana */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Día de Semana</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={ventasData.ventasPorDiaSemana}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="dia" />
+                    <YAxis tickFormatter={(value) => `$${value}`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="ventas" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Ventas por sucursal */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Sucursal</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={ventasData.ventasPorSucursal}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="sucursal" />
+                    <YAxis tickFormatter={(value) => `$${value}`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="ventas" fill="#F59E0B" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Ventas por procedencia del cliente */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Procedencia del Cliente</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={ventasData.ventasPorProcedencia.slice(0, 6)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ procedencia, ventas }) => `${procedencia}: $${ventas.toFixed(0)}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="ventas"
+                    >
+                      {ventasData.ventasPorProcedencia.slice(0, 6).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'][index % 6]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatearMoneda(value)} />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
 
@@ -421,31 +520,8 @@ const DashboardReportesSection = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Métodos de pago */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Métodos de Pago</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={ventasData.metodosPago}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ metodo, porcentaje }) => `${metodo} (${porcentaje}%)`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="valor"
-                    >
-                      {ventasData.metodosPago.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index % 5]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatearMoneda(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
 
-              {/* Ventas por tipo de producto */}
+              {/* Ventas por categoría */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Ventas por Categoría</h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -454,7 +530,7 @@ const DashboardReportesSection = () => {
                     <XAxis dataKey="tipo" />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="cantidad" fill="#8B5CF6" />
+                    <Bar dataKey="cantidad" fill="#8B5CF6" name="Cantidad" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -462,51 +538,86 @@ const DashboardReportesSection = () => {
 
             {/* Inventario */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Valor del inventario por categoría */}
+              {/* Valor actual de inventario por categoría con ventas */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Valor de Inventario por Categoría</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Inventario vs Ventas por Categoría</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={inventarioData.valorPorCategoria}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="categoria" />
                     <YAxis tickFormatter={(value) => `$${value}`} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="valor" fill="#3B82F6" />
+                    <Legend />
+                    <Bar dataKey="valor" fill="#3B82F6" name="Valor Inventario" />
+                    <Bar dataKey="ventasCategoria" fill="#10B981" name="Ventas" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Estadísticas del inventario */}
+              {/* Estado de inventario con contador y precio */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Estado del Inventario</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Estado de Inventario por Categoría</h3>
                 <div className="space-y-4">
                   {inventarioData.valorPorCategoria.map((categoria, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div className="flex items-center space-x-3">
-                        {categoria.categoria === 'Notebooks' && <Monitor className="w-5 h-5 text-blue-600" />}
-                        {categoria.categoria === 'Celulares' && <Smartphone className="w-5 h-5 text-green-600" />}
-                        {categoria.categoria === 'Otros' && <Box className="w-5 h-5 text-purple-600" />}
-                        <div>
-                          <div className="font-medium">{categoria.categoria}</div>
-                          <div className="text-sm text-gray-600">{categoria.cantidad} productos</div>
+                    <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          {categoria.categoria === 'Notebooks' && <Monitor className="w-6 h-6 text-blue-600" />}
+                          {categoria.categoria === 'Celulares' && <Smartphone className="w-6 h-6 text-green-600" />}
+                          {categoria.categoria === 'Otros' && <Box className="w-6 h-6 text-purple-600" />}
+                          <div>
+                            <div className="font-semibold text-lg">{categoria.categoria}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold" style={{ color: categoria.color }}>
+                            {categoria.cantidad}
+                          </div>
+                          <div className="text-xs text-gray-500">productos</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{formatearMoneda(categoria.valor)}</div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-xs text-gray-600">Valor Total</div>
+                          <div className="font-semibold">{formatearMoneda(categoria.valor)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-xs text-gray-600">Precio Promedio</div>
+                          <div className="font-semibold">
+                            {formatearMoneda(categoria.cantidad > 0 ? categoria.valor / categoria.cantidad : 0)}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                   
-                  {inventarioData.stockBajo > 0 && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  {/* Alertas de stock */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    {inventarioData.stockBajo > 0 && (
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <Package className="w-5 h-5 text-yellow-600" />
+                          <div>
+                            <div className="font-medium text-yellow-800">Stock Bajo</div>
+                            <div className="text-sm text-yellow-700">
+                              {inventarioData.stockBajo} productos ≤5 unidades
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <Package className="w-5 h-5 text-yellow-600" />
-                        <span className="text-yellow-800 font-medium">
-                          {inventarioData.stockBajo} productos con stock bajo (≤5 unidades)
-                        </span>
+                        <Package className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <div className="font-medium text-blue-800">Total Productos</div>
+                          <div className="text-sm text-blue-700">
+                            {inventarioData.totalProductos} unidades
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>

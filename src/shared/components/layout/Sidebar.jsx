@@ -24,7 +24,8 @@ import {
   Globe,
   Truck,
   RefreshCw,
-  Monitor
+  Monitor,
+  Shield
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
@@ -211,6 +212,12 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           label: 'Dashboard',
           icon: BarChart3,
           description: 'Reportes visuales'
+        },
+        {
+          id: 'garantias',
+          label: 'Garantías',
+          icon: Shield,
+          description: 'Gestión de garantías'
         },
         {
           id: 'recuento-stock',
@@ -432,7 +439,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
         </div>
 
         {/* Estado del sistema */}
-        <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10 mb-4">
           <div className="flex items-center space-x-2 mb-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-sm font-medium text-white">Sistema Activo</span>

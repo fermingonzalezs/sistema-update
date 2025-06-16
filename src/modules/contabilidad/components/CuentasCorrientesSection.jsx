@@ -312,10 +312,10 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
     let cumpleFiltro = true;
     switch (filtroSaldo) {
       case 'deudores':
-        cumpleFiltro = parseFloat(cliente.saldo_total || 0) > 0; // La empresa les debe
+        cumpleFiltro = parseFloat(cliente.saldo_total || 0) < 0; // La empresa les debe
         break;
       case 'acreedores':
-        cumpleFiltro = parseFloat(cliente.saldo_total || 0) < 0; // Nos deben a nosotros
+        cumpleFiltro = parseFloat(cliente.saldo_total || 0) > 0; // Nos deben a nosotros
         break;
       case 'saldados':
         cumpleFiltro = parseFloat(cliente.saldo_total || 0) === 0;
@@ -337,9 +337,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
     
     return {
       valor: Math.abs(valor),
-      texto: isPositivo ? 'Le debemos' : isNegativo ? 'Nos debe' : 'Saldado',
-      color: isPositivo ? 'text-red-600' : isNegativo ? 'text-green-600' : 'text-gray-500',
-      bgColor: isPositivo ? 'bg-red-50' : isNegativo ? 'bg-green-50' : 'bg-gray-50'
+      texto: isPositivo ? 'Nos debe' : isNegativo ? 'Le debemos' : 'Saldado',
+      color: isPositivo ? 'text-green-600' : isNegativo ? 'text-red-600' : 'text-gray-500',
+      bgColor: isPositivo ? 'bg-green-50' : isNegativo ? 'bg-red-50' : 'bg-gray-50'
     };
   };
 

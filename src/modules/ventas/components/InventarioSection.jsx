@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Trash2, Filter, X, ChevronDown } from 'lucide-react';
+import { Trash2, Filter, X, ChevronDown, Shield, Eye } from 'lucide-react';
+import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
+import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
 
 const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
@@ -16,6 +18,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   });
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [modalGarantia, setModalGarantia] = useState({ open: false, producto: null });
 
   // Estado para el modal de edición
   const [modalOpen, setModalOpen] = useState(false);
@@ -104,6 +107,14 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     setEditingId(null);
     setEditingField(null);
     setEditingData({});
+  };
+
+  const abrirModalGarantia = (producto) => {
+    setModalGarantia({ open: true, producto });
+  };
+
+  const cerrarModalGarantia = () => {
+    setModalGarantia({ open: false, producto: null });
   };
 
   const handleFieldChange = (field, value) => {
@@ -518,6 +529,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                 <tr>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Envíos/Rep</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
@@ -557,6 +569,11 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={computer.modelo}>
                       {computer.modelo}
                     </td>
+                    <FotoProductoAvanzado 
+                      productoId={computer.id} 
+                      tipoProducto="computadora" 
+                      nombreProducto={computer.modelo || ''}
+                    />
                     <td className="px-2 py-3 whitespace-nowrap">
                       <EditableCell computer={computer} field="precio_costo_usd" type="currency" />
                     </td>
@@ -669,6 +686,14 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                     <td className="px-2 py-3 text-sm whitespace-nowrap">
                       <div className="flex space-x-1">
                         <button
+                          onClick={() => abrirModalGarantia(computer)}
+                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                          title="Generar garantía"
+                        >
+                          <Shield className="w-3 h-3" />
+                          <span>Garantía</span>
+                        </button>
+                        <button
                           onClick={() => onDelete(computer.id)}
                           className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
                           title="Eliminar"
@@ -719,8 +744,31 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
           </div>
         </div>
       )}
+      
+      {/* Modal de vista previa de garantía */}
+      {modalGarantia.open && (
+        <ModalVistaPreviaPDF
+          open={modalGarantia.open}
+          onClose={cerrarModalGarantia}
+          transaccion={{
+            cliente_nombre: 'Cliente Individual',
+            numero_transaccion: `INV-${modalGarantia.producto?.id}`,
+            fecha_venta: new Date(),
+            total_venta: modalGarantia.producto?.precio_venta_usd || 0,
+            metodo_pago: 'N/A',
+            vendedor: 'Sistema',
+            venta_items: [{
+              modelo_producto: modalGarantia.producto?.modelo,
+              numero_serie: modalGarantia.producto?.serial,
+              garantia_dias: modalGarantia.producto?.garantia_update || modalGarantia.producto?.garantia_oficial || '365'
+            }]
+          }}
+          tipo="garantia"
+        />
+      )}
     </div>
   );
 };
+
 
 export default InventarioSection;
