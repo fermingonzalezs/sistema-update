@@ -2,18 +2,20 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Trash2, Filter, X, ChevronDown, Shield, Eye } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [editingData, setEditingData] = useState({});
-  const [cotizacionDolar, setCotizacionDolar] = useState(1150);
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
   const inputRef = useRef(null);
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
     sucursal: '',
     condicion: '',
+    marca: '',
     precioMax: ''
   });
   const [sortBy, setSortBy] = useState('');
@@ -28,6 +30,14 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   const [modalType, setModalType] = useState('text');
   const modalInputRef = useRef(null);
 
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    cargarCotizacion();
+    // Actualizar cada 5 minutos
+    const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Focus automático cuando se abre la edición
   useEffect(() => {
     if (editingId && editingField && inputRef.current && typeof inputRef.current.select === 'function') {
@@ -35,6 +45,17 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
       inputRef.current.select();
     }
   }, [editingId, editingField]);
+
+  // Función para cargar cotización desde dolarAPI (sin UI)
+  const cargarCotizacion = async () => {
+    try {
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setCotizacionDolar(cotizacionData.valor);
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+      // Mantener valor anterior si falla
+    }
+  };
 
   const handleEdit = (computer, field = null) => {
     // Si ya estamos editando este registro, no hacer nada
@@ -44,7 +65,8 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     setEditingField(field);
     setEditingData({
       sucursal: computer.sucursal || '',
-      condicion: computer.condicion || 'usado',
+      condicion: computer.condicion || 'usada',
+      marca: computer.marca || '',
       ram: computer.ram || '',
       ssd: computer.ssd || '',
       hdd: computer.hdd || '',
@@ -204,7 +226,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     // Para los demás campos, abrir modal al hacer clic
     return (
       <span
-        className={`text-sm cursor-pointer hover:bg-gray-100 p-2 rounded whitespace-nowrap transition-colors ${className}`}
+        className={`text-sm cursor-pointer hover:bg-gray-100 p-2 rounded whitespace-nowrap transition-colors text-center ${className}`}
         onClick={() => openFieldModal(computer, field, type)}
         title="Clic para editar"
       >
@@ -267,14 +289,40 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   // Devuelve una clase de color según la condición
   function getCondicionColor(condicion) {
     switch ((condicion || '').toLowerCase()) {
-      case 'nuevo':
+      case 'nueva':
         return 'bg-green-200 border-green-400 text-green-900';
-      case 'usado':
-        return 'bg-orange-100 border-orange-400 text-orange-800';
-      case 'reacondicionado':
-        return 'bg-blue-100 border-blue-400 text-blue-800';
+      case 'usada':
+        return 'bg-blue-200 border-blue-400 text-blue-900';
+      case 'oficina':
+        return 'bg-orange-200 border-orange-400 text-orange-900';
+      case 'reparacion':
+        return 'bg-yellow-200 border-yellow-400 text-yellow-900';
+      case 'prestada':
+        return 'bg-orange-200 border-orange-400 text-orange-900';
+      case 'reservada':
+        return 'bg-purple-200 border-purple-400 text-purple-900';
       default:
         return 'bg-gray-100 border-gray-300 text-gray-700';
+    }
+  }
+
+  // Devuelve una clase de color de fondo de fila según la condición
+  function getCondicionRowColor(condicion) {
+    switch ((condicion || '').toLowerCase()) {
+      case 'nueva':
+        return 'bg-green-50';
+      case 'usada':
+        return 'bg-blue-50';
+      case 'oficina':
+        return 'bg-orange-50';
+      case 'reparacion':
+        return 'bg-yellow-50';
+      case 'prestada':
+        return 'bg-orange-50';
+      case 'reservada':
+        return 'bg-purple-50';
+      default:
+        return '';
     }
   }
 
@@ -297,12 +345,13 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   const uniqueValues = useMemo(() => {
     const sucursales = [...new Set(computers.map(c => c.sucursal).filter(Boolean))];
     const condiciones = [...new Set(computers.map(c => c.condicion).filter(Boolean))];
+    const marcas = [...new Set(computers.map(c => c.marca).filter(Boolean))];
     
     // Calcular precio máximo para el slider
     const precios = computers.map(c => parseFloat(c.precio_venta_usd) || 0).filter(p => p > 0);
     const precioMax = Math.max(...precios) || 1000;
     
-    return { sucursales, condiciones, precioMax };
+    return { sucursales, condiciones, marcas, precioMax };
   }, [computers]);
 
   // Función para aplicar filtros y ordenamiento
@@ -313,6 +362,9 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
       
       // Filtro por condición
       if (filters.condicion && computer.condicion !== filters.condicion) return false;
+      
+      // Filtro por marca
+      if (filters.marca && computer.marca !== filters.marca) return false;
       
       // Filtro por precio máximo
       const precio = parseFloat(computer.precio_venta_usd) || 0;
@@ -365,6 +417,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     setFilters({
       sucursal: '',
       condicion: '',
+      marca: '',
       precioMax: ''
     });
     setSortBy('');
@@ -388,20 +441,10 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
+      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 shadow-lg">
         <div>
           <h2 className="text-4xl font-bold text-white drop-shadow">Inventario de Notebooks</h2>
           <p className="text-white/80 text-xl mt-2">Gestión completa del stock con edición inline</p>
-        </div>
-        <div className="text-right text-white">
-          <div className="text-sm opacity-80">Cotización Dólar Blue</div>
-          <input
-            type="number"
-            value={cotizacionDolar}
-            onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 0)}
-            className="bg-white/20 text-white placeholder-white/70 p-2 rounded text-right font-bold"
-            placeholder="1150"
-          />
         </div>
       </div>
 
@@ -497,6 +540,23 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                 </select>
               </div>
 
+              {/* Filtro por marca */}
+              <div className="flex-shrink-0">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Marca</label>
+                <select
+                  value={filters.marca}
+                  onChange={(e) => handleFilterChange('marca', e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md text-sm min-w-[120px]"
+                >
+                  <option value="">Todas</option>
+                  {uniqueValues.marcas.map(marca => (
+                    <option key={marca} value={marca}>
+                      {marca}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Filtro de precio máximo con slider simple */}
               <div className="flex-1 min-w-[250px]">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -529,6 +589,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                 <tr>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Envíos/Rep</th>
@@ -564,32 +625,35 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
               </thead>
               <tbody>
                 {filteredAndSortedComputers.map((computer, index) => (
-                  <tr key={computer.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(computer.id) ? 'bg-blue-50' : ''}`}>
-                    <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{computer.serial}</td>
-                    <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={computer.modelo}>
+                  <tr key={computer.id} className={`${getCondicionRowColor(computer.condicion) || 'bg-white'} ${isEditing(computer.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap text-center">{computer.serial}</td>
+                    <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap text-center" title={computer.modelo}>
                       {computer.modelo}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap">
+                      <EditableCell computer={computer} field="marca" />
                     </td>
                     <FotoProductoAvanzado 
                       productoId={computer.id} 
                       tipoProducto="computadora" 
                       nombreProducto={computer.modelo || ''}
                     />
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="precio_costo_usd" type="currency" />
+                    <td className="px-2 py-3 whitespace-nowrap text-right">
+                      <EditableCell computer={computer} field="precio_costo_usd" type="currency" className="text-right" />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="envios_repuestos" type="currency" />
+                    <td className="px-2 py-3 whitespace-nowrap text-right">
+                      <EditableCell computer={computer} field="envios_repuestos" type="currency" className="text-right" />
                     </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                    <td className="px-2 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap text-right">
                       ${computer.precio_costo_total?.toFixed(2) || ((parseFloat(computer.precio_costo_usd) || 0) + (parseFloat(computer.envios_repuestos) || 0)).toFixed(2)}
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="precio_venta_usd" type="currency" />
+                    <td className="px-2 py-3 whitespace-nowrap text-right">
+                      <EditableCell computer={computer} field="precio_venta_usd" type="currency" className="text-right" />
                     </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap">
+                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-right">
                       ${((parseFloat(computer.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.ingreso}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.ingreso}</td>
                     <td className="px-2 py-3 whitespace-nowrap">
                       {(isEditing(computer.id, 'sucursal') || (isEditing(computer.id) && !editingField)) ? (
                         <EditableCell 
@@ -626,11 +690,11 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                         </span>
                       )}
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap" title={computer.procesador}>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center" title={computer.procesador}>
                       {computer.procesador}
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.slots}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.tipo_ram}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.slots}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.tipo_ram}</td>
                     <td className="px-2 py-3 whitespace-nowrap">
                       <EditableCell computer={computer} field="ram" />
                     </td>
@@ -643,16 +707,16 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                     <td className="px-2 py-3 whitespace-nowrap">
                       <EditableCell computer={computer} field="so" />
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.pantalla}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.resolucion}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap" title={computer.placa_video}>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.pantalla}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.resolucion}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center" title={computer.placa_video}>
                       {computer.placa_video}
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.vram}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.teclado_retro}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.idioma_teclado}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.color}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{computer.bateria}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.vram}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.teclado_retro}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.idioma_teclado}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.color}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.bateria}</td>
                     <td className="px-2 py-3 whitespace-nowrap">
                       <EditableCell computer={computer} field="duracion" />
                     </td>

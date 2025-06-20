@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Box, ShoppingCart, X } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
-  const [cotizacionDolar, setCotizacionDolar] = useState(1150);
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
@@ -15,6 +16,25 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
   });
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
+
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    cargarCotizacion();
+    // Actualizar cada 5 minutos
+    const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para cargar cotización desde dolarAPI (sin UI)
+  const cargarCotizacion = async () => {
+    try {
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setCotizacionDolar(cotizacionData.valor);
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+      // Mantener valor anterior si falla
+    }
+  };
 
   const handleEdit = (producto) => {
     setEditingId(producto.id);
@@ -223,20 +243,10 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
+      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 shadow-lg">
         <div>
           <h2 className="text-4xl font-bold text-white drop-shadow">Stock de Otros Productos</h2>
           <p className="text-white/80 text-xl mt-2">Inventario actualizado con edición inline</p>
-        </div>
-        <div className="text-right text-white">
-          <div className="text-sm opacity-80">Cotización Dólar Blue</div>
-          <input
-            type="number"
-            value={cotizacionDolar}
-            onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 0)}
-            className="bg-white/20 text-white placeholder-white/70 p-2 rounded text-right font-bold"
-            placeholder="1150"
-          />
         </div>
       </div>
       

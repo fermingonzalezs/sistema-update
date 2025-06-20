@@ -11,8 +11,32 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(npm install:*)",
-      "Bash(wget:*)"
+      "Bash(wget:*)",
+      "Bash(claude mcp:*)",
+      "Bash(echo $PATH)",
+      "Bash(echo $HOME)",
+      "Bash(sudo -u fermin claude mcp:*)",
+      "mcp__context7__resolve-library-id",
+      "Bash(npx:*)",
+      "Bash(npm view:*)",
+      "mcp__brave-search__brave_web_search",
+      "mcp__fetch__fetch",
+      "Bash(SUPABASE_ACCESS_TOKEN=\"sbp_f8277923e5af0a729f4753adde37d2d155653c6b\" SUPABASE_PROJECT_REF=\"xixvlncckcfyjpqsxofq\" timeout 10s npx -y @supabase/mcp-server-supabase@latest)",
+      "Bash(SUPABASE_ACCESS_TOKEN=\"sbp_f8277923e5af0a729f4753adde37d2d155653c6b\" SUPABASE_PROJECT_REF=\"xixvlncckcfyjpqsxofq\" npx -y @supabase/mcp-server-supabase@latest --help 2>&1)",
+      "Bash(pandoc:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration",
+      "Bash(ls:*)",
+      "Bash(sudo chown:*)",
+      "Bash(cp:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

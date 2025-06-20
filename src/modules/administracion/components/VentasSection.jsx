@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download, Shield } from 'lucide-react';
+import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Eye } from 'lucide-react';
 import { generarYDescargarRecibo } from '../../../components/ReciboVentaPDF';
-import { generarYDescargarGarantia } from '../../../components/GarantiaPDF';
 import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
@@ -11,7 +10,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
-  const [modalVistaPrevia, setModalVistaPrevia] = useState({ open: false, transaccion: null, tipo: 'recibo' });
+  const [modalVistaPrevia, setModalVistaPrevia] = useState({ open: false, transaccion: null });
 
   // Establecer fechas por defecto (último mes)
   useEffect(() => {
@@ -110,23 +109,12 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   };
 
-  const manejarDescargarGarantia = async (transaccion) => {
-    const exito = await generarYDescargarGarantia(transaccion, transaccion.venta_items);
-    if (!exito.success) {
-      alert('Error al generar la garantía. Por favor, intente nuevamente.');
-    }
-  };
-
   const abrirVistaPreviaRecibo = (transaccion) => {
-    setModalVistaPrevia({ open: true, transaccion, tipo: 'recibo' });
-  };
-
-  const abrirVistaPreviaGarantia = (transaccion) => {
-    setModalVistaPrevia({ open: true, transaccion, tipo: 'garantia' });
+    setModalVistaPrevia({ open: true, transaccion });
   };
 
   const cerrarVistaPrevia = () => {
-    setModalVistaPrevia({ open: false, transaccion: null, tipo: 'recibo' });
+    setModalVistaPrevia({ open: false, transaccion: null });
   };
 
   return (
@@ -460,22 +448,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                             >
                               <Download className="w-4 h-4" />
                             </button>
-                            
-                            {/* Garantía */}
-                            <button
-                              onClick={() => abrirVistaPreviaGarantia(transaccion)}
-                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-blue-50"
-                              title="Vista previa garantía"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => manejarDescargarGarantia(transaccion)}
-                              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-blue-50"
-                              title="Descargar garantía PDF"
-                            >
-                              <Shield className="w-4 h-4" />
-                            </button>
                           </div>
                         </div>
                       </td>
@@ -524,7 +496,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
         open={modalVistaPrevia.open}
         onClose={cerrarVistaPrevia}
         transaccion={modalVistaPrevia.transaccion}
-        tipo={modalVistaPrevia.tipo}
+        tipo="recibo"
       />
     </div>
   );

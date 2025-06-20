@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
-  const [cotizacionDolar, setCotizacionDolar] = useState(1150);
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
@@ -16,6 +17,25 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
 
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    cargarCotizacion();
+    // Actualizar cada 5 minutos
+    const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para cargar cotización desde dolarAPI (sin UI)
+  const cargarCotizacion = async () => {
+    try {
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setCotizacionDolar(cotizacionData.valor);
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+      // Mantener valor anterior si falla
+    }
+  };
+
   const handleEdit = (celular) => {
     setEditingId(celular.id);
     setEditingData({
@@ -23,6 +43,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
       precio_venta_usd: celular.precio_venta_usd || 0,
       condicion: celular.condicion || 'usado',
       ubicacion: celular.ubicacion || 'la_plata',
+      marca: celular.marca || '',
       garantia_update: celular.garantia_update || '',
       garantia_oficial: celular.garantia_oficial || '',
       fallas: celular.fallas || 'Ninguna'
@@ -64,15 +85,27 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
       ? `$${((parseFloat(celular.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}`
       : `U$${celular.precio_venta_usd || 0}`;
     
-    const condicion = celular.condicion ? celular.condicion.toUpperCase() : '';
-    const modelo = celular.modelo || '';
-    const almacenamiento = celular.almacenamiento || '';
-    const color = celular.color || '';
-    const bateria = celular.porcentaje_bateria || '';
-    const estado = celular.estado_estetico || '';
-    const garantia = celular.garantia_update || '';
-
-    return `📱${modelo} - Almacenamiento: ${almacenamiento} - Color: ${color} - Batería: ${bateria} - Estado: ${estado} - Condición: ${condicion} - Garantía: ${garantia} - ${precio}`;
+    const partes = [];
+    
+    // Emoji del teléfono + modelo
+    partes.push('📱' + (celular.modelo || 'Sin modelo'));
+    
+    // Capacidad de almacenamiento
+    if (celular.capacidad) partes.push(celular.capacidad);
+    
+    // Color
+    if (celular.color) partes.push(celular.color.toUpperCase());
+    
+    // Batería con emoji
+    if (celular.bateria) partes.push(`🔋${celular.bateria}%`);
+    
+    // Condición en mayúsculas
+    if (celular.condicion) partes.push(celular.condicion.toUpperCase());
+    
+    // Precio
+    partes.push(precio);
+    
+    return partes.join(' ');
   };
 
   const EditableCell = ({ celular, field, type = 'text', options = null, className = '' }) => {
@@ -224,20 +257,10 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
+      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 shadow-lg">
         <div>
           <h2 className="text-4xl font-bold text-white drop-shadow">Stock de Celulares</h2>
           <p className="text-white/80 text-xl mt-2">Inventario actualizado con edición inline</p>
-        </div>
-        <div className="text-right text-white">
-          <div className="text-sm opacity-80">Cotización Dólar Blue</div>
-          <input
-            type="number"
-            value={cotizacionDolar}
-            onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 0)}
-            className="bg-white/20 text-white placeholder-white/70 p-2 rounded text-right font-bold"
-            placeholder="1150"
-          />
         </div>
       </div>
 
@@ -364,6 +387,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                 <tr>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
                   <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Repuestos USD</th>
@@ -390,6 +414,9 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                     <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{celular.serial}</td>
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={celular.modelo}>
                       {celular.modelo}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap">
+                      <EditableCell celular={celular} field="marca" />
                     </td>
                     <FotoProductoAvanzado 
                       productoId={celular.id} 

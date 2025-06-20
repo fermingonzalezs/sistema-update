@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Copy, Monitor, Smartphone, Box, Search, 
-  Check, FileText, Edit2, Save, X
+  Check, FileText, Edit2, Save, X, Filter, Zap
 } from 'lucide-react';
 
 const CopysSection = ({ computers, celulares, otros, loading, error }) => {
@@ -29,6 +29,19 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
 
   const [editandoMensaje, setEditandoMensaje] = useState(null);
   const [mensajeTemp, setMensajeTemp] = useState('');
+  
+  // Estados para filtros avanzados
+  const [modoFiltros, setModoFiltros] = useState(false);
+  const [filtroExcluirMarca, setFiltroExcluirMarca] = useState('');
+  const [filtros, setFiltros] = useState({
+    marca: '',
+    condicion: '',
+    precioMax: '',
+    ramMin: '',
+    almacenamientoMin: '',
+    pantalla: '',
+    idioma: ''
+  });
 
   // Obtener productos del tipo activo
   const getProductosActivos = () => {
@@ -100,21 +113,25 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
   const generarCopyCelular = (cel) => {
     const partes = [];
     
+    // Emoji del teléfono + modelo
     partes.push('📱' + (cel.modelo || 'Sin modelo'));
     
-    if (cel.procesador) partes.push(`Procesador: ${cel.procesador}`);
-    if (cel.capacidad) partes.push(`Capacidad: ${cel.capacidad}`);
-    if (cel.memoria_ram) partes.push(`RAM: ${cel.memoria_ram}`);
-    if (cel.pantalla) partes.push(`Pantalla: ${cel.pantalla}`);
-    if (cel.sistema_operativo) partes.push(`SO: ${cel.sistema_operativo}`);
-    if (cel.color) partes.push(`Color: ${cel.color}`);
-    if (cel.condicion) partes.push(`Condición: ${cel.condicion.toUpperCase()}`);
-    if (cel.estado_estetico) partes.push(`Estado: ${getEstadoLetra(cel.estado_estetico)}`);
-    if (cel.ciclos > 0) partes.push(`Ciclos: ${cel.ciclos}`);
-    if (cel.garantia) partes.push(`Garantía: ${cel.garantia}`);
-    if (cel.precio_venta_usd > 0) partes.push(`$${cel.precio_venta_usd}`);
+    // Capacidad de almacenamiento
+    if (cel.capacidad) partes.push(cel.capacidad);
     
-    return partes.join(' - ');
+    // Color
+    if (cel.color) partes.push(cel.color.toUpperCase());
+    
+    // Batería con emoji
+    if (cel.bateria) partes.push(`🔋${cel.bateria}%`);
+    
+    // Condición en mayúsculas
+    if (cel.condicion) partes.push(cel.condicion.toUpperCase());
+    
+    // Precio con formato US
+    if (cel.precio_venta_usd > 0) partes.push(`U$${cel.precio_venta_usd}`);
+    
+    return partes.join(' ');
   };
 
   // Copy para otros productos
@@ -149,15 +166,44 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
     }
   };
 
-  // Filtrar productos
+  // Filtrar productos con filtros avanzados
   const productosFiltrados = productosConCopy.filter(producto => {
+    // Filtro por búsqueda
     const cumpleBusqueda = busqueda === '' || 
       (producto.modelo && producto.modelo.toLowerCase().includes(busqueda.toLowerCase())) ||
       (producto.descripcion_producto && producto.descripcion_producto.toLowerCase().includes(busqueda.toLowerCase())) ||
       (producto.serial && producto.serial.toLowerCase().includes(busqueda.toLowerCase()));
 
-    return cumpleBusqueda;
+    if (!modoFiltros) return cumpleBusqueda;
+
+    // Filtros avanzados solo se aplican si están activos
+    const cumpleFiltros = 
+      // Filtro por marca
+      (filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase())) &&
+      // Filtro para excluir marca específica (usado para Windows)
+      (filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase()) &&
+      // Filtro por condición
+      (filtros.condicion === '' || (producto.condicion && producto.condicion.toLowerCase() === filtros.condicion.toLowerCase())) &&
+      // Filtro por precio
+      (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
+      // Filtro por RAM (solo para computadoras)
+      (tipoActivo !== 'computadora' || filtros.ramMin === '' || extractNumber(producto.ram || producto.memoria_ram) >= parseInt(filtros.ramMin)) &&
+      // Filtro por almacenamiento (SSD para computadoras, capacidad para celulares)
+      (filtros.almacenamientoMin === '' || extractNumber(producto.ssd || producto.capacidad) >= parseInt(filtros.almacenamientoMin)) &&
+      // Filtro por pantalla
+      (filtros.pantalla === '' || (producto.pantalla && producto.pantalla.toLowerCase().includes(filtros.pantalla.toLowerCase()))) &&
+      // Filtro por idioma
+      (filtros.idioma === '' || (producto.idioma_teclado && producto.idioma_teclado.toLowerCase().includes(filtros.idioma.toLowerCase())));
+
+    return cumpleBusqueda && cumpleFiltros;
   });
+
+  // Función para extraer números de strings (ej: "16GB" -> 16, "512GB SSD" -> 512)
+  const extractNumber = (str) => {
+    if (!str) return 0;
+    const match = str.toString().match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -236,6 +282,135 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
   const cancelarEdicionMensaje = () => {
     setEditandoMensaje(null);
     setMensajeTemp('');
+  };
+
+  // Funciones para filtros prearmados
+  const aplicarFiltroiPhoneUsado = () => {
+    setTipoActivo('celular');
+    setModoFiltros(true);
+    setFiltros({
+      marca: 'Apple',
+      condicion: 'usado',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('iPhone');
+  };
+
+  const aplicarFiltroiPhoneNuevo = () => {
+    setTipoActivo('celular');
+    setModoFiltros(true);
+    setFiltros({
+      marca: 'Apple',
+      condicion: 'nuevo',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('iPhone');
+  };
+
+  const aplicarFiltroMacBooksNuevas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: 'Apple',
+      condicion: 'nuevo',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('MacBook');
+  };
+
+  const aplicarFiltroMacBooksUsadas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: 'Apple',
+      condicion: 'usado',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('MacBook');
+  };
+
+  const aplicarFiltroWindowsNuevas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: '',
+      condicion: 'nuevo',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('');
+    // Aplicar filtro especial para excluir Apple
+    setFiltroExcluirMarca('Apple');
+  };
+
+  const aplicarFiltroWindowsUsadas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: '',
+      condicion: 'usado',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('');
+    // Aplicar filtro especial para excluir Apple
+    setFiltroExcluirMarca('Apple');
+  };
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      marca: '',
+      condicion: '',
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: ''
+    });
+    setBusqueda('');
+    setModoFiltros(false);
+    setFiltroExcluirMarca('');
+  };
+
+  const handleFiltroChange = (campo, valor) => {
+    setFiltros(prev => ({
+      ...prev,
+      [campo]: valor
+    }));
+  };
+
+  // Obtener valores únicos del stock actual
+  const getUniqueValues = () => {
+    const productos = getProductosActivos();
+    
+    const marcas = [...new Set(productos.map(p => p.marca).filter(Boolean))].sort();
+    const condiciones = [...new Set(productos.map(p => p.condicion).filter(Boolean))].sort();
+    const pantallas = [...new Set(productos.map(p => p.pantalla).filter(Boolean))].sort();
+    const idiomas = [...new Set(productos.map(p => p.idioma_teclado).filter(Boolean))].sort();
+    
+    return { marcas, condiciones, pantallas, idiomas };
   };
 
   // Obtener configuración de cada tipo
@@ -338,6 +513,197 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
             </button>
           );
         })}
+      </div>
+
+      {/* Sección de filtros avanzados y presets */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-800 flex items-center space-x-2">
+            <Filter className="w-5 h-5" />
+            <span>Selección por Filtros</span>
+          </h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setModoFiltros(!modoFiltros)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                modoFiltros 
+                  ? 'bg-blue-100 text-blue-700' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
+            </button>
+            {modoFiltros && (
+              <button
+                onClick={limpiarFiltros}
+                className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filtros prearmados */}
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-1">
+            <Zap className="w-4 h-4" />
+            <span>Filtros Prearmados</span>
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {/* Filtros para celulares */}
+            <button
+              onClick={aplicarFiltroiPhoneUsado}
+              className="px-3 py-2 bg-gray-800 text-white rounded text-sm font-medium hover:bg-gray-900 transition-colors flex items-center space-x-1"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>iPhone Usados</span>
+            </button>
+            <button
+              onClick={aplicarFiltroiPhoneNuevo}
+              className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>iPhone Nuevos</span>
+            </button>
+            
+            {/* Filtros para notebooks */}
+            <button
+              onClick={aplicarFiltroMacBooksNuevas}
+              className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>MacBooks Nuevas</span>
+            </button>
+            <button
+              onClick={aplicarFiltroMacBooksUsadas}
+              className="px-3 py-2 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-1"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>MacBooks Usadas</span>
+            </button>
+            <button
+              onClick={aplicarFiltroWindowsNuevas}
+              className="px-3 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-1"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>Windows Nuevas</span>
+            </button>
+            <button
+              onClick={aplicarFiltroWindowsUsadas}
+              className="px-3 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors flex items-center space-x-1"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>Windows Usadas</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Filtros personalizables - Solo para computadoras y celulares */}
+        {modoFiltros && tipoActivo !== 'otro' && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Marca</label>
+              <select
+                value={filtros.marca}
+                onChange={(e) => handleFiltroChange('marca', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              >
+                <option value="">Todas</option>
+                {getUniqueValues().marcas.map(marca => (
+                  <option key={marca} value={marca}>{marca}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+              <select
+                value={filtros.condicion}
+                onChange={(e) => handleFiltroChange('condicion', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              >
+                <option value="">Todas</option>
+                {getUniqueValues().condiciones.map(condicion => (
+                  <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Max USD</label>
+              <input
+                type="number"
+                value={filtros.precioMax}
+                onChange={(e) => handleFiltroChange('precioMax', e.target.value)}
+                placeholder="999999"
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              />
+            </div>
+
+            {tipoActivo === 'computadora' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">RAM Min (GB)</label>
+                <input
+                  type="number"
+                  value={filtros.ramMin}
+                  onChange={(e) => handleFiltroChange('ramMin', e.target.value)}
+                  placeholder="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {tipoActivo === 'computadora' ? 'SSD Min (GB)' : 'Capacidad Min (GB)'}
+              </label>
+              <input
+                type="number"
+                value={filtros.almacenamientoMin}
+                onChange={(e) => handleFiltroChange('almacenamientoMin', e.target.value)}
+                placeholder="128"
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Pantalla</label>
+              <select
+                value={filtros.pantalla}
+                onChange={(e) => handleFiltroChange('pantalla', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              >
+                <option value="">Todas</option>
+                {getUniqueValues().pantallas.map(pantalla => (
+                  <option key={pantalla} value={pantalla}>{pantalla}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Idioma</label>
+              <select
+                value={filtros.idioma}
+                onChange={(e) => handleFiltroChange('idioma', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+              >
+                <option value="">Todos</option>
+                {getUniqueValues().idiomas.map(idioma => (
+                  <option key={idioma} value={idioma}>{idioma}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Mensaje cuando no hay filtros disponibles para otros productos */}
+        {modoFiltros && tipoActivo === 'otro' && (
+          <div className="text-center py-8 text-gray-500">
+            <p>Los filtros avanzados no están disponibles para otros productos.</p>
+            <p>Usa la búsqueda por texto para filtrar elementos.</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
