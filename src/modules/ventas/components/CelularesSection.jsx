@@ -3,6 +3,66 @@ import { Trash2, X } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
+// Función para formatear precios en USD sin decimales con prefijo U$
+const formatPriceUSD = (price) => {
+  const numPrice = parseFloat(price) || 0;
+  return `U$${Math.round(numPrice)}`;
+};
+
+// Componente para celdas editables - DEFINIDO FUERA para evitar recreación
+const SimpleEditableCell = React.memo(({ celular, field, type = 'text', options = null, className = '', isEditing, editingData, onFieldChange }) => {
+  if (!isEditing) {
+    // Modo visualización - solo mostrar valor
+    const value = celular[field] || '';
+    if (type === 'currency') {
+      return (
+        <span className={`text-sm font-semibold text-blue-600 whitespace-nowrap ${className}`}>
+          {formatPriceUSD(value)}
+        </span>
+      );
+    }
+    return (
+      <span className={`text-sm text-gray-900 whitespace-nowrap ${className}`}>
+        {value.toString()}
+      </span>
+    );
+  }
+
+  // Modo edición - mostrar input/select
+  if (type === 'select') {
+    return (
+      <select
+        value={editingData[field] || ''}
+        onChange={(e) => onFieldChange(field, e.target.value)}
+        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+      >
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <input
+      type={type === 'currency' ? 'text' : 'text'}
+      inputMode={type === 'currency' ? 'numeric' : undefined}
+      pattern={type === 'currency' ? '[0-9]*' : undefined}
+      value={editingData[field] || ''}
+      onChange={(e) => {
+        if (type === 'currency') {
+          if (/^\d*$/.test(e.target.value)) onFieldChange(field, e.target.value);
+        } else {
+          onFieldChange(field, e.target.value);
+        }
+      }}
+      className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+    />
+  );
+});
+
 const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
@@ -37,6 +97,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   };
 
   const handleEdit = (celular) => {
+    console.log('📝 [Celulares] Iniciando edición completa:', celular.id);
     setEditingId(celular.id);
     setEditingData({
       repuestos_usd: celular.repuestos_usd || 0,
@@ -48,19 +109,26 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
       garantia_oficial: celular.garantia_oficial || '',
       fallas: celular.fallas || 'Ninguna'
     });
+    console.log('✅ [Celulares] Edición iniciada para:', celular.id);
   };
 
   const handleSave = async () => {
     try {
+      console.log('💾 [Celulares] Guardando datos:', editingData);
+      
       const updatedData = {
         ...editingData,
         precio_venta_pesos: (parseFloat(editingData.precio_venta_usd) || 0) * cotizacionDolar
       };
       
+      console.log('🚀 [Celulares] Enviando actualización:', updatedData);
       await onUpdate(editingId, updatedData);
+      
+      console.log('✅ [Celulares] Guardado exitoso');
       setEditingId(null);
       setEditingData({});
     } catch (error) {
+      console.error('❌ [Celulares] Error al actualizar:', error);
       alert('Error al actualizar: ' + error.message);
     }
   };
@@ -71,19 +139,51 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   };
 
   const handleFieldChange = (field, value) => {
-    setEditingData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log('🔄 [Celulares] Cambiando campo:', { field, value });
+    setEditingData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('💾 [Celulares] Nuevo editingData:', newData);
+      return newData;
+    });
   };
 
   const isEditing = (celularId) => editingId === celularId;
+
+
+  // Devuelve una clase de color según la condición del celular
+  const getCelularCondicionColor = (condicion) => {
+    switch ((condicion || '').toLowerCase()) {
+      case 'nuevo':
+        return 'bg-green-200 border-green-400 text-green-900';
+      case 'usado':
+        return 'bg-blue-200 border-blue-400 text-blue-900';
+      case 'reparacion':
+        return 'bg-yellow-200 border-yellow-400 text-yellow-900';
+      case 'reservado':
+        return 'bg-purple-200 border-purple-400 text-purple-900';
+      case 'prestado':
+        return 'bg-orange-200 border-orange-400 text-orange-900';
+      case 'uso oficina':
+        return 'bg-cyan-200 border-cyan-400 text-cyan-900';
+      case 'sin reparacion':
+        return 'bg-red-200 border-red-400 text-red-900';
+      case 'perdido':
+        return 'bg-slate-200 border-slate-400 text-slate-900';
+      case 'en camino':
+        return 'bg-indigo-200 border-indigo-400 text-indigo-900';
+      default:
+        return 'bg-gray-100 border-gray-300 text-gray-700';
+    }
+  };
 
   // Función para generar el copy automático
   const generateCopy = (celular, enPesos = false) => {
     const precio = enPesos 
       ? `$${((parseFloat(celular.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}`
-      : `U$${celular.precio_venta_usd || 0}`;
+      : formatPriceUSD(celular.precio_venta_usd);
     
     const partes = [];
     
@@ -108,51 +208,17 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     return partes.join(' ');
   };
 
-  const EditableCell = ({ celular, field, type = 'text', options = null, className = '' }) => {
-    if (!isEditing(celular.id)) {
-      const value = celular[field] || '';
-      return (
-        <span 
-          className={`text-sm cursor-pointer hover:bg-gray-100 p-1 rounded whitespace-nowrap ${className}`}
-          onDoubleClick={() => handleEdit(celular)}
-          title="Doble clic para editar"
-        >
-          {type === 'currency' ? `${value}` : value}
-        </span>
-      );
-    }
-
-    if (type === 'select') {
-      return (
-        <select
-          value={editingData[field] || ''}
-          onChange={(e) => handleFieldChange(field, e.target.value)}
-          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
-        >
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
-    return (
-      <input
-        type={type === 'currency' ? 'number' : 'text'}
-        value={editingData[field] || ''}
-        onChange={(e) => handleFieldChange(field, e.target.value)}
-        step={type === 'currency' ? '0.01' : undefined}
-        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
-      />
-    );
-  };
 
   const condicionOptions = [
     { value: 'nuevo', label: 'NUEVO' },
     { value: 'usado', label: 'USADO' },
-    { value: 'reparacion', label: 'REPARACION' }
+    { value: 'reparacion', label: 'REPARACION' },
+    { value: 'reservado', label: 'RESERVADO' },
+    { value: 'prestado', label: 'PRESTADO' },
+    { value: 'uso oficina', label: 'USO OFICINA' },
+    { value: 'sin reparacion', label: 'SIN REPARACION' },
+    { value: 'perdido', label: 'PERDIDO' },
+    { value: 'en camino', label: 'EN CAMINO' },
   ];
 
   const ubicacionOptions = [
@@ -385,126 +451,34 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
             <table className="min-w-full bg-white">
               <thead className="bg-green-100">
                 <tr>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Repuestos USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ubicación</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Color</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Almacenamiento</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">% Batería</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Estado Estético</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Oficial</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy Pesos</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy Pesos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Repuestos USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ubicación</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Color</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Almacenamiento</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">% Batería</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Estado Estético</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Oficial</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Eliminar</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedCelulares.map((celular, index) => (
                   <tr key={celular.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(celular.id) ? 'bg-blue-100' : ''}`}>
-                    <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{celular.serial}</td>
-                    <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap" title={celular.modelo}>
-                      {celular.modelo}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="marca" />
-                    </td>
-                    <FotoProductoAvanzado 
-                      productoId={celular.id} 
-                      tipoProducto="celular" 
-                      nombreProducto={celular.modelo || ''}
-                    />
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">${celular.precio_compra_usd}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="repuestos_usd" type="currency" />
-                    </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
-                      ${((parseFloat(celular.precio_compra_usd) || 0) + (parseFloat(editingData.repuestos_usd) || parseFloat(celular.repuestos_usd) || 0)).toFixed(2)}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="precio_venta_usd" type="currency" />
-                    </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap">
-                      ${((parseFloat(editingData.precio_venta_usd) || parseFloat(celular.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      {isEditing(celular.id) ? (
-                        <select
-                          value={editingData.condicion || ''}
-                          onChange={(e) => handleFieldChange('condicion', e.target.value)}
-                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
-                        >
-                          {condicionOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 ${
-                            celular.condicion === 'nuevo' ? 'bg-green-100 text-green-800' :
-                            celular.condicion === 'usado' ? 'bg-blue-100 text-blue-800' :
-                            celular.condicion === 'reservado' ? 'bg-yellow-100 text-yellow-800' :
-                            celular.condicion === 'reparacion' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}
-                          onDoubleClick={() => handleEdit(celular)}
-                          title="Doble clic para editar"
-                        >
-                          {(celular.condicion || '').toUpperCase()}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell 
-                        celular={celular} 
-                        field="ubicacion" 
-                        type="select"
-                        options={ubicacionOptions}
-                      />
-                    </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{celular.color}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{celular.almacenamiento}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{celular.porcentaje_bateria}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">{celular.estado_estetico}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="garantia_update" />
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="garantia_oficial" />
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell celular={celular} field="fallas" />
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap w-20">
-                      <div 
-                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate"
-                        onClick={() => navigator.clipboard.writeText(generateCopy(celular, false))}
-                        title={generateCopy(celular, false)}
-                      >
-                        📱📋 USD
-                      </div>
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap w-20">
-                      <div 
-                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate"
-                        onClick={() => navigator.clipboard.writeText(generateCopy(celular, true))}
-                        title={generateCopy(celular, true)}
-                      >
-                        📱📋 ARS
-                      </div>
-                    </td>
-                    <td className="px-2 py-3 text-sm whitespace-nowrap">
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
                       <div className="flex space-x-1">
                         {isEditing(celular.id) ? (
                           <>
@@ -524,24 +498,165 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                             </button>
                           </>
                         ) : (
-                          <>
-                            <button
-                              onClick={() => handleEdit(celular)}
-                              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-                              title="Editar"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => onDelete(celular.id)}
-                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                              title="Eliminar"
-                            >
-                              Eliminar
-                            </button>
-                          </>
+                          <button
+                            onClick={() => handleEdit(celular)}
+                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                            title="Editar"
+                          >
+                            Editar
+                          </button>
                         )}
                       </div>
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap w-20 text-center">
+                      <div 
+                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate"
+                        onClick={() => navigator.clipboard.writeText(generateCopy(celular, false))}
+                        title={generateCopy(celular, false)}
+                      >
+                        📱📋 USD
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap w-20 text-center">
+                      <div 
+                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate"
+                        onClick={() => navigator.clipboard.writeText(generateCopy(celular, true))}
+                        title={generateCopy(celular, true)}
+                      >
+                        📱📋 ARS
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap text-center">{celular.serial}</td>
+                    <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap text-center" title={celular.modelo}>
+                      {celular.modelo}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="marca"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <FotoProductoAvanzado 
+                      productoId={celular.id} 
+                      tipoProducto="celular" 
+                      nombreProducto={celular.modelo || ''}
+                    />
+                    <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
+                      {formatPriceUSD(celular.precio_compra_usd)}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="repuestos_usd" 
+                        type="currency" 
+                        className="font-semibold text-blue-600"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
+                      {formatPriceUSD((parseFloat(celular.precio_compra_usd) || 0) + (parseFloat(editingData.repuestos_usd) || parseFloat(celular.repuestos_usd) || 0))}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="precio_venta_usd" 
+                        type="currency" 
+                        className="font-semibold text-blue-600"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-center">
+                      ${((parseFloat(editingData.precio_venta_usd) || parseFloat(celular.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <select
+                          value={editingData.condicion || ''}
+                          onChange={(e) => handleFieldChange('condicion', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+                        >
+                          {condicionOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span 
+                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 border transition-colors ${
+                            getCelularCondicionColor(celular.condicion)
+                          }`}
+                          onDoubleClick={() => handleEdit(celular)}
+                          title="Doble clic para editar"
+                        >
+                          {(celular.condicion || '').toUpperCase()}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="ubicacion" 
+                        type="select"
+                        options={ubicacionOptions}
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.color}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.almacenamiento}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.porcentaje_bateria}</td>
+                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.estado_estetico}</td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="garantia_update"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="garantia_oficial"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        celular={celular} 
+                        field="fallas"
+                        isEditing={isEditing(celular.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
+                      <button
+                        onClick={() => onDelete(celular.id)}
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        title="Eliminar"
+                      >
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}

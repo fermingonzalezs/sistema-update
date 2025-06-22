@@ -69,6 +69,8 @@ export const inventarioService = {
         so: computadora.so || 'WIN11',
         pantalla: computadora.pantalla || '',
         resolucion: computadora.resolucion || 'FHD',
+        refresh: computadora.refresh || '',
+        touchscreen: computadora.touchscreen || false,
         placa_video: computadora.placa_video || '',
         vram: computadora.vram || '',
         
@@ -119,6 +121,11 @@ export const inventarioService = {
     }
     if (updates.precio_venta_usd !== undefined) {
       cleanUpdates.precio_venta_usd = parseFloat(updates.precio_venta_usd) || 0;
+    }
+    
+    // Validar booleanos
+    if (updates.touchscreen !== undefined) {
+      cleanUpdates.touchscreen = Boolean(updates.touchscreen);
     }
     
     // No incluir precio_costo_total ya que se calcula automáticamente

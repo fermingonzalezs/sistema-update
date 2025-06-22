@@ -4,12 +4,71 @@ import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
+// Función para formatear precios en USD sin decimales con prefijo U$
+const formatPriceUSD = (price) => {
+  const numPrice = parseFloat(price) || 0;
+  return `U$${Math.round(numPrice)}`;
+};
+
+// Componente para celdas editables - DEFINIDO FUERA para evitar recreación
+const SimpleEditableCell = React.memo(({ computer, field, type = 'text', options = null, className = '', isEditing, editingData, onFieldChange }) => {
+  if (!isEditing) {
+    // Modo visualización - solo mostrar valor
+    const value = computer[field] || '';
+    if (type === 'currency') {
+      return (
+        <span className={`text-sm font-semibold text-blue-600 whitespace-nowrap ${className}`}>
+          {formatPriceUSD(value)}
+        </span>
+      );
+    }
+    return (
+      <span className={`text-sm text-gray-900 whitespace-nowrap ${className}`}>
+        {value.toString()}
+      </span>
+    );
+  }
+
+  // Modo edición - mostrar input/select
+  if (type === 'select') {
+    return (
+      <select
+        value={editingData[field] || ''}
+        onChange={(e) => onFieldChange(field, e.target.value)}
+        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+      >
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <input
+      type={type === 'currency' ? 'text' : 'text'}
+      inputMode={type === 'currency' ? 'numeric' : undefined}
+      pattern={type === 'currency' ? '[0-9]*' : undefined}
+      value={editingData[field] || ''}
+      onChange={(e) => {
+        if (type === 'currency') {
+          if (/^\d*$/.test(e.target.value)) onFieldChange(field, e.target.value);
+        } else {
+          onFieldChange(field, e.target.value);
+        }
+      }}
+      className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+    />
+  );
+});
+
 const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [editingData, setEditingData] = useState({});
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
-  const inputRef = useRef(null);
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
@@ -22,13 +81,6 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   const [sortOrder, setSortOrder] = useState('asc');
   const [modalGarantia, setModalGarantia] = useState({ open: false, producto: null });
 
-  // Estado para el modal de edición
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalField, setModalField] = useState(null);
-  const [modalValue, setModalValue] = useState('');
-  const [modalComputer, setModalComputer] = useState(null);
-  const [modalType, setModalType] = useState('text');
-  const modalInputRef = useRef(null);
 
   // Cargar cotización al montar el componente
   useEffect(() => {
@@ -38,13 +90,6 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     return () => clearInterval(interval);
   }, []);
 
-  // Focus automático cuando se abre la edición
-  useEffect(() => {
-    if (editingId && editingField && inputRef.current && typeof inputRef.current.select === 'function') {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editingId, editingField]);
 
   // Función para cargar cotización desde dolarAPI (sin UI)
   const cargarCotizacion = async () => {
@@ -57,15 +102,13 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     }
   };
 
-  const handleEdit = (computer, field = null) => {
-    // Si ya estamos editando este registro, no hacer nada
-    if (editingId === computer.id && !field) return;
-    
+  const handleEdit = (computer) => {
+    console.log('📝 [Edit/Finish] Iniciando edición completa:', computer.id);
     setEditingId(computer.id);
-    setEditingField(field);
+    setEditingField(null); // No field específico, edición completa
     setEditingData({
       sucursal: computer.sucursal || '',
-      condicion: computer.condicion || 'usada',
+      condicion: computer.condicion || 'usado',
       marca: computer.marca || '',
       ram: computer.ram || '',
       ssd: computer.ssd || '',
@@ -77,55 +120,42 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
       precio_venta_usd: computer.precio_venta_usd || 0,
       garantia_update: computer.garantia_update || '',
       garantia_oficial: computer.garantia_oficial || '',
-      fallas: computer.fallas || 'Ninguna'
+      fallas: computer.fallas || 'Ninguna',
+      refresh: computer.refresh || '',
+      touchscreen: computer.touchscreen || false
     });
+    console.log('✅ [Edit/Finish] Edición iniciada para:', computer.id);
   };
 
   const handleSave = async () => {
     try {
-      // Validar que onUpdate sea una función
+      console.log('💾 [Edit/Finish] Guardando cambios:', editingData);
+      
       if (typeof onUpdate !== 'function') {
         console.error('onUpdate no es una función');
         alert('Error: función de actualización no disponible');
         return;
       }
 
-      // No incluir precio_costo_total ya que se calcula automáticamente en la DB
+      // Preparar datos limpios
       const updatedData = { ...editingData };
       delete updatedData.precio_costo_total;
       
       await onUpdate(editingId, updatedData);
-      setEditingId(null);
-      setEditingField(null);
-      setEditingData({});
-    } catch (error) {
-      console.error('Error al actualizar:', error);
-      alert('Error al actualizar: ' + error.message);
-    }
-  };
-
-  const handleFieldSave = async (field, value) => {
-    try {
-      // Validar que onUpdate sea una función
-      if (typeof onUpdate !== 'function') {
-        console.error('onUpdate no es una función');
-        return;
-      }
-
-      // Crear objeto con solo el campo que cambió
-      const updateData = { [field]: value };
       
-      await onUpdate(editingId, updateData);
+      console.log('✅ [Edit/Finish] Guardado exitoso');
       setEditingId(null);
       setEditingField(null);
       setEditingData({});
     } catch (error) {
-      console.error('Error al actualizar campo:', error);
+      console.error('❌ [Edit/Finish] Error al actualizar:', error);
       alert('Error al actualizar: ' + error.message);
     }
   };
+
 
   const handleCancel = () => {
+    console.log('❌ [Edit/Finish] Cancelando edición');
     setEditingId(null);
     setEditingField(null);
     setEditingData({});
@@ -140,42 +170,25 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   };
 
   const handleFieldChange = (field, value) => {
-    setEditingData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log('🔄 [Edit/Finish] Cambiando campo:', { field, value });
+    setEditingData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('💾 [Edit/Finish] Nuevo editingData:', newData);
+      return newData;
+    });
   };
 
-  const handleKeyPress = (e, field) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      if (editingField) {
-        // Edición de campo individual
-        handleFieldSave(field, editingData[field]);
-      } else {
-        // Edición completa
-        handleSave();
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      handleCancel();
-    }
-  };
 
-  const isEditing = (computerId, field = null) => {
-    if (field) {
-      return editingId === computerId && editingField === field;
-    }
-    return editingId === computerId;
-  };
+  const isEditing = (computerId) => editingId === computerId;
 
   // Función para generar el copy automático
   const generateCopy = (computer, enPesos = false) => {
     const precio = enPesos 
       ? `$${((parseFloat(computer.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}`
-      : `U$${computer.precio_venta_usd || 0}`;
+      : formatPriceUSD(computer.precio_venta_usd);
     
     const condicion = computer.condicion ? computer.condicion.toUpperCase() : '';
     const procesador = computer.procesador || '';
@@ -193,82 +206,7 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     return `💻${computer.modelo} - Procesador: ${procesador} - Memoria RAM: ${ram} - SSD: ${ssd} - Pantalla: ${pantalla} ${resolucion} - Sistema operativo: ${so} - Placa de video: ${gpu} - Duración: ${duracion} - Color: ${color} - Idioma: ${idioma} - Condición: ${condicion} - Garantía: ${garantia} - ${precio}`;
   };
 
-  // Componente para celdas editables mejorado
-  const EditableCell = ({ computer, field, type = 'text', options = null, className = '' }) => {
-    // Si es select, edición inline
-    if (type === 'select') {
-      const isFieldEdit = isEditing(computer.id, field);
-      const value = (isEditing(computer.id) ? editingData[field] : computer[field]) ?? '';
-      return isFieldEdit ? (
-        <select
-          ref={isFieldEdit ? inputRef : null}
-          value={value}
-          onChange={(e) => handleFieldChange(field, e.target.value)}
-          onKeyDown={isFieldEdit ? handleKeyPress : undefined}
-          className="w-full p-1 text-xs border-2 border-blue-500 rounded focus:ring-2 focus:ring-blue-300 bg-white"
-        >
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <span
-          className={`text-sm cursor-pointer hover:bg-gray-100 p-2 rounded whitespace-nowrap transition-colors ${className}`}
-          onClick={() => handleEdit(computer, field)}
-          title="Clic para editar"
-        >
-          {(computer[field] || '').toString().replace('_', ' ').toUpperCase()}
-        </span>
-      );
-    }
-    // Para los demás campos, abrir modal al hacer clic
-    return (
-      <span
-        className={`text-sm cursor-pointer hover:bg-gray-100 p-2 rounded whitespace-nowrap transition-colors text-center ${className}`}
-        onClick={() => openFieldModal(computer, field, type)}
-        title="Clic para editar"
-      >
-        {(computer[field] ?? '').toString()}
-      </span>
-    );
-  };
 
-  // Abrir modal para editar cualquier campo (menos selects)
-  const openFieldModal = (computer, field, type) => {
-    setModalComputer(computer);
-    setModalField(field);
-    setModalValue((computer[field] ?? '').toString());
-    setModalOpen(true);
-    setEditingId(null);
-    setEditingField(null);
-    setModalType(type);
-  };
-
-  // Guardar valor del modal
-  const handleModalSave = async () => {
-    if (!modalComputer || !modalField) return;
-    if (typeof onUpdate !== 'function') return;
-    let value = modalValue;
-    if (modalType === 'currency') {
-      value = /^\d+$/.test(value) ? parseInt(value, 10) : 0;
-    }
-    await onUpdate(modalComputer.id, { [modalField]: value });
-    setModalOpen(false);
-    setModalField(null);
-    setModalValue('');
-    setModalComputer(null);
-    setModalType('text');
-  };
-
-  // Cancelar modal
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setModalField(null);
-    setModalValue('');
-    setModalComputer(null);
-  };
 
   // Devuelve una clase de color según la sucursal
   function getSucursalColor(sucursal) {
@@ -289,18 +227,24 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   // Devuelve una clase de color según la condición
   function getCondicionColor(condicion) {
     switch ((condicion || '').toLowerCase()) {
-      case 'nueva':
+      case 'nuevo':
         return 'bg-green-200 border-green-400 text-green-900';
-      case 'usada':
+      case 'usado':
         return 'bg-blue-200 border-blue-400 text-blue-900';
-      case 'oficina':
-        return 'bg-orange-200 border-orange-400 text-orange-900';
       case 'reparacion':
         return 'bg-yellow-200 border-yellow-400 text-yellow-900';
-      case 'prestada':
-        return 'bg-orange-200 border-orange-400 text-orange-900';
-      case 'reservada':
+      case 'reservado':
         return 'bg-purple-200 border-purple-400 text-purple-900';
+      case 'prestado':
+        return 'bg-orange-200 border-orange-400 text-orange-900';
+      case 'uso oficina':
+        return 'bg-cyan-200 border-cyan-400 text-cyan-900';
+      case 'sin reparacion':
+        return 'bg-red-200 border-red-400 text-red-900';
+      case 'perdido':
+        return 'bg-slate-200 border-slate-400 text-slate-900';
+      case 'en camino':
+        return 'bg-indigo-200 border-indigo-400 text-indigo-900';
       default:
         return 'bg-gray-100 border-gray-300 text-gray-700';
     }
@@ -309,22 +253,29 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
   // Devuelve una clase de color de fondo de fila según la condición
   function getCondicionRowColor(condicion) {
     switch ((condicion || '').toLowerCase()) {
-      case 'nueva':
+      case 'nuevo':
         return 'bg-green-50';
-      case 'usada':
+      case 'usado':
         return 'bg-blue-50';
-      case 'oficina':
-        return 'bg-orange-50';
       case 'reparacion':
         return 'bg-yellow-50';
-      case 'prestada':
-        return 'bg-orange-50';
-      case 'reservada':
+      case 'reservado':
         return 'bg-purple-50';
+      case 'prestado':
+        return 'bg-orange-50';
+      case 'uso oficina':
+        return 'bg-cyan-50';
+      case 'sin reparacion':
+        return 'bg-red-50';
+      case 'perdido':
+        return 'bg-slate-50';
+      case 'en camino':
+        return 'bg-indigo-50';
       default:
         return '';
     }
   }
+
 
   // Opciones para selects (actualizadas)
   const sucursalOptions = [
@@ -338,7 +289,17 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
     { value: 'nuevo', label: 'NUEVO' },
     { value: 'usado', label: 'USADO' },
     { value: 'reparacion', label: 'REPARACION' },
+    { value: 'reservado', label: 'RESERVADO' },
+    { value: 'prestado', label: 'PRESTADO' },
+    { value: 'uso oficina', label: 'USO OFICINA' },
     { value: 'sin reparacion', label: 'SIN REPARACION' },
+    { value: 'perdido', label: 'PERDIDO' },
+    { value: 'en camino', label: 'EN CAMINO' },
+  ];
+
+  const touchscreenOptions = [
+    { value: true, label: 'SÍ' },
+    { value: false, label: 'NO' },
   ];
 
   // Obtener valores únicos para filtros
@@ -472,8 +433,8 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
               </div>
               
               <div className="text-sm text-gray-600 flex items-center space-x-4">
-                <span>💡 Clic en cualquier celda para editarla</span>
-                <span>⌨️ Enter para guardar, Esc para cancelar</span>
+                <span>💡 Haz clic en "Editar" para modificar todos los campos de una fila</span>
+                <span>✅ Luego haz clic en "Finalizar" para guardar los cambios</span>
               </div>
             </div>
 
@@ -587,104 +548,184 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
             <table className="min-w-full bg-white">
               <thead className="bg-green-100">
                 <tr>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Envíos/Rep</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ingreso</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Sucursal</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Procesador</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Slots</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Tipo RAM</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">RAM</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">SSD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">HDD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">SO</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Pantalla</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Resolución</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">GPU</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">VRAM</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Teclado</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Idioma</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Color</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Batería</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Duración</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Oficial</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy Pesos</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Copy Pesos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Serial</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Modelo</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Marca</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Envíos/Rep</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. Total</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ingreso</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Sucursal</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Procesador</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Slots</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Tipo RAM</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">RAM</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">SSD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">HDD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">SO</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Pantalla</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Resolución</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Refresh</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Touchscreen</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">GPU</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">VRAM</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Teclado</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Idioma</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Color</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Batería</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Duración</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Oficial</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Eliminar</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedComputers.map((computer, index) => (
                   <tr key={computer.id} className={`${getCondicionRowColor(computer.condicion) || 'bg-white'} ${isEditing(computer.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
+                      <div className="flex justify-center space-x-1">
+                        {isEditing(computer.id) ? (
+                          <>
+                            <button
+                              onClick={handleSave}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                              title="Finalizar y guardar cambios"
+                            >
+                              Finalizar
+                            </button>
+                            <button
+                              onClick={handleCancel}
+                              className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
+                              title="Cancelar edición"
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleEdit(computer)}
+                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                            title="Editar todos los campos"
+                          >
+                            Editar
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap w-20 text-center">
+                      <div 
+                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate transition-colors"
+                        onClick={() => navigator.clipboard.writeText(generateCopy(computer, false))}
+                        title={generateCopy(computer, false)}
+                      >
+                        💻📋 USD
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap w-20 text-center">
+                      <div 
+                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate transition-colors"
+                        onClick={() => navigator.clipboard.writeText(generateCopy(computer, true))}
+                        title={generateCopy(computer, true)}
+                      >
+                        💻📋 ARS
+                      </div>
+                    </td>
                     <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap text-center">{computer.serial}</td>
                     <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap text-center" title={computer.modelo}>
                       {computer.modelo}
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="marca" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="marca" 
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
                     <FotoProductoAvanzado 
                       productoId={computer.id} 
                       tipoProducto="computadora" 
                       nombreProducto={computer.modelo || ''}
                     />
-                    <td className="px-2 py-3 whitespace-nowrap text-right">
-                      <EditableCell computer={computer} field="precio_costo_usd" type="currency" className="text-right" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="precio_costo_usd" 
+                        type="currency"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap text-right">
-                      <EditableCell computer={computer} field="envios_repuestos" type="currency" className="text-right" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="envios_repuestos" 
+                        type="currency"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap text-right">
-                      ${computer.precio_costo_total?.toFixed(2) || ((parseFloat(computer.precio_costo_usd) || 0) + (parseFloat(computer.envios_repuestos) || 0)).toFixed(2)}
+                    <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
+                      {formatPriceUSD(computer.precio_costo_total || ((parseFloat(isEditing(computer.id) ? editingData.precio_costo_usd : computer.precio_costo_usd) || 0) + (parseFloat(isEditing(computer.id) ? editingData.envios_repuestos : computer.envios_repuestos) || 0)))}
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap text-right">
-                      <EditableCell computer={computer} field="precio_venta_usd" type="currency" className="text-right" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="precio_venta_usd" 
+                        type="currency"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-right">
-                      ${((parseFloat(computer.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
+                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-center">
+                      ${((parseFloat(isEditing(computer.id) ? editingData.precio_venta_usd : computer.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
                     </td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.ingreso}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      {(isEditing(computer.id, 'sucursal') || (isEditing(computer.id) && !editingField)) ? (
-                        <EditableCell 
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(computer.id) ? (
+                        <SimpleEditableCell 
                           computer={computer} 
                           field="sucursal" 
                           type="select"
                           options={sucursalOptions}
+                          isEditing={isEditing(computer.id)}
+                          editingData={editingData}
+                          onFieldChange={handleFieldChange}
                         />
                       ) : (
                         <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer border transition-colors ${getSucursalColor(computer.sucursal)}`}
-                          onClick={() => handleEdit(computer, 'sucursal')}
-                          title="Clic para editar"
+                          className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${getSucursalColor(computer.sucursal)}`}
                         >
                           {(computer.sucursal || '').replace('_', ' ').toUpperCase()}
                         </span>
                       )}
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      {(isEditing(computer.id, 'condicion') || (isEditing(computer.id) && !editingField)) ? (
-                        <EditableCell 
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(computer.id) ? (
+                        <SimpleEditableCell 
                           computer={computer} 
                           field="condicion" 
                           type="select"
                           options={condicionOptions}
+                          isEditing={isEditing(computer.id)}
+                          editingData={editingData}
+                          onFieldChange={handleFieldChange}
                         />
                       ) : (
                         <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer border transition-colors ${getCondicionColor(computer.condicion)}`}
-                          onClick={() => handleEdit(computer, 'condicion')}
-                          title="Clic para editar"
+                          className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${getCondicionColor(computer.condicion)}`}
                         >
                           {(computer.condicion || '').toUpperCase()}
                         </span>
@@ -695,20 +736,76 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                     </td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.slots}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.tipo_ram}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="ram" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="ram"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="ssd" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="ssd"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="hdd" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="hdd"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="so" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="so"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.pantalla}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.resolucion}</td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="refresh" 
+                        className="text-center"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(computer.id) ? (
+                        <SimpleEditableCell 
+                          computer={computer} 
+                          field="touchscreen" 
+                          type="select"
+                          options={touchscreenOptions}
+                          className="text-center"
+                          isEditing={isEditing(computer.id)}
+                          editingData={editingData}
+                          onFieldChange={handleFieldChange}
+                        />
+                      ) : (
+                        <span 
+                          className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${
+                            computer.touchscreen ? 'bg-green-100 text-green-800 border-green-400' : 'bg-gray-100 text-gray-800 border-gray-400'
+                          }`}
+                        >
+                          {computer.touchscreen ? 'SÍ' : 'NO'}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center" title={computer.placa_video}>
                       {computer.placa_video}
                     </td>
@@ -717,54 +814,50 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.idioma_teclado}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.color}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{computer.bateria}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="duracion" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="duracion"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="garantia_update" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="garantia_update"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="garantia_oficial" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="garantia_oficial"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell computer={computer} field="fallas" />
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <SimpleEditableCell 
+                        computer={computer} 
+                        field="fallas"
+                        isEditing={isEditing(computer.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                      />
                     </td>
-                    <td className="px-2 py-3 whitespace-nowrap w-20">
-                      <div 
-                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate transition-colors"
-                        onClick={() => navigator.clipboard.writeText(generateCopy(computer, false))}
-                        title={generateCopy(computer, false)}
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
+                      <button
+                        onClick={() => onDelete(computer.id)}
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                        title="Eliminar"
                       >
-                        💻📋 USD
-                      </div>
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap w-20">
-                      <div 
-                        className="text-xs text-gray-700 cursor-pointer hover:bg-gray-100 p-2 rounded border truncate transition-colors"
-                        onClick={() => navigator.clipboard.writeText(generateCopy(computer, true))}
-                        title={generateCopy(computer, true)}
-                      >
-                        💻📋 ARS
-                      </div>
-                    </td>
-                    <td className="px-2 py-3 text-sm whitespace-nowrap">
-                      <div className="flex space-x-1">
-                        <button
-                          onClick={() => abrirModalGarantia(computer)}
-                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center space-x-1"
-                          title="Generar garantía"
-                        >
-                          <Shield className="w-3 h-3" />
-                          <span>Garantía</span>
-                        </button>
-                        <button
-                          onClick={() => onDelete(computer.id)}
-                          className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
-                          title="Eliminar"
-                        >
-                          Eliminar
-                        </button>
-                      </div>
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -774,40 +867,6 @@ const InventarioSection = ({ computers, loading, error, onDelete, onUpdate }) =>
         </>
       )}
 
-      {/* Modal para edición de cualquier campo */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 min-w-[300px] flex flex-col items-center">
-            <h3 className="text-lg font-bold mb-2">Editar valor</h3>
-            <input
-              ref={modalInputRef}
-              type={modalType === 'currency' ? 'text' : 'text'}
-              inputMode={modalType === 'currency' ? 'numeric' : undefined}
-              pattern={modalType === 'currency' ? '[0-9]*' : undefined}
-              value={modalValue}
-              onChange={e => {
-                if (modalType === 'currency') {
-                  if (/^\d*$/.test(e.target.value)) setModalValue(e.target.value);
-                } else {
-                  setModalValue(e.target.value);
-                }
-              }}
-              className="border p-2 rounded text-center text-lg mb-4 w-full"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleModalSave}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >Guardar</button>
-              <button
-                onClick={handleModalCancel}
-                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-              >Cancelar</button>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Modal de vista previa de garantía */}
       {modalGarantia.open && (

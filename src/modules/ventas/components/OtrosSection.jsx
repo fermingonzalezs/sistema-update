@@ -3,6 +3,61 @@ import { Trash2, Box, ShoppingCart, X } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
+// Función para formatear precios en USD sin decimales con prefijo U$
+const formatPriceUSD = (price) => {
+  const numPrice = parseFloat(price) || 0;
+  return `U$${Math.round(numPrice)}`;
+};
+
+// Componente EditableCell - DEFINIDO FUERA para evitar recreación
+const EditableCell = React.memo(({ producto, field, type = 'text', options = null, className = '', isEditing, editingData, onFieldChange, onEdit }) => {
+  if (!isEditing) {
+    const value = producto[field] || '';
+    return (
+      <span 
+        className={`text-sm cursor-pointer hover:bg-gray-100 p-1 rounded whitespace-nowrap ${className}`}
+        onDoubleClick={() => onEdit(producto)}
+        title="Doble clic para editar"
+      >
+        {type === 'currency' ? formatPriceUSD(value) : value}
+      </span>
+    );
+  }
+
+  if (type === 'select') {
+    return (
+      <select
+        value={editingData[field] || ''}
+        onChange={(e) => onFieldChange(field, e.target.value)}
+        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
+      >
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return (
+    <input
+      type={type === 'currency' ? 'text' : 'text'}
+      inputMode={type === 'currency' ? 'numeric' : undefined}
+      pattern={type === 'currency' ? '[0-9]*' : undefined}
+      value={editingData[field] || ''}
+      onChange={(e) => {
+        if (type === 'currency') {
+          if (/^\d*$/.test(e.target.value)) onFieldChange(field, e.target.value);
+        } else {
+          onFieldChange(field, e.target.value);
+        }
+      }}
+      className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
+    />
+  );
+});
+
 const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
@@ -37,6 +92,7 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
   };
 
   const handleEdit = (producto) => {
+    console.log('📝 [Otros] Iniciando edición completa:', producto.id);
     setEditingId(producto.id);
     setEditingData({
       condicion: producto.condicion || 'nuevo',
@@ -45,14 +101,21 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
       garantia: producto.garantia || '',
       fallas: producto.fallas || 'Ninguna'
     });
+    console.log('✅ [Otros] Edición iniciada para:', producto.id);
   };
 
   const handleSave = async () => {
     try {
+      console.log('💾 [Otros] Guardando datos:', editingData);
+      console.log('🚀 [Otros] Enviando actualización para ID:', editingId);
+      
       await onUpdate(editingId, editingData);
+      
+      console.log('✅ [Otros] Guardado exitoso');
       setEditingId(null);
       setEditingData({});
     } catch (error) {
+      console.error('❌ [Otros] Error al actualizar:', error);
       alert('Error al actualizar: ' + error.message);
     }
   };
@@ -63,59 +126,57 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
   };
 
   const handleFieldChange = (field, value) => {
-    setEditingData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log('🔄 [Otros] Cambiando campo:', { field, value });
+    setEditingData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('💾 [Otros] Nuevo editingData:', newData);
+      return newData;
+    });
   };
 
   const isEditing = (productoId) => editingId === productoId;
 
-  const EditableCell = ({ producto, field, type = 'text', options = null, className = '' }) => {
-    if (!isEditing(producto.id)) {
-      const value = producto[field] || '';
-      return (
-        <span 
-          className={`text-sm cursor-pointer hover:bg-gray-100 p-1 rounded whitespace-nowrap ${className}`}
-          onDoubleClick={() => handleEdit(producto)}
-          title="Doble clic para editar"
-        >
-          {type === 'currency' ? `$${value}` : value}
-        </span>
-      );
-    }
 
-    if (type === 'select') {
-      return (
-        <select
-          value={editingData[field] || ''}
-          onChange={(e) => handleFieldChange(field, e.target.value)}
-          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
-        >
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      );
+  // Devuelve una clase de color según la condición del producto
+  const getOtroCondicionColor = (condicion) => {
+    switch ((condicion || '').toLowerCase()) {
+      case 'nuevo':
+        return 'bg-green-200 border-green-400 text-green-900';
+      case 'usado':
+        return 'bg-blue-200 border-blue-400 text-blue-900';
+      case 'reparacion':
+        return 'bg-yellow-200 border-yellow-400 text-yellow-900';
+      case 'reservado':
+        return 'bg-purple-200 border-purple-400 text-purple-900';
+      case 'prestado':
+        return 'bg-orange-200 border-orange-400 text-orange-900';
+      case 'uso oficina':
+        return 'bg-cyan-200 border-cyan-400 text-cyan-900';
+      case 'sin reparacion':
+        return 'bg-red-200 border-red-400 text-red-900';
+      case 'perdido':
+        return 'bg-slate-200 border-slate-400 text-slate-900';
+      case 'en camino':
+        return 'bg-indigo-200 border-indigo-400 text-indigo-900';
+      default:
+        return 'bg-gray-100 border-gray-300 text-gray-700';
     }
-
-    return (
-      <input
-        type={type === 'currency' ? 'number' : 'text'}
-        value={editingData[field] || ''}
-        onChange={(e) => handleFieldChange(field, e.target.value)}
-        step={type === 'currency' ? '0.01' : undefined}
-        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
-      />
-    );
   };
+
 
   const condicionOptions = [
     { value: 'nuevo', label: 'NUEVO' },
     { value: 'usado', label: 'USADO' },
-    { value: 'reparacion', label: 'REPARACION' }
+    { value: 'reparacion', label: 'REPARACION' },
+    { value: 'reservado', label: 'RESERVADO' },
+    { value: 'prestado', label: 'PRESTADO' },
+    { value: 'uso oficina', label: 'USO OFICINA' },
+    { value: 'sin reparacion', label: 'SIN REPARACION' },
+    { value: 'perdido', label: 'PERDIDO' },
+    { value: 'en camino', label: 'EN CAMINO' },
   ];
 
   const categoriaOptions = [
@@ -371,105 +432,24 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
             <table className="min-w-full bg-white">
               <thead className="bg-green-100">
                 <tr>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Descripción</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Cantidad</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Categoría</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
-                  <th className="px-2 py-3 text-left text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Acciones</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Descripción</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Foto</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Cantidad</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.C. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. USD</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">P.V. Pesos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Categoría</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Eliminar</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedOtros.map((producto, index) => (
                   <tr key={producto.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(producto.id) ? 'bg-blue-100' : ''}`}>
-                    <td className="px-2 py-3 text-sm text-gray-900 font-medium whitespace-nowrap" title={producto.descripcion_producto}>
-                      {producto.descripcion_producto}
-                    </td>
-                    <FotoProductoAvanzado 
-                      productoId={producto.id} 
-                      tipoProducto="otro" 
-                      nombreProducto={producto.descripcion_producto || ''}
-                    />
-                    <td className="px-2 py-3 text-sm text-center whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        producto.cantidad > 10 ? 'bg-green-100 text-green-800' :
-                        producto.cantidad > 5 ? 'bg-yellow-100 text-yellow-800' :
-                        producto.cantidad > 0 ? 'bg-orange-100 text-orange-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {producto.cantidad}
-                      </span>
-                    </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap">${producto.precio_compra_usd}</td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell producto={producto} field="precio_venta_usd" type="currency" />
-                    </td>
-                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap">
-                      ${((parseFloat(editingData.precio_venta_usd) || parseFloat(producto.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      {isEditing(producto.id) ? (
-                        <select
-                          value={editingData.condicion || ''}
-                          onChange={(e) => handleFieldChange('condicion', e.target.value)}
-                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
-                        >
-                          {condicionOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 ${
-                            producto.condicion === 'nuevo' ? 'bg-green-100 text-green-800' :
-                            producto.condicion === 'usado' ? 'bg-blue-100 text-blue-800' :
-                            producto.condicion === 'reparacion' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}
-                          onDoubleClick={() => handleEdit(producto)}
-                          title="Doble clic para editar"
-                        >
-                          {(producto.condicion || '').toUpperCase()}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      {isEditing(producto.id) ? (
-                        <select
-                          value={editingData.categoria || ''}
-                          onChange={(e) => handleFieldChange('categoria', e.target.value)}
-                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
-                        >
-                          {categoriaOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 ${getCategoriaColor(producto.categoria)}`}
-                          onDoubleClick={() => handleEdit(producto)}
-                          title="Doble clic para editar"
-                        >
-                          {getCategoriaLabel(producto.categoria)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell producto={producto} field="garantia" />
-                    </td>
-                    <td className="px-2 py-3 whitespace-nowrap">
-                      <EditableCell producto={producto} field="fallas" />
-                    </td>
-                    <td className="px-2 py-3 text-sm whitespace-nowrap">
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
                       <div className="flex space-x-1">
                         {isEditing(producto.id) ? (
                           <>
@@ -506,16 +486,122 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
                                 Carrito
                               </button>
                             )}
-                            <button
-                              onClick={() => onDelete(producto.id)}
-                              className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                              title="Eliminar"
-                            >
-                              Eliminar
-                            </button>
                           </>
                         )}
                       </div>
+                    </td>
+                    <td className="px-2 py-3 text-sm text-gray-900 font-medium whitespace-nowrap text-center" title={producto.descripcion_producto}>
+                      {producto.descripcion_producto}
+                    </td>
+                    <FotoProductoAvanzado 
+                      productoId={producto.id} 
+                      tipoProducto="otro" 
+                      nombreProducto={producto.descripcion_producto || ''}
+                    />
+                    <td className="px-2 py-3 text-sm text-center whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        producto.cantidad > 10 ? 'bg-green-100 text-green-800' :
+                        producto.cantidad > 5 ? 'bg-yellow-100 text-yellow-800' :
+                        producto.cantidad > 0 ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {producto.cantidad}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
+                      {formatPriceUSD(producto.precio_compra_usd)}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        producto={producto} 
+                        field="precio_venta_usd" 
+                        type="currency" 
+                        className="font-semibold text-blue-600"
+                        isEditing={isEditing(producto.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-center">
+                      ${((parseFloat(editingData.precio_venta_usd) || parseFloat(producto.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(producto.id) ? (
+                        <select
+                          value={editingData.condicion || ''}
+                          onChange={(e) => handleFieldChange('condicion', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
+                        >
+                          {condicionOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span 
+                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 border transition-colors ${
+                            getOtroCondicionColor(producto.condicion)
+                          }`}
+                          onDoubleClick={() => handleEdit(producto)}
+                          title="Doble clic para editar"
+                        >
+                          {(producto.condicion || '').toUpperCase()}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(producto.id) ? (
+                        <select
+                          value={editingData.categoria || ''}
+                          onChange={(e) => handleFieldChange('categoria', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 whitespace-nowrap"
+                        >
+                          {categoriaOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span 
+                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 ${getCategoriaColor(producto.categoria)}`}
+                          onDoubleClick={() => handleEdit(producto)}
+                          title="Doble clic para editar"
+                        >
+                          {getCategoriaLabel(producto.categoria)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        producto={producto} 
+                        field="garantia"
+                        isEditing={isEditing(producto.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      <EditableCell 
+                        producto={producto} 
+                        field="fallas"
+                        isEditing={isEditing(producto.id)}
+                        editingData={editingData}
+                        onFieldChange={handleFieldChange}
+                        onEdit={handleEdit}
+                      />
+                    </td>
+                    <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
+                      <button
+                        onClick={() => onDelete(producto.id)}
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        title="Eliminar"
+                      >
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Search, Monitor, Smartphone, DollarSign, User, Calendar, Box, Plus } from 'lucide-react';
 import { inventarioService, celularesService, otrosService } from '../../../lib/supabase';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const ProcesarVentaSection = ({ onVenta, loading, carrito, onAddToCart }) => {
   const [tipoProducto, setTipoProducto] = useState('computadora');
@@ -8,6 +9,43 @@ const ProcesarVentaSection = ({ onVenta, loading, carrito, onAddToCart }) => {
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [loadingProductos, setLoadingProductos] = useState(false);
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+
+  // Función para formatear precios en USD sin decimales con prefijo U$
+  const formatPriceUSD = (price) => {
+    const numPrice = parseFloat(price) || 0;
+    return `U$${Math.round(numPrice)}`;
+  };
+
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    cargarCotizacion();
+    const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para cargar cotización desde dolarAPI
+  const cargarCotizacion = async () => {
+    try {
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setCotizacionDolar(cotizacionData.valor);
+    } catch (error) {
+      console.error('❌ Error cargando cotización:', error);
+    }
+  };
+
+  // Calcular totales del carrito
+  const calcularTotalUSD = () => {
+    return carrito.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0);
+  };
+
+  const calcularTotalPesos = () => {
+    return calcularTotalUSD() * cotizacionDolar;
+  };
+
+  const calcularCantidadTotal = () => {
+    return carrito.reduce((total, item) => total + item.cantidad, 0);
+  };
 
   // Cargar productos cuando cambia el tipo
   useEffect(() => {
@@ -105,6 +143,33 @@ const ProcesarVentaSection = ({ onVenta, loading, carrito, onAddToCart }) => {
           <ShoppingCart className="w-12 h-12" />
         </div>
       </div>
+
+      {/* Totales del carrito - arriba del selector de productos */}
+      {carrito.length > 0 && (
+        <div className="mb-6 bg-white rounded-xl shadow-lg border-2 border-green-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-full">
+                <ShoppingCart className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Carrito de Compras</h3>
+                <p className="text-sm text-gray-600">{calcularCantidadTotal()} productos agregados</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="flex flex-col space-y-1">
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatPriceUSD(calcularTotalUSD())}
+                </div>
+                <div className="text-lg font-semibold text-green-600">
+                  ${calcularTotalPesos().toLocaleString('es-AR')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Selector de tipo de producto - ahora con fondo blanco y bordes coloridos */}
@@ -279,11 +344,11 @@ const ProcesarVentaSection = ({ onVenta, loading, carrito, onAddToCart }) => {
 
                         <div className="flex items-center space-x-6 ml-6">
                           <div className="text-right">
-                            <p className="font-bold text-green-600 text-2xl">
-                              ${producto.precio_venta_usd}
+                            <p className="font-bold text-blue-600 text-2xl">
+                              {formatPriceUSD(producto.precio_venta_usd)}
                             </p>
-                            <p className="text-sm text-gray-500">
-                              USD
+                            <p className="text-sm font-medium text-green-600">
+                              ${((parseFloat(producto.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
                             </p>
                           </div>
 
