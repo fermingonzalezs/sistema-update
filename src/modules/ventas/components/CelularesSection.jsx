@@ -9,59 +9,6 @@ const formatPriceUSD = (price) => {
   return `U$${Math.round(numPrice)}`;
 };
 
-// Componente para celdas editables - DEFINIDO FUERA para evitar recreación
-const SimpleEditableCell = React.memo(({ celular, field, type = 'text', options = null, className = '', isEditing, editingData, onFieldChange }) => {
-  if (!isEditing) {
-    // Modo visualización - solo mostrar valor
-    const value = celular[field] || '';
-    if (type === 'currency') {
-      return (
-        <span className={`text-sm font-semibold text-blue-600 whitespace-nowrap ${className}`}>
-          {formatPriceUSD(value)}
-        </span>
-      );
-    }
-    return (
-      <span className={`text-sm text-gray-900 whitespace-nowrap ${className}`}>
-        {value.toString()}
-      </span>
-    );
-  }
-
-  // Modo edición - mostrar input/select
-  if (type === 'select') {
-    return (
-      <select
-        value={editingData[field] || ''}
-        onChange={(e) => onFieldChange(field, e.target.value)}
-        className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
-      >
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  return (
-    <input
-      type={type === 'currency' ? 'text' : 'text'}
-      inputMode={type === 'currency' ? 'numeric' : undefined}
-      pattern={type === 'currency' ? '[0-9]*' : undefined}
-      value={editingData[field] || ''}
-      onChange={(e) => {
-        if (type === 'currency') {
-          if (/^\d*$/.test(e.target.value)) onFieldChange(field, e.target.value);
-        } else {
-          onFieldChange(field, e.target.value);
-        }
-      }}
-      className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
-    />
-  );
-});
 
 const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => {
   const [editingId, setEditingId] = useState(null);
@@ -179,6 +126,32 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     }
   };
 
+  // Devuelve una clase de color de fondo de fila según la condición
+  const getCondicionRowColor = (condicion) => {
+    switch ((condicion || '').toLowerCase()) {
+      case 'nuevo':
+        return 'bg-green-50';
+      case 'usado':
+        return 'bg-blue-50';
+      case 'reparacion':
+        return 'bg-yellow-50';
+      case 'reservado':
+        return 'bg-purple-50';
+      case 'prestado':
+        return 'bg-orange-50';
+      case 'uso oficina':
+        return 'bg-cyan-50';
+      case 'sin reparacion':
+        return 'bg-red-50';
+      case 'perdido':
+        return 'bg-slate-50';
+      case 'en camino':
+        return 'bg-indigo-50';
+      default:
+        return '';
+    }
+  };
+
   // Función para generar el copy automático
   const generateCopy = (celular, enPesos = false) => {
     const precio = enPesos 
@@ -266,13 +239,14 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
             valueA = parseFloat(a.precio_venta_usd) || 0;
             valueB = parseFloat(b.precio_venta_usd) || 0;
             break;
-          case 'ganancia':
+          case 'ganancia': {
             // Calcular ganancia: precio_venta - precio_costo_total
             const costoA = (parseFloat(a.precio_compra_usd) || 0) + (parseFloat(a.repuestos_usd) || 0);
             const costoB = (parseFloat(b.precio_compra_usd) || 0) + (parseFloat(b.repuestos_usd) || 0);
             valueA = (parseFloat(a.precio_venta_usd) || 0) - costoA;
             valueB = (parseFloat(b.precio_venta_usd) || 0) - costoB;
             break;
+          }
           case 'ingreso':
             valueA = new Date(a.ingreso || '1970-01-01');
             valueB = new Date(b.ingreso || '1970-01-01');
@@ -354,7 +328,8 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
               </div>
               
               <div className="text-sm text-gray-600 flex items-center space-x-4">
-                <span>💡 Haz doble clic en cualquier celda para editarla</span>
+                <span>💡 Haz clic en "Editar" para modificar todos los campos de una fila</span>
+                <span>✅ Luego haz clic en "Finalizar" para guardar los cambios</span>
               </div>
             </div>
 
@@ -476,23 +451,23 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                 </tr>
               </thead>
               <tbody>
-                {filteredAndSortedCelulares.map((celular, index) => (
-                  <tr key={celular.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'} ${isEditing(celular.id) ? 'bg-blue-100' : ''}`}>
+                {filteredAndSortedCelulares.map((celular) => (
+                  <tr key={celular.id} className={`${getCondicionRowColor(celular.condicion) || 'bg-white'} ${isEditing(celular.id) ? 'bg-blue-50' : ''}`}>
                     <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
-                      <div className="flex space-x-1">
+                      <div className="flex justify-center space-x-1">
                         {isEditing(celular.id) ? (
                           <>
                             <button
                               onClick={handleSave}
-                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                              title="Guardar cambios"
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                              title="Finalizar y guardar cambios"
                             >
-                              Guardar
+                              Finalizar
                             </button>
                             <button
                               onClick={handleCancel}
-                              className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700"
-                              title="Cancelar"
+                              className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
+                              title="Cancelar edición"
                             >
                               Cancelar
                             </button>
@@ -500,8 +475,8 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                         ) : (
                           <button
                             onClick={() => handleEdit(celular)}
-                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-                            title="Editar"
+                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                            title="Editar todos los campos"
                           >
                             Editar
                           </button>
@@ -531,14 +506,16 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                       {celular.modelo}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="marca"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.marca || ''}
+                          onChange={(e) => handleFieldChange('marca', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.marca}</span>
+                      )}
                     </td>
                     <FotoProductoAvanzado 
                       productoId={celular.id} 
@@ -549,31 +526,39 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                       {formatPriceUSD(celular.precio_compra_usd)}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="repuestos_usd" 
-                        type="currency" 
-                        className="font-semibold text-blue-600"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={editingData.repuestos_usd || ''}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value)) handleFieldChange('repuestos_usd', e.target.value);
+                          }}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-blue-600">{formatPriceUSD(celular.repuestos_usd)}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
                       {formatPriceUSD((parseFloat(celular.precio_compra_usd) || 0) + (parseFloat(editingData.repuestos_usd) || parseFloat(celular.repuestos_usd) || 0))}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="precio_venta_usd" 
-                        type="currency" 
-                        className="font-semibold text-blue-600"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={editingData.precio_venta_usd || ''}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value)) handleFieldChange('precio_venta_usd', e.target.value);
+                          }}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-blue-600">{formatPriceUSD(celular.precio_venta_usd)}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 text-sm font-semibold text-green-600 whitespace-nowrap text-center">
                       ${((parseFloat(editingData.precio_venta_usd) || parseFloat(celular.precio_venta_usd) || 0) * cotizacionDolar).toLocaleString('es-AR')}
@@ -593,66 +578,75 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                         </select>
                       ) : (
                         <span 
-                          className={`px-2 py-1 rounded-full text-xs font-bold cursor-pointer hover:bg-gray-100 border transition-colors ${
+                          className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${
                             getCelularCondicionColor(celular.condicion)
                           }`}
-                          onDoubleClick={() => handleEdit(celular)}
-                          title="Doble clic para editar"
                         >
                           {(celular.condicion || '').toUpperCase()}
                         </span>
                       )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="ubicacion" 
-                        type="select"
-                        options={ubicacionOptions}
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <select
+                          value={editingData.ubicacion || ''}
+                          onChange={(e) => handleFieldChange('ubicacion', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
+                        >
+                          {ubicacionOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-sm text-gray-900">{(celular.ubicacion || '').replace('_', ' ').toUpperCase()}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.color}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.almacenamiento}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.porcentaje_bateria}</td>
                     <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.estado_estetico}</td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="garantia_update"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.garantia_update || ''}
+                          onChange={(e) => handleFieldChange('garantia_update', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.garantia_update}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="garantia_oficial"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.garantia_oficial || ''}
+                          onChange={(e) => handleFieldChange('garantia_oficial', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.garantia_oficial}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      <EditableCell 
-                        celular={celular} 
-                        field="fallas"
-                        isEditing={isEditing(celular.id)}
-                        editingData={editingData}
-                        onFieldChange={handleFieldChange}
-                        onEdit={handleEdit}
-                      />
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.fallas || ''}
+                          onChange={(e) => handleFieldChange('fallas', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.fallas}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 text-sm whitespace-nowrap text-center">
                       <button
                         onClick={() => onDelete(celular.id)}
-                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
                         title="Eliminar"
                       >
                         Eliminar

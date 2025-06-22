@@ -31,7 +31,8 @@
       "Bash(ls:*)",
       "Bash(sudo chown:*)",
       "Bash(cp:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   },
