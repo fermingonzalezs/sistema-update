@@ -44,14 +44,41 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   };
 
   const handleEdit = (celular) => {
+    // Prevenir edición si está cargando o no hay función de actualización
+    if (loading || !onUpdate || typeof onUpdate !== 'function') {
+      console.warn('⚠️ [Celulares] No se puede editar: loading:', loading, 'onUpdate disponible:', !!onUpdate);
+      alert('No se puede editar en este momento. Intenta nuevamente en unos segundos.');
+      return;
+    }
+    
     console.log('📝 [Celulares] Iniciando edición completa:', celular.id);
     setEditingId(celular.id);
     setEditingData({
+      // Campos de precio
+      precio_compra_usd: celular.precio_compra_usd || 0,
       repuestos_usd: celular.repuestos_usd || 0,
       precio_venta_usd: celular.precio_venta_usd || 0,
+      
+      // Información básica
+      modelo: celular.modelo || '',
+      marca: celular.marca || '',
+      color: celular.color || '',
+      capacidad: celular.capacidad || '',
+      almacenamiento: celular.almacenamiento || '',
+      
+      // Estado y condición
       condicion: celular.condicion || 'usado',
       ubicacion: celular.ubicacion || 'la_plata',
-      marca: celular.marca || '',
+      estado: celular.estado || '',
+      estado_estetico: celular.estado_estetico || '',
+      
+      // Batería y ciclos
+      bateria: celular.bateria || '',
+      porcentaje_bateria: celular.porcentaje_bateria || '',
+      ciclos: celular.ciclos || 0,
+      
+      // Garantías y fallas
+      garantia: celular.garantia || '',
       garantia_update: celular.garantia_update || '',
       garantia_oficial: celular.garantia_oficial || '',
       fallas: celular.fallas || 'Ninguna'
@@ -62,6 +89,13 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   const handleSave = async () => {
     try {
       console.log('💾 [Celulares] Guardando datos:', editingData);
+      
+      // Verificar que onUpdate esté disponible
+      if (!onUpdate || typeof onUpdate !== 'function') {
+        console.error('❌ [Celulares] onUpdate no está disponible');
+        alert('Error: Función de actualización no disponible. Intenta recargar la página.');
+        return;
+      }
       
       const updatedData = {
         ...editingData,
@@ -441,10 +475,15 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Condición</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ubicación</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Color</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Capacidad</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Almacenamiento</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Batería</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">% Batería</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Ciclos</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Estado</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Estado Estético</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Garantía</th>
+                  <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Update</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">G. Oficial</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Fallas</th>
                   <th className="px-2 py-3 text-center text-xs font-bold text-green-900 uppercase whitespace-nowrap">Eliminar</th>
@@ -475,8 +514,17 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                         ) : (
                           <button
                             onClick={() => handleEdit(celular)}
-                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-                            title="Editar todos los campos"
+                            disabled={loading || !onUpdate || typeof onUpdate !== 'function'}
+                            className={`px-2 py-1 text-white text-xs rounded transition-colors ${
+                              loading || !onUpdate || typeof onUpdate !== 'function'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
+                            title={
+                              loading || !onUpdate || typeof onUpdate !== 'function'
+                                ? 'Edición no disponible'
+                                : 'Editar todos los campos'
+                            }
                           >
                             Editar
                           </button>
@@ -502,8 +550,17 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                       </div>
                     </td>
                     <td className="px-2 py-3 text-sm font-mono text-gray-900 whitespace-nowrap text-center">{celular.serial}</td>
-                    <td className="px-2 py-3 text-sm font-medium text-gray-900 whitespace-nowrap text-center" title={celular.modelo}>
-                      {celular.modelo}
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.modelo || ''}
+                          onChange={(e) => handleFieldChange('modelo', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium text-gray-900" title={celular.modelo}>{celular.modelo}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
                       {isEditing(celular.id) ? (
@@ -522,8 +579,21 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                       tipoProducto="celular" 
                       nombreProducto={celular.modelo || ''}
                     />
-                    <td className="px-2 py-3 text-sm font-semibold text-blue-600 whitespace-nowrap text-center">
-                      {formatPriceUSD(celular.precio_compra_usd)}
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={editingData.precio_compra_usd || ''}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value)) handleFieldChange('precio_compra_usd', e.target.value);
+                          }}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-blue-600">{formatPriceUSD(celular.precio_compra_usd)}</span>
+                      )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
                       {isEditing(celular.id) ? (
@@ -603,10 +673,122 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                         <span className="text-sm text-gray-900">{(celular.ubicacion || '').replace('_', ' ').toUpperCase()}</span>
                       )}
                     </td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.color}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.almacenamiento}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.porcentaje_bateria}</td>
-                    <td className="px-2 py-3 text-sm text-gray-900 whitespace-nowrap text-center">{celular.estado_estetico}</td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.color || ''}
+                          onChange={(e) => handleFieldChange('color', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.color}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.capacidad || ''}
+                          onChange={(e) => handleFieldChange('capacidad', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.capacidad}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.almacenamiento || ''}
+                          onChange={(e) => handleFieldChange('almacenamiento', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.almacenamiento}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.bateria || ''}
+                          onChange={(e) => handleFieldChange('bateria', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.bateria}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={editingData.porcentaje_bateria || ''}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value)) handleFieldChange('porcentaje_bateria', e.target.value);
+                          }}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.porcentaje_bateria}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={editingData.ciclos || ''}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value)) handleFieldChange('ciclos', e.target.value);
+                          }}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.ciclos}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.estado || ''}
+                          onChange={(e) => handleFieldChange('estado', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.estado}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.estado_estetico || ''}
+                          onChange={(e) => handleFieldChange('estado_estetico', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.estado_estetico}</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
+                      {isEditing(celular.id) ? (
+                        <input
+                          type="text"
+                          value={editingData.garantia || ''}
+                          onChange={(e) => handleFieldChange('garantia', e.target.value)}
+                          className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-900">{celular.garantia}</span>
+                      )}
+                    </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
                       {isEditing(celular.id) ? (
                         <input

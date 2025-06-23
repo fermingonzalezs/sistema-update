@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Eye } from 'lucide-react';
-import { generarYDescargarRecibo } from '../../../components/ReciboVentaPDF';
-import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
+import { abrirReciboPDF } from '../../../components/ReciboVentaPDF_NUEVO';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [estadisticas, setEstadisticas] = useState(null);
@@ -10,7 +9,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
-  const [modalVistaPrevia, setModalVistaPrevia] = useState({ open: false, transaccion: null });
 
   // Establecer fechas por defecto (último mes)
   useEffect(() => {
@@ -102,19 +100,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     return items.map(item => item.modelo_producto).join(' • ');
   };
 
-  const manejarDescargarRecibo = async (transaccion) => {
-    const exito = await generarYDescargarRecibo(transaccion);
-    if (!exito) {
-      alert('Error al generar el recibo. Por favor, intente nuevamente.');
+  const manejarAbrirRecibo = async (transaccion) => {
+    const resultado = await abrirReciboPDF(transaccion);
+    if (!resultado.success) {
+      alert('Error al generar el recibo: ' + resultado.error);
     }
-  };
-
-  const abrirVistaPreviaRecibo = (transaccion) => {
-    setModalVistaPrevia({ open: true, transaccion });
-  };
-
-  const cerrarVistaPrevia = () => {
-    setModalVistaPrevia({ open: false, transaccion: null });
   };
 
   return (
@@ -416,7 +406,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {transaccion.vendedor || '-'}
                         {transaccion.sucursal && (
-                          <div className="text-xs text-gray-500">{transaccion.sucursal}</div>
+                          <div className="text-xs text-gray-500">{transaccion.sucursal.replace('_', ' ').toUpperCase()}</div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -432,23 +422,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                             )}
                             <span>Ver</span>
                           </button>
-                          <div className="flex items-center space-x-1">
-                            {/* Recibo */}
-                            <button
-                              onClick={() => abrirVistaPreviaRecibo(transaccion)}
-                              className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-emerald-50"
-                              title="Vista previa recibo"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => manejarDescargarRecibo(transaccion)}
-                              className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-emerald-50"
-                              title="Descargar recibo PDF"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => manejarAbrirRecibo(transaccion)}
+                            className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-emerald-50"
+                            title="Ver recibo"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span className="text-xs">Recibo</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -491,13 +472,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           </div>
         </div>
       )}
-      {/* Modal de vista previa */}
-      <ModalVistaPreviaPDF
-        open={modalVistaPrevia.open}
-        onClose={cerrarVistaPrevia}
-        transaccion={modalVistaPrevia.transaccion}
-        tipo="recibo"
-      />
     </div>
   );
 };

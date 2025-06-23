@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, FileDown, Send, ThumbsUp } from 'lucide-react';
+import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, Send, ThumbsUp } from 'lucide-react';
 import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
-import ModalVistaPreviaPresupuesto from './ModalVistaPreviaPresupuesto';
 import { useReparaciones } from '../hooks/useReparaciones';
-import jsPDF from 'jspdf';
+import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF_NUEVO';
 
 const estados = {
   ingresado: { label: 'Ingresado', color: 'bg-orange-100 text-orange-700' },
@@ -42,7 +41,6 @@ function ReparacionesMain() {
   const [modalNueva, setModalNueva] = useState(false);
   const [modalPresupuesto, setModalPresupuesto] = useState(false);
   const [modalVista, setModalVista] = useState(false);
-  const [modalVistaPreviaPresupuesto, setModalVistaPreviaPresupuesto] = useState(false);
   
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -136,15 +134,21 @@ function ReparacionesMain() {
     }
   };
 
-  const handleGenerarPDFPresupuesto = (reparacion) => {
+  const handleGenerarPDFPresupuesto = async (reparacion) => {
     if (!reparacion.presupuesto_json) {
       alert('Esta reparación no tiene presupuesto guardado');
       return;
     }
 
-    // En lugar de generar PDF directamente, mostrar vista previa
-    setReparacionSeleccionada(reparacion);
-    setModalVistaPreviaPresupuesto(true);
+    try {
+      const resultado = await abrirPresupuestoPDF(reparacion, reparacion.presupuesto_json);
+      if (!resultado.success) {
+        alert('Error al generar el presupuesto: ' + resultado.error);
+      }
+    } catch (error) {
+      console.error('Error generando presupuesto:', error);
+      alert('Error al generar el presupuesto. Intente nuevamente.');
+    }
   };
 
   // Filtrar reparaciones
@@ -335,7 +339,7 @@ function ReparacionesMain() {
                         <FileText className="w-5 h-5" />
                       </button>
                       <button 
-                        title={r.presupuesto_json ? "Descargar PDF del presupuesto" : "Sin presupuesto guardado"} 
+                        title={r.presupuesto_json ? "Ver presupuesto" : "Sin presupuesto guardado"} 
                         onClick={() => handleGenerarPDFPresupuesto(r)} 
                         disabled={!r.presupuesto_json}
                         className={`p-2 rounded transition-colors ${
@@ -344,7 +348,7 @@ function ReparacionesMain() {
                             : 'text-gray-400 cursor-not-allowed opacity-50'
                         }`}
                       >
-                        <FileDown className="w-5 h-5" />
+                        <Eye className="w-5 h-5" />
                       </button>
                       <button 
                         title="Eliminar reparación" 
@@ -445,14 +449,6 @@ function ReparacionesMain() {
         />
       )}
       
-      {modalVistaPreviaPresupuesto && reparacionSeleccionada && (
-        <ModalVistaPreviaPresupuesto 
-          open={modalVistaPreviaPresupuesto} 
-          onClose={() => setModalVistaPreviaPresupuesto(false)}
-          reparacion={reparacionSeleccionada}
-          presupuesto={reparacionSeleccionada.presupuesto_json}
-        />
-      )}
     </div>
   );
 }

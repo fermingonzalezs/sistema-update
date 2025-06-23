@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Trash2, Filter, X, ChevronDown, Shield, Eye } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
-import ModalVistaPreviaPDF from '../../../components/ModalVistaPreviaPDF';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 // Función para formatear precios en USD sin decimales con prefijo U$

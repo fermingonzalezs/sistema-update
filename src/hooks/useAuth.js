@@ -90,16 +90,21 @@ export const useAuth = () => {
     const sectionsByLevel = {
       ventas: [
         'inventario', 'celulares', 'otros', 'procesar-venta', 
-        'gestion-fotos', 'copys', 'clientes'
+        'gestion-fotos', 'copys', 'clientes', 'ventas'
       ],
       soporte: [
-        'carga-equipos', 'reparaciones', 'repuestos', 
+        'carga-equipos', 'reparaciones', 'repuestos', 'movimientos-repuestos',
         'recuento-repuestos', 'presupuestos-reparacion', 'testeo-equipos'
       ],
       contabilidad: [
         'plan-cuentas', 'libro-diario', 'reporte-movimientos',
         'libro-mayor', 'conciliacion-caja', 'gastos-operativos',
         'cuentas-corrientes'
+      ],
+      administracion: [
+        'dashboard-reportes', 'garantias', 'comisiones', 'recuento-stock',
+        'ventas', 'importaciones', 'cotizaciones', 'pendientes-compra', 
+        'en-transito', 'historial-importaciones'
       ]
     };
 

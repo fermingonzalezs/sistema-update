@@ -59,7 +59,7 @@ class EmailReceiptService {
       [`Teléfono:`, ventaData.cliente_telefono || 'N/A'],
       [`Método de Pago:`, ventaData.metodo_pago.toUpperCase()],
       [`Vendedor:`, ventaData.vendedor || 'N/A'],
-      [`Sucursal:`, ventaData.sucursal || 'UPDATE TECH']
+      [`Sucursal:`, (ventaData.sucursal || 'UPDATE TECH').replace('_', ' ').toUpperCase()]
     ];
     
     let yPos = 80;
@@ -187,14 +187,14 @@ Si tienes alguna pregunta sobre tu compra, no dudes en contactarnos.
 --
 UPDATE TECH
 Sistema de Gestión de Inventario
-${ventaData.sucursal || 'Sucursal Principal'}
+${(ventaData.sucursal || 'Sucursal Principal').replace('_', ' ').toUpperCase()}
       `.trim(),
       transaction_number: ventaData.numeroTransaccion || `VT-${Date.now()}`,
       total_amount: `$${total.toFixed(2)}`,
       items_count: cantidadItems,
       payment_method: ventaData.metodo_pago.toUpperCase(),
       vendor: ventaData.vendedor || 'N/A',
-      branch: ventaData.sucursal || 'UPDATE TECH'
+      branch: (ventaData.sucursal || 'UPDATE TECH').replace('_', ' ').toUpperCase()
     };
   }
 

@@ -25,6 +25,7 @@ import {
   CargaEquiposUnificada,
   ReparacionesMain,
   RepuestosSection,
+  MovimientosRepuestosSection,
   RecuentoRepuestosSection,
   TesteoEquiposSection
 } from './modules/soporte/components';
@@ -79,7 +80,8 @@ const AppContent = () => {
    error: celularesError,
    fetchCelulares,
    addCelular,
-   deleteCelular
+   deleteCelular,
+   updateCelular
  } = useCelulares();
 
  // 📦 Hooks para otros productos
@@ -89,7 +91,8 @@ const AppContent = () => {
    error: otrosError,
    fetchOtros,
    addOtro,
-   deleteOtro
+   deleteOtro,
+   updateOtro
  } = useOtros();
 
  // 💰 Hooks para ventas
@@ -493,6 +496,7 @@ const AppContent = () => {
              error={celularesError}
              onDelete={handleDeleteCelular}
              onAddToCart={handleAddToCart}
+             onUpdate={updateCelular}
            />
          )}
 
@@ -503,6 +507,7 @@ const AppContent = () => {
              error={otrosError}
              onDelete={handleDeleteOtro}
              onAddToCart={handleAddToCart}
+             onUpdate={updateOtro}
            />
          )}
 
@@ -577,6 +582,10 @@ const AppContent = () => {
 
          {activeSection === 'repuestos' && hasAccess('repuestos') && (
            <RepuestosSection />
+         )}
+
+         {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
+           <MovimientosRepuestosSection />
          )}
 
          {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (

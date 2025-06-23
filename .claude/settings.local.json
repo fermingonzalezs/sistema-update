@@ -32,7 +32,17 @@
       "Bash(sudo chown:*)",
       "Bash(cp:*)",
       "Bash(cat:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(/dev/null)",
+      "Bash(pkill:*)",
+      "mcp__desktop-commander__edit_block",
+      "mcp__desktop-commander__get_file_info",
+      "mcp__desktop-commander__execute_command",
+      "mcp__desktop-commander__get_config",
+      "mcp__desktop-commander__write_file",
+      "mcp__desktop-commander__read_file",
+      "Bash(sudo cp:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   },

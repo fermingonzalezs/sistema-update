@@ -94,6 +94,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     // Campos básicos obligatorios
     serial: '',
     modelo: '',
+    marca: '',
     
     // Precios
     precio_costo_usd: '',
@@ -114,6 +115,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     so: 'WIN11',
     pantalla: '',
     resolucion: 'FHD',
+    refresh: '',
     placa_video: '',
     vram: '',
     
@@ -170,6 +172,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
       setFormData({
         serial: '',
         modelo: '',
+        marca: '',
         precio_costo_usd: '',
         envios_repuestos: '0',
         precio_venta_usd: '',
@@ -184,6 +187,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         so: 'WIN11',
         pantalla: '',
         resolucion: 'FHD',
+        refresh: '',
         placa_video: '',
         vram: '',
         teclado_retro: 'SI',
@@ -237,6 +241,18 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             onChange={handleChange}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+          <input
+            type="text"
+            name="marca"
+            value={formData.marca}
+            onChange={handleChange}
+            placeholder="ej: Lenovo, HP, Dell"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -439,6 +455,18 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Refresh Rate</label>
+          <input
+            type="text"
+            name="refresh"
+            value={formData.refresh}
+            onChange={handleChange}
+            placeholder="ej: 60Hz, 120Hz, 144Hz"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">GPU</label>
           <input
             type="text"
@@ -598,6 +626,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
     // Campos básicos obligatorios
     serial: '',
     modelo: '',
+    marca: '',
     
     // Precios
     precio_compra_usd: '',
@@ -610,11 +639,16 @@ const FormularioCelular = ({ onAdd, loading }) => {
     
     // Características del celular
     color: '',
+    capacidad: '',
     almacenamiento: '128GB',
+    bateria: '',
     porcentaje_bateria: '',
+    ciclos: '',
+    estado: '',
     estado_estetico: 'B',
     
     // Garantía y observaciones
+    garantia: '3 meses',
     garantia_update: '3 meses',
     garantia_oficial: '',
     fallas: 'Ninguna',
@@ -718,6 +752,18 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+          <input
+            type="text"
+            name="marca"
+            value={formData.marca}
+            onChange={handleChange}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Apple, Samsung, etc."
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Condición</label>
           <select
             name="condicion"
@@ -817,6 +863,18 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Capacidad</label>
+          <input
+            type="text"
+            name="capacidad"
+            value={formData.capacidad}
+            onChange={handleChange}
+            placeholder="ej: 128GB, 256GB"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Almacenamiento</label>
           <select
             name="almacenamiento"
@@ -833,6 +891,18 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Batería</label>
+          <input
+            type="text"
+            name="bateria"
+            value={formData.bateria}
+            onChange={handleChange}
+            placeholder="ej: 85%, 3000mAh"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Porcentaje de Batería</label>
           <input
             type="text"
@@ -840,6 +910,30 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.porcentaje_bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 100%"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Ciclos de Batería</label>
+          <input
+            type="text"
+            name="ciclos"
+            value={formData.ciclos}
+            onChange={handleChange}
+            placeholder="ej: 150, 200"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Estado General</label>
+          <input
+            type="text"
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            placeholder="ej: Muy Bueno, Bueno, Regular"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
           />
         </div>
@@ -867,6 +961,18 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Garantía</label>
+          <input
+            type="text"
+            name="garantia"
+            value={formData.garantia}
+            onChange={handleChange}
+            placeholder="ej: 3 meses"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía Update</label>
           <input
             type="text"
             name="garantia_update"

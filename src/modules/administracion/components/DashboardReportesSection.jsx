@@ -298,9 +298,14 @@ const DashboardReportesSection = () => {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      // Format label if it looks like a location (contains underscore)
+      const formattedLabel = label && label.includes('_') 
+        ? label.replace('_', ' ').toUpperCase() 
+        : label;
+      
       return (
         <div className="bg-white p-3 border border-gray-300 rounded shadow">
-          <p className="font-medium">{label}</p>
+          <p className="font-medium">{formattedLabel}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }}>
               {entry.name}: {typeof entry.value === 'number' && entry.name.includes('$') 
@@ -474,7 +479,10 @@ const DashboardReportesSection = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={ventasData.ventasPorSucursal}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="sucursal" />
+                    <XAxis 
+                      dataKey="sucursal" 
+                      tickFormatter={(value) => (value || '').replace('_', ' ').toUpperCase()}
+                    />
                     <YAxis tickFormatter={(value) => `$${value}`} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="ventas" fill="#F59E0B" />

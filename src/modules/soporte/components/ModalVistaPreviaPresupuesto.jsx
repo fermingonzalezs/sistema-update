@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Download, Printer } from 'lucide-react';
-import { generarYDescargarPresupuesto } from '../../../components/PresupuestoReparacionPDF';
+import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF_NUEVO';
 
 const ModalVistaPreviaPresupuesto = ({ open, onClose, reparacion, presupuesto }) => {
   if (!open || !reparacion || !presupuesto) return null;
@@ -20,7 +20,10 @@ const ModalVistaPreviaPresupuesto = ({ open, onClose, reparacion, presupuesto })
 
   const handleDescargarPDF = async () => {
     try {
-      await generarYDescargarPresupuesto(reparacion, presupuesto);
+      const resultado = await abrirPresupuestoPDF(reparacion, presupuesto);
+      if (!resultado.success) {
+        alert('Error al generar el PDF: ' + resultado.error);
+      }
     } catch (error) {
       console.error('Error al generar PDF:', error);
       alert('Error al generar el PDF. Por favor, inténtelo de nuevo.');

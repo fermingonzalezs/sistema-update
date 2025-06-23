@@ -18,6 +18,7 @@ export { inventarioService, useInventario } from '../modules/ventas/hooks/useInv
 export { celularesService, useCelulares } from '../modules/ventas/hooks/useCelulares.js'
 export { otrosService, useOtros } from '../modules/ventas/hooks/useOtros.js'
 export { reparacionesService, useReparaciones } from '../modules/soporte/hooks/useReparaciones.js'
+export { movimientosRepuestosService, useMovimientosRepuestos } from '../modules/soporte/hooks/useMovimientosRepuestos.js'
 export { ventasService, useVentas } from '../modules/ventas/hooks/useVentas.js'
 export { useVendedores } from '../modules/ventas/hooks/useVendedores.js'
 export { clientesService, useClientes } from '../modules/ventas/hooks/useClientes.js'

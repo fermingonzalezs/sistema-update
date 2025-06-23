@@ -337,7 +337,7 @@ const ProcesarVentaSection = ({ onVenta, loading, carrito, onAddToCart }) => {
                             </div>
                             <div className="flex flex-col">
                               <span className="font-medium text-gray-500 text-xs uppercase tracking-wide">Ubicación</span>
-                              <span className="text-gray-800">{(producto.sucursal || producto.ubicacion || '').toUpperCase()}</span>
+                              <span className="text-gray-800">{(producto.sucursal || producto.ubicacion || '').replace('_', ' ').toUpperCase()}</span>
                             </div>
                           </div>
                         </div>

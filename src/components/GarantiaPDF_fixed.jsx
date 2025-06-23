@@ -18,7 +18,7 @@ Font.register({
   ]
 });
 
-// Estilos profesionales para el PDF de garantía - CORREGIDOS
+// Estilos profesionales para el PDF de garantía
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
@@ -33,8 +33,7 @@ const styles = StyleSheet.create({
   companyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 15,
+    alignItems: 'flex-start',    marginBottom: 15,
     paddingBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: '#000000',
@@ -69,8 +68,7 @@ const styles = StyleSheet.create({
   documentTitle: {
     fontSize: 14,
     fontFamily: 'Roboto',
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: 'bold',    color: '#FFFFFF',
     marginTop: 5,
     marginBottom: 3,
     letterSpacing: 1.5,
@@ -103,8 +101,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 7,
     fontFamily: 'Roboto',
-    fontWeight: 'bold',
-    color: '#000000',
+    fontWeight: 'bold',    color: '#000000',
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -137,8 +134,7 @@ const styles = StyleSheet.create({
   productTitle: {
     fontSize: 9,
     fontFamily: 'Roboto',
-    fontWeight: 'bold',
-    color: '#000000',
+    fontWeight: 'bold',    color: '#000000',
     marginBottom: 8,
     textAlign: 'center',
     letterSpacing: 1,
@@ -173,8 +169,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Sección de condiciones de garantía
-  warrantySection: {
+  // Sección de condiciones de garantía  warrantySection: {
     marginBottom: 8,
     backgroundColor: '#F9FAFB',
     padding: 8,
@@ -208,8 +203,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderWidth: 1,
     borderColor: '#000000',
-  },
-  importantTitle: {
+  },  importantTitle: {
     fontSize: 8,
     fontFamily: 'Roboto',
     fontWeight: 'bold',
@@ -243,8 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 6,
-    textAlign: 'center',
-    letterSpacing: 0.5,
+    textAlign: 'center',    letterSpacing: 0.5,
     backgroundColor: '#000000',
     padding: 3,
   },
@@ -278,8 +271,7 @@ const styles = StyleSheet.create({
   contactInfo: {
     fontSize: 7,
     fontFamily: 'Roboto',
-    fontWeight: 'bold',
-    color: '#000000',
+    fontWeight: 'bold',    color: '#000000',
     textAlign: 'center',
     lineHeight: 1.3,
     marginBottom: 5,
@@ -314,8 +306,7 @@ const GarantiaDocument = ({ data }) => {
             <Text style={styles.companyName}>UPDATE TECH WW SRL</Text>
             <Text style={styles.companyDetails}>
               Avenida 44 N° 862 1/2 Piso 4{'\n'}
-              La Plata, Buenos Aires, Argentina{'\n'}
-              Tel: 221-641-9901 • CUIT: 30-71850553-2
+              La Plata, Buenos Aires, Argentina{'\n'}              Tel: 221-641-9901 • CUIT: 30-71850553-2
             </Text>
           </View>
           <View style={styles.documentTitleSection}>
@@ -349,8 +340,7 @@ const GarantiaDocument = ({ data }) => {
               Método de pago: {data.metodoPago || 'N/A'}{'\n'}
               Total: ${data.total || '0.00'}
             </Text>
-          </View>
-        </View>
+          </View>        </View>
 
         {/* Información del producto */}
         <View style={styles.productSection}>
@@ -379,8 +369,7 @@ const GarantiaDocument = ({ data }) => {
           </Text>
           <Text style={styles.warrantyText}>
             Esta garantía NO da el derecho a exigir la sustitución de la totalidad del elemento o de sus partes, ni el reintegro del importe pagado por el producto. Tampoco cubre funcionamientos originados por causas ajenas al producto o por las fallas del producto. La garantía es única y sólo cubre defectos de fabricación; no contempla fallas debidas a mal degradación de los componentes por el uso, rotura, suciedad, errores en la operación, instalación defectuosa, etc.
-          </Text>
-          <Text style={styles.warrantyText}>
+          </Text>          <Text style={styles.warrantyText}>
             Para efectuar cualquier reclamo, el cliente deberá presentar el comprobante original de compra junto con el certificado de garantía.
           </Text>
         </View>
@@ -403,9 +392,7 @@ const GarantiaDocument = ({ data }) => {
           <Text style={styles.importantText}>
             La garantía será cubierta totalmente en nuestras oficinas. LA EMPRESA no se hará cargo de los gastos de mensajería necesarios para acercar el producto a nuestras oficinas o enviarlo nuevamente a su destino, a menos que expresamente y por escrito la empresa y el cliente acuerden esto.
           </Text>
-        </View>
-
-        {/* Causales de anulación */}
+        </View>        {/* Causales de anulación */}
         <View style={styles.cancellationSection}>
           <Text style={styles.cancellationTitle}>CAUSALES DE ANULACIÓN DE LA GARANTÍA</Text>
           <Text style={styles.cancellationItem}>
@@ -439,7 +426,7 @@ const GarantiaDocument = ({ data }) => {
           <Text style={styles.contactInfo}>
             UPDATE TECH - 221-641-9901 - LA PLATA - BUENOS AIRES - ARGENTINA{'\n'}
             UPDATE TECH - 221-359-9837 - CABA - BUENOS AIRES - ARGENTINA
-          </Text>
+          </Text>          
           <Text style={styles.footerText}>
             Email: info@updatetech.com.ar • Web: www.updatetech.com.ar
           </Text>
@@ -473,8 +460,7 @@ export const convertirVentaAGarantia = (venta, items = []) => {
       email: venta.cliente_email || '',
       dni: venta.cliente_dni || '',
       direccion: venta.cliente_direccion || ''
-    },
-    
+    },    
     vendedor: venta.vendedor || '',
     metodoPago: venta.metodo_pago || '',
     total: venta.total_venta || 0,
@@ -511,9 +497,7 @@ export const convertirProductoAGarantia = (producto, cliente = {}, datosVenta = 
     numeroSerie: producto.serial || producto.numero_serie || '',
     plazoGarantia: producto.garantia_update || producto.garantia_oficial || producto.garantia || '365'
   };
-};
-
-// Función para generar y descargar el PDF de garantía (desde venta)
+};// Función para generar y descargar el PDF de garantía (desde venta)
 export const generarYDescargarGarantia = async (venta, items = []) => {
   try {
     const garantiaData = convertirVentaAGarantia(venta, items);

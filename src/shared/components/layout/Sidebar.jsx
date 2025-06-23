@@ -181,6 +181,12 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           description: 'Inventario de repuestos'
         },
         {
+          id: 'movimientos-repuestos',
+          label: 'Movimientos Repuestos',
+          icon: Package,
+          description: 'Entradas y salidas de repuestos'
+        },
+        {
           id: 'recuento-repuestos',
           label: 'Recuento Repuestos',
           icon: Calculator,

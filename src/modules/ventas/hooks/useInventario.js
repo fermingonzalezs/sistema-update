@@ -48,6 +48,7 @@ export const inventarioService = {
         // Información básica
         serial: computadora.serial.trim(),
         modelo: computadora.modelo.trim(),
+        marca: computadora.marca || '',
         
         // Precios - asegurar que sean números
         precio_costo_usd: parseFloat(computadora.precio_costo_usd) || 0,
