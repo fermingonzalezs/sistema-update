@@ -17,7 +17,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
-    ubicacion: '',
+    sucursal: '',
     condicion: '',
     precioMax: ''
   });
@@ -68,7 +68,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
       
       // Estado y condición
       condicion: celular.condicion || 'usado',
-      ubicacion: celular.ubicacion || 'la_plata',
+      sucursal: celular.sucursal || 'la_plata',
       estado: celular.estado || '',
       estado_estetico: celular.estado_estetico || '',
       
@@ -228,7 +228,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     { value: 'en camino', label: 'EN CAMINO' },
   ];
 
-  const ubicacionOptions = [
+  const sucursalOptions = [
     { value: 'la_plata', label: 'LA PLATA' },
     { value: 'mitre', label: 'MITRE' },
     { value: 'fixcenter', label: 'FIXCENTER' },
@@ -237,21 +237,21 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
 
   // Obtener valores únicos para filtros
   const uniqueValues = useMemo(() => {
-    const ubicaciones = [...new Set(celulares.map(c => c.ubicacion).filter(Boolean))];
+    const sucursales = [...new Set(celulares.map(c => c.sucursal).filter(Boolean))];
     const condiciones = [...new Set(celulares.map(c => c.condicion).filter(Boolean))];
     
     // Calcular precio máximo para el slider
     const precios = celulares.map(c => parseFloat(c.precio_venta_usd) || 0).filter(p => p > 0);
     const precioMax = Math.max(...precios) || 1000;
     
-    return { ubicaciones, condiciones, precioMax };
+    return { sucursales, condiciones, precioMax };
   }, [celulares]);
 
   // Función para aplicar filtros y ordenamiento
   const filteredAndSortedCelulares = useMemo(() => {
     let filtered = celulares.filter(celular => {
       // Filtro por ubicación
-      if (filters.ubicacion && celular.ubicacion !== filters.ubicacion) return false;
+      if (filters.sucursal && celular.sucursal !== filters.sucursal) return false;
       
       // Filtro por condición
       if (filters.condicion && celular.condicion !== filters.condicion) return false;
@@ -285,9 +285,9 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
             valueA = new Date(a.ingreso || '1970-01-01');
             valueB = new Date(b.ingreso || '1970-01-01');
             break;
-          case 'ubicacion':
-            valueA = (a.ubicacion || '').toString();
-            valueB = (b.ubicacion || '').toString();
+          case 'sucursal':
+            valueA = (a.sucursal || '').toString();
+            valueB = (b.sucursal || '').toString();
             break;
           default:
             valueA = (a[sortBy] || '').toString();
@@ -306,7 +306,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
   // Limpiar filtros
   const clearFilters = () => {
     setFilters({
-      ubicacion: '',
+      sucursal: '',
       condicion: '',
       precioMax: ''
     });
@@ -325,7 +325,7 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
     { value: 'precio_venta_usd', label: 'Precio venta' },
     { value: 'ganancia', label: 'Ganancia' },
     { value: 'ingreso', label: 'Fecha de ingreso' },
-    { value: 'ubicacion', label: 'Ubicación' }
+    { value: 'sucursal', label: 'Ubicación' }
   ];
 
   return (
@@ -400,14 +400,14 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
               <div className="flex-shrink-0">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación</label>
                 <select
-                  value={filters.ubicacion}
-                  onChange={(e) => handleFilterChange('ubicacion', e.target.value)}
+                  value={filters.sucursal}
+                  onChange={(e) => handleFilterChange('sucursal', e.target.value)}
                   className="p-2 border border-gray-300 rounded-md text-sm min-w-[140px]"
                 >
                   <option value="">Todas</option>
-                  {uniqueValues.ubicaciones.map(ubicacion => (
-                    <option key={ubicacion} value={ubicacion}>
-                      {ubicacion.replace('_', ' ').toUpperCase()}
+                  {uniqueValues.sucursales.map(sucursal => (
+                    <option key={sucursal} value={sucursal}>
+                      {sucursal.replace('_', ' ').toUpperCase()}
                     </option>
                   ))}
                 </select>
@@ -659,18 +659,18 @@ const CelularesSection = ({ celulares, loading, error, onDelete, onUpdate }) => 
                     <td className="px-2 py-3 whitespace-nowrap text-center">
                       {isEditing(celular.id) ? (
                         <select
-                          value={editingData.ubicacion || ''}
-                          onChange={(e) => handleFieldChange('ubicacion', e.target.value)}
+                          value={editingData.sucursal || ''}
+                          onChange={(e) => handleFieldChange('sucursal', e.target.value)}
                           className="w-full p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 whitespace-nowrap"
                         >
-                          {ubicacionOptions.map(option => (
+                          {sucursalOptions.map(option => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
                           ))}
                         </select>
                       ) : (
-                        <span className="text-sm text-gray-900">{(celular.ubicacion || '').replace('_', ' ').toUpperCase()}</span>
+                        <span className="text-sm text-gray-900">{(celular.sucursal || '').replace('_', ' ').toUpperCase()}</span>
                       )}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">

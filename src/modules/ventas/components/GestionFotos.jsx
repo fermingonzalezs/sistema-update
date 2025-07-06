@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { fotosService } from '../hooks/useFotos';
 
-const GestionFotosSection = ({ computers, celulares, otros, loading, error }) => {
+const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
   // Estados para estadísticas y productos
   const [estadisticas, setEstadisticas] = useState({
     totalProductos: 0,
@@ -326,17 +326,24 @@ const GestionFotosSection = ({ computers, celulares, otros, loading, error }) =>
   return (
     <div className="p-8 space-y-8">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
-        <div>
-          <h2 className="text-4xl font-bold text-white drop-shadow">Gestión de Fotos</h2>
-          <p className="text-white/80 text-xl mt-2">Sistema de gestión de fotos para productos</p>
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Camera size={28} />
+              <div>
+                <h2 className="text-2xl font-bold">Gestión de Fotos</h2>
+                <p className="text-gray-300 mt-1">Sistema de gestión de fotos para productos</p>
+              </div>
+            </div>
+            <button
+              onClick={cargarEstadisticas}
+              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            >
+              Actualizar Stats
+            </button>
+          </div>
         </div>
-        <button
-          onClick={cargarEstadisticas}
-          className="bg-white text-green-700 px-6 py-3 rounded-lg hover:bg-green-50 transition-colors font-bold shadow text-base"
-        >
-          Actualizar Stats
-        </button>
       </div>
 
       {/* Estadísticas */}
@@ -841,4 +848,4 @@ const GestionFotosSection = ({ computers, celulares, otros, loading, error }) =>
   );
 };
 
-export default GestionFotosSection;
+export default GestionFotos;

@@ -1,10 +1,7 @@
-export { default as InventarioSection } from './InventarioSection';
-export { default as CelularesSection } from './CelularesSection';
-export { default as OtrosSection } from './OtrosSection';
-export { default as ProcesarVentaSection } from './ProcesarVentaSection';
-export { default as ClientesSection } from './ClientesSection';
+export { default as Clientes } from './Clientes';
 export { default as AgregarOtroSection } from './AgregarOtroSection';
 export { default as AgregarSection } from './AgregarSection';
 export { default as AgregarCelularSection } from './AgregarCelularSection';
-export { default as CopysSection } from './CopysSection';
-export { default as GestionFotosSection } from './GestionFotosSection'; 
+export { default as Listas } from './Listas';
+export { default as GestionFotos } from './GestionFotos';
+export { default as Catalogo } from './Catalogo'; 

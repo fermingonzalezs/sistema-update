@@ -82,28 +82,9 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
       items: [
         {
           id: 'inventario',
-          label: 'Notebooks',
-          icon: Package,
-          description: 'Stock de notebooks'
-        },
-        {
-          id: 'celulares',
-          label: 'Celulares',
-          icon: Smartphone,
-          description: 'Stock de celulares'
-        },
-        {
-          id: 'otros',
-          label: 'Otros Productos',
-          icon: Box,
-          description: 'Stock de otros'
-        },
-        {
-          id: 'procesar-venta',
-          label: 'Venta',
-          icon: ShoppingCart,
-          description: 'Carrito de ventas',
-          badge: cantidadCarrito > 0 ? cantidadCarrito : null
+          label: 'Catálogo',
+          icon: List,
+          description: 'Listado total de productos'
         },
         {
           id: 'gestion-fotos',
@@ -113,9 +94,9 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
         },
         {
           id: 'copys',
-          label: 'Generador Copys',
+          label: 'Listas',
           icon: FileText,
-          description: 'Copys para redes sociales'
+          description: 'Generador de listas'
         },
         {
           id: 'clientes',
@@ -235,6 +216,12 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           label: 'Recuento Stock',
           icon: Package,
           description: 'Contar inventario'
+        },
+        {
+          id: 'cuentas-corrientes',
+          label: 'Cuentas Corrientes',
+          icon: CreditCard,
+          description: 'Deudas y saldos'
         }
       ]
     }, {
@@ -254,7 +241,6 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           icon: FileText,
           description: 'Asientos contables'
         },
-        // Eliminado Reporte Movimientos
         {
           id: 'libro-mayor',
           label: 'Libro Mayor',
@@ -268,19 +254,16 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           description: 'Verificar efectivo'
         },
         {
-          id: 'gastos-operativos',
-          name: 'Gastos Operativos',
-          label: 'Gastos operativos',
-          description: 'Registro de gastos',
-          icon: DollarSign,
-          color: 'text-orange-600',
-          bgColor: 'bg-orange-100'
+          id: 'estado-situacion-patrimonial',
+          label: 'Estado Situación Patrimonial',
+          icon: BarChart3,
+          description: 'Balance patrimonial'
         },
         {
-          id: 'cuentas-corrientes',
-          label: 'Cuentas Corrientes',
-          icon: CreditCard,
-          description: 'Deudas y saldos'
+          id: 'estado-resultados',
+          label: 'Estado de Resultados',
+          icon: TrendingUp,
+          description: 'Ingresos y gastos'
         }
       ]
     }

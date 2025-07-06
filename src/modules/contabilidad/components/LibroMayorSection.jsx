@@ -283,12 +283,12 @@ const LibroMayorSection = () => {
   const getTipoColor = (codigo) => {
     const primerDigito = codigo.charAt(0);
     switch (primerDigito) {
-      case '1': return 'text-blue-600 bg-blue-50';
-      case '2': return 'text-red-600 bg-red-50';
-      case '3': return 'text-purple-600 bg-purple-50';
-      case '4': return 'text-green-600 bg-green-50';
-      case '5': return 'text-orange-600 bg-orange-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case '1': return 'text-gray-800 bg-gray-100 border-gray-400';
+      case '2': return 'text-gray-900 bg-gray-200 border-gray-500';
+      case '3': return 'text-black bg-gray-300 border-gray-600';
+      case '4': return 'text-black bg-white border-gray-700';
+      case '5': return 'text-gray-700 bg-gray-50 border-gray-300';
+      default: return 'text-gray-600 bg-gray-100 border-gray-300';
     }
   };
 
@@ -325,18 +325,18 @@ const LibroMayorSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <BookOpen size={28} />
               <div>
-                <h2 className="text-4xl font-bold">Libro Mayor</h2>
-                <p className="text-purple-100 mt-1">Análisis detallado por cuenta contable</p>
+                <h2 className="text-2xl font-bold">Libro Mayor</h2>
+                <p className="text-gray-300 mt-1">Análisis detallado por cuenta contable</p>
               </div>
             </div>
             {cuentaSeleccionada && (
               <div className="text-right">
-                <div className="text-purple-100 text-sm">Cuenta seleccionada</div>
+                <div className="text-gray-300 text-sm">Cuenta seleccionada</div>
                 <div className="font-bold text-lg">
                   {cuentaSeleccionada.codigo} - {cuentaSeleccionada.nombre}
                 </div>
@@ -357,15 +357,15 @@ const LibroMayorSection = () => {
                   <button
                     key={cuenta.id}
                     onClick={() => seleccionarCuenta(cuenta)}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors text-left"
+                    className="p-4 border border-gray-300 rounded-lg hover:border-gray-600 hover:bg-gray-100 transition-colors text-left"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="flex items-center space-x-2 mb-2">
-                          <code className="text-sm text-purple-600 font-mono bg-purple-100 px-2 py-1 rounded">
+                          <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
                             {cuenta.codigo}
                           </code>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getTipoColor(cuenta.codigo)}`}>
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getTipoColor(cuenta.codigo)}`}>
                             {getTipoTexto(cuenta.codigo)}
                           </span>
                         </div>
@@ -387,7 +387,7 @@ const LibroMayorSection = () => {
         {cuentaSeleccionada && (
           <>
             {/* Filtros y botón volver */}
-            <div className="bg-gray-50 p-4 border-b">
+            <div className="bg-gray-100 p-4 border-b border-gray-300">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <button
                   onClick={() => {
@@ -395,7 +395,7 @@ const LibroMayorSection = () => {
                     setLibroMayor(null);
                     setEstadisticas(null);
                   }}
-                  className="flex items-center space-x-2 text-purple-600 hover:text-purple-800"
+                  className="flex items-center space-x-2 text-gray-800 hover:text-black"
                 >
                   <ChevronLeft size={16} />
                   <span>Volver a lista de cuentas</span>
@@ -454,10 +454,10 @@ const LibroMayorSection = () => {
                   </div>
                   <div className="bg-white p-4 rounded-lg border">
                     <div className="flex items-center space-x-2">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
+                      <TrendingUp className="w-5 h-5 text-gray-700" />
                       <div>
                         <div className="text-sm text-gray-600">Saldo Actual</div>
-                        <div className={`text-xl font-bold ${estadisticas.saldoActual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`text-xl font-bold ${estadisticas.saldoActual >= 0 ? 'text-gray-800' : 'text-gray-800'}`}>
                           {formatearMoneda(Math.abs(estadisticas.saldoActual))}
                         </div>
                       </div>

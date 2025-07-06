@@ -4,7 +4,7 @@ import {
   Check, FileText, Edit2, Save, X, Filter, Zap
 } from 'lucide-react';
 
-const CopysSection = ({ computers, celulares, otros, loading, error }) => {
+const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [tipoActivo, setTipoActivo] = useState('computadora');
   const [busqueda, setBusqueda] = useState('');
   const [productosConCopy, setProductosConCopy] = useState([]);
@@ -482,10 +482,17 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
-        <div>
-          <h2 className="text-4xl font-bold text-white drop-shadow">Generador de Copys</h2>
-          <p className="text-white/80 text-xl mt-2">Genera textos para publicar productos en redes</p>
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <FileText size={28} />
+              <div>
+                <h2 className="text-2xl font-bold">Listas</h2>
+                <p className="text-gray-300 mt-1">Genera textos para publicar productos en redes</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -916,4 +923,4 @@ const CopysSection = ({ computers, celulares, otros, loading, error }) => {
   );
 };
 
-export default CopysSection;
+export default Listas;

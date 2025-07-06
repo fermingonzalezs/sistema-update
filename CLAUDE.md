@@ -80,12 +80,28 @@ src/
 ### 2. Contabilidad (Accounting Module)
 **Location**: `src/modules/contabilidad/`
 
+**Key Components**:
+- `PlanCuentasSection.jsx` - Chart of Accounts management
+- `LibroDiarioSection.jsx` - General Journal entries
+- `EstadoSituacionPatrimonialSection.jsx` - Balance Sheet reporting
+- `EstadoResultadosSection.jsx` - Income Statement reporting
+- `GastosOperativosSection.jsx` - Operating Expenses tracking
+- `CuentasCorrientesSection.jsx` - Current Accounts management
+
 **Key Features**:
 - Plan de Cuentas (Chart of Accounts)
 - Libro Diario (General Journal)
+- Estado de Situación Patrimonial (Balance Sheet)
+- Estado de Resultados (Income Statement)  
 - Gastos Operativos (Operating Expenses)
 - Cuentas Corrientes (Current Accounts)
 - Conciliación de Caja (Cash Reconciliation)
+
+**Custom Hooks**:
+- `useEstadoSituacionPatrimonial.js` - Balance Sheet data processing
+- `useEstadoResultados.js` - Income Statement calculations
+- `usePlanCuentas.js` - Chart of Accounts operations
+- `useLibroDiario.js` - Journal entry management
 
 ### 3. Soporte (Support Module)
 **Location**: `src/modules/soporte/`
@@ -158,8 +174,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - `ventas` - Sales transactions
 - `clientes` - Customer information
 - `plan_cuentas` - Chart of accounts
+- `asientos_contables` - Accounting journal entries
+- `movimientos_contables` - Detailed accounting movements
 - `reparaciones` - Repair records
 - `importaciones` - Import tracking
+- `gastos_operativos` - Operating expenses
+- `cuentas_corrientes` - Current accounts
 
 ## Key Business Workflows
 
@@ -191,6 +211,38 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - Implement proper error handling
 - Use TypeScript-style prop validation
 - Maintain consistent naming conventions
+
+### UI/UX Design Standards
+The application follows a professional, corporate aesthetic with emphasis on clarity and functionality:
+
+- **Color Palette**: Predominantly monochromatic scheme using black, white, and various shades of gray
+- **Typography**: Clean, readable fonts with proper hierarchy and contrast
+- **Layout**: Minimalist approach with ample whitespace and structured grid systems
+- **Visual Elements**: Subtle borders, clean lines, and understated shadows
+- **Data Presentation**: Tabular formats with alternating row colors for enhanced readability
+- **Interactive Elements**: Subtle hover effects and clear visual feedback
+- **Professional Appearance**: Corporate-grade presentation suitable for business environments
+
+#### Header Standards
+All section headers must follow these strict guidelines:
+- **Background**: `bg-gradient-to-r from-gray-900 to-black` (dark gray to black gradient)
+- **Text Color**: `text-white` for main title and `text-gray-300` for subtitles
+- **Font Size**: Main title must be H2 with `text-2xl` consistently across all sections
+- **Layout**: Left-aligned title with optional right-aligned controls/info
+- **Padding**: Standard `p-6` for header content
+- **No Exceptions**: All headers in all modules must follow this exact pattern
+
+The design prioritizes functionality over decoration, ensuring that financial and business data is presented clearly and professionally without visual distractions.
+
+### File Naming Conventions
+- **Component Files**: Must match their corresponding section names exactly for easy identification
+- **Examples**:
+  - `EstadoSituacionPatrimonialSection.jsx` for "Estado de Situación Patrimonial"
+  - `EstadoResultadosSection.jsx` for "Estado de Resultados"
+  - `LibroDiarioSection.jsx` for "Libro Diario"
+  - `PlanCuentasSection.jsx` for "Plan de Cuentas"
+- **Hook Files**: Follow the pattern `use[SectionName].js`
+- **Route Consistency**: File names should reflect the exact section titles used in navigation
 
 ### Component Structure
 ```javascript
@@ -249,10 +301,19 @@ export const useModuleName = () => {
 }
 ```
 
+### Data Consistency Standards
+- **Currency Formatting**: Always display amounts with proper thousand separators and decimal places
+- **Date Formatting**: Use consistent date formats throughout (DD/MM/YYYY for displays, YYYY-MM-DD for database)
+- **Account Codes**: Follow hierarchical numbering system (1.xx.xxx for Assets, 2.xx.xxx for Liabilities, etc.)
+- **Transaction Validation**: Ensure all accounting entries maintain double-entry bookkeeping principles
+- **Error Handling**: Provide clear, user-friendly error messages for business rule violations
+
 ### Testing Approach
 - Use React Testing Library for component tests
 - Test custom hooks with @testing-library/react-hooks
 - Mock Supabase client for integration tests
+- Validate accounting calculations and business rules
+- Test currency conversion accuracy
 - Run tests with: `npm test`
 
 ## Development Environment

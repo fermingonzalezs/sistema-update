@@ -16,7 +16,7 @@ import {
 import { useClientes } from '../hooks/useClientes.js';
 import ClienteModal from './ClienteModal';
 
-const ClientesSection = () => {
+const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -104,10 +104,24 @@ const ClientesSection = () => {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-green-700 to-green-500 rounded-2xl p-8 flex items-center justify-between shadow-lg">
-        <div>
-          <h2 className="text-4xl font-bold text-white drop-shadow">Gestión de Clientes</h2>
-          <p className="text-white/80 text-xl mt-2">Administra y consulta la base de clientes</p>
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Users size={28} />
+              <div>
+                <h2 className="text-2xl font-bold">Clientes</h2>
+                <p className="text-gray-300 mt-1">Administra y consulta la base de clientes</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
+            >
+              <Plus size={18} />
+              Nuevo Cliente
+            </button>
+          </div>
         </div>
       </div>
 
@@ -284,4 +298,4 @@ const ClientesSection = () => {
   );
 };
 
-export default ClientesSection;
+export default Clientes;

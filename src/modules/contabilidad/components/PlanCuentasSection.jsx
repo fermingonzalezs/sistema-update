@@ -389,18 +389,18 @@ const PlanCuentasSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <BookOpen size={28} />
               <div>
-                <h2 className="text-4xl font-bold">Plan de Cuentas</h2>
-                <p className="text-blue-100 mt-1">Estructura contable de la empresa</p>
+                <h2 className="text-2xl font-bold">Plan de Cuentas</h2>
+                <p className="text-gray-300 mt-1">Estructura contable de la empresa</p>
               </div>
             </div>
             <button
               onClick={nuevaCuenta}
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 flex items-center gap-2 font-medium transition-colors"
+              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               Nueva Cuenta
@@ -410,10 +410,10 @@ const PlanCuentasSection = () => {
 
         {/* Estado de error */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 m-6">
+          <div className="bg-gray-100 border-l-4 border-gray-800 p-4 m-6">
             <div className="flex items-center">
-              <AlertCircle className="text-red-600 mr-2" size={20} />
-              <span className="text-red-800">{error}</span>
+              <AlertCircle className="text-gray-800 mr-2" size={20} />
+              <span className="text-gray-900">{error}</span>
             </div>
           </div>
         )}
@@ -422,18 +422,18 @@ const PlanCuentasSection = () => {
         <div className="divide-y divide-gray-100">
           {cuentas.length > 0 ? (
             cuentas.map(cuenta => (
-              <div key={cuenta.id} className="flex items-center justify-between p-4 hover:bg-gray-50">
+              <div key={cuenta.id} className="flex items-center justify-between p-4 hover:bg-gray-50 border-b border-gray-200">
                 <div className="flex items-center space-x-4">
-                  <code className="text-sm font-mono text-blue-700 bg-blue-100 px-3 py-1 rounded min-w-[100px]">
+                  <code className="text-sm font-mono text-black bg-gray-200 px-3 py-1 rounded min-w-[100px] border">
                     {cuenta.codigo}
                   </code>
                   <span className="font-medium text-gray-900">{cuenta.nombre}</span>
-                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                    cuenta.tipo === 'activo' ? 'bg-green-100 text-green-800' :
-                    cuenta.tipo === 'pasivo' ? 'bg-red-100 text-red-800' :
-                    cuenta.tipo === 'patrimonio' ? 'bg-purple-100 text-purple-800' :
-                    cuenta.tipo === 'ingreso' ? 'bg-blue-100 text-blue-800' :
-                    'bg-orange-100 text-orange-800'
+                  <span className={`px-2 py-1 text-xs rounded font-medium border ${
+                    cuenta.tipo === 'activo' ? 'bg-gray-100 text-gray-800 border-gray-400' :
+                    cuenta.tipo === 'pasivo' ? 'bg-gray-200 text-gray-900 border-gray-500' :
+                    cuenta.tipo === 'patrimonio' ? 'bg-gray-300 text-black border-gray-600' :
+                    cuenta.tipo === 'ingreso' ? 'bg-white text-black border-gray-700' :
+                    'bg-gray-50 text-gray-700 border-gray-300'
                   }`}>
                     {cuenta.tipo.toUpperCase()}
                   </span>
@@ -442,14 +442,14 @@ const PlanCuentasSection = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => editarCuenta(cuenta)}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
                     title="Editar cuenta"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => confirmarEliminar(cuenta)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors"
+                    className="p-2 text-gray-800 hover:bg-gray-300 rounded transition-colors border border-gray-500"
                     title="Eliminar cuenta"
                   >
                     <Trash2 size={16} />
@@ -466,7 +466,7 @@ const PlanCuentasSection = () => {
               </p>
               <button
                 onClick={nuevaCuenta}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-black"
               >
                 Crear primera cuenta
               </button>
@@ -476,8 +476,8 @@ const PlanCuentasSection = () => {
 
         {/* Estadísticas */}
         {cuentas.length > 0 && (
-          <div className="bg-gray-50 p-4 border-t">
-            <div className="text-sm text-gray-600 text-center">
+          <div className="bg-gray-100 p-4 border-t border-gray-300">
+            <div className="text-sm text-gray-800 text-center">
               Total de cuentas: <span className="font-semibold">{cuentas.length}</span>
             </div>
           </div>
@@ -508,7 +508,7 @@ const PlanCuentasSection = () => {
                       tipo: grupo ? grupo.tipo : 'activo'
                     });
                   }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar grupo...</option>
                   {grupos.map(grupo => (
@@ -520,18 +520,18 @@ const PlanCuentasSection = () => {
               </div>
 
               {formData.grupo && (
-                <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="bg-gray-100 p-3 rounded-lg border border-gray-300">
                   <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                      grupoSeleccionado?.tipo === 'activo' ? 'bg-green-100 text-green-800' :
-                      grupoSeleccionado?.tipo === 'pasivo' ? 'bg-red-100 text-red-800' :
-                      grupoSeleccionado?.tipo === 'patrimonio' ? 'bg-purple-100 text-purple-800' :
-                      grupoSeleccionado?.tipo === 'ingreso' ? 'bg-blue-100 text-blue-800' :
-                      'bg-orange-100 text-orange-800'
+                    <span className={`px-2 py-1 text-xs rounded font-medium border ${
+                      grupoSeleccionado?.tipo === 'activo' ? 'bg-gray-200 text-gray-800 border-gray-400' :
+                      grupoSeleccionado?.tipo === 'pasivo' ? 'bg-gray-300 text-gray-900 border-gray-500' :
+                      grupoSeleccionado?.tipo === 'patrimonio' ? 'bg-gray-400 text-black border-gray-600' :
+                      grupoSeleccionado?.tipo === 'ingreso' ? 'bg-white text-black border-gray-700' :
+                      'bg-gray-100 text-gray-700 border-gray-300'
                     }`}>
                       {grupoSeleccionado?.tipo.toUpperCase()}
                     </span>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-700">
                       Seleccionaste: <strong>{grupoSeleccionado?.nombre}</strong>
                     </span>
                   </div>
@@ -550,7 +550,7 @@ const PlanCuentasSection = () => {
                     type="text"
                     value={formData.subcodigo}
                     onChange={(e) => setFormData({...formData, subcodigo: e.target.value})}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     placeholder="01, 02, 03..."
                     disabled={!formData.grupo}
                   />
@@ -570,7 +570,7 @@ const PlanCuentasSection = () => {
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Caja, Banco, Proveedores..."
                 />
               </div>
@@ -580,11 +580,11 @@ const PlanCuentasSection = () => {
                   Tipo (automático)
                 </label>
                 <div className={`w-full px-3 py-2 rounded-lg border-2 border-dashed ${
-                  grupoSeleccionado?.tipo === 'activo' ? 'border-green-200 bg-green-50' :
-                  grupoSeleccionado?.tipo === 'pasivo' ? 'border-red-200 bg-red-50' :
-                  grupoSeleccionado?.tipo === 'patrimonio' ? 'border-purple-200 bg-purple-50' :
-                  grupoSeleccionado?.tipo === 'ingreso' ? 'border-blue-200 bg-blue-50' :
-                  'border-orange-200 bg-orange-50'
+                  grupoSeleccionado?.tipo === 'activo' ? 'border-gray-300 bg-gray-100' :
+                  grupoSeleccionado?.tipo === 'pasivo' ? 'border-gray-400 bg-gray-200' :
+                  grupoSeleccionado?.tipo === 'patrimonio' ? 'border-gray-500 bg-gray-300' :
+                  grupoSeleccionado?.tipo === 'ingreso' ? 'border-gray-600 bg-white' :
+                  'border-gray-200 bg-gray-50'
                 }`}>
                   <span className="text-sm font-medium text-gray-700">
                     {grupoSeleccionado ? grupoSeleccionado.tipo.toUpperCase() : 'Selecciona un grupo primero'}
@@ -599,14 +599,14 @@ const PlanCuentasSection = () => {
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-gray-700 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <X size={16} className="inline mr-2" />
                 Cancelar
               </button>
               <button
                 onClick={guardarCuenta}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-black transition-colors"
               >
                 <Save size={16} className="inline mr-2" />
                 Guardar

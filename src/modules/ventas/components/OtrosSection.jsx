@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Trash2, Box, ShoppingCart, X } from 'lucide-react';
+import { Trash2, Box, ShoppingCart, X, Eye } from 'lucide-react';
 import FotoProductoAvanzado from '../../../components/FotoProductoAvanzado';
+import OtrosModal from './OtrosModal';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 // Función para formatear precios en USD sin decimales con prefijo U$
@@ -62,6 +63,10 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState({});
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+  
+  // Estados para el modal
+  const [selectedProducto, setSelectedProducto] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Estados para filtros y ordenamiento
   const [filters, setFilters] = useState({
@@ -95,8 +100,8 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
     console.log('📝 [Otros] Iniciando edición completa:', producto.id);
     setEditingId(producto.id);
     setEditingData({
-      condicion: producto.condicion || 'nuevo',
-      categoria: producto.categoria || 'gadgets',
+      condicion: producto.condicion || 'NUEVO',
+      categoria: producto.categoria || 'audio',
       precio_venta_usd: producto.precio_venta_usd || 0,
       garantia: producto.garantia || '',
       fallas: producto.fallas || 'Ninguna'
@@ -139,28 +144,27 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
 
   const isEditing = (productoId) => editingId === productoId;
 
+  // Funciones para el modal
+  const handleOpenModal = (producto) => {
+    setSelectedProducto(producto);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProducto(null);
+    setIsModalOpen(false);
+  };
+
 
   // Devuelve una clase de color según la condición del producto
   const getOtroCondicionColor = (condicion) => {
-    switch ((condicion || '').toLowerCase()) {
-      case 'nuevo':
+    switch ((condicion || '').toUpperCase()) {
+      case 'NUEVO':
         return 'bg-green-200 border-green-400 text-green-900';
-      case 'usado':
+      case 'USADO':
         return 'bg-blue-200 border-blue-400 text-blue-900';
-      case 'reparacion':
+      case 'REACONDICIONADO':
         return 'bg-yellow-200 border-yellow-400 text-yellow-900';
-      case 'reservado':
-        return 'bg-purple-200 border-purple-400 text-purple-900';
-      case 'prestado':
-        return 'bg-orange-200 border-orange-400 text-orange-900';
-      case 'uso oficina':
-        return 'bg-cyan-200 border-cyan-400 text-cyan-900';
-      case 'sin reparacion':
-        return 'bg-red-200 border-red-400 text-red-900';
-      case 'perdido':
-        return 'bg-slate-200 border-slate-400 text-slate-900';
-      case 'en camino':
-        return 'bg-indigo-200 border-indigo-400 text-indigo-900';
       default:
         return 'bg-gray-100 border-gray-300 text-gray-700';
     }
@@ -168,36 +172,34 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
 
 
   const condicionOptions = [
-    { value: 'nuevo', label: 'NUEVO' },
-    { value: 'usado', label: 'USADO' },
-    { value: 'reparacion', label: 'REPARACION' },
-    { value: 'reservado', label: 'RESERVADO' },
-    { value: 'prestado', label: 'PRESTADO' },
-    { value: 'uso oficina', label: 'USO OFICINA' },
-    { value: 'sin reparacion', label: 'SIN REPARACION' },
-    { value: 'perdido', label: 'PERDIDO' },
-    { value: 'en camino', label: 'EN CAMINO' },
+    { value: 'NUEVO', label: 'NUEVO' },
+    { value: 'USADO', label: 'USADO' },
+    { value: 'REACONDICIONADO', label: 'REACONDICIONADO' }
   ];
 
   const categoriaOptions = [
-    { value: 'fundas_templados', label: 'FUNDAS/TEMPLADOS' },
-    { value: 'teclados_mouse', label: 'TECLADOS/MOUSE' },
-    { value: 'monitores', label: 'MONITORES' },
-    { value: 'placas_video', label: 'PLACAS DE VIDEO' },
-    { value: 'gadgets', label: 'GADGETS' },
-    { value: 'cargadores', label: 'CARGADORES' },
-    { value: 'motherboard', label: 'MOTHERBOARD' }
+    { value: 'audio', label: 'AUDIO' },
+    { value: 'apple', label: 'APPLE' },
+    { value: 'tablets', label: 'TABLETS' },
+    { value: 'casa', label: 'CASA' },
+    { value: 'teclados', label: 'TECLADOS' },
+    { value: 'mouse', label: 'MOUSE' },
+    { value: 'placas-video', label: 'PLACAS DE VIDEO' },
+    { value: 'procesadores', label: 'PROCESADORES' },
+    { value: 'fundas', label: 'FUNDAS' }
   ];
 
   const getCategoriaColor = (categoria) => {
     switch (categoria) {
-      case 'fundas_templados': return 'bg-blue-100 text-blue-800';
-      case 'teclados_mouse': return 'bg-green-100 text-green-800';
-      case 'monitores': return 'bg-purple-100 text-purple-800';
-      case 'placas_video': return 'bg-red-100 text-red-800';
-      case 'gadgets': return 'bg-yellow-100 text-yellow-800';
-      case 'cargadores': return 'bg-orange-100 text-orange-800';
-      case 'motherboard': return 'bg-gray-100 text-gray-800';
+      case 'audio': return 'bg-blue-100 text-blue-800';
+      case 'apple': return 'bg-gray-100 text-gray-800';
+      case 'tablets': return 'bg-purple-100 text-purple-800';
+      case 'casa': return 'bg-green-100 text-green-800';
+      case 'teclados': return 'bg-yellow-100 text-yellow-800';
+      case 'mouse': return 'bg-orange-100 text-orange-800';
+      case 'placas-video': return 'bg-red-100 text-red-800';
+      case 'procesadores': return 'bg-indigo-100 text-indigo-800';
+      case 'fundas': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -471,6 +473,13 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
                         ) : (
                           <>
                             <button
+                              onClick={() => handleOpenModal(producto)}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                              title="Ver detalles"
+                            >
+                              Ver
+                            </button>
+                            <button
                               onClick={() => handleEdit(producto)}
                               className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
                               title="Editar"
@@ -610,6 +619,14 @@ const OtrosSection = ({ otros, loading, error, onDelete, onAddToCart, onUpdate }
           </div>
         </>
       )}
+      
+      {/* Modal para mostrar detalles del producto */}
+      <OtrosModal
+        producto={selectedProducto}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        cotizacionDolar={cotizacionDolar}
+      />
     </div>
   );
 };

@@ -10,16 +10,13 @@ import {
   HistorialImportacionesSection
 } from './modules/importaciones/components';
 import { 
-  InventarioSection,
-  CelularesSection,
-  OtrosSection,
-  ProcesarVentaSection,
-  ClientesSection,
+  Clientes,
   AgregarOtroSection,
   AgregarSection,
   AgregarCelularSection,
-  CopysSection,
-  GestionFotosSection
+  Listas,
+  GestionFotos,
+  Catalogo
 } from './modules/ventas/components';
 import {
   CargaEquiposUnificada,
@@ -34,16 +31,16 @@ import {
   ComisionesSection,
   DashboardReportesSection,
   RecuentoStockSection,
-  GarantiasSection
+  GarantiasSection,
+  CuentasCorrientesSection
 } from './modules/administracion/components';
 import {
   PlanCuentasSection,
   LibroDiarioSection,
-  ReporteMovimientosSection,
   LibroMayorSection,
   ConciliacionCajaSection,
-  GastosOperativosSection,
-  CuentasCorrientesSection
+  EstadoSituacionPatrimonialSection,
+  EstadoResultadosSection
 } from './modules/contabilidad/components';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
@@ -52,9 +49,8 @@ import { useCelulares } from './modules/ventas/hooks/useCelulares';
 import { useOtros } from './modules/ventas/hooks/useOtros';
 import { useVentas } from './modules/ventas/hooks/useVentas';
 import { useCarrito } from './lib/supabase'; // Este se queda en supabase.js
-import { useGastosOperativos } from './modules/contabilidad/hooks/useGastosOperativos';
 import { useClientes } from './modules/ventas/hooks/useClientes';
-import { useCuentasCorrientes } from './modules/contabilidad/hooks/useCuentasCorrientes';
+// import { useCuentasCorrientes } from './modules/administracion/hooks/useCuentasCorrientes';
 import { useReparaciones } from './modules/soporte/hooks/useReparaciones';
 
 // Componente principal protegido
@@ -117,16 +113,6 @@ const AppContent = () => {
    calcularCantidadTotal
  } = useCarrito();
 
- // 💸 Hook para gastos operativos
- const {
-   gastos,
-   loading: gastosLoading,
-   error: gastosError,
-   fetchGastos,
-   crearGasto,
-   actualizarGasto,
-   eliminarGasto
- } = useGastosOperativos();
 
  // 👥 Hook para clientes
  const {
@@ -136,13 +122,13 @@ const AppContent = () => {
    fetchClientes
  } = useClientes();
 
- // 🏦 Hook para cuentas corrientes (NUEVO)
- const {
-   registrarVentaFiado,
-   fetchSaldos: fetchSaldosCuentasCorrientes,
-   loading: cuentasCorrientesLoading,
-   error: cuentasCorrientesError
- } = useCuentasCorrientes();
+ // 🏦 Hook para cuentas corrientes (NUEVO) - TEMPORALMENTE COMENTADO
+ // const {
+ //   registrarVentaFiado,
+ //   fetchSaldos: fetchSaldosCuentasCorrientes,
+ //   loading: cuentasCorrientesLoading,
+ //   error: cuentasCorrientesError
+ // } = useCuentasCorrientes();
 
  // ⚡ Inicialización al cargar la aplicación
  useEffect(() => {
@@ -154,9 +140,9 @@ const AppContent = () => {
      fetchCelulares();
      fetchOtros();
      fetchVentas();
-     fetchGastos();
+     // fetchGastos(); // ELIMINADO
      fetchClientes();
-     fetchSaldosCuentasCorrientes(); // ✅ NUEVO
+     // fetchSaldosCuentasCorrientes(); // ✅ NUEVO - COMENTADO TEMPORALMENTE
 
      console.log('✅ Hooks de datos inicializados');
    }
@@ -251,7 +237,7 @@ const AppContent = () => {
        console.log('✅ Movimiento registrado en cuenta corriente');
        
        // Actualizar saldos de cuentas corrientes
-       await fetchSaldosCuentasCorrientes();
+       // await fetchSaldosCuentasCorrientes();
      }
 
      // Actualizar todos los inventarios (como siempre)
@@ -329,13 +315,6 @@ const AppContent = () => {
          count: ventas.length,
          type: 'ventas'
        };
-     case 'gastos-operativos':
-       return {
-         loading: gastosLoading,
-         error: gastosError,
-         count: gastos.length,
-         type: 'gastos operativos'
-       };
      case 'clientes':
        return {
          loading: clientesLoading,
@@ -345,10 +324,24 @@ const AppContent = () => {
        };
      case 'cuentas-corrientes': // ✅ NUEVO
        return {
-         loading: cuentasCorrientesLoading,
-         error: cuentasCorrientesError,
+         loading: false, // cuentasCorrientesLoading,
+         error: null, // cuentasCorrientesError,
          count: 0, // Se calculará dinámicamente
          type: 'cuentas corrientes'
+       };
+     case 'estado-situacion-patrimonial':
+       return {
+         loading: false,
+         error: null,
+         count: 0,
+         type: 'estado situación patrimonial'
+       };
+     case 'estado-resultados':
+       return {
+         loading: false,
+         error: null,
+         count: 0,
+         type: 'estado de resultados'
        };
      case 'carga-equipos':
        // Para carga de equipos, mostrar un estado combinado
@@ -410,14 +403,17 @@ const AppContent = () => {
      case 'ventas':
        fetchVentas();
        break;
-     case 'gastos-operativos':
-       fetchGastos();
-       break;
      case 'clientes':
        fetchClientes();
        break;
      case 'cuentas-corrientes': // ✅ NUEVO
-       fetchSaldosCuentasCorrientes();
+       // fetchSaldosCuentasCorrientes();
+       break;
+     case 'estado-situacion-patrimonial':
+       // No requiere fetch específico
+       break;
+     case 'estado-resultados':
+       // No requiere fetch específico
        break;
      case 'carga-equipos':
        fetchComputers();
@@ -465,16 +461,11 @@ const AppContent = () => {
          {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
            <HistorialImportacionesSection />
          )}
-         {activeSection === 'inventario' && hasAccess('inventario') && (
-           <InventarioSection
-             computers={computers}
-             loading={computersLoading}
-             error={computersError}
-             onDelete={handleDeleteComputer}
-             onAddToCart={handleAddToCart}
-             onUpdate={updateComputer}
-           />
+         {/* 📋 CATÁLOGO UNIFICADO */}
+         {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
+           <Catalogo onAddToCart={handleAddToCart} />
          )}
+
 
          {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
            <CargaEquiposUnificada
@@ -489,36 +480,8 @@ const AppContent = () => {
            <ReparacionesMain />
          )}
 
-         {activeSection === 'celulares' && hasAccess('celulares') && (
-           <CelularesSection
-             celulares={celulares}
-             loading={celularesLoading}
-             error={celularesError}
-             onDelete={handleDeleteCelular}
-             onAddToCart={handleAddToCart}
-             onUpdate={updateCelular}
-           />
-         )}
 
-         {activeSection === 'otros' && hasAccess('otros') && (
-           <OtrosSection
-             otros={otros}
-             loading={otrosLoading}
-             error={otrosError}
-             onDelete={handleDeleteOtro}
-             onAddToCart={handleAddToCart}
-             onUpdate={updateOtro}
-           />
-         )}
 
-         {activeSection === 'procesar-venta' && hasAccess('procesar-venta') && (
-           <ProcesarVentaSection
-             onVenta={handleProcesarVenta}
-             loading={ventasLoading}
-             carrito={carrito}
-             onAddToCart={handleAddToCart}
-           />
-         )}
 
          {activeSection === 'ventas' && hasAccess('ventas') && (
            <VentasSection
@@ -531,7 +494,7 @@ const AppContent = () => {
 
          {/* 👥 SECCIÓN DE CLIENTES */}
          {activeSection === 'clientes' && hasAccess('clientes') && (
-           <ClientesSection />
+           <Clientes />
          )}
 
          {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
@@ -540,7 +503,7 @@ const AppContent = () => {
          )}
 
          {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
-           <GestionFotosSection
+           <GestionFotos
              computers={computers}
              celulares={celulares}
              otros={otros}
@@ -559,9 +522,7 @@ const AppContent = () => {
            <LibroDiarioSection />
          )}
 
-         {activeSection === 'reporte-movimientos' && hasAccess('reporte-movimientos') && (
-           <ReporteMovimientosSection />
-         )}
+         {/* ELIMINADO: reporte-movimientos ya no existe */}
 
          {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
            <LibroMayorSection />
@@ -571,9 +532,12 @@ const AppContent = () => {
            <ConciliacionCajaSection />
          )}
 
-         {/* 💰 SECCIÓN DE GASTOS OPERATIVOS */}
-         {activeSection === 'gastos-operativos' && hasAccess('gastos-operativos') && (
-           <GastosOperativosSection />
+         {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
+           <EstadoSituacionPatrimonialSection />
+         )}
+
+         {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
+           <EstadoResultadosSection />
          )}
 
          {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
@@ -614,7 +578,7 @@ const AppContent = () => {
          )}
 
          {activeSection === 'copys' && hasAccess('copys') && (
-           <CopysSection
+           <Listas
              computers={computers}
              celulares={celulares}
              otros={otros}

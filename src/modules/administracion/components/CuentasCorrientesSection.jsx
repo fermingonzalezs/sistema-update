@@ -17,7 +17,7 @@ import {
   Edit3,
   UserPlus
 } from 'lucide-react';
-import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js';
+// import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js'; // TEMPORALMENTE COMENTADO
 import ClienteSelector from '../../ventas/components/ClienteSelector';
 import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
 
@@ -29,16 +29,26 @@ const CuentasCorrientesSection = () => {
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState(null); // 'cobro', 'pago', 'ajustar_deuda', 'tomar_deuda'
 
-  const {
-    saldos,
-    loading,
-    error,
-    fetchSaldos,
-    fetchMovimientosCliente,
-    getEstadisticas,
-    registrarPagoRecibido,
-    registrarCargoManual
-  } = useCuentasCorrientes();
+  // const {
+  //   saldos,
+  //   loading,
+  //   error,
+  //   fetchSaldos,
+  //   fetchMovimientosCliente,
+  //   getEstadisticas,
+  //   registrarPagoRecibido,
+  //   registrarCargoManual
+  // } = useCuentasCorrientes();
+  
+  // VALORES TEMPORALES HASTA QUE SE RESUELVAN LOS PERMISOS
+  const saldos = [];
+  const loading = false;
+  const error = null;
+  const fetchSaldos = () => {};
+  const fetchMovimientosCliente = () => {};
+  const getEstadisticas = () => {};
+  const registrarPagoRecibido = () => {};
+  const registrarCargoManual = () => {};
 
   useEffect(() => {
     loadData();

@@ -1,26 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2 } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import ConversionMonedas from '../../../components/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
+import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [datosCliente, setDatosCliente] = useState({
-    metodo_pago: 'efectivo_pesos',
+    metodo_pago_1: 'efectivo_pesos',
+    metodo_pago_2: '',
+    monto_pago_1: 0,
+    monto_pago_2: 0,
     observaciones: '',
     vendedor: '',
-    sucursal: ''
+    sucursal: 'la_plata',
+    cotizacion_dolar: 1000
   });
 
   // Usar el hook de vendedores
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
+  const [editandoCotizacion, setEditandoCotizacion] = useState(false);
 
   useEffect(() => {
     fetchVendedores();
+    // Cargar cotización inicial
+    cargarCotizacionInicial();
   }, [fetchVendedores]);
+
+  const cargarCotizacionInicial = async () => {
+    try {
+      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      setDatosCliente(prev => ({
+        ...prev,
+        cotizacion_dolar: cotizacionData.valor || 1000
+      }));
+    } catch (error) {
+      console.error('Error cargando cotización:', error);
+    }
+  };
 
 
   const calcularTotal = () => {
@@ -45,6 +65,32 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     setDatosCliente(prev => ({ 
       ...prev, 
       [name]: value 
+    }));
+  };
+
+  const calcularTotalPesos = () => {
+    return calcularTotal() * datosCliente.cotizacion_dolar;
+  };
+
+  const handleMontosChange = (metodo, monto) => {
+    const total = calcularTotalPesos();
+    const otroMonto = metodo === 1 ? datosCliente.monto_pago_2 : datosCliente.monto_pago_1;
+    const nuevoMonto = Math.min(Math.max(0, parseFloat(monto) || 0), total - otroMonto);
+    
+    setDatosCliente(prev => ({
+      ...prev,
+      [`monto_pago_${metodo}`]: nuevoMonto
+    }));
+  };
+
+  const distribuyeMontos = () => {
+    const total = calcularTotalPesos();
+    const monto1 = datosCliente.monto_pago_1;
+    const monto2 = total - monto1;
+    
+    setDatosCliente(prev => ({
+      ...prev,
+      monto_pago_2: Math.max(0, monto2)
     }));
   };
 
@@ -141,10 +187,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       // ✅ LIMPIAR TODO después del éxito
       setClienteSeleccionado(null);
       setDatosCliente({
-        metodo_pago: 'efectivo_pesos',
+        metodo_pago_1: 'efectivo_pesos',
+        metodo_pago_2: '',
+        monto_pago_1: 0,
+        monto_pago_2: 0,
         observaciones: '',
         vendedor: '',
-        sucursal: ''
+        sucursal: 'la_plata',
+        cotizacion_dolar: datosCliente.cotizacion_dolar // Mantener la cotización
       });
       setMostrarFormulario(false);
       setIsOpen(false);
@@ -339,17 +389,63 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Método de Pago *
-                        </label>
-                        <div className="relative">
+                    {/* Cotización del Dólar */}
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="w-5 h-5 text-blue-600" />
+                          <h3 className="text-lg font-semibold text-blue-800">Cotización del Dólar</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditandoCotizacion(!editandoCotizacion)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-sm text-blue-600">Total USD</p>
+                          <p className="text-lg font-bold text-blue-800">U$${calcularTotal().toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-600">Cotización</p>
+                          {editandoCotizacion ? (
+                            <input
+                              type="number"
+                              value={datosCliente.cotizacion_dolar}
+                              onChange={(e) => setDatosCliente(prev => ({...prev, cotizacion_dolar: parseFloat(e.target.value) || 0}))}
+                              className="w-full text-center text-lg font-bold border border-blue-300 rounded px-2 py-1"
+                              step="0.01"
+                            />
+                          ) : (
+                            <p className="text-lg font-bold text-blue-800">${datosCliente.cotizacion_dolar}</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-600">Total ARS</p>
+                          <p className="text-lg font-bold text-blue-800">${calcularTotalPesos().toLocaleString('es-AR')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Métodos de Pago */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Métodos de Pago</h3>
+                      
+                      {/* Primer método de pago */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Método de Pago 1 *
+                          </label>
                           <select
-                            name="metodo_pago"
-                            value={datosCliente.metodo_pago}
+                            name="metodo_pago_1"
+                            value={datosCliente.metodo_pago_1}
                             onChange={handleInputChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           >
                             <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
                             <option value="dolares_billete">💸 Dólares Billete</option>
@@ -359,22 +455,83 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                           </select>
                         </div>
-                        
-                        {/* ✅ ALERTA para cuenta corriente */}
-                        {datosCliente.metodo_pago === 'cuenta_corriente' && (
-                          <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                            <div className="flex items-center space-x-2">
-                              <CreditCard className="w-4 h-4 text-orange-600" />
-                              <p className="text-sm text-orange-800 font-medium">
-                                Venta a Cuenta Corriente
-                              </p>
-                            </div>
-                            <p className="text-xs text-orange-600 mt-1">
-                              El saldo quedará registrado como deuda pendiente del cliente
-                            </p>
-                          </div>
-                        )}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Monto (ARS)
+                          </label>
+                          <input
+                            type="number"
+                            value={datosCliente.monto_pago_1}
+                            onChange={(e) => handleMontosChange(1, e.target.value)}
+                            onBlur={distribuyeMontos}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="0"
+                            step="0.01"
+                            min="0"
+                            max={calcularTotalPesos()}
+                          />
+                        </div>
                       </div>
+
+                      {/* Segundo método de pago (opcional) */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Método de Pago 2 (Opcional)
+                          </label>
+                          <select
+                            name="metodo_pago_2"
+                            value={datosCliente.metodo_pago_2}
+                            onChange={handleInputChange}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          >
+                            <option value="">Seleccionar método</option>
+                            <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
+                            <option value="dolares_billete">💸 Dólares Billete</option>
+                            <option value="transferencia">🏦 Transferencia</option>
+                            <option value="criptomonedas">₿ Criptomonedas</option>
+                            <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                            <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Monto (ARS)
+                          </label>
+                          <input
+                            type="number"
+                            value={datosCliente.monto_pago_2}
+                            onChange={(e) => handleMontosChange(2, e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="0"
+                            step="0.01"
+                            min="0"
+                            max={calcularTotalPesos() - datosCliente.monto_pago_1}
+                            disabled={!datosCliente.metodo_pago_2}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Resumen de pagos */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex justify-between text-sm">
+                          <span>Total a pagar:</span>
+                          <span className="font-bold">${calcularTotalPesos().toLocaleString('es-AR')}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Total pagado:</span>
+                          <span className="font-bold">${(datosCliente.monto_pago_1 + datosCliente.monto_pago_2).toLocaleString('es-AR')}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t pt-2 mt-2">
+                          <span>Diferencia:</span>
+                          <span className={`font-bold ${calcularTotalPesos() - (datosCliente.monto_pago_1 + datosCliente.monto_pago_2) === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ${(calcularTotalPesos() - (datosCliente.monto_pago_1 + datosCliente.monto_pago_2)).toLocaleString('es-AR')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Vendedor</label>
@@ -396,19 +553,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                         </select>
                       </div>
 
-
-                      
-                      
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
-                        <input
-                          type="text"
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal *</label>
+                        <select
                           name="sucursal"
                           value={datosCliente.sucursal}
                           onChange={handleInputChange}
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                          placeholder="UPDATE TECH"
-                        />
+                        >
+                          <option value="la_plata">🏢 La Plata</option>
+                          <option value="mitre">🏢 Mitre</option>
+                        </select>
                       </div>
                     </div>
 
@@ -432,22 +587,30 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
                         )}
                         <p>Items: {calcularCantidadTotal()}</p>
-                        <p>Método: <span className="font-medium capitalize">{datosCliente.metodo_pago.replace(/_/g, ' ')}</span></p>
+                        <p>Sucursal: <span className="font-medium">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</span></p>
+                        <p>Cotización: <span className="font-medium">${datosCliente.cotizacion_dolar}</span></p>
                         
-                        {/* ✅ RESUMEN especial para cuenta corriente */}
-                        {datosCliente.metodo_pago === 'cuenta_corriente' && (
-                          <div className="mt-2 p-2 bg-orange-100 rounded text-orange-800 text-xs">
-                            💡 Esta venta se registrará como deuda en la cuenta corriente del cliente
+                        <div className="mt-3 space-y-1">
+                          <p className="font-medium">Métodos de Pago:</p>
+                          <p className="ml-2">• {datosCliente.metodo_pago_1.replace(/_/g, ' ')}: ${datosCliente.monto_pago_1.toLocaleString('es-AR')}</p>
+                          {datosCliente.metodo_pago_2 && (
+                            <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}: ${datosCliente.monto_pago_2.toLocaleString('es-AR')}</p>
+                          )}
+                        </div>
+                        
+                        {/* ✅ ALERTA si hay diferencia en el pago */}
+                        {calcularTotalPesos() !== (datosCliente.monto_pago_1 + datosCliente.monto_pago_2) && (
+                          <div className="mt-2 p-2 bg-red-100 rounded text-red-800 text-xs">
+                            ⚠️ Los montos no coinciden con el total de la venta
                           </div>
                         )}
-                      </div>
-                      
-                      {/* ✅ CONVERSIÓN DE MONEDAS */}
-                      <div className="mt-4">
-                        <ConversionMonedas 
-                          montoUSD={calcularTotal()} 
-                          mostrarActualizacion={true}
-                        />
+                        
+                        {/* ✅ RESUMEN especial para cuenta corriente */}
+                        {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
+                          <div className="mt-2 p-2 bg-orange-100 rounded text-orange-800 text-xs">
+                            💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -461,17 +624,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       </button>
                       <button
                         type="submit"
-                        disabled={!clienteSeleccionado}
+                        disabled={!clienteSeleccionado || (calcularTotalPesos() !== (datosCliente.monto_pago_1 + datosCliente.monto_pago_2))}
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed ${
-                          datosCliente.metodo_pago === 'cuenta_corriente' 
+                          (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
                             ? 'bg-orange-600 text-white hover:bg-orange-700' 
                             : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                       >
-                        {datosCliente.metodo_pago === 'cuenta_corriente' ? (
+                        {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
                           <>
                             <CreditCard className="w-5 h-5" />
-                            <span>Procesar a Cuenta Corriente</span>
+                            <span>Procesar con Cuenta Corriente</span>
                           </>
                         ) : (
                           <>

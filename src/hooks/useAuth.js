@@ -97,14 +97,13 @@ export const useAuth = () => {
         'recuento-repuestos', 'presupuestos-reparacion', 'testeo-equipos'
       ],
       contabilidad: [
-        'plan-cuentas', 'libro-diario', 'reporte-movimientos',
-        'libro-mayor', 'conciliacion-caja', 'gastos-operativos',
-        'cuentas-corrientes'
+        'plan-cuentas', 'libro-diario', 'libro-mayor', 'conciliacion-caja',
+        'estado-situacion-patrimonial', 'estado-resultados'
       ],
       administracion: [
         'dashboard-reportes', 'garantias', 'comisiones', 'recuento-stock',
         'ventas', 'importaciones', 'cotizaciones', 'pendientes-compra', 
-        'en-transito', 'historial-importaciones'
+        'en-transito', 'historial-importaciones', 'cuentas-corrientes'
       ]
     };
 

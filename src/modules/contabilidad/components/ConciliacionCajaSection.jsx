@@ -341,7 +341,7 @@ const ConciliacionCajaSection = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
         <span className="ml-3 text-gray-600">Cargando conciliación de caja...</span>
       </div>
     );
@@ -351,23 +351,23 @@ const ConciliacionCajaSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <DollarSign size={28} />
               <div>
-                <h2 className="text-4xl font-bold">Conciliación de Caja</h2>
-                <p className="text-green-100 mt-1">Verificación del efectivo físico vs. registros contables</p>
+                <h2 className="text-2xl font-bold">Conciliación de Caja</h2>
+                <p className="text-gray-300 mt-1">Verificación del efectivo físico vs. registros contables</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <div>
-                <label className="block text-green-100 text-sm mb-1">Fecha de conciliación</label>
+                <label className="block text-gray-300 text-sm mb-1">Fecha de conciliación</label>
                 <input
                   type="date"
                   value={fechaConciliacion}
                   onChange={(e) => setFechaConciliacion(e.target.value)}
-                  className="px-3 py-2 rounded text-gray-800 text-sm"
+                  className="px-3 py-2 rounded text-gray-800 text-sm border border-gray-400 focus:ring-2 focus:ring-gray-600"
                 />
               </div>
             </div>
@@ -385,16 +385,16 @@ const ConciliacionCajaSection = () => {
                 <button
                   key={cuenta.id}
                   onClick={() => seleccionarCuenta(cuenta)}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors text-left"
+                  className="p-4 border border-gray-300 rounded-lg hover:border-gray-600 hover:bg-gray-100 transition-colors text-left"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <code className="text-sm text-green-600 font-mono bg-green-100 px-2 py-1 rounded mb-2 block">
+                      <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded mb-2 block border">
                         {cuenta.codigo}
                       </code>
                       <div className="font-medium text-gray-900">{cuenta.nombre}</div>
                     </div>
-                    <DollarSign className="w-6 h-6 text-green-600" />
+                    <DollarSign className="w-6 h-6 text-gray-700" />
                   </div>
                 </button>
               ))}
