@@ -27,12 +27,13 @@ import {
   Monitor,
   Shield,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
-const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
+const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0, isCollapsed = false, onToggleCollapse }) => {
   const { user, logout, hasAccess, getAllowedSections } = useAuthContext();
   
   // Estado para cotización USD/ARS
@@ -301,16 +302,45 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
   };
 
   return (
-    <div className="w-72 h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl flex flex-col">
+    <div className="h-screen text-white shadow-2xl flex flex-col w-full relative" style={{backgroundColor: '#1B1D21'}}>
+      {/* Botón de colapso siempre visible - fuera del contenedor cuando está colapsado */}
+      {onToggleCollapse && (
+        <button
+          onClick={onToggleCollapse}
+          className={`fixed top-1/2 transform -translate-y-1/2 z-50 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/20 ${
+            isCollapsed 
+              ? 'left-2' 
+              : 'left-64'
+          }`}
+          style={{backgroundColor: '#1B1D21'}}
+        >
+          {isCollapsed ? (
+            <ChevronRight size={14} className="text-white" />
+          ) : (
+            <ChevronLeft size={14} className="text-white" />
+          )}
+        </button>
+      )}
+      
       {/* Contenido con scroll invisible */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
-        <div className="p-6">
+        <div className={isCollapsed ? "p-2" : "p-6"}>
           {/* Header */}
-          <div className="mb-8 pb-6 border-b border-white/20">
-            <div className="w-full text-center">
-              <h2 className="text-3xl font-bold leading-tight mb-2 text-white">
-                UPDATE TECH
-              </h2>
+          <div className={`${isCollapsed ? "mb-4 pb-2" : "mb-8 pb-6"} border-b border-white/20`}>
+            <div className="w-full">
+              <div className="flex items-center justify-center">
+                <div className="flex-1 text-center">
+                  {isCollapsed ? (
+                    <h2 className="text-lg font-bold leading-tight text-white">
+                      UT
+                    </h2>
+                  ) : (
+                    <h2 className="text-3xl font-bold leading-tight mb-2 text-white">
+                      UPDATE TECH
+                    </h2>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -437,7 +467,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
       </div>
 
       {/* Footer fijo en la parte inferior */}
-      <div className="p-6 border-t border-white/20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="p-6 border-t border-white/20" style={{backgroundColor: '#1B1D21'}}>
         {/* Info del usuario */}
         <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10 mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -518,6 +548,7 @@ const Sidebar = ({ activeSection, setActiveSection, cantidadCarrito = 0 }) => {
           )}
         </div>
       </div>
+
 
       {/* CSS personalizado para ocultar scrollbars */}
       <style>{`

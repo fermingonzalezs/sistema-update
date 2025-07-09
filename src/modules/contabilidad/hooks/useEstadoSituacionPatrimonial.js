@@ -47,21 +47,12 @@ export const estadoSituacionPatrimonialService = {
 
       // Calcular saldos finales y clasificar por tipo
       const balance = {
-        activos: {
-          cuentas: {},
-          categorias: {},
-          total: 0
-        },
-        pasivos: {
-          cuentas: {},
-          categorias: {},
-          total: 0
-        },
-        patrimonio: {
-          cuentas: {},
-          categorias: {},
-          total: 0
-        },
+        activos: [],
+        pasivos: [],
+        patrimonio: [],
+        totalActivos: 0,
+        totalPasivos: 0,
+        totalPatrimonio: 0,
         fechaCorte: fecha
       };
 
@@ -80,48 +71,23 @@ export const estadoSituacionPatrimonialService = {
 
         // Solo incluir cuentas con saldo diferente de cero
         if (Math.abs(saldo) > 0.01) {
-          const categoria = item.categoria;
-          
           if (cuenta.tipo === 'activo') {
-            balance.activos.cuentas[cuenta.id] = item;
-            balance.activos.total += Math.abs(saldo);
-            
-            // Agrupar por categoría
-            if (!balance.activos.categorias[categoria]) {
-              balance.activos.categorias[categoria] = { cuentas: {}, total: 0 };
-            }
-            balance.activos.categorias[categoria].cuentas[cuenta.id] = item;
-            balance.activos.categorias[categoria].total += Math.abs(saldo);
-            
+            balance.activos.push(item);
+            balance.totalActivos += Math.abs(saldo);
           } else if (cuenta.tipo === 'pasivo') {
-            balance.pasivos.cuentas[cuenta.id] = item;
-            balance.pasivos.total += Math.abs(saldo);
-            
-            // Agrupar por categoría
-            if (!balance.pasivos.categorias[categoria]) {
-              balance.pasivos.categorias[categoria] = { cuentas: {}, total: 0 };
-            }
-            balance.pasivos.categorias[categoria].cuentas[cuenta.id] = item;
-            balance.pasivos.categorias[categoria].total += Math.abs(saldo);
-            
+            balance.pasivos.push(item);
+            balance.totalPasivos += Math.abs(saldo);
           } else if (cuenta.tipo === 'patrimonio') {
-            balance.patrimonio.cuentas[cuenta.id] = item;
-            balance.patrimonio.total += Math.abs(saldo);
-            
-            // Agrupar por categoría
-            if (!balance.patrimonio.categorias[categoria]) {
-              balance.patrimonio.categorias[categoria] = { cuentas: {}, total: 0 };
-            }
-            balance.patrimonio.categorias[categoria].cuentas[cuenta.id] = item;
-            balance.patrimonio.categorias[categoria].total += Math.abs(saldo);
+            balance.patrimonio.push(item);
+            balance.totalPatrimonio += Math.abs(saldo);
           }
         }
       });
 
       console.log('✅ Balance General calculado', {
-        activos: balance.activos.total,
-        pasivos: balance.pasivos.total,
-        patrimonio: balance.patrimonio.total
+        activos: balance.totalActivos,
+        pasivos: balance.totalPasivos,
+        patrimonio: balance.totalPatrimonio
       });
 
       return balance;
@@ -138,11 +104,11 @@ export const estadoSituacionPatrimonialService = {
       const balance = await this.getBalanceGeneral(fechaCorte);
       
       // Calcular ratios financieros básicos
-      const activosCorrientes = Object.values(balance.activos.cuentas)
+      const activosCorrientes = balance.activos
         .filter(item => this.esActivoCorriente(item.cuenta))
         .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
         
-      const pasivosCorrientes = Object.values(balance.pasivos.cuentas)
+      const pasivosCorrientes = balance.pasivos
         .filter(item => this.esPasivoCorriente(item.cuenta))
         .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
 
@@ -150,14 +116,14 @@ export const estadoSituacionPatrimonialService = {
         liquidezCorriente: pasivosCorrientes > 0 
           ? activosCorrientes / pasivosCorrientes 
           : 0,
-        endeudamiento: balance.activos.total > 0 
-          ? balance.pasivos.total / balance.activos.total 
+        endeudamiento: balance.totalActivos > 0 
+          ? balance.totalPasivos / balance.totalActivos 
           : 0,
-        solvencia: balance.pasivos.total > 0 
-          ? balance.activos.total / balance.pasivos.total 
+        solvencia: balance.totalPasivos > 0 
+          ? balance.totalActivos / balance.totalPasivos 
           : 0,
-        autonomiaFinanciera: balance.activos.total > 0 
-          ? balance.patrimonio.total / balance.activos.total 
+        autonomiaFinanciera: balance.totalActivos > 0 
+          ? balance.totalPatrimonio / balance.totalActivos 
           : 0
       };
 
@@ -214,9 +180,12 @@ export const estadoSituacionPatrimonialService = {
 // Hook personalizado para Balance General
 export function useEstadoSituacionPatrimonial() {
   const [balance, setBalance] = useState({
-    activos: { cuentas: {}, categorias: {}, total: 0 },
-    pasivos: { cuentas: {}, categorias: {}, total: 0 },
-    patrimonio: { cuentas: {}, categorias: {}, total: 0 },
+    activos: [],
+    pasivos: [],
+    patrimonio: [],
+    totalActivos: 0,
+    totalPasivos: 0,
+    totalPatrimonio: 0,
     fechaCorte: null
   });
   const [analisisFinanciero, setAnalisisFinanciero] = useState(null);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, FileDown, Send, ThumbsUp, Wrench, Package, DollarSign, Printer } from 'lucide-react';
-import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF_NUEVO';
+import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF.jsx';
 
 function ModalVistaPrevia({ open, onClose, presupuestoData }) {
   if (!open || !presupuestoData) return null;
@@ -273,21 +273,21 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
         <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
           <button
             onClick={handleDescargarPDF}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             <FileDown size={16} />
             Generar PDF
           </button>
           <button
             onClick={handleEnviarEmail}
-            className="flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
             <Send size={16} />
             Enviar por Email
           </button>
           <button
             onClick={handleAprobar}
-            className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
           >
             <ThumbsUp size={16} />
             Aprobar Presupuesto

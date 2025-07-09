@@ -277,7 +277,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             </div>
                             <div>
                               <h3 className="font-medium text-gray-900">
-                                {item.producto.modelo || item.producto.descripcion_producto}
+                                {item.producto.modelo || item.producto.nombre_producto}
                               </h3>
                               <p className="text-sm text-gray-500 capitalize">{item.tipo}</p>
                               {item.producto.serial && (

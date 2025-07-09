@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
 import { conversionService } from '../../../services/conversionService';
@@ -292,6 +292,7 @@ const LibroDiarioSection = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [expandedAsientos, setExpandedAsientos] = useState({});
+  const [viewMode, setViewMode] = useState('tarjeta'); // 'tarjeta' o 'lista'
   const [filtros, setFiltros] = useState({
     fechaDesde: '',
     fechaHasta: '',
@@ -327,6 +328,7 @@ const LibroDiarioSection = () => {
     console.log('🚀 Iniciando carga de datos...');
     fetchAsientos();
     fetchCuentasImputables();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debug: ver las cuentas cuando cambien
@@ -557,6 +559,200 @@ const LibroDiarioSection = () => {
     );
   }
 
+  const renderAsientos = () => {
+    if (viewMode === 'tarjeta') {
+      return (
+        <div className="space-y-2">
+          {asientosFiltrados.map(asiento => (
+            <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* Fila principal del asiento - COLAPSADA */}
+              <div
+                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                onClick={() => toggleAsiento(asiento.id)}
+              >
+                <div className="flex items-center space-x-4">
+                  <button className="p-1 hover:bg-gray-200 rounded transition-colors">
+                    {expandedAsientos[asiento.id] ?
+                      <ChevronDown size={16} className="text-gray-600" /> :
+                      <ChevronRight size={16} className="text-gray-600" />
+                    }
+                  </button>
+
+                  <div className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm font-medium border">
+                    N° {asiento.numero}
+                  </div>
+
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <Calendar size={14} />
+                    <span>{new Date(asiento.fecha).toLocaleDateString()}</span>
+                  </div>
+
+                  <div className="font-medium text-gray-900">
+                    {asiento.descripcion}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">Total</div>
+                    <div className="font-semibold text-gray-800">
+                      {formatearMonedaLibroDiario(asiento.total_debe)}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmarEliminar(asiento);
+                    }}
+                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
+                    title="Eliminar asiento"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Detalle del asiento - EXPANDIBLE */}
+              {expandedAsientos[asiento.id] && (
+                <div className="border-t bg-white">
+                  <div className="overflow-x-auto">
+                    <div className="flex">
+                      {/* Sección izquierda - Cuentas */}
+                      <div className="w-1/2 max-w-md">
+                        <div className="grid grid-cols-2 bg-gray-100 py-3 px-2">
+                          <div className="text-center font-medium text-gray-700">Debe</div>
+                          <div className="text-center font-medium text-gray-700">Haber</div>
+                        </div>
+                        <div>
+                          {asiento.movimientos_contables.map((mov, index) => (
+                            <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-2">
+                              {/* Columna DEBE - Cuentas */}
+                              <div className="text-center">
+                                {mov.debe > 0 && (
+                                  <div>
+                                    <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
+                                      {mov.plan_cuentas.codigo}
+                                    </code>
+                                    <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Columna HABER - Cuentas */}
+                              <div className="text-center">
+                                {mov.haber > 0 && (
+                                  <div>
+                                    <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
+                                      {mov.plan_cuentas.codigo}
+                                    </code>
+                                    <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Espacio separador */}
+                      <div className="flex-1"></div>
+
+                      {/* Sección derecha - Importes */}
+                      <div className="w-1/3">
+                        <div className="grid grid-cols-2 bg-gray-100 py-3 px-4">
+                          <div className="text-center font-medium text-gray-700">Debe</div>
+                          <div className="text-center font-medium text-gray-700">Haber</div>
+                        </div>
+                        <div>
+                          {asiento.movimientos_contables.map((mov, index) => (
+                            <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
+                              {/* Columna DEBE - Importes */}
+                              <div className="text-center font-medium">
+                                {mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}
+                              </div>
+                              
+                              {/* Columna HABER - Importes */}
+                              <div className="text-center font-medium">
+                                {mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (viewMode === 'lista') {
+      return (
+        <div className="border-t">
+          {/* Header de la tabla principal */}
+          <div className="p-4 grid grid-cols-12 gap-4 items-center bg-gray-800 text-white font-bold text-sm">
+            <div className="col-span-1">N°</div>
+            <div className="col-span-2">Fecha</div>
+            <div className="col-span-5">Descripción</div>
+            <div className="col-span-2 text-right pr-4">Total</div>
+            <div className="col-span-2 text-center">Acciones</div>
+          </div>
+          {asientosFiltrados.map(asiento => (
+            <div key={asiento.id} className="border-b">
+              {/* Fila del asiento */}
+              <div className="p-4 grid grid-cols-12 gap-4 items-center">
+                <div className="col-span-1 font-bold">
+                  <span className="border border-gray-400 rounded px-2 py-1 bg-gray-100">
+                    {asiento.numero}
+                  </span>
+                </div>
+                <div className="col-span-2 text-sm">{new Date(asiento.fecha).toLocaleDateString()}</div>
+                <div className="col-span-5 text-sm">{asiento.descripcion}</div>
+                <div className="col-span-2 text-right font-mono pr-4">{formatearMonedaLibroDiario(asiento.total_debe)}</div>
+                <div className="col-span-2 flex justify-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmarEliminar(asiento);
+                    }}
+                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
+                    title="Eliminar asiento"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              {/* Movimientos del asiento */}
+              <div className="pl-10 pr-4 pb-4">
+                {/* Header de movimientos */}
+                <div className="grid grid-cols-12 gap-4 text-sm font-semibold py-2 bg-gray-200">
+                    <div className="col-span-1"></div>
+                    <div className="col-span-2 font-mono">Código</div>
+                    <div className="col-span-5">Cuenta</div>
+                    <div className="col-span-2 text-right font-mono">Debe</div>
+                    <div className="col-span-2 text-right font-mono pr-4">Haber</div>
+                </div>
+                {asiento.movimientos_contables.map((mov, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-4 text-sm border-t py-2">
+                    <div className="col-span-1"></div>
+                    <div className="col-span-2 font-mono">{mov.plan_cuentas.codigo}</div>
+                    <div className="col-span-5">{mov.plan_cuentas.nombre}</div>
+                    <div className="col-span-2 text-right font-mono">{mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}</div>
+                    <div className="col-span-2 text-right font-mono pr-4">{mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -570,13 +766,31 @@ const LibroDiarioSection = () => {
                 <p className="text-gray-300 mt-1">Registro cronológico de operaciones contables</p>
               </div>
             </div>
-            <button
-              onClick={nuevoAsiento}
-              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={18} />
-              Nuevo Asiento
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="flex border border-gray-500 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('tarjeta')}
+                  className={`p-2 transition-colors ${viewMode === 'tarjeta' ? 'bg-white text-black' : 'text-white hover:bg-gray-700'}`}
+                  title="Vista de Tarjetas"
+                >
+                  <LayoutGrid size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode('lista')}
+                  className={`p-2 transition-colors ${viewMode === 'lista' ? 'bg-white text-black' : 'text-white hover:bg-gray-700'}`}
+                  title="Vista de Lista"
+                >
+                  <List size={18} />
+                </button>
+              </div>
+              <button
+                onClick={nuevoAsiento}
+                className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Plus size={18} />
+                Nuevo Asiento
+              </button>
+            </div>
           </div>
         </div>
 
@@ -584,7 +798,9 @@ const LibroDiarioSection = () => {
         <div className="bg-gray-50 p-4 border-b">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Desde
+              </label>
               <input
                 type="date"
                 value={filtros.fechaDesde}
@@ -593,7 +809,9 @@ const LibroDiarioSection = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hasta
+              </label>
               <input
                 type="date"
                 value={filtros.fechaHasta}
@@ -602,7 +820,9 @@ const LibroDiarioSection = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Descripción
+              </label>
               <input
                 type="text"
                 value={filtros.descripcion}
@@ -632,134 +852,10 @@ const LibroDiarioSection = () => {
           </div>
         )}
 
-        {/* Lista de asientos - VISTA COLAPSADA */}
+        {/* Lista de asientos */}
         <div className="p-6">
           {asientosFiltrados.length > 0 ? (
-            <div className="space-y-2">
-              {asientosFiltrados.map(asiento => (
-                <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  {/* Fila principal del asiento - COLAPSADA */}
-                  <div
-                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => toggleAsiento(asiento.id)}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <button className="p-1 hover:bg-gray-200 rounded transition-colors">
-                        {expandedAsientos[asiento.id] ?
-                          <ChevronDown size={16} className="text-gray-600" /> :
-                          <ChevronRight size={16} className="text-gray-600" />
-                        }
-                      </button>
-
-                      <div className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm font-medium border">
-                        N° {asiento.numero}
-                      </div>
-
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Calendar size={14} />
-                        <span>{new Date(asiento.fecha).toLocaleDateString()}</span>
-                      </div>
-
-                      <div className="font-medium text-gray-900">
-                        {asiento.descripcion}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">Total</div>
-                        <div className="font-semibold text-gray-800">
-                          {formatearMonedaLibroDiario(asiento.total_debe)}
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmarEliminar(asiento);
-                        }}
-                        className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
-                        title="Eliminar asiento"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Detalle del asiento - EXPANDIBLE */}
-                  {expandedAsientos[asiento.id] && (
-                    <div className="border-t bg-white">
-                      <div className="overflow-x-auto">
-                        <div className="flex">
-                          {/* Sección izquierda - Cuentas */}
-                          <div className="w-1/2 max-w-md">
-                            <div className="grid grid-cols-2 bg-gray-100 py-3 px-2">
-                              <div className="text-center font-medium text-gray-700">Debe</div>
-                              <div className="text-center font-medium text-gray-700">Haber</div>
-                            </div>
-                            <div>
-                              {asiento.movimientos_contables.map((mov, index) => (
-                                <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-2">
-                                  {/* Columna DEBE - Cuentas */}
-                                  <div className="text-center">
-                                    {mov.debe > 0 && (
-                                      <div>
-                                        <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
-                                          {mov.plan_cuentas.codigo}
-                                        </code>
-                                        <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Columna HABER - Cuentas */}
-                                  <div className="text-center">
-                                    {mov.haber > 0 && (
-                                      <div>
-                                        <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
-                                          {mov.plan_cuentas.codigo}
-                                        </code>
-                                        <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Espacio separador */}
-                          <div className="flex-1"></div>
-
-                          {/* Sección derecha - Importes */}
-                          <div className="w-1/3">
-                            <div className="grid grid-cols-2 bg-gray-100 py-3 px-4">
-                              <div className="text-center font-medium text-gray-700">Debe</div>
-                              <div className="text-center font-medium text-gray-700">Haber</div>
-                            </div>
-                            <div>
-                              {asiento.movimientos_contables.map((mov, index) => (
-                                <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
-                                  {/* Columna DEBE - Importes */}
-                                  <div className="text-center font-medium">
-                                    {mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}
-                                  </div>
-                                  
-                                  {/* Columna HABER - Importes */}
-                                  <div className="text-center font-medium">
-                                    {mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            renderAsientos()
           ) : (
             <div className="text-center py-12">
               <FileText size={48} className="mx-auto mb-4 text-gray-300" />

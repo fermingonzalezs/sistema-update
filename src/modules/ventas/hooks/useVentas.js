@@ -91,7 +91,7 @@ export const ventasService = {
           tipo_producto: item.tipo,
           producto_id: item.producto.id,
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
-          modelo_producto: item.producto.modelo || item.producto.descripcion_producto,
+          modelo_producto: item.producto.modelo || item.producto.nombre_producto,
           cantidad: item.cantidad,
           precio_unitario: item.precio_unitario,
           precio_total: precioTotal,

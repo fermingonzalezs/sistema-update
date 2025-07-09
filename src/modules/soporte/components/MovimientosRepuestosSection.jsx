@@ -42,9 +42,7 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full m-4">
-        <div className={`p-4 rounded-t-lg text-white ${
-          tipo === 'entrada' ? 'bg-green-600' : 'bg-red-600'
-        }`}>
+        <div className="p-4 rounded-t-lg text-white bg-gray-800">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             {tipo === 'entrada' ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
             {tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Salida'}
@@ -165,11 +163,7 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className={`flex-1 text-white px-4 py-2 rounded font-medium ${
-                tipo === 'entrada' 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-red-600 hover:bg-red-700'
-              }`}
+              className="flex-1 text-white px-4 py-2 rounded font-medium bg-gray-800 hover:bg-black"
             >
               {tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Salida'}
             </button>
@@ -286,30 +280,36 @@ const MovimientosRepuestosSection = () => {
     return new Date(fecha).toLocaleString('es-AR');
   };
 
+  const obtenerNumeroReparacion = (reparacionId) => {
+    if (!reparacionId) return null;
+    const reparacion = reparaciones.find(r => r.id === reparacionId);
+    return reparacion ? reparacion.numero : `#${reparacionId}`;
+  };
+
   return (
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Package size={28} />
-              <div>
-                <h2 className="text-4xl font-bold">Movimientos de Repuestos</h2>
-                <p className="text-blue-100 mt-1">Gestión de entradas y salidas de inventario</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Package className="w-8 h-8" />
+                Movimientos de Repuestos
+              </h2>
+              <p className="text-gray-300 mt-2">Gestión de entradas y salidas de inventario</p>
             </div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setMostrarFormulario('entrada')}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium"
+                className="bg-white text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium"
               >
                 <ArrowUp size={16} />
                 Entrada
               </button>
               <button
                 onClick={() => setMostrarFormulario('salida')}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
+                className="bg-white text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium"
               >
                 <ArrowDown size={16} />
                 Salida
@@ -320,28 +320,53 @@ const MovimientosRepuestosSection = () => {
 
         {/* Estadísticas */}
         {estadisticas && (
-          <div className="bg-gray-50 p-4 border-b">
-            <h3 className="font-semibold text-gray-800 mb-3">Estadísticas del Mes</h3>
+          <div className="bg-gray-50 p-6 border-b">
+            <h3 className="font-semibold text-gray-800 mb-4">Estadísticas del Mes</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{estadisticas.totalMovimientos}</div>
-                <div className="text-sm text-gray-600">Total Movimientos</div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Total Movimientos</p>
+                    <p className="text-2xl font-bold text-orange-900">{estadisticas.totalMovimientos}</p>
+                  </div>
+                  <Package className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{estadisticas.entradas}</div>
-                <div className="text-sm text-gray-600">Entradas</div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Entradas</p>
+                    <p className="text-2xl font-bold text-orange-900">{estadisticas.entradas}</p>
+                  </div>
+                  <ArrowUp className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{estadisticas.salidas}</div>
-                <div className="text-sm text-gray-600">Salidas</div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Salidas</p>
+                    <p className="text-2xl font-bold text-orange-900">{estadisticas.salidas}</p>
+                  </div>
+                  <ArrowDown className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{estadisticas.cantidadEntradas}</div>
-                <div className="text-sm text-gray-600">Unidades Entrada</div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Unidades Entrada</p>
+                    <p className="text-2xl font-bold text-orange-900">{estadisticas.cantidadEntradas}</p>
+                  </div>
+                  <Plus className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{estadisticas.cantidadSalidas}</div>
-                <div className="text-sm text-gray-600">Unidades Salida</div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Unidades Salida</p>
+                    <p className="text-2xl font-bold text-orange-900">{estadisticas.cantidadSalidas}</p>
+                  </div>
+                  <Minus className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
             </div>
           </div>
@@ -398,7 +423,7 @@ const MovimientosRepuestosSection = () => {
             <div className="flex items-end gap-2">
               <button
                 onClick={aplicarFiltros}
-                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 flex items-center justify-center gap-1"
+                className="flex-1 bg-gray-800 text-white px-3 py-2 rounded hover:bg-black flex items-center justify-center gap-1"
               >
                 <Filter size={16} />
                 Filtrar
@@ -427,16 +452,16 @@ const MovimientosRepuestosSection = () => {
           ) : movimientos.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border border-gray-200 rounded-lg">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-900">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Fecha</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-700">Tipo</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Repuesto</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-700">Cantidad</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-700">Stock</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Motivo</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Reparación</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Usuario</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Fecha</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Tipo</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Repuesto</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Cantidad</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Stock</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Motivo</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Reparación</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Usuario</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -483,9 +508,9 @@ const MovimientosRepuestosSection = () => {
                       </td>
                       <td className="py-3 px-4 text-sm">{movimiento.motivo}</td>
                       <td className="py-3 px-4 text-sm">
-                        {movimiento.reparaciones ? (
+                        {movimiento.reparacion_id ? (
                           <span className="text-blue-600">
-                            {movimiento.reparaciones.numero}
+                            {obtenerNumeroReparacion(movimiento.reparacion_id)}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>

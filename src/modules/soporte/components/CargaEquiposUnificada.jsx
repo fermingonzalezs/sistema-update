@@ -30,11 +30,15 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
 
   return (
     <div className="p-8">
-      <div className="bg-gradient-to-r from-orange-600 to-red-700 rounded-2xl p-8 flex items-center space-x-4 mb-8">
-        <Plus className="w-10 h-10 text-white mr-4" />
-        <div>
-          <h2 className="text-4xl font-bold text-white drop-shadow">Carga de Equipos</h2>
-          <p className="text-white/80 text-xl mt-2">Alta y registro de equipos en soporte</p>
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Plus className="w-8 h-8" />
+              Carga de Equipos
+            </h2>
+            <p className="text-gray-300 mt-2">Alta y registro de equipos en soporte</p>
+          </div>
         </div>
       </div>
 
@@ -52,12 +56,12 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
                 onClick={() => setTipoEquipo(tipo.id)}
                 className={`p-6 rounded-lg border-2 transition-all duration-300 ${
                   isSelected
-                    ? 'border-blue-500 bg-blue-50 shadow-lg transform scale-105'
+                    ? 'border-orange-500 bg-orange-50 shadow-lg transform scale-105'
                     : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                 }`}
               >
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className={`p-3 rounded-lg bg-gradient-to-r ${tipo.color}`}>
+                  <div className="p-3 rounded-lg bg-orange-500">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-left">
@@ -66,7 +70,7 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
                   </div>
                 </div>
                 {isSelected && (
-                  <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+                  <div className="w-full h-1 bg-orange-500 rounded-full"></div>
                 )}
               </button>
             );
@@ -227,7 +231,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="serial"
             value={formData.serial}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -239,7 +243,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="modelo"
             value={formData.modelo}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -252,7 +256,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.marca}
             onChange={handleChange}
             placeholder="ej: Lenovo, HP, Dell"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -262,7 +266,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="nuevo">NUEVO</option>
             <option value="usado">USADO</option>
@@ -276,7 +280,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="sucursal"
             value={formData.sucursal}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -298,7 +302,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.precio_costo_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -310,7 +314,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.envios_repuestos}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -322,7 +326,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.precio_venta_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -338,7 +342,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="procesador"
             value={formData.procesador}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -348,7 +352,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="slots"
             value={formData.slots}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="1">1</option>
             <option value="2">2</option>
@@ -362,7 +366,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="tipo_ram"
             value={formData.tipo_ram}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="DDR3">DDR3</option>
             <option value="DDR4">DDR4</option>
@@ -380,7 +384,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.ram}
             onChange={handleChange}
             placeholder="ej: 16GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -392,7 +396,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.ssd}
             onChange={handleChange}
             placeholder="ej: 512GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -404,7 +408,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.hdd}
             onChange={handleChange}
             placeholder="ej: 1TB (opcional)"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -414,7 +418,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="so"
             value={formData.so}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="WIN11">Windows 11</option>
             <option value="WIN10">Windows 10</option>
@@ -433,7 +437,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.pantalla}
             onChange={handleChange}
             placeholder="ej: 13,6''"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -443,7 +447,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="resolucion"
             value={formData.resolucion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="FHD">FHD</option>
             <option value="QHD">QHD</option>
@@ -462,7 +466,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.refresh}
             onChange={handleChange}
             placeholder="ej: 60Hz, 120Hz, 144Hz"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -474,7 +478,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.placa_video}
             onChange={handleChange}
             placeholder="ej: 8-core GPU"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -486,7 +490,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.vram}
             onChange={handleChange}
             placeholder="ej: 8GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -501,7 +505,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="teclado_retro"
             value={formData.teclado_retro}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="SI">Sí</option>
             <option value="NO">No</option>
@@ -515,7 +519,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="idioma_teclado"
             value={formData.idioma_teclado}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="Español">Español</option>
             <option value="Inglés">Inglés</option>
@@ -532,7 +536,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.color}
             onChange={handleChange}
             placeholder="ej: SKY BLUE"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -549,7 +553,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.bateria}
             onChange={handleChange}
             placeholder="ej: 100% 59 ciclos"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -561,7 +565,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.duracion}
             onChange={handleChange}
             placeholder="ej: 6-7HS"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -578,7 +582,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.garantia_update}
             onChange={handleChange}
             placeholder="ej: 6 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -590,7 +594,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             value={formData.garantia_oficial}
             onChange={handleChange}
             placeholder="ej: Apple"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -601,7 +605,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             name="fallas"
             value={formData.fallas}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -610,7 +614,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Computadora'}
           </button>
@@ -734,7 +738,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="serial"
             value={formData.serial}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -746,7 +750,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="modelo"
             value={formData.modelo}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -758,7 +762,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="marca"
             value={formData.marca}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             placeholder="Apple, Samsung, etc."
           />
         </div>
@@ -769,7 +773,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="nuevo">NUEVO</option>
             <option value="usado">USADO</option>
@@ -783,7 +787,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="ubicacion"
             value={formData.ubicacion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -805,7 +809,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.precio_compra_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -817,7 +821,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.repuestos_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -829,16 +833,16 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.precio_venta_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
         {/* Mostrar cálculo en tiempo real */}
         {formData.precio_compra_usd && formData.repuestos_usd && (
           <div className="col-span-full">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h5 className="font-medium text-green-800 mb-2">💰 Cálculo de Precios</h5>
-              <div className="text-sm text-green-700">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h5 className="font-medium text-orange-800 mb-2">💰 Cálculo de Precios</h5>
+              <div className="text-sm text-orange-700">
                 <p><strong>Precio Compra Total:</strong> ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.repuestos_usd) || 0)).toFixed(2)}</p>
               </div>
             </div>
@@ -858,7 +862,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.color}
             onChange={handleChange}
             placeholder="ej: Negro, Blanco, Azul"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -870,7 +874,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.capacidad}
             onChange={handleChange}
             placeholder="ej: 128GB, 256GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -880,7 +884,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="almacenamiento"
             value={formData.almacenamiento}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="64GB">64GB</option>
             <option value="128GB">128GB</option>
@@ -898,7 +902,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 3000mAh"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -910,7 +914,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.porcentaje_bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 100%"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -922,7 +926,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.ciclos}
             onChange={handleChange}
             placeholder="ej: 150, 200"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -934,7 +938,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.estado}
             onChange={handleChange}
             placeholder="ej: Muy Bueno, Bueno, Regular"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -944,7 +948,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="estado_estetico"
             value={formData.estado_estetico}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="A+">A+</option>
             <option value="A">A</option>
@@ -967,7 +971,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.garantia}
             onChange={handleChange}
             placeholder="ej: 3 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -979,7 +983,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.garantia_update}
             onChange={handleChange}
             placeholder="ej: 3 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -991,7 +995,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.garantia_oficial}
             onChange={handleChange}
             placeholder="ej: Samsung, Apple"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -1002,7 +1006,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
             name="fallas"
             value={formData.fallas}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -1011,7 +1015,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Celular'}
           </button>
@@ -1185,7 +1189,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.descripcion_producto}
             onChange={handleChange}
             placeholder="ej: Mouse Logitech MX Master 3 Wireless"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -1201,7 +1205,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.cantidad}
             onChange={handleChange}
             min="1"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           />
         </div>
@@ -1215,7 +1219,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             name="categoria"
             value={formData.categoria}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
             required
           >
             <option value="">Seleccionar categoría...</option>
@@ -1234,7 +1238,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             {opcionesCondicion.map(cond => (
               <option key={cond.value} value={cond.value}>{cond.label}</option>
@@ -1248,7 +1252,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             name="sucursal"
             value={formData.sucursal}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -1276,7 +1280,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             onChange={handleChange}
             step="0.01"
             placeholder="0.00"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -1292,15 +1296,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
             onChange={handleChange}
             step="0.01"
             placeholder="0.00"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
         {/* Análisis de Precios */}
         {(formData.precio_compra_usd || formData.precio_venta_usd) && (
           <div className="col-span-full">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h5 className="font-medium text-purple-800 mb-3">📊 Análisis de Rentabilidad</h5>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h5 className="font-medium text-orange-800 mb-3">📊 Análisis de Rentabilidad</h5>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="bg-white p-3 rounded border">
                   <span className="text-gray-600 block text-xs">Margen por unidad (USD)</span>
@@ -1349,7 +1353,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.garantia}
             onChange={handleChange}
             placeholder="ej: 1 año, 6 meses, Sin garantía"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
@@ -1364,15 +1368,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.fallas}
             onChange={handleChange}
             placeholder="Describe cualquier defecto o observación importante"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
           />
         </div>
 
         {/* Resumen del Producto */}
         {formData.descripcion_producto && formData.categoria && (
           <div className="col-span-full">
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
-              <h5 className="font-medium text-purple-800 mb-3 flex items-center">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h5 className="font-medium text-orange-800 mb-3 flex items-center">
                 📦 Resumen del Producto
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -1399,7 +1403,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
+            className="w-full bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">

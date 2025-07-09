@@ -4,7 +4,7 @@ import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
 import { useReparaciones } from '../hooks/useReparaciones';
-import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF_NUEVO';
+import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF.jsx';
 
 const estados = {
   ingresado: { label: 'Ingresado', color: 'bg-orange-100 text-orange-700' },
@@ -191,28 +191,36 @@ function ReparacionesMain() {
 
   return (
     <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
-      {/* Header y botón */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center gap-3">
-          <Wrench className="w-10 h-10 text-orange-600" />
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 drop-shadow">Gestión de Reparaciones</h1>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Wrench className="w-8 h-8" />
+              Gestión de Reparaciones
+            </h2>
+            <p className="text-gray-300 mt-2">Control y seguimiento de reparaciones de equipos</p>
+          </div>
+          <button
+            onClick={() => setModalNueva(true)}
+            className="bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-bold shadow text-base flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nueva Reparación</span>
+          </button>
         </div>
-        <button
-          onClick={() => setModalNueva(true)}
-          className="flex items-center gap-2 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-orange-600 transition-all"
-        >
-          <Plus className="w-5 h-5" /> Nueva Reparación
-        </button>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         {statsActualizadas.map(card => (
-          <div key={card.label} className="bg-orange-100 rounded-xl p-5 flex items-center gap-4 shadow-lg">
-            <card.icon className="w-8 h-8 text-orange-500 opacity-90" />
-            <div>
-              <div className="text-2xl font-bold text-orange-700">{card.value}</div>
-              <div className="text-orange-700/80 text-sm">{card.label}</div>
+          <div key={card.label} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-800 text-sm">{card.label}</p>
+                <p className="text-2xl font-bold text-orange-900">{card.value}</p>
+              </div>
+              <card.icon className="w-8 h-8 text-orange-600" />
             </div>
           </div>
         ))}
@@ -262,7 +270,7 @@ function ReparacionesMain() {
       {!loading && (
         <div className="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-orange-600 to-red-600">
+            <thead className="bg-gray-900">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Número</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha Ingreso</th>

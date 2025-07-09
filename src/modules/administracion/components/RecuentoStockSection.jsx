@@ -293,8 +293,8 @@ const RecuentoStockSection = () => {
 
   const getIconoProducto = (tipo) => {
     switch (tipo) {
-      case 'computadora': return <Monitor className="w-5 h-5 text-blue-600" />;
-      case 'celular': return <Smartphone className="w-5 h-5 text-green-600" />;
+      case 'computadora': return <Monitor className="w-5 h-5 text-gray-600" />;
+      case 'celular': return <Smartphone className="w-5 h-5 text-gray-600" />;
       case 'otro': return <Box className="w-5 h-5 text-purple-600" />;
       default: return <Package className="w-5 h-5 text-gray-600" />;
     }
@@ -319,20 +319,20 @@ const RecuentoStockSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Package size={28} />
-              <div>
-                <h2 className="text-4xl font-bold">Recuento de Stock</h2>
-                <p className="text-blue-100 mt-1">Verificación física del inventario</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Package className="w-8 h-8" />
+                Recuento de Stock
+              </h2>
+              <p className="text-gray-300 mt-2">Verificación física del inventario</p>
             </div>
             <div className="flex items-center space-x-3">
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  className="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -340,7 +340,7 @@ const RecuentoStockSection = () => {
               ) : (
                 <button
                   onClick={finalizarRecuento}
-                  className="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Save size={18} />
                   Finalizar Recuento

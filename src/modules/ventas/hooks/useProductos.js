@@ -23,10 +23,10 @@ export const useProductos = () => {
       // Transformar datos para que coincidan con la estructura esperada
       const productosTransformados = (data || []).map(item => ({
         id: item.id,
-        nombre: item.descripcion_producto,
-        descripcion: item.descripcion_producto,
-        marca: extractMarca(item.descripcion_producto),
-        modelo: extractModelo(item.descripcion_producto),
+        nombre: item.nombre_producto,
+        descripcion: item.descripcion,
+        marca: extractMarca(item.nombre_producto),
+        modelo: extractModelo(item.nombre_producto),
         categoria: item.categoria,
         precio_venta_usd: item.precio_venta_usd,
         precio_costo_usd: item.precio_compra_usd,
@@ -34,7 +34,7 @@ export const useProductos = () => {
         condicion: item.condicion,
         estado: item.condicion,
         ubicacion: item.sucursal,
-        especificaciones: parseEspecificaciones(item.descripcion_producto, item.categoria),
+        especificaciones: parseEspecificaciones(item.descripcion, item.categoria),
         garantia: item.garantia,
         fallas: item.fallas,
         activo: item.disponible,

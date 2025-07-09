@@ -294,20 +294,20 @@ const RecuentoRepuestosSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Wrench size={28} />
-              <div>
-                <h2 className="text-4xl font-bold">Recuento de Repuestos</h2>
-                <p className="text-orange-100 mt-1">Verificación física del inventario de repuestos</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Wrench className="w-8 h-8" />
+                Recuento de Repuestos
+              </h2>
+              <p className="text-gray-300 mt-2">Verificación física del inventario de repuestos</p>
             </div>
             <div className="flex items-center space-x-3">
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  className="bg-white text-orange-600 px-6 py-3 rounded-lg hover:bg-orange-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -315,7 +315,7 @@ const RecuentoRepuestosSection = () => {
               ) : (
                 <button
                   onClick={finalizarRecuento}
-                  className="bg-white text-orange-600 px-6 py-3 rounded-lg hover:bg-orange-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Save size={18} />
                   Finalizar Recuento
@@ -409,14 +409,14 @@ const RecuentoRepuestosSection = () => {
           {repuestosFiltrados.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border border-gray-200 rounded-lg">
-                <thead className="bg-orange-50">
+                <thead className="bg-gray-900">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium text-orange-700">Repuesto</th>
-                    <th className="text-center py-3 px-4 font-medium text-orange-700">Categoría</th>
-                    <th className="text-right py-3 px-4 font-medium text-orange-700">Stock Sistema</th>
-                    <th className="text-center py-3 px-4 font-medium text-orange-700">Stock Real</th>
-                    <th className="text-center py-3 px-4 font-medium text-orange-700">Diferencia</th>
-                    <th className="text-center py-3 px-4 font-medium text-orange-700">Estado</th>
+                    <th className="text-left py-3 px-4 font-medium text-white">Repuesto</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Categoría</th>
+                    <th className="text-right py-3 px-4 font-medium text-white">Stock Sistema</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Stock Real</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Diferencia</th>
+                    <th className="text-center py-3 px-4 font-medium text-white">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -530,14 +530,14 @@ const RecuentoRepuestosSection = () => {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-gray-900">
                     <tr>
-                      <th className="text-left py-2 px-3">Fecha</th>
-                      <th className="text-center py-2 px-3">Tipo</th>
-                      <th className="text-right py-2 px-3">Repuestos</th>
-                      <th className="text-right py-2 px-3">Diferencias</th>
-                      <th className="text-center py-2 px-3">Estado</th>
-                      <th className="text-left py-2 px-3">Usuario</th>
+                      <th className="text-left py-2 px-3 text-white">Fecha</th>
+                      <th className="text-center py-2 px-3 text-white">Tipo</th>
+                      <th className="text-right py-2 px-3 text-white">Repuestos</th>
+                      <th className="text-right py-2 px-3 text-white">Diferencias</th>
+                      <th className="text-center py-2 px-3 text-white">Estado</th>
+                      <th className="text-left py-2 px-3 text-white">Usuario</th>
                     </tr>
                   </thead>
                   <tbody>

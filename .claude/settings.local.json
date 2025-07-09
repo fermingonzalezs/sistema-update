@@ -48,7 +48,8 @@
       "Bash(source .env)",
       "Bash(export VITE_SUPABASE_URL=https://xixvlncckcfyjpqsxofq.supabase.co)",
       "Bash(export:*)",
-      "mcp__supabase__get_project_url"
+      "mcp__supabase__get_project_url",
+      "Bash(awk:*)"
     ],
     "deny": []
   },

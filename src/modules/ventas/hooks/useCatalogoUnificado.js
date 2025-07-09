@@ -192,7 +192,7 @@ export const useCatalogoUnificado = () => {
           categoriaFiltro: categoria,
           filtrosDisponibles: ['marca', 'condicion', 'precio'],
           camposOrdenamiento: [
-            { value: 'descripcion_producto', label: 'Descripción' },
+            { value: 'nombre_producto', label: 'Nombre' },
             { value: 'marca', label: 'Marca' },
             { value: 'precio_venta_usd', label: 'Precio' },
             { value: 'condicion', label: 'Condición' }

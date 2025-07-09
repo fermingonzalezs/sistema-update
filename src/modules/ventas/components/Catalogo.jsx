@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { X, Filter, ChevronDown } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
+import OtrosModal from './OtrosModal';
 
 // Función para formatear precios en USD sin decimales con prefijo U$
-const formatPriceUSD = (price) => {
+
+  const formatPriceUSD = (price) => {
   const numPrice = parseFloat(price) || 0;
-  return `U$${Math.round(numPrice)}`;
+  return `U${Math.round(numPrice)}`;
 };
 
 // Función para generar copy compacto unificado
@@ -65,7 +67,7 @@ const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
 
     case 'otros':
       copy = [
-        producto.descripcion_producto,
+        producto.nombre_producto,
         producto.marca,
         producto.categoria,
         producto.especificaciones_otro || '',
@@ -156,14 +158,14 @@ const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
       // Para categorías específicas de "otros" (ej: otros-placas-de-video)
       if (categoria.startsWith('otros-')) {
         copy = [
-          producto.descripcion_producto,
+          producto.nombre_producto,
           producto.marca,
           producto.especificaciones_otro || '',
           producto.modelo_otro || '',
           producto.ubicacion_otro ? producto.ubicacion_otro.replace('_', ' ').toUpperCase() : ''
         ].filter(Boolean).join(' - ');
       } else {
-        copy = producto.modelo || producto.descripcion_producto || 'Producto sin descripción';
+        copy = producto.modelo || producto.nombre_producto || 'Producto sin descripción';
       }
   }
 
@@ -173,6 +175,13 @@ const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
 // Modal de detalle unificado
 const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionDolar }) => {
   if (!open || !producto) return null;
+
+  // Función para formatear precios en ARS
+  const formatPriceARS = (price, cotizacion) => {
+    const numPrice = parseFloat(price) || 0;
+    const arsPrice = Math.round(numPrice * cotizacion);
+    return `$${arsPrice.toLocaleString('es-AR')}`;
+  };
 
   const renderCamposPorCategoria = () => {
     switch (categoria) {
@@ -229,7 +238,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Descripción del Producto</h3>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-800 text-lg leading-relaxed">
-                  {producto.descripcion_producto}
+                  {producto.descripcion}
                 </p>
               </div>
             </div>
@@ -359,7 +368,74 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
         );
 
       default:
-        return <div>Información no disponible</div>;
+        return (
+          <div className="space-y-4 mt-6">
+            <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Precios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Tarjeta Compra */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-1">
+                  <h4 className="text-sm font-bold">COMPRA</h4>
+                </div>
+                <div className="bg-white text-center py-3">
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_compra_usd)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tarjeta Repuestos */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-1">
+                  <h4 className="text-sm font-bold">REPUESTOS</h4>
+                </div>
+                <div className="bg-white text-center py-3">
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.repuestos_usd)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {formatPriceARS(producto.repuestos_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tarjeta Venta */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-1">
+                  <h4 className="text-sm font-bold">VENTA</h4>
+                </div>
+                <div className="bg-white text-center py-3">
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_venta_usd)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tarjeta Ganancia */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-1">
+                  <h4 className="text-sm font-bold">GANANCIA</h4>
+                </div>
+                <div className="bg-white text-center py-3">
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
     }
   };
 
@@ -368,33 +444,26 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
       <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-hidden flex">
         
         {/* Panel izquierdo */}
-        <div className="w-1/3 bg-slate-800 text-white p-6 border-r-4 border-slate-800">
+        <div className="w-1/3 bg-gray-900 text-white p-6 border-r-4 border-gray-900">
           <div className="space-y-6">
             
-            <div className="text-center pb-4 border-b border-slate-600">
-              <h2 className="text-xl font-bold">{producto.modelo || producto.descripcion_producto}</h2>
-              <p className="text-slate-300 text-sm">{producto.marca}</p>
+            <div className="text-center pb-4 border-b border-gray-500">
+              <h2 className="text-xl font-bold">{producto.modelo || producto.nombre_producto}</h2>
+              <p className="text-gray-300 text-sm">{producto.marca}</p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-slate-200">CONDICIÓN</h3>
-              <div className="bg-slate-700 p-3 rounded-lg">
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                  producto.condicion === 'excelente' ? 'bg-green-600 text-white' :
-                  producto.condicion === 'muy bueno' ? 'bg-blue-600 text-white' :
-                  producto.condicion === 'bueno' ? 'bg-yellow-600 text-white' :
-                  producto.condicion === 'regular' ? 'bg-orange-600 text-white' :
-                  producto.condicion === 'malo' ? 'bg-red-600 text-white' :
-                  'bg-slate-600 text-white'
-                }`}>
+              <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">CONDICIÓN</h3>
+              <div className="bg-gray-500 p-3 rounded-lg text-center">
+                <span className="px-3 py-1 text-sm font-medium rounded-full bg-white text-gray-900">
                   {producto.condicion?.toUpperCase() || 'N/A'}
                 </span>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-slate-200">UBICACIÓN</h3>
-              <div className="bg-slate-700 p-3 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">UBICACIÓN</h3>
+              <div className="bg-gray-500 p-3 rounded-lg text-center">
                 <p className="text-white font-medium">
                   {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')?.replace('_', ' ').toUpperCase()}
                 </p>
@@ -403,17 +472,17 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
 
             {(producto.garantia_update || producto.garantia) && (
               <div>
-                <h3 className="text-lg font-semibold mb-3 text-slate-200">GARANTÍA</h3>
-                <div className="bg-slate-700 p-3 rounded-lg space-y-2">
+                <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">GARANTÍA</h3>
+                <div className="bg-gray-500 p-3 rounded-lg text-center">
                   {producto.garantia_update && (
                     <div>
-                      <span className="text-slate-300">Update:</span>
+                      <span className="text-gray-300">Update:</span>
                       <span className="text-white ml-2 font-medium">{producto.garantia_update}</span>
                     </div>
                   )}
                   {producto.garantia_oficial && (
                     <div>
-                      <span className="text-slate-300">Oficial:</span>
+                      <span className="text-gray-300">Oficial:</span>
                       <span className="text-white ml-2 font-medium">{producto.garantia_oficial}</span>
                     </div>
                   )}
@@ -426,13 +495,6 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
               </div>
             )}
 
-            <div className="bg-slate-700 p-4 rounded-lg text-center">
-              <p className="text-slate-300 text-sm">Precio de Venta</p>
-              <p className="text-2xl font-bold text-green-400">{formatPriceUSD(producto.precio_venta_usd)}</p>
-              <p className="text-slate-300 text-sm">
-                ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
-              </p>
-            </div>
 
           </div>
         </div>
@@ -441,10 +503,10 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
         <div className="w-2/3 bg-white p-6 overflow-y-auto">
           
           <div className="flex justify-between items-center mb-6 pb-4 border-b">
-            <h2 className="text-2xl font-bold text-slate-900">Información Completa</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Información Completa</h2>
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700"
+              className="text-gray-500 hover:text-gray-900"
             >
               <X className="w-6 h-6" />
             </button>
@@ -453,8 +515,8 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Información Básica</h3>
-              <div className="space-y-2 text-slate-900">
+              <h3 className="text-lg font-semibold text-white bg-gray-500 px-3 py-2 rounded">Información Básica</h3>
+              <div className="space-y-2 text-gray-900">
                 <div><strong>Serial:</strong> {producto.serial || 'N/A'}</div>
                 <div><strong>Fecha Ingreso:</strong> {producto.fecha_ingreso || 'N/A'}</div>
                 {producto.fallas && <div><strong>Fallas:</strong> {producto.fallas}</div>}
@@ -463,6 +525,58 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
 
             {renderCamposPorCategoria()}
 
+          </div>
+
+          <div className="space-y-4 mt-6">
+            <h3 className="text-lg font-semibold text-white bg-gray-500 px-3 py-2 rounded">Precios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Tarjeta Compra */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-2">
+                  <h4 className="text-lg font-bold">COMPRA</h4>
+                </div>
+                <div className="bg-white text-center py-4">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_compra_usd)}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tarjeta Venta */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-2">
+                  <h4 className="text-lg font-bold">VENTA</h4>
+                </div>
+                <div className="bg-white text-center py-4">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_venta_usd)}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tarjeta Ganancia */}
+              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 text-white text-center py-2">
+                  <h4 className="text-lg font-bold">GANANCIA</h4>
+                </div>
+                <div className="bg-white text-center py-4">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd)}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd, cotizacionDolar)}
+                  </p>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
@@ -536,24 +650,10 @@ const Catalogo = ({ onAddToCart }) => {
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Filter size={28} />
-              <div>
-                <h2 className="text-2xl font-bold">Catálogo</h2>
-                <p className="text-gray-300 mt-1">Inventario unificado con filtros inteligentes</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="p-0">
 
       {/* Selector de categorías */}
-      <div className="mb-6 bg-white rounded-lg shadow-md p-6">
+      <div className="mb-4 bg-white rounded-lg shadow-md p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800">Categorías de Productos</h3>
           <div className="text-sm text-slate-600">
@@ -568,9 +668,10 @@ const Catalogo = ({ onAddToCart }) => {
               onClick={() => cambiarCategoria(cat.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                 categoriaActiva === cat.id
-                  ? 'bg-gray-800 text-white shadow-lg scale-105'
+                  ? 'text-white shadow-lg scale-105'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
               }`}
+              style={categoriaActiva === cat.id ? {backgroundColor: '#262626'} : {}}
             >
               <span className="text-lg">{cat.icon}</span>
               <span className="font-medium">{cat.label}</span>
@@ -587,7 +688,7 @@ const Catalogo = ({ onAddToCart }) => {
       </div>
 
       {/* Filtros */}
-      <div className="mb-6 bg-white rounded-lg shadow-md p-6">
+      <div className="mb-4 bg-white rounded-lg shadow-md p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800">Filtros</h3>
           {hayFiltrosActivos && (
@@ -725,7 +826,7 @@ const Catalogo = ({ onAddToCart }) => {
       {!loading && !error && (
         <div className="space-y-3">
           {/* Header */}
-          <div className="bg-gradient-to-r from-gray-800 to-black rounded-lg p-4 grid grid-cols-12 gap-4">
+          <div className="rounded-lg p-4 grid grid-cols-12 gap-4" style={{backgroundColor: '#262626'}}>
             <div className="col-span-4 text-sm font-bold text-white uppercase">Información del Producto</div>
             <div className="col-span-2 text-sm font-bold text-white uppercase">Condición</div>
             <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
@@ -737,18 +838,31 @@ const Catalogo = ({ onAddToCart }) => {
           {datos.map((producto) => (
             <div 
               key={producto.id} 
-              className="group cursor-pointer hover:bg-black hover:text-white hover:border-gray-700 transition-colors duration-200 border border-gray-200 rounded-lg p-4 bg-white grid grid-cols-12 gap-4 items-center shadow-sm hover:shadow-md"
+              className="group cursor-pointer hover:bg-gray-200 hover:border-gray-300 transition-colors duration-200 border border-gray-200 rounded-lg p-4 bg-white grid grid-cols-12 gap-4 items-center shadow-sm hover:shadow-md"
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
               <div className="col-span-4">
-                <div className="text-sm font-medium">
-                  {generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar)}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {producto.descripcion && <span>{producto.descripcion}</span>}
-                  {producto.stock > 0 && <span className="ml-2 text-green-600">Stock: {producto.stock}</span>}
-                </div>
+                {categoriaActiva === 'otros' ? (
+                  <div>
+                    <div className="text-sm font-medium">
+                      {producto.nombre_producto}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {producto.descripcion}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-sm font-medium">
+                      {generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar)}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {producto.descripcion && <span>{producto.descripcion}</span>}
+                      {producto.stock > 0 && <span className="ml-2 text-green-600">Stock: {producto.stock}</span>}
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Condición */}
@@ -767,10 +881,10 @@ const Catalogo = ({ onAddToCart }) => {
               
               {/* Precio */}
               <div className="col-span-2">
-                <div className="text-lg font-bold text-gray-900 group-hover:text-white">
+                <div className="text-lg font-bold text-gray-900">
                   {formatPriceUSD(producto.precio_venta_usd)}
                 </div>
-                <div className="text-xs text-gray-500 group-hover:text-gray-300">
+                <div className="text-xs text-gray-500">
                   ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
                 </div>
               </div>
@@ -779,17 +893,19 @@ const Catalogo = ({ onAddToCart }) => {
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => navigator.clipboard.writeText(generateCopy(producto, false))}
-                  className="px-2 py-1 bg-gray-600 text-white text-xs rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-2 py-1 text-white text-[10px] rounded-lg hover:bg-gray-500 transition-colors"
+                  style={{backgroundColor: '#404040'}}
                   title="Copiar información USD"
                 >
-                  📋 USD
+                  USD
                 </button>
                 <button
                   onClick={() => navigator.clipboard.writeText(generateCopy(producto, true))}
-                  className="px-2 py-1 bg-gray-600 text-white text-xs rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-2 py-1 text-white text-[10px] rounded-lg hover:bg-gray-500 transition-colors"
+                  style={{backgroundColor: '#404040'}}
                   title="Copiar información Pesos"
                 >
-                  📋 ARS
+                  ARS
                 </button>
               </div>
 
@@ -797,24 +913,33 @@ const Catalogo = ({ onAddToCart }) => {
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleAddToCart(producto)}
-                  className="px-2 py-1 bg-gray-300 text-gray-800 text-xs rounded-lg hover:bg-gray-400 transition-colors"
+                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
+                  style={{backgroundColor: '#404040'}}
                   title="Agregar al carrito"
                 >
-                  🛒
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                  </svg>
                 </button>
                 <button
                   onClick={() => alert('Función de editar próximamente')}
-                  className="px-2 py-1 bg-gray-600 text-white text-xs rounded-lg hover:bg-gray-700 transition-colors"
+                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
+                  style={{backgroundColor: '#404040'}}
                   title="Editar producto"
                 >
-                  ✏️
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                  </svg>
                 </button>
                 <button
                   onClick={() => eliminarProducto(producto.id)}
-                  className="px-2 py-1 bg-gray-700 text-white text-xs rounded-lg hover:bg-gray-800 transition-colors"
+                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
+                  style={{backgroundColor: '#404040'}}
                   title="Eliminar producto"
                 >
-                  ✕
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                  </svg>
                 </button>
               </div>
             </div>
@@ -829,13 +954,22 @@ const Catalogo = ({ onAddToCart }) => {
       )}
 
       {/* Modal de detalle */}
-      <ModalDetalleUnificado
-        open={modalDetalle.open}
-        producto={modalDetalle.producto}
-        categoria={categoriaActiva}
-        onClose={() => setModalDetalle({ open: false, producto: null })}
-        cotizacionDolar={cotizacionDolar}
-      />
+      {(categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') ? (
+        <ModalDetalleUnificado
+          open={modalDetalle.open}
+          producto={modalDetalle.producto}
+          categoria={categoriaActiva}
+          onClose={() => setModalDetalle({ open: false, producto: null })}
+          cotizacionDolar={cotizacionDolar}
+        />
+      ) : (
+        <OtrosModal
+          isOpen={modalDetalle.open}
+          producto={modalDetalle.producto}
+          onClose={() => setModalDetalle({ open: false, producto: null })}
+          cotizacionDolar={cotizacionDolar}
+        />
+      )}
     </div>
   );
 };

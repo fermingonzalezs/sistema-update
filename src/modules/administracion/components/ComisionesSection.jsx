@@ -185,11 +185,11 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   const getColorCategoria = (categoria) => {
     switch (categoria) {
-      case 'computadora_nuevo': return 'text-blue-600';
-      case 'computadora_usado': return 'text-blue-400';
-      case 'celular_nuevo': return 'text-green-600';
-      case 'celular_usado': return 'text-green-400';
-      case 'otro': return 'text-purple-600';
+      case 'computadora_nuevo': return 'text-gray-800';
+      case 'computadora_usado': return 'text-gray-700';
+      case 'celular_nuevo': return 'text-gray-800';
+      case 'celular_usado': return 'text-gray-700';
+      case 'otro': return 'text-gray-800';
       default: return 'text-gray-600';
     }
   };
@@ -218,17 +218,22 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   return (
     <div className="p-8">
-      {/* Header con azul degradado como VentasSection */}
-      <div className="flex items-center justify-between mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl py-10 px-8">
-        <div>
-          <h2 className="text-4xl font-bold text-white">Comisiones</h2>
-          <p className="text-blue-100 mt-2 text-lg">Cálculo y resumen de comisiones por ventas</p>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Calculator className="w-8 h-8" />
+              Comisiones
+            </h2>
+            <p className="text-gray-300 mt-2">Cálculo y resumen de comisiones por ventas</p>
+          </div>
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <Calculator className="w-8 h-8 text-green-600" />
+          <Calculator className="w-8 h-8 text-gray-600" />
           <h2 className="text-2xl font-bold text-gray-800">Cálculo de Comisiones</h2>
         </div>
         <div className="flex items-center space-x-2">
@@ -293,7 +298,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           <div className="flex items-end">
             <button
               onClick={calcularComisiones}
-              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-black transition-colors"
             >
               Calcular
             </button>
@@ -310,7 +315,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             {!editandoPorcentajes ? (
               <button
                 onClick={() => setEditandoPorcentajes(true)}
-                className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                className="text-gray-600 hover:text-gray-800 flex items-center space-x-1"
               >
                 <Edit2 className="w-4 h-4" />
                 <span>Editar</span>
@@ -319,7 +324,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
               <div className="flex space-x-2">
                 <button
                   onClick={guardarPorcentajes}
-                  className="text-green-600 hover:text-green-800 flex items-center space-x-1"
+                  className="text-gray-600 hover:text-gray-800 flex items-center space-x-1"
                 >
                   <Save className="w-4 h-4" />
                   <span>Guardar</span>
@@ -369,46 +374,46 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
       {/* Resumen General */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-blue-600 p-6 rounded-lg text-white">
+        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">Total Comisiones</p>
-              <p className="text-2xl font-bold">{formatearMoneda(resumenGeneral.totalComisiones)}</p>
+              <p className="text-green-800 text-sm">Total Comisiones</p>
+              <p className="text-2xl font-bold text-green-900">{formatearMoneda(resumenGeneral.totalComisiones)}</p>
             </div>
-            <Calculator className="w-8 h-8 text-blue-200" />
+            <Calculator className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-emerald-600 p-6 rounded-lg text-white">
+        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-sm">Total Ganancias</p>
-              <p className="text-2xl font-bold">{formatearMoneda(resumenGeneral.totalGanancias)}</p>
+              <p className="text-green-800 text-sm">Total Ganancias</p>
+              <p className="text-2xl font-bold text-green-900">{formatearMoneda(resumenGeneral.totalGanancias)}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-emerald-200" />
+            <TrendingUp className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-orange-500 p-6 rounded-lg text-white">
+        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">% Representación</p>
-              <p className="text-2xl font-bold">{resumenGeneral.porcentajeRepresentacion.toFixed(1)}%</p>
+              <p className="text-green-800 text-sm">% Representación</p>
+              <p className="text-2xl font-bold text-green-900">{resumenGeneral.porcentajeRepresentacion.toFixed(1)}%</p>
             </div>
-            <Settings className="w-8 h-8 text-orange-200" />
+            <Settings className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-violet-600 p-6 rounded-lg text-white">
+        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-violet-100 text-sm">Total Ventas</p>
-              <p className="text-2xl font-bold">{formatearMoneda(resumenGeneral.totalVentas)}</p>
+              <p className="text-green-800 text-sm">Total Ventas</p>
+              <p className="text-2xl font-bold text-green-900">{formatearMoneda(resumenGeneral.totalVentas)}</p>
             </div>
-            <FileText className="w-8 h-8 text-violet-200" />
+            <FileText className="w-8 h-8 text-green-600" />
           </div>
         </div>
       </div>
 
       {/* Tabla de Comisiones por Vendedor */}
-      {loading && <p className="text-blue-600">Cargando datos...</p>}
+      {loading && <p className="text-gray-600">Cargando datos...</p>}
       {error && <p className="text-red-600">Error: {error}</p>}
       
       {!loading && !error && (
@@ -421,7 +426,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-green-500 to-blue-500">
+              <thead className="bg-gray-800">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">PC Nuevas</th>
@@ -448,7 +453,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     {/* PC Nuevas */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="text-blue-600 font-medium">
+                        <div className="text-gray-900 font-medium">
                           {formatearMoneda(vendedorData.categorias.computadora_nuevo.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
@@ -460,7 +465,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     {/* PC Usadas */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="text-blue-400 font-medium">
+                        <div className="text-gray-800 font-medium">
                           {formatearMoneda(vendedorData.categorias.computadora_usado.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
@@ -472,7 +477,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     {/* Celulares Nuevos */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="text-green-600 font-medium">
+                        <div className="text-gray-900 font-medium">
                           {formatearMoneda(vendedorData.categorias.celular_nuevo.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">
@@ -484,7 +489,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     {/* Celulares Usados */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="text-green-400 font-medium">
+                        <div className="text-gray-800 font-medium">
                           {formatearMoneda(vendedorData.categorias.celular_usado.comision)}
                         </div>
                         <div className="text-gray-500 text-xs">

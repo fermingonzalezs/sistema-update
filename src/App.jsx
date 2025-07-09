@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Header, CarritoWidget } from './shared/components/layout';
+import { Layout, CarritoWidget } from './shared/components/layout';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import Login from './components/Login';
 import {
@@ -11,9 +11,6 @@ import {
 } from './modules/importaciones/components';
 import { 
   Clientes,
-  AgregarOtroSection,
-  AgregarSection,
-  AgregarCelularSection,
   Listas,
   GestionFotos,
   Catalogo
@@ -31,8 +28,7 @@ import {
   ComisionesSection,
   DashboardReportesSection,
   RecuentoStockSection,
-  GarantiasSection,
-  CuentasCorrientesSection
+  GarantiasSection
 } from './modules/administracion/components';
 import {
   PlanCuentasSection,
@@ -40,7 +36,8 @@ import {
   LibroMayorSection,
   ConciliacionCajaSection,
   EstadoSituacionPatrimonialSection,
-  EstadoResultadosSection
+  EstadoResultadosSection,
+  CuentasCorrientesSection
 } from './modules/contabilidad/components';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
@@ -435,160 +432,155 @@ const AppContent = () => {
  };
 
  return (
-   <div className="flex h-screen bg-white">
-     <Sidebar
-       activeSection={activeSection}
-       setActiveSection={handleSectionChange}
-       cantidadCarrito={calcularCantidadTotal()}
-     />
-     <div className="flex-1 flex flex-col overflow-hidden">
-       <Header />
-       <main className="flex-1 overflow-auto">
-
-         {/* 📋 Renderizado de secciones protegidas */}
-         {activeSection === 'importaciones' && hasAccess('importaciones') && (
-           <ImportacionesSection />
-         )}
-         {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
-           <CotizacionesSection />
-         )}
-         {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
-           <PendientesCompraSection />
-         )}
-         {activeSection === 'en-transito' && hasAccess('importaciones') && (
-           <EnTransitoSection />
-         )}
-         {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
-           <HistorialImportacionesSection />
-         )}
-         {/* 📋 CATÁLOGO UNIFICADO */}
-         {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
-           <Catalogo onAddToCart={handleAddToCart} />
-         )}
+   <Layout
+     activeSection={activeSection}
+     setActiveSection={handleSectionChange}
+     cantidadCarrito={calcularCantidadTotal()}
+   >
+     <main className="flex-1 overflow-auto p-6">
+       {/* 📋 Renderizado de secciones protegidas */}
+       {activeSection === 'importaciones' && hasAccess('importaciones') && (
+         <ImportacionesSection />
+       )}
+       {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
+         <CotizacionesSection />
+       )}
+       {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
+         <PendientesCompraSection />
+       )}
+       {activeSection === 'en-transito' && hasAccess('importaciones') && (
+         <EnTransitoSection />
+       )}
+       {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
+         <HistorialImportacionesSection />
+       )}
+       {/* 📋 CATÁLOGO UNIFICADO */}
+       {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
+         <Catalogo onAddToCart={handleAddToCart} />
+       )}
 
 
-         {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
-           <CargaEquiposUnificada
-             onAddComputer={addComputer}
-             onAddCelular={addCelular}
-             onAddOtro={addOtro}
-             loading={computersLoading || celularesLoading || otrosLoading}
-           />
-         )}
+       {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
+         <CargaEquiposUnificada
+           onAddComputer={addComputer}
+           onAddCelular={addCelular}
+           onAddOtro={addOtro}
+           loading={computersLoading || celularesLoading || otrosLoading}
+         />
+       )}
 
-         {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
-           <ReparacionesMain />
-         )}
+       {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
+         <ReparacionesMain />
+       )}
 
 
 
 
-         {activeSection === 'ventas' && hasAccess('ventas') && (
-           <VentasSection
-             ventas={ventas}
-             loading={ventasLoading}
-             error={ventasError}
-             onLoadStats={obtenerEstadisticas}
-           />
-         )}
+       {activeSection === 'ventas' && hasAccess('ventas') && (
+         <VentasSection
+           ventas={ventas}
+           loading={ventasLoading}
+           error={ventasError}
+           onLoadStats={obtenerEstadisticas}
+         />
+       )}
 
-         {/* 👥 SECCIÓN DE CLIENTES */}
-         {activeSection === 'clientes' && hasAccess('clientes') && (
-           <Clientes />
-         )}
+       {/* 👥 SECCIÓN DE CLIENTES */}
+       {activeSection === 'clientes' && hasAccess('clientes') && (
+         <Clientes />
+       )}
 
-         {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
-         {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
-           <CuentasCorrientesSection />
-         )}
+       {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
+       {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
+         <CuentasCorrientesSection />
+       )}
 
-         {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
-           <GestionFotos
-             computers={computers}
-             celulares={celulares}
-             otros={otros}
-             loading={computersLoading || celularesLoading || otrosLoading}
-             error={computersError || celularesError || otrosError}
-           />
-         )}
+       {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
+         <GestionFotos
+           computers={computers}
+           celulares={celulares}
+           otros={otros}
+           loading={computersLoading || celularesLoading || otrosLoading}
+           error={computersError || celularesError || otrosError}
+         />
+       )}
 
 
-         {/* 📊 SECCIONES DE CONTABILIDAD */}
-         {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
-           <PlanCuentasSection />
-         )}
+       {/* 📊 SECCIONES DE CONTABILIDAD */}
+       {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
+         <PlanCuentasSection />
+       )}
 
-         {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
-           <LibroDiarioSection />
-         )}
+       {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
+         <LibroDiarioSection />
+       )}
 
-         {/* ELIMINADO: reporte-movimientos ya no existe */}
+       {/* ELIMINADO: reporte-movimientos ya no existe */}
 
-         {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
-           <LibroMayorSection />
-         )}
+       {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
+         <LibroMayorSection />
+       )}
 
-         {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
-           <ConciliacionCajaSection />
-         )}
+       {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
+         <ConciliacionCajaSection />
+       )}
 
-         {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
-           <EstadoSituacionPatrimonialSection />
-         )}
+       {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
+         <EstadoSituacionPatrimonialSection />
+       )}
 
-         {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
-           <EstadoResultadosSection />
-         )}
+       {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
+         <EstadoResultadosSection />
+       )}
 
-         {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
-           <RecuentoStockSection />
-         )}
+       {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
+         <RecuentoStockSection />
+       )}
 
-         {activeSection === 'repuestos' && hasAccess('repuestos') && (
-           <RepuestosSection />
-         )}
+       {activeSection === 'repuestos' && hasAccess('repuestos') && (
+         <RepuestosSection />
+       )}
 
-         {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
-           <MovimientosRepuestosSection />
-         )}
+       {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
+         <MovimientosRepuestosSection />
+       )}
 
-         {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (
-           <RecuentoRepuestosSection />
-         )}
+       {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (
+         <RecuentoRepuestosSection />
+       )}
 
-         {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
-           <TesteoEquiposSection />
-         )}
+       {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
+         <TesteoEquiposSection />
+       )}
 
-         {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
-           <DashboardReportesSection />
-         )}
+       {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
+         <DashboardReportesSection />
+       )}
 
-         {activeSection === 'garantias' && hasAccess('garantias') && (
-           <GarantiasSection />
-         )}
+       {activeSection === 'garantias' && hasAccess('garantias') && (
+         <GarantiasSection />
+       )}
 
-         {activeSection === 'comisiones' && hasAccess('comisiones') && (
-           <ComisionesSection
-             ventas={ventas}
-             loading={ventasLoading}
-             error={ventasError}
-             onLoadStats={obtenerEstadisticas}
-           />
-         )}
+       {activeSection === 'comisiones' && hasAccess('comisiones') && (
+         <ComisionesSection
+           ventas={ventas}
+           loading={ventasLoading}
+           error={ventasError}
+           onLoadStats={obtenerEstadisticas}
+         />
+       )}
 
-         {activeSection === 'copys' && hasAccess('copys') && (
-           <Listas
-             computers={computers}
-             celulares={celulares}
-             otros={otros}
-             loading={computersLoading || celularesLoading || otrosLoading}
-             error={computersError || celularesError || otrosError}
-           />
-         )}
+       {activeSection === 'copys' && hasAccess('copys') && (
+         <Listas
+           computers={computers}
+           celulares={celulares}
+           otros={otros}
+           loading={computersLoading || celularesLoading || otrosLoading}
+           error={computersError || celularesError || otrosError}
+         />
+       )}
 
-       </main>
-     </div>
+     </main>
 
      {/* 🛒 Widget del carrito flotante */}
      <CarritoWidget
@@ -598,7 +590,7 @@ const AppContent = () => {
        onLimpiar={limpiarCarrito}
        onProcesarVenta={handleProcesarCarrito}
      />
-   </div>
+   </Layout>
  );
 };
 

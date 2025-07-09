@@ -178,8 +178,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 bg-${config.color}-100 rounded-lg`}>
-                <Icon className={`w-6 h-6 text-${config.color}-600`} />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Icon className="w-6 h-6 text-gray-600" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-800">{config.titulo}</h3>
@@ -291,7 +291,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={loading || !personaSeleccionada || !cuentaSeleccionada}
-              className={`flex-1 px-4 py-3 bg-${config.color}-600 text-white rounded-lg hover:bg-${config.color}-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
+              className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-lg hover:bg-black transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
                 <>
@@ -376,18 +376,23 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 bg-gradient-to-r from-purple-600 to-indigo-700 rounded-xl py-10 px-8">
-        <div>
-          <h2 className="text-4xl font-bold text-white">Cuentas Corrientes</h2>
-          <p className="text-purple-100 mt-2 text-lg">Gestión de deudas de la empresa con personas</p>
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <CreditCard className="w-8 h-8" />
+              Cuentas Corrientes
+            </h2>
+            <p className="text-gray-300 mt-2">Gestión de deudas de la empresa con personas</p>
+          </div>
+          <button 
+            onClick={() => setShowNuevoMovimiento(true)}
+            className="bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-bold shadow text-base flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nuevo Movimiento</span>
+          </button>
         </div>
-        <button 
-          onClick={() => setShowNuevoMovimiento(true)}
-          className="bg-white text-purple-700 px-6 py-3 rounded-lg hover:bg-purple-50 transition-colors font-bold shadow text-base flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nuevo Movimiento</span>
-        </button>
       </div>
 
       {/* Estadísticas */}
@@ -409,8 +414,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
 
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <TrendingDown className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <TrendingDown className="w-6 h-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Créditos a Favor</p>
@@ -423,8 +428,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
 
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <DollarSign className="w-6 h-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Saldo Neto</p>

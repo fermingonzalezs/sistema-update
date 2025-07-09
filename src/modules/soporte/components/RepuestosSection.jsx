@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, Trash2, Save, RefreshCw, Search, Package } from 'lucide-react';
+import { Wrench, Plus, Trash2, Save, RefreshCw, Search, Package, CheckCircle, AlertCircle, Layers } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 
 // Servicio para Repuestos
@@ -278,12 +278,14 @@ const RepuestosSection = () => {
     <div className="p-8">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-700 p-6 text-white">
-          <div className="flex items-center space-x-3">
-            <Wrench size={28} />
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
+          <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-4xl font-bold">Repuestos de Computadoras</h2>
-              <p className="text-orange-100 mt-1">Gestión de inventario de repuestos y componentes</p>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Wrench className="w-8 h-8" />
+                Repuestos de Computadoras
+              </h2>
+              <p className="text-gray-300 mt-2">Gestión de inventario de repuestos y componentes</p>
             </div>
           </div>
         </div>
@@ -305,7 +307,7 @@ const RepuestosSection = () => {
                 value={formData.item}
                 onChange={(e) => handleInputChange('item', e.target.value)}
                 placeholder="ej: Memoria RAM DDR4 8GB Kingston"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
                 required
               />
             </div>
@@ -317,7 +319,7 @@ const RepuestosSection = () => {
               <select
                 value={formData.categoria}
                 onChange={(e) => handleInputChange('categoria', e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
                 required
               >
                 <option value="">Seleccionar...</option>
@@ -340,7 +342,7 @@ const RepuestosSection = () => {
                   value={formData.precio_compra}
                   onChange={(e) => handleInputChange('precio_compra', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-400 rounded text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
                   required
                 />
               </div>
@@ -359,7 +361,7 @@ const RepuestosSection = () => {
                   value={formData.precio_venta}
                   onChange={(e) => handleInputChange('precio_venta', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-400 rounded text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
                   required
                 />
               </div>
@@ -375,7 +377,7 @@ const RepuestosSection = () => {
                 value={formData.cantidad}
                 onChange={(e) => handleInputChange('cantidad', e.target.value)}
                 placeholder="0"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
                 required
               />
             </div>
@@ -383,7 +385,7 @@ const RepuestosSection = () => {
             <div className="flex items-end">
               <button
                 type="submit"
-                className="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 <Save size={16} />
                 Agregar
@@ -425,7 +427,7 @@ const RepuestosSection = () => {
         {/* Estado de carga y errores */}
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
             <span className="ml-3 text-gray-600">Cargando repuestos...</span>
           </div>
         )}
@@ -440,7 +442,7 @@ const RepuestosSection = () => {
         {!loading && !error && (
           <div className="p-6">
             <div className="mb-4">
-              <p className="text-orange-600 font-semibold">
+              <p className="text-gray-800 font-semibold">
                 🔧 {repuestosFiltrados.length} repuestos encontrados
                 {filtro || categoriaFiltro !== 'todas' ? ` (de ${repuestos.length} totales)` : ''}
               </p>
@@ -449,16 +451,16 @@ const RepuestosSection = () => {
             {repuestosFiltrados.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-900">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Compra</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Venta</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Margen</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Item</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Categoría</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Precio Compra</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Precio Venta</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Margen</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cantidad</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Stock</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -546,7 +548,7 @@ const RepuestosSection = () => {
                       setFiltro('');
                       setCategoriaFiltro('todas');
                     }}
-                    className="text-orange-600 hover:underline flex items-center gap-2 mx-auto"
+                    className="text-gray-600 hover:underline flex items-center gap-2 mx-auto"
                   >
                     <RefreshCw size={16} />
                     Limpiar filtros
@@ -559,29 +561,43 @@ const RepuestosSection = () => {
 
         {/* Estadísticas */}
         {repuestos.length > 0 && (
-          <div className="bg-gray-50 p-4 border-t">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-gray-800">{repuestos.length}</div>
-                <div className="text-sm text-gray-600">Repuestos Totales</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {repuestos.filter(r => r.cantidad > 0).length}
+          <div className="bg-gray-50 p-6 border-t">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Repuestos Totales</p>
+                    <p className="text-2xl font-bold text-orange-900">{repuestos.length}</p>
+                  </div>
+                  <Package className="w-8 h-8 text-orange-600" />
                 </div>
-                <div className="text-sm text-gray-600">En Stock</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-red-600">
-                  {repuestos.filter(r => r.cantidad === 0).length}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">En Stock</p>
+                    <p className="text-2xl font-bold text-orange-900">{repuestos.filter(r => r.cantidad > 0).length}</p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-orange-600" />
                 </div>
-                <div className="text-sm text-gray-600">Sin Stock</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {[...new Set(repuestos.map(r => r.categoria))].length}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Sin Stock</p>
+                    <p className="text-2xl font-bold text-orange-900">{repuestos.filter(r => r.cantidad === 0).length}</p>
+                  </div>
+                  <AlertCircle className="w-8 h-8 text-orange-600" />
                 </div>
-                <div className="text-sm text-gray-600">Categorías</div>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-800 text-sm">Categorías</p>
+                    <p className="text-2xl font-bold text-orange-900">{[...new Set(repuestos.map(r => r.categoria))].length}</p>
+                  </div>
+                  <Layers className="w-8 h-8 text-orange-600" />
+                </div>
               </div>
             </div>
           </div>

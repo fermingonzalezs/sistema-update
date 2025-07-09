@@ -16,11 +16,6 @@ export const movimientosRepuestosService = {
           id,
           item,
           categoria
-        ),
-        reparaciones (
-          id,
-          numero,
-          cliente_nombre
         )
       `)
       .order('fecha_movimiento', { ascending: false });
@@ -172,13 +167,7 @@ export const movimientosRepuestosService = {
     
     const { data, error } = await supabase
       .from('movimientos_repuestos')
-      .select(`
-        *,
-        reparaciones (
-          numero,
-          cliente_nombre
-        )
-      `)
+      .select('*')
       .eq('repuesto_id', repuestoId)
       .order('fecha_movimiento', { ascending: false });
     
@@ -196,14 +185,7 @@ export const movimientosRepuestosService = {
     
     const { data, error } = await supabase
       .from('movimientos_repuestos')
-      .select(`
-        *,
-        repuestos (
-          item,
-          categoria,
-          precio_venta
-        )
-      `)
+      .select('*')
       .eq('reparacion_id', reparacionId)
       .order('fecha_movimiento', { ascending: false });
     

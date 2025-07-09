@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Download, Printer } from 'lucide-react';
-import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF_NUEVO';
+import { abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF';
 
 const ModalVistaPreviaPresupuesto = ({ open, onClose, reparacion, presupuesto }) => {
   if (!open || !reparacion || !presupuesto) return null;

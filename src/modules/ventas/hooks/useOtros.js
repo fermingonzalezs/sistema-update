@@ -25,11 +25,11 @@ export const otrosService = {
 
   // Crear nuevo producto otro
   async create(producto) {
-    console.log('💾 Creando producto otro:', producto.descripcion_producto)
+    console.log('💾 Creando producto otro:', producto.nombre_producto)
     
     // Validación básica
-    if (!producto.descripcion_producto?.trim()) {
-      throw new Error('La descripción del producto es obligatoria')
+    if (!producto.nombre_producto?.trim()) {
+      throw new Error('El nombre del producto es obligatorio')
     }
     
     if (!producto.categoria) {
@@ -40,7 +40,8 @@ export const otrosService = {
       .from('otros')
       .insert([{
         // Información básica
-        descripcion_producto: producto.descripcion_producto.trim(),
+        nombre_producto: producto.nombre_producto.trim(),
+        descripcion: producto.descripcion?.trim() || '',
         cantidad: parseInt(producto.cantidad) || 1,
         
         // Precios - asegurar que sean números

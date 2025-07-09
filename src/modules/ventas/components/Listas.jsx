@@ -480,10 +480,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const tipoConfig = getTipoConfig(tipoActivo);
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-0 space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
+        <div className="p-4 text-white" style={{backgroundColor: '#262626'}}>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <FileText size={28} />

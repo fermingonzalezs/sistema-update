@@ -301,18 +301,23 @@ function TesteoEquiposSection() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <Monitor className="w-8 h-8 text-blue-600" />
-          <h2 className="text-2xl font-bold text-gray-900">Testeo de Equipos</h2>
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Monitor className="w-8 h-8" />
+              Testeo de Equipos
+            </h2>
+            <p className="text-gray-300 mt-2">Control de calidad y testeo de equipos</p>
+          </div>
+          <button
+            onClick={() => setModalNuevo(true)}
+            className="bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-bold shadow text-base flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nuevo Equipo</span>
+          </button>
         </div>
-        <button
-          onClick={() => setModalNuevo(true)}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Equipo
-        </button>
       </div>
 
       {/* Filtros */}
@@ -342,13 +347,13 @@ function TesteoEquiposSection() {
       {/* Tabla de equipos */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Testeo</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Equipo</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Proveedor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Estado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Testeo</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase">Acciones</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">

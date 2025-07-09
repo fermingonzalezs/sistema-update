@@ -10,14 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.53.0",
     "@emailjs/browser": "^4.4.1",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.49.8",
     "@tailwindcss/vite": "^4.1.7",
-    "claude": "^0.0.6",
+    "dotenv": "^17.0.1",
     "jspdf": "^3.0.1",
-    "jspdf-autotable": "^5.0.2",
     "jszip": "^3.10.1",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
@@ -26,16 +24,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.7",
     "vite": "^6.3.5"
   }
 }

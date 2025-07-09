@@ -332,14 +332,14 @@ const DashboardReportesSection = () => {
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-700 p-6 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <BarChart3 size={28} />
-              <div>
-                <h2 className="text-4xl font-bold">Dashboard de Reportes</h2>
-                <p className="text-purple-100 mt-1">Análisis visual de ventas e inventario</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <BarChart3 className="w-8 h-8" />
+                Dashboard de Reportes
+              </h2>
+              <p className="text-gray-300 mt-2">Análisis visual de ventas e inventario</p>
             </div>
           </div>
         </div>
@@ -390,53 +390,53 @@ const DashboardReportesSection = () => {
           <div className="p-6 space-y-6">
             {/* KPIs Principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-green-500 p-4 rounded-lg text-white">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Ingresos Totales</p>
-                    <p className="text-2xl font-bold">{formatearMoneda(ventasData.resumenGeneral.totalIngresos)}</p>
+                    <p className="text-purple-800 text-sm">Ingresos Totales</p>
+                    <p className="text-2xl font-bold text-purple-900">{formatearMoneda(ventasData.resumenGeneral.totalIngresos)}</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-200" />
+                  <DollarSign className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
 
-              <div className="bg-green-500 p-4 rounded-lg text-white">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Margen Total</p>
-                    <p className="text-2xl font-bold">{formatearMoneda(ventasData.resumenGeneral.totalMargen)}</p>
+                    <p className="text-purple-800 text-sm">Margen Total</p>
+                    <p className="text-2xl font-bold text-purple-900">{formatearMoneda(ventasData.resumenGeneral.totalMargen)}</p>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-green-200" />
+                  <TrendingUp className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
 
-              <div className="bg-green-500 p-4 rounded-lg text-white">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Transacciones</p>
-                    <p className="text-2xl font-bold">{ventasData.resumenGeneral.totalTransacciones}</p>
+                    <p className="text-purple-800 text-sm">Transacciones</p>
+                    <p className="text-2xl font-bold text-purple-900">{ventasData.resumenGeneral.totalTransacciones}</p>
                   </div>
-                  <ShoppingCart className="w-8 h-8 text-green-200" />
+                  <ShoppingCart className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
 
-              <div className="bg-green-500 p-4 rounded-lg text-white">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Ticket Promedio</p>
-                    <p className="text-2xl font-bold">{formatearMoneda(ventasData.resumenGeneral.ticketPromedio)}</p>
+                    <p className="text-purple-800 text-sm">Ticket Promedio</p>
+                    <p className="text-2xl font-bold text-purple-900">{formatearMoneda(ventasData.resumenGeneral.ticketPromedio)}</p>
                   </div>
-                  <Package className="w-8 h-8 text-green-200" />
+                  <Package className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
 
-              <div className="bg-green-500 p-4 rounded-lg text-white">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100 text-sm">Valor Inventario</p>
-                    <p className="text-2xl font-bold">{formatearMoneda(inventarioData.valorTotalInventario)}</p>
+                    <p className="text-purple-800 text-sm">Valor Inventario</p>
+                    <p className="text-2xl font-bold text-purple-900">{formatearMoneda(inventarioData.valorTotalInventario)}</p>
                   </div>
-                  <Package className="w-8 h-8 text-green-200" />
+                  <Package className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
             </div>
@@ -570,9 +570,9 @@ const DashboardReportesSection = () => {
                     <div key={index} className="p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-3">
-                          {categoria.categoria === 'Notebooks' && <Monitor className="w-6 h-6 text-blue-600" />}
-                          {categoria.categoria === 'Celulares' && <Smartphone className="w-6 h-6 text-green-600" />}
-                          {categoria.categoria === 'Otros' && <Box className="w-6 h-6 text-purple-600" />}
+                          {categoria.categoria === 'Notebooks' && <Monitor className="w-6 h-6 text-gray-600" />}
+                          {categoria.categoria === 'Celulares' && <Smartphone className="w-6 h-6 text-gray-600" />}
+                          {categoria.categoria === 'Otros' && <Box className="w-6 h-6 text-gray-600" />}
                           <div>
                             <div className="font-semibold text-lg">{categoria.categoria}</div>
                           </div>
@@ -614,12 +614,12 @@ const DashboardReportesSection = () => {
                         </div>
                       </div>
                     )}
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <Package className="w-5 h-5 text-blue-600" />
+                        <Package className="w-5 h-5 text-gray-600" />
                         <div>
-                          <div className="font-medium text-blue-800">Total Productos</div>
-                          <div className="text-sm text-blue-700">
+                          <div className="font-medium text-gray-800">Total Productos</div>
+                          <div className="text-sm text-gray-700">
                             {inventarioData.totalProductos} unidades
                           </div>
                         </div>
