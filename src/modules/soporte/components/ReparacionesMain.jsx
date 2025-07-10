@@ -7,13 +7,13 @@ import { useReparaciones } from '../hooks/useReparaciones';
 import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF.jsx';
 
 const estados = {
-  ingresado: { label: 'Ingresado', color: 'bg-orange-100 text-orange-700' },
-  diagnosticando: { label: 'Diagnosticando', color: 'bg-yellow-100 text-yellow-700' },
-  presupuestado: { label: 'Presupuestado', color: 'bg-purple-100 text-purple-700' },
-  aprobado: { label: 'Aprobado', color: 'bg-green-100 text-green-700' },
-  reparando: { label: 'Reparando', color: 'bg-blue-100 text-blue-700' },
+  ingresado: { label: 'Ingresado', color: 'bg-emerald-100 text-emerald-700' },
+  diagnosticando: { label: 'Diagnosticando', color: 'bg-emerald-100 text-emerald-700' },
+  presupuestado: { label: 'Presupuestado', color: 'bg-emerald-100 text-emerald-700' },
+  aprobado: { label: 'Aprobado', color: 'bg-emerald-100 text-emerald-700' },
+  reparando: { label: 'Reparando', color: 'bg-emerald-100 text-emerald-700' },
   terminado: { label: 'Terminado', color: 'bg-emerald-100 text-emerald-700' },
-  entregado: { label: 'Entregado', color: 'bg-gray-100 text-gray-700' },
+  entregado: { label: 'Entregado', color: 'bg-slate-100 text-slate-700' },
   cancelado: { label: 'Cancelado', color: 'bg-red-100 text-red-700' },
 };
 
@@ -190,37 +190,41 @@ function ReparacionesMain() {
   ];
 
   return (
-    <div className="p-6 md:p-10 bg-gray-50 min-h-screen">
+    <div className="">
       {/* Header */}
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Wrench className="w-8 h-8" />
-              Gestión de Reparaciones
-            </h2>
-            <p className="text-gray-300 mt-2">Control y seguimiento de reparaciones de equipos</p>
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Wrench className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Gestión de Reparaciones</h2>
+                <p className="text-slate-300 mt-1">Control y seguimiento de reparaciones de equipos</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setModalNueva(true)}
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors font-semibold text-base flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Nueva Reparación</span>
+            </button>
           </div>
-          <button
-            onClick={() => setModalNueva(true)}
-            className="bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-bold shadow text-base flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Nueva Reparación</span>
-          </button>
         </div>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         {statsActualizadas.map(card => (
-          <div key={card.label} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+          <div key={card.label} className="bg-slate-800 p-6 rounded border border-slate-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-800 text-sm">{card.label}</p>
-                <p className="text-2xl font-bold text-orange-900">{card.value}</p>
+                <p className="text-slate-300 text-md">{card.label}</p>
+                <p className="text-3xl font-semibold text-white">{card.value}</p>
               </div>
-              <card.icon className="w-8 h-8 text-orange-600" />
+              <div className="bg-slate-600 p-2 rounded-full">
+                <card.icon className="w-8 h-8 text-emerald-600" />
+              </div>
             </div>
           </div>
         ))}
@@ -233,10 +237,10 @@ function ReparacionesMain() {
             <button
               key={est}
               onClick={() => setFiltroEstado(est)}
-              className={`px-3 py-1 rounded-full font-medium text-sm border transition-all ${
+              className={`px-3 py-1 rounded font-medium text-sm border transition-all ${
                 filtroEstado === est
-                  ? 'bg-orange-600 text-white border-orange-600 shadow'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-orange-50'
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-emerald-50'
               }`}
             >
               {est === 'todos' ? 'Todos' : estados[est]?.label}
@@ -248,29 +252,29 @@ function ReparacionesMain() {
           placeholder="Buscar cliente..."
           value={filtroCliente}
           onChange={e => setFiltroCliente(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+          className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm"
         />
         <input
           type="date"
           value={filtroFecha}
           onChange={e => setFiltroFecha(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+          className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm"
         />
       </div>
 
       {/* Estado de carga */}
       {loading && (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-          <span className="ml-3 text-gray-600">Cargando reparaciones...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <span className="ml-3 text-slate-600">Cargando reparaciones...</span>
         </div>
       )}
 
       {/* Tabla de reparaciones */}
       {!loading && (
-        <div className="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-900">
+        <div className="overflow-x-auto bg-white rounded border border-slate-200">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-800">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Número</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha Ingreso</th>
@@ -281,10 +285,10 @@ function ReparacionesMain() {
                 <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
+            <tbody className="bg-white divide-y divide-slate-100">
               {reparacionesFiltradas.map((r, idx) => (
-                <tr key={r.id || idx} className="hover:bg-orange-50 transition-all">
-                  <td className="px-4 py-3 font-mono text-sm text-orange-700">
+                <tr key={r.id || idx} className="hover:bg-emerald-50 transition-all">
+                  <td className="px-4 py-3 font-mono text-sm text-emerald-700">
                     {r.numero || 'Sin número'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -293,7 +297,7 @@ function ReparacionesMain() {
                   <td className="px-4 py-3 text-sm">
                     <div className="flex flex-col">
                       <span className="font-semibold">{r.cliente_nombre || 'Sin nombre'}</span>
-                      <span className="text-xs text-gray-500">{r.cliente_telefono || 'Sin teléfono'}</span>
+                      <span className="text-xs text-slate-500">{r.cliente_telefono || 'Sin teléfono'}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -303,7 +307,7 @@ function ReparacionesMain() {
                           ? `${r.equipo_marca} ${r.equipo_modelo}` 
                           : r.equipo_tipo || 'Sin especificar'}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         {r.equipo_serial ? `Serial: ${r.equipo_serial}` : 'Sin serial'}
                       </span>
                     </div>
@@ -315,9 +319,9 @@ function ReparacionesMain() {
                     <select
                       value={r.estado || 'ingresado'}
                       onChange={(e) => handleCambiarEstado(r.id, e.target.value)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold shadow border-0 cursor-pointer ${
-                        estados[r.estado]?.color || 'bg-gray-100 text-gray-700'
-                      } focus:ring-2 focus:ring-orange-500`}
+                      className={`px-3 py-1 rounded text-xs font-bold border-0 cursor-pointer ${
+                        estados[r.estado]?.color || 'bg-slate-100 text-slate-700'
+                      } focus:ring-2 focus:ring-emerald-600`}
                     >
                       {filtrosEstados.slice(1).map(estado => (
                         <option key={estado} value={estado}>
@@ -331,7 +335,7 @@ function ReparacionesMain() {
                       <button 
                         title="Ver detalles" 
                         onClick={() => setExpand(expand === idx ? null : idx)} 
-                        className="p-2 rounded hover:bg-orange-200 text-orange-600 transition-colors"
+                        className="p-2 rounded hover:bg-emerald-200 text-emerald-600 transition-colors"
                       >
                         <Eye className="w-5 h-5" />
                       </button>
@@ -340,8 +344,8 @@ function ReparacionesMain() {
                         onClick={() => handleAbrirPresupuesto(r)} 
                         className={`p-2 rounded transition-colors ${
                           r.presupuesto_json 
-                            ? 'hover:bg-green-200 text-green-600' 
-                            : 'hover:bg-orange-200 text-orange-600'
+                            ? 'hover:bg-emerald-200 text-emerald-600' 
+                            : 'hover:bg-emerald-200 text-emerald-600'
                         }`}
                       >
                         <FileText className="w-5 h-5" />
@@ -352,8 +356,8 @@ function ReparacionesMain() {
                         disabled={!r.presupuesto_json}
                         className={`p-2 rounded transition-colors ${
                           r.presupuesto_json 
-                            ? 'hover:bg-blue-200 text-blue-600 cursor-pointer' 
-                            : 'text-gray-400 cursor-not-allowed opacity-50'
+                            ? 'hover:bg-emerald-200 text-emerald-600 cursor-pointer' 
+                            : 'text-slate-400 cursor-not-allowed opacity-50'
                         }`}
                       >
                         <Eye className="w-5 h-5" />
@@ -372,27 +376,27 @@ function ReparacionesMain() {
               
               {/* Fila expandible */}
               {expand !== null && reparacionesFiltradas[expand] && (
-                <tr className="bg-orange-25">
+                <tr className="bg-emerald-25">
                   <td colSpan={7} className="px-4 py-6">
-                    <div className="bg-orange-50 rounded-lg p-6">
-                      <h4 className="font-semibold text-gray-800 mb-4">Detalles de la Reparación</h4>
+                    <div className="bg-emerald-50 rounded p-6">
+                      <h4 className="font-semibold text-slate-800 mb-4">Detalles de la Reparación</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
-                          <h5 className="font-medium text-gray-700 mb-2">Información del Cliente</h5>
+                          <h5 className="font-medium text-slate-800 mb-2">Información del Cliente</h5>
                           <div className="text-sm space-y-1">
                             <p><span className="font-medium">Email:</span> {reparacionesFiltradas[expand].cliente_email || 'No especificado'}</p>
                           </div>
                         </div>
                         <div>
-                          <h5 className="font-medium text-gray-700 mb-2">Detalles del Equipo</h5>
+                          <h5 className="font-medium text-slate-800 mb-2">Detalles del Equipo</h5>
                           <div className="text-sm space-y-1">
                             <p><span className="font-medium">Accesorios:</span> {reparacionesFiltradas[expand].accesorios_incluidos || 'Ninguno'}</p>
                             <p><span className="font-medium">Prioridad:</span> 
                               <span className={`ml-2 px-2 py-1 rounded text-xs ${
                                 reparacionesFiltradas[expand].prioridad === 'urgente' ? 'bg-red-100 text-red-800' :
-                                reparacionesFiltradas[expand].prioridad === 'alta' ? 'bg-orange-100 text-orange-800' :
-                                reparacionesFiltradas[expand].prioridad === 'media' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
+                                reparacionesFiltradas[expand].prioridad === 'alta' ? 'bg-emerald-100 text-emerald-800' :
+                                reparacionesFiltradas[expand].prioridad === 'media' ? 'bg-emerald-100 text-emerald-800' :
+                                'bg-emerald-100 text-emerald-800'
                               }`}>
                                 {reparacionesFiltradas[expand].prioridad?.toUpperCase() || 'MEDIA'}
                               </span>
@@ -400,14 +404,14 @@ function ReparacionesMain() {
                           </div>
                         </div>
                         <div>
-                          <h5 className="font-medium text-gray-700 mb-2">Observaciones</h5>
+                          <h5 className="font-medium text-slate-800 mb-2">Observaciones</h5>
                           <div className="text-sm">
                             <p>{reparacionesFiltradas[expand].observaciones || 'Sin observaciones'}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-orange-200">
-                        <p className="text-sm text-gray-600">
+                      <div className="mt-4 pt-4 border-t border-emerald-200">
+                        <p className="text-sm text-slate-600">
                           <span className="font-medium">Problema completo:</span> {reparacionesFiltradas[expand].problema_reportado}
                         </p>
                       </div>
@@ -418,7 +422,7 @@ function ReparacionesMain() {
               
               {reparacionesFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-400">
+                  <td colSpan={7} className="text-center py-8 text-slate-400">
                     {loading ? 'Cargando...' : 'No hay reparaciones para mostrar.'}
                   </td>
                 </tr>

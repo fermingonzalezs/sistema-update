@@ -422,8 +422,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           icon: Monitor, 
           color: 'blue',
           bgColor: 'bg-blue-500',
-          borderColor: 'border-blue-500',
-          textColor: 'text-blue-600'
+          borderColor: 'border-black-500',
+          textColor: 'text-white-600'
         };
       case 'celular':
         return { 
@@ -459,8 +459,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     return (
       <div className="p-8">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-gray-600">Cargando productos...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+          <span className="ml-2 text-slate-600">Cargando productos...</span>
         </div>
       </div>
     );
@@ -470,8 +470,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     return (
       <div className="p-8">
         <div className="text-center py-12">
-          <FileText className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600">Error: {error}</p>
+          <FileText className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+          <p className="text-slate-600">Error: {error}</p>
         </div>
       </div>
     );
@@ -480,52 +480,41 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const tipoConfig = getTipoConfig(tipoActivo);
 
   return (
-    <div className="p-0 space-y-4">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
-        <div className="p-4 text-white" style={{backgroundColor: '#262626'}}>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FileText size={28} />
-              <div>
-                <h2 className="text-2xl font-bold">Listas</h2>
-                <p className="text-gray-300 mt-1">Genera textos para publicar productos en redes</p>
-              </div>
-            </div>
-          </div>
+    <div className="p-0">
+      
+
+      {/* Tabs para tipos de productos */}
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
+        <div className="flex space-x-1 bg-slate-50 p-1 rounded">
+          {['computadora', 'celular', 'otro'].map((tipo) => {
+            const config = getTipoConfig(tipo);
+            const Icon = config.icon;
+            return (
+              <button
+                key={tipo}
+                onClick={() => setTipoActivo(tipo)}
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
+                  tipoActivo === tipo
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-white'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{config.label}</span>
+                <span className="text-sm opacity-75">
+                  ({tipo === 'computadora' ? computers.length : 
+                    tipo === 'celular' ? celulares.length : otros.length})
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tabs para tipos de productos */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        {['computadora', 'celular', 'otro'].map((tipo) => {
-          const config = getTipoConfig(tipo);
-          const Icon = config.icon;
-          return (
-            <button
-              key={tipo}
-              onClick={() => setTipoActivo(tipo)}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-md transition-all ${
-                tipoActivo === tipo
-                  ? `${config.bgColor} text-white shadow-md`
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-white'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{config.label}</span>
-              <span className="text-sm opacity-75">
-                ({tipo === 'computadora' ? computers.length : 
-                  tipo === 'celular' ? celulares.length : otros.length})
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Sección de filtros avanzados y presets */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-800 flex items-center space-x-2">
+          <h3 className="font-semibold text-slate-800 flex items-center space-x-2">
             <Filter className="w-5 h-5" />
             <span>Selección por Filtros</span>
           </h3>
@@ -534,8 +523,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               onClick={() => setModoFiltros(!modoFiltros)}
               className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                 modoFiltros 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-emerald-100 text-emerald-700' 
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
@@ -543,7 +532,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             {modoFiltros && (
               <button
                 onClick={limpiarFiltros}
-                className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200"
+                className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm font-medium hover:bg-slate-200"
               >
                 Limpiar
               </button>
@@ -553,7 +542,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
         {/* Filtros prearmados */}
         <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-1">
+          <h4 className="text-sm font-medium text-slate-700 mb-2 flex items-center space-x-1">
             <Zap className="w-4 h-4" />
             <span>Filtros Prearmados</span>
           </h4>
@@ -561,14 +550,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             {/* Filtros para celulares */}
             <button
               onClick={aplicarFiltroiPhoneUsado}
-              className="px-3 py-2 bg-gray-800 text-white rounded text-sm font-medium hover:bg-gray-900 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
             >
               <Smartphone className="w-4 h-4" />
               <span>iPhone Usados</span>
             </button>
             <button
               onClick={aplicarFiltroiPhoneNuevo}
-              className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-slate-800 text-white  rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
             >
               <Smartphone className="w-4 h-4" />
               <span>iPhone Nuevos</span>
@@ -577,28 +566,28 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             {/* Filtros para notebooks */}
             <button
               onClick={aplicarFiltroMacBooksNuevas}
-              className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>MacBooks Nuevas</span>
             </button>
             <button
               onClick={aplicarFiltroMacBooksUsadas}
-              className="px-3 py-2 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>MacBooks Usadas</span>
             </button>
             <button
               onClick={aplicarFiltroWindowsNuevas}
-              className="px-3 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>Windows Nuevas</span>
             </button>
             <button
               onClick={aplicarFiltroWindowsUsadas}
-              className="px-3 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>Windows Usadas</span>
@@ -610,11 +599,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         {modoFiltros && tipoActivo !== 'otro' && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Marca</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
               <select
                 value={filtros.marca}
                 onChange={(e) => handleFiltroChange('marca', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todas</option>
                 {getUniqueValues().marcas.map(marca => (
@@ -624,11 +613,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
             
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
               <select
                 value={filtros.condicion}
                 onChange={(e) => handleFiltroChange('condicion', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todas</option>
                 {getUniqueValues().condiciones.map(condicion => (
@@ -638,31 +627,31 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Max USD</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Precio Max USD</label>
               <input
                 type="number"
                 value={filtros.precioMax}
                 onChange={(e) => handleFiltroChange('precioMax', e.target.value)}
                 placeholder="999999"
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             {tipoActivo === 'computadora' && (
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">RAM Min (GB)</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">RAM Min (GB)</label>
                 <input
                   type="number"
                   value={filtros.ramMin}
                   onChange={(e) => handleFiltroChange('ramMin', e.target.value)}
                   placeholder="4"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 {tipoActivo === 'computadora' ? 'SSD Min (GB)' : 'Capacidad Min (GB)'}
               </label>
               <input
@@ -670,16 +659,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 value={filtros.almacenamientoMin}
                 onChange={(e) => handleFiltroChange('almacenamientoMin', e.target.value)}
                 placeholder="128"
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Pantalla</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Pantalla</label>
               <select
                 value={filtros.pantalla}
                 onChange={(e) => handleFiltroChange('pantalla', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todas</option>
                 {getUniqueValues().pantallas.map(pantalla => (
@@ -689,11 +678,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Idioma</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Idioma</label>
               <select
                 value={filtros.idioma}
                 onChange={(e) => handleFiltroChange('idioma', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todos</option>
                 {getUniqueValues().idiomas.map(idioma => (
@@ -706,7 +695,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
         {/* Mensaje cuando no hay filtros disponibles para otros productos */}
         {modoFiltros && tipoActivo === 'otro' && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-slate-500">
             <p>Los filtros avanzados no están disponibles para otros productos.</p>
             <p>Usa la búsqueda por texto para filtrar elementos.</p>
           </div>
@@ -717,12 +706,12 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         {/* Columna izquierda: Configuración de mensajes */}
         <div className="space-y-6">
           {/* Mensaje inicial */}
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-6 rounded border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Mensaje Inicial</h3>
+              <h3 className="font-semibold text-slate-800">Mensaje Inicial</h3>
               <button
                 onClick={() => iniciarEdicionMensaje(tipoActivo, 'inicial')}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-500 hover:text-slate-700"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
@@ -733,20 +722,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <textarea
                   value={mensajeTemp}
                   onChange={(e) => setMensajeTemp(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                  className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   rows="3"
                 />
                 <div className="flex space-x-2">
                   <button
                     onClick={() => guardarMensaje(tipoActivo, 'inicial')}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm flex items-center space-x-1"
+                    className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
                   >
                     <Save className="w-3 h-3" />
                     <span>Guardar</span>
                   </button>
                   <button
                     onClick={cancelarEdicionMensaje}
-                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm flex items-center space-x-1"
+                    className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
                   >
                     <X className="w-3 h-3" />
                     <span>Cancelar</span>
@@ -754,19 +743,19 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-line">
+              <div className="bg-slate-50 p-3 rounded text-sm whitespace-pre-line">
                 {mensajes[tipoActivo].inicial}
               </div>
             )}
           </div>
 
           {/* Mensaje final */}
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-6 rounded border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Mensaje Final</h3>
+              <h3 className="font-semibold text-slate-800">Mensaje Final</h3>
               <button
                 onClick={() => iniciarEdicionMensaje(tipoActivo, 'final')}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-500 hover:text-slate-700"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
@@ -777,20 +766,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <textarea
                   value={mensajeTemp}
                   onChange={(e) => setMensajeTemp(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                  className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   rows="4"
                 />
                 <div className="flex space-x-2">
                   <button
                     onClick={() => guardarMensaje(tipoActivo, 'final')}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm flex items-center space-x-1"
+                    className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
                   >
                     <Save className="w-3 h-3" />
                     <span>Guardar</span>
                   </button>
                   <button
                     onClick={cancelarEdicionMensaje}
-                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm flex items-center space-x-1"
+                    className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
                   >
                     <X className="w-3 h-3" />
                     <span>Cancelar</span>
@@ -798,7 +787,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-line">
+              <div className="bg-slate-50 p-3 rounded text-sm whitespace-pre-line">
                 {mensajes[tipoActivo].final}
               </div>
             )}
@@ -806,18 +795,18 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
           {/* Botón para copiar lista */}
           {seleccionados.size > 0 && (
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-gray-800 mb-4">Lista Generada</h3>
+            <div className="bg-white p-6 rounded border border-slate-200">
+              <h3 className="font-semibold text-slate-800 mb-4">Lista Generada</h3>
               <div className="space-y-3">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-slate-600">
                   {seleccionados.size} producto{seleccionados.size !== 1 ? 's' : ''} seleccionado{seleccionados.size !== 1 ? 's' : ''}
                 </div>
                 <button
                   onClick={copiarListaCompleta}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 ${
                     copiados.has('lista-completa')
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : `${tipoConfig.bgColor} text-white hover:opacity-90`
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
                   }`}
                 >
                   {copiados.has('lista-completa') ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -831,17 +820,17 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         {/* Columna derecha: Tabla de productos */}
         <div className="lg:col-span-2 space-y-6">
           {/* Búsqueda y controles */}
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-6 rounded border border-slate-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="font-semibold text-slate-800">
                 {tipoConfig.label} Disponibles ({productosFiltrados.length})
               </h3>
               <button
                 onClick={seleccionarTodos}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : `${tipoConfig.bgColor} text-white hover:opacity-90`
+                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}
               >
                 {seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0 
@@ -852,54 +841,54 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
             
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder={`Buscar ${tipoConfig.label.toLowerCase()}...`}
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Tabla de productos */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase w-12">
                       <input
                         type="checkbox"
                         checked={seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0}
                         onChange={seleccionarTodos}
-                        className="rounded border-gray-300"
+                        className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modelo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Copy</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Serial</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Modelo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Copy</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-slate-200">
                   {productosFiltrados.map((producto) => (
-                    <tr key={producto.id} className="hover:bg-gray-50">
+                    <tr key={producto.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={seleccionados.has(producto.id)}
                           onChange={() => toggleSeleccion(producto.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-slate-300"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
                         {producto.serial || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
                         {producto.modelo || producto.descripcion_producto}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-800">
+                      <td className="px-6 py-4 text-sm text-slate-800">
                         <div className="max-w-md truncate" title={producto.copy}>
                           {producto.copy}
                         </div>
@@ -912,8 +901,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
             {productosFiltrados.length === 0 && (
               <div className="text-center py-12">
-                <tipoConfig.icon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>
+                <tipoConfig.icon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>
               </div>
             )}
           </div>

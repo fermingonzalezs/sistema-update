@@ -125,45 +125,45 @@ const GarantiasSection = () => {
 
   const getIconoProducto = (tipo) => {
     switch (tipo) {
-      case 'computadora': return <Monitor className="w-4 h-4 text-gray-600" />;
-      case 'celular': return <Smartphone className="w-4 h-4 text-gray-600" />;
-      default: return <Box className="w-4 h-4 text-purple-600" />;
+      case 'computadora': return <Monitor className="w-4 h-4 text-slate-600" />;
+      case 'celular': return <Smartphone className="w-4 h-4 text-slate-600" />;
+      default: return <Box className="w-4 h-4 text-slate-600" />;
     }
   };
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'Activa': return 'text-gray-800 bg-gray-100';
-      case 'Vencida': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'Activa': return 'text-slate-800 bg-slate-100';
+      case 'Vencida': return 'text-slate-600 bg-slate-100';
+      default: return 'text-slate-600 bg-slate-100';
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Cargando garantías...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <span className="ml-3 text-slate-600">Cargando garantías...</span>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="">
+      <div className="bg-white rounded border border-slate-200 mb-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Shield className="w-8 h-8" />
-                Gestión de Garantías
-              </h2>
-              <p className="text-gray-300 mt-2">Control y administración de garantías de productos</p>
+            <div className="flex items-center space-x-3">
+              <Shield className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Gestión de Garantías</h2>
+                <p className="text-slate-300 mt-1">Control y administración de garantías de productos</p>
+              </div>
             </div>
             <button
               onClick={refrescarDatos}
-              className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors flex items-center space-x-2"
+              className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors flex items-center space-x-2"
             >
               <BarChart3 className="w-4 h-4" />
               <span>Actualizar</span>
@@ -173,186 +173,186 @@ const GarantiasSection = () => {
 
         {/* Dashboard de Estadísticas */}
         {estadisticas && (
-          <div className="p-6 bg-gray-50 border-b">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <div className="p-6 border-t border-slate-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-800 text-sm">Total Garantías</p>
-                    <p className="text-2xl font-bold text-purple-900">{estadisticas.totalGarantias || 0}</p>
+                    <p className="text-slate-600 text-sm">Total Garantías</p>
+                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.totalGarantias || 0}</p>
                   </div>
-                  <Package className="w-8 h-8 text-purple-600" />
+                  <Package className="w-8 h-8 text-emerald-600" />
                 </div>
               </div>
 
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-800 text-sm">Garantías Activas</p>
-                    <p className="text-2xl font-bold text-purple-900">{estadisticas.garantiasActivas || 0}</p>
+                    <p className="text-slate-600 text-sm">Garantías Activas</p>
+                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.garantiasActivas || 0}</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-purple-600" />
+                  <CheckCircle className="w-8 h-8 text-emerald-600" />
                 </div>
               </div>
 
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-800 text-sm">Garantías Vencidas</p>
-                    <p className="text-2xl font-bold text-purple-900">{estadisticas.garantiasVencidas || 0}</p>
+                    <p className="text-slate-600 text-sm">Garantías Vencidas</p>
+                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.garantiasVencidas || 0}</p>
                   </div>
-                  <XCircle className="w-8 h-8 text-purple-600" />
+                  <XCircle className="w-8 h-8 text-slate-600" />
                 </div>
               </div>
             </div>
           </div>
         )}
+      </div>
 
-        {/* Filtros y Búsqueda */}
-        <div className="p-6 bg-gray-50 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Tipo de búsqueda */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar por</label>
-              <select
-                value={filtros.tipoBusqueda}
-                onChange={(e) => setFiltros(prev => ({ ...prev, tipoBusqueda: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+      {/* Filtros y Búsqueda */}
+      <div className="p-6 bg-white border border-slate-200 rounded mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Tipo de búsqueda */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Buscar por</label>
+            <select
+              value={filtros.tipoBusqueda}
+              onChange={(e) => setFiltros(prev => ({ ...prev, tipoBusqueda: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="serial">Número de Serie</option>
+              <option value="cliente">Nombre Cliente</option>
+            </select>
+          </div>
+
+          {/* Campo de búsqueda */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              {filtros.tipoBusqueda === 'serial' ? 'Serial' : 'Cliente'}
+            </label>
+            <div className="flex">
+              <input
+                type="text"
+                value={filtros.busqueda}
+                onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
+                placeholder={filtros.tipoBusqueda === 'serial' ? 'Ej: DL123456' : 'Ej: Juan Pérez'}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-l text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
+              />
+              <button
+                onClick={handleBuscar}
+                className="px-3 py-2 bg-slate-600 text-white rounded-r hover:bg-slate-700 transition-colors"
               >
-                <option value="serial">Número de Serie</option>
-                <option value="cliente">Nombre Cliente</option>
-              </select>
+                <Search className="w-4 h-4" />
+              </button>
             </div>
+          </div>
 
-            {/* Campo de búsqueda */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {filtros.tipoBusqueda === 'serial' ? 'Serial' : 'Cliente'}
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  value={filtros.busqueda}
-                  onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
-                  placeholder={filtros.tipoBusqueda === 'serial' ? 'Ej: DL123456' : 'Ej: Juan Pérez'}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm"
-                  onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
-                />
-                <button
-                  onClick={handleBuscar}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+          {/* Filtro por tipo de producto */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo Producto</label>
+            <select
+              value={filtros.tipoProducto}
+              onChange={(e) => setFiltros(prev => ({ ...prev, tipoProducto: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="computadora">Computadoras</option>
+              <option value="celular">Celulares</option>
+              <option value="otro">Otros</option>
+            </select>
+          </div>
 
-            {/* Filtro por tipo de producto */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Producto</label>
-              <select
-                value={filtros.tipoProducto}
-                onChange={(e) => setFiltros(prev => ({ ...prev, tipoProducto: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="todos">Todos</option>
-                <option value="computadora">Computadoras</option>
-                <option value="celular">Celulares</option>
-                <option value="otro">Otros</option>
-              </select>
-            </div>
-
-            {/* Filtro por estado */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-              <select
-                value={filtros.estadoGarantia}
-                onChange={(e) => setFiltros(prev => ({ ...prev, estadoGarantia: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="todos">Todos</option>
-                <option value="Activa">Activas</option>
-                <option value="Vencida">Vencidas</option>
-              </select>
-            </div>
+          {/* Filtro por estado */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+            <select
+              value={filtros.estadoGarantia}
+              onChange={(e) => setFiltros(prev => ({ ...prev, estadoGarantia: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="Activa">Activas</option>
+              <option value="Vencida">Vencidas</option>
+            </select>
           </div>
         </div>
+      </div>
 
-        {/* Error */}
-        {error && (
-          <div className="p-4 bg-red-50 border-l-4 border-red-400">
-            <span className="text-red-800">{error}</span>
-          </div>
-        )}
+      {/* Error */}
+      {error && (
+        <div className="p-4 bg-slate-100 border-l-4 border-slate-400 rounded mb-6">
+          <span className="text-slate-800">{error}</span>
+        </div>
+      )}
 
-        {/* Tabla de Garantías */}
+      {/* Tabla de Garantías */}
+      <div className="bg-white rounded border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Compra</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Garantía</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Cliente</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Producto</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Serial</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Fecha</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Garantía</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Estado</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Acción</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-200">
               {garantiasFiltradas.map((garantia) => (
-                <tr key={garantia.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{garantia.cliente_nombre}</div>
-                      <div className="text-sm text-gray-500">{garantia.cliente_telefono}</div>
+                <tr key={garantia.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <div className="max-w-xs">
+                      <div className="text-sm font-medium text-slate-900 truncate">{garantia.cliente_nombre}</div>
+                      <div className="text-sm text-slate-500 truncate">{garantia.cliente_telefono}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center max-w-xs">
                       {getIconoProducto(garantia.tipo_producto)}
-                      <div className="ml-2">
-                        <div className="text-sm font-medium text-gray-900">{garantia.modelo_producto}</div>
-                        <div className="text-sm text-gray-500 capitalize">{garantia.tipo_producto}</div>
+                      <div className="ml-2 min-w-0">
+                        <div className="text-sm font-medium text-slate-900 truncate">{garantia.modelo_producto}</div>
+                        <div className="text-sm text-slate-500 capitalize truncate">{garantia.tipo_producto}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">{garantia.serial_producto}</div>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-mono text-slate-900 max-w-28 truncate" title={garantia.serial_producto}>{garantia.serial_producto}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatearFecha(garantia.fecha_venta)}</div>
-                    <div className="text-sm text-gray-500">#{garantia.numero_transaccion}</div>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-slate-900">{formatearFecha(garantia.fecha_venta)}</div>
+                    <div className="text-sm text-slate-500 truncate">#{garantia.numero_transaccion}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{garantia.tipo_garantia || 'Update'}</div>
-                    <div className="text-sm text-gray-500">
-                      Vence: {formatearFecha(garantia.fecha_vencimiento)}
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-slate-900">{garantia.tipo_garantia || 'Update'}</div>
+                    <div className="text-sm text-slate-500">
+                      {formatearFecha(garantia.fecha_vencimiento)}
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {garantia.dias_restantes > 0 ? `${garantia.dias_restantes} días restantes` : 'Vencida'}
+                    <div className="text-xs text-slate-400">
+                      {garantia.dias_restantes > 0 ? `${garantia.dias_restantes}d` : 'Vencida'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(garantia.estado_garantia)}`}>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getEstadoColor(garantia.estado_garantia)}`}>
                       {garantia.estado_garantia}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => manejarAbrirGarantia(garantia)}
-                        disabled={descargando === garantia.id}
-                        className="text-green-600 hover:text-green-800 p-2 rounded hover:bg-green-50 disabled:opacity-50"
-                        title="Ver certificado de garantía"
-                      >
-                        {descargando === garantia.id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => manejarAbrirGarantia(garantia)}
+                      disabled={descargando === garantia.id}
+                      className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-100 disabled:opacity-50"
+                      title="Ver certificado de garantía"
+                    >
+                      {descargando === garantia.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -361,16 +361,16 @@ const GarantiasSection = () => {
 
           {garantiasFiltradas.length === 0 && (
             <div className="text-center py-8">
-              <Shield className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">No se encontraron garantías</p>
-              <p className="text-sm text-gray-500">Intenta modificar los filtros de búsqueda</p>
+              <Shield className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+              <p className="text-slate-600">No se encontraron garantías</p>
+              <p className="text-sm text-slate-500">Intenta modificar los filtros de búsqueda</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t">
-          <p className="text-sm text-gray-600">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+          <p className="text-sm text-slate-600">
             Mostrando {garantiasFiltradas.length} de {garantias.length} garantías
           </p>
         </div>

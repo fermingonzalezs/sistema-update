@@ -9,43 +9,28 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
       id: 'notebook',
       label: 'Notebook',
       icon: Monitor,
-      color: 'from-blue-500 to-blue-600',
       description: 'Laptops y computadoras portátiles'
     },
     {
       id: 'celular',
       label: 'Celular',
       icon: Smartphone,
-      color: 'from-green-500 to-green-600',
       description: 'Dispositivos móviles'
     },
     {
       id: 'otro',
       label: 'Otro Producto',
       icon: Box,
-      color: 'from-purple-500 to-purple-600',
       description: 'Accesorios y otros productos'
     }
   ];
 
   return (
-    <div className="p-8">
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Plus className="w-8 h-8" />
-              Carga de Equipos
-            </h2>
-            <p className="text-gray-300 mt-2">Alta y registro de equipos en soporte</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="">
+    
       {/* Selector de tipo de equipo */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Seleccionar Tipo de Equipo</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-slate-800 p-6 rounded border border-slate-200 mb-6">
+        <div className="flex space-x-1 bg-slate-700 p-1 rounded">
           {tiposEquipo.map((tipo) => {
             const Icon = tipo.icon;
             const isSelected = tipoEquipo === tipo.id;
@@ -54,24 +39,14 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
               <button
                 key={tipo.id}
                 onClick={() => setTipoEquipo(tipo.id)}
-                className={`p-6 rounded-lg border-2 transition-all duration-300 ${
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
                   isSelected
-                    ? 'border-orange-500 bg-orange-50 shadow-lg transform scale-105'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-white hover:text-slate-800 hover:bg-white'
                 }`}
               >
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="p-3 rounded-lg bg-orange-500">
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="text-lg font-semibold text-gray-800">{tipo.label}</h4>
-                    <p className="text-sm text-gray-600">{tipo.description}</p>
-                  </div>
-                </div>
-                {isSelected && (
-                  <div className="w-full h-1 bg-orange-500 rounded-full"></div>
-                )}
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{tipo.label}</span>
               </button>
             );
           })}
@@ -214,59 +189,60 @@ const FormularioNotebook = ({ onAdd, loading }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Agregar Nueva Computadora</h3>
-      
+    <div className="bg-white p-6 rounded border border-slate-200">
+      <div className="border-b border-slate-200 mb-3">
+        <h3 className="text-xl font-semibold text-slate-800 mb-6">Agregar Nueva Computadora</h3>
+      </div>    
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Información Básica */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4">Información Básica</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4">Información Básica</h4>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Serial *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Serial *</label>
           <input
             type="text"
             name="serial"
             value={formData.serial}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Modelo *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Modelo *</label>
           <input
             type="text"
             name="modelo"
             value={formData.modelo}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Marca</label>
           <input
             type="text"
             name="marca"
             value={formData.marca}
             onChange={handleChange}
             placeholder="ej: Lenovo, HP, Dell"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Condición</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Condición</label>
           <select
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="nuevo">NUEVO</option>
             <option value="usado">USADO</option>
@@ -275,12 +251,12 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Sucursal</label>
           <select
             name="sucursal"
             value={formData.sucursal}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -291,68 +267,68 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
         {/* Precios */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Precios</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Precios</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Precio Costo USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Precio Costo USD</label>
           <input
             type="number"
             name="precio_costo_usd"
             value={formData.precio_costo_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Envíos/Repuestos USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Envíos/Repuestos USD</label>
           <input
             type="number"
             name="envios_repuestos"
             value={formData.envios_repuestos}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Precio Venta USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Precio Venta USD</label>
           <input
             type="number"
             name="precio_venta_usd"
             value={formData.precio_venta_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Especificaciones Técnicas */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Especificaciones Técnicas</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Especificaciones Técnicas</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Procesador</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Procesador</label>
           <input
             type="text"
             name="procesador"
             value={formData.procesador}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Slots RAM</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Slots RAM</label>
           <select
             name="slots"
             value={formData.slots}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="1">1</option>
             <option value="2">2</option>
@@ -361,12 +337,12 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Tipo RAM</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Tipo RAM</label>
           <select
             name="tipo_ram"
             value={formData.tipo_ram}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="DDR3">DDR3</option>
             <option value="DDR4">DDR4</option>
@@ -377,48 +353,48 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">RAM</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">RAM</label>
           <input
             type="text"
             name="ram"
             value={formData.ram}
             onChange={handleChange}
             placeholder="ej: 16GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">SSD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">SSD</label>
           <input
             type="text"
             name="ssd"
             value={formData.ssd}
             onChange={handleChange}
             placeholder="ej: 512GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">HDD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">HDD</label>
           <input
             type="text"
             name="hdd"
             value={formData.hdd}
             onChange={handleChange}
             placeholder="ej: 1TB (opcional)"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Sistema Operativo</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Sistema Operativo</label>
           <select
             name="so"
             value={formData.so}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="WIN11">Windows 11</option>
             <option value="WIN10">Windows 10</option>
@@ -430,24 +406,24 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pantalla</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Pantalla</label>
           <input
             type="text"
             name="pantalla"
             value={formData.pantalla}
             onChange={handleChange}
             placeholder="ej: 13,6''"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Resolución</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Resolución</label>
           <select
             name="resolucion"
             value={formData.resolucion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="FHD">FHD</option>
             <option value="QHD">QHD</option>
@@ -459,53 +435,53 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Refresh Rate</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Refresh Rate</label>
           <input
             type="text"
             name="refresh"
             value={formData.refresh}
             onChange={handleChange}
             placeholder="ej: 60Hz, 120Hz, 144Hz"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">GPU</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">GPU</label>
           <input
             type="text"
             name="placa_video"
             value={formData.placa_video}
             onChange={handleChange}
             placeholder="ej: 8-core GPU"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">VRAM</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">VRAM</label>
           <input
             type="text"
             name="vram"
             value={formData.vram}
             onChange={handleChange}
             placeholder="ej: 8GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Características Físicas */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Características Físicas</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Características Físicas</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Retroiluminación Teclado</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Retroiluminación Teclado</label>
           <select
             name="teclado_retro"
             value={formData.teclado_retro}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="SI">Sí</option>
             <option value="NO">No</option>
@@ -514,12 +490,12 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Idioma Teclado</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Idioma Teclado</label>
           <select
             name="idioma_teclado"
             value={formData.idioma_teclado}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="Español">Español</option>
             <option value="Inglés">Inglés</option>
@@ -529,83 +505,83 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Color</label>
           <input
             type="text"
             name="color"
             value={formData.color}
             onChange={handleChange}
             placeholder="ej: SKY BLUE"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Batería */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Batería</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Batería</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Estado Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Estado Batería</label>
           <input
             type="text"
             name="bateria"
             value={formData.bateria}
             onChange={handleChange}
             placeholder="ej: 100% 59 ciclos"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Duración Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Duración Batería</label>
           <input
             type="text"
             name="duracion"
             value={formData.duracion}
             onChange={handleChange}
             placeholder="ej: 6-7HS"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Garantía */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Garantía y Observaciones</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Garantía y Observaciones</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía</label>
           <input
             type="text"
             name="garantia_update"
             value={formData.garantia_update}
             onChange={handleChange}
             placeholder="ej: 6 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía Oficial</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía Oficial</label>
           <input
             type="text"
             name="garantia_oficial"
             value={formData.garantia_oficial}
             onChange={handleChange}
             placeholder="ej: Apple"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Fallas</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Fallas</label>
           <input
             type="text"
             name="fallas"
             value={formData.fallas}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
@@ -614,7 +590,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Computadora'}
           </button>
@@ -721,59 +697,61 @@ const FormularioCelular = ({ onAdd, loading }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Agregar Nuevo Celular</h3>
-      
+    <div className="bg-white p-6 rounded border border-slate-200">
+
+      <div className="border-b border-slate-200 mb-3">
+        <h3 className="text-xl font-semibold text-slate-800 mb-6">Agregar Nuevo Celular</h3>
+      </div>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Información Básica */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4">Información Básica</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4">Información Básica</h4>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Serial *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Serial *</label>
           <input
             type="text"
             name="serial"
             value={formData.serial}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Modelo *</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Modelo *</label>
           <input
             type="text"
             name="modelo"
             value={formData.modelo}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Marca</label>
           <input
             type="text"
             name="marca"
             value={formData.marca}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             placeholder="Apple, Samsung, etc."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Condición</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Condición</label>
           <select
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="nuevo">NUEVO</option>
             <option value="usado">USADO</option>
@@ -782,12 +760,12 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Ubicación</label>
           <select
             name="ubicacion"
             value={formData.ubicacion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -798,51 +776,51 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
         {/* Precios */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Precios</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Precios</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Precio Compra USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Precio Compra USD</label>
           <input
             type="number"
             name="precio_compra_usd"
             value={formData.precio_compra_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Repuestos USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Repuestos USD</label>
           <input
             type="number"
             name="repuestos_usd"
             value={formData.repuestos_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Precio Venta USD</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Precio Venta USD</label>
           <input
             type="number"
             name="precio_venta_usd"
             value={formData.precio_venta_usd}
             onChange={handleChange}
             step="0.01"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Mostrar cálculo en tiempo real */}
         {formData.precio_compra_usd && formData.repuestos_usd && (
           <div className="col-span-full">
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h5 className="font-medium text-orange-800 mb-2">💰 Cálculo de Precios</h5>
-              <div className="text-sm text-orange-700">
+            <div className="bg-emerald-50 border border-emerald-200 rounded p-4">
+              <h5 className="font-medium text-emerald-800 mb-2">💰 Cálculo de Precios</h5>
+              <div className="text-sm text-emerald-700">
                 <p><strong>Precio Compra Total:</strong> ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.repuestos_usd) || 0)).toFixed(2)}</p>
               </div>
             </div>
@@ -851,40 +829,40 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
         {/* Características del Celular */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Características del Celular</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Características del Celular</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Color</label>
           <input
             type="text"
             name="color"
             value={formData.color}
             onChange={handleChange}
             placeholder="ej: Negro, Blanco, Azul"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Capacidad</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Capacidad</label>
           <input
             type="text"
             name="capacidad"
             value={formData.capacidad}
             onChange={handleChange}
             placeholder="ej: 128GB, 256GB"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Almacenamiento</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Almacenamiento</label>
           <select
             name="almacenamiento"
             value={formData.almacenamiento}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="64GB">64GB</option>
             <option value="128GB">128GB</option>
@@ -895,60 +873,60 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Batería</label>
           <input
             type="text"
             name="bateria"
             value={formData.bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 3000mAh"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Porcentaje de Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Porcentaje de Batería</label>
           <input
             type="text"
             name="porcentaje_bateria"
             value={formData.porcentaje_bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 100%"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ciclos de Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Ciclos de Batería</label>
           <input
             type="text"
             name="ciclos"
             value={formData.ciclos}
             onChange={handleChange}
             placeholder="ej: 150, 200"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Estado General</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Estado General</label>
           <input
             type="text"
             name="estado"
             value={formData.estado}
             onChange={handleChange}
             placeholder="ej: Muy Bueno, Bueno, Regular"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Estado Estético</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Estado Estético</label>
           <select
             name="estado_estetico"
             value={formData.estado_estetico}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="A+">A+</option>
             <option value="A">A</option>
@@ -960,53 +938,53 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
         {/* Garantía y Observaciones */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6">Garantía y Observaciones</h4>
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6">Garantía y Observaciones</h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía</label>
           <input
             type="text"
             name="garantia"
             value={formData.garantia}
             onChange={handleChange}
             placeholder="ej: 3 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía Update</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía Update</label>
           <input
             type="text"
             name="garantia_update"
             value={formData.garantia_update}
             onChange={handleChange}
             placeholder="ej: 3 meses"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Garantía Oficial</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía Oficial</label>
           <input
             type="text"
             name="garantia_oficial"
             value={formData.garantia_oficial}
             onChange={handleChange}
             placeholder="ej: Samsung, Apple"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Fallas</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Fallas</label>
           <input
             type="text"
             name="fallas"
             value={formData.fallas}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
@@ -1015,7 +993,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Celular'}
           </button>
@@ -1165,23 +1143,25 @@ const FormularioOtro = ({ onAdd, loading }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Agregar Nuevo Producto</h3>
+    <div className="bg-white p-6 rounded border border-slate-200">
+      <div className="border-b border-slate-200 mb-3">
+          <h3 className="text-xl font-semibold text-slate-800 mb-6">Agregar Nuevo Producto</h3>
+      </div>
       
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Información Básica del Producto */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-            <Box className="w-5 h-5 mr-2 text-purple-600" />
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <Box className="w-5 h-5 mr-2 text-emerald-600" />
             Información del Producto
           </h4>
         </div>
         
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Descripción del Producto *
-            <span className="text-xs text-gray-500 ml-1">(DESCRIPCIÓN)</span>
+            <span className="text-xs text-slate-500 ml-1">(DESCRIPCIÓN)</span>
           </label>
           <input
             type="text"
@@ -1189,15 +1169,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.descripcion_producto}
             onChange={handleChange}
             placeholder="ej: Mouse Logitech MX Master 3 Wireless"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Cantidad *
-            <span className="text-xs text-gray-500 ml-1">(CANTIDAD)</span>
+            <span className="text-xs text-slate-500 ml-1">(CANTIDAD)</span>
           </label>
           <input
             type="number"
@@ -1205,21 +1185,21 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.cantidad}
             onChange={handleChange}
             min="1"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Categoría *
-            <span className="text-xs text-gray-500 ml-1">(CATEGORÍA)</span>
+            <span className="text-xs text-slate-500 ml-1">(CATEGORÍA)</span>
           </label>
           <select
             name="categoria"
             value={formData.categoria}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
             required
           >
             <option value="">Seleccionar categoría...</option>
@@ -1230,15 +1210,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Condición *
-            <span className="text-xs text-gray-500 ml-1">(CONDICIÓN)</span>
+            <span className="text-xs text-slate-500 ml-1">(CONDICIÓN)</span>
           </label>
           <select
             name="condicion"
             value={formData.condicion}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             {opcionesCondicion.map(cond => (
               <option key={cond.value} value={cond.value}>{cond.label}</option>
@@ -1247,12 +1227,12 @@ const FormularioOtro = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Sucursal</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Sucursal</label>
           <select
             name="sucursal"
             value={formData.sucursal}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
@@ -1263,15 +1243,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         {/* Información de Precios */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6 flex items-center">
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6 flex items-center">
             💰 Precios y Costos
           </h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Precio de Compra USD
-            <span className="text-xs text-gray-500 ml-1">(P.C. USD)</span>
+            <span className="text-xs text-slate-500 ml-1">(P.C. USD)</span>
           </label>
           <input
             type="number"
@@ -1280,14 +1260,14 @@ const FormularioOtro = ({ onAdd, loading }) => {
             onChange={handleChange}
             step="0.01"
             placeholder="0.00"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Precio de Venta USD
-            <span className="text-xs text-gray-500 ml-1">(P.V. USD)</span>
+            <span className="text-xs text-slate-500 ml-1">(P.V. USD)</span>
           </label>
           <input
             type="number"
@@ -1296,37 +1276,37 @@ const FormularioOtro = ({ onAdd, loading }) => {
             onChange={handleChange}
             step="0.01"
             placeholder="0.00"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Análisis de Precios */}
         {(formData.precio_compra_usd || formData.precio_venta_usd) && (
           <div className="col-span-full">
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h5 className="font-medium text-orange-800 mb-3">📊 Análisis de Rentabilidad</h5>
+            <div className="bg-emerald-50 border border-emerald-200 rounded p-4">
+              <h5 className="font-medium text-emerald-800 mb-3">📊 Análisis de Rentabilidad</h5>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="bg-white p-3 rounded border">
-                  <span className="text-gray-600 block text-xs">Margen por unidad (USD)</span>
-                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-slate-600 block text-xs">Margen por unidad (USD)</span>
+                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                     ${calcularMargen().toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-white p-3 rounded border">
-                  <span className="text-gray-600 block text-xs">Porcentaje de ganancia</span>
-                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-slate-600 block text-xs">Porcentaje de ganancia</span>
+                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                     {calcularPorcentajeMargen()}%
                   </p>
                 </div>
                 <div className="bg-white p-3 rounded border">
-                  <span className="text-gray-600 block text-xs">Margen total (USD)</span>
-                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="text-slate-600 block text-xs">Margen total (USD)</span>
+                  <p className={`font-bold text-lg ${calcularMargen() >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                     ${(calcularMargen() * (parseInt(formData.cantidad) || 1)).toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-white p-3 rounded border">
-                  <span className="text-gray-600 block text-xs">Valor inventario (USD)</span>
-                  <p className="font-bold text-lg text-blue-600">
+                  <span className="text-slate-600 block text-xs">Valor inventario (USD)</span>
+                  <p className="font-bold text-lg text-emerald-600">
                     ${calcularValorInventario()}
                   </p>
                 </div>
@@ -1337,15 +1317,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         {/* Garantía y Observaciones */}
         <div className="col-span-full">
-          <h4 className="text-lg font-semibold text-gray-700 mb-4 mt-6 flex items-center">
+          <h4 className="text-lg font-semibold text-slate-800 mb-4 mt-6 flex items-center">
             🛡️ Garantía y Observaciones
           </h4>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Garantía
-            <span className="text-xs text-gray-500 ml-1">(GARANTÍA)</span>
+            <span className="text-xs text-slate-500 ml-1">(GARANTÍA)</span>
           </label>
           <input
             type="text"
@@ -1353,14 +1333,14 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.garantia}
             onChange={handleChange}
             placeholder="ej: 1 año, 6 meses, Sin garantía"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
             Fallas/Observaciones
-            <span className="text-xs text-gray-500 ml-1">(FALLAS)</span>
+            <span className="text-xs text-slate-500 ml-1">(FALLAS)</span>
           </label>
           <input
             type="text"
@@ -1368,15 +1348,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
             value={formData.fallas}
             onChange={handleChange}
             placeholder="Describe cualquier defecto o observación importante"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
         {/* Resumen del Producto */}
         {formData.descripcion_producto && formData.categoria && (
           <div className="col-span-full">
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <h5 className="font-medium text-orange-800 mb-3 flex items-center">
+            <div className="bg-emerald-50 border border-emerald-200 rounded p-4">
+              <h5 className="font-medium text-emerald-800 mb-3 flex items-center">
                 📦 Resumen del Producto
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -1400,24 +1380,24 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         {/* Botón de envío */}
         <div className="col-span-full mt-6">
-          <button
-            type="submit"
-            disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
-            className="w-full bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold hover:bg-black focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Guardando Producto...
-              </span>
-            ) : (
-              '✅ Agregar Producto'
-            )}
-          </button>
-        </div>
+  <button
+    type="submit"
+    disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
+    className="w-full bg-emerald-600 text-white px-6 py-3 rounded font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+  >
+    {isSubmitting ? (
+      <span className="flex items-center justify-center">
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Guardando Producto...
+      </span>
+    ) : (
+      '✅ Agregar Producto'
+    )}
+  </button>
+</div>
       </form>
     </div>
   );

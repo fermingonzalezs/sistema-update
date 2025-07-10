@@ -293,10 +293,10 @@ const RecuentoStockSection = () => {
 
   const getIconoProducto = (tipo) => {
     switch (tipo) {
-      case 'computadora': return <Monitor className="w-5 h-5 text-gray-600" />;
-      case 'celular': return <Smartphone className="w-5 h-5 text-gray-600" />;
-      case 'otro': return <Box className="w-5 h-5 text-purple-600" />;
-      default: return <Package className="w-5 h-5 text-gray-600" />;
+      case 'computadora': return <Monitor className="w-5 h-5 text-slate-600" />;
+      case 'celular': return <Smartphone className="w-5 h-5 text-slate-600" />;
+      case 'otro': return <Box className="w-5 h-5 text-slate-600" />;
+      default: return <Package className="w-5 h-5 text-slate-600" />;
     }
   };
 
@@ -309,30 +309,29 @@ const RecuentoStockSection = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-        <span className="ml-3 text-gray-600">Cargando inventario...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <span className="ml-3 text-slate-600">Cargando inventario...</span>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
+    <div className="p-6 bg-slate-50">
+      <div className="bg-white rounded border border-slate-200 mb-6">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Package className="w-8 h-8" />
-                Recuento de Stock
-              </h2>
-              <p className="text-gray-300 mt-2">Verificación física del inventario</p>
+            <div className="flex items-center space-x-3">
+              <Package className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Recuento de Stock</h2>
+                <p className="text-slate-300 mt-1">Verificación física del inventario</p>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors"
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -340,7 +339,7 @@ const RecuentoStockSection = () => {
               ) : (
                 <button
                   onClick={finalizarRecuento}
-                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors"
                 >
                   <Save size={18} />
                   Finalizar Recuento
@@ -349,273 +348,272 @@ const RecuentoStockSection = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Estado del recuento */}
-        {recuentoIniciado && (
-          <div className="bg-yellow-50 border-b border-yellow-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+      {/* Estado del recuento */}
+      {recuentoIniciado && (
+        <div className="bg-slate-100 border-b border-slate-200 p-4 mb-6 rounded">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="font-medium text-slate-800">Recuento en proceso</span>
+              </div>
+              <div className="text-sm text-slate-700">
+                Productos contados: {productosContados.length} / {inventario.length}
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              {diferencias.length > 0 && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-yellow-800">Recuento en proceso</span>
+                  <AlertTriangle size={16} className="text-slate-600" />
+                  <span className="text-sm text-slate-600 font-medium">
+                    {diferencias.length} diferencias encontradas
+                  </span>
                 </div>
-                <div className="text-sm text-yellow-700">
-                  Productos contados: {productosContados.length} / {inventario.length}
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                {diferencias.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle size={16} className="text-red-600" />
-                    <span className="text-sm text-red-600 font-medium">
-                      {diferencias.length} diferencias encontradas
-                    </span>
-                  </div>
-                )}
-                <label className="flex items-center space-x-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={mostrarSoloDiferencias}
-                    onChange={(e) => setMostrarSoloDiferencias(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <span>Solo diferencias</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Filtros */}
-        <div className="bg-gray-50 p-4 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar producto</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              )}
+              <label className="flex items-center space-x-2 text-sm">
                 <input
-                  type="text"
-                  value={filtro}
-                  onChange={(e) => setFiltro(e.target.value)}
-                  placeholder="Modelo, descripción, serial..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded text-sm"
+                  type="checkbox"
+                  checked={mostrarSoloDiferencias}
+                  onChange={(e) => setMostrarSoloDiferencias(e.target.checked)}
+                  className="rounded border-slate-300"
                 />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de producto</label>
-              <select
-                value={tipoFiltro}
-                onChange={(e) => setTipoFiltro(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              >
-                <option value="todos">Todos los tipos</option>
-                <option value="computadora">Computadoras</option>
-                <option value="celular">Celulares</option>
-                <option value="otro">Otros</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado del recuento</label>
-              <div className="text-sm py-2">
-                <div className="text-gray-600">
-                  Total productos: <span className="font-medium">{inventario.length}</span>
-                </div>
-                <div className="text-gray-600">
-                  Mostrados: <span className="font-medium">{inventarioFiltrado.length}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={() => {
-                  setFiltro('');
-                  setTipoFiltro('todos');
-                  setMostrarSoloDiferencias(false);
-                }}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-              >
-                <RefreshCw size={16} />
-              </button>
+                <span>Solo diferencias</span>
+              </label>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Lista de productos */}
-        <div className="p-6">
-          {inventarioFiltrado.length > 0 ? (
+      {/* Filtros */}
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Buscar producto</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Modelo, descripción, serial..."
+                className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de producto</label>
+            <select
+              value={tipoFiltro}
+              onChange={(e) => setTipoFiltro(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="todos">Todos los tipos</option>
+              <option value="computadora">Computadoras</option>
+              <option value="celular">Celulares</option>
+              <option value="otro">Otros</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Estado del recuento</label>
+            <div className="text-sm py-2">
+              <div className="text-slate-600">
+                Total productos: <span className="font-medium">{inventario.length}</span>
+              </div>
+              <div className="text-slate-600">
+                Mostrados: <span className="font-medium">{inventarioFiltrado.length}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setFiltro('');
+                setTipoFiltro('todos');
+                setMostrarSoloDiferencias(false);
+              }}
+              className="p-2 bg-slate-600 text-white rounded hover:bg-slate-700 text-sm"
+            >
+              <RefreshCw size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de productos */}
+      <div className="bg-white rounded border border-slate-200">
+        {inventarioFiltrado.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left py-3 px-4 font-semibold text-slate-800">Producto</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Tipo</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-800">Stock Sistema</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Stock Real</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Diferencia</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {inventarioFiltrado.map((producto) => {
+                  const stockSistema = producto.tipo === 'otro' ? producto.cantidad : (producto.disponible ? 1 : 0);
+                  const stockReal = stockContado[producto.id];
+                  const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
+                  const contado = stockReal !== undefined;
+
+                  return (
+                    <tr key={`${producto.tipo}-${producto.id}`} className={`hover:bg-slate-50 ${
+                      diferencia !== null && diferencia !== 0 ? 'bg-slate-100' : 
+                      contado ? 'bg-emerald-50' : ''
+                    }`}>
+                      <td className="py-3 px-4">
+                        <div>
+                          <div className="font-medium text-slate-800">
+                            {producto.modelo || producto.descripcion_producto}
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            Serial: {producto.serial || `${producto.tipo}-${producto.id}`}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-center py-3 px-4">
+                        <div className="flex items-center justify-center">
+                          {getIconoProducto(producto.tipo)}
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-4 font-medium">
+                        {stockSistema}
+                      </td>
+                      <td className="text-center py-3 px-4">
+                        {recuentoIniciado ? (
+                          <input
+                            type="number"
+                            min="0"
+                            max={producto.tipo === 'otro' ? "999" : "1"}
+                            value={stockReal || ''}
+                            onChange={(e) => actualizarStockContado(producto.id, e.target.value)}
+                            className="w-20 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            placeholder="0"
+                          />
+                        ) : (
+                          <span className="text-slate-500">-</span>
+                        )}
+                      </td>
+                      <td className="text-center py-3 px-4">
+                        {diferencia !== null ? (
+                          <span className={`font-medium ${
+                            diferencia === 0 ? 'text-emerald-600' : 'text-slate-600'
+                          }`}>
+                            {diferencia > 0 ? '+' : ''}{diferencia}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="text-center py-3 px-4">
+                        {!contado ? (
+                          <span className="text-slate-400 text-sm">Pendiente</span>
+                        ) : diferencia === 0 ? (
+                          <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto" />
+                        ) : (
+                          <AlertTriangle className="w-5 h-5 text-slate-600 mx-auto" />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Package size={48} className="mx-auto mb-4 text-slate-300" />
+            <p className="text-slate-500">No se encontraron productos con los filtros aplicados</p>
+          </div>
+        )}
+      </div>
+
+      {/* Observaciones */}
+      {recuentoIniciado && (
+        <div className="bg-white rounded border border-slate-200 mt-6 p-6">
+          <div className="max-w-2xl">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Observaciones del recuento
+            </label>
+            <textarea
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Comentarios sobre el recuento, productos dañados, faltantes, etc..."
+              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              rows="3"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Historial de recuentos */}
+      <div className="bg-white rounded border border-slate-200 mt-6 p-6">
+        <button
+          onClick={() => setMostrarHistorial(!mostrarHistorial)}
+          className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 mb-4"
+        >
+          <Eye size={16} />
+          <span>Ver historial de recuentos ({recuentosAnteriores.length})</span>
+        </button>
+
+        {mostrarHistorial && recuentosAnteriores.length > 0 && (
+          <div className="bg-slate-50 rounded p-4">
             <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200 rounded-lg">
-                <thead className="bg-orange-50">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100">
                   <tr>
-                    <th className="text-left py-3 px-4 font-medium text-blue-700">Producto</th>
-                    <th className="text-center py-3 px-4 font-medium text-emerald-700">Tipo</th>
-                    <th className="text-right py-3 px-4 font-medium text-orange-700">Stock Sistema</th>
-                    <th className="text-center py-3 px-4 font-medium text-violet-700">Stock Real</th>
-                    <th className="text-center py-3 px-4 font-medium text-orange-700">Diferencia</th>
-                    <th className="text-center py-3 px-4 font-medium text-gray-700">Estado</th>
+                    <th className="text-left py-2 px-3 font-semibold text-slate-800">Fecha</th>
+                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Tipo</th>
+                    <th className="text-right py-2 px-3 font-semibold text-slate-800">Productos</th>
+                    <th className="text-right py-2 px-3 font-semibold text-slate-800">Diferencias</th>
+                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Estado</th>
+                    <th className="text-left py-2 px-3 font-semibold text-slate-800">Usuario</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {inventarioFiltrado.map((producto) => {
-                    const stockSistema = producto.tipo === 'otro' ? producto.cantidad : (producto.disponible ? 1 : 0);
-                    const stockReal = stockContado[producto.id];
-                    const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
-                    const contado = stockReal !== undefined;
-
+                <tbody className="divide-y divide-slate-200">
+                  {recuentosAnteriores.map((recuento, index) => {
+                    const productos = JSON.parse(recuento.productos_contados || '[]');
+                    const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
+                    
                     return (
-                      <tr key={`${producto.tipo}-${producto.id}`} className={`border-b border-gray-100 hover:bg-gray-50 ${
-                        diferencia !== null && diferencia !== 0 ? 'bg-red-50' : 
-                        contado ? 'bg-green-50' : ''
-                      }`}>
-                        <td className="py-3 px-4">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {producto.modelo || producto.descripcion_producto}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Serial: {producto.serial || `${producto.tipo}-${producto.id}`}
-                            </div>
-                          </div>
+                      <tr key={index}>
+                        <td className="py-2 px-3">{formatearFecha(recuento.fecha_recuento)}</td>
+                        <td className="text-center py-2 px-3 capitalize">{recuento.tipo_recuento}</td>
+                        <td className="text-right py-2 px-3">{productos.length}</td>
+                        <td className="text-right py-2 px-3">{diferencias.length}</td>
+                        <td className="text-center py-2 px-3">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            recuento.estado === 'sin_diferencias' 
+                              ? 'bg-emerald-100 text-emerald-800' 
+                              : 'bg-slate-100 text-slate-800'
+                          }`}>
+                            {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
+                          </span>
                         </td>
-                        <td className="text-center py-3 px-4">
-                          <div className="flex items-center justify-center">
-                            {getIconoProducto(producto.tipo)}
-                          </div>
-                        </td>
-                        <td className="text-right py-3 px-4 font-medium">
-                          {stockSistema}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {recuentoIniciado ? (
-                            <input
-                              type="number"
-                              min="0"
-                              max={producto.tipo === 'otro' ? "999" : "1"}
-                              value={stockReal || ''}
-                              onChange={(e) => actualizarStockContado(producto.id, e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded text-center text-sm"
-                              placeholder="0"
-                            />
-                          ) : (
-                            <span className="text-gray-500">-</span>
-                          )}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {diferencia !== null ? (
-                            <span className={`font-medium ${
-                              diferencia === 0 ? 'text-green-600' :
-                              diferencia > 0 ? 'text-blue-600' : 'text-red-600'
-                            }`}>
-                              {diferencia > 0 ? '+' : ''}{diferencia}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {!contado ? (
-                            <span className="text-gray-400 text-sm">Pendiente</span>
-                          ) : diferencia === 0 ? (
-                            <CheckCircle className="w-5 h-5 text-green-600 mx-auto" />
-                          ) : (
-                            <AlertTriangle className="w-5 h-5 text-red-600 mx-auto" />
-                          )}
-                        </td>
+                        <td className="py-2 px-3">{recuento.usuario_recuento}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <Package size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500">No se encontraron productos con los filtros aplicados</p>
-            </div>
-          )}
-        </div>
-
-        {/* Observaciones */}
-        {recuentoIniciado && (
-          <div className="border-t bg-gray-50 p-6">
-            <div className="max-w-2xl">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Observaciones del recuento
-              </label>
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                placeholder="Comentarios sobre el recuento, productos dañados, faltantes, etc..."
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                rows="3"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Historial de recuentos */}
-        <div className="border-t p-6">
-          <button
-            onClick={() => setMostrarHistorial(!mostrarHistorial)}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 mb-4"
-          >
-            <Eye size={16} />
-            <span>Ver historial de recuentos ({recuentosAnteriores.length})</span>
-          </button>
-
-          {mostrarHistorial && recuentosAnteriores.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="text-left py-2 px-3">Fecha</th>
-                      <th className="text-center py-2 px-3">Tipo</th>
-                      <th className="text-right py-2 px-3">Productos</th>
-                      <th className="text-right py-2 px-3">Diferencias</th>
-                      <th className="text-center py-2 px-3">Estado</th>
-                      <th className="text-left py-2 px-3">Usuario</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recuentosAnteriores.map((recuento, index) => {
-                      const productos = JSON.parse(recuento.productos_contados || '[]');
-                      const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
-                      
-                      return (
-                        <tr key={index} className="border-b border-gray-200">
-                          <td className="py-2 px-3">{formatearFecha(recuento.fecha_recuento)}</td>
-                          <td className="text-center py-2 px-3 capitalize">{recuento.tipo_recuento}</td>
-                          <td className="text-right py-2 px-3">{productos.length}</td>
-                          <td className="text-right py-2 px-3">{diferencias.length}</td>
-                          <td className="text-center py-2 px-3">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              recuento.estado === 'sin_diferencias' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3">{recuento.usuario_recuento}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 m-6">
-            <span className="text-red-800">{error}</span>
           </div>
         )}
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="bg-slate-100 border-l-4 border-slate-400 p-4 mt-6 rounded">
+          <span className="text-slate-800">{error}</span>
+        </div>
+      )}
     </div>
   );
 };

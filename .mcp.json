@@ -10,6 +10,11 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_0c1e5a29b2dd15dad09085041a279b0c912274de"
       }
-    }
+    },
+		"ESLint": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["@eslint/mcp@latest"]
+	}
   }
 }

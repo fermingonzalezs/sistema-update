@@ -16,6 +16,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
+import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
 
 const PendientesCompraSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,133 +149,103 @@ const PendientesCompraSection = () => {
   };
 
   const getUrgenciaColor = (dias) => {
-    if (dias > 7) return 'text-red-600 bg-red-50';
-    if (dias > 3) return 'text-yellow-600 bg-yellow-50';
-    return 'text-green-600 bg-green-50';
+    if (dias > 7) return 'text-slate-600 bg-slate-200';
+    if (dias > 3) return 'text-slate-600 bg-slate-100';
+    return 'text-emerald-600 bg-emerald-50';
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-8 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <ClipboardList className="w-10 h-10 text-white opacity-80" />
-          <div>
-            <h2 className="text-4xl font-bold text-white">Pendientes de Compra</h2>
-            <p className="text-white/80 text-xl mt-2">Items aprobados esperando ser comprados</p>
+    <div className="">
+      {/* Header obligatorio según estándares */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <ClipboardList className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Pendientes de Compra</h2>
+                <p className="text-slate-300 mt-1">Cotizaciones aprobadas pendientes de compra</p>
+              </div>
+            </div>
           </div>
         </div>
-        {selectedItems.length > 0 && (
-          <button
-            onClick={handleMarcarMultiplesEnTransito}
-            className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 flex items-center gap-2 font-medium transition-colors shadow"
-          >
-            <Truck className="w-5 h-5" />
-            <span>Marcar {selectedItems.length} en Tránsito</span>
-          </button>
-        )}
       </div>
 
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-3">
-            <ClipboardList className="w-8 h-8 text-blue-600" />
-            <div>
-              <p className="text-sm text-blue-800">Total Pendientes</p>
-              <p className="text-2xl font-bold text-blue-900">{filteredPendientes.length}</p>
-            </div>
-          </div>
-        </div>
+        <Tarjeta  
+          icon={ClipboardList}
+          titulo="Pendientes"
+          valor={filteredPendientes.length}
+        />
 
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-3">
-            <DollarSign className="w-8 h-8 text-blue-600" />
-            <div>
-              <p className="text-sm text-blue-800">Monto Total</p>
-              <p className="text-2xl font-bold text-blue-900">
-                {formatCurrency(filteredPendientes.reduce((sum, item) => sum + (item.total_cotizado || 0), 0))}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Tarjeta  
+          icon={DollarSign}
+          titulo="Monto Total"
+          valor={formatCurrency(filteredPendientes.reduce((sum, item) => sum + (item.total_cotizado || 0), 0))}
+        />
 
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-3">
-            <Check className="w-8 h-8 text-blue-600" />
-            <div>
-              <p className="text-sm text-blue-800">Seleccionados</p>
-              <p className="text-2xl font-bold text-blue-900">{selectedItems.length}</p>
-            </div>
-          </div>
-        </div>
+        <Tarjeta
+          icon={Weight}
+          titulo="Peso Total"
+          valor={`${filteredPendientes.reduce((sum, item) => sum + (item.peso_estimado_kg || 0), 0).toFixed(1)} kg`}
+        />
 
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-3">
-            <TrendingUp className="w-8 h-8 text-blue-600" />
-            <div>
-              <p className="text-sm text-blue-800">Valor Seleccionado</p>
-              <p className="text-2xl font-bold text-blue-900">
-                {formatCurrency(calcularTotalSeleccionados())}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Tarjeta
+          icon={AlertCircle}
+          titulo="Urgentes (+7 días)"
+          valor={filteredPendientes.filter(item => getDiasEsperando(item.fecha_aprobacion) > 7).length}
+        />
       </div>
 
       {/* Búsqueda y controles */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por descripción, proveedor, cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-            />
+      <div className="bg-white rounded border border-slate-200 mb-6">
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Buscar por descripción, proveedor, cliente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+              />
+            </div>
           </div>
-          
-          <button
-            onClick={handleSelectAll}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            {selectedItems.length === filteredPendientes.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
-          </button>
         </div>
       </div>
 
       {/* Lista de pendientes */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-700">
+      <div className="bg-white rounded border border-slate-200">
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-800">
             {loading ? 'Cargando...' : `${filteredPendientes.length} items pendientes de compra`}
           </h3>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-            <p className="text-gray-500">Cargando pendientes...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+            <p className="text-slate-500">Cargando pendientes...</p>
           </div>
         ) : filteredPendientes.length === 0 ? (
           <div className="p-8 text-center">
-            <ClipboardList className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500">No hay items pendientes de compra</p>
-            <p className="text-sm text-gray-400">
+            <ClipboardList className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+            <p className="text-slate-500">No hay items pendientes de compra</p>
+            <p className="text-sm text-slate-400">
               {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Los items aparecerán aquí cuando se aprueben cotizaciones'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-200">
             {filteredPendientes.map((pendiente) => {
               const diasEsperando = getDiasEsperando(pendiente.fecha_aprobacion);
               const isSelected = selectedItems.includes(pendiente.id);
               const showSeguimiento = showNumeroSeguimiento[pendiente.id];
 
               return (
-                <div key={pendiente.id} className={`p-6 transition-colors ${isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : 'hover:bg-gray-50'}`}>
+                <div key={pendiente.id} className={`p-6 transition-colors ${isSelected ? 'bg-emerald-50 border-l-4 border-emerald-600' : 'hover:bg-slate-50'}`}>
                   <div className="flex items-start space-x-4">
                     {/* Checkbox */}
                     <div className="flex items-center mt-1">
@@ -282,7 +253,7 @@ const PendientesCompraSection = () => {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleSelectItem(pendiente.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
                       />
                     </div>
 
@@ -290,10 +261,10 @@ const PendientesCompraSection = () => {
                       {/* Header del item */}
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-1">
+                          <h4 className="font-semibold text-slate-900 mb-1">
                             {pendiente.descripcion}
                           </h4>
-                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-4 text-sm text-slate-600">
                             <div className="flex items-center space-x-1">
                               <User className="w-4 h-4" />
                               <span>{pendiente.clientes?.nombre} {pendiente.clientes?.apellido}</span>
@@ -311,7 +282,7 @@ const PendientesCompraSection = () => {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getUrgenciaColor(diasEsperando)}`}>
                             {diasEsperando === 0 ? 'Hoy' : `${diasEsperando} días esperando`}
                           </span>
-                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-800">
                             Pendiente
                           </span>
                         </div>
@@ -321,28 +292,28 @@ const PendientesCompraSection = () => {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2 text-sm">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="text-gray-600">Total:</span>
-                            <span className="font-bold text-green-600">
+                            <DollarSign className="w-4 h-4 text-emerald-600" />
+                            <span className="text-slate-600">Total:</span>
+                            <span className="font-bold text-emerald-600">
                               {formatCurrency(pendiente.total_cotizado)}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm">
-                            <Weight className="w-4 h-4 text-blue-600" />
-                            <span className="text-gray-600">Peso:</span>
+                            <Weight className="w-4 h-4 text-slate-600" />
+                            <span className="text-slate-600">Peso:</span>
                             <span className="font-medium">{pendiente.peso_estimado_kg} kg</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2 text-sm">
-                            <Calendar className="w-4 h-4 text-purple-600" />
-                            <span className="text-gray-600">Aprobado:</span>
+                            <Calendar className="w-4 h-4 text-slate-600" />
+                            <span className="text-slate-600">Aprobado:</span>
                             <span className="font-medium">{formatFecha(pendiente.fecha_aprobacion)}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm">
-                            <DollarSign className="w-4 h-4 text-orange-600" />
-                            <span className="text-gray-600">Precio compra:</span>
+                            <DollarSign className="w-4 h-4 text-emerald-600" />
+                            <span className="text-slate-600">Precio compra:</span>
                             <span className="font-medium">{formatCurrency(pendiente.precio_compra_usd)}</span>
                           </div>
                         </div>
@@ -353,7 +324,7 @@ const PendientesCompraSection = () => {
                               href={pendiente.link_producto}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm"
+                              className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-700 text-sm transition-colors"
                             >
                               <ExternalLink className="w-4 h-4" />
                               <span>Ver producto</span>
@@ -368,7 +339,7 @@ const PendientesCompraSection = () => {
                                 ...prev,
                                 [pendiente.id]: true
                               }))}
-                              className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors flex items-center space-x-1"
+                              className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700 transition-colors flex items-center space-x-1"
                             >
                               <Truck className="w-4 h-4" />
                               <span>Marcar en Tránsito</span>
@@ -383,12 +354,12 @@ const PendientesCompraSection = () => {
                                   ...prev,
                                   [pendiente.id]: e.target.value
                                 }))}
-                                className="px-2 py-1 border border-gray-300 rounded text-sm w-40"
+                                className="px-2 py-1 border border-slate-300 rounded text-sm w-40 focus:ring-2 focus:ring-emerald-600"
                                 onKeyDown={(e) => e.key === 'Enter' && handleMarcarEnTransito(pendiente)}
                               />
                               <button
                                 onClick={() => handleMarcarEnTransito(pendiente)}
-                                className="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                                className="bg-emerald-600 text-white px-2 py-1 rounded text-sm hover:bg-emerald-700 transition-colors"
                                 title="Confirmar"
                               >
                                 <Check className="w-4 h-4" />
@@ -398,7 +369,7 @@ const PendientesCompraSection = () => {
                                   ...prev,
                                   [pendiente.id]: false
                                 }))}
-                                className="bg-gray-500 text-white px-2 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
+                                className="bg-slate-500 text-white px-2 py-1 rounded text-sm hover:bg-slate-600 transition-colors"
                                 title="Cancelar"
                               >
                                 ×
@@ -409,8 +380,8 @@ const PendientesCompraSection = () => {
                       </div>
 
                       {diasEsperando > 7 && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 text-red-600">
+                        <div className="bg-slate-50 border border-slate-200 rounded p-3">
+                          <div className="flex items-center space-x-2 text-slate-600">
                             <AlertCircle className="w-4 h-4" />
                             <span className="text-sm font-medium">
                               Item urgente: Lleva {diasEsperando} días esperando ser comprado

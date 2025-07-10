@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
 import CotizacionModal from './CotizacionModal';
+import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
 
 const CotizacionesSection = () => {
   const [showModal, setShowModal] = useState(false);
@@ -117,7 +118,8 @@ const CotizacionesSection = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      maximumFractionDigits: 0,
     }).format(amount || 0);
   };
 
@@ -129,136 +131,129 @@ const CotizacionesSection = () => {
   const getEstadoBadge = (estado) => {
     switch (estado) {
       case 'cotizacion':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-slate-100 text-slate-800';
       case 'pendiente_compra':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-slate-100 text-slate-800';
       case 'en_transito':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-slate-100 text-slate-800';
       case 'finalizada':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-100 text-emerald-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-800';
     }
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-8 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Calculator className="w-10 h-10 text-white opacity-80" />
-          <div>
-            <h2 className="text-4xl font-bold text-white">Cotizaciones</h2>
-            <p className="text-white/80 text-xl mt-2">Gestión de cotizaciones de importaciones</p>
+    <div className="">
+      
+
+      {/* Header obligatorio según estándares */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Calculator className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Cotizaciones</h2>
+                <p className="text-slate-300 mt-1">Gestión de cotizaciones de importación</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setEditingCotizacion(null);
+                setShowModal(true);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nueva Cotización</span>
+            </button>
           </div>
         </div>
-        <button
-          onClick={() => {
-            setEditingCotizacion(null);
-            setShowModal(true);
-          }}
-          className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 flex items-center gap-2 font-medium transition-colors shadow"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nueva Cotización</span>
-        </button>
       </div>
 
       {/* Estadísticas */}
       {estadisticas && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-3">
-              <FileText className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-blue-800">Cotizaciones</p>
-                <p className="text-2xl font-bold text-blue-900">{estadisticas.cotizaciones}</p>
-              </div>
-            </div>
-          </div>
+         
+          <Tarjeta
+            icon={FileText}
+            titulo="Cotizaciones"
+            valor={estadisticas.cotizaciones}
+          />
+    
+          <Tarjeta
+            icon={Package}
+            titulo="Pendientes"
+            valor={estadisticas.pendientes}
+          />
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-3">
-              <Package className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-blue-800">Pendientes</p>
-                <p className="text-2xl font-bold text-blue-900">{estadisticas.pendientes}</p>
-              </div>
-            </div>
-          </div>
+       
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-3">
-              <Truck className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-blue-800">En Tránsito</p>
-                <p className="text-2xl font-bold text-blue-900">{estadisticas.enTransito}</p>
-              </div>
-            </div>
-          </div>
+          <Tarjeta
+            icon={Truck}
+            titulo="En Tránsito"
+            valor={estadisticas.enTransito}
+          />
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-3">
-              <DollarSign className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-blue-800">Monto Total</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {formatCurrency(estadisticas.montoTotal)}
-                </p>
-              </div>
-            </div>
-          </div>
+        
+          <Tarjeta
+            icon={DollarSign}
+            titulo="Monto Total"
+            valor={formatCurrency(parseInt(estadisticas.montoTotal))}          />
+
         </div>
       )}
 
       {/* Búsqueda */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Buscar por descripción, proveedor, cliente..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-          />
+      <div className="bg-white rounded border border-slate-200 mb-6">
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar por descripción, proveedor, cliente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+            />
+          </div>
         </div>
       </div>
-
       {/* Lista de cotizaciones */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-700">
+      <div className="bg-white rounded border border-slate-200">
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-800">
             {loading ? 'Cargando...' : `${filteredCotizaciones.length} cotizaciones`}
           </h3>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto mb-4"></div>
-            <p className="text-gray-500">Cargando cotizaciones...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+            <p className="text-slate-500">Cargando cotizaciones...</p>
           </div>
         ) : filteredCotizaciones.length === 0 ? (
           <div className="p-8 text-center">
-            <Calculator className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500">No se encontraron cotizaciones</p>
-            <p className="text-sm text-gray-400">
+            <Calculator className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+            <p className="text-slate-500">No se encontraron cotizaciones</p>
+            <p className="text-sm text-slate-400">
               {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Comienza creando tu primera cotización'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-200">
             {filteredCotizaciones.map((cotizacion) => (
-              <div key={cotizacion.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div key={cotizacion.id} className="p-6 hover:bg-slate-50 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     {/* Header de la cotización */}
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-1">
+                        <h4 className="font-semibold text-slate-900 mb-1">
                           {cotizacion.descripcion}
                         </h4>
-                        <div className="flex items-center space-x-3 text-sm text-gray-600">
+                        <div className="flex items-center space-x-3 text-sm text-slate-600">
                           <div className="flex items-center space-x-1">
                             <User className="w-4 h-4" />
                             <span>
@@ -282,26 +277,26 @@ const CotizacionesSection = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2 text-sm">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="text-gray-600">Precio compra:</span>
+                          <DollarSign className="w-4 h-4 text-emerald-600" />
+                          <span className="text-slate-600">Precio compra:</span>
                           <span className="font-medium">{formatCurrency(cotizacion.precio_compra_usd)}</span>
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
-                          <Weight className="w-4 h-4 text-blue-600" />
-                          <span className="text-gray-600">Peso estimado:</span>
+                          <Weight className="w-4 h-4 text-slate-600" />
+                          <span className="text-slate-600">Peso estimado:</span>
                           <span className="font-medium">{cotizacion.peso_estimado_kg} kg</span>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2 text-sm">
-                          <Percent className="w-4 h-4 text-orange-600" />
-                          <span className="text-gray-600">Impuestos USA:</span>
+                          <Percent className="w-4 h-4 text-slate-600" />
+                          <span className="text-slate-600">Impuestos USA:</span>
                           <span className="font-medium">{cotizacion.impuestos_usa_porcentaje}%</span>
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
-                          <Truck className="w-4 h-4 text-purple-600" />
-                          <span className="text-gray-600">Envío USD:</span>
+                          <Truck className="w-4 h-4 text-slate-600" />
+                          <span className="text-slate-600">Envío USD:</span>
                           <span className="font-medium">
                             {formatCurrency(cotizacion.envio_usa_fijo + cotizacion.envio_arg_fijo)}
                           </span>
@@ -310,14 +305,14 @@ const CotizacionesSection = () => {
 
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2 text-sm">
-                          <TrendingUp className="w-4 h-4 text-teal-600" />
-                          <span className="text-gray-600">Precio/kg:</span>
+                          <TrendingUp className="w-4 h-4 text-slate-600" />
+                          <span className="text-slate-600">Precio/kg:</span>
                           <span className="font-medium">{formatCurrency(cotizacion.precio_por_kg)}</span>
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="text-gray-600">Total:</span>
-                          <span className="font-bold text-lg text-green-600">
+                          <DollarSign className="w-4 h-4 text-emerald-600" />
+                          <span className="text-slate-600">Total:</span>
+                          <span className="font-bold text-lg text-emerald-600">
                             {formatCurrency(cotizacion.total_cotizado)}
                           </span>
                         </div>
@@ -325,14 +320,14 @@ const CotizacionesSection = () => {
                     </div>
 
                     {/* Link del producto y fecha */}
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center justify-between text-sm text-slate-500">
                       <div className="flex items-center space-x-4">
                         {cotizacion.link_producto && (
                           <a
                             href={cotizacion.link_producto}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                            className="flex items-center space-x-1 text-emerald-600 hover:text-emerald-700 transition-colors"
                           >
                             <ExternalLink className="w-4 h-4" />
                             <span>Ver producto</span>
@@ -347,7 +342,7 @@ const CotizacionesSection = () => {
                   <div className="flex items-center space-x-2 ml-4">
                     <button
                       onClick={() => handleAprobarCotizacion(cotizacion)}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                       title="Aprobar cotización"
                     >
                       <Check className="w-4 h-4" />
@@ -357,14 +352,14 @@ const CotizacionesSection = () => {
                         setEditingCotizacion(cotizacion);
                         setShowModal(true);
                       }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-600 hover:bg-slate-50 rounded transition-colors"
                       title="Editar cotización"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteCotizacion(cotizacion)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-600 hover:bg-slate-50 rounded transition-colors"
                       title="Eliminar cotización"
                     >
                       <Trash2 className="w-4 h-4" />

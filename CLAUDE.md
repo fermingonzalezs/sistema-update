@@ -212,37 +212,73 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - Use TypeScript-style prop validation
 - Maintain consistent naming conventions
 
-### UI/UX Design Standards
-The application follows a professional, corporate aesthetic with emphasis on clarity and functionality:
+### UI/UX Design Standards - SISTEMA RESTRICTIVO OBLIGATORIO
+TODAS las interfaces deben seguir ESTRICTAMENTE este sistema de diseño. No se permiten excepciones.
 
-- **Color Palette**: Predominantly monochromatic scheme using black, white, and various shades of gray
-- **Typography**: Clean, readable fonts with proper hierarchy and contrast
-- **Layout**: Minimalist approach with ample whitespace and structured grid systems
-- **Visual Elements**: Subtle borders, clean lines, and understated shadows
-- **Data Presentation**: Tabular formats with alternating row colors for enhanced readability
-- **Interactive Elements**: Subtle hover effects and clear visual feedback
-- **Professional Appearance**: Corporate-grade presentation suitable for business environments
+#### Paleta de Colores RESTRICTIVA (SOLO ESTOS 4 COLORES BASE):
+- **Emerald (#10b981)** - Color primario para elementos activos, botones principales y estados positivos
+- **Slate-800 (#1e293b)** - Color oscuro para sidebar, header y texto principal
+- **Slate-200 (#e2e8f0)** - Color claro para bordes, divisores y elementos sutiles
+- **Blanco (#ffffff)** - Fondo de tarjetas y contenedores principales
 
-#### Header Standards
-All section headers must follow these strict guidelines:
-- **Background**: `bg-gradient-to-r from-gray-900 to-black` (dark gray to black gradient)
-- **Text Color**: `text-white` for main title and `text-gray-300` for subtitles
-- **Font Size**: Main title must be H2 with `text-2xl` consistently across all sections
-- **Layout**: Left-aligned title with optional right-aligned controls/info
-- **Padding**: Standard `p-6` for header content
-- **No Exceptions**: All headers in all modules must follow this exact pattern
+**RESTRICCIÓN CRÍTICA**: No se pueden usar otros colores fuera de estos 4. Todas las variaciones deben ser tonos de estos colores base (slate-50, slate-100, slate-300, slate-400, slate-500, slate-600, slate-700 para grises; emerald-100, emerald-500, emerald-600, emerald-700 para verdes).
 
-The design prioritizes functionality over decoration, ensuring that financial and business data is presented clearly and professionally without visual distractions.
+#### Tipografía OBLIGATORIA:
+- **Fuente**: Sistema font stack únicamente
+- **Jerarquía**: `font-semibold` para títulos, `font-medium` para texto normal, `font-normal` para secundario
+- **Tamaños**: `text-lg` (títulos), `text-base` (normal), `text-sm` (secundario), `text-xs` (etiquetas)
 
-### File Naming Conventions
-- **Component Files**: Must match their corresponding section names exactly for easy identification
-- **Examples**:
-  - `EstadoSituacionPatrimonialSection.jsx` for "Estado de Situación Patrimonial"
-  - `EstadoResultadosSection.jsx` for "Estado de Resultados"
-  - `LibroDiarioSection.jsx` for "Libro Diario"
-  - `PlanCuentasSection.jsx` for "Plan de Cuentas"
-- **Hook Files**: Follow the pattern `use[SectionName].js`
-- **Route Consistency**: File names should reflect the exact section titles used in navigation
+#### Bordes y Espaciado ESTRICTOS:
+- **Border radius**: ÚNICAMENTE `rounded` (4px) - PROHIBIDO usar `rounded-lg`, `rounded-xl` o mayores
+- **Espaciado**: Sistema de 8px (`p-4`, `p-6`, `gap-4`, `gap-6`, `m-4`, `m-6`)
+- **Bordes**: Siempre `border-slate-200`, grosor estándar (`border`)
+
+#### Estructura Visual OBLIGATORIA:
+- **Fondo general**: Blanco o `bg-slate-50` (tonos muy claros de slate)
+- **Contenedores**: Fondo blanco con `border border-slate-200`
+- **Elementos oscuros**: `bg-slate-800` para crear contraste
+- **Elementos activos/seleccionados**: Emerald en sus variaciones
+
+#### Componentes Base ESTANDARIZADOS:
+- **Tarjetas**: `bg-white border border-slate-200 rounded`
+- **Botones primarios**: `bg-emerald-600 hover:bg-emerald-700 text-white`
+- **Botones secundarios**: `bg-slate-600 hover:bg-slate-700 text-white`
+- **Texto**: `text-slate-800` (principal), `text-slate-500` (secundario), `text-slate-400` (terciario)
+
+#### Estados Interactivos ESTANDARIZADOS:
+- **Hover**: Transiciones suaves con `transition-colors`
+- **Seleccionado**: `bg-emerald-600` o `text-emerald-600`
+- **Deshabilitado**: Tonos slate más claros
+
+#### Iconografía ESTRICTA:
+- **Librería**: Lucide React únicamente
+- **Tamaños**: `w-4 h-4` (pequeños), `w-5 h-5` (medianos), `w-6 h-6` (grandes)
+- **Colores**: slate para neutral, emerald para positivo, slate-800 para prominente
+
+#### Header Standards OBLIGATORIOS:
+TODOS los headers de sección deben seguir EXACTAMENTE este patrón:
+```jsx
+<div className="bg-white rounded border border-slate-200 mb-4">
+  <div className="p-6 bg-slate-800 text-white">
+    <div className="flex justify-between items-center">
+      <div className="flex items-center space-x-3">
+        <IconComponent className="w-6 h-6" />
+        <div>
+          <h2 className="text-2xl font-semibold">Título Sección</h2>
+          <p className="text-slate-300 mt-1">Descripción opcional</p>
+        </div>
+      </div>
+      {/* Botones opcionales */}
+    </div>
+  </div>
+</div>
+```
+
+#### Stats Cards OBLIGATORIAS:
+Usar SIEMPRE el objeto Tarjeta para diseñar tarjetas de datos.
+NUNCA poner padding o margen entre el elemento activo y el resto de la aplicacion (sidebar/header).
+
+**ESTE SISTEMA ES OBLIGATORIO EN TODOS LOS COMPONENTES Y PÁGINAS SIN EXCEPCIÓN**
 
 ### Component Structure
 ```javascript

@@ -386,21 +386,21 @@ const PlanCuentasSection = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-0">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-800 text-white p-8">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <BookOpen size={28} />
               <div>
                 <h2 className="text-2xl font-bold">Plan de Cuentas</h2>
-                <p className="text-gray-300 mt-1">Estructura contable de la empresa</p>
+                <p className="text-slate-200 mt-2">Estructura contable de la empresa</p>
               </div>
             </div>
             <button
               onClick={nuevaCuenta}
-              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
+              className="bg-white text-slate-800 px-6 py-3 rounded hover:bg-white/90 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               Nueva Cuenta
@@ -410,46 +410,40 @@ const PlanCuentasSection = () => {
 
         {/* Estado de error */}
         {error && (
-          <div className="bg-gray-100 border-l-4 border-gray-800 p-4 m-6">
+          <div className="bg-slate-200 border-l-4 border-slate-800 p-6 m-8">
             <div className="flex items-center">
-              <AlertCircle className="text-gray-800 mr-2" size={20} />
-              <span className="text-gray-900">{error}</span>
+              <AlertCircle className="text-slate-800 mr-3" size={20} />
+              <span className="text-slate-800">{error}</span>
             </div>
           </div>
         )}
 
         {/* Lista de cuentas - SIMPLE SIN JERARQUÍA */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-slate-200">
           {cuentas.length > 0 ? (
             cuentas.map(cuenta => (
-              <div key={cuenta.id} className="flex items-center justify-between p-4 hover:bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center space-x-4">
-                  <code className="text-sm font-mono text-black bg-gray-200 px-3 py-1 rounded min-w-[100px] border">
+              <div key={cuenta.id} className="flex items-center justify-between p-6 hover:bg-slate-200 border-b border-slate-200">
+                <div className="flex items-center space-x-6">
+                  <code className="text-sm font-mono text-slate-800 bg-slate-200 px-4 py-2 rounded min-w-[100px] border border-slate-200">
                     {cuenta.codigo}
                   </code>
-                  <span className="font-medium text-gray-900">{cuenta.nombre}</span>
-                  <span className={`px-2 py-1 text-xs rounded font-medium border ${
-                    cuenta.tipo === 'activo' ? 'bg-gray-100 text-gray-800 border-gray-400' :
-                    cuenta.tipo === 'pasivo' ? 'bg-gray-200 text-gray-900 border-gray-500' :
-                    cuenta.tipo === 'patrimonio' ? 'bg-gray-300 text-black border-gray-600' :
-                    cuenta.tipo === 'ingreso' ? 'bg-white text-black border-gray-700' :
-                    'bg-gray-50 text-gray-700 border-gray-300'
-                  }`}>
+                  <span className="font-medium text-slate-800">{cuenta.nombre}</span>
+                  <span className="px-3 py-1 text-xs rounded font-medium border bg-slate-200 text-slate-800 border-slate-200">
                     {cuenta.tipo.toUpperCase()}
                   </span>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={() => editarCuenta(cuenta)}
-                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
+                    className="p-3 text-slate-800 hover:bg-slate-200 rounded transition-colors border border-slate-200"
                     title="Editar cuenta"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => confirmarEliminar(cuenta)}
-                    className="p-2 text-gray-800 hover:bg-gray-300 rounded transition-colors border border-gray-500"
+                    className="p-3 text-slate-800 hover:bg-slate-200 rounded transition-colors border border-slate-200"
                     title="Eliminar cuenta"
                   >
                     <Trash2 size={16} />
@@ -458,15 +452,15 @@ const PlanCuentasSection = () => {
               </div>
             ))
           ) : (
-            <div className="p-12 text-center text-gray-500">
-              <BookOpen size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="mb-4">No hay cuentas configuradas</p>
-              <p className="text-sm text-gray-400 mb-4">
+            <div className="p-16 text-center text-slate-800">
+              <BookOpen size={48} className="mx-auto mb-6 text-slate-200" />
+              <p className="mb-6">No hay cuentas configuradas</p>
+              <p className="text-sm text-slate-800 mb-6">
                 Necesitas crear cuentas para poder usar el libro diario
               </p>
               <button
                 onClick={nuevaCuenta}
-                className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-black"
+                className="bg-slate-800 text-white px-6 py-3 rounded hover:bg-slate-800/90"
               >
                 Crear primera cuenta
               </button>
@@ -476,8 +470,8 @@ const PlanCuentasSection = () => {
 
         {/* Estadísticas */}
         {cuentas.length > 0 && (
-          <div className="bg-gray-100 p-4 border-t border-gray-300">
-            <div className="text-sm text-gray-800 text-center">
+          <div className="bg-slate-200 p-6 border-t border-slate-200">
+            <div className="text-sm text-slate-800 text-center">
               Total de cuentas: <span className="font-semibold">{cuentas.length}</span>
             </div>
           </div>
@@ -487,15 +481,15 @@ const PlanCuentasSection = () => {
       {/* Modal para crear/editar cuenta */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <div className="bg-white rounded p-8 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
               {selectedCuenta ? <Edit2 size={20} /> : <Plus size={20} />}
               {selectedCuenta ? 'Editar Cuenta' : 'Nueva Cuenta'}
             </h3>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-800 mb-3">
                   Grupo Principal *
                 </label>
                 <select
@@ -508,7 +502,7 @@ const PlanCuentasSection = () => {
                       tipo: grupo ? grupo.tipo : 'activo'
                     });
                   }}
-                  className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                 >
                   <option value="">Seleccionar grupo...</option>
                   {grupos.map(grupo => (
@@ -520,18 +514,12 @@ const PlanCuentasSection = () => {
               </div>
 
               {formData.grupo && (
-                <div className="bg-gray-100 p-3 rounded-lg border border-gray-300">
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded font-medium border ${
-                      grupoSeleccionado?.tipo === 'activo' ? 'bg-gray-200 text-gray-800 border-gray-400' :
-                      grupoSeleccionado?.tipo === 'pasivo' ? 'bg-gray-300 text-gray-900 border-gray-500' :
-                      grupoSeleccionado?.tipo === 'patrimonio' ? 'bg-gray-400 text-black border-gray-600' :
-                      grupoSeleccionado?.tipo === 'ingreso' ? 'bg-white text-black border-gray-700' :
-                      'bg-gray-100 text-gray-700 border-gray-300'
-                    }`}>
+                <div className="bg-slate-200 p-4 rounded border border-slate-200">
+                  <div className="flex items-center space-x-3">
+                    <span className="px-3 py-1 text-xs rounded font-medium border bg-slate-200 text-slate-800 border-slate-200">
                       {grupoSeleccionado?.tipo.toUpperCase()}
                     </span>
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-slate-800">
                       Seleccionaste: <strong>{grupoSeleccionado?.nombre}</strong>
                     </span>
                   </div>
@@ -539,74 +527,68 @@ const PlanCuentasSection = () => {
               )}
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-800 mb-3">
                   Subcódigo *
                 </label>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg font-mono text-gray-500 bg-gray-100 px-3 py-2 rounded-lg border">
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg font-mono text-slate-800 bg-slate-200 px-4 py-3 rounded border border-slate-200">
                     {formData.grupo || '?'}.
                   </span>
                   <input
                     type="text"
                     value={formData.subcodigo}
                     onChange={(e) => setFormData({...formData, subcodigo: e.target.value})}
-                    className="flex-1 border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    className="flex-1 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                     placeholder="01, 02, 03..."
                     disabled={!formData.grupo}
                   />
                 </div>
                 {codigoCompleto && (
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-emerald-600 mt-2">
                     ✓ Código completo: <strong>{codigoCompleto}</strong>
                   </p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-800 mb-3">
                   Nombre de la Cuenta *
                 </label>
                 <input
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   placeholder="Ej: Caja, Banco, Proveedores..."
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-800 mb-3">
                   Tipo (automático)
                 </label>
-                <div className={`w-full px-3 py-2 rounded-lg border-2 border-dashed ${
-                  grupoSeleccionado?.tipo === 'activo' ? 'border-gray-300 bg-gray-100' :
-                  grupoSeleccionado?.tipo === 'pasivo' ? 'border-gray-400 bg-gray-200' :
-                  grupoSeleccionado?.tipo === 'patrimonio' ? 'border-gray-500 bg-gray-300' :
-                  grupoSeleccionado?.tipo === 'ingreso' ? 'border-gray-600 bg-white' :
-                  'border-gray-200 bg-gray-50'
-                }`}>
-                  <span className="text-sm font-medium text-gray-700">
+                <div className="w-full px-4 py-3 rounded border-2 border-dashed border-slate-200 bg-slate-200">
+                  <span className="text-sm font-medium text-slate-800">
                     {grupoSeleccionado ? grupoSeleccionado.tipo.toUpperCase() : 'Selecciona un grupo primero'}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-800 mt-2">
                   El tipo se asigna automáticamente según el grupo seleccionado
                 </p>
               </div>
             </div>
             
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-6 py-3 text-slate-800 border border-slate-200 rounded hover:bg-slate-200 transition-colors"
               >
                 <X size={16} className="inline mr-2" />
                 Cancelar
               </button>
               <button
                 onClick={guardarCuenta}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-black transition-colors"
+                className="px-6 py-3 bg-slate-800 text-white rounded hover:bg-slate-800/90 transition-colors"
               >
                 <Save size={16} className="inline mr-2" />
                 Guardar

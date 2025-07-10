@@ -41,8 +41,8 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full m-4">
-        <div className="p-4 rounded-t-lg text-white bg-gray-800">
+      <div className="bg-white rounded border border-slate-200 max-w-md w-full m-4">
+        <div className="p-4 rounded-t text-white bg-slate-800">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             {tipo === 'entrada' ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
             {tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Salida'}
@@ -52,13 +52,13 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Selección de repuesto */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-800 mb-1">
               Repuesto *
             </label>
             <select
               value={formData.repuesto_id}
               onChange={(e) => setFormData(prev => ({ ...prev, repuesto_id: e.target.value }))}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               required
             >
               <option value="">Seleccionar repuesto...</option>
@@ -69,7 +69,7 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
               ))}
             </select>
             {repuestoSeleccionado && tipo === 'salida' && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Stock disponible: {repuestoSeleccionado.cantidad} unidades
               </p>
             )}
@@ -77,7 +77,7 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
 
           {/* Cantidad */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-800 mb-1">
               Cantidad *
             </label>
             <input
@@ -86,7 +86,7 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
               max={tipo === 'salida' && repuestoSeleccionado ? repuestoSeleccionado.cantidad : undefined}
               value={formData.cantidad}
               onChange={(e) => setFormData(prev => ({ ...prev, cantidad: e.target.value }))}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               placeholder="Ingrese cantidad"
               required
             />
@@ -95,13 +95,13 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
           {/* Reparación (solo para salidas) */}
           {tipo === 'salida' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-800 mb-1">
                 Reparación (opcional)
               </label>
               <select
                 value={formData.reparacion_id}
                 onChange={(e) => setFormData(prev => ({ ...prev, reparacion_id: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="">No asociar a reparación</option>
                 {reparaciones.map(reparacion => (
@@ -115,13 +115,13 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
 
           {/* Motivo */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-800 mb-1">
               Motivo *
             </label>
             <select
               value={formData.motivo}
               onChange={(e) => setFormData(prev => ({ ...prev, motivo: e.target.value }))}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               required
             >
               <option value="">Seleccionar motivo...</option>
@@ -147,13 +147,13 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
 
           {/* Observaciones */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-800 mb-1">
               Observaciones
             </label>
             <textarea
               value={formData.observaciones}
               onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               rows="2"
               placeholder="Comentarios adicionales..."
             />
@@ -163,14 +163,14 @@ const FormularioMovimiento = ({ tipo, onSubmit, onCancel, repuestos, reparacione
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 text-white px-4 py-2 rounded font-medium bg-gray-800 hover:bg-black"
+              className="flex-1 text-white px-4 py-2 rounded font-medium bg-emerald-600 hover:bg-emerald-700 transition-colors"
             >
               {tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Salida'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded font-medium hover:bg-gray-400"
+              className="flex-1 bg-slate-600 text-white px-4 py-2 rounded font-medium hover:bg-slate-700 transition-colors"
             >
               Cancelar
             </button>
@@ -287,29 +287,29 @@ const MovimientosRepuestosSection = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
+    <div className="">
+      {/* Header obligatorio según estándares */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Package className="w-8 h-8" />
-                Movimientos de Repuestos
-              </h2>
-              <p className="text-gray-300 mt-2">Gestión de entradas y salidas de inventario</p>
+            <div className="flex items-center space-x-3">
+              <Package className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Movimientos de Repuestos</h2>
+                <p className="text-slate-300 mt-1">Gestión de entradas y salidas de inventario</p>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setMostrarFormulario('entrada')}
-                className="bg-white text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium"
+                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
               >
                 <ArrowUp size={16} />
                 Entrada
               </button>
               <button
                 onClick={() => setMostrarFormulario('salida')}
-                className="bg-white text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium"
+                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
               >
                 <ArrowDown size={16} />
                 Salida
@@ -317,55 +317,58 @@ const MovimientosRepuestosSection = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded border border-slate-200 overflow-hidden">
 
         {/* Estadísticas */}
         {estadisticas && (
-          <div className="bg-gray-50 p-6 border-b">
-            <h3 className="font-semibold text-gray-800 mb-4">Estadísticas del Mes</h3>
+          <div className="bg-slate-50 p-6 border-b border-slate-200">
+            <h3 className="font-semibold text-slate-800 mb-4">Estadísticas del Mes</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-800 text-sm">Total Movimientos</p>
-                    <p className="text-2xl font-bold text-orange-900">{estadisticas.totalMovimientos}</p>
+                    <p className="text-slate-600 text-sm">Total Movimientos</p>
+                    <p className="text-2xl font-bold text-slate-800">{estadisticas.totalMovimientos}</p>
                   </div>
-                  <Package className="w-8 h-8 text-orange-600" />
+                  <Package className="w-8 h-8 text-emerald-600" />
                 </div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-800 text-sm">Entradas</p>
-                    <p className="text-2xl font-bold text-orange-900">{estadisticas.entradas}</p>
+                    <p className="text-slate-600 text-sm">Entradas</p>
+                    <p className="text-2xl font-bold text-emerald-600">{estadisticas.entradas}</p>
                   </div>
-                  <ArrowUp className="w-8 h-8 text-orange-600" />
+                  <ArrowUp className="w-8 h-8 text-emerald-600" />
                 </div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-800 text-sm">Salidas</p>
-                    <p className="text-2xl font-bold text-orange-900">{estadisticas.salidas}</p>
+                    <p className="text-slate-600 text-sm">Salidas</p>
+                    <p className="text-2xl font-bold text-slate-600">{estadisticas.salidas}</p>
                   </div>
-                  <ArrowDown className="w-8 h-8 text-orange-600" />
+                  <ArrowDown className="w-8 h-8 text-slate-600" />
                 </div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-800 text-sm">Unidades Entrada</p>
-                    <p className="text-2xl font-bold text-orange-900">{estadisticas.cantidadEntradas}</p>
+                    <p className="text-slate-600 text-sm">Unidades Entrada</p>
+                    <p className="text-2xl font-bold text-emerald-600">{estadisticas.cantidadEntradas}</p>
                   </div>
-                  <Plus className="w-8 h-8 text-orange-600" />
+                  <Plus className="w-8 h-8 text-emerald-600" />
                 </div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <div className="bg-white p-4 rounded border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-800 text-sm">Unidades Salida</p>
-                    <p className="text-2xl font-bold text-orange-900">{estadisticas.cantidadSalidas}</p>
+                    <p className="text-slate-600 text-sm">Unidades Salida</p>
+                    <p className="text-2xl font-bold text-slate-600">{estadisticas.cantidadSalidas}</p>
                   </div>
-                  <Minus className="w-8 h-8 text-orange-600" />
+                  <Minus className="w-8 h-8 text-slate-600" />
                 </div>
               </div>
             </div>
@@ -373,14 +376,14 @@ const MovimientosRepuestosSection = () => {
         )}
 
         {/* Filtros */}
-        <div className="bg-white p-4 border-b">
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Tipo</label>
               <select
                 value={filtros.tipo_movimiento}
                 onChange={(e) => setFiltros(prev => ({ ...prev, tipo_movimiento: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="">Todos</option>
                 <option value="entrada">Entradas</option>
@@ -388,11 +391,11 @@ const MovimientosRepuestosSection = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Repuesto</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Repuesto</label>
               <select
                 value={filtros.repuesto_id}
                 onChange={(e) => setFiltros(prev => ({ ...prev, repuesto_id: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="">Todos</option>
                 {repuestos.map(repuesto => (
@@ -403,34 +406,34 @@ const MovimientosRepuestosSection = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Desde</label>
               <input
                 type="date"
                 value={filtros.fecha_desde}
                 onChange={(e) => setFiltros(prev => ({ ...prev, fecha_desde: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Hasta</label>
               <input
                 type="date"
                 value={filtros.fecha_hasta}
                 onChange={(e) => setFiltros(prev => ({ ...prev, fecha_hasta: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               />
             </div>
             <div className="flex items-end gap-2">
               <button
                 onClick={aplicarFiltros}
-                className="flex-1 bg-gray-800 text-white px-3 py-2 rounded hover:bg-black flex items-center justify-center gap-1"
+                className="flex-1 bg-emerald-600 text-white px-3 py-2 rounded hover:bg-emerald-700 flex items-center justify-center gap-1 transition-colors"
               >
                 <Filter size={16} />
                 Filtrar
               </button>
               <button
                 onClick={limpiarFiltros}
-                className="bg-gray-300 text-gray-700 px-3 py-2 rounded hover:bg-gray-400"
+                className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 transition-colors"
               >
                 <RefreshCw size={16} />
               </button>
@@ -442,17 +445,17 @@ const MovimientosRepuestosSection = () => {
         <div className="p-6">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Cargando movimientos...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+              <span className="ml-3 text-slate-600">Cargando movimientos...</span>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4">
-              <span className="text-red-800">{error}</span>
+            <div className="bg-slate-50 border-l-4 border-slate-400 p-4">
+              <span className="text-slate-800">{error}</span>
             </div>
           ) : movimientos.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200 rounded-lg">
-                <thead className="bg-gray-900">
+              <table className="w-full border border-slate-200 rounded">
+                <thead className="bg-slate-800">
                   <tr>
                     <th className="text-left py-3 px-4 font-medium text-white">Fecha</th>
                     <th className="text-center py-3 px-4 font-medium text-white">Tipo</th>
@@ -466,15 +469,15 @@ const MovimientosRepuestosSection = () => {
                 </thead>
                 <tbody>
                   {movimientos.map((movimiento) => (
-                    <tr key={movimiento.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={movimiento.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="py-3 px-4 text-sm">
                         {formatearFecha(movimiento.fecha_movimiento)}
                       </td>
                       <td className="text-center py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center justify-center gap-1 ${
                           movimiento.tipo_movimiento === 'entrada' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : 'bg-slate-100 text-slate-800'
                         }`}>
                           {movimiento.tipo_movimiento === 'entrada' ? (
                             <ArrowUp size={12} />
@@ -486,37 +489,37 @@ const MovimientosRepuestosSection = () => {
                       </td>
                       <td className="py-3 px-4">
                         <div>
-                          <div className="font-medium text-sm">
+                          <div className="font-medium text-sm text-slate-900">
                             {movimiento.repuestos?.item || 'Repuesto eliminado'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-slate-500">
                             {movimiento.repuestos?.categoria}
                           </div>
                         </div>
                       </td>
                       <td className="text-center py-3 px-4 font-medium">
-                        <span className={movimiento.tipo_movimiento === 'entrada' ? 'text-green-600' : 'text-red-600'}>
+                        <span className={movimiento.tipo_movimiento === 'entrada' ? 'text-emerald-600' : 'text-slate-600'}>
                           {movimiento.tipo_movimiento === 'entrada' ? '+' : '-'}{movimiento.cantidad}
                         </span>
                       </td>
                       <td className="text-center py-3 px-4 text-sm">
                         <div>
-                          <span className="text-gray-500">{movimiento.stock_anterior}</span>
+                          <span className="text-slate-500">{movimiento.stock_anterior}</span>
                           <span className="mx-1">→</span>
-                          <span className="font-medium">{movimiento.stock_nuevo}</span>
+                          <span className="font-medium text-slate-800">{movimiento.stock_nuevo}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm">{movimiento.motivo}</td>
+                      <td className="py-3 px-4 text-sm text-slate-800">{movimiento.motivo}</td>
                       <td className="py-3 px-4 text-sm">
                         {movimiento.reparacion_id ? (
-                          <span className="text-blue-600">
+                          <span className="text-emerald-600">
                             {obtenerNumeroReparacion(movimiento.reparacion_id)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-sm">{movimiento.usuario}</td>
+                      <td className="py-3 px-4 text-sm text-slate-800">{movimiento.usuario}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -524,8 +527,8 @@ const MovimientosRepuestosSection = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <Package size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500">No hay movimientos registrados</p>
+              <Package size={48} className="mx-auto mb-4 text-slate-300" />
+              <p className="text-slate-500">No hay movimientos registrados</p>
             </div>
           )}
         </div>

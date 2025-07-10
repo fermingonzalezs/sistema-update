@@ -180,7 +180,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
   const formatPriceARS = (price, cotizacion) => {
     const numPrice = parseFloat(price) || 0;
     const arsPrice = Math.round(numPrice * cotizacion);
-    return `$${arsPrice.toLocaleString('es-AR')}`;
+    return `${arsPrice.toLocaleString('es-AR')}`;
   };
 
   const renderCamposPorCategoria = () => {
@@ -190,7 +190,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Hardware</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Procesador:</strong> {producto.procesador}</div>
                 <div><strong>RAM:</strong> {producto.ram} {producto.tipo_ram}</div>
                 <div><strong>SSD:</strong> {producto.ssd}</div>
@@ -201,7 +201,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Pantalla</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Tamaño:</strong> {producto.pantalla}"</div>
                 <div><strong>Resolución:</strong> {producto.resolucion}</div>
                 <div><strong>Refresh Rate:</strong> {producto.refresh_rate}</div>
@@ -216,7 +216,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Capacidad:</strong> {producto.capacidad}</div>
                 <div><strong>Condición:</strong> {producto.condicion}</div>
                 <div><strong>Estado:</strong> {producto.estado}</div>
@@ -236,8 +236,8 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Descripción del Producto</h3>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <p className="text-gray-800 text-lg leading-relaxed">
+              <div className="bg-slate-50 p-6 rounded">
+                <p className="text-slate-800 text-lg leading-relaxed">
                   {producto.descripcion}
                 </p>
               </div>
@@ -251,7 +251,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Hardware</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Procesador:</strong> {desktopSpecs.procesador || 'N/A'}</div>
                 <div><strong>RAM:</strong> {desktopSpecs.ram || 'N/A'}</div>
                 <div><strong>Almacenamiento:</strong> {desktopSpecs.almacenamiento || 'N/A'}</div>
@@ -270,7 +270,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Técnicas</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Pantalla:</strong> {tabletSpecs.pantalla || 'N/A'}</div>
                 <div><strong>Resolución:</strong> {tabletSpecs.resolucion || 'N/A'}</div>
                 <div><strong>Procesador:</strong> {tabletSpecs.procesador || 'N/A'}</div>
@@ -290,7 +290,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones GPU</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Memoria:</strong> {gpuSpecs.memoria || 'N/A'}</div>
                 <div><strong>Bus:</strong> {gpuSpecs.bus || 'N/A'}</div>
                 <div><strong>Boost Clock:</strong> {gpuSpecs.boost_clock || 'N/A'}</div>
@@ -309,7 +309,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Apple</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Procesador:</strong> {appleSpecs.procesador || appleSpecs.chip || 'N/A'}</div>
                 <div><strong>Almacenamiento:</strong> {appleSpecs.almacenamiento || 'N/A'}</div>
                 <div><strong>RAM:</strong> {appleSpecs.ram || 'N/A'}</div>
@@ -329,7 +329,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Técnicas</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 {componenteSpecs.nucleos && <div><strong>Núcleos:</strong> {componenteSpecs.nucleos}</div>}
                 {componenteSpecs.threads && <div><strong>Threads:</strong> {componenteSpecs.threads}</div>}
                 {componenteSpecs.base_clock && <div><strong>Base Clock:</strong> {componenteSpecs.base_clock}</div>}
@@ -353,7 +353,7 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Audio</h3>
-              <div className="space-y-2 text-slate-900">
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Tipo:</strong> {audioSpecs.tipo || audioSpecs.configuracion || 'N/A'}</div>
                 <div><strong>Drivers:</strong> {audioSpecs.drivers || 'N/A'}</div>
                 <div><strong>Potencia:</strong> {audioSpecs.potencia || 'N/A'}</div>
@@ -374,60 +374,60 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Tarjeta Compra */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-1">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-1">
                   <h4 className="text-sm font-bold">COMPRA</h4>
                 </div>
                 <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_compra_usd)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
                   </p>
                 </div>
               </div>
 
               {/* Tarjeta Repuestos */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-1">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-1">
                   <h4 className="text-sm font-bold">REPUESTOS</h4>
                 </div>
                 <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-xl font-bold text-slate-800">
                     {formatPriceUSD(producto.repuestos_usd)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1">
                     {formatPriceARS(producto.repuestos_usd, cotizacionDolar)}
                   </p>
                 </div>
               </div>
 
               {/* Tarjeta Venta */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-1">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-1">
                   <h4 className="text-sm font-bold">VENTA</h4>
                 </div>
                 <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_venta_usd)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
                   </p>
                 </div>
               </div>
 
               {/* Tarjeta Ganancia */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-1">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-1">
                   <h4 className="text-sm font-bold">GANANCIA</h4>
                 </div>
                 <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd, cotizacionDolar)}
                   </p>
                 </div>
@@ -440,30 +440,30 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-hidden flex">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 4">
+      <div className="bg-white rounded max-w-6xl max-h-[90vh] overflow-hidden flex">
         
         {/* Panel izquierdo */}
-        <div className="w-1/3 bg-gray-900 text-white p-6 border-r-4 border-gray-900">
+        <div className="w-1/3 bg-slate-800 text-white p-6 border-r-4 border-slate-800">
           <div className="space-y-6">
             
-            <div className="text-center pb-4 border-b border-gray-500">
+            <div className="text-center pb-4 border-b border-slate-500">
               <h2 className="text-xl font-bold">{producto.modelo || producto.nombre_producto}</h2>
-              <p className="text-gray-300 text-sm">{producto.marca}</p>
+              <p className="text-slate-300 text-sm">{producto.marca}</p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">CONDICIÓN</h3>
-              <div className="bg-gray-500 p-3 rounded-lg text-center">
-                <span className="px-3 py-1 text-sm font-medium rounded-full bg-white text-gray-900">
+              <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">CONDICIÓN</h3>
+              <div className="bg-slate-500 p-3 rounded text-center">
+                <span className="px-3 py-1 text-sm font-medium rounded-full bg-white text-slate-800">
                   {producto.condicion?.toUpperCase() || 'N/A'}
                 </span>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">UBICACIÓN</h3>
-              <div className="bg-gray-500 p-3 rounded-lg text-center">
+              <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">UBICACIÓN</h3>
+              <div className="bg-slate-500 p-3 rounded text-center">
                 <p className="text-white font-medium">
                   {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')?.replace('_', ' ').toUpperCase()}
                 </p>
@@ -472,17 +472,17 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
 
             {(producto.garantia_update || producto.garantia) && (
               <div>
-                <h3 className="text-lg font-semibold mb-3 text-gray-300 text-center">GARANTÍA</h3>
-                <div className="bg-gray-500 p-3 rounded-lg text-center">
+                <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">GARANTÍA</h3>
+                <div className="bg-slate-500 p-3 rounded text-center">
                   {producto.garantia_update && (
                     <div>
-                      <span className="text-gray-300">Update:</span>
+                      <span className="text-slate-300">Update:</span>
                       <span className="text-white ml-2 font-medium">{producto.garantia_update}</span>
                     </div>
                   )}
                   {producto.garantia_oficial && (
                     <div>
-                      <span className="text-gray-300">Oficial:</span>
+                      <span className="text-slate-300">Oficial:</span>
                       <span className="text-white ml-2 font-medium">{producto.garantia_oficial}</span>
                     </div>
                   )}
@@ -503,10 +503,10 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
         <div className="w-2/3 bg-white p-6 overflow-y-auto">
           
           <div className="flex justify-between items-center mb-6 pb-4 border-b">
-            <h2 className="text-2xl font-bold text-gray-900">Información Completa</h2>
+            <h2 className="text-2xl font-bold text-slate-800">Información Completa</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-900"
+              className="text-slate-500 hover:text-slate-800"
             >
               <X className="w-6 h-6" />
             </button>
@@ -515,8 +515,8 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-gray-500 px-3 py-2 rounded">Información Básica</h3>
-              <div className="space-y-2 text-gray-900">
+              <h3 className="text-lg font-semibold text-white bg-slate-500 px-3 py-2 rounded">Información Básica</h3>
+              <div className="space-y-2 text-slate-800">
                 <div><strong>Serial:</strong> {producto.serial || 'N/A'}</div>
                 <div><strong>Fecha Ingreso:</strong> {producto.fecha_ingreso || 'N/A'}</div>
                 {producto.fallas && <div><strong>Fallas:</strong> {producto.fallas}</div>}
@@ -528,49 +528,49 @@ const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionD
           </div>
 
           <div className="space-y-4 mt-6">
-            <h3 className="text-lg font-semibold text-white bg-gray-500 px-3 py-2 rounded">Precios</h3>
+            <h3 className="text-lg font-semibold text-white bg-slate-500 px-3 py-2 rounded">Precios</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
               {/* Tarjeta Compra */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-2">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-2">
                   <h4 className="text-lg font-bold">COMPRA</h4>
                 </div>
                 <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_compra_usd)}
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
                   </p>
                 </div>
               </div>
 
               {/* Tarjeta Venta */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-2">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-2">
                   <h4 className="text-lg font-bold">VENTA</h4>
                 </div>
                 <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_venta_usd)}
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
                   </p>
                 </div>
               </div>
 
               {/* Tarjeta Ganancia */}
-              <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 text-white text-center py-2">
+              <div className="border-2 border-slate-800 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white text-center py-2">
                   <h4 className="text-lg font-bold">GANANCIA</h4>
                 </div>
                 <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-slate-800">
                     {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd)}
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd, cotizacionDolar)}
                   </p>
                 </div>
@@ -626,7 +626,7 @@ const Catalogo = ({ onAddToCart }) => {
 
   const generateCopy = (producto, usePesos = false) => {
     const precio = usePesos 
-      ? `$${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
+      ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
       : formatPriceUSD(producto.precio_venta_usd);
     
     const infoBase = generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar);
@@ -653,10 +653,10 @@ const Catalogo = ({ onAddToCart }) => {
     <div className="p-0">
 
       {/* Selector de categorías */}
-      <div className="mb-4 bg-white rounded-lg shadow-md p-4">
+      <div className="mb-4 bg-white rounded border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800">Categorías de Productos</h3>
-          <div className="text-sm text-slate-600">
+          <div className="text-sm text-slate-800">
             {productosFiltrados} de {totalProductos} productos
           </div>
         </div>
@@ -666,19 +666,18 @@ const Catalogo = ({ onAddToCart }) => {
             <button
               key={cat.id}
               onClick={() => cambiarCategoria(cat.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${
                 categoriaActiva === cat.id
-                  ? 'text-white shadow-lg scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+                  ? 'bg-slate-800 text-white'
+                  : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
               }`}
-              style={categoriaActiva === cat.id ? {backgroundColor: '#262626'} : {}}
             >
               <span className="text-lg">{cat.icon}</span>
               <span className="font-medium">{cat.label}</span>
-              <span className={`text-xs px-2 py-1 rounded-full ${
+              <span className={`text-xs px-2 py-1 rounded ${
                 categoriaActiva === cat.id
-                  ? 'bg-white/20 text-white'
-                  : 'bg-gray-300 text-gray-700'
+                  ? 'bg-slate-200 text-slate-800'
+                  : 'bg-slate-300 text-slate-800'
               }`}>
                 {cat.data?.length || 0}
               </span>
@@ -688,13 +687,13 @@ const Catalogo = ({ onAddToCart }) => {
       </div>
 
       {/* Filtros */}
-      <div className="mb-4 bg-white rounded-lg shadow-md p-4">
+      <div className="mb-4 bg-white rounded border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800">Filtros</h3>
           {hayFiltrosActivos && (
             <button
               onClick={limpiarFiltros}
-              className="flex items-center space-x-1 px-3 py-1 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-700 transition-colors"
             >
               <X size={14} />
               <span>Limpiar</span>
@@ -706,11 +705,11 @@ const Catalogo = ({ onAddToCart }) => {
           
           {/* Ordenamiento */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Ordenar por</label>
+            <label className="block text-xs font-medium text-slate-800 mb-1">Ordenar por</label>
             <select
               value={ordenamiento.campo}
               onChange={(e) => actualizarOrdenamiento(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Sin ordenar</option>
               {categoriaConfig?.camposOrdenamiento?.map(campo => (
@@ -723,11 +722,11 @@ const Catalogo = ({ onAddToCart }) => {
 
           {/* Marca */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Marca</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
             <select
               value={filtros.marca}
               onChange={(e) => actualizarFiltro('marca', e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {valoresUnicos.marcas?.map(marca => (
@@ -738,11 +737,11 @@ const Catalogo = ({ onAddToCart }) => {
 
           {/* Condición */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Condición</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
             <select
               value={filtros.condicion}
               onChange={(e) => actualizarFiltro('condicion', e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {valoresUnicos.condiciones?.map(condicion => (
@@ -753,11 +752,11 @@ const Catalogo = ({ onAddToCart }) => {
 
           {/* Sucursal/Ubicación */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Ubicación</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Ubicación</label>
             <select
               value={filtros.sucursal}
               onChange={(e) => actualizarFiltro('sucursal', e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {valoresUnicos.sucursales?.map(sucursal => (
@@ -771,11 +770,11 @@ const Catalogo = ({ onAddToCart }) => {
           {/* Categoría para "otros" */}
           {categoriaActiva === 'otros' && (
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Categoría</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
               <select
                 value={filtros.categoria}
                 onChange={(e) => actualizarFiltro('categoria', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todas</option>
                 {valoresUnicos.categorias?.map(categoria => (
@@ -787,7 +786,7 @@ const Catalogo = ({ onAddToCart }) => {
 
           {/* Precio máximo */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Precio máximo</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Precio máximo</label>
             <div className="space-y-2">
               <input
                 type="range"
@@ -796,10 +795,10 @@ const Catalogo = ({ onAddToCart }) => {
                 step="50"
                 value={filtros.precioMax || 0}
                 onChange={(e) => actualizarFiltro('precioMax', e.target.value)}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-slate-200 rounded appearance-none cursor-pointer slider"
               />
-              <div className="text-xs text-center text-gray-600">
-                {filtros.precioMax ? `U$${filtros.precioMax}` : 'Sin límite'}
+              <div className="text-xs text-center text-slate-600">
+                {filtros.precioMax ? `U${filtros.precioMax}` : 'Sin límite'}
               </div>
             </div>
           </div>
@@ -810,23 +809,23 @@ const Catalogo = ({ onAddToCart }) => {
       {/* Lista de productos */}
       {loading && (
         <div className="text-center py-8">
-          <div className="inline-flex items-center space-x-2 text-gray-600">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div>
+          <div className="inline-flex items-center space-x-2 text-slate-600">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-600"></div>
             <span className="text-lg">Cargando {categoriaConfig?.label?.toLowerCase()}...</span>
           </div>
         </div>
       )}
       {error && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-          <p className="text-gray-800 font-medium">Error al cargar {categoriaConfig?.label?.toLowerCase()}</p>
-          <p className="text-gray-700 text-sm mt-1">{error}</p>
+        <div className="bg-slate-100 border border-slate-200 rounded p-4 text-center">
+          <p className="text-slate-800 font-medium">Error al cargar {categoriaConfig?.label?.toLowerCase()}</p>
+          <p className="text-slate-700 text-sm mt-1">{error}</p>
         </div>
       )}
       
       {!loading && !error && (
         <div className="space-y-3">
           {/* Header */}
-          <div className="rounded-lg p-4 grid grid-cols-12 gap-4" style={{backgroundColor: '#262626'}}>
+          <div className="rounded p-4 grid grid-cols-12 gap-4 bg-slate-800">
             <div className="col-span-4 text-sm font-bold text-white uppercase">Información del Producto</div>
             <div className="col-span-2 text-sm font-bold text-white uppercase">Condición</div>
             <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
@@ -838,7 +837,7 @@ const Catalogo = ({ onAddToCart }) => {
           {datos.map((producto) => (
             <div 
               key={producto.id} 
-              className="group cursor-pointer hover:bg-gray-200 hover:border-gray-300 transition-colors duration-200 border border-gray-200 rounded-lg p-4 bg-white grid grid-cols-12 gap-4 items-center shadow-sm hover:shadow-md"
+              className="group cursor-pointer hover:bg-slate-100 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-4 bg-white grid grid-cols-12 gap-4 items-center shadow-sm hover:shadow-md"
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
@@ -848,7 +847,7 @@ const Catalogo = ({ onAddToCart }) => {
                     <div className="text-sm font-medium">
                       {producto.nombre_producto}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       {producto.descripcion}
                     </div>
                   </div>
@@ -857,9 +856,9 @@ const Catalogo = ({ onAddToCart }) => {
                     <div className="text-sm font-medium">
                       {generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       {producto.descripcion && <span>{producto.descripcion}</span>}
-                      {producto.stock > 0 && <span className="ml-2 text-green-600">Stock: {producto.stock}</span>}
+                      {producto.stock > 0 && <span className="ml-2 text-emerald-600">Stock: {producto.stock}</span>}
                     </div>
                   </div>
                 )}
@@ -868,12 +867,12 @@ const Catalogo = ({ onAddToCart }) => {
               {/* Condición */}
               <div className="col-span-2">
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  producto.condicion === 'excelente' ? 'bg-green-100 text-green-800' :
-                  producto.condicion === 'muy bueno' ? 'bg-blue-100 text-blue-800' :
-                  producto.condicion === 'bueno' ? 'bg-yellow-100 text-yellow-800' :
-                  producto.condicion === 'regular' ? 'bg-orange-100 text-orange-800' :
-                  producto.condicion === 'malo' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
+                  producto.condicion === 'excelente' ? 'bg-emerald-100 text-emerald-800' :
+                  producto.condicion === 'muy bueno' ? 'bg-slate-100 text-slate-800' :
+                  producto.condicion === 'bueno' ? 'bg-slate-100 text-slate-800' :
+                  producto.condicion === 'regular' ? 'bg-slate-100 text-slate-800' :
+                  producto.condicion === 'malo' ? 'bg-slate-100 text-slate-800' :
+                  'bg-slate-100 text-slate-800'
                 }`}>
                   {producto.condicion?.toUpperCase() || 'N/A'}
                 </span>
@@ -881,10 +880,10 @@ const Catalogo = ({ onAddToCart }) => {
               
               {/* Precio */}
               <div className="col-span-2">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-slate-800">
                   {formatPriceUSD(producto.precio_venta_usd)}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500">
                   ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
                 </div>
               </div>
@@ -893,16 +892,14 @@ const Catalogo = ({ onAddToCart }) => {
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => navigator.clipboard.writeText(generateCopy(producto, false))}
-                  className="px-2 py-1 text-white text-[10px] rounded-lg hover:bg-gray-500 transition-colors"
-                  style={{backgroundColor: '#404040'}}
+                  className="px-2 py-1 text-white text-[5px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Copiar información USD"
                 >
                   USD
                 </button>
                 <button
                   onClick={() => navigator.clipboard.writeText(generateCopy(producto, true))}
-                  className="px-2 py-1 text-white text-[10px] rounded-lg hover:bg-gray-500 transition-colors"
-                  style={{backgroundColor: '#404040'}}
+                  className="px-2 py-1 text-white text-[10px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Copiar información Pesos"
                 >
                   ARS
@@ -913,31 +910,28 @@ const Catalogo = ({ onAddToCart }) => {
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleAddToCart(producto)}
-                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
-                  style={{backgroundColor: '#404040'}}
+                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Agregar al carrito"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
                   </svg>
                 </button>
                 <button
                   onClick={() => alert('Función de editar próximamente')}
-                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
-                  style={{backgroundColor: '#404040'}}
+                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Editar producto"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                   </svg>
                 </button>
                 <button
                   onClick={() => eliminarProducto(producto.id)}
-                  className="px-2 py-1 text-white text-xs rounded-lg hover:bg-gray-500 transition-colors"
-                  style={{backgroundColor: '#404040'}}
+                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Eliminar producto"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
                   </svg>
                 </button>
@@ -946,7 +940,7 @@ const Catalogo = ({ onAddToCart }) => {
           ))}
           
           {datos.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               No se encontraron productos con los filtros aplicados
             </div>
           )}

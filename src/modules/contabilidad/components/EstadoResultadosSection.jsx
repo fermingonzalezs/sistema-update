@@ -147,259 +147,219 @@ const EstadoResultadosSection = () => {
   const gastosArray = Object.values(estadoResultados.gastos || {});
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <TrendingUp className="w-6 h-6" />
-                Estado de Resultados
-              </h2>
-              <p className="text-gray-300 mt-1">Análisis de ingresos, gastos y utilidades del período</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-300">Período Seleccionado</div>
-              <div className="text-lg font-semibold">
-                {new Date(filtros.fechaDesde).toLocaleDateString('es-ES', { 
-                  day: '2-digit', 
-                  month: 'short', 
-                  year: 'numeric' 
-                })} al {new Date(filtros.fechaHasta).toLocaleDateString('es-ES', { 
-                  day: '2-digit', 
-                  month: 'short', 
-                  year: 'numeric' 
-                })}
-              </div>
-            </div>
+    <div className="p-0">
+      {/* Header principal removido, solo se deja el header de la página si corresponde */}
+
+      {/* Filtros */}
+      <div className="flex items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
+        {/* Izquierda: selector y botón */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-4 h-4 text-slate-800" />
+            <label className="text-sm text-black font-medium text-slate-800">
+              Fecha Desde:
+            </label>
+            <input
+              type="date"
+              value={filtros.fechaDesde}
+              onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
+              className="bg-white px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <Calendar className="w-4 h-4 text-slate-800" />
+            <label className="text-sm text-black font-medium text-slate-800">
+              Fecha Hasta:
+            </label>
+            <input
+              type="date"
+              value={filtros.fechaHasta}
+              onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
+              className="bg-white px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            />
+          </div>
+          <button
+            onClick={aplicarFiltros}
+            disabled={loading}
+            className="bg-slate-800 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Filter className="w-4 h-4" />
+            )}
+            {loading ? 'Calculando...' : 'Aplicar'}
+          </button>
+        </div>
+        {/* Derecha: texto de fecha */}
+        <div className="text-right bg-slate-700 rounded-lg p-4 text-white">
+          <div className="text-md">Período Seleccionado</div>
+          <div className="text-md font-semibold">
+            {new Date(filtros.fechaDesde).toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })} - {new Date(filtros.fechaHasta).toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Filtros */}
-        <div className="p-6 border-b bg-gray-100">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-800" />
-              <label className="text-sm font-medium text-gray-800">
-                Fecha Desde:
-              </label>
-              <input
-                type="date"
-                value={filtros.fechaDesde}
-                onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-                className="px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-800" />
-              <label className="text-sm font-medium text-gray-800">
-                Fecha Hasta:
-              </label>
-              <input
-                type="date"
-                value={filtros.fechaHasta}
-                onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-                className="px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600"
-              />
-            </div>
-            <button
-              onClick={aplicarFiltros}
-              disabled={loading}
-              className="bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-black disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Filter className="w-4 h-4" />
-              )}
-              {loading ? 'Calculando...' : 'Aplicar'}
-            </button>
+      {/* Error */}
+      {error && (
+        <div className="p-6 bg-slate-200 border-l-4 border-slate-800">
+          <p className="text-slate-800">Error: {error}</p>
+        </div>
+      )}
+
+      {/* Información adicional */}
+      <div className="bg-slate-800 p-8">
+        <h3 className="font-bold text-white mb-6 text-lg">RESULTADO</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center p-6 bg-slate-200 rounded">
+            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalIngresos)}</div>
+            <div className="text-sm text-slate-800">Total Ingresos</div>
+            <div className="text-xs text-slate-800">{ingresosArray.length} conceptos</div>
+          </div>
+          <div className="text-center p-6 bg-slate-200 rounded">
+            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalGastos)}</div>
+            <div className="text-sm text-slate-800">Total Gastos</div>
+            <div className="text-xs text-slate-800">{gastosArray.length} conceptos</div>
+          </div>
+          <div className="text-center p-6 bg-slate-200 rounded">
+            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.utilidadNeta)}</div>
+            <div className="text-sm text-slate-800">{estadoResultados.utilidadNeta >= 0 ? 'Utilidad' : 'Pérdida'} Neta</div>
+            <div className="text-xs text-slate-800">{estadoResultados.utilidadNeta >= 0 ? 'Positivo' : 'Negativo'}</div>
           </div>
         </div>
-
-        {/* Error */}
-        {error && (
-          <div className="p-4 bg-red-50 border-l-4 border-red-500">
-            <p className="text-red-700">Error: {error}</p>
-          </div>
-        )}
-
-        {/* Estado de Resultados */}
-        <div className="p-6">
+        
+      </div>      
+      
+       {/* Estado de Resultados */}
+      <div className="mt-3">
+        <div className="space-y-6">
+          {/* INGRESOS */}
           <div className="space-y-6">
-            {/* INGRESOS */}
-            <div className="space-y-4">
-              <div className="bg-black text-white p-4 shadow-lg">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <TrendingUp className="w-7 h-7" />
-                  INGRESOS
-                  <span className="text-lg bg-gray-800 px-3 py-1 rounded">
-                    {formatearMoneda(estadoResultados.totalIngresos)}
-                  </span>
-                </h2>
-                <p className="text-sm text-gray-300 mt-1">
-                  {ingresosArray.length} conceptos de ingresos
-                </p>
-              </div>
+            <div className="bg-slate-800 text-white p-6">
+              <h2 className="text-2xl font-bold flex items-center gap-4">
+                <TrendingUp className="w-7 h-7" />
+                INGRESOS
+                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                  {formatearMoneda(estadoResultados.totalIngresos)}
+                </span>
+              </h2>
+              <p className="text-sm text-slate-200 mt-2">
+                {ingresosArray.length} conceptos de ingresos
+              </p>
+            </div>
+            
+            <div className="bg-white border border-slate-200">
               
-              <div className="bg-white border border-gray-300 shadow-sm">
-                <div className="bg-gray-100 p-3 border-b border-gray-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-black flex items-center gap-2">
-                      <span className="w-3 h-3 bg-black rounded-full"></span>
-                      Ingresos Operacionales
-                    </h3>
-                    <div className="text-lg font-bold text-black">
+              <div className="p-4">
+                <div className="space-y-3">
+                  {ingresosArray.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
+                      <div>
+                        <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
+                        <div className="text-sm text-slate-800">
+                          Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-slate-800">
+                        {formatearMoneda(item.monto)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* GASTOS */}
+          <div className="space-y-6">
+            <div className="bg-slate-800 text-white p-6">
+              <h2 className="text-2xl font-bold flex items-center gap-4">
+                <TrendingDown className="w-7 h-7" />
+                GASTOS
+                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                  {formatearMoneda(estadoResultados.totalGastos)}
+                </span>
+              </h2>
+              <p className="text-sm text-slate-200 mt-2">
+                {gastosArray.length} conceptos de egresos
+              </p>
+            </div>
+            
+            <div className="bg-white border border-slate-200">
+              
+              <div className="p-4">
+                <div className="space-y-3">
+                  {gastosArray.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
+                      <div>
+                        <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
+                        <div className="text-sm text-slate-800">
+                          Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-slate-800">
+                        {formatearMoneda(item.monto)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RESULTADO DEL EJERCICIO */}
+          <div className="space-y-6">
+            <div className="bg-slate-800 text-white p-6">
+              <h2 className="text-2xl font-bold flex items-center gap-4">
+                <DollarSign className="w-7 h-7" />
+                RESULTADO DEL EJERCICIO
+                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                  {formatearMoneda(estadoResultados.utilidadNeta)}
+                </span>
+              </h2>
+              <p className="text-sm text-slate-200 mt-2">
+                {estadoResultados.utilidadNeta >= 0 ? 'Utilidad generada' : 'Pérdida del período'}
+              </p>
+            </div>
+            
+            <div className="bg-white border border-slate-200">
+              
+              <div className="p-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b border-slate-200">
+                    <span className="font-medium text-slate-800">TOTAL INGRESOS</span>
+                    <span className="text-lg font-bold text-slate-800">
                       {formatearMoneda(estadoResultados.totalIngresos)}
-                    </div>
+                    </span>
                   </div>
-                </div>
-                <div className="p-3">
-                  <div className="space-y-2">
-                    {ingresosArray.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 px-3 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                        <div>
-                          <div className="font-medium text-black">{item.cuenta.nombre}</div>
-                          <div className="text-sm text-gray-600">
-                            Código: <span className="font-mono text-black">{item.cuenta.codigo}</span>
-                          </div>
-                        </div>
-                        <div className="text-lg font-bold text-black">
-                          {formatearMoneda(item.monto)}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex justify-between items-center py-3 border-b border-slate-200">
+                    <span className="font-medium text-slate-800">TOTAL EGRESOS</span>
+                    <span className="text-lg font-bold text-slate-800">
+                      ({formatearMoneda(estadoResultados.totalGastos)})
+                    </span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* GASTOS */}
-            <div className="space-y-4">
-              <div className="bg-black text-white p-4 shadow-lg">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <TrendingDown className="w-7 h-7" />
-                  GASTOS
-                  <span className="text-lg bg-gray-800 px-3 py-1 rounded">
-                    {formatearMoneda(estadoResultados.totalGastos)}
-                  </span>
-                </h2>
-                <p className="text-sm text-gray-300 mt-1">
-                  {gastosArray.length} conceptos de gastos
-                </p>
-              </div>
-              
-              <div className="bg-white border border-gray-300 shadow-sm">
-                <div className="bg-gray-100 p-3 border-b border-gray-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-black flex items-center gap-2">
-                      <span className="w-3 h-3 bg-black rounded-full"></span>
-                      Gastos Operacionales
-                    </h3>
-                    <div className="text-lg font-bold text-black">
-                      {formatearMoneda(estadoResultados.totalGastos)}
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3">
-                  <div className="space-y-2">
-                    {gastosArray.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 px-3 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                        <div>
-                          <div className="font-medium text-black">{item.cuenta.nombre}</div>
-                          <div className="text-sm text-gray-600">
-                            Código: <span className="font-mono text-black">{item.cuenta.codigo}</span>
-                          </div>
-                        </div>
-                        <div className="text-lg font-bold text-black">
-                          {formatearMoneda(item.monto)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* RESULTADO DEL EJERCICIO */}
-            <div className="space-y-4">
-              <div className="bg-black text-white p-4 shadow-lg">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <DollarSign className="w-7 h-7" />
-                  RESULTADO DEL EJERCICIO
-                  <span className="text-lg bg-gray-800 px-3 py-1 rounded">
-                    {formatearMoneda(estadoResultados.utilidadNeta)}
-                  </span>
-                </h2>
-                <p className="text-sm text-gray-300 mt-1">
-                  {estadoResultados.utilidadNeta >= 0 ? 'Utilidad generada' : 'Pérdida del período'}
-                </p>
-              </div>
-              
-              <div className="bg-white border border-gray-300 shadow-sm">
-                <div className="bg-gray-100 p-3 border-b border-gray-300">
-                  <h3 className="text-lg font-semibold text-black flex items-center gap-2">
-                    <span className="w-3 h-3 bg-black rounded-full"></span>
-                    Cálculo del Resultado
-                  </h3>
-                </div>
-                <div className="p-3">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="font-medium text-black">Total Ingresos</span>
-                      <span className="text-lg font-bold text-black">
-                        {formatearMoneda(estadoResultados.totalIngresos)}
+                  <div className="pt-4 border-t-2 border-slate-200">
+                    <div className="flex justify-between items-center text-xl font-bold text-slate-800">
+                      <span>{estadoResultados.utilidadNeta >= 0 ? 'UTILIDAD' : 'PÉRDIDA'} NETA</span>
+                      <span className="text-slate-800">
+                        {formatearMoneda(estadoResultados.utilidadNeta)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="font-medium text-black">Total Gastos</span>
-                      <span className="text-lg font-bold text-black">
-                        ({formatearMoneda(estadoResultados.totalGastos)})
-                      </span>
-                    </div>
-                    <div className="pt-3 border-t-2 border-gray-400">
-                      <div className="flex justify-between items-center text-xl font-bold text-black">
-                        <span>{estadoResultados.utilidadNeta >= 0 ? 'UTILIDAD' : 'PÉRDIDA'} NETA</span>
-                        <span className="text-black">
-                          {formatearMoneda(estadoResultados.utilidadNeta)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Información adicional */}
-            <div className="bg-black p-6">
-              <h3 className="font-bold text-white mb-4 text-lg">📊 Resumen Ejecutivo</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-gray-800">
-                  <div className="text-3xl font-bold text-white">{formatearMoneda(estadoResultados.totalIngresos)}</div>
-                  <div className="text-sm text-gray-300">Total Ingresos</div>
-                  <div className="text-xs text-gray-400">{ingresosArray.length} conceptos</div>
-                </div>
-                <div className="text-center p-4 bg-gray-800">
-                  <div className="text-3xl font-bold text-white">{formatearMoneda(estadoResultados.totalGastos)}</div>
-                  <div className="text-sm text-gray-300">Total Gastos</div>
-                  <div className="text-xs text-gray-400">{gastosArray.length} conceptos</div>
-                </div>
-                <div className="text-center p-4 bg-gray-800">
-                  <div className="text-3xl font-bold text-white">{formatearMoneda(estadoResultados.utilidadNeta)}</div>
-                  <div className="text-sm text-gray-300">{estadoResultados.utilidadNeta >= 0 ? 'Utilidad' : 'Pérdida'} Neta</div>
-                  <div className="text-xs text-gray-400">{estadoResultados.utilidadNeta >= 0 ? '✅ Positivo' : '⚠️ Negativo'}</div>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <div className="text-center">
-                  <div className="text-sm text-gray-300">
-                    <strong>Período:</strong> {new Date(filtros.fechaDesde).toLocaleDateString('es-ES')} al {new Date(filtros.fechaHasta).toLocaleDateString('es-ES')}
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          
         </div>
       </div>
     </div>

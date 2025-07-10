@@ -284,30 +284,30 @@ const RecuentoRepuestosSection = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-        <span className="ml-3 text-gray-600">Cargando repuestos...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <span className="ml-3 text-slate-600">Cargando repuestos...</span>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg">
+    <div className="">
+      {/* Header obligatorio según estándares */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Wrench className="w-8 h-8" />
-                Recuento de Repuestos
-              </h2>
-              <p className="text-gray-300 mt-2">Verificación física del inventario de repuestos</p>
+            <div className="flex items-center space-x-3">
+              <Calculator className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Recuento de Repuestos</h2>
+                <p className="text-slate-300 mt-1">Verificación física del inventario de repuestos</p>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -315,7 +315,7 @@ const RecuentoRepuestosSection = () => {
               ) : (
                 <button
                   onClick={finalizarRecuento}
-                  className="bg-white text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-50 flex items-center gap-2 font-medium transition-colors"
+                  className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
                 >
                   <Save size={18} />
                   Finalizar Recuento
@@ -324,25 +324,28 @@ const RecuentoRepuestosSection = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded border border-slate-200 overflow-hidden">
 
         {/* Estado del recuento */}
         {recuentoIniciado && (
-          <div className="bg-yellow-50 border-b border-yellow-200 p-4">
+          <div className="bg-slate-50 border-b border-slate-200 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-yellow-800">Recuento en proceso</span>
+                  <div className="w-3 h-3 bg-emerald-600 rounded-full animate-pulse"></div>
+                  <span className="font-medium text-slate-800">Recuento en proceso</span>
                 </div>
-                <div className="text-sm text-yellow-700">
+                <div className="text-sm text-slate-700">
                   Repuestos contados: {repuestosContados.length} / {repuestos.length}
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 {diferencias.length > 0 && (
                   <div className="flex items-center space-x-2">
-                    <AlertTriangle size={16} className="text-red-600" />
-                    <span className="text-sm text-red-600 font-medium">
+                    <AlertTriangle size={16} className="text-slate-600" />
+                    <span className="text-sm text-slate-600 font-medium">
                       {diferencias.length} diferencias encontradas
                     </span>
                   </div>
@@ -352,7 +355,7 @@ const RecuentoRepuestosSection = () => {
                     type="checkbox"
                     checked={mostrarSoloDiferencias}
                     onChange={(e) => setMostrarSoloDiferencias(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-slate-200"
                   />
                   <span>Solo diferencias</span>
                 </label>
@@ -362,27 +365,27 @@ const RecuentoRepuestosSection = () => {
         )}
 
         {/* Filtros */}
-        <div className="bg-gray-50 p-4 border-b">
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar repuesto</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Buscar repuesto</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
                   value={filtro}
                   onChange={(e) => setFiltro(e.target.value)}
                   placeholder="Nombre del repuesto, categoría..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Categoría</label>
               <select
                 value={categoriaFiltro}
                 onChange={(e) => setCategoriaFiltro(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="todas">Todas las categorías</option>
                 {categoriasExistentes.map(cat => (
@@ -391,12 +394,12 @@ const RecuentoRepuestosSection = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado del recuento</label>
+              <label className="block text-sm font-medium text-slate-800 mb-1">Estado del recuento</label>
               <div className="text-sm py-2">
-                <div className="text-gray-600">
+                <div className="text-slate-600">
                   Total repuestos: <span className="font-medium">{repuestos.length}</span>
                 </div>
-                <div className="text-gray-600">
+                <div className="text-slate-600">
                   Mostrados: <span className="font-medium">{repuestosFiltrados.length}</span>
                 </div>
               </div>
@@ -408,8 +411,8 @@ const RecuentoRepuestosSection = () => {
         <div className="p-6">
           {repuestosFiltrados.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200 rounded-lg">
-                <thead className="bg-gray-900">
+              <table className="w-full border border-slate-200 rounded">
+                <thead className="bg-slate-800">
                   <tr>
                     <th className="text-left py-3 px-4 font-medium text-white">Repuesto</th>
                     <th className="text-center py-3 px-4 font-medium text-white">Categoría</th>
@@ -427,22 +430,22 @@ const RecuentoRepuestosSection = () => {
                     const contado = stockReal !== undefined;
 
                     return (
-                      <tr key={repuesto.id} className={`border-b border-gray-100 hover:bg-gray-50 ${
-                        diferencia !== null && diferencia !== 0 ? 'bg-red-50' : 
-                        contado ? 'bg-green-50' : ''
+                      <tr key={repuesto.id} className={`border-b border-slate-100 hover:bg-slate-50 ${
+                        diferencia !== null && diferencia !== 0 ? 'bg-slate-100' : 
+                        contado ? 'bg-emerald-50' : ''
                       }`}>
                         <td className="py-3 px-4">
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-slate-900">
                               {repuesto.item}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-slate-500">
                               ID: {repuesto.id}
                             </div>
                           </div>
                         </td>
                         <td className="text-center py-3 px-4">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded-full text-xs font-medium">
                             {repuesto.categoria}
                           </span>
                         </td>
@@ -456,32 +459,32 @@ const RecuentoRepuestosSection = () => {
                               min="0"
                               value={stockReal || ''}
                               onChange={(e) => actualizarStockContado(repuesto.id, e.target.value)}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                              className="w-20 px-2 py-1 border border-slate-200 rounded text-center text-sm focus:ring-2 focus:ring-emerald-600"
                               placeholder="0"
                             />
                           ) : (
-                            <span className="text-gray-500">-</span>
+                            <span className="text-slate-500">-</span>
                           )}
                         </td>
                         <td className="text-center py-3 px-4">
                           {diferencia !== null ? (
                             <span className={`font-medium ${
-                              diferencia === 0 ? 'text-green-600' :
-                              diferencia > 0 ? 'text-blue-600' : 'text-red-600'
+                              diferencia === 0 ? 'text-emerald-600' :
+                              diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
                             }`}>
                               {diferencia > 0 ? '+' : ''}{diferencia}
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-slate-400">-</span>
                           )}
                         </td>
                         <td className="text-center py-3 px-4">
                           {!contado ? (
-                            <span className="text-gray-400 text-sm">Pendiente</span>
+                            <span className="text-slate-400 text-sm">Pendiente</span>
                           ) : diferencia === 0 ? (
-                            <CheckCircle className="w-5 h-5 text-green-600 mx-auto" />
+                            <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto" />
                           ) : (
-                            <AlertTriangle className="w-5 h-5 text-red-600 mx-auto" />
+                            <AlertTriangle className="w-5 h-5 text-slate-600 mx-auto" />
                           )}
                         </td>
                       </tr>
@@ -492,24 +495,24 @@ const RecuentoRepuestosSection = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <Wrench size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500">No se encontraron repuestos con los filtros aplicados</p>
+              <Wrench size={48} className="mx-auto mb-4 text-slate-300" />
+              <p className="text-slate-500">No se encontraron repuestos con los filtros aplicados</p>
             </div>
           )}
         </div>
 
         {/* Observaciones */}
         {recuentoIniciado && (
-          <div className="border-t bg-gray-50 p-6">
+          <div className="border-t bg-slate-50 p-6">
             <div className="max-w-2xl">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-800 mb-2">
                 Observaciones del recuento
               </label>
               <textarea
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
                 placeholder="Comentarios sobre el recuento, repuestos dañados, faltantes, etc..."
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-600"
                 rows="3"
               />
             </div>
@@ -520,17 +523,17 @@ const RecuentoRepuestosSection = () => {
         <div className="border-t p-6">
           <button
             onClick={() => setMostrarHistorial(!mostrarHistorial)}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 mb-4"
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 mb-4 transition-colors"
           >
             <Eye size={16} />
             <span>Ver historial de recuentos ({recuentosAnteriores.length})</span>
           </button>
 
           {mostrarHistorial && recuentosAnteriores.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-slate-50 rounded p-4 border border-slate-200">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-900">
+                <table className="w-full text-sm border border-slate-200 rounded">
+                  <thead className="bg-slate-800">
                     <tr>
                       <th className="text-left py-2 px-3 text-white">Fecha</th>
                       <th className="text-center py-2 px-3 text-white">Tipo</th>
@@ -546,7 +549,7 @@ const RecuentoRepuestosSection = () => {
                       const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
                       
                       return (
-                        <tr key={index} className="border-b border-gray-200">
+                        <tr key={index} className="border-b border-slate-200">
                           <td className="py-2 px-3">{formatearFecha(recuento.fecha_recuento)}</td>
                           <td className="text-center py-2 px-3 capitalize">{recuento.tipo_recuento}</td>
                           <td className="text-right py-2 px-3">{repuestosContados.length}</td>
@@ -554,8 +557,8 @@ const RecuentoRepuestosSection = () => {
                           <td className="text-center py-2 px-3">
                             <span className={`px-2 py-1 rounded text-xs ${
                               recuento.estado === 'sin_diferencias' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-emerald-100 text-emerald-800' 
+                                : 'bg-slate-100 text-slate-800'
                             }`}>
                               {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
                             </span>
@@ -573,8 +576,8 @@ const RecuentoRepuestosSection = () => {
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 m-6">
-            <span className="text-red-800">{error}</span>
+          <div className="bg-slate-50 border-l-4 border-slate-400 p-4 m-6">
+            <span className="text-slate-800">{error}</span>
           </div>
         )}
       </div>

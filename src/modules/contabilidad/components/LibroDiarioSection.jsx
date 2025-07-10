@@ -3,7 +3,6 @@ import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calend
 import { supabase } from '../../../lib/supabase';
 import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
 import { conversionService } from '../../../services/conversionService';
-import { cotizacionService } from '../../../services/cotizacionService';
 import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
 
 // Servicio para el Libro Diario
@@ -432,7 +431,7 @@ const LibroDiarioSection = () => {
           try {
             return conversionService.prepararMovimiento(mov, mov.cuenta);
           } catch (error) {
-            // Si hay error en la conversión, retornar valores en 0
+              console.warn('⚠️ Error al convertir movimiento:', error.message);
             return { debe: 0, haber: 0 };
           }
         });
@@ -562,12 +561,12 @@ const LibroDiarioSection = () => {
   const renderAsientos = () => {
     if (viewMode === 'tarjeta') {
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 font-mono">
           {asientosFiltrados.map(asiento => (
             <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Fila principal del asiento - COLAPSADA */}
               <div
-                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="flex items-center justify-between p-1 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                 onClick={() => toggleAsiento(asiento.id)}
               >
                 <div className="flex items-center space-x-4">
@@ -578,23 +577,22 @@ const LibroDiarioSection = () => {
                     }
                   </button>
 
-                  <div className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm font-medium border">
-                    N° {asiento.numero}
+                  <div className="text-black px-1 text-lg">
+                    N°{asiento.numero}
                   </div>
 
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2 text-md text-gray-600">
                     <Calendar size={14} />
                     <span>{new Date(asiento.fecha).toLocaleDateString()}</span>
                   </div>
 
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-lg text-gray-900">
                     {asiento.descripcion}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center text-lg space-x-4">
                   <div className="text-right">
-                    <div className="text-sm text-gray-500">Total</div>
                     <div className="font-semibold text-gray-800">
                       {formatearMonedaLibroDiario(asiento.total_debe)}
                     </div>
@@ -619,8 +617,8 @@ const LibroDiarioSection = () => {
                   <div className="overflow-x-auto">
                     <div className="flex">
                       {/* Sección izquierda - Cuentas */}
-                      <div className="w-1/2 max-w-md">
-                        <div className="grid grid-cols-2 bg-gray-100 py-3 px-2">
+                      <div className="w-1/2 max-w-md text-lg">
+                        <div className="grid grid-cols-2 bg-gray-100 p-1">
                           <div className="text-center font-medium text-gray-700">Debe</div>
                           <div className="text-center font-medium text-gray-700">Haber</div>
                         </div>
@@ -631,10 +629,10 @@ const LibroDiarioSection = () => {
                               <div className="text-center">
                                 {mov.debe > 0 && (
                                   <div>
-                                    <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
+                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1 border">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -643,10 +641,10 @@ const LibroDiarioSection = () => {
                               <div className="text-center">
                                 {mov.haber > 0 && (
                                   <div>
-                                    <code className="text-sm text-black font-mono bg-gray-200 px-2 py-1 rounded border">
+                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1 border">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-sm">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -660,7 +658,7 @@ const LibroDiarioSection = () => {
 
                       {/* Sección derecha - Importes */}
                       <div className="w-1/3">
-                        <div className="grid grid-cols-2 bg-gray-100 py-3 px-4">
+                        <div className="grid grid-cols-2 bg-gray-100 text-lg p-1">
                           <div className="text-center font-medium text-gray-700">Debe</div>
                           <div className="text-center font-medium text-gray-700">Haber</div>
                         </div>
@@ -692,28 +690,29 @@ const LibroDiarioSection = () => {
 
     if (viewMode === 'lista') {
       return (
-        <div className="border-t">
+        <div className="font-mono">
           {/* Header de la tabla principal */}
-          <div className="p-4 grid grid-cols-12 gap-4 items-center bg-gray-800 text-white font-bold text-sm">
+          <div className="p-3 grid grid-cols-12 gap-3 items-center bg-gray-800 text-white font-mono font-bold text-md">
             <div className="col-span-1">N°</div>
             <div className="col-span-2">Fecha</div>
             <div className="col-span-5">Descripción</div>
             <div className="col-span-2 text-right pr-4">Total</div>
-            <div className="col-span-2 text-center">Acciones</div>
+            <div className="col-span-2 text-right">Acciones</div>
           </div>
           {asientosFiltrados.map(asiento => (
             <div key={asiento.id} className="border-b">
+
               {/* Fila del asiento */}
-              <div className="p-4 grid grid-cols-12 gap-4 items-center">
-                <div className="col-span-1 font-bold">
-                  <span className="border border-gray-400 rounded px-2 py-1 bg-gray-100">
+              <div className=" bg-gray-400 p-1 grid grid-cols-12 gap-4 items-center">
+                <div className="pl-2 font-bold">
+                  <span className="">
                     {asiento.numero}
                   </span>
                 </div>
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha).toLocaleDateString()}</div>
                 <div className="col-span-5 text-sm">{asiento.descripcion}</div>
                 <div className="col-span-2 text-right font-mono pr-4">{formatearMonedaLibroDiario(asiento.total_debe)}</div>
-                <div className="col-span-2 flex justify-center">
+                <div className="col-span-2 text-right">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -727,22 +726,22 @@ const LibroDiarioSection = () => {
                 </div>
               </div>
               {/* Movimientos del asiento */}
-              <div className="pl-10 pr-4 pb-4">
+              <div className="p-2 font-mono">
                 {/* Header de movimientos */}
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold py-2 bg-gray-200">
                     <div className="col-span-1"></div>
-                    <div className="col-span-2 font-mono">Código</div>
+                    <div className="col-span-2">Código</div>
                     <div className="col-span-5">Cuenta</div>
-                    <div className="col-span-2 text-right font-mono">Debe</div>
-                    <div className="col-span-2 text-right font-mono pr-4">Haber</div>
+                    <div className="col-span-2 text-right">Debe</div>
+                    <div className="col-span-2 text-right pr-4">Haber</div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
                   <div key={index} className="grid grid-cols-12 gap-4 text-sm border-t py-2">
                     <div className="col-span-1"></div>
                     <div className="col-span-2 font-mono">{mov.plan_cuentas.codigo}</div>
                     <div className="col-span-5">{mov.plan_cuentas.nombre}</div>
-                    <div className="col-span-2 text-right font-mono">{mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}</div>
-                    <div className="col-span-2 text-right font-mono pr-4">{mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}</div>
+                    <div className="col-span-2 text-right">{mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}</div>
+                    <div className="col-span-2 text-right pr-4">{mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}</div>
                   </div>
                 ))}
               </div>
@@ -754,15 +753,14 @@ const LibroDiarioSection = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="p-0">
+      <div className="bg-white shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 to-black p-6 text-white">
+        <div className="bg-slate-800 p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <FileText size={28} />
               <div>
-                <h2 className="text-2xl font-bold">Libro Diario</h2>
                 <p className="text-gray-300 mt-1">Registro cronológico de operaciones contables</p>
               </div>
             </div>
@@ -770,14 +768,14 @@ const LibroDiarioSection = () => {
               <div className="flex border border-gray-500 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode('tarjeta')}
-                  className={`p-2 transition-colors ${viewMode === 'tarjeta' ? 'bg-white text-black' : 'text-white hover:bg-gray-700'}`}
+                  className={`p-2 transition-colors ${viewMode === 'tarjeta' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-gray-700'}`}
                   title="Vista de Tarjetas"
                 >
                   <LayoutGrid size={18} />
                 </button>
                 <button
                   onClick={() => setViewMode('lista')}
-                  className={`p-2 transition-colors ${viewMode === 'lista' ? 'bg-white text-black' : 'text-white hover:bg-gray-700'}`}
+                  className={`p-2 transition-colors ${viewMode === 'lista' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-gray-700'}`}
                   title="Vista de Lista"
                 >
                   <List size={18} />
@@ -785,7 +783,7 @@ const LibroDiarioSection = () => {
               </div>
               <button
                 onClick={nuevoAsiento}
-                className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
+                className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
               >
                 <Plus size={18} />
                 Nuevo Asiento
@@ -805,7 +803,7 @@ const LibroDiarioSection = () => {
                 type="date"
                 value={filtros.fechaDesde}
                 onChange={(e) => setFiltros({ ...filtros, fechaDesde: e.target.value })}
-                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
@@ -816,7 +814,7 @@ const LibroDiarioSection = () => {
                 type="date"
                 value={filtros.fechaHasta}
                 onChange={(e) => setFiltros({ ...filtros, fechaHasta: e.target.value })}
-                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
@@ -828,13 +826,13 @@ const LibroDiarioSection = () => {
                 value={filtros.descripcion}
                 onChange={(e) => setFiltros({ ...filtros, descripcion: e.target.value })}
                 placeholder="Buscar en descripción..."
-                className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div className="flex items-end">
               <button
                 onClick={() => setFiltros({ fechaDesde: '', fechaHasta: '', descripcion: '' })}
-                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-black text-sm"
+                className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
               >
                 Limpiar Filtros
               </button>
@@ -898,8 +896,8 @@ const LibroDiarioSection = () => {
       {/* Modal para nuevo asiento */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-6">
+          <div className="bg-white rounded w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-8">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <Plus size={20} />
@@ -907,29 +905,29 @@ const LibroDiarioSection = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded"
+                  className="p-2 hover:bg-slate-200 rounded"
                 >
                   <X size={20} />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-8 space-y-8">
               {/* Datos del asiento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
                     Fecha *
                   </label>
                   <input
                     type="date"
                     value={formData.fecha}
                     onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                    className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
                     Descripción *
                   </label>
                   <input
@@ -937,18 +935,18 @@ const LibroDiarioSection = () => {
                     value={formData.descripcion}
                     onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                     placeholder="Descripción del asiento contable"
-                    className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   />
                 </div>
               </div>
 
               {/* Debug info */}
               {cuentasImputables.length === 0 && (
-                <div className="bg-gray-100 border border-gray-400 rounded-lg p-3">
+                <div className="bg-slate-200 border border-slate-200 rounded p-4">
                   <div className="flex items-center">
-                    <AlertCircle className="text-gray-700 mr-2" size={16} />
-                    <span className="text-gray-800 text-sm">
-                      ⚠️ No se encontraron cuentas. Verifica que tengas cuentas creadas en el plan de cuentas.
+                    <AlertCircle className="text-slate-800 mr-3" size={16} />
+                    <span className="text-slate-800 text-sm">
+                      No se encontraron cuentas. Verifica que tengas cuentas creadas en el plan de cuentas.
                     </span>
                   </div>
                 </div>
@@ -966,7 +964,7 @@ const LibroDiarioSection = () => {
                   </div>
                   <button
                     onClick={agregarMovimiento}
-                    className="text-gray-700 hover:text-black font-medium text-sm flex items-center gap-1"
+                    className="text-slate-800 hover:text-slate-800/80 font-medium text-sm flex items-center gap-1"
                   >
                     <Plus size={16} />
                     Agregar movimiento
@@ -976,19 +974,19 @@ const LibroDiarioSection = () => {
                 {/* Lista de Movimientos con SelectorCuentaConCotizacion */}
                 <div className="space-y-6">
                   {formData.movimientos.map((mov, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="flex justify-between items-start mb-4">
-                        <h5 className="font-medium text-gray-700">Movimiento {index + 1}</h5>
-                        <div className="flex items-center space-x-2">
+                    <div key={index} className="border border-slate-200 rounded p-6 bg-slate-200">
+                      <div className="flex justify-between items-start mb-6">
+                        <h5 className="font-medium text-slate-800">Movimiento {index + 1}</h5>
+                        <div className="flex items-center space-x-3">
                           {/* Toggle Debe/Haber */}
-                          <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                          <div className="flex border border-slate-200 rounded overflow-hidden">
                             <button
                               type="button"
                               onClick={() => actualizarMovimiento(index, 'tipo', 'debe')}
-                              className={`px-3 py-1 text-sm font-medium transition-colors ${
+                              className={`px-4 py-2 text-sm font-medium transition-colors ${
                                 mov.tipo === 'debe' 
-                                  ? 'bg-gray-800 text-white' 
-                                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                                  ? 'bg-slate-800 text-white' 
+                                  : 'bg-white text-slate-800 hover:bg-slate-200'
                               }`}
                             >
                               DEBE
@@ -996,10 +994,10 @@ const LibroDiarioSection = () => {
                             <button
                               type="button"
                               onClick={() => actualizarMovimiento(index, 'tipo', 'haber')}
-                              className={`px-3 py-1 text-sm font-medium transition-colors ${
+                              className={`px-4 py-2 text-sm font-medium transition-colors ${
                                 mov.tipo === 'haber' 
-                                  ? 'bg-gray-800 text-white' 
-                                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                                  ? 'bg-slate-800 text-white' 
+                                  : 'bg-white text-slate-800 hover:bg-slate-200'
                               }`}
                             >
                               HABER
@@ -1010,7 +1008,7 @@ const LibroDiarioSection = () => {
                           {formData.movimientos.length > 2 && (
                             <button
                               onClick={() => eliminarMovimiento(index)}
-                              className="text-gray-700 hover:text-black p-1 rounded transition-colors"
+                              className="text-slate-800 hover:text-slate-800/80 p-2 rounded transition-colors"
                               title="Eliminar movimiento"
                             >
                               <Trash2 size={16} />
@@ -1029,38 +1027,38 @@ const LibroDiarioSection = () => {
                         onCotizacionChange={(cotizacion) => actualizarMovimiento(index, 'cotizacion', cotizacion)}
                         tipo={mov.tipo}
                         required={true}
-                        className="mt-4"
+                        className="mt-6"
                       />
                     </div>
                   ))}
                 </div>
 
                 {/* Resumen de Totales en USD */}
-                <div className="mt-6 bg-gray-100 border border-gray-400 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Calculator className="w-5 h-5 text-gray-700" />
-                    <h5 className="font-medium text-gray-800">Resumen del Asiento (en USD)</h5>
+                <div className="mt-8 bg-slate-200 border border-slate-200 rounded p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Calculator className="w-5 h-5 text-slate-800" />
+                    <h5 className="font-medium text-slate-800">Resumen del Asiento (en USD)</h5>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                     <div className="flex justify-between">
                       <span>Total Debe USD:</span>
-                      <span className={`font-medium ${totales.totalDebe > 0 ? 'text-gray-800' : 'text-gray-400'}`}>
+                      <span className={`font-medium ${totales.totalDebe > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
                         {formatearMonedaLibroDiario(totales.totalDebe)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Haber USD:</span>
-                      <span className={`font-medium ${totales.totalHaber > 0 ? 'text-gray-800' : 'text-gray-400'}`}>
+                      <span className={`font-medium ${totales.totalHaber > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
                         {formatearMonedaLibroDiario(totales.totalHaber)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Estado:</span>
-                      <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                      <div className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border ${
                         totales.balanceado 
-                          ? 'bg-gray-200 text-gray-800 border-gray-400' 
-                          : 'bg-gray-100 text-gray-700 border-gray-300'
+                          ? 'bg-emerald-600 text-white border-emerald-600' 
+                          : 'bg-slate-800 text-white border-slate-800'
                       }`}>
                         {totales.balanceado ? (
                           <>
@@ -1078,18 +1076,18 @@ const LibroDiarioSection = () => {
                   </div>
 
                   {totales.error && (
-                    <div className="mt-3 p-2 bg-gray-100 border border-gray-400 rounded text-sm text-gray-800">
+                    <div className="mt-4 p-3 bg-slate-200 border border-slate-200 rounded text-sm text-slate-800">
                       <strong>Error:</strong> {totales.error}
                     </div>
                   )}
                 </div>
 
                 {/* Información de ayuda */}
-                <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
-                  <div className="flex items-start space-x-2">
-                    <AlertCircle size={16} className="text-gray-700 mt-0.5" />
-                    <div className="text-sm text-gray-800">
-                      <p className="font-medium mb-1">Reglas de la partida doble:</p>
+                <div className="mt-6 p-6 bg-slate-200 rounded border border-slate-200">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle size={16} className="text-slate-800 mt-0.5" />
+                    <div className="text-sm text-slate-800">
+                      <p className="font-medium mb-2">Reglas de la partida doble:</p>
                       <ul className="space-y-1 text-xs">
                         <li>• El total del DEBE debe ser igual al total del HABER</li>
                         <li>• Cada movimiento debe tener importe en DEBE o en HABER, pero no en ambos</li>
@@ -1101,10 +1099,10 @@ const LibroDiarioSection = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t p-6 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-8 flex justify-end gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2 text-gray-700 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-6 py-3 text-slate-800 border border-slate-200 rounded hover:bg-slate-200 transition-colors"
               >
                 <X size={16} className="inline mr-2" />
                 Cancelar
@@ -1112,9 +1110,9 @@ const LibroDiarioSection = () => {
               <button
                 onClick={guardarAsiento}
                 disabled={!totales.balanceado || cuentasImputables.length === 0}
-                className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
-                    ? 'bg-gray-800 text-white hover:bg-black'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                className={`px-6 py-3 rounded transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
+                    ? 'bg-slate-800 text-white hover:bg-slate-800/90'
+                    : 'bg-slate-200 text-slate-800/60 cursor-not-allowed'
                   }`}
               >
                 <Save size={16} />

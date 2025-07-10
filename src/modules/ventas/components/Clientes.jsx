@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useClientes } from '../hooks/useClientes.js';
 import ClienteModal from './ClienteModal';
+import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
 
 const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
@@ -87,11 +88,11 @@ const Clientes = () => {
 
   const formatProcedencia = (procedencia) => {
     const procedenciaMap = {
-      'instagram': { label: 'Instagram', icon: '📸', color: 'bg-pink-100 text-pink-800' },
-      'facebook': { label: 'Facebook', icon: '👥', color: 'bg-blue-100 text-blue-800' },
-      'whatsapp': { label: 'WhatsApp', icon: '💬', color: 'bg-green-100 text-green-800' },
-      'conocidos': { label: 'Conocidos', icon: '👋', color: 'bg-purple-100 text-purple-800' },
-      'otro': { label: 'Otro', icon: '❓', color: 'bg-gray-100 text-gray-800' }
+      'instagram': { label: 'Instagram', icon: '📸', color: 'bg-slate-100 text-slate-800' },
+      'facebook': { label: 'Facebook', icon: '👥', color: 'bg-slate-100 text-slate-800' },
+      'whatsapp': { label: 'WhatsApp', icon: '💬', color: 'bg-emerald-100 text-emerald-800' },
+      'conocidos': { label: 'Conocidos', icon: '👋', color: 'bg-slate-100 text-slate-800' },
+      'otro': { label: 'Otro', icon: '❓', color: 'bg-slate-100 text-slate-800' }
     };
     return procedenciaMap[procedencia] || procedenciaMap.otro;
   };
@@ -103,121 +104,106 @@ const Clientes = () => {
 
   return (
     <div className="p-0">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
-        <div className="p-4 text-white" style={{backgroundColor: '#262626'}}>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Users size={28} />
-              <div>
-                <h2 className="text-2xl font-bold">Clientes</h2>
-                <p className="text-gray-300 mt-1">Administra y consulta la base de clientes</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={18} />
-              Nuevo Cliente
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Estadísticas simples */}
-      {estadisticas && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <Users className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Total Clientes</p>
-                <p className="text-2xl font-bold text-gray-800">{estadisticas.total}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Nuevos este mes</p>
-                <p className="text-2xl font-bold text-gray-800">{estadisticas.nuevosEsteMs}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">Próximos cumpleaños</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {estadisticas.proximosCumpleanos?.length || 0}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Búsqueda */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+      <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Buscar por nombre, email, teléfono..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-100 pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
           />
+        </div>
+        <div className="flex items-center gap-4">
+            <button
+            onClick={() => setShowModal(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded flex items-center gap-2 font-medium transition-colors"
+            >
+            <Plus className="w-4 h-4" />
+            Nuevo Cliente
+            </button>
         </div>
       </div>
 
+
+
+      <div className="flex justify-between items-start mb-6">
+        {/* Estadísticas simples */}
+        {estadisticas && (
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            
+            <Tarjeta
+              icon={Users}
+              titulo="Total Clientes"
+              valor={estadisticas.total}
+            />
+
+            <Tarjeta
+              icon={TrendingUp}
+              titulo="Nuevos este mes"
+              valor={estadisticas.nuevosEsteMs}
+            />
+
+
+            <Tarjeta
+              icon={Calendar}
+              titulo="Cumpleaños este mes"
+              valor= {estadisticas.proximosCumpleanos?.length || 0}
+            />
+
+          </div>
+        )}
+        
+      </div>
+
+      
+
       {/* Lista de clientes */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-700">
+      <div className="bg-white rounded border border-slate-200">
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-800">
             {loading ? 'Cargando...' : `${clientes.length} clientes`}
           </h3>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-500">Cargando clientes...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+            <p className="text-slate-500">Cargando clientes...</p>
           </div>
         ) : clientes.length === 0 ? (
           <div className="p-8 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500">No se encontraron clientes</p>
-            <p className="text-sm text-gray-400">
+            <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+            <p className="text-slate-500">No se encontraron clientes</p>
+            <p className="text-sm text-slate-400">
               {searchTerm ? 'Intenta con otros términos de búsqueda' : 'Comienza agregando tu primer cliente'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-200">
             {clientes.map((cliente) => {
               const procedencia = formatProcedencia(cliente.procedencia);
               
               return (
-                <div key={cliente.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div key={cliente.id} className="p-4 hover:bg-slate-50 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-slate-800">
                           {cliente.nombre} {cliente.apellido}
                         </h4>
                         {cliente.procedencia && (
-                          <span className={`px-2 py-1 rounded-full text-xs ${procedencia.color}`}>
+                          <span className={`px-2 py-1 rounded text-xs ${procedencia.color}`}>
                             {procedencia.icon} {procedencia.label}
                           </span>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
                         <div className="space-y-1">
                           {cliente.telefono && (
                             <div className="flex items-center space-x-1">
@@ -248,7 +234,7 @@ const Clientes = () => {
                           )}
                         </div>
 
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-slate-500">
                           <p>Creado: {formatFecha(cliente.fecha_creacion)}</p>
                           {cliente.notas && (
                             <p className="mt-1 italic">"{cliente.notas}"</p>
@@ -263,14 +249,14 @@ const Clientes = () => {
                           setEditingCliente(cliente);
                           setShowModal(true);
                         }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                         title="Editar cliente"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteCliente(cliente)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"
                         title="Eliminar cliente"
                       >
                         <Trash2 className="w-4 h-4" />

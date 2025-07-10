@@ -8,11 +8,11 @@ const tiposEquipo = {
 };
 
 const estadosEsteticos = [
-  { value: 'excelente', label: 'Excelente', color: 'bg-green-500' },
-  { value: 'muy_bueno', label: 'Muy Bueno', color: 'bg-green-400' },
-  { value: 'bueno', label: 'Bueno', color: 'bg-yellow-400' },
-  { value: 'regular', label: 'Regular', color: 'bg-orange-400' },
-  { value: 'malo', label: 'Malo', color: 'bg-red-400' },
+  { value: 'excelente', label: 'Excelente', color: 'bg-emerald-600' },
+  { value: 'muy_bueno', label: 'Muy Bueno', color: 'bg-emerald-500' },
+  { value: 'bueno', label: 'Bueno', color: 'bg-slate-500' },
+  { value: 'regular', label: 'Regular', color: 'bg-slate-600' },
+  { value: 'malo', label: 'Malo', color: 'bg-slate-800' },
 ];
 
 const checklistNotebook = [
@@ -242,10 +242,10 @@ function TesteoEquiposSection() {
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'aprobado': return 'bg-green-100 text-green-700';
-      case 'rechazado': return 'bg-red-100 text-red-700';
-      case 'pendiente': return 'bg-yellow-100 text-yellow-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'aprobado': return 'bg-emerald-100 text-emerald-800';
+      case 'rechazado': return 'bg-slate-200 text-slate-800';
+      case 'pendiente': return 'bg-slate-100 text-slate-700';
+      default: return 'bg-slate-100 text-slate-700';
     }
   };
 
@@ -263,18 +263,18 @@ function TesteoEquiposSection() {
       
       return (
         <div key={categoria} className="mb-6">
-          <h4 className="font-semibold text-gray-800 mb-3">{titulo}</h4>
+          <h4 className="font-semibold text-slate-800 mb-3">{titulo}</h4>
           <div className="space-y-2">
             {items.map(item => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded">
                 <span className="text-sm">{item.label}</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleChecklistChange(item.id, true)}
                     className={`p-2 rounded ${
                       testeoData.checklist[item.id] === true
-                        ? 'bg-green-500 text-white'
-                        : 'bg-white text-gray-400 border'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-white text-slate-400 border border-slate-200'
                     }`}
                   >
                     <CheckCircle className="w-4 h-4" />
@@ -283,8 +283,8 @@ function TesteoEquiposSection() {
                     onClick={() => handleChecklistChange(item.id, false)}
                     className={`p-2 rounded ${
                       testeoData.checklist[item.id] === false
-                        ? 'bg-red-500 text-white'
-                        : 'bg-white text-gray-400 border'
+                        ? 'bg-slate-600 text-white'
+                        : 'bg-white text-slate-400 border border-slate-200'
                     }`}
                   >
                     <XCircle className="w-4 h-4" />
@@ -299,55 +299,59 @@ function TesteoEquiposSection() {
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white p-6 rounded-t-lg mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Monitor className="w-8 h-8" />
-              Testeo de Equipos
-            </h2>
-            <p className="text-gray-300 mt-2">Control de calidad y testeo de equipos</p>
+    <div className="">
+      {/* Header obligatorio según estándares */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Monitor className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Testeo de Equipos</h2>
+                <p className="text-slate-300 mt-1">Control de calidad y testeo de equipos</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setModalNuevo(true)}
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors font-medium flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Nuevo Equipo</span>
+            </button>
           </div>
-          <button
-            onClick={() => setModalNuevo(true)}
-            className="bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-bold shadow text-base flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Nuevo Equipo</span>
-          </button>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-4 mb-6">
-        <select
-          value={filtroTipo}
-          onChange={(e) => setFiltroTipo(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="todos">Todos los tipos</option>
-          <option value="notebook">Notebooks</option>
-          <option value="celular">Celulares</option>
-        </select>
-        
-        <select
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="todos">Todos los estados</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="aprobado">Aprobado</option>
-          <option value="rechazado">Rechazado</option>
-        </select>
+      <div className="bg-white p-4 rounded border border-slate-200 mb-6">
+        <div className="flex gap-4">
+          <select
+            value={filtroTipo}
+            onChange={(e) => setFiltroTipo(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+          >
+            <option value="todos">Todos los tipos</option>
+            <option value="notebook">Notebooks</option>
+            <option value="celular">Celulares</option>
+          </select>
+          
+          <select
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+          >
+            <option value="todos">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="aprobado">Aprobado</option>
+            <option value="rechazado">Rechazado</option>
+          </select>
+        </div>
       </div>
 
       {/* Tabla de equipos */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-900">
+      <div className="bg-white rounded border border-slate-200 overflow-hidden">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-800">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Equipo</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Proveedor</th>
@@ -356,16 +360,16 @@ function TesteoEquiposSection() {
               <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase">Acciones</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-slate-500">
                   Cargando equipos...
                 </td>
               </tr>
             ) : equiposFiltrados.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-slate-500">
                   No hay equipos para mostrar
                 </td>
               </tr>
@@ -373,21 +377,21 @@ function TesteoEquiposSection() {
               equiposFiltrados.map((equipo) => {
                 const TipoIcon = tiposEquipo[equipo.tipo]?.icon || Monitor;
                 return (
-                  <tr key={equipo.id} className="hover:bg-gray-50">
+                  <tr key={equipo.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <TipoIcon className="w-5 h-5 text-gray-400" />
+                        <TipoIcon className="w-5 h-5 text-slate-400" />
                         <div>
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-slate-900">
                             {equipo.marca} {equipo.modelo}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-slate-500">
                             {equipo.serial && `Serial: ${equipo.serial}`}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-slate-900">
                       {equipo.proveedor || 'Sin especificar'}
                     </td>
                     <td className="px-6 py-4">
@@ -400,13 +404,13 @@ function TesteoEquiposSection() {
                     <td className="px-6 py-4">
                       {equipo.checklist_completado ? (
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm text-gray-600">Completado</span>
+                          <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          <span className="text-sm text-slate-600">Completado</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-yellow-500" />
-                          <span className="text-sm text-gray-600">Pendiente</span>
+                          <AlertCircle className="w-4 h-4 text-slate-500" />
+                          <span className="text-sm text-slate-600">Pendiente</span>
                         </div>
                       )}
                     </td>
@@ -414,14 +418,14 @@ function TesteoEquiposSection() {
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => abrirTesteo(equipo)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
                           title="Realizar/Ver testeo"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => eliminarEquipo(equipo.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          className="p-2 text-slate-600 hover:bg-slate-50 rounded"
                           title="Eliminar equipo"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -439,17 +443,17 @@ function TesteoEquiposSection() {
       {/* Modal Nuevo Equipo */}
       {modalNuevo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Nuevo Equipo para Testeo</h3>
+          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-slate-800">Nuevo Equipo para Testeo</h3>
             <form onSubmit={handleCrearEquipo} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
                   Tipo de Equipo
                 </label>
                 <select
                   value={formNuevo.tipo}
                   onChange={(e) => setFormNuevo(prev => ({ ...prev, tipo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                 >
                   <option value="notebook">Notebook</option>
                   <option value="celular">Celular</option>
@@ -458,64 +462,64 @@ function TesteoEquiposSection() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-800 mb-1">
                     Marca *
                   </label>
                   <input
                     type="text"
                     value={formNuevo.marca}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, marca: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-800 mb-1">
                     Modelo *
                   </label>
                   <input
                     type="text"
                     value={formNuevo.modelo}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, modelo: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
                   Número de Serie
                 </label>
                 <input
                   type="text"
                   value={formNuevo.serial}
                   onChange={(e) => setFormNuevo(prev => ({ ...prev, serial: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
                   Proveedor
                 </label>
                 <input
                   type="text"
                   value={formNuevo.proveedor}
                   onChange={(e) => setFormNuevo(prev => ({ ...prev, proveedor: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
                   Observaciones
                 </label>
                 <textarea
                   value={formNuevo.observaciones}
                   onChange={(e) => setFormNuevo(prev => ({ ...prev, observaciones: e.target.value }))}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -523,13 +527,13 @@ function TesteoEquiposSection() {
                 <button
                   type="button"
                   onClick={() => setModalNuevo(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
                 >
                   Guardar
                 </button>
@@ -542,14 +546,14 @@ function TesteoEquiposSection() {
       {/* Modal Testeo */}
       {modalTesteo && equipoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold text-slate-800">
                 Testeo: {equipoSeleccionado.marca} {equipoSeleccionado.modelo}
               </h3>
               <button
                 onClick={() => setModalTesteo(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -562,7 +566,7 @@ function TesteoEquiposSection() {
               
               <div className="space-y-6">
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Estado Estético General</h4>
+                  <h4 className="font-semibold text-slate-800 mb-3">Estado Estético General</h4>
                   <div className="space-y-2">
                     {estadosEsteticos.map(estado => (
                       <label key={estado.value} className="flex items-center gap-3 cursor-pointer">
@@ -572,7 +576,7 @@ function TesteoEquiposSection() {
                           value={estado.value}
                           checked={testeoData.estado_estetico === estado.value}
                           onChange={(e) => setTesteoData(prev => ({ ...prev, estado_estetico: e.target.value }))}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-emerald-600"
                         />
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${estado.color}`}></div>
@@ -584,26 +588,26 @@ function TesteoEquiposSection() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Observaciones del Testeo</h4>
+                  <h4 className="font-semibold text-slate-800 mb-3">Observaciones del Testeo</h4>
                   <textarea
                     value={testeoData.observaciones_testeo}
                     onChange={(e) => setTesteoData(prev => ({ ...prev, observaciones_testeo: e.target.value }))}
                     rows={4}
                     placeholder="Detalles adicionales del testeo..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 text-sm"
                   />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setModalTesteo(false)}
-                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={guardarTesteo}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
                   >
                     <Save className="w-4 h-4" />
                     Guardar Testeo
