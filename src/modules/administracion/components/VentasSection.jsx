@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Eye } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF';
@@ -9,7 +9,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
-  const [procesandoFiltros, setProcesandoFiltros] = useState(false);
 
   // Establecer fechas por defecto (último mes)
   useEffect(() => {
@@ -45,52 +44,36 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     setTransaccionesExpandidas(nuevasExpandidas);
   };
 
-  // Usar useMemo para optimizar el filtrado y evitar re-renders excesivos
-  const { ventasFiltradas, ventasLimitadas, MAX_RESULTS } = useMemo(() => {
-    console.log(`🔄 Recalculando filtros - ventas: ${ventas.length}, filtroTipo: ${filtroTipo}, fechaInicio: ${fechaInicio}, fechaFin: ${fechaFin}`);
+  // Filtrado simple sin useMemo para evitar problemas
+  const ventasFiltradas = ventas.filter(transaccion => {
+    // Si no hay items, no mostrar la transacción
+    if (!transaccion.venta_items || transaccion.venta_items.length === 0) return false;
     
-    const filtradas = ventas.filter(transaccion => {
-      // Si no hay items, no mostrar la transacción
-      if (!transaccion.venta_items || transaccion.venta_items.length === 0) return false;
+    const cumpleTipo = filtroTipo === 'todos' || 
+      transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
+    
+    let cumpleFecha = true;
+    if (fechaInicio || fechaFin) {
+      const fechaVenta = new Date(transaccion.fecha_venta);
       
-      const cumpleTipo = filtroTipo === 'todos' || 
-        transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
-      
-      let cumpleFecha = true;
-      if (fechaInicio || fechaFin) {
-        const fechaVenta = new Date(transaccion.fecha_venta);
-        
-        if (fechaInicio) {
-          const fechaInicioDate = new Date(fechaInicio);
-          cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
-        }
-        
-        if (fechaFin) {
-          const fechaFinDate = new Date(fechaFin);
-          fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
-          cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
-        }
+      if (fechaInicio) {
+        const fechaInicioDate = new Date(fechaInicio);
+        cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
       }
       
-      return cumpleTipo && cumpleFecha;
-    });
-
-    // Limitar resultados para evitar problemas de rendimiento
-    const MAX_RESULTS = 300; // Más conservador aún
-    const limitadas = filtradas.slice(0, MAX_RESULTS);
-    
-    console.log(`📊 Ventas filtradas: ${filtradas.length} de ${ventas.length} total, mostrando: ${limitadas.length}`);
-    
-    if (filtradas.length > MAX_RESULTS) {
-      console.warn(`⚠️ Mostrando solo ${MAX_RESULTS} de ${filtradas.length} transacciones para mantener rendimiento`);
+      if (fechaFin) {
+        const fechaFinDate = new Date(fechaFin);
+        fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
+        cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
+      }
     }
+    
+    return cumpleTipo && cumpleFecha;
+  });
 
-    return { 
-      ventasFiltradas: filtradas, 
-      ventasLimitadas: limitadas, 
-      MAX_RESULTS 
-    };
-  }, [ventas, filtroTipo, fechaInicio, fechaFin])
+  // Limitar resultados para evitar problemas de rendimiento
+  const MAX_RESULTS = 500; // Volver a un número razonable
+  const ventasLimitadas = ventasFiltradas.slice(0, MAX_RESULTS);
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -339,48 +322,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
           >
             Este mes
-          </button>
-          <button
-            onClick={() => {
-              const hoy = new Date();
-              const unMesAtras = new Date(hoy);
-              unMesAtras.setMonth(hoy.getMonth() - 1);
-              setFechaInicio(unMesAtras.toISOString().split('T')[0]);
-              setFechaFin(hoy.toISOString().split('T')[0]);
-            }}
-            className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
-          >
-            Último mes
-          </button>
-          <button
-            onClick={async () => {
-              if (procesandoFiltros) return; // Prevenir clics múltiples
-              
-              console.log('🔍 Botón "Todos los períodos" clickeado');
-              setProcesandoFiltros(true);
-              
-              try {
-                // Pequeño delay para dar tiempo al estado de actualizar
-                await new Promise(resolve => setTimeout(resolve, 50));
-                
-                setFechaInicio('');
-                setFechaFin('');
-                console.log('📅 Filtros de fecha limpiados - sidebar debe permanecer visible');
-                
-                // Otro pequeño delay para completar el filtrado
-                await new Promise(resolve => setTimeout(resolve, 100));
-              } finally {
-                setProcesandoFiltros(false);
-              }
-            }}
-            disabled={procesandoFiltros}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              procesandoFiltros 
-                ? 'bg-slate-300 text-slate-500 cursor-not-allowed' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            {procesandoFiltros ? 'Cargando...' : 'Todos los períodos'}
           </button>
         </div>
       </div>

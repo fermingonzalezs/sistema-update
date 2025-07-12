@@ -101,17 +101,6 @@ const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShow
           </div>
           
           <div className="flex items-center space-x-6">
-            {/* Botón de emergencia para mostrar sidebar si está oculta */}
-            {onShowSidebar && (
-              <button
-                onClick={onShowSidebar}
-                className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-white"
-                title="Mostrar/Restaurar sidebar"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            )}
-            
             {/* Tarjetas de información */}
             <div className="flex items-center space-x-4">
               {/* Info del usuario */}

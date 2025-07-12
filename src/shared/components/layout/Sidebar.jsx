@@ -70,33 +70,89 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       ]
     },
     {
-      title: 'IMPORTACIONES',
-      color: 'from-cyan-600 to-blue-600',
-      level: 'importaciones',
+      title: 'ADMINISTRACIÓN',
+      color: 'from-blue-600 to-indigo-700',
+      level: 'administracion',
       items: [
         {
-          id: 'cotizaciones',
-          label: 'Cotizaciones',
-          icon: FileText,
-          description: 'Cotizaciones de importaciones'
-        },
-        {
-          id: 'pendientes-compra',
-          label: 'Pendientes de Compra',
-          icon: ClipboardList,
-          description: 'Importaciones pendientes de compra'
-        },
-        {
-          id: 'en-transito',
-          label: 'En Tránsito',
-          icon: Truck,
-          description: 'Importaciones en tránsito'
-        },
-        {
-          id: 'historial-importaciones',
-          label: 'Historial',
+          id: 'ventas',
+          label: 'Historial Ventas',
           icon: BarChart3,
-          description: 'Historial de importaciones finalizadas'
+          description: 'Registro de ventas'
+        },
+        {
+          id: 'comisiones',
+          label: 'Comisiones',
+          icon: Calculator,
+          description: 'Calc. de comisiones',
+          disabled: false  // Cambiar de true a false
+        },
+        {
+          id: 'dashboard-reportes',
+          label: 'Dashboard',
+          icon: BarChart3,
+          description: 'Reportes visuales'
+        },
+        {
+          id: 'garantias',
+          label: 'Garantías',
+          icon: Shield,
+          description: 'Gestión de garantías'
+        },
+        {
+          id: 'recuento-stock',
+          label: 'Recuento Stock',
+          icon: Package,
+          description: 'Contar inventario'
+        },
+        {
+          id: 'cuentas-corrientes',
+          label: 'Cuentas Corrientes',
+          icon: CreditCard,
+          description: 'Deudas y saldos'
+        }
+      ]
+    },
+    {
+      title: 'CONTABILIDAD',
+      color: 'from-indigo-500 to-purple-600',
+      level: 'contabilidad',
+      items: [
+        {
+          id: 'plan-cuentas',
+          label: 'Plan de Cuentas',
+          icon: BookOpen,
+          description: 'Estructura contable'
+        },
+        {
+          id: 'libro-diario',
+          label: 'Libro Diario',
+          icon: FileText,
+          description: 'Asientos contables'
+        },
+        {
+          id: 'libro-mayor',
+          label: 'Libro Mayor',
+          icon: BookOpen,
+          description: 'Mayor por cuenta'
+        },
+        {
+          id: 'conciliacion-caja',
+          label: 'Conciliación Caja',
+          icon: DollarSign,
+          description: 'Verificar efectivo'
+        },
+        {
+          id: 'estado-situacion-patrimonial',
+          label: 'Estado Situación Patrimonial',
+          icon: BarChart3,
+          description: 'Balance patrimonial'
+        },
+        {
+          id: 'estado-resultados',
+          label: 'Estado de Resultados',
+          icon: TrendingUp,
+          description: 'Ingresos y gastos'
         }
       ]
     },
@@ -145,88 +201,33 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       ]
     },
     {
-      title: 'ADMINISTRACIÓN',
-      color: 'from-blue-600 to-indigo-700',
-      level: 'administracion',
+      title: 'IMPORTACIONES',
+      color: 'from-cyan-600 to-blue-600',
+      level: 'importaciones',
       items: [
         {
-          id: 'ventas',
-          label: 'Historial Ventas',
-          icon: BarChart3,
-          description: 'Registro de ventas'
-        },
-        {
-          id: 'comisiones',
-          label: 'Comisiones',
-          icon: Calculator,
-          description: 'Calc. de comisiones',
-          disabled: false  // Cambiar de true a false
-        },
-        {
-          id: 'dashboard-reportes',
-          label: 'Dashboard',
-          icon: BarChart3,
-          description: 'Reportes visuales'
-        },
-        {
-          id: 'garantias',
-          label: 'Garantías',
-          icon: Shield,
-          description: 'Gestión de garantías'
-        },
-        {
-          id: 'recuento-stock',
-          label: 'Recuento Stock',
-          icon: Package,
-          description: 'Contar inventario'
-        },
-        {
-          id: 'cuentas-corrientes',
-          label: 'Cuentas Corrientes',
-          icon: CreditCard,
-          description: 'Deudas y saldos'
-        }
-      ]
-    }, {
-      title: 'CONTABILIDAD',
-      color: 'from-indigo-500 to-purple-600',
-      level: 'contabilidad',
-      items: [
-        {
-          id: 'plan-cuentas',
-          label: 'Plan de Cuentas',
-          icon: BookOpen,
-          description: 'Estructura contable'
-        },
-        {
-          id: 'libro-diario',
-          label: 'Libro Diario',
+          id: 'cotizaciones',
+          label: 'Cotizaciones',
           icon: FileText,
-          description: 'Asientos contables'
+          description: 'Cotizaciones de importaciones'
         },
         {
-          id: 'libro-mayor',
-          label: 'Libro Mayor',
-          icon: BookOpen,
-          description: 'Mayor por cuenta'
+          id: 'pendientes-compra',
+          label: 'Pendientes de Compra',
+          icon: ClipboardList,
+          description: 'Importaciones pendientes de compra'
         },
         {
-          id: 'conciliacion-caja',
-          label: 'Conciliación Caja',
-          icon: DollarSign,
-          description: 'Verificar efectivo'
+          id: 'en-transito',
+          label: 'En Tránsito',
+          icon: Truck,
+          description: 'Importaciones en tránsito'
         },
         {
-          id: 'estado-situacion-patrimonial',
-          label: 'Estado Situación Patrimonial',
+          id: 'historial-importaciones',
+          label: 'Historial',
           icon: BarChart3,
-          description: 'Balance patrimonial'
-        },
-        {
-          id: 'estado-resultados',
-          label: 'Estado de Resultados',
-          icon: TrendingUp,
-          description: 'Ingresos y gastos'
+          description: 'Historial de importaciones finalizadas'
         }
       ]
     }

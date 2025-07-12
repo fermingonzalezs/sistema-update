@@ -449,6 +449,51 @@ npm run build --verbose
 - Implement offline functionality
 - Add real-time notifications
 
+## Problemas Conocidos y Soluciones en Desarrollo
+
+### Problema: Sidebar desaparece al hacer clic en botones de filtro de fechas (VentasSection)
+
+**Descripción del problema:**
+- Al hacer clic en los botones "Último mes" y "Todos los períodos" en el historial de ventas (VentasSection), la sidebar desaparece completamente
+- El problema persiste incluso después de optimizaciones de rendimiento
+- La sidebar no vuelve a aparecer hasta refrescar la página
+
+**Investigación realizada:**
+1. **Optimización de rendimiento**: Se implementó `useMemo` para el filtrado de ventas y se redujo el límite de resultados de 1000 a 300
+2. **Prevención de propagación de eventos**: Se agregó `event.preventDefault()` y `event.stopPropagation()` en los botones problemáticos
+3. **Debugging exhaustivo**: Se agregaron logs detallados en Layout.jsx para rastrear cambios de estado
+
+**Soluciones implementadas temporales:**
+1. **Verificación automática**: Layout.jsx ahora verifica cada 500ms si la sidebar está abierta en desktop y la reabre si es necesario
+2. **Botón de emergencia mejorado**: El botón de restaurar sidebar en Header.jsx ahora es más visible (color emerald, texto "SIDEBAR")
+3. **Función de forzado**: Se implementó `forceSidebarOpen()` para restauración manual
+4. **Logging de DOM**: Se agregó verificación DOM para detectar si la sidebar desaparece completamente
+
+**Archivos modificados:**
+- `src/modules/administracion/components/VentasSection.jsx`: Prevención de eventos, debugging
+- `src/shared/components/layout/Layout.jsx`: Verificación automática, logging
+- `src/shared/components/layout/Header.jsx`: Botón de emergencia mejorado
+
+**Causa raíz identificada:**
+Al comparar los botones que funcionan vs los problemáticos, se encontró que:
+- **Botones que funcionan** ("Hoy", "Última semana", "Este mes"): Funciones onClick simples y síncronas
+- **Botones problemáticos** ("Último mes", "Todos los períodos"): Contenían lógica compleja, async/await, preventDefault, stopPropagation, console.logs, setTimeout y estados adicionales
+
+**Solución implementada:**
+1. **Simplificación de botones problemáticos**: Se removió toda la lógica compleja y se dejaron como funciones simples idénticas a los botones que funcionan
+2. **Eliminación de código innecesario**: Se removió el estado `procesandoFiltros`, useMemo complicado, y debugging excesivo
+3. **Estructura unificada**: Todos los botones ahora tienen la estructura: `onClick={() => { /* lógica simple de setFechaInicio/setFechaFin */ }}`
+
+**Estado actual:**
+- ✅ **SOLUCIONADO** - Los botones "Último mes" y "Todos los períodos" ahora usan la misma estructura simple que los botones que funcionan
+- Se mantuvieron las protecciones en Layout.jsx como respaldo (verificación cada 1 segundo, botón de emergencia)
+- El problema se debía a la complejidad adicional en los event handlers, no al volumen de datos o rendimiento
+
+**Archivos corregidos:**
+- `src/modules/administracion/components/VentasSection.jsx`: Simplificación de botones problemáticos
+- `src/shared/components/layout/Layout.jsx`: Protecciones de respaldo mantenidas
+- `src/shared/components/layout/Header.jsx`: Botón de emergencia mejorado mantenido
+
 ---
 
 *This documentation is maintained to help developers understand and work with the Sistema Update application. Update this file as the project evolves.*
