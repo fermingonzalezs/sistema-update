@@ -57,8 +57,8 @@ const EstadoSituacionPatrimonialSection = () => {
               {cuentas
                 .sort((a, b) => a.cuenta.nombre.localeCompare(b.cuenta.nombre)) // Ordenar alfabéticamente
                 .map((item, itemIndex) => (
-                <div key={itemIndex} className="flex justify-between items-center py-4 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
-                  <div className="flex-1">
+                <div key={itemIndex} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
+                  <div className="flex-1 space-y-1.5">
                     <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
                     <div className="text-sm text-slate-800 flex gap-8">
                       <span>Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span></span>
@@ -71,7 +71,7 @@ const EstadoSituacionPatrimonialSection = () => {
                       {formatearMoneda(Math.abs(item.saldo))}
                     </div>
                     <div className="text-xs text-slate-800">
-                      {item.saldo >= 0 ? 'Saldo Deudor' : 'Saldo Acreedor'}
+                      {item.saldo >= 0 ? 'Resultado negativo' : 'Resultado positivo'}
                     </div>
                   </div>
                 </div>
@@ -88,12 +88,12 @@ const EstadoSituacionPatrimonialSection = () => {
 
       <div className="">
         
-        <div className="flex items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
+        <div className="flex items-center justify-between p-3 mb-3 rounded bg-slate-800">
         {/* Izquierda: selector y botón */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-black font-medium text-slate-800">
+            <label className="text-sm text-white font-medium text-slate-800">
               Fecha de Corte:
             </label>
             <input
@@ -106,7 +106,7 @@ const EstadoSituacionPatrimonialSection = () => {
           <button
             onClick={aplicarFecha}
             disabled={loading}
-            className="bg-slate-800 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -117,7 +117,7 @@ const EstadoSituacionPatrimonialSection = () => {
           </button>
         </div>
         {/* Derecha: texto de fecha */}
-        <div className="text-right bg-slate-700 rounded-lg p-4 text-white">
+        <div className="text-right rounded-lg p-4 text-white">
           <div className="text-md">Fecha de Corte</div>
           <div className="text-xl font-semibold">
             {new Date(fechaCorte).toLocaleDateString('es-ES', {
@@ -140,7 +140,7 @@ const EstadoSituacionPatrimonialSection = () => {
           <div className="space-y-3">
             {/* Resumen Ejecutivo */}
             <div className="bg-slate-800 p-8 rounded">
-              <h3 className="font-bold text-white mb-6 text-lg">RESULTADO</h3>
+              <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto">RESULTADO</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center p-6 bg-slate-200 rounded">
                   <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalActivos)}</div>

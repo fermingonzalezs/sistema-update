@@ -484,8 +484,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       
 
       {/* Tabs para tipos de productos */}
-      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="flex space-x-1 bg-slate-50 p-1 rounded">
+      <div className="bg-slate-800 p-6 rounded border border-slate-200 mb-6">
+        <div className="flex space-x-1 bg-slate-700 p-1 rounded">
           {['computadora', 'celular', 'otro'].map((tipo) => {
             const config = getTipoConfig(tipo);
             const Icon = config.icon;
@@ -496,7 +496,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
                   tipoActivo === tipo
                     ? 'bg-emerald-600 text-white'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-white'
+                    : 'text-white hover:text-slate-800 hover:bg-white'
                 }`}
               >
                 <Icon className="w-5 h-5" />

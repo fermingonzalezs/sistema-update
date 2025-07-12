@@ -9,8 +9,8 @@
 export const formatearMonedaLibroDiario = (valor, esUSD = true) => {
   const numero = parseFloat(valor || 0).toFixed(2);
   const formateado = parseFloat(numero).toLocaleString('es-AR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   });
   
   return esUSD ? `U$${formateado}` : `$${formateado}`;
@@ -18,13 +18,13 @@ export const formatearMonedaLibroDiario = (valor, esUSD = true) => {
 
 /**
  * Formatea números para mostrar en interfaz general
- * USD con U$ y ARS con $ - exactamente 2 decimales
+ * USD sin decimales, ARS sin decimales
  */
 export const formatearMonedaGeneral = (valor, moneda = 'USD') => {
-  const numero = parseFloat(valor || 0).toFixed(2);
-  const formateado = parseFloat(numero).toLocaleString('es-AR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+  const numero = parseFloat(valor || 0);
+  const formateado = numero.toLocaleString('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   });
   
   if (moneda === 'USD') {

@@ -387,20 +387,21 @@ const PlanCuentasSection = () => {
 
   return (
     <div className="p-0">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-white overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-800 text-white p-8">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-800 text-white p-5">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <BookOpen size={28} />
+                            <BookOpen size={28} className='mt-2'/>
+
               <div>
-                <h2 className="text-2xl font-bold">Plan de Cuentas</h2>
-                <p className="text-slate-200 mt-2">Estructura contable de la empresa</p>
+                
+                <p className="text-slate-200 mt-2">Agregar o editar cuentas activas.</p>
               </div>
             </div>
             <button
               onClick={nuevaCuenta}
-              className="bg-white text-slate-800 px-6 py-3 rounded hover:bg-white/90 flex items-center gap-2 font-medium transition-colors"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-white/90 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               Nueva Cuenta

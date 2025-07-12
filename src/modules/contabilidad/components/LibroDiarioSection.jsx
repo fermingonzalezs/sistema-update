@@ -730,18 +730,36 @@ const LibroDiarioSection = () => {
                 {/* Header de movimientos */}
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold py-2 bg-gray-200">
                     <div className="col-span-1"></div>
-                    <div className="col-span-2">Código</div>
-                    <div className="col-span-5">Cuenta</div>
+                    <div className="col-span-5">Deber</div>
+                    <div className="col-span-2 text-right">Haber</div>
                     <div className="col-span-2 text-right">Debe</div>
                     <div className="col-span-2 text-right pr-4">Haber</div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
                   <div key={index} className="grid grid-cols-12 gap-4 text-sm border-t py-2">
                     <div className="col-span-1"></div>
-                    <div className="col-span-2 font-mono">{mov.plan_cuentas.codigo}</div>
-                    <div className="col-span-5">{mov.plan_cuentas.nombre}</div>
-                    <div className="col-span-2 text-right">{mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}</div>
-                    <div className="col-span-2 text-right pr-4">{mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}</div>
+                    <div className="col-span-5">
+                      {mov.debe > 0 ? mov.plan_cuentas.nombre : ''}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      {mov.haber > 0 ? mov.plan_cuentas.nombre : ''}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      {mov.debe > 0 ? (
+                        <div>
+                          <div>{formatearMonedaLibroDiario(mov.debe)}</div>
+                          <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                        </div>
+                      ) : ''}
+                    </div>
+                    <div className="col-span-2 text-right pr-4">
+                      {mov.haber > 0 ? (
+                        <div>
+                          <div>{formatearMonedaLibroDiario(mov.haber)}</div>
+                          <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                        </div>
+                      ) : ''}
+                    </div>
                   </div>
                 ))}
               </div>

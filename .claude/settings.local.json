@@ -51,7 +51,8 @@
       "mcp__supabase__get_project_url",
       "Bash(awk:*)",
       "mcp__sequential-thinking__sequentialthinking",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   },

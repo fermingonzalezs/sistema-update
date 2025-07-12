@@ -178,10 +178,12 @@ const libroMayorService = {
 // Hook personalizado
 function useLibroMayor() {
   const [cuentas, setCuentas] = useState([]);
+  const [cuentasConSaldos, setCuentasConSaldos] = useState([]);
   const [cuentaSeleccionada, setCuentaSeleccionada] = useState(null);
   const [libroMayor, setLibroMayor] = useState(null);
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingSaldos, setLoadingSaldos] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchCuentas = async () => {
@@ -189,8 +191,31 @@ function useLibroMayor() {
       setError(null);
       const data = await libroMayorService.getCuentasConMovimientos();
       setCuentas(data);
+      
+      // Obtener saldos para cada cuenta
+      setLoadingSaldos(true);
+      const cuentasConSaldosData = await Promise.all(
+        data.map(async (cuenta) => {
+          try {
+            const estadisticas = await libroMayorService.getEstadisticasCuenta(cuenta.id);
+            return {
+              ...cuenta,
+              saldoActual: estadisticas.saldoActual
+            };
+          } catch (err) {
+            console.error(`Error obteniendo saldo para cuenta ${cuenta.codigo}:`, err);
+            return {
+              ...cuenta,
+              saldoActual: 0
+            };
+          }
+        })
+      );
+      setCuentasConSaldos(cuentasConSaldosData);
+      setLoadingSaldos(false);
     } catch (err) {
       setError(err.message);
+      setLoadingSaldos(false);
     }
   };
 
@@ -213,10 +238,12 @@ function useLibroMayor() {
 
   return {
     cuentas,
+    cuentasConSaldos,
     cuentaSeleccionada,
     libroMayor,
     estadisticas,
     loading,
+    loadingSaldos,
     error,
     fetchCuentas,
     fetchLibroMayor,
@@ -228,10 +255,12 @@ function useLibroMayor() {
 const LibroMayorSection = () => {
   const {
     cuentas,
+    cuentasConSaldos,
     cuentaSeleccionada,
     libroMayor,
     estadisticas,
     loading,
+    loadingSaldos,
     error,
     fetchCuentas,
     fetchLibroMayor,
@@ -242,6 +271,8 @@ const LibroMayorSection = () => {
     fechaDesde: '',
     fechaHasta: ''
   });
+
+  const [busquedaCuenta, setBusquedaCuenta] = useState('');
 
   const [paginaActual, setPaginaActual] = useState(1);
   const movimientosPorPagina = 20;
@@ -305,6 +336,16 @@ const LibroMayorSection = () => {
     }
   };
 
+  // Filtrar cuentas por búsqueda
+  const cuentasFiltradas = cuentasConSaldos.filter(cuenta => {
+    if (!busquedaCuenta) return true;
+    const termino = busquedaCuenta.toLowerCase();
+    return (
+      cuenta.codigo.toLowerCase().includes(termino) ||
+      cuenta.nombre.toLowerCase().includes(termino)
+    );
+  });
+
   // Paginación
   const movimientosPaginados = libroMayor?.movimientos?.slice(
     (paginaActual - 1) * movimientosPorPagina,
@@ -330,6 +371,14 @@ const LibroMayorSection = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div>
+                <div className="flex items-center space-x-4">
+                                            <BookOpen size={28} className='mt-2'/>
+                
+                              <div>
+                                
+                                <p className="text-slate-200 mt-2">Seleccionar una cuenta para ver su libro mayor.</p>
+                              </div>
+                            </div>
               </div>
             </div>
             {cuentaSeleccionada && (
@@ -347,18 +396,34 @@ const LibroMayorSection = () => {
         {!cuentaSeleccionada && (
           <div className="p-6">
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-300">
-                Seleccionar una cuenta para ver su libro mayor.
-              </h3>
+              {/* Buscador de cuentas */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Buscar cuenta por código o nombre..."
+                    value={busquedaCuenta}
+                    onChange={(e) => setBusquedaCuenta(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-700"
+                  />
+                </div>
+                {busquedaCuenta && (
+                  <div className="mt-2 text-sm text-slate-600">
+                    {cuentasFiltradas.length} cuenta(s) encontrada(s)
+                  </div>
+                )}
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cuentas.map(cuenta => (
+                {cuentasFiltradas.map(cuenta => (
                   <button
                     key={cuenta.id}
                     onClick={() => seleccionarCuenta(cuenta)}
                     className="p-4 border border-slate-200 rounded hover:border-slate-800 hover:bg-slate-50 transition-colors text-left"
                   >
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                           <code className="text-sm text-slate-800 font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200">
                             {cuenta.codigo}
@@ -368,11 +433,23 @@ const LibroMayorSection = () => {
                           </span>
                         </div>
                         <div className="font-medium text-slate-800">{cuenta.nombre}</div>
-                        <div className="text-xs text-slate-500 mt-1">
-                          {cuenta.cantidadMovimientos} movimientos
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="text-xs text-slate-500">
+                            {cuenta.cantidadMovimientos} movimientos
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-slate-500 mb-1">Saldo actual</div>
+                            <div className={`font-semibold text-sm ${cuenta.saldoActual >= 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                              {loadingSaldos ? (
+                                <span className="text-slate-400">Cargando...</span>
+                              ) : (
+                                formatearMoneda(Math.abs(cuenta.saldoActual || 0))
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-slate-400" />
+                      <ChevronRight className="w-5 h-5 text-slate-400 ml-3" />
                     </div>
                   </button>
                 ))}

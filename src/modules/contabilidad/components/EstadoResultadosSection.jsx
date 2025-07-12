@@ -151,12 +151,12 @@ const EstadoResultadosSection = () => {
       {/* Header principal removido, solo se deja el header de la página si corresponde */}
 
       {/* Filtros */}
-      <div className="flex items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
+      <div className="flex bg-slate-800 items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
         {/* Izquierda: selector y botón */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-black font-medium text-slate-800">
+            <label className="text-sm text-white font-medium text-slate-800">
               Fecha Desde:
             </label>
             <input
@@ -168,7 +168,7 @@ const EstadoResultadosSection = () => {
           </div>
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-black font-medium text-slate-800">
+            <label className="text-sm text-white font-medium text-slate-800">
               Fecha Hasta:
             </label>
             <input
@@ -181,7 +181,7 @@ const EstadoResultadosSection = () => {
           <button
             onClick={aplicarFiltros}
             disabled={loading}
-            className="bg-slate-800 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -192,7 +192,7 @@ const EstadoResultadosSection = () => {
           </button>
         </div>
         {/* Derecha: texto de fecha */}
-        <div className="text-right bg-slate-700 rounded-lg p-4 text-white">
+        <div className="text-right rounded-lg p-4 text-white">
           <div className="text-md">Período Seleccionado</div>
           <div className="text-md font-semibold">
             {new Date(filtros.fechaDesde).toLocaleDateString('es-ES', {
@@ -217,7 +217,7 @@ const EstadoResultadosSection = () => {
 
       {/* Información adicional */}
       <div className="bg-slate-800 p-8">
-        <h3 className="font-bold text-white mb-6 text-lg">RESULTADO</h3>
+        <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto w-fit">RESULTADO</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center p-6 bg-slate-200 rounded">
             <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalIngresos)}</div>
@@ -261,8 +261,8 @@ const EstadoResultadosSection = () => {
               <div className="p-4">
                 <div className="space-y-3">
                   {ingresosArray.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
-                      <div>
+                    <div key={index} className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
+                     <div className="flex-1 space-y-1.5">
                         <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
                         <div className="text-sm text-slate-800">
                           Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span>

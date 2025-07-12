@@ -55,23 +55,32 @@ export const ventasService = {
     const margenTotal = totalVenta - totalCosto
 
     try {
-      // Crear la transacción principal
+      // Crear la transacción principal con soporte para doble método de pago
+      const transaccionData = {
+        numero_transaccion: numeroTransaccion,
+        cliente_id: datosCliente.cliente_id || null,
+        cliente_nombre: datosCliente.cliente_nombre,
+        cliente_email: datosCliente.cliente_email,
+        cliente_telefono: datosCliente.cliente_telefono,
+        metodo_pago: datosCliente.metodo_pago_1 || datosCliente.metodo_pago,
+        monto_pago_1: datosCliente.monto_pago_1 || totalVenta,
+        total_venta: totalVenta,
+        total_costo: totalCosto,
+        margen_total: margenTotal,
+        observaciones: datosCliente.observaciones,
+        vendedor: datosCliente.vendedor,
+        sucursal: datosCliente.sucursal
+      }
+
+      // Agregar segundo método de pago si existe
+      if (datosCliente.metodo_pago_2) {
+        transaccionData.metodo_pago_2 = datosCliente.metodo_pago_2
+        transaccionData.monto_pago_2 = datosCliente.monto_pago_2 || 0
+      }
+
       const { data: transaccion, error: errorTransaccion } = await supabase
         .from('transacciones')
-        .insert([{
-          numero_transaccion: numeroTransaccion,
-          cliente_id: datosCliente.cliente_id || null,
-          cliente_nombre: datosCliente.cliente_nombre,
-          cliente_email: datosCliente.cliente_email,
-          cliente_telefono: datosCliente.cliente_telefono,
-          metodo_pago: datosCliente.metodo_pago,
-          total_venta: totalVenta,
-          total_costo: totalCosto,
-          margen_total: margenTotal,
-          observaciones: datosCliente.observaciones,
-          vendedor: datosCliente.vendedor,
-          sucursal: datosCliente.sucursal
-        }])
+        .insert([transaccionData])
         .select()
         .single()
 

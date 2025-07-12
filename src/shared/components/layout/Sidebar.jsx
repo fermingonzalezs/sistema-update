@@ -255,40 +255,40 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
 
   return (
     <div className="h-screen text-white shadow-2xl flex flex-col w-full relative bg-slate-800">
-      {/* Contenido con scroll invisible */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
-        <div className={isCollapsed ? "p-2" : "p-8"}>
-          {/* Header */}
-          <div className={`${isCollapsed ? "mb-4 pb-2" : "mb-8 pb-8"} border-b border-slate-200`}>
-            <div className="w-full">
-              <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-                {/* Título UPDATE TECH solo cuando está expandido */}
-                {!isCollapsed && (
-                  <div className="flex-1 text-center">
-                    <h2 className="text-2xl font-bold leading-tight mb-2 text-white">
-                      UPDATE TECH
-                    </h2>
-                  </div>
-                )}
-                
-                {/* Botón de colapso integrado */}
-                {onToggleCollapse && (
-                  <button
-                    onClick={onToggleCollapse}
-                    className="p-2 hover:bg-slate-700 rounded-lg transition-colors focus:outline-none"
-                    title={isCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
-                  >
-                    {isCollapsed ? (
-                      <ChevronRight size={20} className="text-white" strokeWidth={2.5} />
-                    ) : (
-                      <ChevronLeft size={20} className="text-white" strokeWidth={2.5} />
-                    )}
-                  </button>
-                )}
+      {/* Header fijo - NO scrolleable */}
+      <div className={`${isCollapsed ? "p-2" : "p-8"} ${isCollapsed ? "pb-2" : "pb-4"} border-b border-slate-200 bg-slate-800 relative z-10`}>
+        <div className="w-full">
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+            {/* Título UPDATE TECH solo cuando está expandido */}
+            {!isCollapsed && (
+              <div className="flex-1 text-center">
+                <h2 className="text-2xl font-bold leading-tight mb-2 text-white">
+                  UPDATE TECH
+                </h2>
               </div>
-            </div>
+            )}
+            
+            {/* Botón de colapso integrado */}
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                className="p-2 hover:bg-slate-700 rounded-lg transition-colors focus:outline-none"
+                title={isCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight size={20} className="text-white" strokeWidth={2.5} />
+                ) : (
+                  <ChevronLeft size={20} className="text-white" strokeWidth={2.5} />
+                )}
+              </button>
+            )}
           </div>
+        </div>
+      </div>
 
+      {/* Contenido scrolleable - solo el menú */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <div className={isCollapsed ? "p-2 pt-4" : "p-8 pt-8"}>
           <nav className={isCollapsed ? "space-y-2" : "space-y-8"}>
             {filteredMenuGroups.map((group, groupIndex) => {
               const isGroupDisabled = group.disabled;
@@ -435,8 +435,6 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           </nav>
         </div>
       </div>
-
-
 
       {/* CSS personalizado para ocultar scrollbars y eliminar outlines */}
       <style>{`

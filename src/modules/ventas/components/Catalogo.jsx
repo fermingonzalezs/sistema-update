@@ -3,6 +3,8 @@ import { X, Filter, ChevronDown } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 import OtrosModal from './OtrosModal';
+import NotebooksModal from './NotebooksModal';
+import CelularesModal from './CelularesModal';
 
 // Función para formatear precios en USD sin decimales con prefijo U$
 
@@ -173,416 +175,6 @@ const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
 };
 
 // Modal de detalle unificado
-const ModalDetalleUnificado = ({ open, producto, categoria, onClose, cotizacionDolar }) => {
-  if (!open || !producto) return null;
-
-  // Función para formatear precios en ARS
-  const formatPriceARS = (price, cotizacion) => {
-    const numPrice = parseFloat(price) || 0;
-    const arsPrice = Math.round(numPrice * cotizacion);
-    return `${arsPrice.toLocaleString('es-AR')}`;
-  };
-
-  const renderCamposPorCategoria = () => {
-    switch (categoria) {
-      case 'notebooks':
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Hardware</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Procesador:</strong> {producto.procesador}</div>
-                <div><strong>RAM:</strong> {producto.ram} {producto.tipo_ram}</div>
-                <div><strong>SSD:</strong> {producto.ssd}</div>
-                <div><strong>HDD:</strong> {producto.hdd}</div>
-                <div><strong>GPU:</strong> {producto.gpu}</div>
-                <div><strong>VRAM:</strong> {producto.vram}</div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Pantalla</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Tamaño:</strong> {producto.pantalla}"</div>
-                <div><strong>Resolución:</strong> {producto.resolucion}</div>
-                <div><strong>Refresh Rate:</strong> {producto.refresh_rate}</div>
-                <div><strong>Touchscreen:</strong> {producto.touchscreen || 'No'}</div>
-              </div>
-            </div>
-          </>
-        );
-
-      case 'celulares':
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Capacidad:</strong> {producto.capacidad}</div>
-                <div><strong>Condición:</strong> {producto.condicion}</div>
-                <div><strong>Estado:</strong> {producto.estado}</div>
-                <div><strong>Batería:</strong> {producto.bateria}</div>
-                <div><strong>Ciclos:</strong> {producto.ciclos}</div>
-                <div><strong>Color:</strong> {producto.color}</div>
-                <div><strong>Garantía Update:</strong> {producto.garantia_update}</div>
-                <div><strong>Garantía Oficial:</strong> {producto.garantia_oficial}</div>
-                {producto.fallas && <div><strong>Fallas:</strong> {producto.fallas}</div>}
-              </div>
-            </div>
-          </>
-        );
-
-      case 'otros':
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Descripción del Producto</h3>
-              <div className="bg-slate-50 p-6 rounded">
-                <p className="text-slate-800 text-lg leading-relaxed">
-                  {producto.descripcion}
-                </p>
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'desktop':
-        const desktopSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Hardware</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Procesador:</strong> {desktopSpecs.procesador || 'N/A'}</div>
-                <div><strong>RAM:</strong> {desktopSpecs.ram || 'N/A'}</div>
-                <div><strong>Almacenamiento:</strong> {desktopSpecs.almacenamiento || 'N/A'}</div>
-                <div><strong>GPU:</strong> {desktopSpecs.gpu || 'N/A'}</div>
-                <div><strong>Motherboard:</strong> {desktopSpecs.motherboard || 'N/A'}</div>
-                <div><strong>Fuente:</strong> {desktopSpecs.fuente || 'N/A'}</div>
-                <div><strong>Gabinete:</strong> {desktopSpecs.gabinete || 'N/A'}</div>
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'tablets':
-        const tabletSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Técnicas</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Pantalla:</strong> {tabletSpecs.pantalla || 'N/A'}</div>
-                <div><strong>Resolución:</strong> {tabletSpecs.resolucion || 'N/A'}</div>
-                <div><strong>Procesador:</strong> {tabletSpecs.procesador || 'N/A'}</div>
-                <div><strong>Almacenamiento:</strong> {tabletSpecs.almacenamiento || 'N/A'}</div>
-                <div><strong>RAM:</strong> {tabletSpecs.ram || 'N/A'}</div>
-                <div><strong>Batería:</strong> {tabletSpecs.bateria || 'N/A'}</div>
-                <div><strong>Peso:</strong> {tabletSpecs.peso || 'N/A'}</div>
-                <div><strong>Color:</strong> {tabletSpecs.color || 'N/A'}</div>
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'gpu':
-        const gpuSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones GPU</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Memoria:</strong> {gpuSpecs.memoria || 'N/A'}</div>
-                <div><strong>Bus:</strong> {gpuSpecs.bus || 'N/A'}</div>
-                <div><strong>Boost Clock:</strong> {gpuSpecs.boost_clock || 'N/A'}</div>
-                <div><strong>TDP:</strong> {gpuSpecs.tdp || 'N/A'}</div>
-                <div><strong>Conectores:</strong> {gpuSpecs.conectores || 'N/A'}</div>
-                <div><strong>Puertos:</strong> {gpuSpecs.puertos || 'N/A'}</div>
-                <div><strong>Arquitectura:</strong> {gpuSpecs.arquitectura || 'N/A'}</div>
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'apple':
-        const appleSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Apple</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Procesador:</strong> {appleSpecs.procesador || appleSpecs.chip || 'N/A'}</div>
-                <div><strong>Almacenamiento:</strong> {appleSpecs.almacenamiento || 'N/A'}</div>
-                <div><strong>RAM:</strong> {appleSpecs.ram || 'N/A'}</div>
-                <div><strong>Pantalla:</strong> {appleSpecs.pantalla || 'N/A'}</div>
-                <div><strong>Resolución:</strong> {appleSpecs.resolucion || 'N/A'}</div>
-                <div><strong>Batería:</strong> {appleSpecs.bateria || 'N/A'}</div>
-                <div><strong>Color:</strong> {appleSpecs.color || 'N/A'}</div>
-                <div><strong>Peso:</strong> {appleSpecs.peso || 'N/A'}</div>
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'componentes':
-        const componenteSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Técnicas</h3>
-              <div className="space-y-2 text-slate-800">
-                {componenteSpecs.nucleos && <div><strong>Núcleos:</strong> {componenteSpecs.nucleos}</div>}
-                {componenteSpecs.threads && <div><strong>Threads:</strong> {componenteSpecs.threads}</div>}
-                {componenteSpecs.base_clock && <div><strong>Base Clock:</strong> {componenteSpecs.base_clock}</div>}
-                {componenteSpecs.boost_clock && <div><strong>Boost Clock:</strong> {componenteSpecs.boost_clock}</div>}
-                {componenteSpecs.socket && <div><strong>Socket:</strong> {componenteSpecs.socket}</div>}
-                {componenteSpecs.capacidad && <div><strong>Capacidad:</strong> {componenteSpecs.capacidad}</div>}
-                {componenteSpecs.tipo && <div><strong>Tipo:</strong> {componenteSpecs.tipo}</div>}
-                {componenteSpecs.frecuencia && <div><strong>Frecuencia:</strong> {componenteSpecs.frecuencia}</div>}
-                {componenteSpecs.interfaz && <div><strong>Interfaz:</strong> {componenteSpecs.interfaz}</div>}
-                {componenteSpecs.potencia && <div><strong>Potencia:</strong> {componenteSpecs.potencia}</div>}
-                {componenteSpecs.certificacion && <div><strong>Certificación:</strong> {componenteSpecs.certificacion}</div>}
-                {componenteSpecs.modular && <div><strong>Modular:</strong> {componenteSpecs.modular}</div>}
-              </div>
-            </div>
-          </>
-        );
-      
-      case 'audio':
-        const audioSpecs = producto.especificaciones || {};
-        return (
-          <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Especificaciones Audio</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Tipo:</strong> {audioSpecs.tipo || audioSpecs.configuracion || 'N/A'}</div>
-                <div><strong>Drivers:</strong> {audioSpecs.drivers || 'N/A'}</div>
-                <div><strong>Potencia:</strong> {audioSpecs.potencia || 'N/A'}</div>
-                <div><strong>Conectividad:</strong> {audioSpecs.conectividad || 'N/A'}</div>
-                <div><strong>Impedancia:</strong> {audioSpecs.impedancia || 'N/A'}</div>
-                <div><strong>Respuesta Freq:</strong> {audioSpecs.respuesta_freq || 'N/A'}</div>
-                <div><strong>Peso:</strong> {audioSpecs.peso || 'N/A'}</div>
-                <div><strong>Color:</strong> {audioSpecs.color || 'N/A'}</div>
-              </div>
-            </div>
-          </>
-        );
-
-      default:
-        return (
-          <div className="space-y-4 mt-6">
-            <h3 className="text-lg font-semibold text-white bg-slate-600 px-3 py-2 rounded">Precios</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              
-              {/* Tarjeta Compra */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-1">
-                  <h4 className="text-sm font-bold">COMPRA</h4>
-                </div>
-                <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_compra_usd)}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tarjeta Repuestos */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-1">
-                  <h4 className="text-sm font-bold">REPUESTOS</h4>
-                </div>
-                <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.repuestos_usd)}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {formatPriceARS(producto.repuestos_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tarjeta Venta */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-1">
-                  <h4 className="text-sm font-bold">VENTA</h4>
-                </div>
-                <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_venta_usd)}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tarjeta Ganancia */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-1">
-                  <h4 className="text-sm font-bold">GANANCIA</h4>
-                </div>
-                <div className="bg-white text-center py-3">
-                  <p className="text-xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd)}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd - producto.repuestos_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 4">
-      <div className="bg-white rounded max-w-6xl max-h-[90vh] overflow-hidden flex">
-        
-        {/* Panel izquierdo */}
-        <div className="w-1/3 bg-slate-800 text-white p-6 border-r-4 border-slate-800">
-          <div className="space-y-6">
-            
-            <div className="text-center pb-4 border-b border-slate-500">
-              <h2 className="text-xl font-bold">{producto.modelo || producto.nombre_producto}</h2>
-              <p className="text-slate-300 text-sm">{producto.marca}</p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">CONDICIÓN</h3>
-              <div className="bg-slate-500 p-3 rounded text-center">
-                <span className="px-3 py-1 text-sm font-medium rounded-full bg-white text-slate-800">
-                  {producto.condicion?.toUpperCase() || 'N/A'}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">UBICACIÓN</h3>
-              <div className="bg-slate-500 p-3 rounded text-center">
-                <p className="text-white font-medium">
-                  {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')?.replace('_', ' ').toUpperCase()}
-                </p>
-              </div>
-            </div>
-
-            {(producto.garantia_update || producto.garantia) && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-slate-300 text-center">GARANTÍA</h3>
-                <div className="bg-slate-500 p-3 rounded text-center">
-                  {producto.garantia_update && (
-                    <div>
-                      <span className="text-slate-300">Update:</span>
-                      <span className="text-white ml-2 font-medium">{producto.garantia_update}</span>
-                    </div>
-                  )}
-                  {producto.garantia_oficial && (
-                    <div>
-                      <span className="text-slate-300">Oficial:</span>
-                      <span className="text-white ml-2 font-medium">{producto.garantia_oficial}</span>
-                    </div>
-                  )}
-                  {producto.garantia && !producto.garantia_update && (
-                    <div>
-                      <span className="text-white font-medium">{producto.garantia}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-
-          </div>
-        </div>
-
-        {/* Panel derecho */}
-        <div className="w-2/3 bg-white p-6 overflow-y-auto">
-          
-          <div className="flex justify-between items-center mb-6 pb-4 border-b">
-            <h2 className="text-2xl font-bold text-slate-800">Información Completa</h2>
-            <button
-              onClick={onClose}
-              className="text-slate-500 hover:text-slate-800"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white bg-slate-500 px-3 py-2 rounded">Información Básica</h3>
-              <div className="space-y-2 text-slate-800">
-                <div><strong>Serial:</strong> {producto.serial || 'N/A'}</div>
-                <div><strong>Fecha Ingreso:</strong> {producto.fecha_ingreso || 'N/A'}</div>
-                {producto.fallas && <div><strong>Fallas:</strong> {producto.fallas}</div>}
-              </div>
-            </div>
-
-            {renderCamposPorCategoria()}
-
-          </div>
-
-          <div className="space-y-4 mt-6">
-            <h3 className="text-lg font-semibold text-white bg-slate-500 px-3 py-2 rounded">Precios</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Tarjeta Compra */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-2">
-                  <h4 className="text-lg font-bold">COMPRA</h4>
-                </div>
-                <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_compra_usd)}
-                  </p>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_compra_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tarjeta Venta */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-2">
-                  <h4 className="text-lg font-bold">VENTA</h4>
-                </div>
-                <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_venta_usd)}
-                  </p>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_venta_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tarjeta Ganancia */}
-              <div className="border-2 border-slate-800 rounded overflow-hidden">
-                <div className="bg-slate-800 text-white text-center py-2">
-                  <h4 className="text-lg font-bold">GANANCIA</h4>
-                </div>
-                <div className="bg-white text-center py-4">
-                  <p className="text-2xl font-bold text-slate-800">
-                    {formatPriceUSD(producto.precio_venta_usd - producto.precio_compra_usd)}
-                  </p>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {formatPriceARS(producto.precio_venta_usd - producto.precio_compra_usd, cotizacionDolar)}
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Catalogo = ({ onAddToCart }) => {
   const {
@@ -653,10 +245,10 @@ const Catalogo = ({ onAddToCart }) => {
     <div className="p-0">
 
       {/* Selector de categorías */}
-      <div className="mb-4 bg-white rounded border border-slate-200 p-4">
+      <div className="mb-4 bg-slate-800 rounded border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Categorías de Productos</h3>
-          <div className="text-sm text-slate-800">
+          <h3 className="text-lg font-semibold text-white">Categorías de Productos</h3>
+          <div className="text-sm text-white">
             {productosFiltrados} de {totalProductos} productos
           </div>
         </div>
@@ -668,8 +260,8 @@ const Catalogo = ({ onAddToCart }) => {
               onClick={() => cambiarCategoria(cat.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${
                 categoriaActiva === cat.id
-                  ? 'bg-slate-800 text-white'
-                  : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-700 text-white hover:bg-slate-200'
               }`}
             >
               <span className="text-lg">{cat.icon}</span>
@@ -948,15 +540,25 @@ const Catalogo = ({ onAddToCart }) => {
       )}
 
       {/* Modal de detalle */}
-      {(categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') ? (
-        <ModalDetalleUnificado
-          open={modalDetalle.open}
+      {categoriaActiva === 'notebooks' && (
+        <NotebooksModal
+          isOpen={modalDetalle.open}
           producto={modalDetalle.producto}
-          categoria={categoriaActiva}
           onClose={() => setModalDetalle({ open: false, producto: null })}
           cotizacionDolar={cotizacionDolar}
         />
-      ) : (
+      )}
+
+      {categoriaActiva === 'celulares' && (
+        <CelularesModal
+          isOpen={modalDetalle.open}
+          producto={modalDetalle.producto}
+          onClose={() => setModalDetalle({ open: false, producto: null })}
+          cotizacionDolar={cotizacionDolar}
+        />
+      )}
+
+      {(categoriaActiva !== 'notebooks' && categoriaActiva !== 'celulares') && (
         <OtrosModal
           isOpen={modalDetalle.open}
           producto={modalDetalle.producto}

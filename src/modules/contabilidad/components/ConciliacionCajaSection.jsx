@@ -287,27 +287,16 @@ const ConciliacionCajaSection = () => {
   return (
     <div className="p-0">
       {/* Header */}
-      <div className="bg-white rounded border border-slate-200 mb-4">
-        <div className="p-6 bg-slate-800 text-white">
+      <div className="bg-white rounded border border-slate-200">
+        <div className="p-5 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <Calculator className="w-6 h-6" />
               <div>
-                <h2 className="text-2xl font-semibold">Conciliación de Caja</h2>
-                <p className="text-slate-300 mt-1">Verificación del efectivo físico vs. registros contables</p>
+                <p className="text-slate-300 mt-1">Seleccione una caja para realizar una conciliación.</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <div>
-                <label className="block text-slate-300 text-sm mb-1 text-right">Fecha de conciliación</label>
-                <input
-                  type="date"
-                  value={fechaConciliacion}
-                  onChange={(e) => setFechaConciliacion(e.target.value)}
-                  className="bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -315,18 +304,16 @@ const ConciliacionCajaSection = () => {
       {/* Selector de cuenta de caja */}
       {!cuentaSeleccionada && (
         <div className="bg-white p-6 rounded border border-slate-200">
-          <h3 className="text-xl font-semibold text-slate-800 mb-4">
-            Seleccionar Cuenta de Caja a Conciliar
-          </h3>
+         
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {cuentasCaja.map(cuenta => (
               <button
                 key={cuenta.id}
                 onClick={() => seleccionarCuenta(cuenta)}
-                className="p-4 border border-slate-200 rounded hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center"
+                className="p-6 rounded hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center"
               >
                 <div>
-                  <div className="font-bold text-slate-800">{cuenta.nombre}</div>
+                  <div className="font-boldtext-slate-800">{cuenta.nombre}</div>
                   <code className="text-sm text-slate-600 font-mono">
                     {cuenta.codigo}
                   </code>

@@ -330,17 +330,15 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
       
 
       {/* Sección de subida de fotos */}
-      <div className="bg-white rounded border border-slate-200 p-3">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Subir Fotos</h3>
-              <p className="text-sm text-slate-600">
-                {productoSeleccionado 
+      <div className="bg-white rounded border border-slate-200">
+        <div className="bg-slate-800 flex items-center justify-between p-4">
+          <div className=" flex items-center space-x-3">
+            <div classn>
+              <h2 className="text-lg font-semibold text-white">{productoSeleccionado 
                   ? `Seleccionado: ${productoSeleccionado.nombre}` 
                   : 'Selecciona un producto de la tabla para subir fotos'
-                }
-              </p>
+                }</h2>
+             
             </div>
           </div>
 
@@ -383,10 +381,10 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
 
         {/* Fotos del producto seleccionado */}
         {productoSeleccionado && (
-          <div className="space-y-4">
+          <div className="p-4 space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-slate-800">
-                Fotos de {productoSeleccionado.nombre} ({fotosProductoActual.filter(f => !f.subiendo).length}/5)
+                {productoSeleccionado.nombre} ({fotosProductoActual.filter(f => !f.subiendo).length}/5)
               </h4>
               <button
                 onClick={() => {

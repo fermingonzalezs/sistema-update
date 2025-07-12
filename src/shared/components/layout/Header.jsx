@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, ShoppingCart, DollarSign, RefreshCw, AlertCircle, LogOut,
   List, Plus, Users, FileText, Camera, BookOpen, Calculator, BarChart3,
-  Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe
+  Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe, Menu
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
 
-const Header = ({ activeSection, cantidadCarrito = 0 }) => {
+const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShowSidebar }) => {
   const { user, logout } = useAuthContext();
   const currentDate = new Date();
 
@@ -101,6 +101,17 @@ const Header = ({ activeSection, cantidadCarrito = 0 }) => {
           </div>
           
           <div className="flex items-center space-x-6">
+            {/* Botón de emergencia para mostrar sidebar si está oculta */}
+            {onShowSidebar && (
+              <button
+                onClick={onShowSidebar}
+                className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-white"
+                title="Mostrar/Restaurar sidebar"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+            
             {/* Tarjetas de información */}
             <div className="flex items-center space-x-4">
               {/* Info del usuario */}

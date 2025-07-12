@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Eye } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF';
@@ -9,6 +9,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
+  const [procesandoFiltros, setProcesandoFiltros] = useState(false);
 
   // Establecer fechas por defecto (último mes)
   useEffect(() => {
@@ -44,31 +45,52 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     setTransaccionesExpandidas(nuevasExpandidas);
   };
 
-  const ventasFiltradas = ventas.filter(transaccion => {
-    // Si no hay items, no mostrar la transacción
-    if (!transaccion.venta_items || transaccion.venta_items.length === 0) return false;
+  // Usar useMemo para optimizar el filtrado y evitar re-renders excesivos
+  const { ventasFiltradas, ventasLimitadas, MAX_RESULTS } = useMemo(() => {
+    console.log(`🔄 Recalculando filtros - ventas: ${ventas.length}, filtroTipo: ${filtroTipo}, fechaInicio: ${fechaInicio}, fechaFin: ${fechaFin}`);
     
-    const cumpleTipo = filtroTipo === 'todos' || 
-      transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
-    
-    let cumpleFecha = true;
-    if (fechaInicio || fechaFin) {
-      const fechaVenta = new Date(transaccion.fecha_venta);
+    const filtradas = ventas.filter(transaccion => {
+      // Si no hay items, no mostrar la transacción
+      if (!transaccion.venta_items || transaccion.venta_items.length === 0) return false;
       
-      if (fechaInicio) {
-        const fechaInicioDate = new Date(fechaInicio);
-        cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
+      const cumpleTipo = filtroTipo === 'todos' || 
+        transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
+      
+      let cumpleFecha = true;
+      if (fechaInicio || fechaFin) {
+        const fechaVenta = new Date(transaccion.fecha_venta);
+        
+        if (fechaInicio) {
+          const fechaInicioDate = new Date(fechaInicio);
+          cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
+        }
+        
+        if (fechaFin) {
+          const fechaFinDate = new Date(fechaFin);
+          fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
+          cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
+        }
       }
       
-      if (fechaFin) {
-        const fechaFinDate = new Date(fechaFin);
-        fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
-        cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
-      }
+      return cumpleTipo && cumpleFecha;
+    });
+
+    // Limitar resultados para evitar problemas de rendimiento
+    const MAX_RESULTS = 300; // Más conservador aún
+    const limitadas = filtradas.slice(0, MAX_RESULTS);
+    
+    console.log(`📊 Ventas filtradas: ${filtradas.length} de ${ventas.length} total, mostrando: ${limitadas.length}`);
+    
+    if (filtradas.length > MAX_RESULTS) {
+      console.warn(`⚠️ Mostrando solo ${MAX_RESULTS} de ${filtradas.length} transacciones para mantener rendimiento`);
     }
-    
-    return cumpleTipo && cumpleFecha;
-  });
+
+    return { 
+      ventasFiltradas: filtradas, 
+      ventasLimitadas: limitadas, 
+      MAX_RESULTS 
+    };
+  }, [ventas, filtroTipo, fechaInicio, fechaFin])
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -331,13 +353,34 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             Último mes
           </button>
           <button
-            onClick={() => {
-              setFechaInicio('');
-              setFechaFin('');
+            onClick={async () => {
+              if (procesandoFiltros) return; // Prevenir clics múltiples
+              
+              console.log('🔍 Botón "Todos los períodos" clickeado');
+              setProcesandoFiltros(true);
+              
+              try {
+                // Pequeño delay para dar tiempo al estado de actualizar
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                setFechaInicio('');
+                setFechaFin('');
+                console.log('📅 Filtros de fecha limpiados - sidebar debe permanecer visible');
+                
+                // Otro pequeño delay para completar el filtrado
+                await new Promise(resolve => setTimeout(resolve, 100));
+              } finally {
+                setProcesandoFiltros(false);
+              }
             }}
-            className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
+            disabled={procesandoFiltros}
+            className={`px-3 py-1 rounded text-sm transition-colors ${
+              procesandoFiltros 
+                ? 'bg-slate-300 text-slate-500 cursor-not-allowed' 
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
           >
-            Todos los períodos
+            {procesandoFiltros ? 'Cargando...' : 'Todos los períodos'}
           </button>
         </div>
       </div>
@@ -349,7 +392,10 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
         <div className="bg-white rounded border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
             <h3 className="text-lg font-semibold text-slate-800">
-              {ventasFiltradas.length} transacciones encontradas
+              {ventasFiltradas.length > MAX_RESULTS 
+                ? `${ventasLimitadas.length} de ${ventasFiltradas.length} transacciones (limitado por rendimiento)`
+                : `${ventasFiltradas.length} transacciones encontradas`
+              }
             </h3>
           </div>
           
@@ -369,7 +415,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
-                {ventasFiltradas.map((transaccion) => (
+                {ventasLimitadas.map((transaccion) => (
                   <React.Fragment key={transaccion.id}>
                     <tr className="hover:bg-slate-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
@@ -401,9 +447,29 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         {formatearMoneda(transaccion.total_venta)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <CreditCard className="w-4 h-4 text-slate-600" />
-                          <span className="text-sm text-slate-800 capitalize">{transaccion.metodo_pago}</span>
+                        <div className="flex flex-col space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <CreditCard className="w-4 h-4 text-slate-600" />
+                            <span className="text-sm text-slate-800 capitalize">
+                              {transaccion.metodo_pago.replace(/_/g, ' ')}
+                            </span>
+                            {transaccion.monto_pago_1 && (
+                              <span className="text-xs text-slate-500">
+                                ({formatearMoneda(transaccion.monto_pago_1)})
+                              </span>
+                            )}
+                          </div>
+                          {transaccion.metodo_pago_2 && transaccion.monto_pago_2 > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <CreditCard className="w-4 h-4 text-slate-400" />
+                              <span className="text-sm text-slate-600 capitalize">
+                                {transaccion.metodo_pago_2.replace(/_/g, ' ')}
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                ({formatearMoneda(transaccion.monto_pago_2)})
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
