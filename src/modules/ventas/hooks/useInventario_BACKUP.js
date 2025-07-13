@@ -1,6 +1,6 @@
 // src/lib/inventario.js - Service + Hook completo ACTUALIZADO
+import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { useSupabaseEntity } from '../../../shared/hooks/useSupabaseEntity';
 
 // 📊 SERVICE: Operaciones de inventario de computadoras
 export const inventarioService = {
@@ -347,213 +347,125 @@ export const inventarioService = {
   }
 };
 
-// 🎣 HOOK: Lógica de React para inventario - REFACTORIZADO con useSupabaseEntity
-
+// 🎣 HOOK: Lógica de React para inventario
 export function useInventario() {
-  // Usar el hook genérico con configuración específica para inventario
-  const {
-    data: computers,
-    loading,
-    error,
-    fetchAll: fetchComputers,
-    create: addComputer,
-    update: updateComputer,
-    remove: deleteComputer,
-    setData: setComputers,
-    setError,
-    clearError,
-    customQuery
-  } = useSupabaseEntity('inventario', {
-    // Configuración específica para inventario
-    defaultFilters: { 
-      disponible: true 
-    },
-    defaultOrderBy: 'created_at',
-    defaultOrder: 'desc',
+  const [computers, setComputers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchComputers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await inventarioService.getAll()
+      setComputers(data)
+    } catch (err) {
+      console.error('Error en useInventario:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addComputer = async (computer) => {
+    try {
+      setError(null)
+      const newComputer = await inventarioService.create(computer)
+      setComputers(prev => [newComputer, ...prev])
+      return newComputer
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const updateComputer = async (id, updates) => {
+    console.log(`🔄 Hook: Actualizando computadora ID: ${id}`, updates);
     
-    // Transformaciones específicas para inventario
-    transformOnCreate: (data) => ({
-      ...data,
-      // Asegurar tipos correctos
-      precio_costo_usd: parseFloat(data.precio_costo_usd) || 0,
-      envios_repuestos: parseFloat(data.envios_repuestos) || 0,
-      precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
-      // Validaciones
-      sucursal: data.sucursal || 'la_plata',
-      condicion: data.condicion || 'usado',
-      slots: data.slots || '2',
-      tipo_ram: data.tipo_ram || 'DDR4',
-      so: data.so || 'WIN11',
-      resolucion: data.resolucion || 'FHD',
-      teclado_retro: data.teclado_retro || 'SI',
-      idioma_teclado: data.idioma_teclado || 'Español',
-      garantia_update: data.garantia_update || '6 meses',
-      fallas: data.fallas || 'Ninguna',
-      disponible: data.disponible !== false,
-      ingreso: data.ingreso || new Date().toISOString().split('T')[0],
-      touchscreen: data.touchscreen || false
-    }),
-    
-    transformOnUpdate: (data) => ({
-      ...data,
-      // Validar y convertir números si vienen en updates
-      precio_costo_usd: data.precio_costo_usd !== undefined ? parseFloat(data.precio_costo_usd) || 0 : undefined,
-      envios_repuestos: data.envios_repuestos !== undefined ? parseFloat(data.envios_repuestos) || 0 : undefined,
-      precio_venta_usd: data.precio_venta_usd !== undefined ? parseFloat(data.precio_venta_usd) || 0 : undefined,
-      touchscreen: data.touchscreen !== undefined ? Boolean(data.touchscreen) : undefined,
-    }),
-    
-    // Callbacks específicos
-    onBeforeCreate: async (data) => {
-      // Validaciones básicas
-      if (!data.serial?.trim()) {
-        throw new Error('El número de serie es obligatorio');
-      }
-      
-      if (!data.modelo?.trim()) {
-        throw new Error('El modelo es obligatorio');
-      }
-      
-      // Validar que no exista el serial
-      const existing = await inventarioService.findBySerial(data.serial.trim());
-      if (existing) {
-        throw new Error(`Ya existe una computadora con serial: ${data.serial}`);
-      }
-      
-      return {
-        ...data,
-        serial: data.serial.trim(),
-        modelo: data.modelo.trim(),
-        marca: data.marca || ''
-      };
-    },
-    
-    onAfterCreate: (createdItem) => {
-      console.log('✅ Computadora creada exitosamente:', createdItem.serial);
-    },
-    
-    onBeforeUpdate: (id, data) => {
-      console.log(`🔄 Actualizando computadora ID: ${id}`, data);
+    try {
+      setError(null)
       
       // Validar parámetros
       if (!id) {
         throw new Error('ID de computadora es requerido');
       }
       
-      if (!data || typeof data !== 'object') {
+      if (!updates || typeof updates !== 'object') {
         throw new Error('Datos de actualización son requeridos');
       }
       
-      // No incluir precio_costo_total ya que se calcula automáticamente
-      const cleanData = { ...data };
-      delete cleanData.precio_costo_total;
+      const updated = await inventarioService.update(id, updates)
       
-      return cleanData;
-    },
-    
-    onAfterUpdate: (updatedItem) => {
-      console.log('✅ Computadora actualizada exitosamente:', updatedItem.serial);
-    },
-    
-    onAfterDelete: (id) => {
-      console.log('✅ Computadora eliminada ID:', id);
+      // Actualizar el estado local
+      setComputers(prev => prev.map(comp => 
+        comp.id === id ? { ...comp, ...updated } : comp
+      ))
+      
+      console.log('✅ Hook: Computadora actualizada exitosamente');
+      return updated
+    } catch (err) {
+      console.error('❌ Hook: Error actualizando computadora:', err);
+      setError(err.message)
+      throw err
     }
-  });
+  }
 
-  // Funciones específicas adicionales que usan inventarioService
+  const deleteComputer = async (id) => {
+    try {
+      setError(null)
+      await inventarioService.delete(id)
+      setComputers(prev => prev.filter(comp => comp.id !== id))
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  // Nuevas funciones del hook
   const getComputersBySucursal = async (sucursal) => {
     try {
-      clearError();
-      const data = await inventarioService.getBySucursal(sucursal);
-      return data;
+      setError(null)
+      const data = await inventarioService.getBySucursal(sucursal)
+      return data
     } catch (err) {
-      setError(err.message);
-      throw err;
+      setError(err.message)
+      throw err
     }
-  };
+  }
 
   const getEstadisticas = async () => {
     try {
-      clearError();
-      const stats = await inventarioService.getEstadisticas();
-      return stats;
+      setError(null)
+      const stats = await inventarioService.getEstadisticas()
+      return stats
     } catch (err) {
-      setError(err.message);
-      throw err;
+      setError(err.message)
+      throw err
     }
-  };
+  }
 
   const marcarComoVendida = async (id) => {
     try {
-      clearError();
-      const updated = await inventarioService.marcarComoVendida(id);
-      setComputers(prev => prev.filter(comp => comp.id !== id));
-      return updated;
+      setError(null)
+      const updated = await inventarioService.marcarComoVendida(id)
+      setComputers(prev => prev.filter(comp => comp.id !== id))
+      return updated
     } catch (err) {
-      setError(err.message);
-      throw err;
+      setError(err.message)
+      throw err
     }
-  };
+  }
 
-  // Funciones que usan customQuery para operaciones avanzadas
-  const getByCondicion = async (condicion) => {
-    try {
-      clearError();
-      return await customQuery((query) => 
-        query
-          .select('*')
-          .eq('condicion', condicion)
-          .eq('disponible', true)
-          .order('created_at', { ascending: false })
-      );
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const getByProcesador = async (procesador) => {
-    try {
-      clearError();
-      return await customQuery((query) => 
-        query
-          .select('*')
-          .ilike('procesador', `%${procesador}%`)
-          .eq('disponible', true)
-          .order('created_at', { ascending: false })
-      );
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  // Mantener la misma API que el hook original para compatibilidad
   return {
-    // Estados (nombres mapeados para compatibilidad)
     computers,
     loading,
     error,
-    
-    // Operaciones básicas (nombres mapeados)
     fetchComputers,
     addComputer,
     updateComputer,
     deleteComputer,
-    
-    // Funciones específicas originales
     getComputersBySucursal,
     getEstadisticas,
-    marcarComoVendida,
-    
-    // Funciones adicionales que usaban inventarioService
-    getByCondicion,
-    getByProcesador,
-    
-    // Utilidades adicionales del hook genérico
-    setComputers,
-    setError,
-    clearError,
-    customQuery
-  };
+    marcarComoVendida
+  }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, BookOpen } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para el Plan de Cuentas conectado a Supabase
 const planCuentasService = {
@@ -377,12 +378,7 @@ const PlanCuentasSection = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Cargando plan de cuentas...</span>
-      </div>
-    );
+    return <LoadingSpinner text="Cargando plan de cuentas..." size="medium" />;
   }
 
   return (

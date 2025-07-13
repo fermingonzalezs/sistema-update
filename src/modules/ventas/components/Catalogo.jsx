@@ -2,16 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, Filter, ChevronDown } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
-import OtrosModal from './OtrosModal';
-import NotebooksModal from './NotebooksModal';
-import CelularesModal from './CelularesModal';
+import ProductModal from '../../../shared/components/base/ProductModal';
 
-// Función para formatear precios en USD sin decimales con prefijo U$
-
-  const formatPriceUSD = (price) => {
-  const numPrice = parseFloat(price) || 0;
-  return `U${Math.round(numPrice)}`;
-};
+// Importar formatter unificado
+import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
 
 // Función para generar copy compacto unificado
 const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
@@ -219,7 +213,7 @@ const Catalogo = ({ onAddToCart }) => {
   const generateCopy = (producto, usePesos = false) => {
     const precio = usePesos 
       ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
-      : formatPriceUSD(producto.precio_venta_usd);
+      : formatearMonedaGeneral(producto.precio_venta_usd, 'USD');
     
     const infoBase = generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar);
     return `${infoBase} - Estado: ${producto.condicion} - Precio: ${precio}`;
@@ -473,7 +467,7 @@ const Catalogo = ({ onAddToCart }) => {
               {/* Precio */}
               <div className="col-span-2">
                 <div className="text-lg font-bold text-slate-800">
-                  {formatPriceUSD(producto.precio_venta_usd)}
+                  {formatearMonedaGeneral(producto.precio_venta_usd, 'USD')}
                 </div>
                 <div className="text-xs text-slate-500">
                   ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
@@ -539,33 +533,17 @@ const Catalogo = ({ onAddToCart }) => {
         </div>
       )}
 
-      {/* Modal de detalle */}
-      {categoriaActiva === 'notebooks' && (
-        <NotebooksModal
-          isOpen={modalDetalle.open}
-          producto={modalDetalle.producto}
-          onClose={() => setModalDetalle({ open: false, producto: null })}
-          cotizacionDolar={cotizacionDolar}
-        />
-      )}
-
-      {categoriaActiva === 'celulares' && (
-        <CelularesModal
-          isOpen={modalDetalle.open}
-          producto={modalDetalle.producto}
-          onClose={() => setModalDetalle({ open: false, producto: null })}
-          cotizacionDolar={cotizacionDolar}
-        />
-      )}
-
-      {(categoriaActiva !== 'notebooks' && categoriaActiva !== 'celulares') && (
-        <OtrosModal
-          isOpen={modalDetalle.open}
-          producto={modalDetalle.producto}
-          onClose={() => setModalDetalle({ open: false, producto: null })}
-          cotizacionDolar={cotizacionDolar}
-        />
-      )}
+      {/* Modal de detalle unificado */}
+      <ProductModal
+        isOpen={modalDetalle.open}
+        producto={modalDetalle.producto}
+        onClose={() => setModalDetalle({ open: false, producto: null })}
+        cotizacionDolar={cotizacionDolar}
+        tipoProducto={
+          categoriaActiva === 'celulares' ? 'celular' :
+          categoriaActiva === 'notebooks' ? 'notebook' : 'otro'
+        }
+      />
     </div>
   );
 };

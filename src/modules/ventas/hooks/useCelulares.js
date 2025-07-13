@@ -1,180 +1,124 @@
-// src/lib/celulares.js - Service + Hook completo
-import { useState } from 'react';
+// useCelulares.js - MIGRADO A useSupabaseEntity genérico
+import { useSupabaseEntity } from '../../../shared/hooks/useSupabaseEntity';
 import { supabase } from '../../../lib/supabase';
 
 // 📊 SERVICE: Operaciones de inventario de celulares
 export const celularesService = {
-  // Obtener todos los celulares disponibles
-  async getAll() {
-    console.log('📡 Obteniendo todos los celulares...')
-    
-    const { data, error } = await supabase
-      .from('celulares')
-      .select('*')
-      .eq('disponible', true)
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('❌ Error obteniendo celulares:', error)
-      throw error
-    }
-    
-    console.log(`✅ ${data.length} celulares obtenidos`)
-    return data
-  },
-
-  // Crear nuevo celular
-  async create(celular) {
-    console.log('💾 Creando celular:', celular.serial)
-    
-    // Validar que no exista el serial
-    const existing = await this.findBySerial(celular.serial)
-    if (existing) {
-      throw new Error(`Ya existe un celular con serial: ${celular.serial}`)
-    }
-    
-    const { data, error } = await supabase
-      .from('celulares')
-      .insert([{
-        ...celular,
-        // Asegurar tipos correctos
-        precio_compra_usd: parseFloat(celular.precio_compra_usd) || 0,
-        precio_venta_usd: parseFloat(celular.precio_venta_usd) || 0,
-        ciclos: parseInt(celular.ciclos) || 0,
-        disponible: celular.disponible !== false
-      }])
-      .select()
-    
-    if (error) {
-      console.error('❌ Error creando celular:', error)
-      throw error
-    }
-    
-    console.log('✅ Celular creado exitosamente')
-    return data[0]
-  },
-
-  // Actualizar celular
-  async update(id, updates) {
-    console.log(`🔄 Actualizando celular ID: ${id}`)
-    
-    const { data, error } = await supabase
-      .from('celulares')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-    
-    if (error) {
-      console.error('❌ Error actualizando celular:', error)
-      throw error
-    }
-    
-    console.log('✅ Celular actualizado')
-    return data[0]
-  },
-
-  // Eliminar celular
-  async delete(id) {
-    console.log(`🗑️ Eliminando celular ID: ${id}`)
-    
-    const { error } = await supabase
-      .from('celulares')
-      .delete()
-      .eq('id', id)
-    
-    if (error) {
-      console.error('❌ Error eliminando celular:', error)
-      throw error
-    }
-    
-    console.log('✅ Celular eliminado')
-    return true
-  },
-
-  // Buscar por serial
+  // Mantener funciones especializadas que no están en el hook genérico
   async findBySerial(serial) {
-    const { data, error } = await supabase
+    // Esta función se mantiene porque es específica de celulares
+    const query = supabase
       .from('celulares')
       .select('*')
       .eq('serial', serial)
-      .maybeSingle()
+      .maybeSingle();
+    
+    const { data, error } = await query;
     
     if (error) {
-      console.error('❌ Error buscando celular por serial:', error)
-      throw error
+      console.error('❌ Error buscando celular por serial:', error);
+      throw error;
     }
     
-    return data
+    return data;
   }
 };
 
-// 🎣 HOOK: Lógica de React para celulares
+// 🎣 HOOK: Lógica de React para celulares - REFACTORIZADO
 export function useCelulares() {
-  const [celulares, setCelulares] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-
-  const fetchCelulares = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const data = await celularesService.getAll()
-      setCelulares(data)
-    } catch (err) {
-      console.error('Error en useCelulares:', err)
-      setError(err.message)
-    } finally {
-      setLoading(false)
+  // Usar el hook genérico con configuración específica para celulares
+  const {
+    data: celulares,
+    loading,
+    error,
+    fetchAll: fetchCelulares,
+    create: addCelular,
+    update: updateCelular,
+    remove: deleteCelular,
+    setData: setCelulares,
+    setError,
+    clearError
+  } = useSupabaseEntity('celulares', {
+    // Configuración específica para celulares
+    defaultFilters: { 
+      disponible: true 
+    },
+    defaultOrderBy: 'created_at',
+    defaultOrder: 'desc',
+    
+    // Transformaciones específicas para celulares
+    transformOnCreate: (data) => ({
+      ...data,
+      // Asegurar tipos correctos
+      precio_compra_usd: parseFloat(data.precio_compra_usd) || 0,
+      precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
+      ciclos: parseInt(data.ciclos) || 0,
+      disponible: data.disponible !== false
+    }),
+    
+    transformOnUpdate: (data) => ({
+      ...data,
+      // Validaciones específicas en updates
+      precio_compra_usd: data.precio_compra_usd ? parseFloat(data.precio_compra_usd) : undefined,
+      precio_venta_usd: data.precio_venta_usd ? parseFloat(data.precio_venta_usd) : undefined,
+      ciclos: data.ciclos ? parseInt(data.ciclos) : undefined
+    }),
+    
+    // Callbacks específicos
+    onBeforeCreate: async (data) => {
+      // Validar que no exista el serial
+      if (data.serial) {
+        const existing = await celularesService.findBySerial(data.serial);
+        if (existing) {
+          throw new Error(`Ya existe un celular con serial: ${data.serial}`);
+        }
+      }
+      return data;
+    },
+    
+    onAfterCreate: (createdItem) => {
+      console.log('✅ Celular creado exitosamente:', createdItem.serial);
+    },
+    
+    onAfterUpdate: (updatedItem) => {
+      console.log('✅ Celular actualizado:', updatedItem.serial);
+    },
+    
+    onAfterDelete: (id) => {
+      console.log('✅ Celular eliminado ID:', id);
     }
-  }
+  });
 
-  const addCelular = async (celular) => {
+  // Funciones específicas adicionales que no están en el hook genérico
+  const findBySerial = async (serial) => {
     try {
-      setError(null)
-      const newCelular = await celularesService.create(celular)
-      setCelulares(prev => [newCelular, ...prev])
-      return newCelular
+      clearError();
+      return await celularesService.findBySerial(serial);
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     }
-  }
+  };
 
-  const updateCelular = async (id, updates) => {
-    try {
-      setError(null)
-      const updated = await celularesService.update(id, updates)
-      setCelulares(prev => prev.map(cel => 
-        cel.id === id ? updated : cel
-      ))
-      return updated
-    } catch (err) {
-      setError(err.message)
-      throw err
-    }
-  }
-
-  const deleteCelular = async (id) => {
-    try {
-      setError(null)
-      await celularesService.delete(id)
-      setCelulares(prev => prev.filter(cel => cel.id !== id))
-    } catch (err) {
-      setError(err.message)
-      throw err
-    }
-  }
-
+  // Mantener la misma API que el hook original para compatibilidad
   return {
+    // Estados (nombres mapeados para compatibilidad)
     celulares,
     loading,
     error,
+    
+    // Operaciones básicas (nombres mapeados)
     fetchCelulares,
     addCelular,
     updateCelular,
-    deleteCelular
-  }
+    deleteCelular,
+    
+    // Funciones específicas
+    findBySerial,
+    
+    // Utilidades adicionales del hook genérico
+    setCelulares,
+    setError,
+    clearError
+  };
 }

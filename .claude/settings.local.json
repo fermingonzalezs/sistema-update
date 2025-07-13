@@ -52,7 +52,8 @@
       "Bash(awk:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(sed:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__ESLint__lint-files"
     ],
     "deny": []
   },

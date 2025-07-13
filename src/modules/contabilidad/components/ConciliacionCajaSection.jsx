@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Conciliación de Caja
 const conciliacionCajaService = {
@@ -277,9 +278,8 @@ const ConciliacionCajaSection = () => {
 
   if (loading && !cuentaSeleccionada) {
     return (
-      <div className="p-8 flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-        <span className="ml-3 text-slate-600">Cargando cuentas de caja...</span>
+      <div className="p-8 h-96">
+        <LoadingSpinner text="Cargando cuentas de caja..." size="medium" />
       </div>
     );
   }
@@ -350,10 +350,7 @@ const ConciliacionCajaSection = () => {
           </div>
           
           {loading && (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-              <span className="ml-3 text-slate-600">Cargando datos de la cuenta...</span>
-            </div>
+            <LoadingSpinner text="Cargando datos de la cuenta..." size="medium" />
           )}
           {saldoContable && !loading && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

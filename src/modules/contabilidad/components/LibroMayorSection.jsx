@@ -3,6 +3,7 @@ import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, Refr
 import { supabase } from '../../../lib/supabase';
 import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -355,12 +356,7 @@ const LibroMayorSection = () => {
   const totalPaginas = Math.ceil((libroMayor?.movimientos?.length || 0) / movimientosPorPagina);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-        <span className="ml-3 text-slate-600">Cargando libro mayor...</span>
-      </div>
-    );
+    return <LoadingSpinner text="Cargando libro mayor..." size="medium" />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Recuento de Stock
 const recuentoStockService = {
@@ -307,12 +308,7 @@ const RecuentoStockSection = () => {
   const { diferencias, productosContados } = calcularDiferencias();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        <span className="ml-3 text-slate-600">Cargando inventario...</span>
-      </div>
-    );
+    return <LoadingSpinner text="Cargando inventario..." size="medium" />;
   }
 
   return (

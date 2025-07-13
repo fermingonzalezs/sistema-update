@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
 import { useGarantias } from '../hooks/useGarantias';
 import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/GarantiaPDF';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 const GarantiasSection = () => {
   const {
@@ -140,12 +141,7 @@ const GarantiasSection = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        <span className="ml-3 text-slate-600">Cargando garantías...</span>
-      </div>
-    );
+    return <LoadingSpinner text="Cargando garantías..." size="medium" />;
   }
 
   return (
@@ -348,7 +344,7 @@ const GarantiasSection = () => {
                       title="Ver certificado de garantía"
                     >
                       {descargando === garantia.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                        <LoadingSpinner size="small" showText={false} />
                       ) : (
                         <Eye className="w-4 h-4" />
                       )}
