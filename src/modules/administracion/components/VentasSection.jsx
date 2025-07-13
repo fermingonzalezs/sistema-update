@@ -1,95 +1,99 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, ChevronDown, ChevronRight, Download } from 'lucide-react';
-import { Eye } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
-  const [estadisticas, setEstadisticas] = useState(null);
   const [filtroTipo, setFiltroTipo] = useState('todos');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [fechaFin, setFechaFin] = useState('');
-  const [transaccionesExpandidas, setTransaccionesExpandidas] = useState(new Set());
-
-  // Establecer fechas por defecto (último mes)
-  useEffect(() => {
-    const hoy = new Date();
-    const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    
-    setFechaInicio(primerDiaMes.toISOString().split('T')[0]);
-    setFechaFin(hoy.toISOString().split('T')[0]);
-  }, []);
+  const [busqueda, setBusqueda] = useState('');
+  const [estadisticas, setEstadisticas] = useState(null);
 
   useEffect(() => {
+    console.log('useEffect ejecutado');
     if (onLoadStats) {
-      cargarEstadisticas();
+      onLoadStats().then(setEstadisticas);
     }
   }, [onLoadStats]);
 
-  const cargarEstadisticas = async () => {
-    try {
-      const stats = await onLoadStats();
-      setEstadisticas(stats);
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error);
-    }
-  };
+  // Efecto para detectar problemas de layout cuando se monta VentasSection
+  useEffect(() => {
+    console.log('🔧 VentasSection montado, verificando DOM...');
+    
+    const checkSidebarDOM = () => {
+      const sidebar = document.querySelector('[class*="sidebar"]') || 
+                    document.querySelector('[class*="w-80"]') ||
+                    document.querySelector('nav') ||
+                    document.querySelector('[class*="fixed"][class*="left-0"]');
+      
+      if (sidebar) {
+        const computedStyle = window.getComputedStyle(sidebar);
+        const width = computedStyle.width;
+        const transform = computedStyle.transform;
+        
+        console.log('🖼️ VentasSection - Sidebar DOM:', {
+          width,
+          transform,
+          classes: sidebar.className
+        });
+        
+        // Si detectamos que la sidebar se achicó, intentar resetear clases
+        if (width && parseInt(width) < 200) {
+          console.log('🚨 VentasSection - Sidebar achicada detectada, intentando corregir');
+          
+          // Forzar recálculo del layout
+          document.body.style.minWidth = '100vw';
+          setTimeout(() => {
+            document.body.style.minWidth = '';
+          }, 100);
+        }
+      }
+    };
+    
+    // Ejecutar inmediatamente y después periódicamente
+    checkSidebarDOM();
+    const interval = setInterval(checkSidebarDOM, 1000);
+    
+    return () => {
+      clearInterval(interval);
+      console.log('🔧 VentasSection desmontado, limpiando interval');
+    };
+  }, []);
 
-  const toggleTransaccion = (transaccionId) => {
-    const nuevasExpandidas = new Set(transaccionesExpandidas);
-    if (nuevasExpandidas.has(transaccionId)) {
-      nuevasExpandidas.delete(transaccionId);
-    } else {
-      nuevasExpandidas.add(transaccionId);
-    }
-    setTransaccionesExpandidas(nuevasExpandidas);
-  };
-
-  // Filtrado simple sin useMemo para evitar problemas
+  // Filtrado simple con buscador
   const ventasFiltradas = ventas.filter(transaccion => {
-    // Si no hay items, no mostrar la transacción
-    if (!transaccion.venta_items || transaccion.venta_items.length === 0) return false;
+    if (!transaccion.venta_items?.length) return false;
     
-    const cumpleTipo = filtroTipo === 'todos' || 
-      transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
-    
-    let cumpleFecha = true;
-    if (fechaInicio || fechaFin) {
-      const fechaVenta = new Date(transaccion.fecha_venta);
-      
-      if (fechaInicio) {
-        const fechaInicioDate = new Date(fechaInicio);
-        cumpleFecha = cumpleFecha && fechaVenta >= fechaInicioDate;
-      }
-      
-      if (fechaFin) {
-        const fechaFinDate = new Date(fechaFin);
-        fechaFinDate.setHours(23, 59, 59, 999); // Incluir todo el día final
-        cumpleFecha = cumpleFecha && fechaVenta <= fechaFinDate;
-      }
+    if (filtroTipo !== 'todos') {
+      const tieneProducto = transaccion.venta_items.some(item => item.tipo_producto === filtroTipo);
+      if (!tieneProducto) return false;
     }
     
-    return cumpleTipo && cumpleFecha;
+    if (busqueda.trim()) {
+      const buscar = busqueda.toLowerCase();
+      const campos = [
+        transaccion.numero_transaccion,
+        transaccion.cliente_nombre,
+        transaccion.vendedor
+      ].filter(Boolean);
+      
+      const tieneCoincidencia = campos.some(campo => 
+        campo.toLowerCase().includes(buscar)
+      );
+      
+      if (!tieneCoincidencia) return false;
+    }
+    
+    return true;
   });
 
   // Limitar resultados para evitar problemas de rendimiento
-  const MAX_RESULTS = 500; // Volver a un número razonable
+  const MAX_RESULTS = 200;
   const ventasLimitadas = ventasFiltradas.slice(0, MAX_RESULTS);
 
-  const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
-  const formatearMoneda = (valor) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(valor);
+  const formatearFechaCompleta = (fecha) => {
+    return formatearFecha(fecha);
   };
 
   const getIconoProducto = (tipo) => {
@@ -101,232 +105,96 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   };
 
-  const getProductosResumen = (items) => {
-    return items.map(item => item.modelo_producto).join(' • ');
+  const getProductosDetallados = (items) => {
+    if (!items || items.length === 0) return 'Sin productos';
+    
+    return items.map((item, index) => (
+      <div key={index} className="mb-1 last:mb-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {getIconoProducto(item.tipo_producto)}
+            <span className="font-medium text-xs">{item.modelo_producto}</span>
+          </div>
+          <span className="text-xs font-semibold text-slate-700">
+            {formatearMonto(item.precio_total, 'USD')}
+          </span>
+        </div>
+      </div>
+    ));
   };
 
-  const manejarAbrirRecibo = async (transaccion) => {
-    const resultado = await abrirReciboPDF(transaccion);
-    if (!resultado.success) {
-      alert('Error al generar el recibo: ' + resultado.error);
-    }
+  const manejarAbrirRecibo = (transaccion) => {
+    abrirReciboPDF(transaccion);
+  };
+
+  const calcularMargenPorcentaje = () => {
+    if (!estadisticas || estadisticas.totalIngresos === 0) return 0;
+    return Math.round((estadisticas.totalGanancias / estadisticas.totalIngresos) * 100);
   };
 
   return (
-    <div className="p-6 bg-slate-50">
-      {/* Header */}
-      <div className="bg-white rounded border border-slate-200 mb-6">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Registro de Ventas</h2>
-                <p className="text-slate-300 mt-1">Análisis detallado de ventas y estadísticas</p>
-              </div>
-            </div>
-            <button
-              onClick={cargarEstadisticas}
-              className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors flex items-center space-x-2"
-            >
-              Actualizar Stats
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Estadísticas generales */}
+    <div className="p-0 bg-slate-50">
+      
+      {/* Estadísticas generales usando Tarjeta */}
       {estadisticas && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-          <div className="bg-slate-800 p-6 rounded border border-slate-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-300 text-md">Total Transacciones</p>
-                <p className="text-3xl font-semibold text-white">{estadisticas.totalVentas}</p>
-              </div>
-              <div className='bg-slate-600 p-2 rounded-full'>
-                     <BarChart3 className="w-9 h-9 text-emerald-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm">Ingresos Totales</p>
-                <p className="text-2xl font-semibold text-slate-800">{formatearMoneda(estadisticas.totalIngresos)}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-emerald-600" />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm">Ganancias</p>
-                <p className="text-2xl font-semibold text-slate-800">{formatearMoneda(estadisticas.totalGanancias)}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-emerald-600" />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm">Margen Promedio</p>
-                <p className="text-2xl font-semibold text-slate-800">
-                  {estadisticas.totalVentas > 0 
-                    ? Math.round((estadisticas.totalGanancias / estadisticas.totalIngresos) * 100) + '%'
-                    : '0%'
-                  }
-                </p>
-              </div>
-              <Calendar className="w-8 h-8 text-emerald-600" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Distribución por tipo de producto */}
-      {estadisticas && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Productos Vendidos</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Monitor className="w-5 h-5 text-slate-600" />
-                  <span>Computadoras</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-semibold">{estadisticas.ventasComputadoras}</span>
-                  <div className="w-24 bg-slate-100 rounded-full h-2 mt-1">
-                    <div 
-                      className="bg-slate-600 h-2 rounded-full" 
-                      style={{
-                        width: `${estadisticas.totalVentas > 0 ? (estadisticas.ventasComputadoras / (estadisticas.ventasComputadoras + estadisticas.ventasCelulares + (estadisticas.ventasOtros || 0))) * 100 : 0}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Smartphone className="w-5 h-5 text-slate-600" />
-                  <span>Celulares</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-semibold">{estadisticas.ventasCelulares}</span>
-                  <div className="w-24 bg-slate-100 rounded-full h-2 mt-1">
-                    <div 
-                      className="bg-slate-500 h-2 rounded-full" 
-                      style={{
-                        width: `${estadisticas.totalVentas > 0 ? (estadisticas.ventasCelulares / (estadisticas.ventasComputadoras + estadisticas.ventasCelulares + (estadisticas.ventasOtros || 0))) * 100 : 0}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-              {estadisticas.ventasOtros && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Box className="w-5 h-5 text-slate-600" />
-                    <span>Otros</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold">{estadisticas.ventasOtros}</span>
-                    <div className="w-24 bg-slate-100 rounded-full h-2 mt-1">
-                      <div 
-                        className="bg-slate-400 h-2 rounded-full" 
-                        style={{
-                          width: `${estadisticas.totalVentas > 0 ? (estadisticas.ventasOtros / (estadisticas.ventasComputadoras + estadisticas.ventasCelulares + estadisticas.ventasOtros)) * 100 : 0}%`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Producto</label>
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="todos">Todos</option>
-            <option value="computadora">Computadoras</option>
-            <option value="celular">Celulares</option>
-            <option value="otro">Otros</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Inicio</label>
-          <input
-            type="date"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          <Tarjeta 
+            icon={BarChart3}
+            titulo="Total Transacciones"
+            valor={estadisticas.totalVentas}
+          />
+          <Tarjeta 
+            icon={DollarSign}
+            titulo="Ingresos Totales"
+            valor={formatearMonto(estadisticas.totalIngresos, 'USD')}
+          />
+          <Tarjeta 
+            icon={TrendingUp}
+            titulo="Ganancias"
+            valor={formatearMonto(estadisticas.totalGanancias, 'USD')}
+          />
+          <Tarjeta 
+            icon={TrendingUp}
+            titulo="Margen Promedio"
+            valor={`${calcularMargenPorcentaje()}%`}
           />
         </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Fin</label>
-          <input
-            type="date"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        {/* Botones de acceso rápido para fechas */}
-        <div className="flex flex-wrap gap-2 mt-4">
-          <button
-            onClick={() => {
-              const hoy = new Date();
-              setFechaInicio(hoy.toISOString().split('T')[0]);
-              setFechaFin(hoy.toISOString().split('T')[0]);
-            }}
-            className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
-          >
-            Hoy
-          </button>
-          <button
-            onClick={() => {
-              const hoy = new Date();
-              const unaSemanaAtras = new Date(hoy);
-              unaSemanaAtras.setDate(hoy.getDate() - 7);
-              setFechaInicio(unaSemanaAtras.toISOString().split('T')[0]);
-              setFechaFin(hoy.toISOString().split('T')[0]);
-            }}
-            className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
-          >
-            Última semana
-          </button>
-          <button
-            onClick={() => {
-              const hoy = new Date();
-              const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-              setFechaInicio(primerDiaMes.toISOString().split('T')[0]);
-              setFechaFin(hoy.toISOString().split('T')[0]);
-            }}
-            className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200 transition-colors"
-          >
-            Este mes
-          </button>
+      )}
+      
+      {/* Filtros y Búsqueda */}
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Producto</label>
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="todos">Todos los productos</option>
+              <option value="computadora">Computadoras</option>
+              <option value="celular">Celulares</option>
+              <option value="otro">Otros</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por transacción, cliente, vendedor..."
+                className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tabla de transacciones */}
+      {/* Tabla de transacciones - VERSIÓN SIMPLE */}
       {loading && <p className="text-slate-600">Cargando ventas...</p>}
       {error && <p className="text-slate-600">Error: {error}</p>}
       {!loading && !error && (
@@ -350,139 +218,60 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Cliente</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Método Pago</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Margen</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {ventasLimitadas.map((transaccion) => (
-                  <React.Fragment key={transaccion.id}>
-                    <tr className="hover:bg-slate-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
-                        {formatearFecha(transaccion.fecha_venta)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
-                        {transaccion.numero_transaccion}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-800 max-w-xs">
-                        <div className="truncate" title={getProductosResumen(transaccion.venta_items || [])}>
-                          {getProductosResumen(transaccion.venta_items || [])}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {transaccion.venta_items?.length || 0} items
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-slate-600" />
-                          <div>
-                            <div className="text-sm font-medium text-slate-800">{transaccion.cliente_nombre}</div>
-                            {transaccion.cliente_email && (
-                              <div className="text-sm text-slate-500">{transaccion.cliente_email}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
-                        {formatearMoneda(transaccion.total_venta)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <CreditCard className="w-4 h-4 text-slate-600" />
-                            <span className="text-sm text-slate-800 capitalize">
-                              {transaccion.metodo_pago.replace(/_/g, ' ')}
-                            </span>
-                            {transaccion.monto_pago_1 && (
-                              <span className="text-xs text-slate-500">
-                                ({formatearMoneda(transaccion.monto_pago_1)})
-                              </span>
-                            )}
-                          </div>
-                          {transaccion.metodo_pago_2 && transaccion.monto_pago_2 > 0 && (
-                            <div className="flex items-center space-x-2">
-                              <CreditCard className="w-4 h-4 text-slate-400" />
-                              <span className="text-sm text-slate-600 capitalize">
-                                {transaccion.metodo_pago_2.replace(/_/g, ' ')}
-                              </span>
-                              <span className="text-xs text-slate-500">
-                                ({formatearMoneda(transaccion.monto_pago_2)})
-                              </span>
-                            </div>
+                  <tr key={transaccion.id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
+                      {formatearFechaCompleta(transaccion.fecha_venta)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
+                      {transaccion.numero_transaccion}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-800 max-w-sm">
+                      <div className="space-y-1">
+                        {getProductosDetallados(transaccion.venta_items || [])}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4 text-slate-600" />
+                        <div>
+                          <div className="text-sm font-medium text-slate-800">{transaccion.cliente_nombre}</div>
+                          {transaccion.cliente_email && (
+                            <div className="text-sm text-slate-500">{transaccion.cliente_email}</div>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-medium ${
-                          transaccion.margen_total >= 0 ? 'text-slate-800' : 'text-slate-600'
-                        }`}>
-                          {formatearMoneda(transaccion.margen_total)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
+                      {formatearMonto(transaccion.total_venta, 'USD')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="w-4 h-4 text-slate-600" />
+                        <span className="text-sm text-slate-800 capitalize">
+                          {transaccion.metodo_pago.replace(/_/g, ' ')}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
-                        {transaccion.vendedor || '-'}
-                        {transaccion.sucursal && (
-                          <div className="text-xs text-slate-500">{transaccion.sucursal.replace('_', ' ').toUpperCase()}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => toggleTransaccion(transaccion.id)}
-                            className="text-slate-600 hover:text-slate-800 flex items-center space-x-1"
-                          >
-                            {transaccionesExpandidas.has(transaccion.id) ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                            <span>Ver</span>
-                          </button>
-                          <button
-                            onClick={() => manejarAbrirRecibo(transaccion)}
-                            className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
-                            title="Ver recibo"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span className="text-xs">Recibo</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    
-                    {/* Fila expandida con detalles de productos */}
-                    {transaccionesExpandidas.has(transaccion.id) && (
-                      <tr>
-                        <td colSpan="9" className="px-6 py-4 bg-slate-100">
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-slate-700 mb-3">Productos vendidos:</h4>
-                            <div className="grid gap-2">
-                              {transaccion.venta_items?.map((item, index) => (
-                                <div key={index} className="flex items-center justify-between bg-white p-3 rounded border border-slate-200">
-                                  <div className="flex items-center space-x-3">
-                                    {getIconoProducto(item.tipo_producto)}
-                                    <div>
-                                      <span className="font-medium">{item.modelo_producto}</span>
-                                      <div className="text-sm text-slate-500">
-                                        Serial: {item.serial_producto} • Cantidad: {item.cantidad}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="font-medium text-slate-800">{formatearMoneda(item.precio_total)}</div>
-                                    <div className="text-sm text-slate-500">
-                                      {formatearMoneda(item.precio_unitario)} x {item.cantidad}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
+                      {transaccion.vendedor || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={() => manejarAbrirRecibo(transaccion)}
+                        className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
+                        title="Ver recibo"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs">Recibo</span>
+                      </button>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
