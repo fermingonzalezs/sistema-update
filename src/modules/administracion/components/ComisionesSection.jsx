@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, User, DollarSign, Calendar, Settings, TrendingUp, Edit2, Save, X, FileText, Monitor, Smartphone, Box } from 'lucide-react';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { formatearMonto } from '../../../shared/utils/formatters';
+import { useVendedores } from '../../ventas/hooks/useVendedores';
 
 const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
+  const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [vendedorSeleccionado, setVendedorSeleccionado] = useState('todos');
@@ -24,14 +28,17 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     totalVentas: 0
   });
 
-  // Establecer fechas por defecto al cargar
+  // Establecer fechas por defecto al cargar y cargar vendedores
   useEffect(() => {
     const hoy = new Date();
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     
     setFechaFin(hoy.toISOString().split('T')[0]);
     setFechaInicio(inicioMes.toISOString().split('T')[0]);
-  }, []);
+    
+    // Cargar vendedores de la base de datos
+    fetchVendedores();
+  }, [fetchVendedores]);
 
   // Calcular comisiones cuando cambien los filtros
   useEffect(() => {
@@ -40,13 +47,9 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   }, [fechaInicio, fechaFin, vendedorSeleccionado, porcentajes, ventas]);
 
-  // Obtener lista única de vendedores
+  // Obtener lista de vendedores de la base de datos
   const getVendedores = () => {
-    const vendedores = [...new Set(ventas
-      .filter(venta => venta.vendedor && venta.vendedor.trim() !== '')
-      .map(venta => venta.vendedor)
-    )];
-    return vendedores.sort();
+    return vendedores.map(v => `${v.nombre} ${v.apellido}`).sort();
   };
 
   // Filtrar ventas según criterios
@@ -176,12 +179,6 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   }, []);
 
-  const formatearMoneda = (valor) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(valor);
-  };
 
   const getIconoCategoria = (categoria) => {
     switch (categoria) {
@@ -206,21 +203,8 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   };
 
   return (
-    <div className="p-6 bg-slate-50">
-      {/* Header */}
-      <div className="bg-white rounded border border-slate-200 mb-6">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Calculator className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Comisiones</h2>
-                <p className="text-slate-300 mt-1">Cálculo y resumen de comisiones por ventas</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="p-0 bg-slate-50">
+      
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded border border-slate-200 mb-6">
@@ -351,44 +335,28 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
         </div>
       </div>
 
-      {/* Resumen General */}
+      {/* Resumen General usando Tarjeta */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-600 text-sm">Total Comisiones</p>
-              <p className="text-2xl font-semibold text-slate-800">{formatearMoneda(resumenGeneral.totalComisiones)}</p>
-            </div>
-            <Calculator className="w-8 h-8 text-emerald-600" />
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-600 text-sm">Total Ganancias</p>
-              <p className="text-2xl font-semibold text-slate-800">{formatearMoneda(resumenGeneral.totalGanancias)}</p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-emerald-600" />
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-600 text-sm">% Representación</p>
-              <p className="text-2xl font-semibold text-slate-800">{resumenGeneral.porcentajeRepresentacion.toFixed(1)}%</p>
-            </div>
-            <Settings className="w-8 h-8 text-emerald-600" />
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-600 text-sm">Total Ventas</p>
-              <p className="text-2xl font-semibold text-slate-800">{formatearMoneda(resumenGeneral.totalVentas)}</p>
-            </div>
-            <FileText className="w-8 h-8 text-emerald-600" />
-          </div>
-        </div>
+        <Tarjeta 
+          icon={Calculator}
+          titulo="Total Comisiones"
+          valor={formatearMonto(resumenGeneral.totalComisiones, 'USD')}
+        />
+        <Tarjeta 
+          icon={TrendingUp}
+          titulo="Total Ganancias"
+          valor={formatearMonto(resumenGeneral.totalGanancias, 'USD')}
+        />
+        <Tarjeta 
+          icon={Settings}
+          titulo="% Representación"
+          valor={`${resumenGeneral.porcentajeRepresentacion.toFixed(1)}%`}
+        />
+        <Tarjeta 
+          icon={FileText}
+          titulo="Total Ventas"
+          valor={formatearMonto(resumenGeneral.totalVentas, 'USD')}
+        />
       </div>
 
       {/* Tabla de Comisiones por Vendedor */}
@@ -433,7 +401,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-900 font-medium">
-                          {formatearMoneda(vendedorData.categorias.computadora_nuevo.comision)}
+                          {formatearMonto(vendedorData.categorias.computadora_nuevo.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.computadora_nuevo.unidades} u.
@@ -445,7 +413,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-800 font-medium">
-                          {formatearMoneda(vendedorData.categorias.computadora_usado.comision)}
+                          {formatearMonto(vendedorData.categorias.computadora_usado.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.computadora_usado.unidades} u.
@@ -457,7 +425,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-900 font-medium">
-                          {formatearMoneda(vendedorData.categorias.celular_nuevo.comision)}
+                          {formatearMonto(vendedorData.categorias.celular_nuevo.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.celular_nuevo.unidades} u.
@@ -469,7 +437,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-800 font-medium">
-                          {formatearMoneda(vendedorData.categorias.celular_usado.comision)}
+                          {formatearMonto(vendedorData.categorias.celular_usado.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.celular_usado.unidades} u.
@@ -481,7 +449,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-600 font-medium">
-                          {formatearMoneda(vendedorData.categorias.otro.comision)}
+                          {formatearMonto(vendedorData.categorias.otro.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.otro.unidades} u.
@@ -493,10 +461,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="font-bold text-slate-900">
-                          {formatearMoneda(vendedorData.totales.comision)}
+                          {formatearMonto(vendedorData.totales.comision, 'USD')}
                         </div>
                         <div className="text-xs text-slate-500">
-                          Ventas: {formatearMoneda(vendedorData.totales.ventas)}
+                          Ventas: {formatearMonto(vendedorData.totales.ventas, 'USD')}
                         </div>
                       </div>
                     </td>

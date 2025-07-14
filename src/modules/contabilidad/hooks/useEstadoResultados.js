@@ -1,6 +1,51 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 
+// Función para construir la jerarquía de cuentas
+const buildHierarchy = (cuentas) => {
+  const cuentasMap = {};
+  const cuentasRaiz = [];
+
+  // Primera pasada: crear mapa y encontrar raíces
+  Object.values(cuentas).forEach(cuenta => {
+    cuentasMap[cuenta.cuenta.id] = { ...cuenta, children: [] };
+  });
+
+  // Segunda pasada: construir la jerarquía
+  Object.values(cuentasMap).forEach(cuenta => {
+    const codigo = cuenta.cuenta.codigo;
+    const partes = codigo.split('.');
+    
+    if (partes.length > 1) {
+      partes.pop();
+      const codigoPadre = partes.join('.');
+      const padre = Object.values(cuentasMap).find(c => c.cuenta.codigo === codigoPadre);
+      
+      if (padre) {
+        padre.children.push(cuenta);
+      } else {
+        cuentasRaiz.push(cuenta);
+      }
+    } else {
+      cuentasRaiz.push(cuenta);
+    }
+  });
+
+  // Función para sumarizar montos de hijos a padres
+  const sumarizarMontos = (cuenta) => {
+    if (cuenta.children.length === 0) {
+      return cuenta.monto;
+    }
+    const montoHijos = cuenta.children.reduce((sum, hijo) => sum + sumarizarMontos(hijo), 0);
+    cuenta.monto += montoHijos;
+    return cuenta.monto;
+  };
+
+  cuentasRaiz.forEach(sumarizarMontos);
+
+  return cuentasRaiz;
+};
+
 // Servicio para Estado de Resultados
 export const estadoResultadosService = {
   async getEstadoResultados(fechaDesde, fechaHasta) {
@@ -58,57 +103,46 @@ export const estadoResultadosService = {
       const resultado = {
         ingresos: {},
         gastos: {},
-        totalIngresos: 0,
-        totalGastos: 0,
-        utilidadBruta: 0,
-        utilidadNeta: 0
       };
 
       movimientos.forEach(mov => {
         const cuenta = mov.plan_cuentas;
         if (!cuenta) return;
 
-        // Para ingresos: haber aumenta, debe disminuye
-        // Para gastos: debe aumenta, haber disminuye
         const debe = parseFloat(mov.debe || 0);
         const haber = parseFloat(mov.haber || 0);
 
         if (cuenta.tipo_cuenta === 'Ingresos') {
-          const monto = haber - debe; // Ingresos netos
-          
+          const monto = haber - debe;
           if (!resultado.ingresos[cuenta.id]) {
-            resultado.ingresos[cuenta.id] = {
-              cuenta: cuenta,
-              monto: 0
-            };
+            resultado.ingresos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.ingresos[cuenta.id].monto += monto;
-          resultado.totalIngresos += monto;
-          
         } else if (cuenta.tipo_cuenta === 'Gastos') {
-          const monto = debe - haber; // Gastos netos
-          
+          const monto = debe - haber;
           if (!resultado.gastos[cuenta.id]) {
-            resultado.gastos[cuenta.id] = {
-              cuenta: cuenta,
-              monto: 0
-            };
+            resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.gastos[cuenta.id].monto += monto;
-          resultado.totalGastos += monto;
         }
       });
 
-      resultado.utilidadBruta = resultado.totalIngresos - resultado.totalGastos;
-      resultado.utilidadNeta = resultado.utilidadBruta;
+      const ingresosJerarquizados = buildHierarchy(resultado.ingresos);
+      const gastosJerarquizados = buildHierarchy(resultado.gastos);
 
-      console.log('✅ Estado de resultados calculado', {
-        ingresos: resultado.totalIngresos,
-        gastos: resultado.totalGastos,
-        utilidad: resultado.utilidadNeta
-      });
+      const totalIngresos = ingresosJerarquizados.reduce((sum, c) => sum + c.monto, 0);
+      const totalGastos = gastosJerarquizados.reduce((sum, c) => sum + c.monto, 0);
+      const utilidadNeta = totalIngresos - totalGastos;
+
+      console.log('✅ Estado de resultados calculado');
       
-      return resultado;
+      return {
+        ingresos: ingresosJerarquizados,
+        gastos: gastosJerarquizados,
+        totalIngresos,
+        totalGastos,
+        utilidadNeta
+      };
 
     } catch (error) {
       console.error('❌ Error obteniendo estado de resultados:', error);
@@ -148,8 +182,8 @@ export const estadoResultadosService = {
 // Hook personalizado
 export function useEstadoResultados() {
   const [estadoResultados, setEstadoResultados] = useState({
-    ingresos: {},
-    gastos: {},
+    ingresos: [],
+    gastos: [],
     totalIngresos: 0,
     totalGastos: 0,
     utilidadBruta: 0,

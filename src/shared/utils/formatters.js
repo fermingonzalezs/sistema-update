@@ -79,11 +79,58 @@ export const esMonedaUSD = (cuenta, monto, contexto = 'general') => {
   return true;
 };
 
+/**
+ * Formatea montos con símbolo de moneda usando Intl.NumberFormat
+ * Unifica el formateo de toda la aplicación
+ */
+export const formatearMonto = (monto, moneda = 'USD', mostrarSimbolo = true) => {
+  if (!monto && monto !== 0) return mostrarSimbolo ? (moneda === 'USD' ? 'U$0' : '$0') : '0';
+  
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  
+  const montoFormateado = formatter.format(Math.abs(monto));
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  
+  if (!mostrarSimbolo) return montoFormateado;
+  
+  return `${simbolo}${montoFormateado}`;
+};
+
+/**
+ * Formatea montos con decimales para reportes y cálculos precisos
+ */
+export const formatearMontoCompleto = (monto, moneda = 'USD') => {
+  if (!monto && monto !== 0) return moneda === 'USD' ? 'U$0.0000' : '$0.00';
+  
+  const decimales = moneda === 'USD' ? 4 : 2;
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales
+  });
+  
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  return `${simbolo}${formatter.format(monto)}`;
+};
+
+/**
+ * Valida que un monto sea numérico y positivo
+ */
+export const validarMonto = (monto) => {
+  const numero = parseFloat(monto);
+  return !isNaN(numero) && numero >= 0;
+};
+
 export default {
   formatearMonedaLibroDiario,
   formatearMonedaGeneral,
   formatearNumeroReporte,
   formatearFecha,
   formatearFechaInput,
-  esMonedaUSD
+  esMonedaUSD,
+  formatearMonto,
+  formatearMontoCompleto,
+  validarMonto
 };

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
-import { conversionService } from '../../../services/conversionService';
-import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
+import { prepararMovimientoContable, validarBalanceUSD } from '../../../shared/utils/currency';
+import { formatearMonto } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para el Libro Diario
@@ -98,7 +99,6 @@ const libroDiarioService = {
         descripcion: asientoData.descripcion,
         total_debe: totalDebe,
         total_haber: totalHaber,
-        estado: 'registrado',
         usuario: 'admin'
       };
       
@@ -124,16 +124,15 @@ const libroDiarioService = {
           haber: parseFloat(mov.haber || 0)
         };
         
-        // Solo agregar campos de conversión si están disponibles
-        if (mov.cotizacion_manual !== undefined) {
-          movimientoBasico.cotizacion_manual = mov.cotizacion_manual;
-        }
-        if (mov.monto_original_ars !== undefined) {
+        // Solo agregar campos de conversión si AMBOS están disponibles (constraint check)
+        if (mov.monto_original_ars !== undefined && mov.cotizacion_manual !== undefined) {
           movimientoBasico.monto_original_ars = mov.monto_original_ars;
+          movimientoBasico.cotizacion_manual = mov.cotizacion_manual;
+          if (mov.observaciones_cambio !== undefined) {
+            movimientoBasico.observaciones_cambio = mov.observaciones_cambio;
+          }
         }
-        if (mov.observaciones_cambio !== undefined) {
-          movimientoBasico.observaciones_cambio = mov.observaciones_cambio;
-        }
+        // Si alguno está pero no ambos, no agregar ninguno (cumplir constraint)
         
         return movimientoBasico;
       });
@@ -430,7 +429,7 @@ const LibroDiarioSection = () => {
         .filter(mov => mov.cuenta && mov.monto > 0)
         .map(mov => {
           try {
-            return conversionService.prepararMovimiento(mov, mov.cuenta);
+            return prepararMovimientoContable(mov, mov.cuenta, mov.cotizacion);
           } catch (error) {
               console.warn('⚠️ Error al convertir movimiento:', error.message);
             return { debe: 0, haber: 0 };
@@ -500,21 +499,28 @@ const LibroDiarioSection = () => {
         return;
       }
 
-      // Usar el servicio de conversión para validar y convertir
-      const resultado = await conversionService.convertirAsientoAUSD(formData);
-      
-      if (!resultado.balanceado) {
-        alert(`El asiento no está balanceado en USD:\nDebe: $${resultado.totalDebeUSD.toFixed(2)}\nHaber: $${resultado.totalHaberUSD.toFixed(2)}`);
+      // Usar los totales ya calculados y disponibles en el scope
+      if (!totales.balanceado) {
+        alert(`El asiento no está balanceado en USD:\nDebe: ${totales.totalDebe.toFixed(2)}\nHaber: ${totales.totalHaber.toFixed(2)}`);
         return;
       }
+
+      // Calcular cotización promedio de los movimientos que la tengan
+      const cotizaciones = totales.movimientosConvertidos
+        .map(m => m.cotizacion_manual)
+        .filter(c => c && c > 0);
+      
+      const cotizacionPromedio = cotizaciones.length > 0
+        ? cotizaciones.reduce((a, b) => a + b, 0) / cotizaciones.length
+        : null;
 
       // Crear el asiento usando el servicio actualizado
       await crearAsiento({
         ...formData,
-        movimientosConvertidos: resultado.movimientosConvertidos,
-        totalDebeUSD: resultado.totalDebeUSD,
-        totalHaberUSD: resultado.totalHaberUSD,
-        cotizacionPromedio: resultado.cotizacionPromedio
+        movimientosConvertidos: totales.movimientosConvertidos,
+        totalDebeUSD: totales.totalDebe,
+        totalHaberUSD: totales.totalHaber,
+        cotizacionPromedio: cotizacionPromedio
       });
       
       setShowModal(false);
@@ -590,7 +596,7 @@ const LibroDiarioSection = () => {
                 <div className="flex items-center text-lg space-x-4">
                   <div className="text-right">
                     <div className="font-semibold text-gray-800">
-                      {formatearMonedaLibroDiario(asiento.total_debe)}
+                      {formatearMonto(asiento.total_debe, 'USD')}
                     </div>
                   </div>
 
@@ -663,12 +669,12 @@ const LibroDiarioSection = () => {
                             <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
                               {/* Columna DEBE - Importes */}
                               <div className="text-center font-medium">
-                                {mov.debe > 0 ? formatearMonedaLibroDiario(mov.debe) : ''}
+                                {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : ''}
                               </div>
                               
                               {/* Columna HABER - Importes */}
                               <div className="text-center font-medium">
-                                {mov.haber > 0 ? formatearMonedaLibroDiario(mov.haber) : ''}
+                                {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : ''}
                               </div>
                             </div>
                           ))}
@@ -707,7 +713,7 @@ const LibroDiarioSection = () => {
                 </div>
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha).toLocaleDateString()}</div>
                 <div className="col-span-5 text-sm">{asiento.descripcion}</div>
-                <div className="col-span-2 text-right font-mono pr-4">{formatearMonedaLibroDiario(asiento.total_debe)}</div>
+                <div className="col-span-2 text-right font-mono pr-4">{formatearMonto(asiento.total_debe, 'USD')}</div>
                 <div className="col-span-2 text-right">
                   <button
                     onClick={(e) => {
@@ -726,33 +732,45 @@ const LibroDiarioSection = () => {
                 {/* Header de movimientos */}
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold py-2 bg-gray-200">
                     <div className="col-span-1"></div>
-                    <div className="col-span-5">Deber</div>
-                    <div className="col-span-2 text-right">Haber</div>
-                    <div className="col-span-2 text-right">Debe</div>
-                    <div className="col-span-2 text-right pr-4">Haber</div>
+                    <div className="col-span-3">Cuenta (Debe)</div>
+                    <div className="col-span-2">Cuenta (Haber)</div>
+                    <div className="col-span-3 text-right">Importe Debe</div>
+                    <div className="col-span-3 text-right pr-4">Importe Haber</div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
                   <div key={index} className="grid grid-cols-12 gap-4 text-sm border-t py-2">
                     <div className="col-span-1"></div>
-                    <div className="col-span-5">
-                      {mov.debe > 0 ? mov.plan_cuentas.nombre : ''}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      {mov.haber > 0 ? mov.plan_cuentas.nombre : ''}
-                    </div>
-                    <div className="col-span-2 text-right">
+                    {/* Cuenta Debe */}
+                    <div className="col-span-3">
                       {mov.debe > 0 ? (
                         <div>
-                          <div>{formatearMonedaLibroDiario(mov.debe)}</div>
+                          <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
                         </div>
                       ) : ''}
                     </div>
-                    <div className="col-span-2 text-right pr-4">
+                    {/* Cuenta Haber */}
+                    <div className="col-span-2">
                       {mov.haber > 0 ? (
                         <div>
-                          <div>{formatearMonedaLibroDiario(mov.haber)}</div>
+                          <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                        </div>
+                      ) : ''}
+                    </div>
+                    {/* Importe Debe */}
+                    <div className="col-span-3 text-right">
+                      {mov.debe > 0 ? (
+                        <div className="font-mono font-semibold text-emerald-600">
+                          {formatearMonto(mov.debe, 'USD')}
+                        </div>
+                      ) : ''}
+                    </div>
+                    {/* Importe Haber */}
+                    <div className="col-span-3 text-right pr-4">
+                      {mov.haber > 0 ? (
+                        <div className="font-mono font-semibold text-red-600">
+                          {formatearMonto(mov.haber, 'USD')}
                         </div>
                       ) : ''}
                     </div>
@@ -894,7 +912,7 @@ const LibroDiarioSection = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">
-                  {formatearMonedaLibroDiario(asientos.reduce((sum, a) => sum + a.total_debe, 0))}
+                  {formatearMonto(asientos.reduce((sum, a) => sum + a.total_debe, 0))}
                 </div>
                 <div className="text-sm text-gray-600">Movimiento Total</div>
               </div>
@@ -1058,13 +1076,13 @@ const LibroDiarioSection = () => {
                     <div className="flex justify-between">
                       <span>Total Debe USD:</span>
                       <span className={`font-medium ${totales.totalDebe > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
-                        {formatearMonedaLibroDiario(totales.totalDebe)}
+                        {formatearMonto(totales.totalDebe)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Haber USD:</span>
                       <span className={`font-medium ${totales.totalHaber > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
-                        {formatearMonedaLibroDiario(totales.totalHaber)}
+                        {formatearMonto(totales.totalHaber)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1082,7 +1100,7 @@ const LibroDiarioSection = () => {
                         ) : (
                           <>
                             <AlertCircle size={12} className="mr-1" />
-                            Diferencia: {formatearMonedaLibroDiario(Math.abs(totales.diferencia))}
+                            Diferencia: {formatearMonto(Math.abs(totales.diferencia))}
                           </>
                         )}
                       </div>

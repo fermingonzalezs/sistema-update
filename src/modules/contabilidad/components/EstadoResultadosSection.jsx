@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter } from 'lucide-react';
+import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 // Servicio para Estado de Resultados
 const estadoResultadosService = {
@@ -141,7 +141,42 @@ const EstadoResultadosSection = () => {
     fetchEstadoResultados(filtros.fechaDesde, filtros.fechaHasta);
   };
 
-  const formatearMoneda = (monto) => formatearMonedaLibroDiario(monto);
+  const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
+
+  const CuentaRow = ({ cuenta, nivel = 0 }) => {
+  const [expandido, setExpandido] = useState(true);
+
+  const tieneHijos = cuenta.children && cuenta.children.length > 0;
+
+  return (
+    <>
+      <div className={`flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors ${
+        nivel === 0 ? 'bg-slate-100' : ''
+      }`}>
+        <div style={{ paddingLeft: `${nivel * 20}px` }} className="flex items-center">
+          {tieneHijos && (
+            <button onClick={() => setExpandido(!expandido)} className="mr-2 text-slate-500">
+              {expandido ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+          )}
+          <span className={`font-medium ${nivel === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
+            {cuenta.cuenta.nombre}
+          </span>
+        </div>
+        <div className={`text-lg font-semibold ${nivel === 0 ? 'text-slate-900' : 'text-slate-800'}`}>
+          {formatearMoneda(cuenta.monto)}
+        </div>
+      </div>
+      {expandido && tieneHijos && (
+        <div>
+          {cuenta.children.map(hijo => (
+            <CuentaRow key={hijo.cuenta.id} cuenta={hijo} nivel={nivel + 1} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
 
   const ingresosArray = Object.values(estadoResultados.ingresos || {});
   const gastosArray = Object.values(estadoResultados.gastos || {});
@@ -259,19 +294,9 @@ const EstadoResultadosSection = () => {
             <div className="bg-white border border-slate-200">
               
               <div className="p-4">
-                <div className="space-y-3">
-                  {ingresosArray.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
-                     <div className="flex-1 space-y-1.5">
-                        <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
-                        <div className="text-sm text-slate-800">
-                          Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span>
-                        </div>
-                      </div>
-                      <div className="text-lg font-bold text-slate-800">
-                        {formatearMoneda(item.monto)}
-                      </div>
-                    </div>
+                <div className="space-y-0">
+                  {ingresosArray.map((item) => (
+                    <CuentaRow key={item.cuenta.id} cuenta={item} />
                   ))}
                 </div>
               </div>
@@ -296,19 +321,9 @@ const EstadoResultadosSection = () => {
             <div className="bg-white border border-slate-200">
               
               <div className="p-4">
-                <div className="space-y-3">
-                  {gastosArray.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
-                      <div>
-                        <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
-                        <div className="text-sm text-slate-800">
-                          Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span>
-                        </div>
-                      </div>
-                      <div className="text-lg font-bold text-slate-800">
-                        {formatearMoneda(item.monto)}
-                      </div>
-                    </div>
+                <div className="space-y-0">
+                  {gastosArray.map((item) => (
+                    <CuentaRow key={item.cuenta.id} cuenta={item} />
                   ))}
                 </div>
               </div>

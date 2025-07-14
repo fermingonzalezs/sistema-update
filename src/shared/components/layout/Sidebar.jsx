@@ -187,12 +187,6 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           description: 'Entradas y salidas de repuestos'
         },
         {
-          id: 'recuento-repuestos',
-          label: 'Recuento Repuestos',
-          icon: Calculator,
-          description: 'Contar repuestos físicos'
-        },
-        {
           id: 'testeo-equipos',
           label: 'Testeo Equipos',
           icon: Monitor,

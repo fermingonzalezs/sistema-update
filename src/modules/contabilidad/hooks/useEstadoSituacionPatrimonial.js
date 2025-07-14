@@ -1,6 +1,48 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 
+// Función para construir la jerarquía de cuentas (reutilizada)
+const buildHierarchy = (cuentas) => {
+  const cuentasMap = {};
+  const cuentasRaiz = [];
+
+  Object.values(cuentas).forEach(cuenta => {
+    cuentasMap[cuenta.cuenta.id] = { ...cuenta, children: [] };
+  });
+
+  Object.values(cuentasMap).forEach(cuenta => {
+    const codigo = cuenta.cuenta.codigo;
+    const partes = codigo.split('.');
+    
+    if (partes.length > 1) {
+      partes.pop();
+      const codigoPadre = partes.join('.');
+      const padre = Object.values(cuentasMap).find(c => c.cuenta.codigo === codigoPadre);
+      
+      if (padre) {
+        padre.children.push(cuenta);
+      } else {
+        cuentasRaiz.push(cuenta);
+      }
+    } else {
+      cuentasRaiz.push(cuenta);
+    }
+  });
+
+  const sumarizarMontos = (cuenta) => {
+    if (cuenta.children.length === 0) {
+      return cuenta.saldo;
+    }
+    const montoHijos = cuenta.children.reduce((sum, hijo) => sum + sumarizarMontos(hijo), 0);
+    cuenta.saldo += montoHijos;
+    return cuenta.saldo;
+  };
+
+  cuentasRaiz.forEach(sumarizarMontos);
+
+  return cuentasRaiz;
+};
+
 // Servicio para Estado de Situación Patrimonial (Balance General)
 export const estadoSituacionPatrimonialService = {
   async getBalanceGeneral(fechaCorte = null) {
@@ -47,50 +89,48 @@ export const estadoSituacionPatrimonialService = {
 
       // Calcular saldos finales y clasificar por tipo
       const balance = {
-        activos: [],
-        pasivos: [],
-        patrimonio: [],
-        totalActivos: 0,
-        totalPasivos: 0,
-        totalPatrimonio: 0,
+        activos: {},
+        pasivos: {},
+        patrimonio: {},
         fechaCorte: fecha
       };
 
       Object.values(saldosPorCuenta).forEach(item => {
         const { cuenta } = item;
-        
-        // Calcular saldo según naturaleza de la cuenta
         let saldo = 0;
         if (cuenta.tipo === 'activo') {
-          saldo = item.debe - item.haber; // Naturaleza deudora
+          saldo = item.debe - item.haber;
         } else if (cuenta.tipo === 'pasivo' || cuenta.tipo === 'patrimonio') {
-          saldo = item.haber - item.debe; // Naturaleza acreedora
+          saldo = item.haber - item.debe;
         }
-
         item.saldo = saldo;
 
-        // Solo incluir cuentas con saldo diferente de cero
         if (Math.abs(saldo) > 0.01) {
-          if (cuenta.tipo === 'activo') {
-            balance.activos.push(item);
-            balance.totalActivos += Math.abs(saldo);
-          } else if (cuenta.tipo === 'pasivo') {
-            balance.pasivos.push(item);
-            balance.totalPasivos += Math.abs(saldo);
-          } else if (cuenta.tipo === 'patrimonio') {
-            balance.patrimonio.push(item);
-            balance.totalPatrimonio += Math.abs(saldo);
-          }
+          if (cuenta.tipo === 'activo') balance.activos[cuenta.id] = item;
+          else if (cuenta.tipo === 'pasivo') balance.pasivos[cuenta.id] = item;
+          else if (cuenta.tipo === 'patrimonio') balance.patrimonio[cuenta.id] = item;
         }
       });
 
-      console.log('✅ Balance General calculado', {
-        activos: balance.totalActivos,
-        pasivos: balance.totalPasivos,
-        patrimonio: balance.totalPatrimonio
-      });
+      const activosJerarquizados = buildHierarchy(balance.activos);
+      const pasivosJerarquizados = buildHierarchy(balance.pasivos);
+      const patrimonioJerarquizado = buildHierarchy(balance.patrimonio);
 
-      return balance;
+      const totalActivos = activosJerarquizados.reduce((sum, c) => sum + c.saldo, 0);
+      const totalPasivos = pasivosJerarquizados.reduce((sum, c) => sum + c.saldo, 0);
+      const totalPatrimonio = patrimonioJerarquizado.reduce((sum, c) => sum + c.saldo, 0);
+
+      console.log('✅ Balance General calculado');
+
+      return {
+        activos: activosJerarquizados,
+        pasivos: pasivosJerarquizados,
+        patrimonio: patrimonioJerarquizado,
+        totalActivos,
+        totalPasivos,
+        totalPatrimonio,
+        fechaCorte: fecha
+      };
 
     } catch (error) {
       console.error('❌ Error obteniendo Balance General:', error);

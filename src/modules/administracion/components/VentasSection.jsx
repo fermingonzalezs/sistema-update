@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search } from 'lucide-react';
-import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF';
+import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF_NewTab';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
 
@@ -10,55 +10,10 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [estadisticas, setEstadisticas] = useState(null);
 
   useEffect(() => {
-    console.log('useEffect ejecutado');
     if (onLoadStats) {
       onLoadStats().then(setEstadisticas);
     }
   }, [onLoadStats]);
-
-  // Efecto para detectar problemas de layout cuando se monta VentasSection
-  useEffect(() => {
-    console.log('🔧 VentasSection montado, verificando DOM...');
-    
-    const checkSidebarDOM = () => {
-      const sidebar = document.querySelector('[class*="sidebar"]') || 
-                    document.querySelector('[class*="w-80"]') ||
-                    document.querySelector('nav') ||
-                    document.querySelector('[class*="fixed"][class*="left-0"]');
-      
-      if (sidebar) {
-        const computedStyle = window.getComputedStyle(sidebar);
-        const width = computedStyle.width;
-        const transform = computedStyle.transform;
-        
-        console.log('🖼️ VentasSection - Sidebar DOM:', {
-          width,
-          transform,
-          classes: sidebar.className
-        });
-        
-        // Si detectamos que la sidebar se achicó, intentar resetear clases
-        if (width && parseInt(width) < 200) {
-          console.log('🚨 VentasSection - Sidebar achicada detectada, intentando corregir');
-          
-          // Forzar recálculo del layout
-          document.body.style.minWidth = '100vw';
-          setTimeout(() => {
-            document.body.style.minWidth = '';
-          }, 100);
-        }
-      }
-    };
-    
-    // Ejecutar inmediatamente y después periódicamente
-    checkSidebarDOM();
-    const interval = setInterval(checkSidebarDOM, 1000);
-    
-    return () => {
-      clearInterval(interval);
-      console.log('🔧 VentasSection desmontado, limpiando interval');
-    };
-  }, []);
 
   // Filtrado simple con buscador
   const ventasFiltradas = ventas.filter(transaccion => {
@@ -71,17 +26,30 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     
     if (busqueda.trim()) {
       const buscar = busqueda.toLowerCase();
-      const campos = [
-        transaccion.numero_transaccion,
+      
+      // Buscar en datos de la transacción
+      const camposTransaccion = [
         transaccion.cliente_nombre,
         transaccion.vendedor
       ].filter(Boolean);
       
-      const tieneCoincidencia = campos.some(campo => 
+      const coincideTransaccion = camposTransaccion.some(campo => 
         campo.toLowerCase().includes(buscar)
       );
       
-      if (!tieneCoincidencia) return false;
+      // Buscar en productos y seriales
+      const coincideProductos = transaccion.venta_items?.some(item => {
+        const camposItem = [
+          item.copy,
+          item.serial_producto
+        ].filter(Boolean);
+        
+        return camposItem.some(campo => 
+          campo.toLowerCase().includes(buscar)
+        );
+      });
+      
+      if (!coincideTransaccion && !coincideProductos) return false;
     }
     
     return true;
@@ -111,11 +79,18 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     return items.map((item, index) => (
       <div key={index} className="mb-1 last:mb-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-1 min-w-0">
             {getIconoProducto(item.tipo_producto)}
-            <span className="font-medium text-xs">{item.modelo_producto}</span>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-xs text-slate-800 truncate">{item.copy}</div>
+              {item.serial_producto && (
+                <div className="text-xs text-slate-500 font-mono truncate">
+                  S/N: {item.serial_producto}
+                </div>
+              )}
+            </div>
           </div>
-          <span className="text-xs font-semibold text-slate-700">
+          <span className="text-xs font-semibold text-slate-700 ml-2">
             {formatearMonto(item.precio_total, 'USD')}
           </span>
         </div>
@@ -133,7 +108,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   };
 
   return (
-    <div className="p-0 bg-slate-50">
+    <div className="bg-slate-50 w-full min-w-0">
       
       {/* Estadísticas generales usando Tarjeta */}
       {estadisticas && (
@@ -186,7 +161,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                 type="text"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por transacción, cliente, vendedor..."
+                placeholder="Buscar por producto, serial, cliente, vendedor..."
                 className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -213,7 +188,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
               <thead className="bg-slate-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Nº Transacción</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Productos</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Cliente</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
@@ -227,9 +201,6 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                   <tr key={transaccion.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
                       {formatearFechaCompleta(transaccion.fecha_venta)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
-                      {transaccion.numero_transaccion}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-800 max-w-sm">
                       <div className="space-y-1">

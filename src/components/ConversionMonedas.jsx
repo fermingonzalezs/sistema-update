@@ -1,6 +1,6 @@
 import React from 'react';
 import { RefreshCw, TrendingUp } from 'lucide-react';
-import { useCotizacion } from '../hooks/useCotizacion';
+import { useCurrency } from "../shared/hooks/useCurrency";
 
 const ConversionMonedas = ({ montoUSD = 0, mostrarActualizacion = true }) => {
   const { 
@@ -11,7 +11,7 @@ const ConversionMonedas = ({ montoUSD = 0, mostrarActualizacion = true }) => {
     obtenerCotizacion,
     convertirUSDaARS,
     formatearMonto
-  } = useCotizacion();
+  } = useCurrency();
 
   const montoARS = convertirUSDaARS(montoUSD);
 
@@ -88,7 +88,7 @@ const ConversionMonedas = ({ montoUSD = 0, mostrarActualizacion = true }) => {
           <div className="border-t border-gray-200 pt-2 mt-3">
             <div className="flex justify-between items-center text-xs text-gray-500">
               <span>Cotización USD:</span>
-              <span>{formatearMonto(cotizacion.promedio, 'ARS')}</span>
+              <span>{formatearMonto(cotizacion.valor, 'ARS')}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-gray-500">
               <span>Fuente:</span>

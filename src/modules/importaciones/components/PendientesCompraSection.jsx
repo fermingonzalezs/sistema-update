@@ -156,21 +156,7 @@ const PendientesCompraSection = () => {
 
   return (
     <div className="">
-      {/* Header obligatorio según estándares */}
-      <div className="bg-white rounded border border-slate-200 mb-4">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <ClipboardList className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Pendientes de Compra</h2>
-                <p className="text-slate-300 mt-1">Cotizaciones aprobadas pendientes de compra</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Tarjeta  

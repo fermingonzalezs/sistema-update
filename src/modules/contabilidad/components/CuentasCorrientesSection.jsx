@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 // import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js'; // TEMPORALMENTE COMENTADO
 import ClienteSelector from '../../ventas/components/ClienteSelector';
-import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -404,7 +404,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
               <div>
                 <p className="text-sm text-slate-600">Deudas de la Empresa</p>
                 <p className="text-2xl font-semibold text-slate-800">
-                  {formatearMonedaGeneral(estadisticas.totalPorPagar, 'USD')}
+                  {formatearMonto(estadisticas.totalPorPagar, 'USD')}
                 </p>
               </div>
             </div>
@@ -418,7 +418,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
               <div>
                 <p className="text-sm text-slate-600">Créditos a Favor</p>
                 <p className="text-2xl font-semibold text-emerald-600">
-                  {formatearMonedaGeneral(estadisticas.totalPorCobrar, 'USD')}
+                  {formatearMonto(estadisticas.totalPorCobrar, 'USD')}
                 </p>
               </div>
             </div>
@@ -434,7 +434,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
                 <p className={`text-2xl font-semibold ${
                   estadisticas.saldoNeto <= 0 ? 'text-slate-800' : 'text-emerald-600'
                 }`}>
-                  {formatearMonedaGeneral(Math.abs(estadisticas.saldoNeto), 'USD')}
+                  {formatearMonto(Math.abs(estadisticas.saldoNeto), 'USD')}
                 </p>
               </div>
             </div>
@@ -535,7 +535,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess }) => {
                         
                         {/* Saldo */}
                         <div className={`px-3 py-1 rounded text-sm font-medium ${saldoInfo.bgColor} ${saldoInfo.color}`}>
-                          {saldoInfo.texto}: {formatearMonedaGeneral(saldoInfo.valor, 'USD')}
+                          {saldoInfo.texto}: {formatearMonto(saldoInfo.valor, 'USD')}
                         </div>
                       </div>
 

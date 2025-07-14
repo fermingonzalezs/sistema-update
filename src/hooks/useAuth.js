@@ -94,7 +94,7 @@ export const useAuth = () => {
       ],
       soporte: [
         'carga-equipos', 'reparaciones', 'repuestos', 'movimientos-repuestos',
-        'recuento-repuestos', 'presupuestos-reparacion', 'testeo-equipos'
+        'presupuestos-reparacion', 'testeo-equipos'
       ],
       contabilidad: [
         'plan-cuentas', 'libro-diario', 'libro-mayor', 'conciliacion-caja',

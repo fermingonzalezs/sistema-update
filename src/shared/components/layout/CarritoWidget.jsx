@@ -3,8 +3,8 @@ import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditC
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import ConversionMonedas from '../../../components/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
-import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
-import { formatearMonedaGeneral } from '../../utils/formatters';
+import { cotizacionService } from '../../services/cotizacionService';
+import { formatearMonto } from '../../utils/formatters';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,10 +59,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
   const cargarCotizacionInicial = async () => {
     try {
-      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      const cotizacionData = await cotizacionService.obtenerCotizacionActual();
       setDatosCliente(prev => ({
         ...prev,
-        cotizacion_dolar: cotizacionData.valor || 1000
+        cotizacion_dolar: cotizacionData.valor || cotizacionData.promedio || 1000
       }));
     } catch (error) {
       console.error('Error cargando cotización:', error);
@@ -270,7 +270,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     
     if (Math.abs(totalUSD - totalBaseEsperado) > 0.01) { // Tolerancia de 1 centavo por redondeo
       console.error('❌ Los montos base no coinciden con el total de la venta');
-      alert(`⚠️ Los montos base no cubren el total de la venta.\n\nTotal venta: ${formatearMonedaGeneral(totalUSD, 'USD')}\nTotal base cubierto: ${formatearMonedaGeneral(totalBaseEsperado, 'USD')}\nTotal a cobrar (con recargos): ${formatearMonedaGeneral(totalPagadoUSD, 'USD')}\n\nAjuste los montos antes de continuar.`);
+      alert(`⚠️ Los montos base no cubren el total de la venta.\n\nTotal venta: ${formatearMonto(totalUSD, 'USD')}\nTotal base cubierto: ${formatearMonto(totalBaseEsperado, 'USD')}\nTotal a cobrar (con recargos): ${formatearMonto(totalPagadoUSD, 'USD')}\n\nAjuste los montos antes de continuar.`);
       return;
     }
 
@@ -629,7 +629,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             min="0"
                           />
                           <p className="text-xs text-slate-800 mt-1">
-                            Total disponible: {formatearMonedaGeneral(obtenerMontoParaMostrar(datosCliente.metodo_pago_1), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
+                            Total disponible: {formatearMonto(obtenerMontoParaMostrar(datosCliente.metodo_pago_1), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
                           </p>
                         </div>
                       </div>
@@ -652,7 +652,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           />
                           {datosCliente.recargo_pago_1 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{formatearMonedaGeneral(
+                              Recargo aplicado: +{formatearMonto(
                                 (datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar * datosCliente.recargo_pago_1) / 100, 
                                 'ARS'
                               )}
@@ -698,7 +698,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           />
                           {datosCliente.metodo_pago_2 && (
                             <p className="text-xs text-slate-800 mt-1">
-                              Restante: {formatearMonedaGeneral(
+                              Restante: {formatearMonto(
                                 esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
                                   (calcularTotal() - datosCliente.monto_pago_1) * datosCliente.cotizacion_dolar : 
                                   calcularTotal() - datosCliente.monto_pago_1, 
@@ -727,7 +727,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           />
                           {datosCliente.recargo_pago_2 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{formatearMonedaGeneral(
+                              Recargo aplicado: +{formatearMonto(
                                 (datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar * datosCliente.recargo_pago_2) / 100, 
                                 'ARS'
                               )}
@@ -740,16 +740,16 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       <div className="bg-slate-200 p-3 rounded-lg">
                         <div className="flex justify-between text-sm">
                           <span>Total a pagar:</span>
-                          <span className="font-bold">{formatearMonedaGeneral(calcularTotal(), 'USD')}</span>
+                          <span className="font-bold">{formatearMonto(calcularTotal(), 'USD')}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Total pagado:</span>
-                          <span className="font-bold">{formatearMonedaGeneral(datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0), 'USD')}</span>
+                          <span className="font-bold">{formatearMonto(datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0), 'USD')}</span>
                         </div>
                         <div className="flex justify-between text-sm border-t border-slate-200 pt-2 mt-2">
                           <span>Diferencia:</span>
                           <span className={`font-bold ${Math.abs(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0))) < 0.01 ? 'text-emerald-600' : 'text-slate-800'}`}>
-                            {formatearMonedaGeneral(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0)), 'USD')}
+                            {formatearMonto(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0)), 'USD')}
                           </span>
                         </div>
                         {/* Desglose por método */}
@@ -763,7 +763,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                                   ` (+${datosCliente.recargo_pago_1}%)`
                                 }:
                               </span>
-                              <span>{formatearMonedaGeneral(
+                              <span>{formatearMonto(
                                 esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
                                   datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar : 
                                   datosCliente.monto_pago_1, 
@@ -778,7 +778,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                                     ` (+${datosCliente.recargo_pago_2}%)`
                                   }:
                                 </span>
-                                <span>{formatearMonedaGeneral(
+                                <span>{formatearMonto(
                                   esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
                                     datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar : 
                                     datosCliente.monto_pago_2, 
@@ -855,7 +855,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <p className="ml-2">• {datosCliente.metodo_pago_1.replace(/_/g, ' ')}
                             {necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0 && 
                               ` (+${datosCliente.recargo_pago_1}%)`
-                            }: {formatearMonedaGeneral(
+                            }: {formatearMonto(
                             esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
                               datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar : 
                               datosCliente.monto_pago_1, 
@@ -865,7 +865,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}
                               {necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0 && 
                                 ` (+${datosCliente.recargo_pago_2}%)`
-                              }: {formatearMonedaGeneral(
+                              }: {formatearMonto(
                               esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
                                 datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar : 
                                 datosCliente.monto_pago_2, 

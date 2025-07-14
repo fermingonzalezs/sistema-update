@@ -52,29 +52,65 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
     }
   }, [productoSeleccionado]);
 
+  // Manejar descripción temporal cuando se edita
+  useEffect(() => {
+    if (editandoDescripcion && vistaPrevia) {
+      setDescripcionTemp(vistaPrevia.descripcion || '');
+    }
+  }, [editandoDescripcion, vistaPrevia]);
+
+  const limpiarFiltros = () => {
+    setBusqueda('');
+    setFiltroTipo('todos');
+    setFiltroEstado('todos');
+  };
+
+  const cancelarEdicion = () => {
+    setEditandoDescripcion(null);
+    setDescripcionTemp('');
+  };
+
   const cargarEstadisticas = async () => {
     try {
       const stats = await fotosService.getEstadisticasFotos();
       setEstadisticas(stats);
       
-      // Cargar fotos de productos para la tabla
+      // Cargar fotos de productos para la tabla (limitado a 15 para mejorar performance)
       const fotosMap = {};
-      for (const producto of todosLosProductos.slice(0, 30)) {
-        try {
-          const fotos = await fotosService.getFotosByProducto(producto.id, producto.tipo);
-          fotosMap[`${producto.tipo}_${producto.id}`] = {
-            cantidad: fotos.length,
-            tienePrincipal: fotos.some(f => f.es_principal),
-            fotoPrincipal: fotos.find(f => f.es_principal)?.url_foto
-          };
-        } catch (err) {
-          console.warn(`Error cargando fotos para ${producto.tipo} ${producto.id}:`, err);
-        }
+      const productosLimitados = todosLosProductos.slice(0, 15);
+      
+      // Cargar fotos de a 5 productos por vez para evitar sobrecargar
+      for (let i = 0; i < productosLimitados.length; i += 5) {
+        const batch = productosLimitados.slice(i, i + 5);
+        const promises = batch.map(async (producto) => {
+          try {
+            const fotos = await fotosService.getFotosByProducto(producto.id, producto.tipo);
+            return {
+              key: `${producto.tipo}_${producto.id}`,
+              data: {
+                cantidad: fotos.length,
+                tienePrincipal: fotos.some(f => f.es_principal),
+                fotoPrincipal: fotos.find(f => f.es_principal)?.url_foto
+              }
+            };
+          } catch (err) {
+            return {
+              key: `${producto.tipo}_${producto.id}`,
+              data: { cantidad: 0, tienePrincipal: false, fotoPrincipal: null }
+            };
+          }
+        });
+        
+        const results = await Promise.all(promises);
+        results.forEach(result => {
+          fotosMap[result.key] = result.data;
+        });
       }
+      
       setFotosPorProducto(fotosMap);
       
     } catch (err) {
-      console.error('Error cargando estadísticas:', err);
+      // Error cargando estadísticas
     }
   };
 
@@ -187,6 +223,10 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
       const nuevasFotos = fotosProductoActual.filter(foto => foto.id !== fotoId);
       setFotosProductoActual(nuevasFotos);
       actualizarFotosEnTabla(productoSeleccionado, nuevasFotos);
+      // Cerrar vista previa si se elimina la foto que se está viendo
+      if (vistaPrevia && vistaPrevia.id === fotoId) {
+        setVistaPrevia(null);
+      }
     } catch (err) {
       setErrorSubida('Error eliminando foto: ' + err.message);
     }
@@ -241,6 +281,11 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
     setProductoSeleccionado(producto);
     setErrorSubida('');
     setFotosProductoActual([]);
+    if (!producto) {
+      setVistaPrevia(null);
+      setEditandoDescripcion(null);
+      setDescripcionTemp('');
+    }
   };
 
   // Filtrar productos
@@ -387,11 +432,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                 {productoSeleccionado.nombre} ({fotosProductoActual.filter(f => !f.subiendo).length}/5)
               </h4>
               <button
-                onClick={() => {
-                  setProductoSeleccionado(null);
-                  setFotosProductoActual([]);
-                  setErrorSubida('');
-                }}
+                onClick={() => setProductoSeleccionado(null)}
                 className="text-slate-400 hover:text-slate-600"
               >
                 <X className="w-5 h-5" />
@@ -426,7 +467,6 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                         className="w-full h-full object-cover cursor-pointer"
                         onClick={() => !foto.subiendo && setVistaPrevia(foto)}
                         onError={(e) => {
-                          console.error('Error cargando imagen:', foto.url_foto);
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';
                         }}
@@ -488,13 +528,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
             {fotosProductoActual.filter(f => !f.subiendo).length > 0 && (
               <div className="flex justify-end pt-4 border-t border-slate-200">
                 <button
-                  onClick={() => {
-                    setProductoSeleccionado(null);
-                    setFotosProductoActual([]);
-                    setErrorSubida('');
-                    // Recargar estadísticas para actualizar la tabla
-                    cargarEstadisticas();
-                  }}
+                  onClick={() => setProductoSeleccionado(null)}
                   className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700 transition-colors flex items-center space-x-2"
                 >
                   <CheckCircle className="w-5 h-5" />
@@ -506,37 +540,39 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
         )}
       </div>
 
-        {/* Estadísticas */}
+        {/* Estadísticas de porcentajes */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        
-       
 
         <Tarjeta
-          icon={BarChart3}
-          titulo="Total Productos"
-          valor={estadisticas.totalProductos}
+          icon={Monitor}
+          titulo="% Computadoras con Fotos"
+          valor={`${estadisticas.porTipo?.computadora?.total > 0 
+            ? Math.round((estadisticas.porTipo.computadora.conFotos / estadisticas.porTipo.computadora.total) * 100) 
+            : 0}%`}
         />
 
-
         <Tarjeta
-          icon={AlertTriangle}
-          titulo="Sin Fotos"
-          valor={estadisticas.sinFotos}
+          icon={Smartphone}
+          titulo="% Celulares con Fotos"
+          valor={`${estadisticas.porTipo?.celular?.total > 0 
+            ? Math.round((estadisticas.porTipo.celular.conFotos / estadisticas.porTipo.celular.total) * 100) 
+            : 0}%`}
         />
 
-       
-
         <Tarjeta
-          icon={CheckCircle}
-          titulo="Con Fotos"
-          valor={estadisticas.conFotos}
-        />  
-
+          icon={Box}
+          titulo="% Otros con Fotos"
+          valor={`${estadisticas.porTipo?.otro?.total > 0 
+            ? Math.round((estadisticas.porTipo.otro.conFotos / estadisticas.porTipo.otro.total) * 100) 
+            : 0}%`}
+        />
         
         <Tarjeta
-        icon={TrendingUp}
-        titulo="% Completado"
-        valor={`${estadisticas.porcentajeCompleto}%`}
+          icon={TrendingUp}
+          titulo="% Total Equipos con Fotos"
+          valor={`${estadisticas.totalProductos > 0 
+            ? Math.round((estadisticas.conFotos / estadisticas.totalProductos) * 100) 
+            : 0}%`}
         />
       </div>
 
@@ -588,7 +624,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
 
           <div className="flex items-end">
             <button
-              onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); }}
+              onClick={limpiarFiltros}
               className="w-full bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
             >
               Limpiar
@@ -671,10 +707,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                     
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          seleccionarProducto(producto);
-                        }}
+                        onClick={() => seleccionarProducto(producto)}
                         className={`px-3 py-1 rounded transition-colors flex items-center space-x-1 ${
                           isSelected 
                             ? 'bg-emerald-600 text-white' 
@@ -730,10 +763,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                       <Save className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => {
-                        setEditandoDescripcion(null);
-                        setDescripcionTemp('');
-                      }}
+                      onClick={cancelarEdicion}
                       className="p-1 text-slate-600 hover:text-slate-800"
                     >
                       <X className="w-4 h-4" />
@@ -741,10 +771,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                   </>
                 ) : (
                   <button
-                    onClick={() => {
-                      setEditandoDescripcion(vistaPrevia.id);
-                      setDescripcionTemp(vistaPrevia.descripcion || '');
-                    }}
+                    onClick={() => setEditandoDescripcion(vistaPrevia.id)}
                     className="p-1 text-slate-600 hover:text-slate-800"
                     title="Editar descripción"
                   >
@@ -765,7 +792,6 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                 alt={vistaPrevia.descripcion}
                 className="max-w-full max-h-[70vh] object-contain mx-auto"
                 onError={(e) => {
-                  console.error('Error en vista previa:', vistaPrevia.url_foto);
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
                 }}
@@ -800,10 +826,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                   </button>
                 )}
                 <button
-                  onClick={() => {
-                    eliminarFoto(vistaPrevia.id);
-                    setVistaPrevia(null);
-                  }}
+                  onClick={() => eliminarFoto(vistaPrevia.id)}
                   className="bg-slate-600 text-white px-3 py-1 rounded hover:bg-slate-700 transition-colors flex items-center space-x-1"
                 >
                   <Trash2 className="w-4 h-4" />

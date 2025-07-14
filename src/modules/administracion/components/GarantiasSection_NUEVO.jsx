@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
-import { useGarantias } from '../hooks/useGarantias';
-import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/GarantiaPDF';
+import { useGarantias } from '../../../lib/useGarantiasFix';
+import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/GarantiaPDF_NewStyle';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 
 const GarantiasSection = () => {
   const {
@@ -19,7 +20,7 @@ const GarantiasSection = () => {
   // Estados para filtros y búsqueda
   const [filtros, setFiltros] = useState({
     busqueda: '',
-    tipoBusqueda: 'serial', // 'serial' o 'cliente'
+    tipoBusqueda: 'cliente', // 'serial' o 'cliente'
     tipoProducto: 'todos',
     estadoGarantia: 'todos'
   });
@@ -79,7 +80,7 @@ const GarantiasSection = () => {
     try {
       const producto = {
         modelo: garantia.modelo_producto,
-        serial: garantia.serial_producto,
+        numero_serie: garantia.serial_producto,
         precio_venta_usd: garantia.precio_total,
         garantia_update: garantia.plazo_garantia
       };
@@ -167,39 +168,25 @@ const GarantiasSection = () => {
           </div>
         </div>
 
-        {/* Dashboard de Estadísticas */}
+        {/* Dashboard de Estadísticas usando Tarjeta */}
         {estadisticas && (
           <div className="p-6 border-t border-slate-200">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-4 rounded border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-slate-600 text-sm">Total Garantías</p>
-                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.totalGarantias || 0}</p>
-                  </div>
-                  <Package className="w-8 h-8 text-emerald-600" />
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-slate-600 text-sm">Garantías Activas</p>
-                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.garantiasActivas || 0}</p>
-                  </div>
-                  <CheckCircle className="w-8 h-8 text-emerald-600" />
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-slate-600 text-sm">Garantías Vencidas</p>
-                    <p className="text-2xl font-semibold text-slate-800">{estadisticas.garantiasVencidas || 0}</p>
-                  </div>
-                  <XCircle className="w-8 h-8 text-slate-600" />
-                </div>
-              </div>
+              <Tarjeta 
+                icon={Package}
+                titulo="Total Garantías"
+                valor={estadisticas.totalGarantias || 0}
+              />
+              <Tarjeta 
+                icon={CheckCircle}
+                titulo="Garantías Activas"
+                valor={estadisticas.garantiasActivas || 0}
+              />
+              <Tarjeta 
+                icon={XCircle}
+                titulo="Garantías Vencidas"
+                valor={estadisticas.garantiasVencidas || 0}
+              />
             </div>
           </div>
         )}

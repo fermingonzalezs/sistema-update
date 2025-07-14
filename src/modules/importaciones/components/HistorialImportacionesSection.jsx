@@ -188,20 +188,7 @@ const HistorialImportacionesSection = () => {
 
   return (
     <div className="">
-      {/* Header obligatorio según estándares */}
-      <div className="bg-white rounded border border-slate-200 mb-4">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <BarChart3 className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Historial de Importaciones</h2>
-                <p className="text-slate-300 mt-1">Importaciones finalizadas y análisis de precisión</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header eliminado para ganar espacio */}
 
       {/* Filtros y búsqueda */}
       <div className="bg-white rounded border border-slate-200 mb-6">

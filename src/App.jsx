@@ -20,7 +20,6 @@ import {
   ReparacionesMain,
   RepuestosSection,
   MovimientosRepuestosSection,
-  RecuentoRepuestosSection,
   TesteoEquiposSection
 } from './modules/soporte/components';
 import {
@@ -437,150 +436,144 @@ const AppContent = () => {
      setActiveSection={handleSectionChange}
      cantidadCarrito={calcularCantidadTotal()}
    >
-     <main className="flex-1 overflow-auto p-6">
-       {/* 📋 Renderizado de secciones protegidas */}
-       {activeSection === 'importaciones' && hasAccess('importaciones') && (
-         <ImportacionesSection />
-       )}
-       {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
-         <CotizacionesSection />
-       )}
-       {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
-         <PendientesCompraSection />
-       )}
-       {activeSection === 'en-transito' && hasAccess('importaciones') && (
-         <EnTransitoSection />
-       )}
-       {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
-         <HistorialImportacionesSection />
-       )}
-       {/* 📋 CATÁLOGO UNIFICADO */}
-       {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
-         <Catalogo onAddToCart={handleAddToCart} />
-       )}
+     {/* 📋 Renderizado de secciones protegidas */}
+     {activeSection === 'importaciones' && hasAccess('importaciones') && (
+       <ImportacionesSection />
+     )}
+     {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
+       <CotizacionesSection />
+     )}
+     {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
+       <PendientesCompraSection />
+     )}
+     {activeSection === 'en-transito' && hasAccess('importaciones') && (
+       <EnTransitoSection />
+     )}
+     {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
+       <HistorialImportacionesSection />
+     )}
+     {/* 📋 CATÁLOGO UNIFICADO */}
+     {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
+       <Catalogo onAddToCart={handleAddToCart} />
+     )}
 
 
-       {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
-         <CargaEquiposUnificada
-           onAddComputer={addComputer}
-           onAddCelular={addCelular}
-           onAddOtro={addOtro}
-           loading={computersLoading || celularesLoading || otrosLoading}
-         />
-       )}
+     {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
+       <CargaEquiposUnificada
+         onAddComputer={addComputer}
+         onAddCelular={addCelular}
+         onAddOtro={addOtro}
+         loading={computersLoading || celularesLoading || otrosLoading}
+       />
+     )}
 
-       {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
-         <ReparacionesMain />
-       )}
-
-
+     {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
+       <ReparacionesMain />
+     )}
 
 
-       {activeSection === 'ventas' && hasAccess('ventas') && (
-         <VentasSection
-           ventas={ventas}
-           loading={ventasLoading}
-           error={ventasError}
-           onLoadStats={obtenerEstadisticas}
-         />
-       )}
-
-       {/* 👥 SECCIÓN DE CLIENTES */}
-       {activeSection === 'clientes' && hasAccess('clientes') && (
-         <Clientes />
-       )}
-
-       {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
-       {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
-         <CuentasCorrientesSection />
-       )}
-
-       {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
-         <GestionFotos
-           computers={computers}
-           celulares={celulares}
-           otros={otros}
-           loading={computersLoading || celularesLoading || otrosLoading}
-           error={computersError || celularesError || otrosError}
-         />
-       )}
 
 
-       {/* 📊 SECCIONES DE CONTABILIDAD */}
-       {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
-         <PlanCuentasSection />
-       )}
+     {activeSection === 'ventas' && hasAccess('ventas') && (
+       <VentasSection
+         ventas={ventas}
+         loading={ventasLoading}
+         error={ventasError}
+         onLoadStats={obtenerEstadisticas}
+       />
+     )}
 
-       {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
-         <LibroDiarioSection />
-       )}
+     {/* 👥 SECCIÓN DE CLIENTES */}
+     {activeSection === 'clientes' && hasAccess('clientes') && (
+       <Clientes />
+     )}
 
-       {/* ELIMINADO: reporte-movimientos ya no existe */}
+     {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
+     {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
+       <CuentasCorrientesSection />
+     )}
 
-       {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
-         <LibroMayorSection />
-       )}
+     {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
+       <GestionFotos
+         computers={computers}
+         celulares={celulares}
+         otros={otros}
+         loading={computersLoading || celularesLoading || otrosLoading}
+         error={computersError || celularesError || otrosError}
+       />
+     )}
 
-       {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
-         <ConciliacionCajaSection />
-       )}
 
-       {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
-         <EstadoSituacionPatrimonialSection />
-       )}
+     {/* 📊 SECCIONES DE CONTABILIDAD */}
+     {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
+       <PlanCuentasSection />
+     )}
 
-       {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
-         <EstadoResultadosSection />
-       )}
+     {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
+       <LibroDiarioSection />
+     )}
 
-       {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
-         <RecuentoStockSection />
-       )}
+     {/* ELIMINADO: reporte-movimientos ya no existe */}
 
-       {activeSection === 'repuestos' && hasAccess('repuestos') && (
-         <RepuestosSection />
-       )}
+     {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
+       <LibroMayorSection />
+     )}
 
-       {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
-         <MovimientosRepuestosSection />
-       )}
+     {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
+       <ConciliacionCajaSection />
+     )}
 
-       {activeSection === 'recuento-repuestos' && hasAccess('recuento-repuestos') && (
-         <RecuentoRepuestosSection />
-       )}
+     {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
+       <EstadoSituacionPatrimonialSection />
+     )}
 
-       {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
-         <TesteoEquiposSection />
-       )}
+     {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
+       <EstadoResultadosSection />
+     )}
 
-       {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
-         <DashboardReportesSection />
-       )}
+     {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
+       <RecuentoStockSection />
+     )}
 
-       {activeSection === 'garantias' && hasAccess('garantias') && (
-         <GarantiasSection />
-       )}
+     {activeSection === 'repuestos' && hasAccess('repuestos') && (
+       <RepuestosSection />
+     )}
 
-       {activeSection === 'comisiones' && hasAccess('comisiones') && (
-         <ComisionesSection
-           ventas={ventas}
-           loading={ventasLoading}
-           error={ventasError}
-           onLoadStats={obtenerEstadisticas}
-         />
-       )}
+     {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
+       <MovimientosRepuestosSection />
+     )}
 
-       {activeSection === 'copys' && hasAccess('copys') && (
-         <Listas
-           computers={computers}
-           celulares={celulares}
-           otros={otros}
-           loading={computersLoading || celularesLoading || otrosLoading}
-           error={computersError || celularesError || otrosError}
-         />
-       )}
 
-     </main>
+     {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
+       <TesteoEquiposSection />
+     )}
+
+     {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
+       <DashboardReportesSection />
+     )}
+
+     {activeSection === 'garantias' && hasAccess('garantias') && (
+       <GarantiasSection />
+     )}
+
+     {activeSection === 'comisiones' && hasAccess('comisiones') && (
+       <ComisionesSection
+         ventas={ventas}
+         loading={ventasLoading}
+         error={ventasError}
+         onLoadStats={obtenerEstadisticas}
+       />
+     )}
+
+     {activeSection === 'copys' && hasAccess('copys') && (
+       <Listas
+         computers={computers}
+         celulares={celulares}
+         otros={otros}
+         loading={computersLoading || celularesLoading || otrosLoading}
+         error={computersError || celularesError || otrosError}
+       />
+     )}
 
      {/* 🛒 Widget del carrito flotante */}
      <CarritoWidget

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
+import { formatearMonto } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Conciliación de Caja
@@ -269,7 +269,7 @@ const ConciliacionCajaSection = () => {
 
   const formatearMoneda = (valor) => {
     const moneda = cuentaSeleccionada?.moneda_original || 'USD';
-    return formatearMonedaGeneral(valor, moneda);
+    return formatearMonto(valor, moneda);
   };
 
   const formatearFecha = (fecha) => {

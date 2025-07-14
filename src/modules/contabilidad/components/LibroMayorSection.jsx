@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
+import { formatearMonto } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
@@ -306,7 +306,7 @@ const LibroMayorSection = () => {
 
   const formatearMoneda = (valor) => {
     // En el libro mayor todos los valores se muestran como USD con U$
-    return formatearMonedaLibroDiario(valor, true);
+    return formatearMonto(valor, 'USD');
   };
 
   const formatearFecha = (fecha) => {

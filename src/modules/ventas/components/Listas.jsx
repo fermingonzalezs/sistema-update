@@ -3,6 +3,7 @@ import {
   Copy, Monitor, Smartphone, Box, Search, 
   Check, FileText, Edit2, Save, X, Filter, Zap
 } from 'lucide-react';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 
 const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [tipoActivo, setTipoActivo] = useState('computadora');
@@ -62,109 +63,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     const productos = getProductosActivos();
     const productosConCopyGenerado = productos.map(producto => ({
       ...producto,
-      copy: generarCopy(producto)
+      copy: generateCopy(producto, { version: 'listas' })
     }));
     setProductosConCopy(productosConCopyGenerado);
     setSeleccionados(new Set()); // Limpiar selección al cambiar tipo
   }, [tipoActivo, computers, celulares, otros]);
 
-  // Función para generar copy completo
-  const generarCopy = (producto) => {
-    const { tipo } = producto;
-    
-    if (tipo === 'computadora') {
-      return generarCopyComputadora(producto);
-    } else if (tipo === 'celular') {
-      return generarCopyCelular(producto);
-    } else if (tipo === 'otro') {
-      return generarCopyOtro(producto);
-    }
-    
-    return 'Producto sin copy configurado';
-  };
-
-  // Copy para computadoras
-  const generarCopyComputadora = (comp) => {
-    const partes = [];
-    
-    partes.push('💻' + (comp.modelo || 'Sin modelo'));
-    
-    if (comp.procesador) partes.push(`Procesador: ${comp.procesador}`);
-    if (comp.memoria_ram) partes.push(`Memoria RAM: ${comp.memoria_ram}`);
-    if (comp.ssd && comp.ssd !== 'N/A') partes.push(`SSD: ${comp.ssd}`);
-    if (comp.hdd && comp.hdd !== 'N/A') partes.push(`HDD: ${comp.hdd}`);
-    if (comp.pantalla) partes.push(`Pantalla: ${comp.pantalla}`);
-    if (comp.resolucion) partes.push(`${comp.resolucion}`);
-    if (comp.sistema_operativo) partes.push(`Sistema operativo: ${comp.sistema_operativo}`);
-    if (comp.placa_de_video) partes.push(`Placa de video: ${comp.placa_de_video}`);
-    if (comp.porcentaje_de_bateria > 0) partes.push(`Batería: ${comp.porcentaje_de_bateria}%`);
-    if (comp.duracion_de_bateria) partes.push(`Duración: ${comp.duracion_de_bateria}`);
-    if (comp.color) partes.push(`Color: ${comp.color}`);
-    if (comp.idioma) partes.push(`Idioma: ${comp.idioma}`);
-    if (comp.condicion) partes.push(`Condición: ${comp.condicion.toUpperCase()}`);
-    if (comp.estado_estetico) partes.push(`Estado: ${getEstadoLetra(comp.estado_estetico)}`);
-    if (comp.garantia) partes.push(`Garantía: ${comp.garantia}`);
-    if (comp.precio_venta_usd > 0) partes.push(`$${comp.precio_venta_usd}`);
-    
-    return partes.join(' - ');
-  };
-
-  // Copy para celulares
-  const generarCopyCelular = (cel) => {
-    const partes = [];
-    
-    // Emoji del teléfono + modelo
-    partes.push('📱' + (cel.modelo || 'Sin modelo'));
-    
-    // Capacidad de almacenamiento
-    if (cel.capacidad) partes.push(cel.capacidad);
-    
-    // Color
-    if (cel.color) partes.push(cel.color.toUpperCase());
-    
-    // Batería con emoji
-    if (cel.bateria) partes.push(`🔋${cel.bateria}%`);
-    
-    // Condición en mayúsculas
-    if (cel.condicion) partes.push(cel.condicion.toUpperCase());
-    
-    // Precio con formato US
-    if (cel.precio_venta_usd > 0) partes.push(`U$${cel.precio_venta_usd}`);
-    
-    return partes.join(' ');
-  };
-
-  // Copy para otros productos
-  const generarCopyOtro = (otro) => {
-    const partes = [];
-    
-    partes.push('📦' + (otro.descripcion_producto || 'Sin descripción'));
-    
-    if (otro.marca) partes.push(`Marca: ${otro.marca}`);
-    if (otro.modelo) partes.push(`Modelo: ${otro.modelo}`);
-    if (otro.color) partes.push(`Color: ${otro.color}`);
-    if (otro.condicion) partes.push(`Condición: ${otro.condicion.toUpperCase()}`);
-    if (otro.estado_estetico) partes.push(`Estado: ${getEstadoLetra(otro.estado_estetico)}`);
-    if (otro.cantidad > 1) partes.push(`Stock: ${otro.cantidad} unidades`);
-    if (otro.garantia) partes.push(`Garantía: ${otro.garantia}`);
-    if (otro.precio_venta_usd > 0) partes.push(`$${otro.precio_venta_usd}`);
-    
-    return partes.join(' - ');
-  };
-
-  // Convertir estado estético a letra
-  const getEstadoLetra = (estado) => {
-    if (!estado) return 'N/A';
-    
-    switch (estado.toLowerCase()) {
-      case 'nuevo': return 'A++';
-      case 'excelente': return 'A+';
-      case 'muy bueno': return 'A';
-      case 'bueno': return 'B';
-      case 'regular': return 'C';
-      default: return estado;
-    }
-  };
+  // Las funciones de generación de copy ahora están unificadas en copyGenerator.js
 
   // Filtrar productos con filtros avanzados
   const productosFiltrados = productosConCopy.filter(producto => {

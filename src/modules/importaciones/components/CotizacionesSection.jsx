@@ -145,32 +145,7 @@ const CotizacionesSection = () => {
 
   return (
     <div className="">
-      
-
-      {/* Header obligatorio según estándares */}
-      <div className="bg-white rounded border border-slate-200 mb-4">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Calculator className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Cotizaciones</h2>
-                <p className="text-slate-300 mt-1">Gestión de cotizaciones de importación</p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                setEditingCotizacion(null);
-                setShowModal(true);
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nueva Cotización</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Header eliminado para ganar espacio */}
 
       {/* Estadísticas */}
       {estadisticas && (
@@ -205,18 +180,30 @@ const CotizacionesSection = () => {
         </div>
       )}
 
-      {/* Búsqueda */}
+      {/* Búsqueda y Acciones */}
       <div className="bg-white rounded border border-slate-200 mb-6">
         <div className="bg-slate-50 p-4 border-b border-slate-200">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por descripción, proveedor, cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-            />
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Buscar por descripción, proveedor, cliente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setEditingCotizacion(null);
+                setShowModal(true);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nueva Cotización</span>
+            </button>
           </div>
         </div>
       </div>

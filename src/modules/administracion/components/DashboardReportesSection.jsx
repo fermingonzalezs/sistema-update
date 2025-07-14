@@ -2,15 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../../../lib/supabase';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 // Servicio para Dashboard de Reportes
 const dashboardService = {
   async getVentasEnPeriodo(fechaInicio, fechaFin) {
     console.log('📊 Obteniendo ventas del período:', fechaInicio, 'al', fechaFin);
 
+    // Primero obtenemos los vendedores para mapear los IDs
+    const { data: vendedoresData } = await supabase
+      .from('vendedores')
+      .select('id, nombre, apellido');
+
+    const vendedoresMap = {};
+    if (vendedoresData) {
+      vendedoresData.forEach(v => {
+        vendedoresMap[v.id.toString()] = `${v.nombre} ${v.apellido}`;
+      });
+    }
+
     const { data, error } = await supabase
       .from('transacciones')
-      .select('*, venta_items (tipo_producto, modelo_producto, cantidad, precio_total)')
+      .select(`
+        id,
+        numero_transaccion,
+        fecha_venta,
+        cliente_nombre,
+        cliente_id,
+        vendedor,
+        sucursal,
+        total_venta,
+        metodo_pago,
+        observaciones,
+        clientes (
+          procedencia
+        ),
+        venta_items (
+          tipo_producto, 
+          copy, 
+          cantidad, 
+          precio_total
+        )
+      `)
       .gte('fecha_venta', fechaInicio)
       .lte('fecha_venta', fechaFin)
       .order('fecha_venta', { ascending: true });
@@ -20,37 +54,71 @@ const dashboardService = {
       throw error;
     }
 
-    console.log('✅ ' + data.length + ' transacciones obtenidas');
-    return data;
+    // Mapear nombres de vendedores
+    const dataWithVendedores = data.map(transaccion => ({
+      ...transaccion,
+      vendedor_nombre: vendedoresMap[transaccion.vendedor] || transaccion.vendedor || 'Sin asignar'
+    }));
+
+    console.log('✅ ' + dataWithVendedores.length + ' transacciones obtenidas');
+    return dataWithVendedores;
   },
 
   async getInventarioActual() {
     console.log('📦 Obteniendo estado del inventario...');
 
-    const [computadoras, celulares, otros] = await Promise.all([
-      supabase.from('inventario').select('*').eq('disponible', true),
-      supabase.from('celulares').select('*').eq('disponible', true),
-      supabase.from('otros').select('*').eq('disponible', true)
-    ]);
+    try {
+      const [computadoras, celulares, otros] = await Promise.all([
+        supabase.from('inventario_computadoras').select('*').eq('disponible', true),
+        supabase.from('inventario_celulares').select('*').eq('disponible', true),
+        supabase.from('inventario_otros').select('*').eq('disponible', true)
+      ]);
 
-    if (computadoras.error) throw computadoras.error;
-    if (celulares.error) throw celulares.error;
-    if (otros.error) throw otros.error;
+      // Log errores pero no fallar completamente si una tabla no existe
+      if (computadoras.error) console.warn('⚠️ Error inventario computadoras:', computadoras.error);
+      if (celulares.error) console.warn('⚠️ Error inventario celulares:', celulares.error);
+      if (otros.error) console.warn('⚠️ Error inventario otros:', otros.error);
 
-    return {
-      computadoras: computadoras.data,
-      celulares: celulares.data,
-      otros: otros.data
-    };
+      return {
+        computadoras: computadoras.data || [],
+        celulares: celulares.data || [],
+        otros: otros.data || []
+      };
+    } catch (err) {
+      console.warn('⚠️ Error general inventario:', err);
+      return {
+        computadoras: [],
+        celulares: [],
+        otros: []
+      };
+    }
   },
 
   procesarVentasParaGraficos(ventas) {
-    console.log('🔄 Procesando ventas para gráficos...');
+    console.log('🔄 Procesando ventas para gráficos...', { totalVentas: ventas.length });
+    
+    if (!ventas || ventas.length === 0) {
+      console.log('⚠️ No hay ventas para procesar');
+      return {
+        ventasPorDia: [],
+        ventasPorDiaSemana: [],
+        ventasPorSucursal: [],
+        ventasPorProcedencia: [],
+        ventasPorVendedor: [],
+        ventasPorCategoria: [],
+        metodosDePago: [],
+        productosVendidos: [],
+        tiposProductos: [],
+        totales: { totalVentas: 0, totalTransacciones: 0, totalItems: 0, promedioVenta: 0, promedioItemsPorVenta: 0 }
+      };
+    }
     
     const ventasPorDia = {};
     const ventasPorDiaSemana = {};
     const ventasPorSucursal = {};
     const ventasPorProcedencia = {};
+    const ventasPorVendedor = {};
+    const ventasPorCategoria = {};
     const metodosDePago = {};
     const productosVendidos = {};
     const tiposProductos = {};
@@ -76,17 +144,17 @@ const dashboardService = {
       const fecha = new Date(transaccion.fecha_venta).toISOString().split('T')[0];
       const diaSemana = new Date(transaccion.fecha_venta).toLocaleDateString('es-ES', { weekday: 'long' });
       
-      const ventaAmount = parseFloat(transaccion.monto_total || 0);
-      const descuentoAmount = parseFloat(transaccion.descuento || 0);
-      const promocioneAmount = parseFloat(transaccion.promociones || 0);
-      const efectivoAmount = parseFloat(transaccion.efectivo || 0);
-      const debitoAmount = parseFloat(transaccion.debito || 0);
-      const creditoAmount = parseFloat(transaccion.credito || 0);
-      const transferenciaAmount = parseFloat(transaccion.transferencia || 0);
-      const mercadoPagoAmount = parseFloat(transaccion.mercadopago || 0);
-      const usdAmount = parseFloat(transaccion.usd || 0);
-      const pesosEfectivoAmount = parseFloat(transaccion.pesos_efectivo || 0);
-      const pesosDigitalAmount = parseFloat(transaccion.pesos_digital || 0);
+      const ventaAmount = parseFloat(transaccion.total_venta || 0);
+      const descuentoAmount = 0; // Campo no disponible en estructura actual
+      const promocioneAmount = 0; // Campo no disponible en estructura actual
+      const efectivoAmount = 0; // Simplificado por ahora
+      const debitoAmount = 0;
+      const creditoAmount = 0;
+      const transferenciaAmount = 0;
+      const mercadoPagoAmount = 0;
+      const usdAmount = ventaAmount; // Asumiendo USD por defecto
+      const pesosEfectivoAmount = 0;
+      const pesosDigitalAmount = 0;
       
       totalVentas += ventaAmount;
       totalTransacciones += 1;
@@ -116,19 +184,28 @@ const dashboardService = {
       ventasPorDiaSemana[diaSemana].transacciones += 1;
       
       // Ventas por sucursal
-      const sucursal = transaccion.sucursal || 'No especificado';
+      const sucursalRaw = transaccion.sucursal || 'No especificado';
+      const sucursal = sucursalRaw.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       if (!ventasPorSucursal[sucursal]) {
         ventasPorSucursal[sucursal] = { sucursal, ventas: 0, transacciones: 0 };
       }
       ventasPorSucursal[sucursal].ventas += ventaAmount;
       
       // Ventas por procedencia del cliente
-      const procedencia = transaccion.cliente_procedencia || transaccion.como_nos_conocio || 'No especificado';
+      const procedencia = transaccion.clientes?.procedencia || 'No especificado';
       if (!ventasPorProcedencia[procedencia]) {
         ventasPorProcedencia[procedencia] = { procedencia, ventas: 0, cantidad: 0 };
       }
       ventasPorProcedencia[procedencia].ventas += ventaAmount;
       ventasPorProcedencia[procedencia].cantidad += 1;
+
+      // Ventas por vendedor
+      const vendedor = transaccion.vendedor_nombre || 'Sin asignar';
+      if (!ventasPorVendedor[vendedor]) {
+        ventasPorVendedor[vendedor] = { vendedor, ventas: 0, transacciones: 0 };
+      }
+      ventasPorVendedor[vendedor].ventas += ventaAmount;
+      ventasPorVendedor[vendedor].transacciones += 1;
 
       // Métodos de pago
       if (efectivoAmount > 0) {
@@ -139,7 +216,7 @@ const dashboardService = {
       if (transaccion.venta_items) {
         transaccion.venta_items.forEach(item => {
           // Productos más vendidos
-          const producto = item.modelo_producto || 'Sin especificar';
+          const producto = item.copy || 'Sin especificar';
           if (!productosVendidos[producto]) {
             productosVendidos[producto] = { producto, cantidad: 0, ingresos: 0 };
           }
@@ -155,6 +232,26 @@ const dashboardService = {
           }
           tiposProductos[tipo].ventas += parseFloat(item.precio_total || 0);
           tiposProductos[tipo].cantidad += item.cantidad || 0;
+
+          // Ventas por categoría específica (notebooks, iphones, otros)
+          let categoria = 'Otros';
+          if (item.tipo_producto === 'computadora') {
+            categoria = 'Notebooks';
+          } else if (item.tipo_producto === 'celular') {
+            // Determinar si es iPhone basado en el modelo
+            const modelo = (item.copy || '').toLowerCase();
+            if (modelo.includes('iphone') || modelo.includes('apple')) {
+              categoria = 'iPhones';
+            } else {
+              categoria = 'Celulares';
+            }
+          }
+
+          if (!ventasPorCategoria[categoria]) {
+            ventasPorCategoria[categoria] = { categoria, ventas: 0, cantidad: 0 };
+          }
+          ventasPorCategoria[categoria].ventas += parseFloat(item.precio_total || 0);
+          ventasPorCategoria[categoria].cantidad += item.cantidad || 0;
         });
       }
     });
@@ -166,6 +263,8 @@ const dashboardService = {
       ventasPorDiaSemana: procesarObjeto(ventasPorDiaSemana),
       ventasPorSucursal: procesarObjeto(ventasPorSucursal),
       ventasPorProcedencia: procesarObjeto(ventasPorProcedencia),
+      ventasPorVendedor: procesarObjeto(ventasPorVendedor),
+      ventasPorCategoria: procesarObjeto(ventasPorCategoria),
       metodosDePago: Object.entries(metodosDePago).map(([metodo, cantidad]) => ({
         metodo,
         cantidad
@@ -239,6 +338,7 @@ const useDashboardReportes = () => {
   
   const cargarDatos = async (fechaInicio, fechaFin) => {
     try {
+      console.log('📊 Cargando datos dashboard:', { fechaInicio, fechaFin });
       setLoading(true);
       setError(null);
       
@@ -247,11 +347,25 @@ const useDashboardReportes = () => {
         dashboardService.getInventarioActual()
       ]);
       
-      setVentasData(dashboardService.procesarVentasParaGraficos(ventas));
-      setInventarioData(dashboardService.procesarInventario(inventario));
+      console.log('📊 Datos cargados:', { 
+        ventasCount: ventas?.length || 0, 
+        inventarioKeys: Object.keys(inventario || {}) 
+      });
+      
+      const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventas);
+      const inventarioProcessed = dashboardService.procesarInventario(inventario);
+      
+      console.log('📊 Datos procesados:', { 
+        ventasPorDia: ventasProcessed.ventasPorDia?.length || 0,
+        ventasPorVendedor: ventasProcessed.ventasPorVendedor?.length || 0,
+        ventasPorCategoria: ventasProcessed.ventasPorCategoria?.length || 0
+      });
+      
+      setVentasData(ventasProcessed);
+      setInventarioData(inventarioProcessed);
       
     } catch (err) {
-      console.error('Error cargando datos del dashboard:', err);
+      console.error('❌ Error cargando datos del dashboard:', err);
       setError(err.message || 'Error cargando datos');
     } finally {
       setLoading(false);
@@ -285,10 +399,6 @@ const DashboardReportesSection = () => {
     cargarDatos(fechaInicio, fechaFin);
   };
   
-  const formatearMoneda = (value) => {
-    if (typeof value !== 'number') return value;
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value);
-  };
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -302,7 +412,7 @@ const DashboardReportesSection = () => {
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {typeof entry.value === 'number' && entry.name.includes('$') 
-                ? formatearMoneda(entry.value) 
+                ? formatearMonto(entry.value, 'USD') 
                 : entry.value}
             </p>
           ))}
@@ -322,20 +432,9 @@ const DashboardReportesSection = () => {
   }
 
   return (
-    <div className="p-6 bg-slate-50">
-      <div className="bg-white rounded border border-slate-200 mb-6">
-        {/* Header */}
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-semibold flex items-center gap-2">
-                <BarChart3 className="w-6 h-6" />
-                Dashboard de Reportes
-              </h2>
-              <p className="text-slate-300 mt-1">Análisis visual de ventas e inventario</p>
-            </div>
-          </div>
-        </div>
+    <div className="p-0 bg-slate-50">
+      <div className=" p-3 bg-white rounded border border-slate-200 mb-6">
+        
 
         {/* Filtros de fecha */}
         <div className="p-4 border-t border-slate-200">
@@ -384,56 +483,29 @@ const DashboardReportesSection = () => {
           </div>
         ) : (
           <div className="p-6">
-            {/* Métricas principales */}
+            {/* Métricas principales usando Tarjeta */}
             {ventasData && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600">Total Ventas</p>
-                      <p className="text-2xl font-semibold text-slate-800">
-                        {formatearMoneda(ventasData.totales.totalVentas)}
-                      </p>
-                    </div>
-                    <DollarSign className="w-8 h-8 text-emerald-600" />
-                  </div>
-                </div>
-                
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600">Transacciones</p>
-                      <p className="text-2xl font-semibold text-slate-800">
-                        {ventasData.totales.totalTransacciones}
-                      </p>
-                    </div>
-                    <ShoppingCart className="w-8 h-8 text-emerald-600" />
-                  </div>
-                </div>
-                
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600">Promedio Venta</p>
-                      <p className="text-2xl font-semibold text-slate-800">
-                        {formatearMoneda(ventasData.totales.promedioVenta)}
-                      </p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-emerald-600" />
-                  </div>
-                </div>
-                
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-600">Items Vendidos</p>
-                      <p className="text-2xl font-semibold text-slate-800">
-                        {ventasData.totales.totalItems}
-                      </p>
-                    </div>
-                    <Package className="w-8 h-8 text-emerald-600" />
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <Tarjeta 
+                  icon={DollarSign}
+                  titulo="Total Ventas"
+                  valor={formatearMonto(ventasData.totales.totalVentas, 'USD')}
+                />
+                <Tarjeta 
+                  icon={ShoppingCart}
+                  titulo="Transacciones"
+                  valor={ventasData.totales.totalTransacciones}
+                />
+                <Tarjeta 
+                  icon={TrendingUp}
+                  titulo="Promedio Venta"
+                  valor={formatearMonto(ventasData.totales.promedioVenta, 'USD')}
+                />
+                <Tarjeta 
+                  icon={Package}
+                  titulo="Items Vendidos"
+                  valor={ventasData.totales.totalItems}
+                />
               </div>
             )}
 
@@ -471,18 +543,28 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
-              {/* Productos más vendidos */}
+              {/* Ventas por categoría (notebooks, iphones, otros) */}
               <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Productos Más Vendidos</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Categoría</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ventasData?.productosVendidos.slice(0, 8)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="producto" angle={-45} textAnchor="end" height={100} />
-                      <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="cantidad" fill="#e2e8f0" />
-                    </BarChart>
+                    <PieChart>
+                      <Pie
+                        data={ventasData?.ventasPorCategoria}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ categoria, ventas }) => categoria + ': ' + formatearMonto(ventas, 'USD')}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="ventas"
+                      >
+                        {ventasData?.ventasPorCategoria.map((entry, index) => (
+                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#e2e8f0', '#a1a1aa'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -507,7 +589,7 @@ const DashboardReportesSection = () => {
                           <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#e2e8f0', '#a1a1aa', '#71717a', '#52525b'][index % 6]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => formatearMoneda(value)} />
+                      <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -529,56 +611,19 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
-              {/* Inventario - Información general */}
+              {/* Ventas por vendedor */}
               <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado del Inventario</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {inventarioData?.distribucionCategorias.map((categoria, index) => (
-                    <div key={index} className="p-3 bg-slate-50 border border-slate-200 rounded">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          {categoria.categoria === 'Computadoras' && <Monitor className="w-5 h-5 text-slate-600" />}
-                          {categoria.categoria === 'Celulares' && <Smartphone className="w-5 h-5 text-slate-600" />}
-                          {categoria.categoria === 'Otros' && <Box className="w-5 h-5 text-slate-600" />}
-                          <div>
-                            <div className="font-medium text-slate-800">{categoria.categoria}</div>
-                            <div className="text-sm text-slate-700">{categoria.cantidad} productos</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-slate-800">{categoria.porcentaje.toFixed(1)}%</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Alertas de stock */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                    {inventarioData?.stockBajo > 0 && (
-                      <div className="p-3 bg-slate-100 border border-slate-200 rounded">
-                        <div className="flex items-center space-x-2">
-                          <Package className="w-5 h-5 text-slate-600" />
-                          <div>
-                            <div className="font-medium text-slate-800">Stock Bajo</div>
-                            <div className="text-sm text-slate-700">
-                              {inventarioData.stockBajo} productos con 5 o menos unidades
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
-                      <div className="flex items-center space-x-2">
-                        <Package className="w-5 h-5 text-slate-600" />
-                        <div>
-                          <div className="font-medium text-slate-800">Total Productos</div>
-                          <div className="text-sm text-slate-700">
-                            {inventarioData?.totalProductos} unidades
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Vendedor</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ventasData?.ventasPorVendedor}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="vendedor" angle={-45} textAnchor="end" height={80} />
+                      <YAxis tickFormatter={(value) => String(value)} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="ventas" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>

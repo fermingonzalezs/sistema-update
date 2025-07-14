@@ -19,6 +19,7 @@ export { celularesService, useCelulares } from '../modules/ventas/hooks/useCelul
 export { otrosService, useOtros } from '../modules/ventas/hooks/useOtros.js'
 export { reparacionesService, useReparaciones } from '../modules/soporte/hooks/useReparaciones.js'
 export { movimientosRepuestosService, useMovimientosRepuestos } from '../modules/soporte/hooks/useMovimientosRepuestos.js'
+export { movimientosRepuestosEquiposService, useMovimientosRepuestosEquipos } from '../modules/soporte/hooks/useMovimientosRepuestosEquipos.js'
 export { ventasService, useVentas } from '../modules/ventas/hooks/useVentas.js'
 export { useVendedores } from '../modules/ventas/hooks/useVendedores.js'
 export { clientesService, useClientes } from '../modules/ventas/hooks/useClientes.js'
@@ -32,23 +33,31 @@ export function useCarrito() {
   const [carrito, setCarrito] = useState([])
 
   const agregarAlCarrito = (producto, tipo, cantidad = 1) => {
+    // Validar que el tipo sea válido
+    const tiposValidos = ['computadora', 'celular', 'otro'];
+    const tipoValido = tiposValidos.includes(tipo) ? tipo : 'otro';
+    
+    if (tipo !== tipoValido) {
+      console.warn(`⚠️ Tipo corregido en carrito: "${tipo}" → "${tipoValido}"`);
+    }
+
     const itemExistente = carrito.find(
-      item => item.producto.id === producto.id && item.tipo === tipo
+      item => item.producto.id === producto.id && item.tipo === tipoValido
     )
 
     if (itemExistente) {
       // Si ya existe, aumentar cantidad
       setCarrito(prev => prev.map(item =>
-        item.producto.id === producto.id && item.tipo === tipo
+        item.producto.id === producto.id && item.tipo === tipoValido
           ? { ...item, cantidad: item.cantidad + cantidad }
           : item
       ))
     } else {
       // Agregar nuevo item
       const nuevoItem = {
-        id: `${tipo}-${producto.id}`,
+        id: `${tipoValido}-${producto.id}`,
         producto,
-        tipo, // 'computadora', 'celular', 'otro'
+        tipo: tipoValido, // 'computadora', 'celular', 'otro' validado
         cantidad,
         precio_unitario: producto.precio_venta_usd || producto.precio_venta || 0
       }

@@ -22,26 +22,76 @@ const ImportacionesSection = () => {
   }, [fetchImportaciones]);
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-8 flex items-center">
-        <div>
-          <h2 className="text-4xl font-bold text-white">Gestión de Importaciones</h2>
-          <p className="text-white/80 text-xl mt-2">Panel general de importaciones</p>
+    <div className="">
+      {/* Estados de carga y error integrados */}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+          <span className="ml-3 text-slate-600">Cargando importaciones...</span>
         </div>
-      </div>
-      {loading && <div>Cargando importaciones...</div>}
-      {error && <div className="text-red-500">{error}</div>}
-      <ul className="divide-y divide-gray-200">
-        {importaciones.map((imp) => (
-          <li key={imp.id} className="py-4 bg-blue-50 border border-blue-100 rounded-xl mb-4 px-6">
-            <div className="font-semibold text-blue-900 text-lg">{imp.descripcion}</div>
-            <div className="text-sm text-blue-800">Cliente: {imp.clientes?.nombre} {imp.clientes?.apellido}</div>
-            <div className="text-xs text-blue-700">Estado: {imp.estado}</div>
-          </li>
-        ))}
-      </ul>
-      {/* Aquí puedes agregar formularios/modales para crear/editar importaciones */}
+      )}
+      
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <div className="text-red-700">Error: {error}</div>
+        </div>
+      )}
+
+      {/* Lista optimizada de importaciones */}
+      {!loading && !error && (
+        <div className="space-y-4">
+          {importaciones.length > 0 ? (
+            <div className="grid gap-4">
+              {importaciones.map((imp) => (
+                <div key={imp.id} className="bg-white border border-slate-200 rounded hover:shadow-sm transition-shadow p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-800 text-lg mb-2">{imp.descripcion}</h3>
+                      <div className="text-sm text-slate-600 space-y-1">
+                        <div>Cliente: {imp.clientes?.nombre} {imp.clientes?.apellido}</div>
+                        <div className="flex items-center gap-2">
+                          <span>Estado:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            imp.estado === 'completado' ? 'bg-emerald-100 text-emerald-800' :
+                            imp.estado === 'en_transito' ? 'bg-blue-100 text-blue-800' :
+                            imp.estado === 'cotizado' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-slate-100 text-slate-800'
+                          }`}>
+                            {imp.estado}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Acciones rápidas por importación */}
+                    <div className="flex items-center gap-2 ml-4">
+                      <button className="text-slate-600 hover:text-emerald-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-emerald-600 transition-colors">
+                        Ver
+                      </button>
+                      <button className="text-slate-600 hover:text-blue-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-blue-600 transition-colors">
+                        Editar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-slate-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-slate-800 mb-2">No hay importaciones</h3>
+              <p className="text-slate-500 mb-6">Comienza creando tu primera importación</p>
+              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded font-medium transition-colors">
+                + Nueva Importación
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

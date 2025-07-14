@@ -105,30 +105,7 @@ const Clientes = () => {
   return (
     <div className="p-0">
 
-      {/* Búsqueda */}
-      <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, email, teléfono..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-100 pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-            <button
-            onClick={() => setShowModal(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded flex items-center gap-2 font-medium transition-colors"
-            >
-            <Plus className="w-4 h-4" />
-            Nuevo Cliente
-            </button>
-        </div>
-      </div>
-
-
+     
 
       <div className="flex justify-between items-start mb-6">
         {/* Estadísticas simples */}
@@ -159,6 +136,29 @@ const Clientes = () => {
         )}
         
       </div>
+ {/* Búsqueda */}
+      <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre, email, teléfono..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-100 pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+          />
+        </div>
+        <div className="flex items-center gap-4">
+            <button
+            onClick={() => setShowModal(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded flex items-center gap-2 font-medium transition-colors"
+            >
+            <Plus className="w-4 h-4" />
+            Nuevo Cliente
+            </button>
+        </div>
+      </div>
+
 
       
 

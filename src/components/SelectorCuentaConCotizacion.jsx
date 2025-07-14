@@ -4,8 +4,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, DollarSign, TrendingUp, Info, Calculator, RefreshCw } from 'lucide-react';
-import { conversionService } from '../services/conversionService';
-import { cotizacionSimple } from '../services/cotizacionSimpleService';
+import { supabase } from '../lib/supabase';
+import { cotizacionService } from '../shared/services/cotizacionService';
+import { requiereConversion, convertirARSaUSD } from '../shared/utils/currency';
+import { formatearMonto } from '../shared/utils/formatters';
 
 const SelectorCuentaConCotizacion = ({
   cuentaSeleccionada,
@@ -28,12 +30,18 @@ const SelectorCuentaConCotizacion = ({
     const cargarCuentas = async () => {
       try {
         setLoading(true);
-        const data = await conversionService.obtenerCuentasConMoneda();
+        // Obtener cuentas desde base de datos (función directa)
+        const { data: cuentas, error } = await supabase
+          .from('plan_cuentas')
+          .select('id, codigo, nombre, moneda_original, requiere_cotizacion')
+          .eq('activa', true)
+          .order('codigo');
+        const data = error ? [] : cuentas;
         setCuentas(data);
         
         // Obtener cotización actual para ayudar al usuario
         try {
-          const cotizacionActual = await cotizacionSimple.obtenerCotizacion();
+          const cotizacionActual = await cotizacionService.obtenerCotizacionActual();
           setUltimaCotizacion({
             cotizacion: cotizacionActual.valor,
             fuente: cotizacionActual.fuente,
@@ -66,7 +74,7 @@ const SelectorCuentaConCotizacion = ({
     try {
       // Solo convertir si la cotización está en rango válido
       if (cotizacion >= 500 && cotizacion <= 5000) {
-        return conversionService.convertirArsAUsd(monto, cotizacion);
+        return convertirARSaUSD(monto, cotizacion);
       }
       return 0;
     } catch (error) {
@@ -114,7 +122,7 @@ const SelectorCuentaConCotizacion = ({
   const obtenerCotizacionAutomatica = async () => {
     try {
       setLoading(true);
-      const cotizacionActual = await cotizacionSimple.forzarActualizacion();
+      const cotizacionActual = await cotizacionService.forzarActualizacion();
       const nuevaCotizacion = {
         cotizacion: cotizacionActual.valor,
         fuente: cotizacionActual.fuente,
@@ -260,7 +268,7 @@ const SelectorCuentaConCotizacion = ({
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
               <span>Monto en ARS:</span>
-              <span className="font-medium">{conversionService.formatearMonto(monto, 'ARS')}</span>
+              <span className="font-medium">{formatearMonto(monto, 'ARS')}</span>
             </div>
             <div className="flex justify-between">
               <span>Cotización:</span>
@@ -269,7 +277,7 @@ const SelectorCuentaConCotizacion = ({
             <div className="border-t pt-1 flex justify-between">
               <span className="font-medium">Resultado en USD:</span>
               <span className="font-bold text-blue-600">
-                {conversionService.formatearMonto(montoUSD, 'USD')}
+                {formatearMonto(montoUSD, 'USD')}
               </span>
             </div>
           </div>

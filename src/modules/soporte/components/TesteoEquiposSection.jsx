@@ -442,100 +442,107 @@ function TesteoEquiposSection() {
 
       {/* Modal Nuevo Equipo */}
       {modalNuevo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-slate-800">Nuevo Equipo para Testeo</h3>
-            <form onSubmit={handleCrearEquipo} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
-                  Tipo de Equipo
-                </label>
-                <select
-                  value={formNuevo.tipo}
-                  onChange={(e) => setFormNuevo(prev => ({ ...prev, tipo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                >
-                  <option value="notebook">Notebook</option>
-                  <option value="celular">Celular</option>
-                </select>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
+              <h3 className="text-lg font-semibold flex items-center gap-3">
+                <Plus className="w-5 h-5" />
+                Nuevo Equipo para Testeo
+              </h3>
+              <button onClick={() => setModalNuevo(false)} className="p-1 rounded-full text-slate-400 hover:bg-slate-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Formulario con scroll y footer fijo */}
+            <form onSubmit={handleCrearEquipo} className="flex-grow flex flex-col overflow-hidden">
+              {/* Contenido del formulario (scrollable) */}
+              <div className="flex-grow p-6 space-y-4 overflow-y-auto">
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-1">
-                    Marca *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Equipo</label>
+                  <select
+                    value={formNuevo.tipo}
+                    onChange={(e) => setFormNuevo(prev => ({ ...prev, tipo: e.target.value }))}
+                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  >
+                    <option value="notebook">Notebook</option>
+                    <option value="celular">Celular</option>
+                  </select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Marca *</label>
+                    <input
+                      type="text"
+                      value={formNuevo.marca}
+                      onChange={(e) => setFormNuevo(prev => ({ ...prev, marca: e.target.value }))}
+                      placeholder="Ej: Apple, HP, Dell"
+                      className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
+                    <input
+                      type="text"
+                      value={formNuevo.modelo}
+                      onChange={(e) => setFormNuevo(prev => ({ ...prev, modelo: e.target.value }))}
+                      placeholder="Ej: MacBook Pro 14"
+                      className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Serie (Opcional)</label>
                   <input
                     type="text"
-                    value={formNuevo.marca}
-                    onChange={(e) => setFormNuevo(prev => ({ ...prev, marca: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                    required
+                    value={formNuevo.serial}
+                    onChange={(e) => setFormNuevo(prev => ({ ...prev, serial: e.target.value }))}
+                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-1">
-                    Modelo *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor (Opcional)</label>
                   <input
                     type="text"
-                    value={formNuevo.modelo}
-                    onChange={(e) => setFormNuevo(prev => ({ ...prev, modelo: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                    required
+                    value={formNuevo.proveedor}
+                    onChange={(e) => setFormNuevo(prev => ({ ...prev, proveedor: e.target.value }))}
+                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones (Opcional)</label>
+                  <textarea
+                    value={formNuevo.observaciones}
+                    onChange={(e) => setFormNuevo(prev => ({ ...prev, observaciones: e.target.value }))}
+                    rows={3}
+                    placeholder="Cualquier detalle inicial relevante"
+                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
-                  Número de Serie
-                </label>
-                <input
-                  type="text"
-                  value={formNuevo.serial}
-                  onChange={(e) => setFormNuevo(prev => ({ ...prev, serial: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
-                  Proveedor
-                </label>
-                <input
-                  type="text"
-                  value={formNuevo.proveedor}
-                  onChange={(e) => setFormNuevo(prev => ({ ...prev, proveedor: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-1">
-                  Observaciones
-                </label>
-                <textarea
-                  value={formNuevo.observaciones}
-                  onChange={(e) => setFormNuevo(prev => ({ ...prev, observaciones: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
+              {/* Footer de acciones (fijo abajo) */}
+              <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setModalNuevo(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
+                  className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                  className="px-6 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2"
                 >
-                  Guardar
+                  <Save className="w-4 h-4" />
+                  Guardar Equipo
                 </button>
               </div>
             </form>

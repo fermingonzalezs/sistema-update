@@ -1,172 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, Filter, ChevronDown } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
-import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
 
-// Importar formatter unificado
-import { formatearMonedaGeneral } from '../../../shared/utils/formatters';
+// Importar formatter unificado y copyGenerator
+import { formatearMonto } from '../../../shared/utils/formatters';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 
-// Función para generar copy compacto unificado
-const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
-  let copy = '';
-  
-  switch (categoria) {
-    case 'notebooks':
-      const modelo = producto.modelo || '';
-      const procesador = producto.procesador || '';
-      const ram = producto.ram ? `${producto.ram}GB RAM` : '';
-      const tipoRam = producto.tipo_ram ? `${producto.tipo_ram}` : '';
-      const ssd = producto.ssd ? `${producto.ssd}GB SSD` : '';
-      const hdd = producto.hdd ? `${producto.hdd}GB HDD` : '';
-      const pantalla = producto.pantalla ? `${producto.pantalla}"` : '';
-      const resolucion = producto.resolucion || '';
-      const refresh = producto.refresh_rate ? `${producto.refresh_rate}` : '';
-      const touchscreen = producto.touchscreen ? 'Touchscreen' : '';
-      const gpu = producto.gpu || '';
-      const vram = producto.vram ? `${producto.vram}GB VRAM` : '';
-      const so = producto.so || '';
-      const teclado = producto.teclado || '';
-      const idiomaTeclado = producto.idioma_teclado || '';
-      const color = producto.color || '';
-      const bateria = producto.bateria || '';
-      const duracionBateria = producto.duracion_bateria || '';
-      const sucursal = producto.sucursal ? producto.sucursal.replace('_', ' ').toUpperCase() : '';
-      const fallas = producto.fallas ? `Fallas: ${producto.fallas}` : '';
-      
-      const memoria = [ram, tipoRam].filter(Boolean).join(' ');
-      const almacenamiento = [ssd, hdd].filter(Boolean).join(' + ');
-      const infoPantalla = [pantalla, refresh, resolucion, touchscreen].filter(Boolean).join(' ');
-      const infoGpu = [gpu, vram].filter(Boolean).join(' ');
-      const infoTeclado = [teclado, idiomaTeclado].filter(Boolean).join(' ');
-      const infoBateria = [bateria, duracionBateria].filter(Boolean).join(' ');
-      const infoGeneral = [so, infoTeclado, color, infoBateria, sucursal, fallas].filter(Boolean).join(' - ');
-      
-      copy = [modelo, procesador, memoria, almacenamiento, infoPantalla, infoGpu, infoGeneral]
-        .filter(Boolean)
-        .join(' - ');
-      break;
-
-    case 'celulares':
-      copy = [
-        producto.marca,
-        producto.modelo,
-        producto.capacidad || '',
-        producto.condicion ? `Estado: ${producto.condicion}` : '',
-        producto.estado ? `Condición: ${producto.estado}` : '',
-        producto.bateria ? `Batería: ${producto.bateria}` : '',
-        producto.color ? `Color: ${producto.color}` : '',
-        producto.garantia_update ? `Garantía: ${producto.garantia_update}` : '',
-        producto.sucursal ? producto.sucursal.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-
-    case 'otros':
-      copy = [
-        producto.nombre_producto,
-        producto.marca,
-        producto.categoria,
-        producto.especificaciones_otro || '',
-        producto.modelo_otro || '',
-        producto.ubicacion_otro ? producto.ubicacion_otro.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-    
-    // Nuevas categorías de productos unificados
-    case 'desktop':
-      const specs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        specs.procesador || '',
-        specs.ram || '',
-        specs.almacenamiento || '',
-        specs.gpu || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-      
-    case 'tablets':
-      const tabletSpecs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        tabletSpecs.pantalla || '',
-        tabletSpecs.procesador || '',
-        tabletSpecs.almacenamiento || '',
-        tabletSpecs.bateria || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-      
-    case 'gpu':
-      const gpuSpecs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        gpuSpecs.memoria || '',
-        gpuSpecs.boost_clock || '',
-        gpuSpecs.tdp || '',
-        gpuSpecs.conectores || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-      
-    case 'apple':
-      const appleSpecs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        appleSpecs.procesador || '',
-        appleSpecs.almacenamiento || '',
-        appleSpecs.pantalla || '',
-        appleSpecs.color || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-      
-    case 'componentes':
-      const componenteSpecs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        componenteSpecs.capacidad || componenteSpecs.nucleos || componenteSpecs.potencia || '',
-        componenteSpecs.frecuencia || componenteSpecs.socket || componenteSpecs.certificacion || '',
-        componenteSpecs.tipo || componenteSpecs.interfaz || componenteSpecs.modular || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-      
-    case 'audio':
-      const audioSpecs = producto.especificaciones || {};
-      copy = [
-        producto.nombre,
-        producto.marca,
-        audioSpecs.tipo || audioSpecs.configuracion || '',
-        audioSpecs.drivers || audioSpecs.potencia || '',
-        audioSpecs.conectividad || audioSpecs.impedancia || '',
-        audioSpecs.peso || audioSpecs.dimensiones || '',
-        producto.ubicacion ? producto.ubicacion.replace('_', ' ').toUpperCase() : ''
-      ].filter(Boolean).join(' - ');
-      break;
-
-    default:
-      // Para categorías específicas de "otros" (ej: otros-placas-de-video)
-      if (categoria.startsWith('otros-')) {
-        copy = [
-          producto.nombre_producto,
-          producto.marca,
-          producto.especificaciones_otro || '',
-          producto.modelo_otro || '',
-          producto.ubicacion_otro ? producto.ubicacion_otro.replace('_', ' ').toUpperCase() : ''
-        ].filter(Boolean).join(' - ');
-      } else {
-        copy = producto.modelo || producto.nombre_producto || 'Producto sin descripción';
-      }
-  }
-
-  return copy;
-};
+// La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
 // Modal de detalle unificado
 
@@ -198,7 +40,7 @@ const Catalogo = ({ onAddToCart }) => {
   useEffect(() => {
     const cargarCotizacion = async () => {
       try {
-        const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+        const cotizacionData = await cotizacionService.obtenerCotizacionActual();
         setCotizacionDolar(cotizacionData.valor);
       } catch (error) {
         console.error('❌ Error cargando cotización:', error);
@@ -210,12 +52,22 @@ const Catalogo = ({ onAddToCart }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const generateCopy = (producto, usePesos = false) => {
+  const generateCopyWithPrice = (producto, usePesos = false) => {
     const precio = usePesos 
       ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
-      : formatearMonedaGeneral(producto.precio_venta_usd, 'USD');
+      : formatearMonto(producto.precio_venta_usd, 'USD');
     
-    const infoBase = generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar);
+    // Determinar tipo simple con emoji para botones copy
+    let tipoSimple = 'otro_simple';
+    if (categoriaActiva === 'notebooks') {
+      tipoSimple = 'notebook_simple';
+    } else if (categoriaActiva === 'celulares') {
+      tipoSimple = 'celular_simple';
+    }
+    
+    const infoBase = generateCopy(producto, { 
+      tipo: tipoSimple
+    });
     return `${infoBase} - Estado: ${producto.condicion} - Precio: ${precio}`;
   };
 
@@ -228,7 +80,7 @@ const Catalogo = ({ onAddToCart }) => {
       } else if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
         tipo = 'otro';
       } else if (['desktop', 'tablets', 'gpu', 'apple', 'componentes', 'audio'].includes(categoriaActiva)) {
-        tipo = 'producto'; // Nuevo tipo para productos unificados
+        tipo = 'otro'; // Categorías especiales se clasifican como 'otro'
       }
       
       onAddToCart(producto, tipo);
@@ -440,7 +292,11 @@ const Catalogo = ({ onAddToCart }) => {
                 ) : (
                   <div>
                     <div className="text-sm font-medium">
-                      {generateUnifiedCopy(producto, categoriaActiva, cotizacionDolar)}
+                      {generateCopy(producto, { 
+                        tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 
+                              categoriaActiva === 'celulares' ? 'celular_completo' : 
+                              'otro_completo'
+                      })}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
                       {producto.descripcion && <span>{producto.descripcion}</span>}
@@ -467,7 +323,7 @@ const Catalogo = ({ onAddToCart }) => {
               {/* Precio */}
               <div className="col-span-2">
                 <div className="text-lg font-bold text-slate-800">
-                  {formatearMonedaGeneral(producto.precio_venta_usd, 'USD')}
+                  {formatearMonto(producto.precio_venta_usd, 'USD')}
                 </div>
                 <div className="text-xs text-slate-500">
                   ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
@@ -477,14 +333,14 @@ const Catalogo = ({ onAddToCart }) => {
               {/* Copys */}
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => navigator.clipboard.writeText(generateCopy(producto, false))}
+                  onClick={() => navigator.clipboard.writeText(generateCopyWithPrice(producto, false))}
                   className="px-2 py-1 text-white text-[5px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Copiar información USD"
                 >
                   USD
                 </button>
                 <button
-                  onClick={() => navigator.clipboard.writeText(generateCopy(producto, true))}
+                  onClick={() => navigator.clipboard.writeText(generateCopyWithPrice(producto, true))}
                   className="px-2 py-1 text-white text-[10px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Copiar información Pesos"
                 >

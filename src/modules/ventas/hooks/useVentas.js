@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { otrosService } from '../hooks/useOtros.js';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 
 // 📊 SERVICE: Operaciones de ventas y transacciones
 export const ventasService = {
@@ -18,7 +19,7 @@ export const ventasService = {
           tipo_producto,
           producto_id,
           serial_producto,
-          modelo_producto,
+          copy,
           cantidad,
           precio_unitario,
           precio_total,
@@ -95,12 +96,37 @@ export const ventasService = {
         const precioTotal = item.precio_unitario * item.cantidad
         const margenItem = precioTotal - (precioCosto * item.cantidad)
 
+        // Generar copy completo del producto al momento de la venta
+        let copyCompleto = '';
+        try {
+          // Determinar el tipo de copy según el producto
+          let tipoCopy = 'otro_completo'; // Por defecto
+          if (item.tipo === 'computadora') {
+            tipoCopy = 'notebook_completo';
+          } else if (item.tipo === 'celular') {
+            tipoCopy = 'celular_completo';
+          }
+          
+          copyCompleto = generateCopy(item.producto, { tipo: tipoCopy });
+        } catch (error) {
+          console.error('Error generando copy:', error);
+          // Fallback al modelo/nombre si falla la generación
+          copyCompleto = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
+        }
+
+        // Validar que el tipo sea válido antes de insertar
+        const tipoValido = ['computadora', 'celular', 'otro'].includes(item.tipo) ? item.tipo : 'otro';
+        
+        if (item.tipo !== tipoValido) {
+          console.warn(`⚠️ Tipo de producto corregido: "${item.tipo}" → "${tipoValido}"`);
+        }
+
         return {
           transaccion_id: transaccion.id,
-          tipo_producto: item.tipo,
+          tipo_producto: tipoValido,
           producto_id: item.producto.id,
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
-          modelo_producto: item.producto.modelo || item.producto.nombre_producto,
+          copy: copyCompleto,
           cantidad: item.cantidad,
           precio_unitario: item.precio_unitario,
           precio_total: precioTotal,

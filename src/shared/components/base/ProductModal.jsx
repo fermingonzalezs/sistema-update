@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { formatearMonedaGeneral } from '../../utils/formatters';
+import { formatearMonto } from '../../utils/formatters';
 
 /**
  * ProductModal - Modal genérico para productos
@@ -84,13 +84,13 @@ const ProductModal = ({
   // Funciones de formateo (unificadas del análisis anterior)
   const formatPriceUSD = (price) => {
     const numPrice = parseFloat(price) || 0;
-    return formatearMonedaGeneral(numPrice, 'USD');
+    return formatearMonto(numPrice, 'USD');
   };
 
   const formatPriceARS = (price, cotizacion) => {
     const numPrice = parseFloat(price) || 0;
     const arsPrice = Math.round(numPrice * cotizacion);
-    return formatearMonedaGeneral(arsPrice, 'ARS');
+    return formatearMonto(arsPrice, 'ARS');
   };
 
   // Obtener nombre del producto

@@ -5,7 +5,7 @@ import {
   Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe, Menu
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
-import { cotizacionSimple } from '../../../services/cotizacionSimpleService';
+import { cotizacionService } from '../../services/cotizacionService';
 
 const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShowSidebar }) => {
   const { user, logout } = useAuthContext();
@@ -32,7 +32,7 @@ const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShow
   const cargarCotizacion = async () => {
     try {
       setLoadingCotizacion(true);
-      const cotizacionData = await cotizacionSimple.obtenerCotizacion();
+      const cotizacionData = await cotizacionService.obtenerCotizacionActual();
       setCotizacion(cotizacionData);
     } catch (error) {
       console.error('❌ Error cargando cotización:', error);
@@ -61,7 +61,6 @@ const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShow
       'reparaciones': { title: 'Reparaciones', icon: Wrench, description: 'Gestión de reparaciones y servicios técnicos' },
       'repuestos': { title: 'Repuestos', icon: Wrench, description: 'Inventario de repuestos y componentes' },
       'movimientos-repuestos': { title: 'Movimientos de Repuestos', icon: Package, description: 'Registro de movimientos de stock de repuestos' },
-      'recuento-repuestos': { title: 'Recuento de Repuestos', icon: Calculator, description: 'Control de inventario de repuestos' },
       'testeo-equipos': { title: 'Testeo de Equipos', icon: Monitor, description: 'Registro de pruebas y testeos técnicos' },
       'recuento-stock': { title: 'Recuento de Stock', icon: Package, description: 'Control y auditoría de inventario' },
       'dashboard-reportes': { title: 'Dashboard de Reportes', icon: BarChart3, description: 'Reportes visuales y estadísticas' },

@@ -1,7 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatearMonedaLibroDiario } from '../../../shared/utils/formatters';
+import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight } from 'lucide-react';
+import { formatearMonto } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
+
+  const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
+
+  const CuentaRow = ({ cuenta, nivel = 0 }) => {
+  const [expandido, setExpandido] = useState(true);
+  const tieneHijos = cuenta.children && cuenta.children.length > 0;
+
+  return (
+    <>
+      <div className={`flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors ${
+        nivel === 0 ? 'bg-slate-100' : ''
+      }`}>
+        <div style={{ paddingLeft: `${nivel * 20}px` }} className="flex items-center">
+          {tieneHijos && (
+            <button onClick={() => setExpandido(!expandido)} className="mr-2 text-slate-500">
+              {expandido ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+          )}
+          <span className={`font-medium ${nivel === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
+            {cuenta.cuenta.nombre}
+          </span>
+        </div>
+        <div className={`text-lg font-semibold ${nivel === 0 ? 'text-slate-900' : 'text-slate-800'}`}>
+          {formatearMoneda(cuenta.saldo)}
+        </div>
+      </div>
+      {expandido && tieneHijos && (
+        <div>
+          {cuenta.children.map(hijo => (
+            <CuentaRow key={hijo.cuenta.id} cuenta={hijo} nivel={nivel + 1} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
 
 // Componente principal
 const EstadoSituacionPatrimonialSection = () => {
@@ -26,7 +62,7 @@ const EstadoSituacionPatrimonialSection = () => {
     fetchBalance(fechaCorte);
   };
 
-  const formatearMoneda = (monto) => formatearMonedaLibroDiario(monto);
+  const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 
   // Verificar ecuación contable: Activos = Pasivos + Patrimonio
   const diferencia = balance.totalActivos - (balance.totalPasivos + balance.totalPatrimonio);
@@ -52,29 +88,10 @@ const EstadoSituacionPatrimonialSection = () => {
 
         {/* Cuentas de la sección */}
         <div className="bg-white border border-slate-200">
-          <div className="p-6">
-            <div className="space-y-4">
-              {cuentas
-                .sort((a, b) => a.cuenta.nombre.localeCompare(b.cuenta.nombre)) // Ordenar alfabéticamente
-                .map((item, itemIndex) => (
-                <div key={itemIndex} className="flex justify-between items-center py-3 px-4 border-b border-slate-200 hover:bg-slate-200 transition-colors">
-                  <div className="flex-1 space-y-1.5">
-                    <div className="font-medium text-slate-800">{item.cuenta.nombre}</div>
-                    <div className="text-sm text-slate-800 flex gap-8">
-                      <span>Código: <span className="font-mono text-slate-800">{item.cuenta.codigo}</span></span>
-                      <span>Debe: {formatearMoneda(item.debe)}</span>
-                      <span>Haber: {formatearMoneda(item.haber)}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-slate-800">
-                      {formatearMoneda(Math.abs(item.saldo))}
-                    </div>
-                    <div className="text-xs text-slate-800">
-                      {item.saldo >= 0 ? 'Resultado negativo' : 'Resultado positivo'}
-                    </div>
-                  </div>
-                </div>
+          <div className="p-4">
+            <div className="space-y-0">
+              {cuentas.map((item) => (
+                <CuentaRow key={item.cuenta.id} cuenta={item} />
               ))}
             </div>
           </div>
@@ -85,10 +102,8 @@ const EstadoSituacionPatrimonialSection = () => {
 
   return (
     <div className="p-0">
-
-      <div className="">
-        
-        <div className="flex items-center justify-between p-3 mb-3 rounded bg-slate-800">
+      {/* Filtros con estilo idéntico a Estado de Resultados */}
+      <div className="flex bg-slate-800 items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
         {/* Izquierda: selector y botón */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
@@ -119,7 +134,7 @@ const EstadoSituacionPatrimonialSection = () => {
         {/* Derecha: texto de fecha */}
         <div className="text-right rounded-lg p-4 text-white">
           <div className="text-md">Fecha de Corte</div>
-          <div className="text-xl font-semibold">
+          <div className="text-md font-semibold">
             {new Date(fechaCorte).toLocaleDateString('es-ES', {
               year: 'numeric',
               month: 'long',
@@ -128,8 +143,9 @@ const EstadoSituacionPatrimonialSection = () => {
           </div>
         </div>
       </div>
-        {/* Error */}
-        {error && (
+
+      {/* Error */}
+      {error && (
           <div className="p-6 bg-slate-200 border-l-4 border-slate-800">
             <p className="text-slate-800">Error: {error}</p>
           </div>
@@ -216,7 +232,6 @@ const EstadoSituacionPatrimonialSection = () => {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };

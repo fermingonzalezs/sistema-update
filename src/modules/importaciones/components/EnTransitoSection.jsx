@@ -154,20 +154,7 @@ const EnTransitoSection = () => {
 
   return (
     <div className="">
-      {/* Header obligatorio según estándares */}
-      <div className="bg-white rounded border border-slate-200 mb-4">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Truck className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">En Tránsito</h2>
-                <p className="text-slate-300 mt-1">Productos en proceso de envío y entrega</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Header eliminado para ganar espacio */}
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
