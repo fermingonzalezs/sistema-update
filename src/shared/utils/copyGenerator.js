@@ -193,6 +193,42 @@ const getEstadoLetra = (estado) => {
 };
 
 /**
+ * Helper function to check if SSD/HDD value represents valid storage
+ * Handles both numeric values and string values like "256GB", "1TB", "512", etc.
+ */
+const hasValidStorage = (value) => {
+  if (!value) return false;
+  
+  // Handle null, undefined, empty string
+  if (value === null || value === undefined || value === '') return false;
+  
+  // Handle 'N/A' and similar invalid values
+  if (typeof value === 'string') {
+    const cleanValue = value.trim().toLowerCase();
+    if (cleanValue === 'n/a' || cleanValue === 'na' || cleanValue === '-' || cleanValue === 'ninguno' || cleanValue === 'sin') {
+      return false;
+    }
+    
+    // Extract numeric part from strings like "256GB", "1TB", "512", etc.
+    const numericMatch = cleanValue.match(/(\d+(?:\.\d+)?)/);
+    if (numericMatch) {
+      const numericValue = parseFloat(numericMatch[1]);
+      return numericValue > 0;
+    }
+    
+    // If it's a string but no numeric match, consider it invalid
+    return false;
+  }
+  
+  // Handle numeric values
+  if (typeof value === 'number') {
+    return value > 0;
+  }
+  
+  return false;
+};
+
+/**
  * Generar copy para notebooks
  * SIMPLE: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
  * COMPLETO: SERIAL - MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES - GARANTIA - SUCURSAL
@@ -241,19 +277,23 @@ const generateNotebookCopy = (comp, config) => {
   }
   
   // 5. SSD
-  if (comp.ssd && comp.ssd !== 'N/A' && comp.ssd > 0) {
+  if (hasValidStorage(comp.ssd)) {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '');
-    partes.push(`${ssdLimpio}GB SSD`);
+    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
+    // If the original value had TB, keep TB, otherwise add GB
+    const unit = String(comp.ssd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    partes.push(`${ssdLimpio}${unit} SSD`);
   } else {
     partes.push('Sin SSD');
   }
   
   // 6. HDD
-  if (comp.hdd && comp.hdd !== 'N/A' && comp.hdd > 0) {
+  if (hasValidStorage(comp.hdd)) {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const hddLimpio = String(comp.hdd).replace(/GB/gi, '');
-    partes.push(`${hddLimpio}GB HDD`);
+    const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
+    // If the original value had TB, keep TB, otherwise add GB
+    const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    partes.push(`${hddLimpio}${unit} HDD`);
   } else {
     partes.push('Sin HDD');
   }
