@@ -1,41 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight } from 'lucide-react';
+import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
+import { generarYAbrirEstadoSituacionPatrimonial } from '../../../components/EstadoSituacionPatrimonialPDF';
 
   const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 
-  const CuentaRow = ({ cuenta, nivel = 0 }) => {
-  const [expandido, setExpandido] = useState(true);
-  const tieneHijos = cuenta.children && cuenta.children.length > 0;
-
+  const CuentaRow = ({ cuenta }) => {
   return (
-    <>
-      <div className={`flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors ${
-        nivel === 0 ? 'bg-slate-100' : ''
-      }`}>
-        <div style={{ paddingLeft: `${nivel * 20}px` }} className="flex items-center">
-          {tieneHijos && (
-            <button onClick={() => setExpandido(!expandido)} className="mr-2 text-slate-500">
-              {expandido ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
-          )}
-          <span className={`font-medium ${nivel === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
-            {cuenta.cuenta.nombre}
-          </span>
+    <div className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors">
+      <div className="flex items-center">
+        <div className="mr-3">
+          <code className="text-sm text-slate-600 font-mono bg-slate-100 px-2 py-1 rounded">
+            {cuenta.cuenta.codigo}
+          </code>
         </div>
-        <div className={`text-lg font-semibold ${nivel === 0 ? 'text-slate-900' : 'text-slate-800'}`}>
-          {formatearMoneda(cuenta.saldo)}
-        </div>
+        <span className="font-medium text-slate-800">
+          {cuenta.cuenta.nombre}
+        </span>
       </div>
-      {expandido && tieneHijos && (
-        <div>
-          {cuenta.children.map(hijo => (
-            <CuentaRow key={hijo.cuenta.id} cuenta={hijo} nivel={nivel + 1} />
-          ))}
-        </div>
-      )}
-    </>
+      <div className="text-lg font-semibold text-slate-900">
+        {formatearMoneda(cuenta.saldo)}
+      </div>
+    </div>
   );
 };
 
@@ -60,6 +47,18 @@ const EstadoSituacionPatrimonialSection = () => {
 
   const aplicarFecha = () => {
     fetchBalance(fechaCorte);
+  };
+
+  const handleGenerarPDF = async () => {
+    try {
+      const resultado = await generarYAbrirEstadoSituacionPatrimonial(balance, fechaCorte);
+      if (!resultado.success) {
+        alert('Error al generar PDF: ' + resultado.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al generar PDF');
+    }
   };
 
   const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
@@ -102,26 +101,49 @@ const EstadoSituacionPatrimonialSection = () => {
 
   return (
     <div className="p-0">
-      {/* Filtros con estilo idéntico a Estado de Resultados */}
-      <div className="flex bg-slate-800 items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
-        {/* Izquierda: selector y botón */}
+      {/* Header */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Building2 className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Estado de Situación Patrimonial</h2>
+                <p className="text-slate-300 mt-1">Balance general al {new Date(fechaCorte).toLocaleDateString('es-AR')}</p>
+              </div>
+            </div>
+            {!loading && !error && balance.activos && (
+              <button
+                onClick={handleGenerarPDF}
+                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descargar PDF</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Controles */}
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-white font-medium text-slate-800">
+            <label className="text-sm font-medium text-slate-800">
               Fecha de Corte:
             </label>
             <input
               type="date"
               value={fechaCorte}
               onChange={(e) => setFechaCorte(e.target.value)}
-              className="bg-white px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
           <button
             onClick={aplicarFecha}
             disabled={loading}
-            className="bg-emerald-600 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -131,25 +153,18 @@ const EstadoSituacionPatrimonialSection = () => {
             {loading ? 'Calculando...' : 'Aplicar'}
           </button>
         </div>
-        {/* Derecha: texto de fecha */}
-        <div className="text-right rounded-lg p-4 text-white">
-          <div className="text-md">Fecha de Corte</div>
-          <div className="text-md font-semibold">
-            {new Date(fechaCorte).toLocaleDateString('es-ES', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Error */}
       {error && (
-          <div className="p-6 bg-slate-200 border-l-4 border-slate-800">
-            <p className="text-slate-800">Error: {error}</p>
+        <div className="bg-red-50 border border-red-200 p-6 rounded mb-6">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+            <span className="text-red-800 font-medium">Error:</span>
           </div>
-        )}
+          <p className="text-red-700 mt-1">{error}</p>
+        </div>
+      )}
 
         {/* Balance General */}
         {!loading && (
@@ -169,9 +184,9 @@ const EstadoSituacionPatrimonialSection = () => {
                   <div className="text-xs text-slate-800">{balance.pasivos.length} cuentas</div>
                 </div>
                 <div className="text-center p-6 bg-slate-200 rounded">
-                  <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalActivos - balance.totalPasivos)}</div>
+                  <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalPatrimonio)}</div>
                   <div className="text-sm text-slate-800">Patrimonio Neto</div>
-                  <div className="text-xs text-slate-800">(Activos - Pasivos)</div>
+                  <div className="text-xs text-slate-800">{balance.patrimonio.length} cuentas</div>
                 </div>
               </div>
               

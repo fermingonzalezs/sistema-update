@@ -153,6 +153,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Estado de Resultados',
           icon: TrendingUp,
           description: 'Ingresos y gastos'
+        },
+        {
+          id: 'balance-sumas-saldos',
+          label: 'Balance de Sumas y Saldos',
+          icon: ArrowUpDown,
+          description: 'Verificación contable'
         }
       ]
     },

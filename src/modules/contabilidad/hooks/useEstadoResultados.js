@@ -1,49 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 
-// Función para construir la jerarquía de cuentas
-const buildHierarchy = (cuentas) => {
-  const cuentasMap = {};
-  const cuentasRaiz = [];
-
-  // Primera pasada: crear mapa y encontrar raíces
-  Object.values(cuentas).forEach(cuenta => {
-    cuentasMap[cuenta.cuenta.id] = { ...cuenta, children: [] };
-  });
-
-  // Segunda pasada: construir la jerarquía
-  Object.values(cuentasMap).forEach(cuenta => {
-    const codigo = cuenta.cuenta.codigo;
-    const partes = codigo.split('.');
-    
-    if (partes.length > 1) {
-      partes.pop();
-      const codigoPadre = partes.join('.');
-      const padre = Object.values(cuentasMap).find(c => c.cuenta.codigo === codigoPadre);
-      
-      if (padre) {
-        padre.children.push(cuenta);
-      } else {
-        cuentasRaiz.push(cuenta);
-      }
-    } else {
-      cuentasRaiz.push(cuenta);
-    }
-  });
-
-  // Función para sumarizar montos de hijos a padres
-  const sumarizarMontos = (cuenta) => {
-    if (cuenta.children.length === 0) {
-      return cuenta.monto;
-    }
-    const montoHijos = cuenta.children.reduce((sum, hijo) => sum + sumarizarMontos(hijo), 0);
-    cuenta.monto += montoHijos;
-    return cuenta.monto;
-  };
-
-  cuentasRaiz.forEach(sumarizarMontos);
-
-  return cuentasRaiz;
+// Función para ordenar cuentas por código (reemplaza jerarquía)
+const ordenarCuentasPorCodigo = (cuentasObj) => {
+  return Object.values(cuentasObj)
+    .sort((a, b) => {
+      const codigoA = a.cuenta.codigo || '';
+      const codigoB = b.cuenta.codigo || '';
+      return codigoA.localeCompare(codigoB);
+    });
 };
 
 // Servicio para Estado de Resultados
@@ -52,96 +17,121 @@ export const estadoResultadosService = {
     console.log('📡 Obteniendo estado de resultados...', { fechaDesde, fechaHasta });
 
     try {
-      // Obtener movimientos contables del período con sus asientos
-      let query = supabase
+      // Primero obtener asientos del período (query de dos pasos)
+      let asientosQuery = supabase
+        .from('asientos_contables')
+        .select('id');
+
+      if (fechaDesde) {
+        asientosQuery = asientosQuery.gte('fecha', fechaDesde);
+      }
+      if (fechaHasta) {
+        asientosQuery = asientosQuery.lte('fecha', fechaHasta);
+      }
+
+      const { data: asientos, error: errorAsientos } = await asientosQuery;
+      
+      if (errorAsientos) throw errorAsientos;
+
+      if (!asientos || asientos.length === 0) {
+        console.log('ℹ️ No hay asientos en el período');
+        return {
+          ingresos: [],
+          gastos: [],
+          totalIngresos: 0,
+          totalGastos: 0,
+          utilidadNeta: 0,
+          fechaDesde,
+          fechaHasta
+        };
+      }
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos de esos asientos
+      const { data: movimientos, error } = await supabase
         .from('movimientos_contables')
         .select(`
           *,
-          plan_cuentas (id, codigo, nombre, tipo_cuenta),
+          plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria),
           asientos_contables (fecha)
-        `);
-
-      // Aplicar filtros de fecha si están presentes
-      if (fechaDesde || fechaHasta) {
-        // Primero obtener IDs de asientos que cumplen filtros de fecha
-        let asientosQuery = supabase
-          .from('asientos_contables')
-          .select('id');
-
-        if (fechaDesde) {
-          asientosQuery = asientosQuery.gte('fecha', fechaDesde);
-        }
-        if (fechaHasta) {
-          asientosQuery = asientosQuery.lte('fecha', fechaHasta);
-        }
-
-        const { data: asientos, error: errorAsientos } = await asientosQuery;
-        
-        if (errorAsientos) throw errorAsientos;
-
-        if (asientos.length === 0) {
-          return {
-            ingresos: {},
-            gastos: {},
-            totalIngresos: 0,
-            totalGastos: 0,
-            utilidadBruta: 0,
-            utilidadNeta: 0
-          };
-        }
-
-        // Filtrar movimientos por asientos del período
-        const asientoIds = asientos.map(a => a.id);
-        query = query.in('asiento_id', asientoIds);
-      }
-
-      const { data: movimientos, error } = await query;
+        `)
+        .in('asiento_id', asientoIds);
 
       if (error) throw error;
 
-      // Agrupar por tipo de cuenta (Ingresos y Gastos)
+      // Agrupar por tipo de cuenta
       const resultado = {
         ingresos: {},
-        gastos: {},
+        gastos: {}
       };
 
       movimientos.forEach(mov => {
         const cuenta = mov.plan_cuentas;
         if (!cuenta) return;
 
+        // Validar tipo de cuenta
+        if (!cuenta.tipo || !['ingreso', 'egreso'].includes(cuenta.tipo)) {
+          console.warn(`⚠️ Cuenta con tipo inválido para Estado de Resultados: ${cuenta.nombre} (${cuenta.tipo})`);
+          return;
+        }
+
         const debe = parseFloat(mov.debe || 0);
         const haber = parseFloat(mov.haber || 0);
+        let monto = 0;
 
-        if (cuenta.tipo_cuenta === 'Ingresos') {
-          const monto = haber - debe;
+        if (cuenta.tipo === 'ingreso') {
+          // Ingresos: aumentan con HABER, disminuyen con DEBE
+          monto = haber - debe;
           if (!resultado.ingresos[cuenta.id]) {
-            resultado.ingresos[cuenta.id] = { cuenta, monto: 0 };
+            resultado.ingresos[cuenta.id] = { 
+              cuenta, 
+              monto: 0,
+              categoria: cuenta.categoria || 'Ingresos Varios'
+            };
           }
           resultado.ingresos[cuenta.id].monto += monto;
-        } else if (cuenta.tipo_cuenta === 'Gastos') {
-          const monto = debe - haber;
+        } else if (cuenta.tipo === 'egreso') {
+          // Egresos: aumentan con DEBE, disminuyen con HABER
+          monto = debe - haber;
           if (!resultado.gastos[cuenta.id]) {
-            resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
+            resultado.gastos[cuenta.id] = { 
+              cuenta, 
+              monto: 0,
+              categoria: cuenta.categoria || 'Egresos Varios'
+            };
           }
           resultado.gastos[cuenta.id].monto += monto;
         }
       });
 
-      const ingresosJerarquizados = buildHierarchy(resultado.ingresos);
-      const gastosJerarquizados = buildHierarchy(resultado.gastos);
+      // Ordenar cuentas por código (sin jerarquía)
+      const ingresosOrdenados = ordenarCuentasPorCodigo(resultado.ingresos);
+      const egresosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
 
-      const totalIngresos = ingresosJerarquizados.reduce((sum, c) => sum + c.monto, 0);
-      const totalGastos = gastosJerarquizados.reduce((sum, c) => sum + c.monto, 0);
-      const utilidadNeta = totalIngresos - totalGastos;
+      // Calcular totales correctamente (suma directa)
+      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + Math.max(0, item.monto), 0);
+      const totalEgresos = egresosOrdenados.reduce((sum, item) => sum + Math.max(0, item.monto), 0);
+      const utilidadNeta = totalIngresos - totalEgresos;
 
-      console.log('✅ Estado de resultados calculado');
-      
-      return {
-        ingresos: ingresosJerarquizados,
-        gastos: gastosJerarquizados,
+      console.log('✅ Estado de resultados calculado:', {
+        ingresos: ingresosOrdenados.length,
+        egresos: egresosOrdenados.length,
         totalIngresos,
-        totalGastos,
-        utilidadNeta
+        totalEgresos,
+        utilidadNeta,
+        fechaDesde,
+        fechaHasta
+      });
+
+      return {
+        ingresos: ingresosOrdenados,
+        gastos: egresosOrdenados, // Mantener 'gastos' para compatibilidad con UI
+        totalIngresos,
+        totalGastos: totalEgresos, // Mantener 'totalGastos' para compatibilidad con UI
+        utilidadNeta,
+        fechaDesde,
+        fechaHasta
       };
 
     } catch (error) {
@@ -186,8 +176,9 @@ export function useEstadoResultados() {
     gastos: [],
     totalIngresos: 0,
     totalGastos: 0,
-    utilidadBruta: 0,
-    utilidadNeta: 0
+    utilidadNeta: 0,
+    fechaDesde: null,
+    fechaHasta: null
   });
   const [comparativoMensual, setComparativoMensual] = useState([]);
   const [loading, setLoading] = useState(false);

@@ -617,17 +617,29 @@ const LibroDiarioSection = () => {
               {expandedAsientos[asiento.id] && (
                 <div className="border-t bg-white">
                   <div className="overflow-x-auto">
+                    {/* Headers */}
                     <div className="flex">
-                      {/* Sección izquierda - Cuentas */}
                       <div className="w-1/2 max-w-md text-lg">
-                        <div className="grid grid-cols-2 bg-gray-100 p-1">
+                        <div className="grid grid-cols-2 gap-6 bg-gray-100 p-1">
                           <div className="text-center font-medium text-gray-700">Debe</div>
                           <div className="text-center font-medium text-gray-700">Haber</div>
                         </div>
-                        <div>
-                          {asiento.movimientos_contables.map((mov, index) => (
-                            <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-2">
-                              {/* Columna DEBE - Cuentas */}
+                      </div>
+                      <div className="flex-1"></div>
+                      <div className="w-1/3">
+                        <div className="grid grid-cols-2 gap-6 bg-gray-100 text-lg p-1">
+                          <div className="text-center font-medium text-gray-700">Debe</div>
+                          <div className="text-center font-medium text-gray-700">Haber</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Rows */}
+                    <div>
+                      {asiento.movimientos_contables.map((mov, index) => (
+                        <div key={index} className="flex hover:bg-gray-50 py-3">
+                          {/* Cuentas */}
+                          <div className="w-1/2 max-w-md text-lg px-2">
+                            <div className="grid grid-cols-2 gap-6 h-full items-center">
                               <div className="text-center">
                                 {mov.debe > 0 && (
                                   <div>
@@ -638,8 +650,6 @@ const LibroDiarioSection = () => {
                                   </div>
                                 )}
                               </div>
-                              
-                              {/* Columna HABER - Cuentas */}
                               <div className="text-center">
                                 {mov.haber > 0 && (
                                   <div>
@@ -651,35 +661,22 @@ const LibroDiarioSection = () => {
                                 )}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Espacio separador */}
-                      <div className="flex-1"></div>
-
-                      {/* Sección derecha - Importes */}
-                      <div className="w-1/3">
-                        <div className="grid grid-cols-2 bg-gray-100 text-lg p-1">
-                          <div className="text-center font-medium text-gray-700">Debe</div>
-                          <div className="text-center font-medium text-gray-700">Haber</div>
-                        </div>
-                        <div>
-                          {asiento.movimientos_contables.map((mov, index) => (
-                            <div key={index} className="grid grid-cols-2 hover:bg-gray-50 py-3 px-4">
-                              {/* Columna DEBE - Importes */}
+                          </div>
+                          {/* Separador */}
+                          <div className="flex-1"></div>
+                          {/* Importes */}
+                          <div className="w-1/3 px-4">
+                            <div className="grid grid-cols-2 gap-6 h-full items-center">
                               <div className="text-center font-medium">
                                 {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : ''}
                               </div>
-                              
-                              {/* Columna HABER - Importes */}
                               <div className="text-center font-medium">
                                 {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : ''}
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -730,49 +727,65 @@ const LibroDiarioSection = () => {
               {/* Movimientos del asiento */}
               <div className="p-2 font-mono">
                 {/* Header de movimientos */}
-                <div className="grid grid-cols-12 gap-4 text-sm font-semibold py-2 bg-gray-200">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-3">Cuenta (Debe)</div>
-                    <div className="col-span-2">Cuenta (Haber)</div>
-                    <div className="col-span-3 text-right">Importe Debe</div>
-                    <div className="col-span-3 text-right pr-4">Importe Haber</div>
+                <div className="flex text-sm font-semibold py-2 bg-gray-200">
+                    <div className="w-16"></div>
+                    {/* Sección de Cuentas */}
+                    <div className="w-96 grid grid-cols-2 gap-6">
+                      <div className="text-left pl-4">Debe</div>
+                      <div className="text-left pl-4">Haber</div>
+                    </div>
+                    {/* Margen central */}
+                    <div className="flex-1"></div>
+                    {/* Sección de Importes */}
+                    <div className="w-64 grid grid-cols-2 gap-6">
+                      <div className="text-right pr-4">Debe</div>
+                      <div className="text-right pr-4">Haber</div>
+                    </div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-4 text-sm border-t py-2">
-                    <div className="col-span-1"></div>
-                    {/* Cuenta Debe */}
-                    <div className="col-span-3">
-                      {mov.debe > 0 ? (
-                        <div>
-                          <div className="font-medium">{mov.plan_cuentas.nombre}</div>
-                          <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
-                        </div>
-                      ) : ''}
+                  <div key={index} className="flex text-sm border-t py-2">
+                    <div className="w-16"></div>
+                    {/* Sección de Cuentas */}
+                    <div className="w-96 grid grid-cols-2 gap-10">
+                      {/* Cuenta Debe */}
+                      <div className="pl-4">
+                        {mov.debe > 0 ? (
+                          <div>
+                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
+                            <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                          </div>
+                        ) : ''}
+                      </div>
+                      {/* Cuenta Haber */}
+                      <div className="pl-4">
+                        {mov.haber > 0 ? (
+                          <div>
+                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
+                            <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                          </div>
+                        ) : ''}
+                      </div>
                     </div>
-                    {/* Cuenta Haber */}
-                    <div className="col-span-2">
-                      {mov.haber > 0 ? (
-                        <div>
-                          <div className="font-medium">{mov.plan_cuentas.nombre}</div>
-                          <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
-                        </div>
-                      ) : ''}
-                    </div>
-                    {/* Importe Debe */}
-                    <div className="col-span-3 text-right">
-                      {mov.debe > 0 ? (
-                        <div className="font-mono font-semibold text-emerald-600">
-                          {formatearMonto(mov.debe, 'USD')}
-                        </div>
-                      ) : ''}
-                    </div>
-                    {/* Importe Haber */}
-                    <div className="col-span-3 text-right pr-4">
-                      {mov.haber > 0 ? (
-                        <div className="font-mono font-semibold text-red-600">
-                          {formatearMonto(mov.haber, 'USD')}
-                        </div>
-                      ) : ''}
+                    {/* Margen central */}
+                    <div className="flex-1"></div>
+                    {/* Sección de Importes */}
+                    <div className="w-64 grid grid-cols-2 gap-10">
+                      {/* Importe Debe */}
+                      <div className="text-right pr-4">
+                        {mov.debe > 0 ? (
+                          <div className="font-mono font-semibold text-red-600">
+                            {formatearMonto(mov.debe, 'USD')}
+                          </div>
+                        ) : ''}
+                      </div>
+                      {/* Importe Haber */}
+                      <div className="text-right pr-4">
+                        {mov.haber > 0 ? (
+                          <div className="font-mono font-semibold text-green-600">
+                            {formatearMonto(mov.haber, 'USD')}
+                          </div>
+                        ) : ''}
+                      </div>
                     </div>
                   </div>
                 ))}

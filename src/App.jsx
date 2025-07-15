@@ -36,7 +36,8 @@ import {
   ConciliacionCajaSection,
   EstadoSituacionPatrimonialSection,
   EstadoResultadosSection,
-  CuentasCorrientesSection
+  CuentasCorrientesSection,
+  BalanceSumasYSaldosSection
 } from './modules/contabilidad/components';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
@@ -339,6 +340,13 @@ const AppContent = () => {
          count: 0,
          type: 'estado de resultados'
        };
+     case 'balance-sumas-saldos':
+       return {
+         loading: false,
+         error: null,
+         count: 0,
+         type: 'balance de sumas y saldos'
+       };
      case 'carga-equipos':
        // Para carga de equipos, mostrar un estado combinado
        return {
@@ -434,7 +442,6 @@ const AppContent = () => {
    <Layout
      activeSection={activeSection}
      setActiveSection={handleSectionChange}
-     cantidadCarrito={calcularCantidadTotal()}
    >
      {/* 📋 Renderizado de secciones protegidas */}
      {activeSection === 'importaciones' && hasAccess('importaciones') && (
@@ -529,6 +536,10 @@ const AppContent = () => {
 
      {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
        <EstadoResultadosSection />
+     )}
+
+     {activeSection === 'balance-sumas-saldos' && hasAccess('balance-sumas-saldos') && (
+       <BalanceSumasYSaldosSection />
      )}
 
      {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (

@@ -16,6 +16,7 @@ import {
 import { useClientes } from '../hooks/useClientes.js';
 import ClienteModal from './ClienteModal';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import CumpleanosProximos from './CumpleanosProximos';
 
 const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
@@ -32,7 +33,8 @@ const Clientes = () => {
     createCliente,
     updateCliente,
     deleteCliente,
-    getEstadisticas
+    getEstadisticas,
+    getProximosCumpleanosConHistorial
   } = useClientes();
 
   useEffect(() => {
@@ -129,14 +131,18 @@ const Clientes = () => {
             <Tarjeta
               icon={Calendar}
               titulo="Cumpleaños este mes"
-              valor= {estadisticas.proximosCumpleanos?.length || 0}
+              valor={estadisticas.cumpleanosEsteMes || 0}
             />
 
           </div>
         )}
         
       </div>
- {/* Búsqueda */}
+
+      {/* Cumpleaños Próximos */}
+      <CumpleanosProximos getProximosCumpleanosConHistorial={getProximosCumpleanosConHistorial} />
+
+      {/* Búsqueda */}
       <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />

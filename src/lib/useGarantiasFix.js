@@ -4,6 +4,7 @@ import { supabase } from './supabase';
 export const useGarantias = () => {
   const [garantias, setGarantias] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
+  const [valorEquiposGarantizados, setValorEquiposGarantizados] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -170,6 +171,28 @@ export const useGarantias = () => {
     }
   }, [fetchGarantias]);
 
+  const fetchValorEquiposGarantizados = useCallback(async () => {
+    try {
+      console.log('💰 Calculando valor de equipos garantizados...');
+      
+      const garantiasData = await fetchGarantias();
+      
+      const valorTotal = garantiasData
+        .filter(g => g.estado_garantia === 'Activa')
+        .reduce((acc, g) => acc + (g.precio_total || 0), 0);
+
+      console.log('✅ Valor de equipos garantizados calculado:', valorTotal);
+      setValorEquiposGarantizados(valorTotal);
+      
+      return valorTotal;
+      
+    } catch (err) {
+      console.error('❌ Error calculando valor de equipos garantizados:', err);
+      setError(err.message);
+      return null;
+    }
+  }, [fetchGarantias]);
+
   // 🔍 Buscar garantía por serial
   const buscarPorSerial = useCallback(async (serial) => {
     return await fetchGarantias({ serial });
@@ -202,20 +225,23 @@ export const useGarantias = () => {
   const refrescarDatos = useCallback(async () => {
     await Promise.all([
       fetchGarantias(),
-      fetchEstadisticas()
+      fetchEstadisticas(),
+      fetchValorEquiposGarantizados()
     ]);
-  }, [fetchGarantias, fetchEstadisticas]);
+  }, [fetchGarantias, fetchEstadisticas, fetchValorEquiposGarantizados]);
 
   return {
     // Estados
     garantias,
     estadisticas,
+    valorEquiposGarantizados,
     loading,
     error,
 
     // Funciones principales
     fetchGarantias,
     fetchEstadisticas,
+    fetchValorEquiposGarantizados,
     buscarPorSerial,
     buscarPorCliente,
     enviarGarantiaPorEmail,

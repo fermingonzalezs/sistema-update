@@ -21,6 +21,7 @@ import {
 import { useImportaciones } from '../lib/importaciones.js';
 import CotizacionModal from './CotizacionModal';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import { formatearMonto } from '../../../shared/utils/formatters.js';
 
 const CotizacionesSection = () => {
   const [showModal, setShowModal] = useState(false);
@@ -115,13 +116,7 @@ const CotizacionesSection = () => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
-  };
+  const formatCurrency = (amount) => formatearMonto(amount, 'USD');
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'No especificado';
@@ -145,7 +140,30 @@ const CotizacionesSection = () => {
 
   return (
     <div className="">
-      {/* Header eliminado para ganar espacio */}
+      {/* Header Estandarizado */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Calculator className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Cotizaciones</h2>
+                <p className="text-slate-300 mt-1">Gestión de cotizaciones pendientes</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                setEditingCotizacion(null);
+                setShowModal(true);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva Cotización
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Estadísticas */}
       {estadisticas && (

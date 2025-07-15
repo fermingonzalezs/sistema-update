@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import { formatearMonto } from '../../../shared/utils/formatters.js';
 
 const PendientesCompraSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,12 +122,7 @@ const PendientesCompraSection = () => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
-  };
+  
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'No especificado';
@@ -156,7 +152,21 @@ const PendientesCompraSection = () => {
 
   return (
     <div className="">
-      
+      {/* Header Estandarizado */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <ClipboardList className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Pendientes de Compra</h2>
+                <p className="text-slate-300 mt-1">Cotizaciones aprobadas pendientes de compra</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Tarjeta  
@@ -168,7 +178,7 @@ const PendientesCompraSection = () => {
         <Tarjeta  
           icon={DollarSign}
           titulo="Monto Total"
-          valor={formatCurrency(filteredPendientes.reduce((sum, item) => sum + (item.total_cotizado || 0), 0))}
+          valor={formatearMonto(filteredPendientes.reduce((sum, item) => sum + (item.total_cotizado || 0), 0), 'USD')}
         />
 
         <Tarjeta
@@ -281,7 +291,7 @@ const PendientesCompraSection = () => {
                             <DollarSign className="w-4 h-4 text-emerald-600" />
                             <span className="text-slate-600">Total:</span>
                             <span className="font-bold text-emerald-600">
-                              {formatCurrency(pendiente.total_cotizado)}
+                              {formatearMonto(pendiente.total_cotizado, 'USD')}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm">
@@ -300,7 +310,7 @@ const PendientesCompraSection = () => {
                           <div className="flex items-center space-x-2 text-sm">
                             <DollarSign className="w-4 h-4 text-emerald-600" />
                             <span className="text-slate-600">Precio compra:</span>
-                            <span className="font-medium">{formatCurrency(pendiente.precio_compra_usd)}</span>
+                            <span className="font-medium">{formatearMonto(pendiente.precio_compra_usd, 'USD')}</span>
                           </div>
                         </div>
 

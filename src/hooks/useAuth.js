@@ -98,7 +98,7 @@ export const useAuth = () => {
       ],
       contabilidad: [
         'plan-cuentas', 'libro-diario', 'libro-mayor', 'conciliacion-caja',
-        'estado-situacion-patrimonial', 'estado-resultados'
+        'estado-situacion-patrimonial', 'estado-resultados', 'balance-sumas-saldos'
       ],
       administracion: [
         'dashboard-reportes', 'garantias', 'comisiones', 'recuento-stock',

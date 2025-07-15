@@ -4,11 +4,13 @@ import { useGarantias } from '../../../lib/useGarantiasFix';
 import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/GarantiaPDF_NewStyle';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 const GarantiasSection = () => {
   const {
     garantias,
     estadisticas,
+    valorEquiposGarantizados,
     loading,
     error,
     fetchGarantias,
@@ -171,7 +173,7 @@ const GarantiasSection = () => {
         {/* Dashboard de Estadísticas usando Tarjeta */}
         {estadisticas && (
           <div className="p-6 border-t border-slate-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Tarjeta 
                 icon={Package}
                 titulo="Total Garantías"
@@ -186,6 +188,11 @@ const GarantiasSection = () => {
                 icon={XCircle}
                 titulo="Garantías Vencidas"
                 valor={estadisticas.garantiasVencidas || 0}
+              />
+              <Tarjeta 
+                icon={BarChart3}
+                titulo="Valor Equipos Garantizados"
+                valor={formatearMonto(valorEquiposGarantizados, 'USD')}
               />
             </div>
           </div>

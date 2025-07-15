@@ -1,5 +1,5 @@
 // src/components/EnTransitoSection.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Truck, 
   Search, 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
 import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import { formatearMonto } from '../../../shared/utils/formatters.js';
 
 const EnTransitoSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,11 +56,11 @@ const EnTransitoSection = () => {
     }
   }, [searchTerm, importaciones]);
 
-  const loadEnTransito = async () => {
+  const loadEnTransito = useCallback(async () => {
     await fetchByEstado('en_transito');
-  };
+  }, [fetchByEstado]);
 
-  const handleEditSeguimiento = (itemId, numeroActual) => {
+  const handleEditSeguimiento = useCallback((itemId, numeroActual) => {
     setEditingSeguimiento(prev => ({
       ...prev,
       [itemId]: true
@@ -68,9 +69,9 @@ const EnTransitoSection = () => {
       ...prev,
       [itemId]: numeroActual || ''
     }));
-  };
+  }, []);
 
-  const handleSaveSeguimiento = async (itemId) => {
+  const handleSaveSeguimiento = useCallback(async (itemId) => {
     const nuevoNumero = nuevosSeguimientos[itemId]?.trim();
     
     if (!nuevoNumero) {
@@ -88,9 +89,9 @@ const EnTransitoSection = () => {
     } catch (error) {
       alert('❌ Error al actualizar: ' + error.message);
     }
-  };
+  }, [nuevosSeguimientos, updateImportacion]);
 
-  const handleCancelEditSeguimiento = (itemId) => {
+  const handleCancelEditSeguimiento = useCallback((itemId) => {
     setEditingSeguimiento(prev => ({
       ...prev,
       [itemId]: false
@@ -99,9 +100,9 @@ const EnTransitoSection = () => {
       ...prev,
       [itemId]: ''
     }));
-  };
+  }, []);
 
-  const handleFinalizarImportacion = async () => {
+  const handleFinalizarImportacion = useCallback(async () => {
     if (!showFinalizarModal) return;
 
     const { pesoReal, costosFinales } = datosFinales;
@@ -124,37 +125,45 @@ const EnTransitoSection = () => {
     } catch (error) {
       alert('❌ Error al finalizar importación: ' + error.message);
     }
-  };
+  }, [showFinalizarModal, datosFinales, finalizarImportacion]);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
-  };
+  const formatCurrency = useCallback((amount) => formatearMonto(amount, 'USD'), []);
 
-  const formatFecha = (fecha) => {
+  const formatFecha = useCallback((fecha) => {
     if (!fecha) return 'No especificado';
     return new Date(fecha).toLocaleDateString('es-AR');
-  };
+  }, []);
 
-  const getDiasEnTransito = (fechaAprobacion) => {
+  const getDiasEnTransito = useCallback((fechaAprobacion) => {
     if (!fechaAprobacion) return 0;
     const hoy = new Date();
     const fecha = new Date(fechaAprobacion);
     const diffTime = Math.abs(hoy - fecha);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+  }, []);
 
-  const getEstadoColor = (dias) => {
+  const getEstadoColor = useCallback((dias) => {
     if (dias > 21) return 'text-slate-600 bg-slate-200 border-slate-200';
     if (dias > 14) return 'text-slate-600 bg-slate-100 border-slate-200';
     return 'text-emerald-600 bg-emerald-50 border-emerald-200';
-  };
+  }, []);
 
   return (
     <div className="">
-      {/* Header eliminado para ganar espacio */}
+      {/* Header Estandarizado */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Truck className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">En Tránsito</h2>
+                <p className="text-slate-300 mt-1">Importaciones en camino hacia Argentina</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -167,19 +176,19 @@ const EnTransitoSection = () => {
         <Tarjeta
           icon={DollarSign}
           titulo="Monto en Tránsito"
-          valor={formatCurrency(filteredEnTransito.reduce((sum, item) => sum + (item.total_cotizado || 0), 0))}
+          valor={useMemo(() => formatCurrency(filteredEnTransito.reduce((sum, item) => sum + (item.total_cotizado || 0), 0)), [filteredEnTransito, formatCurrency])}
         />
 
         <Tarjeta  
           icon={Weight}
           titulo="Peso Total"
-          valor={`${filteredEnTransito.reduce((sum, item) => sum + (item.peso_estimado_kg || 0), 0).toFixed(1)} kg`}
+          valor={useMemo(() => `${filteredEnTransito.reduce((sum, item) => sum + (item.peso_estimado_kg || 0), 0).toFixed(1)} kg`, [filteredEnTransito])}
         />
 
         <Tarjeta
           icon={AlertCircle}
           titulo="Demorados (+21 días)"
-          valor={filteredEnTransito.filter(item => getDiasEnTransito(item.fecha_aprobacion) > 21).length}
+          valor={useMemo(() => filteredEnTransito.filter(item => getDiasEnTransito(item.fecha_aprobacion) > 21).length, [filteredEnTransito, getDiasEnTransito])}
         />
       </div>
 

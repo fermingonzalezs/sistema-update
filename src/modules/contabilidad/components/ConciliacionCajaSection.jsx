@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History } from 'lucide-react';
+import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto } from '../../../shared/utils/formatters';
+import { convertirARSaUSD, validarRangoCotizacion } from '../../../shared/utils/currency';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Conciliación de Caja
@@ -69,8 +71,9 @@ const conciliacionCajaService = {
     return data;
   },
 
-  async crearAsientoAjuste(cuentaId, diferencia, descripcion) {
-    console.log('📝 Creando asiento de ajuste de caja...');
+  // Función mantenida para uso manual futuro, pero no se llama automáticamente
+  async crearAsientoAjusteManual(cuentaId, diferencia, descripcion) {
+    console.log('📝 Creando asiento de ajuste de caja manualmente...');
     if (diferencia === 0) return null;
     // Obtener siguiente número de asiento
     const { data: ultimoAsiento } = await supabase
@@ -90,23 +93,19 @@ const conciliacionCajaService = {
       .from('movimientos_contables')
       .insert([movimiento]);
     if (errorMovimiento) throw errorMovimiento;
-    console.log('✅ Asiento de ajuste creado:', numeroAsiento);
+    console.log('✅ Asiento de ajuste creado manualmente:', numeroAsiento);
     return asiento;
   },
 
   async guardarConciliacion(conciliacionData) {
     console.log('💾 Guardando conciliación de caja...');
-    // Guardar la conciliación
+    // Guardar solo la conciliación
     const { data, error } = await supabase
       .from('conciliaciones_caja')
       .insert([{        cuenta_caja_id: conciliacionData.cuentaId,        fecha_conciliacion: conciliacionData.fecha,        saldo_contable: conciliacionData.saldoContable,        saldo_fisico: conciliacionData.saldoFisico,        diferencia: conciliacionData.diferencia,        observaciones: conciliacionData.observaciones,        usuario_concilio: conciliacionData.usuario || 'admin',        estado: conciliacionData.diferencia === 0 ? 'conciliado' : 'con_diferencia'      }])      .select();
     if (error) throw error;
-    // Si hay diferencia, crear asiento de ajuste
-    if (conciliacionData.diferencia !== 0) {
-      const descripcionAjuste = conciliacionData.diferencia > 0
-         ? `Sobrante de caja - Conciliación ${conciliacionData.fecha}`
-         : `Faltante de caja - Conciliación ${conciliacionData.fecha}`;            await this.crearAsientoAjuste(        conciliacionData.cuentaId,         conciliacionData.diferencia,         descripcionAjuste      );
-    }
+    
+    console.log('✅ Conciliación guardada. Asiento de ajuste debe crearse manualmente si es necesario.');
     return data[0];
   },
 
@@ -213,20 +212,64 @@ const ConciliacionCajaSection = () => {
   
   // Estado para el monto físico
   const [montoFisico, setMontoFisico] = useState('');
+  const [montoFisicoARS, setMontoFisicoARS] = useState(''); // Para cuentas en pesos
+  const [cotizacionManual, setCotizacionManual] = useState('');
+  const [cotizacionActual, setCotizacionActual] = useState(null);
   const [observaciones, setObservaciones] = useState('');
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
   useEffect(() => {
     console.log('🚀 Iniciando conciliación de caja...');
     fetchCuentasCaja();
+    obtenerCotizacionActual();
   }, []);
+
+  const obtenerCotizacionActual = async () => {
+    try {
+      const cotizacion = await cotizacionService.obtenerCotizacionActual();
+      setCotizacionActual(cotizacion);
+      if (!cotizacionManual) {
+        setCotizacionManual(cotizacion.valor || cotizacion.promedio);
+      }
+    } catch (error) {
+      console.error('Error obteniendo cotización:', error);
+    }
+  };
 
   const seleccionarCuenta = (cuenta) => {
     setCuentaSeleccionada(cuenta);
     fetchDatosCuenta(cuenta.id, fechaConciliacion);
+    // Limpiar campos al cambiar cuenta
+    setMontoFisico('');
+    setMontoFisicoARS('');
+    setCotizacionManual(cotizacionActual?.valor || cotizacionActual?.promedio || '');
   };
 
-  const saldoFisico = parseFloat(montoFisico) || 0;
+  // Determinar si es cuenta en pesos
+  const esMonedaARS = cuentaSeleccionada?.moneda_original === 'ARS' || 
+                     cuentaSeleccionada?.requiere_cotizacion;
+
+  // Calcular saldo físico en USD
+  const calcularSaldoFisicoUSD = () => {
+    if (!esMonedaARS) {
+      return parseFloat(montoFisico) || 0;
+    } else {
+      const montoARS = parseFloat(montoFisicoARS) || 0;
+      const cotizacion = parseFloat(cotizacionManual) || 0;
+      
+      if (montoARS > 0 && cotizacion > 0) {
+        try {
+          return convertirARSaUSD(montoARS, cotizacion);
+        } catch (error) {
+          console.error('Error en conversión:', error);
+          return 0;
+        }
+      }
+      return 0;
+    }
+  };
+
+  const saldoFisico = calcularSaldoFisicoUSD();
   const diferencia = saldoFisico - (saldoContable?.saldoContable || 0);
 
   const realizarConciliacion = async () => {
@@ -234,23 +277,52 @@ const ConciliacionCajaSection = () => {
       alert('Debe seleccionar una cuenta de caja');
       return;
     }
-    if (!montoFisico || parseFloat(montoFisico) < 0) {
-      alert('Debe ingresar un monto físico válido');
-      return;
+
+    // Validaciones según el tipo de moneda
+    if (esMonedaARS) {
+      if (!montoFisicoARS || parseFloat(montoFisicoARS) < 0) {
+        alert('Debe ingresar un monto en pesos válido');
+        return;
+      }
+      if (!cotizacionManual || parseFloat(cotizacionManual) <= 0) {
+        alert('Debe ingresar una cotización válida');
+        return;
+      }
+      try {
+        validarRangoCotizacion(parseFloat(cotizacionManual));
+      } catch (error) {
+        alert('Error en cotización: ' + error.message);
+        return;
+      }
+    } else {
+      if (!montoFisico || parseFloat(montoFisico) < 0) {
+        alert('Debe ingresar un monto físico válido');
+        return;
+      }
     }
     try {
+      let observacionesCompletas = observaciones;
+      
+      // Agregar información de conversión si es cuenta ARS
+      if (esMonedaARS) {
+        const infoConversion = `\nConversión: $${montoFisicoARS} ARS → $${saldoFisico.toFixed(4)} USD (cotización: $${cotizacionManual})`;
+        observacionesCompletas = observaciones + infoConversion;
+      }
+
       const conciliacionData = {
         cuentaId: cuentaSeleccionada.id,
         fecha: fechaConciliacion,
         saldoContable: saldoContable.saldoContable,
         saldoFisico: saldoFisico,
         diferencia: diferencia,
-        observaciones: observaciones
+        observaciones: observacionesCompletas
       };
       await guardarConciliacion(conciliacionData);
       
       // Limpiar formulario
       setMontoFisico('');
+      setMontoFisicoARS('');
+      setCotizacionManual(cotizacionActual?.valor || cotizacionActual?.promedio || '');
       setObservaciones('');
       
       // Refrescar datos para mostrar el nuevo saldo
@@ -259,8 +331,9 @@ const ConciliacionCajaSection = () => {
       if (diferencia === 0) {
         alert('✅ Caja conciliada correctamente');
       } else {
-        alert(`✅ Conciliación guardada con diferencia de ${formatearMoneda(diferencia)}` +
-              '📝 Se ha creado un asiento contable automáticamente para ajustar el saldo.');
+        alert(`✅ Conciliación guardada con diferencia de ${formatearMoneda(diferencia)}\n\n` +
+              `📝 IMPORTANTE: Debe crear manualmente un asiento de ajuste en el Libro Diario para registrar ` +
+              `el ${diferencia > 0 ? 'sobrante' : 'faltante'} de caja.`);
       }
     } catch (err) {
       alert('❌ Error: ' + err.message);
@@ -306,21 +379,29 @@ const ConciliacionCajaSection = () => {
         <div className="bg-white p-6 rounded border border-slate-200">
          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cuentasCaja.map(cuenta => (
-              <button
-                key={cuenta.id}
-                onClick={() => seleccionarCuenta(cuenta)}
-                className="p-6 rounded hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center"
-              >
-                <div>
-                  <div className="font-boldtext-slate-800">{cuenta.nombre}</div>
-                  <code className="text-sm text-slate-600 font-mono">
-                    {cuenta.codigo}
-                  </code>
-                </div>
-                <ChevronRight className="w-6 h-6 text-slate-400" />
-              </button>
-            ))}
+            {cuentasCaja.map(cuenta => {
+              const esARS = cuenta.moneda_original === 'ARS' || cuenta.requiere_cotizacion;
+              return (
+                <button
+                  key={cuenta.id}
+                  onClick={() => seleccionarCuenta(cuenta)}
+                  className="p-6 rounded border border-slate-200 hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center"
+                >
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <div className="font-bold text-slate-800">{cuenta.nombre}</div>
+                      {esARS && (
+                        <span className="px-2 py-1 bg-slate-600 text-white text-xs rounded">ARS</span>
+                      )}
+                    </div>
+                    <code className="text-sm text-slate-600 font-mono">
+                      {cuenta.codigo}
+                    </code>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-slate-400" />
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -417,26 +498,93 @@ const ConciliacionCajaSection = () => {
                     <h4 className="font-semibold text-slate-800 flex items-center">
                       <Calculator size={18} className="mr-2" />
                       Monto Físico en Caja
+                      {esMonedaARS && (
+                        <span className="ml-2 px-2 py-1 bg-slate-600 text-white text-xs rounded">ARS</span>
+                      )}
                     </h4>
                   </div>
                   <div className="p-4 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Monto físico contado
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={montoFisico}
-                          onChange={(e) => setMontoFisico(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded text-xl font-semibold text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
+                    {esMonedaARS ? (
+                      <>
+                        {/* Campos para cuentas en pesos */}
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Monto físico en pesos (ARS)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={montoFisicoARS}
+                              onChange={(e) => setMontoFisicoARS(e.target.value)}
+                              placeholder="0.00"
+                              className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded text-xl font-semibold text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Cotización USD/ARS
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={cotizacionManual}
+                              onChange={(e) => setCotizacionManual(e.target.value)}
+                              placeholder="1000.00"
+                              className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded text-lg font-medium text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            />
+                          </div>
+                          {cotizacionActual && (
+                            <div className="mt-2 text-xs text-slate-600 text-center">
+                              Cotización actual: ${cotizacionActual.valor || cotizacionActual.promedio}
+                              <button
+                                onClick={() => setCotizacionManual(cotizacionActual.valor || cotizacionActual.promedio)}
+                                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
+                              >
+                                usar actual
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Mostrar conversión en tiempo real */}
+                        {montoFisicoARS && cotizacionManual && (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded p-3">
+                            <div className="flex items-center justify-center space-x-2 text-sm">
+                              <span className="font-medium text-slate-700">${montoFisicoARS} ARS</span>
+                              <ArrowRightLeft size={16} className="text-emerald-600" />
+                              <span className="font-bold text-emerald-800">${saldoFisico.toFixed(4)} USD</span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* Campos para cuentas en dólares */
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Monto físico contado (USD)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={montoFisico}
+                            onChange={(e) => setMontoFisico(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded text-xl font-semibold text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
                 <div className="bg-white border border-slate-200 rounded">

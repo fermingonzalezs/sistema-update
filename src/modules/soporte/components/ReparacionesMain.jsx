@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, Send, ThumbsUp } from 'lucide-react';
+import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, Send, ThumbsUp, ExternalLink } from 'lucide-react';
 import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
@@ -335,9 +335,9 @@ function ReparacionesMain() {
                       <button 
                         title="Ver detalles" 
                         onClick={() => setExpand(expand === idx ? null : idx)} 
-                        className="p-2 rounded hover:bg-emerald-200 text-emerald-600 transition-colors"
+                        className="p-2 rounded hover:bg-slate-200 text-slate-600 transition-colors"
                       >
-                        <Eye className="w-5 h-5" />
+                        {expand === idx ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </button>
                       <button 
                         title={r.presupuesto_json ? "Ver/Editar presupuesto" : "Crear presupuesto"} 
@@ -356,11 +356,11 @@ function ReparacionesMain() {
                         disabled={!r.presupuesto_json}
                         className={`p-2 rounded transition-colors ${
                           r.presupuesto_json 
-                            ? 'hover:bg-emerald-200 text-emerald-600 cursor-pointer' 
+                            ? 'hover:bg-slate-200 text-slate-600 cursor-pointer' 
                             : 'text-slate-400 cursor-not-allowed opacity-50'
                         }`}
                       >
-                        <Eye className="w-5 h-5" />
+                        <ExternalLink className="w-5 h-5" />
                       </button>
                       <button 
                         title="Eliminar reparación" 
@@ -376,9 +376,9 @@ function ReparacionesMain() {
               
               {/* Fila expandible */}
               {expand !== null && reparacionesFiltradas[expand] && (
-                <tr className="bg-emerald-25">
+                <tr className="bg-slate-25">
                   <td colSpan={7} className="px-4 py-6">
-                    <div className="bg-emerald-50 rounded p-6">
+                    <div className="bg-slate-50 rounded p-6">
                       <h4 className="font-semibold text-slate-800 mb-4">Detalles de la Reparación</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
@@ -410,7 +410,7 @@ function ReparacionesMain() {
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-emerald-200">
+                      <div className="mt-4 pt-4 border-t border-slate-200">
                         <p className="text-sm text-slate-600">
                           <span className="font-medium">Problema completo:</span> {reparacionesFiltradas[expand].problema_reportado}
                         </p>

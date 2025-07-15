@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, BookOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
@@ -251,6 +251,11 @@ const PlanCuentasSection = () => {
     nombre: '',
     tipo: 'activo'
   });
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = (codigo) => {
+    setExpandedGroups(prev => ({ ...prev, [codigo]: !prev[codigo] }));
+  };
 
   // Definir los grupos principales
   const grupos = [
@@ -302,10 +307,15 @@ const PlanCuentasSection = () => {
   };
 
   const confirmarEliminar = async (cuenta) => {
-    const mensaje = `La cuenta "${cuenta.codigo} - ${cuenta.nombre}" puede tener registros asociados.\n\n` +
-                   `Opciones:\n` +
-                   `• CANCELAR - No hacer nada\n` +
-                   `• OK - Intentar eliminar (puede fallar si tiene dependencias)\n` +
+    const mensaje = `La cuenta "${cuenta.codigo} - ${cuenta.nombre}" puede tener registros asociados.
+
+` +
+                   `Opciones:
+` +
+                   `• CANCELAR - No hacer nada
+` +
+                   `• OK - Intentar eliminar (puede fallar si tiene dependencias)
+` +
                    `• Si falla, puede desactivar la cuenta en su lugar`;
     
     if (confirm(mensaje)) {
@@ -317,9 +327,14 @@ const PlanCuentasSection = () => {
         
         // Si falla la eliminación, ofrecer desactivar
         const confirmarDesactivar = confirm(
-          `❌ No se pudo eliminar la cuenta porque tiene registros asociados.\n\n` +
-          `Error: ${error.message}\n\n` +
-          `¿Desea DESACTIVAR la cuenta en su lugar?\n` +
+          `❌ No se pudo eliminar la cuenta porque tiene registros asociados.
+
+` +
+          `Error: ${error.message}
+
+` +
+          `¿Desea DESACTIVAR la cuenta en su lugar?
+` +
           `(La cuenta no aparecerá en nuevos registros pero mantendrá el historial)`
         );
         
@@ -415,39 +430,65 @@ const PlanCuentasSection = () => {
           </div>
         )}
 
-        {/* Lista de cuentas - SIMPLE SIN JERARQUÍA */}
+        {/* Lista de Cuentas con Jerarquía */}
         <div className="divide-y divide-slate-200">
           {cuentas.length > 0 ? (
-            cuentas.map(cuenta => (
-              <div key={cuenta.id} className="flex items-center justify-between p-6 hover:bg-slate-200 border-b border-slate-200">
-                <div className="flex items-center space-x-6">
-                  <code className="text-sm font-mono text-slate-800 bg-slate-200 px-4 py-2 rounded min-w-[100px] border border-slate-200">
-                    {cuenta.codigo}
-                  </code>
-                  <span className="font-medium text-slate-800">{cuenta.nombre}</span>
-                  <span className="px-3 py-1 text-xs rounded font-medium border bg-slate-200 text-slate-800 border-slate-200">
-                    {cuenta.tipo.toUpperCase()}
-                  </span>
-                </div>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => editarCuenta(cuenta)}
-                    className="p-3 text-slate-800 hover:bg-slate-200 rounded transition-colors border border-slate-200"
-                    title="Editar cuenta"
+            grupos.map(grupo => {
+              const cuentasDelGrupo = cuentas.filter(c => c.codigo.startsWith(`${grupo.codigo}.`));
+              if (cuentasDelGrupo.length === 0) return null;
+
+              const isExpanded = expandedGroups[grupo.codigo];
+
+              return (
+                <div key={grupo.codigo}>
+                  <div
+                    onClick={() => toggleGroup(grupo.codigo)}
+                    className="flex items-center justify-between p-4 hover:bg-slate-100 cursor-pointer border-b border-slate-200"
                   >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => confirmarEliminar(cuenta)}
-                    className="p-3 text-slate-800 hover:bg-slate-200 rounded transition-colors border border-slate-200"
-                    title="Eliminar cuenta"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    <div className="flex items-center space-x-4">
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      <h3 className="font-semibold text-slate-800 text-md">{grupo.nombre}</h3>
+                      <span className="px-2 py-0.5 text-xs rounded font-medium bg-slate-200 text-slate-600">
+                        {cuentasDelGrupo.length} cuentas
+                      </span>
+                    </div>
+                  </div>
+                  {isExpanded && (
+                    <div className="pl-8 divide-y divide-slate-100">
+                      {cuentasDelGrupo.map(cuenta => (
+                        <div key={cuenta.id} className="flex items-center justify-between p-3 hover:bg-slate-50">
+                          <div className="flex items-center space-x-4">
+                            <code className="text-sm font-mono text-slate-700 bg-slate-100 px-3 py-1 rounded min-w-[90px] border border-slate-200">
+                              {cuenta.codigo}
+                            </code>
+                            <span className="font-medium text-slate-800 text-sm">{cuenta.nombre}</span>
+                            <span className="px-2 py-0.5 text-xs rounded font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                              {cuenta.tipo.toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => editarCuenta(cuenta)}
+                              className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors border border-slate-200"
+                              title="Editar cuenta"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => confirmarEliminar(cuenta)}
+                              className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors border border-slate-200"
+                              title="Eliminar cuenta"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="p-16 text-center text-slate-800">
               <BookOpen size={48} className="mx-auto mb-6 text-slate-200" />

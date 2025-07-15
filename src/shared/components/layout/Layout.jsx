@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const Layout = ({ activeSection, setActiveSection, cantidadCarrito, children }) => {
+const Layout = ({ activeSection, setActiveSection, children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -41,7 +41,6 @@ const Layout = ({ activeSection, setActiveSection, cantidadCarrito, children }) 
         <Sidebar
           activeSection={activeSection}
           setActiveSection={setActiveSection}
-          cantidadCarrito={cantidadCarrito}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!isSidebarCollapsed)}
         />
@@ -51,7 +50,6 @@ const Layout = ({ activeSection, setActiveSection, cantidadCarrito, children }) 
       <div className="flex-1 flex flex-col">
         <Header 
           activeSection={activeSection}
-          cantidadCarrito={cantidadCarrito}
           isSidebarCollapsed={isSidebarCollapsed}
           onShowSidebar={toggleSidebar}
         />

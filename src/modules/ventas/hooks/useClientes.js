@@ -171,7 +171,7 @@ export const clientesService = {
       
       const { data, error } = await supabase
         .from('clientes')
-        .select('id, fecha_creacion, procedencia')
+        .select('id, fecha_creacion, procedencia, cumpleanos')
         .eq('activo', true);
 
       if (error) throw error;
@@ -179,16 +179,24 @@ export const clientesService = {
       const totalClientes = data.length;
       
       // Clientes nuevos este mes
+      const ahora = new Date();
       const clientesEsteMs = data.filter(cliente => {
         const fecha = new Date(cliente.fecha_creacion);
-        const ahora = new Date();
         return fecha.getMonth() === ahora.getMonth() && 
                fecha.getFullYear() === ahora.getFullYear();
       }).length;
 
+      // Cumpleaños ESTE MES específicamente
+      const cumpleanosEsteMes = data.filter(cliente => {
+        if (!cliente.cumpleanos) return false;
+        const cumple = new Date(cliente.cumpleanos);
+        return cumple.getMonth() === ahora.getMonth();
+      }).length;
+
       return {
         total: totalClientes,
-        nuevosEsteMs: clientesEsteMs
+        nuevosEsteMs: clientesEsteMs,
+        cumpleanosEsteMes: cumpleanosEsteMes
       };
     } catch (error) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -260,6 +268,67 @@ export const clientesService = {
       return proximosCumpleanos;
     } catch (error) {
       console.error('❌ Error obteniendo próximos cumpleaños:', error);
+      throw error;
+    }
+  },
+
+  // 🛒 Obtener historial de compras de un cliente específico
+  async getHistorialCompras(clienteId) {
+    try {
+      console.log('🛒 Obteniendo historial de compras para cliente ID:', clienteId);
+      
+      const { data, error } = await supabase
+        .from('ventas')
+        .select(`
+          id,
+          fecha_venta,
+          total_venta,
+          moneda_pago,
+          metodo_pago,
+          venta_items (
+            id,
+            copy,
+            cantidad,
+            precio_total,
+            serial_producto,
+            tipo_producto
+          )
+        `)
+        .eq('cliente_id', clienteId)
+        .order('fecha_venta', { ascending: false });
+
+      if (error) throw error;
+
+      console.log(`✅ ${data.length} compras encontradas para el cliente`);
+      return data || [];
+    } catch (error) {
+      console.error('❌ Error obteniendo historial de compras:', error);
+      throw error;
+    }
+  },
+
+  // 🎂 Obtener próximos cumpleaños con historial de compras
+  async getProximosCumpleanosConHistorial() {
+    try {
+      console.log('🎂 Obteniendo próximos cumpleaños con historial...');
+      
+      const proximosCumpleanos = await this.getProximosCumpleanos();
+      
+      // Para cada cliente con cumpleaños próximo, obtener su historial
+      const clientesConHistorial = await Promise.all(
+        proximosCumpleanos.map(async (cliente) => {
+          const historial = await this.getHistorialCompras(cliente.id);
+          return {
+            ...cliente,
+            historialCompras: historial
+          };
+        })
+      );
+
+      console.log(`✅ ${clientesConHistorial.length} clientes con cumpleaños e historial obtenidos`);
+      return clientesConHistorial;
+    } catch (error) {
+      console.error('❌ Error obteniendo cumpleaños con historial:', error);
       throw error;
     }
   }
@@ -371,6 +440,16 @@ export const useClientes = () => {
     }
   }, []);
 
+  // Obtener próximos cumpleaños con historial de compras
+  const getProximosCumpleanosConHistorial = useCallback(async () => {
+    try {
+      return await clientesService.getProximosCumpleanosConHistorial();
+    } catch (err) {
+      console.error('Error getting cumpleaños con historial:', err);
+      return [];
+    }
+  }, []);
+
   // Obtener cliente por ID
   const getClienteById = useCallback(async (id) => {
     try {
@@ -391,6 +470,7 @@ export const useClientes = () => {
     updateCliente,
     deleteCliente,
     getEstadisticas,
-    getClienteById
+    getClienteById,
+    getProximosCumpleanosConHistorial
   };
 };

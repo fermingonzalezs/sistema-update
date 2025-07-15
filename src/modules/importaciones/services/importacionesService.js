@@ -3,7 +3,20 @@ import { supabase } from '../../../lib/supabase.js';
 
 
 const importacionesService = {
-  // 📋 Obtener todas las importaciones activas (ELIMINADO)
+  // 📋 Obtener todas las importaciones activas
+  async getAll() {
+    try {
+      const { data, error } = await supabase
+        .from('importaciones')
+        .select(`*, clientes (id, nombre, apellido, email, telefono)`)
+        .eq('activo', true)
+        .order('fecha_creacion', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      throw error;
+    }
+  },
   async getByEstado(estado) {
     try {
       const { data, error } = await supabase

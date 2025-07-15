@@ -1,46 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 
-// Función para construir la jerarquía de cuentas (reutilizada)
-const buildHierarchy = (cuentas) => {
-  const cuentasMap = {};
-  const cuentasRaiz = [];
-
-  Object.values(cuentas).forEach(cuenta => {
-    cuentasMap[cuenta.cuenta.id] = { ...cuenta, children: [] };
-  });
-
-  Object.values(cuentasMap).forEach(cuenta => {
-    const codigo = cuenta.cuenta.codigo;
-    const partes = codigo.split('.');
-    
-    if (partes.length > 1) {
-      partes.pop();
-      const codigoPadre = partes.join('.');
-      const padre = Object.values(cuentasMap).find(c => c.cuenta.codigo === codigoPadre);
-      
-      if (padre) {
-        padre.children.push(cuenta);
-      } else {
-        cuentasRaiz.push(cuenta);
-      }
-    } else {
-      cuentasRaiz.push(cuenta);
-    }
-  });
-
-  const sumarizarMontos = (cuenta) => {
-    if (cuenta.children.length === 0) {
-      return cuenta.saldo;
-    }
-    const montoHijos = cuenta.children.reduce((sum, hijo) => sum + sumarizarMontos(hijo), 0);
-    cuenta.saldo += montoHijos;
-    return cuenta.saldo;
-  };
-
-  cuentasRaiz.forEach(sumarizarMontos);
-
-  return cuentasRaiz;
+// Función para ordenar cuentas por código (reemplaza jerarquía)
+const ordenarCuentasPorCodigo = (cuentasObj) => {
+  return Object.values(cuentasObj)
+    .sort((a, b) => {
+      const codigoA = a.cuenta.codigo || '';
+      const codigoB = b.cuenta.codigo || '';
+      return codigoA.localeCompare(codigoB);
+    });
 };
 
 // Servicio para Estado de Situación Patrimonial (Balance General)
@@ -51,18 +19,38 @@ export const estadoSituacionPatrimonialService = {
     try {
       const fecha = fechaCorte || new Date().toISOString().split('T')[0];
 
-      // Obtener movimientos contables hasta la fecha de corte
-      let query = supabase
+      // Primero obtener asientos hasta la fecha de corte
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_contables')
+        .select('id')
+        .lte('fecha', fecha);
+
+      if (errorAsientos) throw errorAsientos;
+
+      if (!asientos || asientos.length === 0) {
+        console.log('ℹ️ No hay asientos hasta la fecha de corte');
+        return {
+          activos: [],
+          pasivos: [],
+          patrimonio: [],
+          totalActivos: 0,
+          totalPasivos: 0,
+          totalPatrimonio: 0,
+          fechaCorte: fecha
+        };
+      }
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos de esos asientos
+      const { data: movimientos, error } = await supabase
         .from('movimientos_contables')
         .select(`
           *,
           plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria),
           asientos_contables (fecha)
-        `);
-
-      query = query.lte('asientos_contables.fecha', fecha);
-
-      const { data: movimientos, error } = await query;
+        `)
+        .in('asiento_id', asientoIds);
 
       if (error) throw error;
 
@@ -98,6 +86,13 @@ export const estadoSituacionPatrimonialService = {
       Object.values(saldosPorCuenta).forEach(item => {
         const { cuenta } = item;
         let saldo = 0;
+        
+        // Validar tipo de cuenta
+        if (!cuenta.tipo || !['activo', 'pasivo', 'patrimonio'].includes(cuenta.tipo)) {
+          console.warn(`⚠️ Cuenta con tipo inválido: ${cuenta.nombre} (${cuenta.tipo})`);
+          return;
+        }
+        
         if (cuenta.tipo === 'activo') {
           saldo = item.debe - item.haber;
         } else if (cuenta.tipo === 'pasivo' || cuenta.tipo === 'patrimonio') {
@@ -105,6 +100,7 @@ export const estadoSituacionPatrimonialService = {
         }
         item.saldo = saldo;
 
+        // Solo incluir cuentas con saldo significativo
         if (Math.abs(saldo) > 0.01) {
           if (cuenta.tipo === 'activo') balance.activos[cuenta.id] = item;
           else if (cuenta.tipo === 'pasivo') balance.pasivos[cuenta.id] = item;
@@ -112,20 +108,30 @@ export const estadoSituacionPatrimonialService = {
         }
       });
 
-      const activosJerarquizados = buildHierarchy(balance.activos);
-      const pasivosJerarquizados = buildHierarchy(balance.pasivos);
-      const patrimonioJerarquizado = buildHierarchy(balance.patrimonio);
+      // Ordenar cuentas por código (sin jerarquía)
+      const activosOrdenados = ordenarCuentasPorCodigo(balance.activos);
+      const pasivosOrdenados = ordenarCuentasPorCodigo(balance.pasivos);
+      const patrimonioOrdenado = ordenarCuentasPorCodigo(balance.patrimonio);
 
-      const totalActivos = activosJerarquizados.reduce((sum, c) => sum + c.saldo, 0);
-      const totalPasivos = pasivosJerarquizados.reduce((sum, c) => sum + c.saldo, 0);
-      const totalPatrimonio = patrimonioJerarquizado.reduce((sum, c) => sum + c.saldo, 0);
+      // Calcular totales correctamente (suma directa de saldos)
+      const totalActivos = activosOrdenados.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+      const totalPasivos = pasivosOrdenados.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+      const totalPatrimonio = patrimonioOrdenado.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
 
-      console.log('✅ Balance General calculado');
+      console.log('✅ Balance General calculado:', {
+        activos: activosOrdenados.length,
+        pasivos: pasivosOrdenados.length,
+        patrimonio: patrimonioOrdenado.length,
+        totalActivos,
+        totalPasivos,
+        totalPatrimonio,
+        fechaCorte: fecha
+      });
 
       return {
-        activos: activosJerarquizados,
-        pasivos: pasivosJerarquizados,
-        patrimonio: patrimonioJerarquizado,
+        activos: activosOrdenados,
+        pasivos: pasivosOrdenados,
+        patrimonio: patrimonioOrdenado,
         totalActivos,
         totalPasivos,
         totalPatrimonio,

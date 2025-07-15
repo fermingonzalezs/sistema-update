@@ -1,118 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight } from 'lucide-react';
-import { supabase } from '../../../lib/supabase';
+import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
-
-// Servicio para Estado de Resultados
-const estadoResultadosService = {
-  async getEstadoResultados(fechaDesde, fechaHasta) {
-    console.log('📡 Obteniendo estado de resultados...', { fechaDesde, fechaHasta });
-
-    try {
-      // Obtener movimientos contables del período
-      let query = supabase
-        .from('movimientos_contables')
-        .select(`
-          *,
-          plan_cuentas (id, codigo, nombre, tipo),
-          asientos_contables (fecha)
-        `);
-
-      if (fechaDesde) {
-        query = query.gte('asientos_contables.fecha', fechaDesde);
-      }
-      if (fechaHasta) {
-        query = query.lte('asientos_contables.fecha', fechaHasta);
-      }
-
-      const { data: movimientos, error } = await query;
-
-      if (error) throw error;
-
-      // Agrupar por tipo de cuenta (Ingresos y Gastos)
-      const resultado = {
-        ingresos: {},
-        gastos: {},
-        totalIngresos: 0,
-        totalGastos: 0,
-        utilidadBruta: 0,
-        utilidadNeta: 0
-      };
-
-      movimientos.forEach(mov => {
-        const cuenta = mov.plan_cuentas;
-        if (!cuenta) return;
-
-        const monto = parseFloat(mov.haber || 0) - parseFloat(mov.debe || 0);
-
-        if (cuenta.tipo === 'ingreso') {
-          if (!resultado.ingresos[cuenta.id]) {
-            resultado.ingresos[cuenta.id] = {
-              cuenta: cuenta,
-              monto: 0
-            };
-          }
-          resultado.ingresos[cuenta.id].monto += monto;
-          resultado.totalIngresos += monto;
-        } else if (cuenta.tipo === 'egreso') {
-          if (!resultado.gastos[cuenta.id]) {
-            resultado.gastos[cuenta.id] = {
-              cuenta: cuenta,
-              monto: 0
-            };
-          }
-          resultado.gastos[cuenta.id].monto += Math.abs(monto);
-          resultado.totalGastos += Math.abs(monto);
-        }
-      });
-
-      resultado.utilidadBruta = resultado.totalIngresos - resultado.totalGastos;
-      resultado.utilidadNeta = resultado.utilidadBruta;
-
-      console.log('✅ Estado de resultados calculado');
-      return resultado;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo estado de resultados:', error);
-      throw error;
-    }
-  }
-};
-
-// Hook personalizado
-function useEstadoResultados() {
-  const [estadoResultados, setEstadoResultados] = useState({
-    ingresos: {},
-    gastos: {},
-    totalIngresos: 0,
-    totalGastos: 0,
-    utilidadBruta: 0,
-    utilidadNeta: 0
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchEstadoResultados = async (fechaDesde, fechaHasta) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await estadoResultadosService.getEstadoResultados(fechaDesde, fechaHasta);
-      setEstadoResultados(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return {
-    estadoResultados,
-    loading,
-    error,
-    fetchEstadoResultados
-  };
-}
+import { useEstadoResultados } from '../hooks/useEstadoResultados';
+import { generarEstadoResultadosPDF } from '../../../components/EstadoResultadosPDF';
 
 // Componente principal
 const EstadoResultadosSection = () => {
@@ -141,82 +31,99 @@ const EstadoResultadosSection = () => {
     fetchEstadoResultados(filtros.fechaDesde, filtros.fechaHasta);
   };
 
+  const handleDescargarPDF = async () => {
+    try {
+      const resultado = await generarEstadoResultadosPDF(estadoResultados, filtros.fechaDesde, filtros.fechaHasta);
+      if (!resultado.success) {
+        console.error('Error al generar PDF:', resultado.error);
+      }
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+    }
+  };
+
   const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 
-  const CuentaRow = ({ cuenta, nivel = 0 }) => {
-  const [expandido, setExpandido] = useState(true);
-
-  const tieneHijos = cuenta.children && cuenta.children.length > 0;
-
-  return (
-    <>
-      <div className={`flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors ${
-        nivel === 0 ? 'bg-slate-100' : ''
-      }`}>
-        <div style={{ paddingLeft: `${nivel * 20}px` }} className="flex items-center">
-          {tieneHijos && (
-            <button onClick={() => setExpandido(!expandido)} className="mr-2 text-slate-500">
-              {expandido ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
-          )}
-          <span className={`font-medium ${nivel === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
+  const CuentaRow = ({ cuenta }) => {
+    return (
+      <div className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors">
+        <div className="flex items-center">
+          <div className="mr-3">
+            <code className="text-sm text-slate-600 font-mono bg-slate-100 px-2 py-1 rounded">
+              {cuenta.cuenta.codigo}
+            </code>
+          </div>
+          <span className="font-medium text-slate-800">
             {cuenta.cuenta.nombre}
           </span>
         </div>
-        <div className={`text-lg font-semibold ${nivel === 0 ? 'text-slate-900' : 'text-slate-800'}`}>
+        <div className="text-lg font-semibold text-slate-900">
           {formatearMoneda(cuenta.monto)}
         </div>
       </div>
-      {expandido && tieneHijos && (
-        <div>
-          {cuenta.children.map(hijo => (
-            <CuentaRow key={hijo.cuenta.id} cuenta={hijo} nivel={nivel + 1} />
-          ))}
-        </div>
-      )}
-    </>
-  );
-};
+    );
+  };
 
-  const ingresosArray = Object.values(estadoResultados.ingresos || {});
-  const gastosArray = Object.values(estadoResultados.gastos || {});
+  const ingresosArray = estadoResultados.ingresos || [];
+  const gastosArray = estadoResultados.gastos || [];
 
   return (
     <div className="p-0">
-      {/* Header principal removido, solo se deja el header de la página si corresponde */}
+      {/* Header */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <FileText className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Estado de Resultados</h2>
+                <p className="text-slate-300 mt-1">Período: {new Date(filtros.fechaDesde).toLocaleDateString('es-AR')} - {new Date(filtros.fechaHasta).toLocaleDateString('es-AR')}</p>
+              </div>
+            </div>
+            {!loading && !error && estadoResultados.ingresos?.length > 0 && (
+              <button
+                onClick={handleDescargarPDF}
+                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descargar PDF</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* Filtros */}
-      <div className="flex bg-slate-800 items-center justify-between p-3 mb-3 border rounded border-slate-500 bg-slate-200">
-        {/* Izquierda: selector y botón */}
+      {/* Controles */}
+      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-white font-medium text-slate-800">
+            <label className="text-sm font-medium text-slate-800">
               Fecha Desde:
             </label>
             <input
               type="date"
               value={filtros.fechaDesde}
               onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-              className="bg-white px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm text-white font-medium text-slate-800">
+            <label className="text-sm font-medium text-slate-800">
               Fecha Hasta:
             </label>
             <input
               type="date"
               value={filtros.fechaHasta}
               onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-              className="bg-white px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-600"
+              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
           <button
             onClick={aplicarFiltros}
             disabled={loading}
-            className="bg-emerald-600 text-white py-3 px-6 rounded hover:bg-slate-800/90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -226,27 +133,16 @@ const EstadoResultadosSection = () => {
             {loading ? 'Calculando...' : 'Aplicar'}
           </button>
         </div>
-        {/* Derecha: texto de fecha */}
-        <div className="text-right rounded-lg p-4 text-white">
-          <div className="text-md">Período Seleccionado</div>
-          <div className="text-md font-semibold">
-            {new Date(filtros.fechaDesde).toLocaleDateString('es-ES', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })} - {new Date(filtros.fechaHasta).toLocaleDateString('es-ES', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="p-6 bg-slate-200 border-l-4 border-slate-800">
-          <p className="text-slate-800">Error: {error}</p>
+        <div className="bg-red-50 border border-red-200 p-6 rounded mb-6">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+            <span className="text-red-800 font-medium">Error:</span>
+          </div>
+          <p className="text-red-700 mt-1">{error}</p>
         </div>
       )}
 
@@ -261,7 +157,7 @@ const EstadoResultadosSection = () => {
           </div>
           <div className="text-center p-6 bg-slate-200 rounded">
             <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalGastos)}</div>
-            <div className="text-sm text-slate-800">Total Gastos</div>
+            <div className="text-sm text-slate-800">Total Egresos</div>
             <div className="text-xs text-slate-800">{gastosArray.length} conceptos</div>
           </div>
           <div className="text-center p-6 bg-slate-200 rounded">
@@ -303,12 +199,12 @@ const EstadoResultadosSection = () => {
             </div>
           </div>
 
-          {/* GASTOS */}
+          {/* EGRESOS */}
           <div className="space-y-6">
             <div className="bg-slate-800 text-white p-6">
               <h2 className="text-2xl font-bold flex items-center gap-4">
                 <TrendingDown className="w-7 h-7" />
-                GASTOS
+                EGRESOS
                 <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
                   {formatearMoneda(estadoResultados.totalGastos)}
                 </span>

@@ -42,7 +42,9 @@ const dashboardService = {
           tipo_producto, 
           copy, 
           cantidad, 
-          precio_total
+          precio_total,
+          producto_id,
+          precio_costo
         )
       `)
       .gte('fecha_venta', fechaInicio)
@@ -247,16 +249,35 @@ const dashboardService = {
             }
           }
 
+          const precioVenta = parseFloat(item.precio_total || 0);
+          const precioCosto = parseFloat(item.precio_costo || 0);
+          const ganancia = precioVenta - precioCosto;
+          const margenPorcentaje = precioCosto > 0 ? ((ganancia / precioCosto) * 100) : 0;
+
           if (!ventasPorCategoria[categoria]) {
-            ventasPorCategoria[categoria] = { categoria, ventas: 0, cantidad: 0 };
+            ventasPorCategoria[categoria] = { 
+              categoria, 
+              ventas: 0, 
+              cantidad: 0, 
+              costo: 0, 
+              ganancia: 0, 
+              margen: 0 
+            };
           }
-          ventasPorCategoria[categoria].ventas += parseFloat(item.precio_total || 0);
+          ventasPorCategoria[categoria].ventas += precioVenta;
+          ventasPorCategoria[categoria].costo += precioCosto;
+          ventasPorCategoria[categoria].ganancia += ganancia;
           ventasPorCategoria[categoria].cantidad += item.cantidad || 0;
         });
       }
     });
 
     const procesarObjeto = (obj) => Object.values(obj).sort((a, b) => b.ventas - a.ventas);
+    
+    // Calcular margen final para cada categoría
+    Object.values(ventasPorCategoria).forEach(categoria => {
+      categoria.margen = categoria.costo > 0 ? ((categoria.ganancia / categoria.costo) * 100) : 0;
+    });
 
     return {
       ventasPorDia: procesarObjeto(ventasPorDia),
@@ -622,6 +643,44 @@ const DashboardReportesSection = () => {
                       <YAxis tickFormatter={(value) => String(value)} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="ventas" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Ganancia por categoría */}
+              <div className="bg-white border border-slate-200 rounded p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ganancia por Categoría</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ventasData?.ventasPorCategoria}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="categoria" />
+                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <Tooltip 
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ganancia']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="ganancia" fill="#1e293b" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Margen por categoría */}
+              <div className="bg-white border border-slate-200 rounded p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Margen por Categoría</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ventasData?.ventasPorCategoria}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="categoria" />
+                      <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} />
+                      <Tooltip 
+                        formatter={(value) => [`${value.toFixed(1)}%`, 'Margen']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="margen" fill="#10b981" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

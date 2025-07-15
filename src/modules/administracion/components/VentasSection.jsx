@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF_NewTab';
+import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
 
@@ -236,10 +237,10 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                       <button
                         onClick={() => manejarAbrirRecibo(transaccion)}
                         className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
-                        title="Ver recibo"
+                        title={`Ver ${obtenerTextoBoton(transaccion.metodo_pago).toLowerCase()}`}
                       >
                         <Eye className="w-4 h-4" />
-                        <span className="text-xs">Recibo</span>
+                        <span className="text-xs">{obtenerTextoBoton(transaccion.metodo_pago)}</span>
                       </button>
                     </td>
                   </tr>

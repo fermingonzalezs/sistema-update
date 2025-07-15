@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, ChevronDown } from 'lucide-react';
+import { X, Filter, ChevronDown, Edit, Save, AlertCircle } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
@@ -28,6 +28,7 @@ const Catalogo = ({ onAddToCart }) => {
     limpiarFiltros,
     actualizarOrdenamiento,
     eliminarProducto,
+    actualizarProducto,
     totalProductos,
     productosFiltrados,
     hayFiltrosActivos
@@ -35,6 +36,10 @@ const Catalogo = ({ onAddToCart }) => {
 
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
   const [modalDetalle, setModalDetalle] = useState({ open: false, producto: null });
+  const [modalEdit, setModalEdit] = useState({ open: false, producto: null });
+  const [editForm, setEditForm] = useState({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState(null);
 
   // Cargar cotización
   useEffect(() => {
@@ -85,6 +90,498 @@ const Catalogo = ({ onAddToCart }) => {
       
       onAddToCart(producto, tipo);
     }
+  };
+
+  // Funciones para el modal de edición
+  const openEditModal = (producto) => {
+    setModalEdit({ open: true, producto });
+    setEditForm({ ...producto });
+    setEditError(null);
+  };
+
+  const closeEditModal = () => {
+    setModalEdit({ open: false, producto: null });
+    setEditForm({});
+    setEditError(null);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      setEditLoading(true);
+      setEditError(null);
+      
+      await actualizarProducto(modalEdit.producto.id, editForm);
+      
+      closeEditModal();
+      alert('✅ Producto actualizado exitosamente');
+    } catch (error) {
+      console.error('Error actualizando producto:', error);
+      setEditError(error.message || 'Error al actualizar el producto');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const updateEditField = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Función para renderizar el formulario de edición según el tipo de producto
+  const renderEditForm = () => {
+    if (!modalEdit.producto) return null;
+
+    // Formulario específico para notebooks - COMPLETO con TODOS los campos
+    if (categoriaActiva === 'notebooks') {
+      return (
+        <div className="max-h-96 overflow-y-auto">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Editar Notebook - Todos los Campos</h3>
+          
+          {/* Información básica */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Información Básica</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
+                <input type="text" value={editForm.modelo || ''} onChange={(e) => updateEditField('modelo', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Serial</label>
+                <input type="text" value={editForm.serial || ''} onChange={(e) => updateEditField('serial', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
+                <input type="text" value={editForm.marca || ''} onChange={(e) => updateEditField('marca', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                <input type="text" value={editForm.color || ''} onChange={(e) => updateEditField('color', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Condición</label>
+                <select value={editForm.condicion || ''} onChange={(e) => updateEditField('condicion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">Seleccionar</option>
+                  <option value="excelente">Excelente</option>
+                  <option value="muy bueno">Muy Bueno</option>
+                  <option value="bueno">Bueno</option>
+                  <option value="regular">Regular</option>
+                  <option value="malo">Malo</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
+                <select value={editForm.sucursal || ''} onChange={(e) => updateEditField('sucursal', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">Seleccionar</option>
+                  <option value="la_plata">La Plata</option>
+                  <option value="caba">CABA</option>
+                  <option value="deposito">Depósito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Precios y Costos */}
+          <div className="bg-emerald-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Precios y Costos</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Costo USD</label>
+                <input type="number" step="0.01" value={editForm.precio_costo_usd || ''} onChange={(e) => updateEditField('precio_costo_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Costo Total</label>
+                <input type="number" step="0.01" value={editForm.precio_costo_total || ''} onChange={(e) => updateEditField('precio_costo_total', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta USD *</label>
+                <input type="number" step="0.01" value={editForm.precio_venta_usd || ''} onChange={(e) => updateEditField('precio_venta_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Envíos/Repuestos</label>
+                <input type="number" step="0.01" value={editForm.envios_repuestos || ''} onChange={(e) => updateEditField('envios_repuestos', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Especificaciones Técnicas */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Especificaciones Técnicas</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Procesador</label>
+                <input type="text" value={editForm.procesador || ''} onChange={(e) => updateEditField('procesador', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">RAM</label>
+                <input type="text" value={editForm.ram || ''} onChange={(e) => updateEditField('ram', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tipo RAM</label>
+                <input type="text" value={editForm.tipo_ram || ''} onChange={(e) => updateEditField('tipo_ram', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Slots RAM</label>
+                <input type="text" value={editForm.slots || ''} onChange={(e) => updateEditField('slots', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">SSD</label>
+                <input type="text" value={editForm.ssd || ''} onChange={(e) => updateEditField('ssd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">HDD</label>
+                <input type="text" value={editForm.hdd || ''} onChange={(e) => updateEditField('hdd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sistema Operativo</label>
+                <input type="text" value={editForm.so || ''} onChange={(e) => updateEditField('so', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Placa de Video</label>
+                <input type="text" value={editForm.placa_video || ''} onChange={(e) => updateEditField('placa_video', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">VRAM</label>
+                <input type="text" value={editForm.vram || ''} onChange={(e) => updateEditField('vram', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Pantalla y Display */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Pantalla y Display</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pantalla</label>
+                <input type="text" value={editForm.pantalla || ''} onChange={(e) => updateEditField('pantalla', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Resolución</label>
+                <input type="text" value={editForm.resolucion || ''} onChange={(e) => updateEditField('resolucion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Refresh Rate</label>
+                <input type="text" value={editForm.refresh || ''} onChange={(e) => updateEditField('refresh', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Touchscreen</label>
+                <select value={editForm.touchscreen || ''} onChange={(e) => updateEditField('touchscreen', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">No especificado</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Características Adicionales */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Características Adicionales</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Teclado Retroiluminado</label>
+                <select value={editForm.teclado_retro || ''} onChange={(e) => updateEditField('teclado_retro', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">No especificado</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Idioma Teclado</label>
+                <input type="text" value={editForm.idioma_teclado || ''} onChange={(e) => updateEditField('idioma_teclado', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Batería</label>
+                <input type="text" value={editForm.bateria || ''} onChange={(e) => updateEditField('bateria', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Duración Batería</label>
+                <input type="text" value={editForm.duracion || ''} onChange={(e) => updateEditField('duracion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Estado y Garantía */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Estado y Garantía</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Disponible</label>
+                <select value={editForm.disponible || ''} onChange={(e) => updateEditField('disponible', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">No especificado</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
+                <input type="date" value={editForm.ingreso || ''} onChange={(e) => updateEditField('ingreso', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Garantía Update</label>
+                <input type="text" value={editForm.garantia_update || ''} onChange={(e) => updateEditField('garantia_update', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Garantía Oficial</label>
+                <input type="text" value={editForm.garantia_oficial || ''} onChange={(e) => updateEditField('garantia_oficial', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Fallas</label>
+                <textarea value={editForm.fallas || ''} onChange={(e) => updateEditField('fallas', e.target.value)} rows="2" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Formulario específico para celulares - COMPLETO con TODOS los campos
+    if (categoriaActiva === 'celulares') {
+      return (
+        <div className="max-h-96 overflow-y-auto">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Editar Celular - Todos los Campos</h3>
+          
+          {/* Información básica */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Información Básica</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
+                <input type="text" value={editForm.modelo || ''} onChange={(e) => updateEditField('modelo', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Serial</label>
+                <input type="text" value={editForm.serial || ''} onChange={(e) => updateEditField('serial', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
+                <input type="text" value={editForm.marca || ''} onChange={(e) => updateEditField('marca', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                <input type="text" value={editForm.color || ''} onChange={(e) => updateEditField('color', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Condición</label>
+                <select value={editForm.condicion || ''} onChange={(e) => updateEditField('condicion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">Seleccionar</option>
+                  <option value="excelente">Excelente</option>
+                  <option value="muy bueno">Muy Bueno</option>
+                  <option value="bueno">Bueno</option>
+                  <option value="regular">Regular</option>
+                  <option value="malo">Malo</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Ubicación</label>
+                <select value={editForm.ubicacion || ''} onChange={(e) => updateEditField('ubicacion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">Seleccionar</option>
+                  <option value="la_plata">La Plata</option>
+                  <option value="caba">CABA</option>
+                  <option value="deposito">Depósito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Precios */}
+          <div className="bg-emerald-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Precios</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra USD</label>
+                <input type="number" step="0.01" value={editForm.precio_compra_usd || ''} onChange={(e) => updateEditField('precio_compra_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta USD *</label>
+                <input type="number" step="0.01" value={editForm.precio_venta_usd || ''} onChange={(e) => updateEditField('precio_venta_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta Pesos</label>
+                <input type="number" step="0.01" value={editForm.precio_venta_pesos || ''} onChange={(e) => updateEditField('precio_venta_pesos', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Repuestos USD</label>
+                <input type="number" step="0.01" value={editForm.repuestos_usd || ''} onChange={(e) => updateEditField('repuestos_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Especificaciones Técnicas */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Especificaciones Técnicas</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Almacenamiento</label>
+                <input type="text" value={editForm.almacenamiento || ''} onChange={(e) => updateEditField('almacenamiento', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Capacidad</label>
+                <input type="text" value={editForm.capacidad || ''} onChange={(e) => updateEditField('capacidad', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Batería %</label>
+                <input type="number" min="0" max="100" value={editForm.bateria || ''} onChange={(e) => updateEditField('bateria', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Porcentaje Batería</label>
+                <input type="number" min="0" max="100" value={editForm.porcentaje_bateria || ''} onChange={(e) => updateEditField('porcentaje_bateria', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Ciclos</label>
+                <input type="number" min="0" value={editForm.ciclos || ''} onChange={(e) => updateEditField('ciclos', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Estado</label>
+                <input type="text" value={editForm.estado || ''} onChange={(e) => updateEditField('estado', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Estado Estético</label>
+                <input type="text" value={editForm.estado_estetico || ''} onChange={(e) => updateEditField('estado_estetico', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Estado y Garantía */}
+          <div className="bg-slate-50 p-4 rounded mb-4">
+            <h4 className="font-medium text-slate-700 mb-3">Estado y Garantía</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Disponible</label>
+                <select value={editForm.disponible || ''} onChange={(e) => updateEditField('disponible', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                  <option value="">No especificado</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
+                <input type="date" value={editForm.ingreso || ''} onChange={(e) => updateEditField('ingreso', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
+                <input type="text" value={editForm.garantia || ''} onChange={(e) => updateEditField('garantia', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Garantía Update</label>
+                <input type="text" value={editForm.garantia_update || ''} onChange={(e) => updateEditField('garantia_update', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Garantía Oficial</label>
+                <input type="text" value={editForm.garantia_oficial || ''} onChange={(e) => updateEditField('garantia_oficial', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Fallas</label>
+                <textarea value={editForm.fallas || ''} onChange={(e) => updateEditField('fallas', e.target.value)} rows="2" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Formulario para otros productos - COMPLETO con TODOS los campos
+    return (
+      <div className="max-h-96 overflow-y-auto">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Editar Producto - Todos los Campos</h3>
+        
+        {/* Información básica */}
+        <div className="bg-slate-50 p-4 rounded mb-4">
+          <h4 className="font-medium text-slate-700 mb-3">Información Básica</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
+              <input type="text" value={editForm.nombre_producto || editForm.nombre || ''} onChange={(e) => updateEditField(editForm.hasOwnProperty('nombre_producto') ? 'nombre_producto' : 'nombre', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
+              <input type="text" value={editForm.categoria || ''} onChange={(e) => updateEditField('categoria', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
+              <input type="text" value={editForm.marca || ''} onChange={(e) => updateEditField('marca', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Condición</label>
+              <select value={editForm.condicion || ''} onChange={(e) => updateEditField('condicion', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                <option value="">Seleccionar</option>
+                <option value="excelente">Excelente</option>
+                <option value="muy bueno">Muy Bueno</option>
+                <option value="bueno">Bueno</option>
+                <option value="regular">Regular</option>
+                <option value="malo">Malo</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
+              <select value={editForm.sucursal || ''} onChange={(e) => updateEditField('sucursal', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                <option value="">Seleccionar</option>
+                <option value="la_plata">La Plata</option>
+                <option value="caba">CABA</option>
+                <option value="deposito">Depósito</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Stock/Cantidad</label>
+              <input type="number" min="0" value={editForm.cantidad || editForm.stock || ''} onChange={(e) => updateEditField(editForm.hasOwnProperty('cantidad') ? 'cantidad' : 'stock', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Precios */}
+        <div className="bg-emerald-50 p-4 rounded mb-4">
+          <h4 className="font-medium text-slate-700 mb-3">Precios</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra USD</label>
+              <input type="number" step="0.01" value={editForm.precio_compra_usd || ''} onChange={(e) => updateEditField('precio_compra_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta USD *</label>
+              <input type="number" step="0.01" value={editForm.precio_venta_usd || ''} onChange={(e) => updateEditField('precio_venta_usd', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta Pesos</label>
+              <input type="number" step="0.01" value={editForm.precio_venta_pesos || ''} onChange={(e) => updateEditField('precio_venta_pesos', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Estado y Garantía */}
+        <div className="bg-slate-50 p-4 rounded mb-4">
+          <h4 className="font-medium text-slate-700 mb-3">Estado y Garantía</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Disponible</label>
+              <select value={editForm.disponible || ''} onChange={(e) => updateEditField('disponible', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                <option value="">No especificado</option>
+                <option value="si">Sí</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
+              <input type="date" value={editForm.ingreso || ''} onChange={(e) => updateEditField('ingreso', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
+              <input type="text" value={editForm.garantia || ''} onChange={(e) => updateEditField('garantia', e.target.value)} className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fallas</label>
+              <textarea value={editForm.fallas || ''} onChange={(e) => updateEditField('fallas', e.target.value)} rows="2" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Descripción */}
+        <div className="bg-slate-50 p-4 rounded mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+          <textarea value={editForm.descripcion || ''} onChange={(e) => updateEditField('descripcion', e.target.value)} rows="3" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500" />
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -360,13 +857,11 @@ const Catalogo = ({ onAddToCart }) => {
                   </svg>
                 </button>
                 <button
-                  onClick={() => alert('Función de editar próximamente')}
-                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  onClick={() => openEditModal(producto)}
+                  className="px-2 py-1 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
                   title="Editar producto"
                 >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                  </svg>
+                  <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => eliminarProducto(producto.id)}
@@ -400,6 +895,72 @@ const Catalogo = ({ onAddToCart }) => {
           categoriaActiva === 'notebooks' ? 'notebook' : 'otro'
         }
       />
+
+      {/* Modal de edición */}
+      {modalEdit.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-slate-800 flex items-center space-x-2">
+                  <Edit size={20} />
+                  <span>Editar Producto</span>
+                </h2>
+                <button
+                  onClick={closeEditModal}
+                  className="p-2 hover:bg-slate-100 rounded transition-colors"
+                  disabled={editLoading}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenido */}
+            <div className="p-6">
+              {editError && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle size={16} className="text-red-600" />
+                    <span className="text-red-800 text-sm">{editError}</span>
+                  </div>
+                </div>
+              )}
+
+              {renderEditForm()}
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-6 flex justify-end space-x-4">
+              <button
+                onClick={closeEditModal}
+                disabled={editLoading}
+                className="px-4 py-2 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleEditSubmit}
+                disabled={editLoading}
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+              >
+                {editLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    <span>Guardar Cambios</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

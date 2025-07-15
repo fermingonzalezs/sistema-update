@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../../lib/supabase';
 import { useMovimientosRepuestosEquipos } from '../hooks/useMovimientosRepuestosEquipos';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 // Componente para el modal de nuevo movimiento
 const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
@@ -414,17 +415,17 @@ const MovimientosRepuestosSection = () => {
               <Tarjeta
                 icon={Plus}
                 titulo="Total Entradas"
-                valor={`$${estadisticas.totalEntradas?.toFixed(2) || '0.00'}`}
+                valor={formatearMonto(estadisticas.totalEntradas, 'USD')}
               />
               <Tarjeta
                 icon={Minus}
                 titulo="Total Salidas"
-                valor={`$${estadisticas.totalSalidas?.toFixed(2) || '0.00'}`}
+                valor={formatearMonto(estadisticas.totalSalidas, 'USD')}
               />
               <Tarjeta
                 icon={Calculator}
                 titulo="Resultado Neto"
-                valor={`$${estadisticas.resultadoTotal?.toFixed(2) || '0.00'}`}
+                valor={formatearMonto(estadisticas.resultadoTotal, 'USD')}
               />
             </div>
           </div>

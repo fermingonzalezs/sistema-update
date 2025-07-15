@@ -119,7 +119,7 @@ const libroMayorService = {
     const movimientosConSaldo = movimientos.map(mov => {
       const debe = parseFloat(mov.debe || 0);
       const haber = parseFloat(mov.haber || 0);
-      saldoAcumulado += debe - haber;
+      saldoAcumulado += haber - debe;
       
       return {
         ...mov,
@@ -435,7 +435,7 @@ const LibroMayorSection = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-slate-500 mb-1">Saldo actual</div>
-                            <div className={`font-semibold text-sm ${cuenta.saldoActual >= 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                            <div className={`font-semibold text-sm text-slate-800`}>
                               {loadingSaldos ? (
                                 <span className="text-slate-400">Cargando...</span>
                               ) : (
@@ -598,7 +598,7 @@ const LibroMayorSection = () => {
                             {formatearFecha(mov.asientos_contables.fecha)}
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm font-mono text-emerald-600 bg-emerald-100 px-2 py-1 rounded">
+                            <span className="text-sm font-mono text-slate-800 bg-emerald-100 px-2 py-1 rounded">
                               N° {mov.asientos_contables.numero}
                             </span>
                           </td>
@@ -609,7 +609,7 @@ const LibroMayorSection = () => {
                           </td>
                           <td className="text-right py-3 px-4 font-medium">
                             {mov.debe > 0 ? (
-                              <span className="text-emerald-600">{formatearMoneda(mov.debe)}</span>
+                              <span className="text-slate-800">{formatearMoneda(mov.debe)}</span>
                             ) : ''}
                           </td>
                           <td className="text-right py-3 px-4 font-medium">
@@ -618,7 +618,7 @@ const LibroMayorSection = () => {
                             ) : ''}
                           </td>
                           <td className="text-right py-3 px-4 font-bold">
-                            <span className={mov.saldoActual >= 0 ? 'text-emerald-600' : 'text-slate-600'}>
+                            <span className={'text-slate-800'}>
                               {formatearMoneda(Math.abs(mov.saldoActual))}
                             </span>
                           </td>
@@ -628,7 +628,7 @@ const LibroMayorSection = () => {
                     <tfoot className="bg-slate-50">
                       <tr className="font-bold">
                         <td colSpan="3" className="py-3 px-4 text-slate-700">TOTALES DEL PERÍODO</td>
-                        <td className="text-right py-3 px-4 text-emerald-600">
+                        <td className="text-right py-3 px-4 text-slate-800">
                           {formatearMoneda(libroMayor.totalDebe)}
                         </td>
                         <td className="text-right py-3 px-4 text-slate-600">

@@ -1,5 +1,5 @@
 // src/components/HistorialImportacionesSection.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Globe,
   Search,
@@ -20,6 +20,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
+import { formatearMonto } from '../../../shared/utils/formatters.js';
 
 const HistorialImportacionesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,16 +48,16 @@ const HistorialImportacionesSection = () => {
     applyFilters();
   }, [searchTerm, dateFilter, sortBy, sortOrder, importaciones]);
 
-  const loadHistorial = async () => {
+  const loadHistorial = useCallback(async () => {
     await fetchByEstado('finalizada');
-  };
+  }, [fetchByEstado]);
 
-  const loadEstadisticas = async () => {
+  const loadEstadisticas = useCallback(async () => {
     const stats = await getEstadisticas();
     setEstadisticas(stats);
-  };
+  }, [getEstadisticas]);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...importaciones];
 
     // Filtro por texto
@@ -127,39 +128,34 @@ const HistorialImportacionesSection = () => {
     });
 
     setFilteredHistorial(filtered);
-  };
+  }, [importaciones, searchTerm, dateFilter, sortBy, sortOrder]);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
-  };
+  const formatCurrency = useCallback((amount) => formatearMonto(amount, 'USD'), []);
 
-  const formatFecha = (fecha) => {
+  const formatFecha = useCallback((fecha) => {
     if (!fecha) return 'No especificado';
     return new Date(fecha).toLocaleDateString('es-AR');
-  };
+  }, []);
 
-  const getDiferenciaPorcentaje = (estimado, real) => {
+  const getDiferenciaPorcentaje = useCallback((estimado, real) => {
     if (!estimado || estimado === 0) return 0;
     return ((real - estimado) / estimado * 100);
-  };
+  }, []);
 
-  const getDiferenciaColor = (diferencia) => {
+  const getDiferenciaColor = useCallback((diferencia) => {
     if (diferencia > 0) return 'text-slate-600';
     if (diferencia < 0) return 'text-emerald-600';
     return 'text-slate-600';
-  };
+  }, []);
 
-  const getAccuracyColor = (porcentaje) => {
+  const getAccuracyColor = useCallback((porcentaje) => {
     const abs = Math.abs(porcentaje);
     if (abs <= 5) return 'text-emerald-600 bg-emerald-50';
     if (abs <= 15) return 'text-slate-600 bg-slate-100';
     return 'text-slate-600 bg-slate-200';
-  };
+  }, []);
 
-  const calcularEstadisticasVista = () => {
+  const stats = useMemo(() => {
     if (filteredHistorial.length === 0) return null;
 
     const totalImportaciones = filteredHistorial.length;
@@ -182,13 +178,24 @@ const HistorialImportacionesSection = () => {
       diferenciaTotalPorcentaje,
       promedioAccuracy
     };
-  };
-
-  const stats = calcularEstadisticasVista();
+  }, [filteredHistorial, getDiferenciaPorcentaje]);
 
   return (
     <div className="">
-      {/* Header eliminado para ganar espacio */}
+      {/* Header Estandarizado */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Globe className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Historial de Importaciones</h2>
+                <p className="text-slate-300 mt-1">Importaciones finalizadas y estadísticas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Filtros y búsqueda */}
       <div className="bg-white rounded border border-slate-200 mb-6">

@@ -1,5 +1,6 @@
 // Moved from src/components/ImportacionesSection.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Package, Plus } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones';
 
 const ImportacionesSection = () => {
@@ -17,12 +18,54 @@ const ImportacionesSection = () => {
     getEstadisticas
   } = useImportaciones();
 
+  const [selectedImportacion, setSelectedImportacion] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   useEffect(() => {
     fetchImportaciones();
   }, [fetchImportaciones]);
 
+  // Handlers para los botones
+  const handleVer = (importacion) => {
+    setSelectedImportacion(importacion);
+    setShowDetailModal(true);
+  };
+
+  const handleEditar = (importacion) => {
+    setSelectedImportacion(importacion);
+    setShowEditModal(true);
+  };
+
+  const handleCloseModals = () => {
+    setShowDetailModal(false);
+    setShowEditModal(false);
+    setSelectedImportacion(null);
+  };
+
   return (
     <div className="">
+      {/* Header Estandarizado */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Package className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Importaciones</h2>
+                <p className="text-slate-300 mt-1">Gestión de importaciones y cotizaciones</p>
+              </div>
+            </div>
+            <button 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva Importación
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Estados de carga y error integrados */}
       {loading && (
         <div className="flex items-center justify-center py-8">
@@ -65,10 +108,16 @@ const ImportacionesSection = () => {
                     
                     {/* Acciones rápidas por importación */}
                     <div className="flex items-center gap-2 ml-4">
-                      <button className="text-slate-600 hover:text-emerald-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-emerald-600 transition-colors">
+                      <button 
+                        onClick={() => handleVer(imp)}
+                        className="text-slate-600 hover:text-emerald-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-emerald-600 transition-colors"
+                      >
                         Ver
                       </button>
-                      <button className="text-slate-600 hover:text-blue-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-blue-600 transition-colors">
+                      <button 
+                        onClick={() => handleEditar(imp)}
+                        className="text-slate-600 hover:text-emerald-600 px-3 py-1 text-sm rounded border border-slate-200 hover:border-emerald-600 transition-colors"
+                      >
                         Editar
                       </button>
                     </div>
@@ -90,6 +139,67 @@ const ImportacionesSection = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal de Detalle */}
+      {showDetailModal && selectedImportacion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded border border-slate-200 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 bg-slate-800 text-white">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Detalle de Importación</h2>
+                <button 
+                  onClick={handleCloseModals}
+                  className="text-slate-300 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div><strong>Descripción:</strong> {selectedImportacion.descripcion}</div>
+                <div><strong>Cliente:</strong> {selectedImportacion.clientes?.nombre} {selectedImportacion.clientes?.apellido}</div>
+                <div><strong>Estado:</strong> {selectedImportacion.estado}</div>
+                <div><strong>Precio:</strong> ${selectedImportacion.precio_compra_usd}</div>
+                <div><strong>Peso estimado:</strong> {selectedImportacion.peso_estimado_kg} kg</div>
+                {selectedImportacion.numero_seguimiento && (
+                  <div><strong>Número de seguimiento:</strong> {selectedImportacion.numero_seguimiento}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edición */}
+      {showEditModal && selectedImportacion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded border border-slate-200 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 bg-slate-800 text-white">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Editar Importación</h2>
+                <button 
+                  onClick={handleCloseModals}
+                  className="text-slate-300 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-600">Funcionalidad de edición en desarrollo...</p>
+              <div className="mt-4">
+                <button 
+                  onClick={handleCloseModals}
+                  className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

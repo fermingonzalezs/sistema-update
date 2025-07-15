@@ -95,7 +95,7 @@ const ProveedorSelector = ({ selectedProveedor, onSelectProveedor }) => {
     <div className="relative" ref={dropdownRef}>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Package className="h-5 w-5 text-gray-400" />
+          <Package className="h-5 w-5 text-slate-400" />
         </div>
         <input
           ref={inputRef}
@@ -105,22 +105,22 @@ const ProveedorSelector = ({ selectedProveedor, onSelectProveedor }) => {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Buscar o escribir proveedor..."
-          className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          className="w-full pl-10 pr-10 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-          <Search className="h-5 w-5 text-gray-400" />
+          <Search className="h-5 w-5 text-slate-400" />
         </div>
       </div>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-40 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-40 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {/* Opción para agregar nuevo proveedor */}
           {showAddOption && (
             <button
               type="button"
               onClick={handleAddNewProveedor}
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-200 flex items-center space-x-3 text-teal-600 transition-colors"
+              className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-200 flex items-center space-x-3 text-emerald-600 transition-colors"
             >
               <Plus className="w-5 h-5" />
               <span className="font-medium">Agregar "{searchTerm}"</span>
@@ -128,13 +128,13 @@ const ProveedorSelector = ({ selectedProveedor, onSelectProveedor }) => {
           )}
 
           {loading ? (
-            <div className="px-4 py-8 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500 mx-auto mb-2"></div>
+            <div className="px-4 py-8 text-center text-slate-500">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500 mx-auto mb-2"></div>
               Cargando proveedores...
             </div>
           ) : filteredProveedores.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-500">
-              <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+            <div className="px-4 py-8 text-center text-slate-500">
+              <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
               <p>No se encontraron proveedores</p>
               {searchTerm && !showAddOption && (
                 <p className="text-sm">Intenta con otros términos</p>
@@ -147,11 +147,11 @@ const ProveedorSelector = ({ selectedProveedor, onSelectProveedor }) => {
                   key={proveedor.id}
                   type="button"
                   onClick={() => handleSelectProveedor(proveedor.nombre)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                  className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <Package className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium text-gray-900">{proveedor.nombre}</span>
+                    <Package className="w-4 h-4 text-slate-400" />
+                    <span className="font-medium text-slate-900">{proveedor.nombre}</span>
                   </div>
                 </button>
               ))}

@@ -7,7 +7,7 @@ import {
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionService } from '../../services/cotizacionService';
 
-const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShowSidebar }) => {
+const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
   const { user, logout } = useAuthContext();
   const currentDate = new Date();
 
@@ -135,12 +135,6 @@ const Header = ({ activeSection, cantidadCarrito = 0, isSidebarCollapsed, onShow
                 <div className="text-xs text-slate-300 mt-1">
                   BD: <span className="text-emerald-600 font-medium">Conectada</span>
                 </div>
-                {cantidadCarrito > 0 && (
-                  <div className="text-xs text-emerald-600 mt-1 flex items-center space-x-1">
-                    <ShoppingCart className="w-3 h-3" />
-                    <span>{cantidadCarrito} items</span>
-                  </div>
-                )}
               </div>
 
               {/* Cotización USD/ARS */}
