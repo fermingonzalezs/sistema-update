@@ -57,7 +57,11 @@
       "WebFetch(domain:dolarhoy.com)",
       "Bash(git commit:*)",
       "Bash(sudo chmod:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git checkout:*)",
+      "Bash(supabase help:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(timeout 5 npm run dev)"
     ],
     "deny": []
   },

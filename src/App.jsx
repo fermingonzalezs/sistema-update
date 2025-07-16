@@ -16,7 +16,6 @@ import {
   Catalogo
 } from './modules/ventas/components';
 import {
-  CargaEquiposUnificada,
   ReparacionesMain,
   RepuestosSection,
   MovimientosRepuestosSection,
@@ -27,7 +26,8 @@ import {
   ComisionesSection,
   DashboardReportesSection,
   RecuentoStockSection,
-  GarantiasSection
+  GarantiasSection,
+  IngresoEquiposSection
 } from './modules/administracion/components';
 import {
   PlanCuentasSection,
@@ -465,14 +465,6 @@ const AppContent = () => {
      )}
 
 
-     {activeSection === 'carga-equipos' && hasAccess('carga-equipos') && (
-       <CargaEquiposUnificada
-         onAddComputer={addComputer}
-         onAddCelular={addCelular}
-         onAddOtro={addOtro}
-         loading={computersLoading || celularesLoading || otrosLoading}
-       />
-     )}
 
      {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
        <ReparacionesMain />
@@ -565,6 +557,10 @@ const AppContent = () => {
 
      {activeSection === 'garantias' && hasAccess('garantias') && (
        <GarantiasSection />
+     )}
+
+     {activeSection === 'ingreso-equipos' && hasAccess('ingreso-equipos') && (
+       <IngresoEquiposSection />
      )}
 
      {activeSection === 'comisiones' && hasAccess('comisiones') && (

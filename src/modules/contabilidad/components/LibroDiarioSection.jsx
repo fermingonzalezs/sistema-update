@@ -643,7 +643,7 @@ const LibroDiarioSection = () => {
                               <div className="text-center">
                                 {mov.debe > 0 && (
                                   <div>
-                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1 border">
+                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
                                     <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
@@ -653,7 +653,7 @@ const LibroDiarioSection = () => {
                               <div className="text-center">
                                 {mov.haber > 0 && (
                                   <div>
-                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1 border">
+                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
                                     <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
@@ -691,7 +691,7 @@ const LibroDiarioSection = () => {
       return (
         <div className="font-mono">
           {/* Header de la tabla principal */}
-          <div className="p-3 grid grid-cols-12 gap-3 items-center bg-gray-800 text-white font-mono font-bold text-md">
+          <div className="p-1 grid grid-cols-12 gap-1 items-center bg-gray-800 text-white font-mono font-bold text-md">
             <div className="col-span-1">N°</div>
             <div className="col-span-2">Fecha</div>
             <div className="col-span-5">Descripción</div>
@@ -703,7 +703,7 @@ const LibroDiarioSection = () => {
 
               {/* Fila del asiento */}
               <div className=" bg-gray-400 p-1 grid grid-cols-12 gap-4 items-center">
-                <div className="pl-2 font-bold">
+                <div className="p-1 font-bold">
                   <span className="">
                     {asiento.numero}
                   </span>
@@ -725,28 +725,28 @@ const LibroDiarioSection = () => {
                 </div>
               </div>
               {/* Movimientos del asiento */}
-              <div className="p-2 font-mono">
+              <div className="font-mono">
                 {/* Header de movimientos */}
                 <div className="flex text-sm font-semibold py-2 bg-gray-200">
                     <div className="w-16"></div>
                     {/* Sección de Cuentas */}
-                    <div className="w-96 grid grid-cols-2 gap-6">
+                    <div className="w-96 grid grid-cols-2 gap-26">
                       <div className="text-left pl-4">Debe</div>
-                      <div className="text-left pl-4">Haber</div>
+                      <div className="text-left pl-7">Haber</div>
                     </div>
                     {/* Margen central */}
                     <div className="flex-1"></div>
                     {/* Sección de Importes */}
                     <div className="w-64 grid grid-cols-2 gap-6">
-                      <div className="text-right pr-4">Debe</div>
+                      <div className="text-left pr-3">Debe</div>
                       <div className="text-right pr-4">Haber</div>
                     </div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
-                  <div key={index} className="flex text-sm border-t py-2">
+                  <div key={index} className="flex text-sm border-t py-1">
                     <div className="w-16"></div>
                     {/* Sección de Cuentas */}
-                    <div className="w-96 grid grid-cols-2 gap-10">
+                    <div className="w-120 grid grid-cols-2 gap-10">
                       {/* Cuenta Debe */}
                       <div className="pl-4">
                         {mov.debe > 0 ? (

@@ -93,7 +93,7 @@ export const useAuth = () => {
         'gestion-fotos', 'copys', 'clientes', 'ventas'
       ],
       soporte: [
-        'carga-equipos', 'reparaciones', 'repuestos', 'movimientos-repuestos',
+        'reparaciones', 'repuestos', 'movimientos-repuestos',
         'presupuestos-reparacion', 'testeo-equipos'
       ],
       contabilidad: [
@@ -103,7 +103,8 @@ export const useAuth = () => {
       administracion: [
         'dashboard-reportes', 'garantias', 'comisiones', 'recuento-stock',
         'ventas', 'importaciones', 'cotizaciones', 'pendientes-compra', 
-        'en-transito', 'historial-importaciones', 'cuentas-corrientes'
+        'en-transito', 'historial-importaciones', 'cuentas-corrientes',
+        'ingreso-equipos'
       ]
     };
 

@@ -323,6 +323,13 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
   }, [fetchClientes]);
 
 
+  // Inicializar filteredClientes con todos los clientes cuando estos cambien
+  useEffect(() => {
+    if (searchTerm.length === 0) {
+      setFilteredClientes(clientes);
+    }
+  }, [clientes, searchTerm]);
+
   // Debounce para búsqueda de clientes
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -335,11 +342,12 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
           setSearchLoading(false);
         }
       } else if (searchTerm.length === 0) {
+        // Mostrar todos los clientes cuando no hay búsqueda
         setFilteredClientes(clientes);
         setSearchLoading(false);
       } else {
-        // Si tiene 1 carácter, mostrar lista vacía
-        setFilteredClientes([]);
+        // Si tiene 1 carácter, mostrar todos los clientes también
+        setFilteredClientes(clientes);
         setSearchLoading(false);
       }
     }, 300);
@@ -348,14 +356,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
       clearTimeout(handler);
       setSearchLoading(false);
     };
-  }, [searchTerm, searchClientes]);
-
-  // Inicializar filteredClientes con todos los clientes cuando estos cambien
-  useEffect(() => {
-    if (searchTerm.length === 0) {
-      setFilteredClientes(clientes);
-    }
-  }, [clientes, searchTerm]);
+  }, [searchTerm, searchClientes, clientes]);
 
   // ✅ CERRAR DROPDOWN - Sin interferir con el modal
   useEffect(() => {

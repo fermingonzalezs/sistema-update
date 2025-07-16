@@ -94,6 +94,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           description: 'Reportes visuales'
         },
         {
+          id: 'ingreso-equipos',
+          label: 'Ingreso de Equipos',
+          icon: Plus,
+          description: 'Cargar productos'
+        },
+        {
           id: 'garantias',
           label: 'Garantías',
           icon: Shield,
@@ -167,12 +173,6 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       color: 'from-orange-500 to-red-600',
       level: 'soporte',
       items: [
-        {
-          id: 'carga-equipos',
-          label: 'Carga de Equipos',
-          icon: Plus,
-          description: 'Agregar productos'
-        },
         {
           id: 'reparaciones',
           label: 'Reparaciones',

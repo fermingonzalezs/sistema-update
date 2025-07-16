@@ -1,0 +1,166 @@
+// src/modules/contabilidad/hooks/useCuentasCorrientes.js
+import { useState, useCallback } from 'react';
+import { supabase } from '../../../lib/supabase';
+
+export const cuentasCorrientesService = {
+  // Obtener todos los saldos de cuentas corrientes
+  async getSaldos() {
+    console.log('📡 Obteniendo saldos de cuentas corrientes...');
+    
+    const { data, error } = await supabase
+      .from('saldos_cuentas_corrientes')
+      .select('*')
+      .order('saldo_total', { ascending: false });
+    
+    if (error) {
+      console.error('❌ Error obteniendo saldos:', error);
+      throw error;
+    }
+    
+    console.log(`✅ ${data.length} saldos obtenidos`);
+    return data;
+  },
+
+  // Obtener movimientos de un cliente específico
+  async getMovimientosCliente(clienteId) {
+    console.log('📡 Obteniendo movimientos del cliente:', clienteId);
+    
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('❌ Error obteniendo movimientos:', error);
+      throw error;
+    }
+    
+    console.log(`✅ ${data.length} movimientos obtenidos para cliente ${clienteId}`);
+    return data;
+  },
+
+  // Obtener estadísticas generales
+  async getEstadisticas() {
+    console.log('📊 Calculando estadísticas de cuentas corrientes...');
+    
+    const { data, error } = await supabase
+      .from('saldos_cuentas_corrientes')
+      .select('saldo_total, total_movimientos');
+    
+    if (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
+      throw error;
+    }
+    
+    const totalClientes = data.length;
+    const clientesConDeuda = data.filter(cliente => parseFloat(cliente.saldo_total) > 0).length;
+    const totalDeuda = data.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0);
+    const totalMovimientos = data.reduce((sum, cliente) => sum + parseInt(cliente.total_movimientos || 0), 0);
+    
+    const estadisticas = {
+      totalClientes,
+      clientesConDeuda,
+      clientesSaldados: totalClientes - clientesConDeuda,
+      totalDeuda,
+      totalMovimientos
+    };
+    
+    console.log('✅ Estadísticas calculadas:', estadisticas);
+    return estadisticas;
+  },
+
+  // Registrar pago recibido de un cliente
+  async registrarPagoRecibido(clienteId, monto, concepto, observaciones = null) {
+    console.log('💰 Registrando pago recibido:', { clienteId, monto, concepto });
+    
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .insert([{
+        cliente_id: clienteId,
+        tipo_movimiento: 'haber', // El cliente nos paga
+        tipo_operacion: 'pago_recibido',
+        concepto: concepto || 'Pago recibido',
+        monto: monto,
+        fecha_operacion: new Date().toISOString().split('T')[0],
+        estado: 'pendiente',
+        comprobante: null,
+        observaciones: observaciones,
+        created_by: 'Usuario'
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('❌ Error registrando pago:', error);
+      throw error;
+    }
+    
+    console.log('✅ Pago registrado:', data);
+    return data;
+  }
+};
+
+// Hook para usar cuentas corrientes
+export function useCuentasCorrientes() {
+  const [saldos, setSaldos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchSaldos = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await cuentasCorrientesService.getSaldos();
+      setSaldos(data);
+    } catch (err) {
+      console.error('Error en useCuentasCorrientes:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchMovimientosCliente = useCallback(async (clienteId) => {
+    try {
+      setError(null);
+      return await cuentasCorrientesService.getMovimientosCliente(clienteId);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  const getEstadisticas = useCallback(async () => {
+    try {
+      setError(null);
+      return await cuentasCorrientesService.getEstadisticas();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  const registrarPagoRecibido = useCallback(async (clienteId, monto, concepto, observaciones) => {
+    try {
+      setError(null);
+      const pago = await cuentasCorrientesService.registrarPagoRecibido(clienteId, monto, concepto, observaciones);
+      // Refrescar saldos después del pago
+      await fetchSaldos();
+      return pago;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [fetchSaldos]);
+
+  return {
+    saldos,
+    loading,
+    error,
+    fetchSaldos,
+    fetchMovimientosCliente,
+    getEstadisticas,
+    registrarPagoRecibido
+  };
+}

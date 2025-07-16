@@ -171,6 +171,43 @@ export const ventasService = {
     console.log(`✅ Producto marcado como vendido en ${tabla}`)
   },
 
+  // ✅ Registrar movimiento en cuenta corriente
+  async registrarMovimientoCuentaCorriente(movimientoData) {
+    console.log('💳 Registrando movimiento de cuenta corriente:', movimientoData)
+    
+    try {
+      // Insertar en tabla cuentas_corrientes
+      const { data, error } = await supabase
+        .from('cuentas_corrientes')
+        .insert([{
+          cliente_id: movimientoData.cliente_id,
+          referencia_venta_id: movimientoData.transaccion_id,
+          tipo_movimiento: 'debe', // El cliente nos debe
+          tipo_operacion: 'venta_fiado',
+          concepto: movimientoData.concepto,
+          monto: movimientoData.monto,
+          fecha_operacion: new Date().toISOString().split('T')[0], // Solo fecha YYYY-MM-DD
+          estado: 'pendiente',
+          comprobante: movimientoData.numero_transaccion || null,
+          observaciones: movimientoData.observaciones,
+          created_by: 'Sistema'
+        }])
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('❌ Error insertando en cuentas_corrientes:', error)
+        throw error
+      }
+      
+      console.log('✅ Movimiento de cuenta corriente registrado:', data)
+      return data
+    } catch (error) {
+      console.error('❌ Error en registrarMovimientoCuentaCorriente:', error)
+      throw error
+    }
+  },
+
   // Obtener estadísticas de ventas
   async getEstadisticas() {
     const { data, error } = await supabase
@@ -248,6 +285,30 @@ export function useVentas() {
       
       // Crear la transacción con todos los items
       const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito)
+      
+      // ✅ PROCESAR CUENTA CORRIENTE si aplica
+      let montoCuentaCorriente = 0
+      
+      // Calcular cuánto corresponde a cuenta corriente
+      if (datosCliente.metodo_pago_1 === 'cuenta_corriente') {
+        montoCuentaCorriente += datosCliente.monto_pago_1 || 0
+      }
+      if (datosCliente.metodo_pago_2 === 'cuenta_corriente') {
+        montoCuentaCorriente += datosCliente.monto_pago_2 || 0
+      }
+      
+      // Registrar movimiento solo si hay monto en cuenta corriente
+      if (montoCuentaCorriente > 0 && datosCliente.cliente_id) {
+        await ventasService.registrarMovimientoCuentaCorriente({
+          cliente_id: datosCliente.cliente_id,
+          transaccion_id: nuevaTransaccion.id,
+          numero_transaccion: nuevaTransaccion.numero_transaccion,
+          monto: montoCuentaCorriente,
+          concepto: `Venta productos - ${nuevaTransaccion.numero_transaccion}`,
+          observaciones: datosCliente.observaciones || 'Venta a cuenta corriente'
+        })
+        console.log(`✅ Movimiento de cuenta corriente registrado: $${montoCuentaCorriente}`)
+      }
       
       // Actualizar inventario según el tipo de cada item
       for (const item of carrito) {

@@ -327,7 +327,7 @@ const BalanceSumasYSaldosDocument = ({ balance, resumen, fechaDesde, fechaHasta,
 
   return (
     <Document>
-      <Page size="A4" style={styles.page} orientation="landscape">
+      <Page size="A4" style={styles.page} orientation="portrait">
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
