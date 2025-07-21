@@ -148,7 +148,7 @@ const GarantiasSection = () => {
   }
 
   return (
-    <div className="">
+    <div className="bg-slate-50 w-full min-w-0">
       <div className="bg-white rounded border border-slate-200 mb-6">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white">
@@ -201,7 +201,7 @@ const GarantiasSection = () => {
 
       {/* Filtros y Búsqueda */}
       <div className="p-6 bg-white border border-slate-200 rounded mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Tipo de búsqueda */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Buscar por</label>
@@ -276,9 +276,10 @@ const GarantiasSection = () => {
         </div>
       )}
 
-      {/* Tabla de Garantías */}
+      {/* Tabla de Garantías - Responsiva */}
       <div className="bg-white rounded border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Vista de tabla para desktop */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
@@ -348,6 +349,63 @@ const GarantiasSection = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Vista de cards para móviles */}
+        <div className="md:hidden">
+          {garantiasFiltradas.map((garantia) => (
+            <div key={garantia.id} className="border-b border-slate-200 p-4">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center space-x-2">
+                  {getIconoProducto(garantia.tipo_producto)}
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{garantia.cliente_nombre}</div>
+                    <div className="text-xs text-slate-500">{garantia.cliente_telefono}</div>
+                  </div>
+                </div>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getEstadoColor(garantia.estado_garantia)}`}>
+                  {garantia.estado_garantia}
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <div>
+                  <div className="text-sm font-medium text-slate-900">{garantia.modelo_producto}</div>
+                  <div className="text-xs text-slate-500 capitalize">{garantia.tipo_producto}</div>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-xs text-slate-500">Serial:</div>
+                    <div className="text-sm font-mono text-slate-900">{garantia.serial_producto}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500">Vence:</div>
+                    <div className="text-sm text-slate-900">{formatearFecha(garantia.fecha_vencimiento)}</div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center pt-2">
+                  <div className="text-xs text-slate-500">
+                    #{garantia.numero_transaccion} • {formatearFecha(garantia.fecha_venta)}
+                  </div>
+                  <button
+                    onClick={() => manejarAbrirGarantia(garantia)}
+                    disabled={descargando === garantia.id}
+                    className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-100 disabled:opacity-50"
+                    title="Ver certificado de garantía"
+                  >
+                    {descargando === garantia.id ? (
+                      <LoadingSpinner size="small" showText={false} />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
           {garantiasFiltradas.length === 0 && (
             <div className="text-center py-8">
@@ -356,7 +414,6 @@ const GarantiasSection = () => {
               <p className="text-sm text-slate-500">Intenta modificar los filtros de búsqueda</p>
             </div>
           )}
-        </div>
 
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">

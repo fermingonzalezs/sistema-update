@@ -82,7 +82,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     
     // Estado
     sucursal: 'la_plata',
-    condicion: 'usada',
+    condicion: 'usado',
     
     // Especificaciones principales
     procesador: '',
@@ -120,10 +120,19 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    let updatedData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    
+    // Si se cambió la condición, actualizar disponibilidad automáticamente
+    if (name === 'condicion') {
+      const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+      const esNoDisponible = condicionesNoDisponibles.includes(value);
+      updatedData.disponible = !esNoDisponible;
+    }
+    
+    setFormData(updatedData);
   };
 
   const handleSubmit = async (e) => {
@@ -156,7 +165,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         envios_repuestos: '0',
         precio_venta_usd: '',
         sucursal: 'la_plata',
-        condicion: 'usada',
+        condicion: 'usado',
         procesador: '',
         slots: '2',
         tipo_ram: 'DDR4',
@@ -245,7 +254,12 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="nuevo">NUEVO</option>
+            <option value="refurbished">REFURBISHED</option>
             <option value="usado">USADO</option>
+            <option value="reparacion">REPARACIÓN</option>
+            <option value="reservado">RESERVADO</option>
+            <option value="prestado">PRESTADO</option>
+            <option value="sin_reparacion">SIN REPARACIÓN</option>
             <option value="reparacion">REPARACION</option>
           </select>
         </div>
@@ -590,7 +604,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Computadora'}
           </button>
@@ -641,10 +655,19 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    let updatedData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    
+    // Si se cambió la condición, actualizar disponibilidad automáticamente
+    if (name === 'condicion') {
+      const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+      const esNoDisponible = condicionesNoDisponibles.includes(value);
+      updatedData.disponible = !esNoDisponible;
+    }
+    
+    setFormData(updatedData);
   };
 
   const handleSubmit = async (e) => {
@@ -754,7 +777,12 @@ const FormularioCelular = ({ onAdd, loading }) => {
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="nuevo">NUEVO</option>
+            <option value="refurbished">REFURBISHED</option>
             <option value="usado">USADO</option>
+            <option value="reparacion">REPARACIÓN</option>
+            <option value="reservado">RESERVADO</option>
+            <option value="prestado">PRESTADO</option>
+            <option value="sin_reparacion">SIN REPARACIÓN</option>
             <option value="reparacion">REPARACION</option>
           </select>
         </div>
@@ -993,7 +1021,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Celular'}
           </button>
@@ -1017,7 +1045,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
     precio_venta_pesos: '', // P.V. PESOS
     
     // Estado y ubicación
-    condicion: 'nueva', // CONDICIÓN
+    condicion: 'nuevo', // CONDICIÓN
     categoria: '', // CATEGORÍA
     sucursal: 'la_plata',
     
@@ -1034,10 +1062,13 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   // Opciones para los selects
   const opcionesCondicion = [
-    { value: 'nueva', label: 'NUEVA' },
-    { value: 'usada', label: 'USADA' },
-    { value: 'reacondicionada', label: 'REACONDICIONADA' },
-    { value: 'defectuosa', label: 'DEFECTUOSA' }
+    { value: 'nuevo', label: 'NUEVO' },
+    { value: 'refurbished', label: 'REFURBISHED' },
+    { value: 'usado', label: 'USADO' },
+    { value: 'reparacion', label: 'REPARACIÓN' },
+    { value: 'reservado', label: 'RESERVADO' },
+    { value: 'prestado', label: 'PRESTADO' },
+    { value: 'sin_reparacion', label: 'SIN REPARACIÓN' }
   ];
 
   const opcionesCategorias = [
@@ -1060,10 +1091,19 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    let updatedData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    
+    // Si se cambió la condición, actualizar disponibilidad automáticamente
+    if (name === 'condicion') {
+      const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+      const esNoDisponible = condicionesNoDisponibles.includes(value);
+      updatedData.disponible = !esNoDisponible;
+    }
+    
+    setFormData(updatedData);
   };
 
   const handleSubmit = async (e) => {
@@ -1383,7 +1423,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
   <button
     type="submit"
     disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
-    className="w-full bg-emerald-600 text-white px-6 py-3 rounded font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+    className="w-full bg-blue-600 text-white px-6 py-3 rounded font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
   >
     {isSubmitting ? (
       <span className="flex items-center justify-center">

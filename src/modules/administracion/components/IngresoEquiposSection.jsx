@@ -21,6 +21,12 @@ const IngresoEquiposSection = () => {
   const { addCelular, loading: celularesLoading } = useCelulares();
   const { addOtro, loading: otrosLoading } = useOtros();
 
+  const { marcarComoAprobado } = useIngresoEquipos();
+
+  const handleApprove = async (id) => {
+    await marcarComoAprobado(id);
+  };
+
   const loading = computersLoading || celularesLoading || otrosLoading;
 
   // Wrapper para manejar el ingreso con destino
@@ -245,6 +251,9 @@ const IngresoEquiposSection = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Estado
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -293,6 +302,21 @@ const IngresoEquiposSection = () => {
                           {ingreso.estado === 'completado' && <CheckCircle className="w-3 h-3 mr-1" />}
                           {ingreso.estado}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {ingreso.estado === 'pendiente' && ingreso.destino === 'testeo' && (
+                          <button
+                            onClick={() => handleApprove(ingreso.id)}
+                            className="text-emerald-600 hover:text-emerald-900"
+                          >
+                            Aprobar
+                          </button>
+                        )}
+                        {ingreso.estado === 'aprobado' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                            Aprobado
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

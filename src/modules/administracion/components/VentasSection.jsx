@@ -184,7 +184,8 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             </h3>
           </div>
           
-          <div className="overflow-x-auto">
+          {/* Vista de tabla para desktop */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-800">
                 <tr>
@@ -247,6 +248,46 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Vista de cards para móviles */}
+          <div className="md:hidden">
+            {ventasLimitadas.map((transaccion) => (
+              <div key={transaccion.id} className="border-b border-slate-200 p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{transaccion.cliente_nombre}</div>
+                    <div className="text-xs text-slate-500">{formatearFechaCompleta(transaccion.fecha_venta)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-slate-800">{formatearMonto(transaccion.total_venta, 'USD')}</div>
+                    <div className="text-xs text-slate-500 capitalize">{transaccion.metodo_pago.replace(/_/g, ' ')}</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="text-sm text-slate-800">
+                    <div className="space-y-1">
+                      {getProductosDetallados(transaccion.venta_items || [])}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-2">
+                    <div className="text-xs text-slate-500">
+                      Vendedor: {transaccion.vendedor || '-'}
+                    </div>
+                    <button
+                      onClick={() => manejarAbrirRecibo(transaccion)}
+                      className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
+                      title={`Ver ${obtenerTextoBoton(transaccion.metodo_pago).toLowerCase()}`}
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="text-xs">{obtenerTextoBoton(transaccion.metodo_pago)}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

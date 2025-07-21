@@ -168,7 +168,7 @@ const EstadoSituacionPatrimonialSection = () => {
 
         {/* Balance General */}
         {!loading && (
-          <div className="space-y-3">
+          <div className="space-y-6">
             {/* Resumen Ejecutivo */}
             <div className="bg-slate-800 p-8 rounded">
               <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto">RESULTADO</h3>
@@ -189,32 +189,91 @@ const EstadoSituacionPatrimonialSection = () => {
                   <div className="text-xs text-slate-800">{balance.patrimonio.length} cuentas</div>
                 </div>
               </div>
-              
             </div>
 
-            {/* ACTIVOS */}
-            {renderizarSeccion(
-              "ACTIVOS",
-              balance.activos,
-              balance.totalActivos,
-              <TrendingUp className="w-7 h-7" />
-            )}
+            {/* Layout de dos columnas para Balance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* COLUMNA IZQUIERDA - ACTIVOS */}
+              <div className="space-y-6">
+                <div className="bg-slate-800 text-white p-6">
+                  <h2 className="text-2xl font-bold flex items-center gap-4">
+                    <TrendingUp className="w-7 h-7" />
+                    ACTIVOS
+                    <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                      {formatearMoneda(balance.totalActivos)}
+                    </span>
+                  </h2>
+                  <p className="text-sm text-slate-200 mt-2">
+                    {balance.activos.length} cuentas con movimiento
+                  </p>
+                </div>
 
-            {/* PASIVOS */}
-            {renderizarSeccion(
-              "PASIVOS",
-              balance.pasivos,
-              balance.totalPasivos,
-              <TrendingDown className="w-7 h-7" />
-            )}
+                <div className="bg-white border border-slate-200">
+                  <div className="p-4">
+                    <div className="space-y-0">
+                      {balance.activos.map((item) => (
+                        <CuentaRow key={item.cuenta.id} cuenta={item} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            {/* PATRIMONIO */}
-            {renderizarSeccion(
-              "PATRIMONIO NETO",
-              balance.patrimonio,
-              balance.totalPatrimonio,
-              <Building2 className="w-7 h-7" />
-            )}
+              {/* COLUMNA DERECHA - PASIVOS Y PATRIMONIO */}
+              <div className="space-y-6">
+                {/* PASIVOS */}
+                <div className="space-y-6">
+                  <div className="bg-slate-800 text-white p-6">
+                    <h2 className="text-2xl font-bold flex items-center gap-4">
+                      <TrendingDown className="w-7 h-7" />
+                      PASIVOS
+                      <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                        {formatearMoneda(balance.totalPasivos)}
+                      </span>
+                    </h2>
+                    <p className="text-sm text-slate-200 mt-2">
+                      {balance.pasivos.length} cuentas con movimiento
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-slate-200">
+                    <div className="p-4">
+                      <div className="space-y-0">
+                        {balance.pasivos.map((item) => (
+                          <CuentaRow key={item.cuenta.id} cuenta={item} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PATRIMONIO NETO */}
+                <div className="space-y-6">
+                  <div className="bg-slate-800 text-white p-6">
+                    <h2 className="text-2xl font-bold flex items-center gap-4">
+                      <Building2 className="w-7 h-7" />
+                      PATRIMONIO NETO
+                      <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
+                        {formatearMoneda(balance.totalPatrimonio)}
+                      </span>
+                    </h2>
+                    <p className="text-sm text-slate-200 mt-2">
+                      {balance.patrimonio.length} cuentas con movimiento
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-slate-200">
+                    <div className="p-4">
+                      <div className="space-y-0">
+                        {balance.patrimonio.map((item) => (
+                          <CuentaRow key={item.cuenta.id} cuenta={item} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Verificación de Ecuación Contable */}
             <div className="mt-8 p-8 border-2 border-slate-200" style={{

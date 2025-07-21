@@ -102,6 +102,11 @@ export const useIngresoEquipos = () => {
     }
   };
 
+  // Marcar un ingreso como aprobado
+  const marcarComoAprobado = async (id) => {
+    return await actualizarEstadoIngreso(id, 'aprobado');
+  };
+
   useEffect(() => {
     fetchIngresos();
   }, []);
@@ -114,6 +119,7 @@ export const useIngresoEquipos = () => {
     registrarIngreso,
     actualizarEstadoIngreso,
     getIngresosPendientesTesteo,
-    generarDescripcionCompleta
+    generarDescripcionCompleta,
+    marcarComoAprobado
   };
 };

@@ -97,6 +97,47 @@ export const useGarantias = () => {
                 estadoGarantia = 'Vencida';
               }
 
+              // Función para extraer el nombre base del producto
+              const getProductModel = (copy) => {
+                if (!copy) return 'Producto';
+                // Eliminar detalles comunes como capacidad, año, etc.
+                const stopWords = ['gb', 'tb', 'ssd', 'ram', 'inch', 'hz', 'led', 'lcd', 'oled', 'qled', 'full', 'hd', '4k', '8k'];
+                const copyLower = copy.toLowerCase();
+                let cutIndex = -1;
+
+                // Buscar por palabras clave
+                for (const word of stopWords) {
+                  const index = copyLower.indexOf(` ${word}`);
+                  if (index !== -1) {
+                    if (cutIndex === -1 || index < cutIndex) {
+                      cutIndex = index;
+                    }
+                  }
+                }
+
+                // Buscar por año entre paréntesis, ej: (2020)
+                const yearMatch = copy.match(/\s\(\d{4}\)/);
+                if (yearMatch && yearMatch.index !== -1) {
+                  if (cutIndex === -1 || yearMatch.index < cutIndex) {
+                    cutIndex = yearMatch.index;
+                  }
+                }
+                
+                // Buscar por tamaño en pulgadas, ej: 13-inch o 13"
+                const inchMatch = copy.match(/\s\d{1,2}(\.\d{1,2})?(-inch|"|”)/);
+                if (inchMatch && inchMatch.index !== -1) {
+                  if (cutIndex === -1 || inchMatch.index < cutIndex) {
+                    cutIndex = inchMatch.index;
+                  }
+                }
+
+                if (cutIndex !== -1) {
+                  return copy.substring(0, cutIndex).trim();
+                }
+
+                return copy; // Si no se encuentra un patrón, devolver el copy original
+              };
+
               garantiasProcesadas.push({
                 id: `${transaccion.id}-${item.id}`,
                 transaccion_id: transaccion.id,
@@ -108,7 +149,7 @@ export const useGarantias = () => {
                 vendedor: transaccion.vendedor,
                 metodo_pago: transaccion.metodo_pago,
                 // Datos del producto
-                modelo_producto: item.copy, // CORREGIDO: usar copy en lugar de modelo_producto
+                modelo_producto: getProductModel(item.copy),
                 serial_producto: item.serial_producto,
                 tipo_producto: item.tipo_producto,
                 cantidad: item.cantidad,

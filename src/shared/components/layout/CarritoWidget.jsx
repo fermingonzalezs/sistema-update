@@ -33,6 +33,23 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
   const [editandoCotizacion, setEditandoCotizacion] = useState(false);
 
+  // Determinar si un método necesita recargo
+  const necesitaRecargo = (metodoPago) => {
+    return metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia';
+  };
+
+  // Obtener recargo por defecto según el método de pago
+  const obtenerRecargoPorDefecto = (metodoPago) => {
+    switch (metodoPago) {
+      case 'tarjeta_credito':
+        return 30; // 30% para tarjeta de crédito
+      case 'transferencia':
+        return 5;  // 5% para transferencia
+      default:
+        return 0;
+    }
+  };
+
   useEffect(() => {
     fetchVendedores();
     // Cargar cotización inicial
@@ -43,17 +60,30 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   useEffect(() => {
     if (mostrarFormulario && carrito.length > 0) {
       const totalUSD = calcularTotal();
+      
+      // Aplicar recargo automático si el método por defecto lo necesita
+      const metodoDefault = datosCliente.metodo_pago_1;
+      const recargoDefault = obtenerRecargoPorDefecto(metodoDefault);
+      
       setDatosCliente(prev => ({
         ...prev,
         monto_pago_1: totalUSD,
-        monto_pago_2: 0
+        monto_pago_2: 0,
+        recargo_pago_1: recargoDefault,
+        recargo_pago_2: 0
       }));
       
-      // Inicializar inputs locales
-      setInputMonto1(Math.round(totalUSD * datosCliente.cotizacion_dolar).toString());
+      // Inicializar inputs locales - monto base para el método seleccionado
+      const montoBaseParaInput = esMetodoEnPesos(metodoDefault) ? 
+        Math.round(totalUSD * datosCliente.cotizacion_dolar).toString() :
+        totalUSD.toFixed(2);
+        
+      setInputMonto1(montoBaseParaInput);
       setInputMonto2('');
-      setInputRecargo1('0');
+      setInputRecargo1(recargoDefault.toString());
       setInputRecargo2('0');
+
+      console.log(`🔄 Inicializando formulario - Método: ${metodoDefault}, Recargo: ${recargoDefault}%`);
     }
   }, [mostrarFormulario, carrito]);
 
@@ -95,6 +125,80 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     }));
   };
 
+  // Manejar cambio de método de pago específicamente
+  const handleMetodoPagoChange = (metodo, nuevoMetodo) => {
+    // Actualizar el método de pago
+    setDatosCliente(prev => ({
+      ...prev,
+      [`metodo_pago_${metodo}`]: nuevoMetodo
+    }));
+
+    // Aplicar recargo automático si es necesario
+    const recargoDefault = obtenerRecargoPorDefecto(nuevoMetodo);
+    
+    if (recargoDefault > 0) {
+      // Aplicar recargo automático
+      setDatosCliente(prev => ({
+        ...prev,
+        [`recargo_pago_${metodo}`]: recargoDefault
+      }));
+
+      // Actualizar input local del recargo
+      if (metodo === 1) {
+        setInputRecargo1(recargoDefault.toString());
+      } else {
+        setInputRecargo2(recargoDefault.toString());
+      }
+
+      console.log(`🔄 Aplicando recargo automático del ${recargoDefault}% para ${nuevoMetodo}`);
+    } else {
+      // Limpiar recargo si no es necesario
+      setDatosCliente(prev => ({
+        ...prev,
+        [`recargo_pago_${metodo}`]: 0
+      }));
+
+      // Limpiar input local del recargo
+      if (metodo === 1) {
+        setInputRecargo1('0');
+      } else {
+        setInputRecargo2('0');
+      }
+    }
+
+    // Recalcular montos si ya hay monto ingresado
+    const montoInput = metodo === 1 ? inputMonto1 : inputMonto2;
+    if (montoInput && parseFloat(montoInput) > 0) {
+      // Usar setTimeout para asegurar que el estado se actualice primero
+      setTimeout(() => {
+        handleMontosChange(metodo, montoInput);
+      }, 10);
+    } else {
+      // Si no hay monto, auto-completar con el total disponible
+      const totalUSD = calcularTotal();
+      const montoRestante = totalUSD - (metodo === 1 ? 0 : datosCliente.monto_pago_1);
+      
+      if (montoRestante > 0) {
+        // Calcular monto base (sin recargo) para mostrar en el input
+        const montoBaseParaInput = esMetodoEnPesos(nuevoMetodo) ? 
+          Math.round(montoRestante * datosCliente.cotizacion_dolar).toString() :
+          montoRestante.toFixed(2);
+
+        // Actualizar input
+        if (metodo === 1) {
+          setInputMonto1(montoBaseParaInput);
+        } else {
+          setInputMonto2(montoBaseParaInput);
+        }
+
+        // Usar setTimeout para asegurar que el recargo se aplique primero
+        setTimeout(() => {
+          handleMontosChange(metodo, montoBaseParaInput);
+        }, 20);
+      }
+    }
+  };
+
   const calcularTotalPesos = () => {
     return calcularTotal() * datosCliente.cotizacion_dolar;
   };
@@ -122,11 +226,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       return montoConRecargo / datosCliente.cotizacion_dolar;
     }
     return montoConRecargo;
-  };
-
-  // Determinar si un método necesita recargo
-  const necesitaRecargo = (metodoPago) => {
-    return metodoPago === 'tarjeta_credito';
   };
 
   // Obtener monto base (sin recargo) para mostrar en input
@@ -603,7 +702,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <select
                             name="metodo_pago_1"
                             value={datosCliente.metodo_pago_1}
-                            onChange={handleInputChange}
+                            onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
                             className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                           >
                             <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
@@ -638,7 +737,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       {necesitaRecargo(datosCliente.metodo_pago_1) && (
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Recargo Tarjeta de Crédito (%)
+                            Recargo {datosCliente.metodo_pago_1 === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Transferencia'} (%)
                           </label>
                           <input
                             type="number"
@@ -670,7 +769,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <select
                             name="metodo_pago_2"
                             value={datosCliente.metodo_pago_2}
-                            onChange={handleInputChange}
+                            onChange={(e) => handleMetodoPagoChange(2, e.target.value)}
                             className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                           >
                             <option value="">Seleccionar método</option>
@@ -713,7 +812,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                       {necesitaRecargo(datosCliente.metodo_pago_2) && (
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Recargo Tarjeta de Crédito 2 (%)
+                            Recargo {datosCliente.metodo_pago_2 === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Transferencia'} 2 (%)
                           </label>
                           <input
                             type="number"

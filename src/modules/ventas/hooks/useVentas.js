@@ -312,12 +312,31 @@ export function useVentas() {
       
       // Actualizar inventario según el tipo de cada item
       for (const item of carrito) {
+        console.log(`🔄 Actualizando stock para ${item.tipo}:`, item.producto.id)
+        
         if (item.tipo === 'otro') {
           // Para productos "otros", reducir cantidad
+          console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades`)
           await otrosService.reducirCantidad(item.producto.id, item.cantidad)
         } else {
           // Para computadoras y celulares, marcar como no disponible
-          await ventasService.marcarProductoVendido(item.tipo, item.producto.id)
+          console.log(`💻 Marcando ${item.tipo} ID ${item.producto.id} como vendido (disponible = false)`)
+          
+          // Determinar la tabla correcta
+          const tabla = item.tipo === 'computadora' ? 'inventario' : 'celulares'
+          
+          // Marcar como no disponible directamente
+          const { error } = await supabase
+            .from(tabla)
+            .update({ disponible: false })
+            .eq('id', item.producto.id)
+          
+          if (error) {
+            console.error(`❌ Error marcando ${item.tipo} como vendido:`, error)
+            throw error
+          }
+          
+          console.log(`✅ ${item.tipo} marcado como vendido en tabla ${tabla}`)
         }
       }
       

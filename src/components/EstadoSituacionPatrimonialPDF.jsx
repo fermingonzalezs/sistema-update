@@ -319,93 +319,101 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
           </View>
         </View>
 
-        {/* ACTIVOS */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>ACTIVOS</Text>
-            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalActivos)}</Text>
-          </View>
-          <View style={styles.accountsTable}>
-            {(data.activos || []).map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.accountRow,
-                  index % 2 === 1 && styles.accountRowEven,
-                  index === data.activos.length - 1 && styles.accountRowLast
-                ]}
-              >
-                <View style={styles.accountCode}>
-                  <Text>{item.cuenta.codigo}</Text>
-                </View>
-                <View style={styles.accountName}>
-                  <Text>{item.cuenta.nombre}</Text>
-                </View>
-                <View style={styles.accountAmount}>
-                  <Text>{formatearMoneda(item.saldo)}</Text>
-                </View>
+        {/* Layout de dos columnas para Balance */}
+        <View style={{ flexDirection: 'row', gap: 15 }}>
+          {/* COLUMNA IZQUIERDA - ACTIVOS */}
+          <View style={{ flex: 1 }}>
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>ACTIVOS</Text>
+                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalActivos)}</Text>
               </View>
-            ))}
+              <View style={styles.accountsTable}>
+                {(data.activos || []).map((item, index) => (
+                  <View 
+                    key={index} 
+                    style={[
+                      styles.accountRow,
+                      index % 2 === 1 && styles.accountRowEven,
+                      index === data.activos.length - 1 && styles.accountRowLast
+                    ]}
+                  >
+                    <View style={styles.accountCode}>
+                      <Text>{item.cuenta.codigo}</Text>
+                    </View>
+                    <View style={styles.accountName}>
+                      <Text>{item.cuenta.nombre}</Text>
+                    </View>
+                    <View style={styles.accountAmount}>
+                      <Text>{formatearMoneda(item.saldo)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
-        </View>
 
-        {/* PASIVOS */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>PASIVOS</Text>
-            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPasivos)}</Text>
-          </View>
-          <View style={styles.accountsTable}>
-            {(data.pasivos || []).map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.accountRow,
-                  index % 2 === 1 && styles.accountRowEven,
-                  index === data.pasivos.length - 1 && styles.accountRowLast
-                ]}
-              >
-                <View style={styles.accountCode}>
-                  <Text>{item.cuenta.codigo}</Text>
-                </View>
-                <View style={styles.accountName}>
-                  <Text>{item.cuenta.nombre}</Text>
-                </View>
-                <View style={styles.accountAmount}>
-                  <Text>{formatearMoneda(item.saldo)}</Text>
-                </View>
+          {/* COLUMNA DERECHA - PASIVOS Y PATRIMONIO */}
+          <View style={{ flex: 1 }}>
+            {/* PASIVOS */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>PASIVOS</Text>
+                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPasivos)}</Text>
               </View>
-            ))}
-          </View>
-        </View>
+              <View style={styles.accountsTable}>
+                {(data.pasivos || []).map((item, index) => (
+                  <View 
+                    key={index} 
+                    style={[
+                      styles.accountRow,
+                      index % 2 === 1 && styles.accountRowEven,
+                      index === data.pasivos.length - 1 && styles.accountRowLast
+                    ]}
+                  >
+                    <View style={styles.accountCode}>
+                      <Text>{item.cuenta.codigo}</Text>
+                    </View>
+                    <View style={styles.accountName}>
+                      <Text>{item.cuenta.nombre}</Text>
+                    </View>
+                    <View style={styles.accountAmount}>
+                      <Text>{formatearMoneda(item.saldo)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
 
-        {/* PATRIMONIO */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>PATRIMONIO NETO</Text>
-            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPatrimonio)}</Text>
-          </View>
-          <View style={styles.accountsTable}>
-            {(data.patrimonio || []).map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.accountRow,
-                  index % 2 === 1 && styles.accountRowEven,
-                  index === data.patrimonio.length - 1 && styles.accountRowLast
-                ]}
-              >
-                <View style={styles.accountCode}>
-                  <Text>{item.cuenta.codigo}</Text>
-                </View>
-                <View style={styles.accountName}>
-                  <Text>{item.cuenta.nombre}</Text>
-                </View>
-                <View style={styles.accountAmount}>
-                  <Text>{formatearMoneda(item.saldo)}</Text>
-                </View>
+            {/* PATRIMONIO NETO */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>PATRIMONIO NETO</Text>
+                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPatrimonio)}</Text>
               </View>
-            ))}
+              <View style={styles.accountsTable}>
+                {(data.patrimonio || []).map((item, index) => (
+                  <View 
+                    key={index} 
+                    style={[
+                      styles.accountRow,
+                      index % 2 === 1 && styles.accountRowEven,
+                      index === data.patrimonio.length - 1 && styles.accountRowLast
+                    ]}
+                  >
+                    <View style={styles.accountCode}>
+                      <Text>{item.cuenta.codigo}</Text>
+                    </View>
+                    <View style={styles.accountName}>
+                      <Text>{item.cuenta.nombre}</Text>
+                    </View>
+                    <View style={styles.accountAmount}>
+                      <Text>{formatearMoneda(item.saldo)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
         </View>
 

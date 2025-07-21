@@ -272,7 +272,7 @@ export const fotosService = {
         conFotos: totalConFotos,
         sinFotos: totalSinFotos,
         conPrincipal: productosConPrincipal,
-        porcentajeCompleto: totalProductos > 0 ? Math.round((productosConPrincipal / totalProductos) * 100) : 0,
+        porcentajeCompleto: totalProductos > 0 ? Math.round((totalConFotos / totalProductos) * 100) : 0,
         porTipo: {
           computadora: {
             total: totalComputadoras,

@@ -12,7 +12,8 @@ export const useCatalogoUnificado = () => {
     condicion: '',
     sucursal: '',
     precioMax: '',
-    precioMin: ''
+    precioMin: '',
+    disponible: ''
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -276,6 +277,18 @@ export const useCatalogoUnificado = () => {
       filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
     }
 
+    // Filtrar por disponibilidad
+    if (filtrosUnificados.disponible !== '') {
+      const disponibleValue = filtrosUnificados.disponible === 'true';
+      filtered = filtered.filter(item => {
+        // Determinar disponibilidad basada en condición
+        const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+        const esNoDisponiblePorCondicion = condicionesNoDisponibles.includes(item.condicion);
+        const disponibilidadCalculada = item.disponible !== false && !esNoDisponiblePorCondicion;
+        return disponibilidadCalculada === disponibleValue;
+      });
+    }
+
     // Aplicar ordenamiento
     if (ordenamiento.campo) {
       filtered.sort((a, b) => {
@@ -313,7 +326,8 @@ export const useCatalogoUnificado = () => {
       sucursal: '',
       precioMax: '',
       precioMin: '',
-      categoria: ''
+      categoria: '',
+      disponible: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
@@ -332,7 +346,8 @@ export const useCatalogoUnificado = () => {
       sucursal: '',
       precioMax: '',
       precioMin: '',
-      categoria: ''
+      categoria: '',
+      disponible: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };

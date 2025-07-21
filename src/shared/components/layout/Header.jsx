@@ -99,19 +99,19 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2 md:space-x-6">
             {/* Tarjetas de información */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               {/* Info del usuario */}
-              <div className="bg-slate-700 rounded-lg p-4 border border-slate-600 w-45 h-15">
+              <div className="bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 w-auto md:w-45 h-auto md:h-15">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
                         {user?.nombre?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <div>
+                    <div className="hidden sm:block">
                       <div className="text-xs font-medium text-white">{user?.nombre || 'Usuario'}</div>
                       <div className="text-xs text-slate-300 capitalize">{user?.nivel || 'Sin nivel'}</div>
                     </div>
@@ -126,8 +126,8 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
                 </div>
               </div>
 
-              {/* Estado del sistema */}
-              <div className="bg-slate-700 rounded-lg p-4 border border-slate-600 w-40 h-15">
+              {/* Estado del sistema - Oculto en móviles */}
+              <div className="hidden md:block bg-slate-700 rounded-lg p-4 border border-slate-600 w-40 h-15">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                   <span className="text-xs font-medium text-white">Sistema Activo</span>
@@ -138,36 +138,45 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
               </div>
 
               {/* Cotización USD/ARS */}
-              <div className="bg-slate-700 rounded-lg p-4 border border-slate-600 w-40 h-15">
+              <div className="bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 w-auto md:w-40 h-auto md:h-15">
                 {cotizacion ? (
                   <div>
-                    <div className="text-sm font-bold text-emerald-600 truncate">
+                    <div className="text-xs md:text-sm font-bold text-emerald-600 truncate">
                       ${cotizacion.valor?.toFixed(2) || 'N/A'}
                     </div>
-                    <div className="text-xs text-slate-400 truncate">
+                    <div className="text-xs text-slate-400 truncate hidden md:block">
                       {cotizacion.fuente}
                     </div>
                   </div>
                 ) : (
                   <div className="text-xs text-slate-300 truncate">
-                    {loadingCotizacion ? 'Cargando...' : 'No disponible'}
+                    {loadingCotizacion ? 'Cargando...' : 'N/A'}
                   </div>
                 )}
               </div>
             </div>
 
             {/* Fecha y hora */}
-            <div className="text-right bg-slate-700 rounded-lg p-4 border border-slate-600 font-semibold">
-              <div className="text-sm text-slate-200">
-                {currentDate.toLocaleDateString('es-AR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  timeZone: 'America/Argentina/Buenos_Aires'
-                })}
+            <div className="text-right bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 font-semibold">
+              <div className="text-xs md:text-sm text-slate-200">
+                <span className="hidden md:inline">
+                  {currentDate.toLocaleDateString('es-AR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    timeZone: 'America/Argentina/Buenos_Aires'
+                  })}
+                </span>
+                <span className="md:hidden">
+                  {currentDate.toLocaleDateString('es-AR', { 
+                    day: '2-digit',
+                    month: '2-digit',
+                    timeZone: 'America/Argentina/Buenos_Aires'
+                  })}
+                </span>
               </div>
-              <div className="text-sm text-slate-200 mt-1">
+              <div className="text-xs md:text-sm text-slate-200 mt-1">
                 {currentDate.toLocaleTimeString('es-AR', {
                   hour: '2-digit',
                   minute: '2-digit',

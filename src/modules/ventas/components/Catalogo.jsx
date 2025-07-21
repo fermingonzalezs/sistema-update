@@ -40,7 +40,7 @@ const Catalogo = ({ onAddToCart }) => {
   const [modalEdit, setModalEdit] = useState({ open: false, producto: null, tipo: '' });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState(null);
-  const [editForm, setEditForm] = useState({}); // Temporal para compatibilidad
+  const [editForm, setEditForm] = useState({});
 
   // Cargar cotización
   useEffect(() => {
@@ -97,30 +97,1073 @@ const Catalogo = ({ onAddToCart }) => {
   const openEditModal = (producto) => {
     const tipo = categoriaActiva === 'celulares' ? 'celular' :
                  categoriaActiva === 'notebooks' ? 'notebook' : 'otros';
+    
+    // Inicializar el formulario con los datos del producto según el tipo
+    if (tipo === 'notebook') {
+      setEditForm({
+        // Campos básicos
+        modelo: producto.modelo || '',
+        serial: producto.serial || '',
+        marca: producto.marca || '',
+        color: producto.color || '',
+        condicion: producto.condicion || '',
+        sucursal: producto.sucursal || '',
+        
+        // Precios y costos
+        precio_costo_usd: producto.precio_costo_usd || '',
+        precio_costo_total: producto.precio_costo_total || '',
+        precio_venta_usd: producto.precio_venta_usd || '',
+        envios_repuestos: producto.envios_repuestos || '',
+        
+        // Especificaciones técnicas
+        procesador: producto.procesador || '',
+        ram: producto.ram || '',
+        tipo_ram: producto.tipo_ram || '',
+        slots: producto.slots || '',
+        ssd: producto.ssd || '',
+        hdd: producto.hdd || '',
+        so: producto.so || '',
+        placa_video: producto.placa_video || '',
+        vram: producto.vram || '',
+        
+        // Pantalla y display
+        pantalla: producto.pantalla || '',
+        resolucion: producto.resolucion || '',
+        refresh: producto.refresh || '',
+        touchscreen: producto.touchscreen || false,
+        
+        // Características adicionales
+        teclado_retro: producto.teclado_retro || '',
+        idioma_teclado: producto.idioma_teclado || '',
+        bateria: producto.bateria || '',
+        duracion: producto.duracion || '',
+        
+        // Estado y garantía
+        disponible: producto.disponible || true,
+        ingreso: producto.ingreso || '',
+        garantia_update: producto.garantia_update || '',
+        garantia_oficial: producto.garantia_oficial || '',
+        fallas: producto.fallas || ''
+      });
+    } else if (tipo === 'celular') {
+      setEditForm({
+        // Campos básicos
+        modelo: producto.modelo || '',
+        serial: producto.serial || '',
+        marca: producto.marca || '',
+        color: producto.color || '',
+        condicion: producto.condicion || '',
+        sucursal: producto.sucursal || '',
+        
+        // Precios
+        precio_compra_usd: producto.precio_compra_usd || '',
+        precio_venta_usd: producto.precio_venta_usd || '',
+        
+        // Especificaciones técnicas
+        capacidad: producto.capacidad || '',
+        estado: producto.estado || '',
+        bateria: producto.bateria || '',
+        ciclos: producto.ciclos || '',
+        
+        // Estado y garantía
+        disponible: producto.disponible || true,
+        garantia: producto.garantia || '',
+        fallas: producto.fallas || ''
+      });
+    } else {
+      setEditForm({
+        // Campos básicos
+        nombre_producto: producto.nombre_producto || '',
+        categoria: producto.categoria || '',
+        descripcion: producto.descripcion || '',
+        cantidad: producto.cantidad || 1,
+        condicion: producto.condicion || '',
+        sucursal: producto.sucursal || '',
+        
+        // Precios
+        precio_compra_usd: producto.precio_compra_usd || '',
+        precio_venta_usd: producto.precio_venta_usd || '',
+        precio_venta_pesos: producto.precio_venta_pesos || '',
+        
+        // Estado y garantía
+        disponible: producto.disponible || true,
+        ingreso: producto.ingreso || '',
+        garantia: producto.garantia || '',
+        fallas: producto.fallas || ''
+      });
+    }
+    
     setModalEdit({ open: true, producto, tipo });
+    setEditError(null);
   };
 
   const closeEditModal = () => {
     setModalEdit({ open: false, producto: null, tipo: '' });
+    setEditForm({});
+    setEditError(null);
   };
 
-  const handleEditSubmit = async () => {
-    closeEditModal();
-    alert('✅ Producto actualizado exitosamente');
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError(null);
+
+    try {
+      // Validaciones básicas
+      if (modalEdit.tipo === 'otros' && !editForm.nombre_producto) {
+        throw new Error('El nombre del producto es obligatorio');
+      }
+      
+      if ((modalEdit.tipo === 'notebook' || modalEdit.tipo === 'celular') && !editForm.modelo) {
+        throw new Error('El modelo es obligatorio');
+      }
+      
+      if (!editForm.precio_venta_usd || editForm.precio_venta_usd <= 0) {
+        throw new Error('El precio debe ser mayor a 0');
+      }
+
+      // Preparar datos para actualización según el tipo
+      let datosActualizados = {
+        updated_at: new Date().toISOString()
+      };
+
+      if (modalEdit.tipo === 'notebook') {
+        datosActualizados = {
+          ...datosActualizados,
+          // Campos básicos
+          modelo: editForm.modelo,
+          serial: editForm.serial,
+          marca: editForm.marca,
+          color: editForm.color,
+          condicion: editForm.condicion,
+          sucursal: editForm.sucursal,
+          
+          // Precios y costos
+          precio_costo_usd: editForm.precio_costo_usd ? parseFloat(editForm.precio_costo_usd) : null,
+          precio_costo_total: editForm.precio_costo_total ? parseFloat(editForm.precio_costo_total) : null,
+          precio_venta_usd: parseFloat(editForm.precio_venta_usd),
+          envios_repuestos: editForm.envios_repuestos ? parseFloat(editForm.envios_repuestos) : null,
+          
+          // Especificaciones técnicas
+          procesador: editForm.procesador,
+          ram: editForm.ram,
+          tipo_ram: editForm.tipo_ram,
+          slots: editForm.slots,
+          ssd: editForm.ssd,
+          hdd: editForm.hdd,
+          so: editForm.so,
+          placa_video: editForm.placa_video,
+          vram: editForm.vram,
+          
+          // Pantalla y display
+          pantalla: editForm.pantalla,
+          resolucion: editForm.resolucion,
+          refresh: editForm.refresh,
+          touchscreen: editForm.touchscreen,
+          
+          // Características adicionales
+          teclado_retro: editForm.teclado_retro,
+          idioma_teclado: editForm.idioma_teclado,
+          bateria: editForm.bateria,
+          duracion: editForm.duracion,
+          
+          // Estado y garantía
+          disponible: editForm.disponible,
+          ingreso: editForm.ingreso,
+          garantia_update: editForm.garantia_update,
+          garantia_oficial: editForm.garantia_oficial,
+          fallas: editForm.fallas
+        };
+      } else if (modalEdit.tipo === 'celular') {
+        datosActualizados = {
+          ...datosActualizados,
+          // Campos básicos
+          modelo: editForm.modelo,
+          serial: editForm.serial,
+          marca: editForm.marca,
+          color: editForm.color,
+          condicion: editForm.condicion,
+          sucursal: editForm.sucursal,
+          
+          // Precios
+          precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
+          precio_venta_usd: parseFloat(editForm.precio_venta_usd),
+          
+          // Especificaciones técnicas
+          capacidad: editForm.capacidad,
+          estado: editForm.estado,
+          bateria: editForm.bateria,
+          ciclos: editForm.ciclos,
+          
+          // Estado y garantía
+          disponible: editForm.disponible,
+          garantia: editForm.garantia,
+          fallas: editForm.fallas
+        };
+      } else {
+        // Productos "otros"
+        datosActualizados = {
+          ...datosActualizados,
+          // Campos básicos
+          nombre_producto: editForm.nombre_producto,
+          categoria: editForm.categoria,
+          descripcion: editForm.descripcion,
+          cantidad: editForm.cantidad ? parseInt(editForm.cantidad) : 1,
+          condicion: editForm.condicion,
+          sucursal: editForm.sucursal,
+          
+          // Precios
+          precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
+          precio_venta_usd: parseFloat(editForm.precio_venta_usd),
+          precio_venta_pesos: editForm.precio_venta_pesos ? parseFloat(editForm.precio_venta_pesos) : null,
+          
+          // Estado y garantía
+          disponible: editForm.disponible,
+          ingreso: editForm.ingreso,
+          garantia: editForm.garantia,
+          fallas: editForm.fallas
+        };
+      }
+
+      console.log('🔄 Actualizando producto:', modalEdit.producto.id, datosActualizados);
+
+      // Actualizar usando la función del hook
+      await actualizarProducto(modalEdit.producto.id, datosActualizados);
+
+      console.log('✅ Producto actualizado exitosamente');
+      closeEditModal();
+      
+    } catch (error) {
+      console.error('❌ Error actualizando producto:', error);
+      setEditError(error.message || 'Error actualizando el producto');
+    } finally {
+      setEditLoading(false);
+    }
   };
 
-  // Función temporal para renderEditForm (para mantener compatibilidad)
+  // Manejar cambios en el formulario de edición
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const renderEditForm = () => {
-    return (
-      <div className="text-center py-8">
-        <p className="text-slate-600 mb-4">
-          El formulario de edición se ha actualizado al sistema unificado.
-        </p>
-        <p className="text-sm text-slate-500">
-          Esta funcionalidad se migrará al modal unificado en la próxima actualización.
-        </p>
-      </div>
-    );
+    if (!modalEdit.producto) return null;
+
+    if (modalEdit.tipo === 'notebook') {
+      return (
+        <form id="edit-product-form" onSubmit={handleEditSubmit} className="space-y-6">
+          {/* Información básica */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Información Básica</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                <input
+                  type="text"
+                  value={editForm.modelo}
+                  onChange={(e) => handleEditFormChange('modelo', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: ThinkPad E14"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Serial</label>
+                <input
+                  type="text"
+                  value={editForm.serial}
+                  onChange={(e) => handleEditFormChange('serial', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Número de serie"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Marca *</label>
+                <input
+                  type="text"
+                  value={editForm.marca}
+                  onChange={(e) => handleEditFormChange('marca', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Lenovo, HP, Dell"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                <input
+                  type="text"
+                  value={editForm.color}
+                  onChange={(e) => handleEditFormChange('color', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Color del equipo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Condición</label>
+                <select
+                  value={editForm.condicion}
+                  onChange={(e) => {
+                    const nuevaCondicion = e.target.value;
+                    handleEditFormChange('condicion', nuevaCondicion);
+                    // Actualizar disponibilidad automáticamente
+                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
+                    handleEditFormChange('disponible', !esNoDisponible);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="nuevo">NUEVO</option>
+                  <option value="refurbished">REFURBISHED</option>
+                  <option value="usado">USADO</option>
+                  <option value="reparacion">REPARACIÓN</option>
+                  <option value="reservado">RESERVADO</option>
+                  <option value="prestado">PRESTADO</option>
+                  <option value="sin_reparacion">SIN REPARACIÓN</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                <select
+                  value={editForm.sucursal}
+                  onChange={(e) => handleEditFormChange('sucursal', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="quilmes">Quilmes</option>
+                  <option value="san_martin">San Martín</option>
+                  <option value="deposito">Depósito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Precios y costos */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Precios y Costos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Costo USD</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_costo_usd}
+                  onChange={(e) => handleEditFormChange('precio_costo_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Costo Total</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_costo_total}
+                  onChange={(e) => handleEditFormChange('precio_costo_total', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_venta_usd}
+                  onChange={(e) => handleEditFormChange('precio_venta_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Envíos y Repuestos</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.envios_repuestos}
+                  onChange={(e) => handleEditFormChange('envios_repuestos', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Especificaciones técnicas */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Especificaciones Técnicas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
+                <input
+                  type="text"
+                  value={editForm.procesador}
+                  onChange={(e) => handleEditFormChange('procesador', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Intel Core i5-1135G7"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">RAM</label>
+                <input
+                  type="text"
+                  value={editForm.ram}
+                  onChange={(e) => handleEditFormChange('ram', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 8GB"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Tipo RAM</label>
+                <input
+                  type="text"
+                  value={editForm.tipo_ram}
+                  onChange={(e) => handleEditFormChange('tipo_ram', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: DDR4, DDR5"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Slots</label>
+                <input
+                  type="text"
+                  value={editForm.slots}
+                  onChange={(e) => handleEditFormChange('slots', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 2x4GB"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+                <input
+                  type="text"
+                  value={editForm.ssd}
+                  onChange={(e) => handleEditFormChange('ssd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 256GB NVMe"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+                <input
+                  type="text"
+                  value={editForm.hdd}
+                  onChange={(e) => handleEditFormChange('hdd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 1TB"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sistema Operativo</label>
+                <input
+                  type="text"
+                  value={editForm.so}
+                  onChange={(e) => handleEditFormChange('so', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Windows 11 Pro"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Placa de Video</label>
+                <input
+                  type="text"
+                  value={editForm.placa_video}
+                  onChange={(e) => handleEditFormChange('placa_video', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: NVIDIA GTX 1650"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">VRAM</label>
+                <input
+                  type="text"
+                  value={editForm.vram}
+                  onChange={(e) => handleEditFormChange('vram', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 4GB GDDR6"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pantalla y display */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Pantalla y Display</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Pantalla</label>
+                <input
+                  type="text"
+                  value={editForm.pantalla}
+                  onChange={(e) => handleEditFormChange('pantalla', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 14 pulgadas"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
+                <input
+                  type="text"
+                  value={editForm.resolucion}
+                  onChange={(e) => handleEditFormChange('resolucion', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 1920x1080"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Refresh Rate</label>
+                <input
+                  type="text"
+                  value={editForm.refresh}
+                  onChange={(e) => handleEditFormChange('refresh', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 60Hz"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Touchscreen</label>
+                <select
+                  value={editForm.touchscreen}
+                  onChange={(e) => handleEditFormChange('touchscreen', e.target.value === 'true')}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value={false}>No</option>
+                  <option value={true}>Sí</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Características adicionales */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Características Adicionales</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Teclado Retroiluminado</label>
+                <input
+                  type="text"
+                  value={editForm.teclado_retro}
+                  onChange={(e) => handleEditFormChange('teclado_retro', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Sí/No"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Idioma Teclado</label>
+                <input
+                  type="text"
+                  value={editForm.idioma_teclado}
+                  onChange={(e) => handleEditFormChange('idioma_teclado', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Español, Inglés"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>
+                <input
+                  type="text"
+                  value={editForm.bateria}
+                  onChange={(e) => handleEditFormChange('bateria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 3 celdas, 45Wh"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Duración</label>
+                <input
+                  type="text"
+                  value={editForm.duracion}
+                  onChange={(e) => handleEditFormChange('duracion', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 6 horas"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Estado y garantía */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
+                <select
+                  value={editForm.disponible}
+                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value={true}>Disponible</option>
+                  <option value={false}>No disponible</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                <input
+                  type="date"
+                  value={editForm.ingreso}
+                  onChange={(e) => handleEditFormChange('ingreso', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía Update</label>
+                <input
+                  type="text"
+                  value={editForm.garantia_update}
+                  onChange={(e) => handleEditFormChange('garantia_update', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 6 meses"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía Oficial</label>
+                <input
+                  type="text"
+                  value={editForm.garantia_oficial}
+                  onChange={(e) => handleEditFormChange('garantia_oficial', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 12 meses"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
+                <textarea
+                  value={editForm.fallas}
+                  onChange={(e) => handleEditFormChange('fallas', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Descripción de fallas conocidas..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Vista previa del precio en pesos */}
+          {editForm.precio_venta_usd && (
+            <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
+              <p className="text-sm text-slate-600">
+                <strong>Precio en pesos:</strong> ${Math.round(editForm.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+              </p>
+              <p className="text-xs text-slate-500">
+                Cotización: ${cotizacionDolar}
+              </p>
+            </div>
+          )}
+        </form>
+      );
+    } else if (modalEdit.tipo === 'celular') {
+      return (
+        <form id="edit-product-form" onSubmit={handleEditSubmit} className="space-y-6">
+          {/* Información básica */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Información Básica</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                <input
+                  type="text"
+                  value={editForm.modelo}
+                  onChange={(e) => handleEditFormChange('modelo', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: iPhone 13"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Serial</label>
+                <input
+                  type="text"
+                  value={editForm.serial}
+                  onChange={(e) => handleEditFormChange('serial', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Número de serie"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Marca *</label>
+                <input
+                  type="text"
+                  value={editForm.marca}
+                  onChange={(e) => handleEditFormChange('marca', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Apple, Samsung"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                <input
+                  type="text"
+                  value={editForm.color}
+                  onChange={(e) => handleEditFormChange('color', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Color del dispositivo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Condición</label>
+                <select
+                  value={editForm.condicion}
+                  onChange={(e) => {
+                    const nuevaCondicion = e.target.value;
+                    handleEditFormChange('condicion', nuevaCondicion);
+                    // Actualizar disponibilidad automáticamente
+                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
+                    handleEditFormChange('disponible', !esNoDisponible);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="nuevo">NUEVO</option>
+                  <option value="refurbished">REFURBISHED</option>
+                  <option value="usado">USADO</option>
+                  <option value="reparacion">REPARACIÓN</option>
+                  <option value="reservado">RESERVADO</option>
+                  <option value="prestado">PRESTADO</option>
+                  <option value="sin_reparacion">SIN REPARACIÓN</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                <select
+                  value={editForm.sucursal}
+                  onChange={(e) => handleEditFormChange('sucursal', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="quilmes">Quilmes</option>
+                  <option value="san_martin">San Martín</option>
+                  <option value="deposito">Depósito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Precios */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Precios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_compra_usd}
+                  onChange={(e) => handleEditFormChange('precio_compra_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_venta_usd}
+                  onChange={(e) => handleEditFormChange('precio_venta_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Especificaciones técnicas */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Especificaciones Técnicas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad</label>
+                <input
+                  type="text"
+                  value={editForm.capacidad}
+                  onChange={(e) => handleEditFormChange('capacidad', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 128GB, 256GB"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+                <input
+                  type="text"
+                  value={editForm.estado}
+                  onChange={(e) => handleEditFormChange('estado', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Estado general del dispositivo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>
+                <input
+                  type="text"
+                  value={editForm.bateria}
+                  onChange={(e) => handleEditFormChange('bateria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 85%, Buena"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Ciclos</label>
+                <input
+                  type="text"
+                  value={editForm.ciclos}
+                  onChange={(e) => handleEditFormChange('ciclos', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 500 ciclos"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Estado y garantía */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
+                <select
+                  value={editForm.disponible}
+                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value={true}>Disponible</option>
+                  <option value={false}>No disponible</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                <input
+                  type="text"
+                  value={editForm.garantia}
+                  onChange={(e) => handleEditFormChange('garantia', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 3 meses"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
+                <textarea
+                  value={editForm.fallas}
+                  onChange={(e) => handleEditFormChange('fallas', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Descripción de fallas conocidas..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Vista previa del precio en pesos */}
+          {editForm.precio_venta_usd && (
+            <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
+              <p className="text-sm text-slate-600">
+                <strong>Precio en pesos:</strong> ${Math.round(editForm.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+              </p>
+              <p className="text-xs text-slate-500">
+                Cotización: ${cotizacionDolar}
+              </p>
+            </div>
+          )}
+        </form>
+      );
+    } else {
+      // Formulario para productos "otros"
+      return (
+        <form id="edit-product-form" onSubmit={handleEditSubmit} className="space-y-6">
+          {/* Información básica */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Información Básica</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Producto *</label>
+                <input
+                  type="text"
+                  value={editForm.nombre_producto}
+                  onChange={(e) => handleEditFormChange('nombre_producto', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Mouse Logitech"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
+                <input
+                  type="text"
+                  value={editForm.categoria}
+                  onChange={(e) => handleEditFormChange('categoria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Accesorios, Componentes"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+                <textarea
+                  value={editForm.descripcion}
+                  onChange={(e) => handleEditFormChange('descripcion', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Descripción detallada del producto..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={editForm.cantidad}
+                  onChange={(e) => handleEditFormChange('cantidad', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Condición</label>
+                <select
+                  value={editForm.condicion}
+                  onChange={(e) => {
+                    const nuevaCondicion = e.target.value;
+                    handleEditFormChange('condicion', nuevaCondicion);
+                    // Actualizar disponibilidad automáticamente
+                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
+                    handleEditFormChange('disponible', !esNoDisponible);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="nuevo">NUEVO</option>
+                  <option value="refurbished">REFURBISHED</option>
+                  <option value="usado">USADO</option>
+                  <option value="reparacion">REPARACIÓN</option>
+                  <option value="reservado">RESERVADO</option>
+                  <option value="prestado">PRESTADO</option>
+                  <option value="sin_reparacion">SIN REPARACIÓN</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                <select
+                  value={editForm.sucursal}
+                  onChange={(e) => handleEditFormChange('sucursal', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="quilmes">Quilmes</option>
+                  <option value="san_martin">San Martín</option>
+                  <option value="deposito">Depósito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Precios */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Precios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_compra_usd}
+                  onChange={(e) => handleEditFormChange('precio_compra_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_venta_usd}
+                  onChange={(e) => handleEditFormChange('precio_venta_usd', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta Pesos</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.precio_venta_pesos}
+                  onChange={(e) => handleEditFormChange('precio_venta_pesos', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Estado y garantía */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
+                <select
+                  value={editForm.disponible}
+                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value={true}>Disponible</option>
+                  <option value={false}>No disponible</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                <input
+                  type="date"
+                  value={editForm.ingreso}
+                  onChange={(e) => handleEditFormChange('ingreso', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                <input
+                  type="text"
+                  value={editForm.garantia}
+                  onChange={(e) => handleEditFormChange('garantia', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: 6 meses"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
+                <textarea
+                  value={editForm.fallas}
+                  onChange={(e) => handleEditFormChange('fallas', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Descripción de fallas conocidas..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Vista previa del precio en pesos */}
+          {editForm.precio_venta_usd && (
+            <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
+              <p className="text-sm text-slate-600">
+                <strong>Precio en pesos:</strong> ${Math.round(editForm.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+              </p>
+              <p className="text-xs text-slate-500">
+                Cotización: ${cotizacionDolar}
+              </p>
+            </div>
+          )}
+        </form>
+      );
+    }
   };
 
 
@@ -226,6 +1269,8 @@ const Catalogo = ({ onAddToCart }) => {
             </select>
           </div>
 
+          
+
           {/* Sucursal/Ubicación */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Ubicación</label>
@@ -302,8 +1347,9 @@ const Catalogo = ({ onAddToCart }) => {
         <div className="space-y-3">
           {/* Header */}
           <div className="rounded p-4 grid grid-cols-12 gap-4 bg-slate-800">
-            <div className="col-span-4 text-sm font-bold text-white uppercase">Información del Producto</div>
-            <div className="col-span-2 text-sm font-bold text-white uppercase">Condición</div>
+            <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
+            <div className="col-span-2 text-sm font-bold text-white uppercase">Serial</div>
+            <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
             <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
             <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
             <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
@@ -317,7 +1363,7 @@ const Catalogo = ({ onAddToCart }) => {
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
-              <div className="col-span-4">
+              <div className="col-span-3">
                 {categoriaActiva === 'otros' ? (
                   <div>
                     <div className="text-sm font-medium">
@@ -344,18 +1390,29 @@ const Catalogo = ({ onAddToCart }) => {
                 )}
               </div>
               
-              {/* Condición */}
+              {/* Serial */}
               <div className="col-span-2">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  producto.condicion === 'excelente' ? 'bg-emerald-100 text-emerald-800' :
-                  producto.condicion === 'muy bueno' ? 'bg-slate-100 text-slate-800' :
-                  producto.condicion === 'bueno' ? 'bg-slate-100 text-slate-800' :
-                  producto.condicion === 'regular' ? 'bg-slate-100 text-slate-800' :
-                  producto.condicion === 'malo' ? 'bg-slate-100 text-slate-800' :
-                  'bg-slate-100 text-slate-800'
-                }`}>
-                  {producto.condicion?.toUpperCase() || 'N/A'}
-                </span>
+                <div className="text-sm text-slate-700">
+                  {producto.serial || producto.imei || 'N/A'}
+                </div>
+              </div>
+              
+              {/* Condición */}
+              <div className="col-span-1">
+                <div className="space-y-1">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    producto.condicion === 'nuevo' ? 'bg-emerald-100 text-emerald-800' :
+                    producto.condicion === 'refurbished' ? 'bg-blue-100 text-blue-800' :
+                    producto.condicion === 'usado' ? 'bg-yellow-100 text-yellow-800' :
+                    producto.condicion === 'reparacion' ? 'bg-red-100 text-red-800' :
+                    producto.condicion === 'reservado' ? 'bg-purple-100 text-purple-800' :
+                    producto.condicion === 'prestado' ? 'bg-orange-100 text-orange-800' :
+                    producto.condicion === 'sin_reparacion' ? 'bg-gray-100 text-gray-800' :
+                    'bg-slate-100 text-slate-800'
+                  }`}>
+                    {producto.condicion?.toUpperCase() || 'N/A'}
+                  </span>
+                </div>
               </div>
               
               {/* Precio */}
@@ -405,7 +1462,12 @@ const Catalogo = ({ onAddToCart }) => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => eliminarProducto(producto.id)}
+                  onClick={() => {
+                    const producto_info = producto.modelo || producto.marca || 'este producto';
+                    if (window.confirm(`¿Estás seguro que deseas eliminar "${producto_info}"?\n\nEsta acción no se puede deshacer.`)) {
+                      eliminarProducto(producto.id);
+                    }
+                  }}
                   className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Eliminar producto"
                 >
@@ -482,7 +1544,8 @@ const Catalogo = ({ onAddToCart }) => {
                 Cancelar
               </button>
               <button
-                onClick={handleEditSubmit}
+                type="submit"
+                form="edit-product-form"
                 disabled={editLoading}
                 className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
               >

@@ -180,7 +180,7 @@ const determinarTipoCopy = (producto, categoria) => {
  * Convertir estado estético a letra (para compatibilidad con Listas.jsx)
  */
 const getEstadoLetra = (estado) => {
-  if (!estado) return 'N/A';
+  if (!estado) return '';
   
   switch (estado.toLowerCase()) {
     case 'nuevo': return 'A++';
@@ -241,11 +241,7 @@ const generateNotebookCopy = (comp, config) => {
     partes.push('💻');
   }
   
-  // SERIAL al principio (solo en versión completa)
-  if (config.style === 'completo' && (comp.serial || comp.numero_serie)) {
-    const serial = comp.serial || comp.numero_serie;
-    partes.push(serial);
-  }
+  // SERIAL removido del copy - ahora se muestra en columna separada
   
   // 1. MODELO
   const modelo = comp.modelo || 'Sin modelo';
@@ -254,15 +250,11 @@ const generateNotebookCopy = (comp, config) => {
   // 2. PANTALLA
   if (comp.pantalla) {
     partes.push(`${comp.pantalla}"`);
-  } else {
-    partes.push('N/A');
   }
   
   // 3. PROCESADOR
   if (comp.procesador) {
     partes.push(comp.procesador.toUpperCase());
-  } else {
-    partes.push('N/A');
   }
   
   // 4. MEMORIA TIPO
@@ -272,8 +264,6 @@ const generateNotebookCopy = (comp, config) => {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
     const ramLimpio = String(ram).replace(/GB/gi, '');
     partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
-  } else {
-    partes.push('N/A');
   }
   
   // 5. SSD
@@ -299,29 +289,29 @@ const generateNotebookCopy = (comp, config) => {
   }
   
   // 7. RESOLUCION HZ
-  let resolucionCompleta = '';
-  if (comp.resolucion) {
-    resolucionCompleta = comp.resolucion.toUpperCase();
-  } else {
-    resolucionCompleta = 'N/A';
+  if (comp.resolucion || comp.hz || comp.frecuencia) {
+    let resolucionCompleta = '';
+    if (comp.resolucion) {
+      resolucionCompleta = comp.resolucion.toUpperCase();
+    }
+    if (comp.hz || comp.frecuencia) {
+      const hz = comp.hz || comp.frecuencia;
+      resolucionCompleta += resolucionCompleta ? ` ${hz}HZ` : `${hz}HZ`;
+    }
+    if (resolucionCompleta) {
+      partes.push(resolucionCompleta);
+    }
   }
-  if (comp.hz || comp.frecuencia) {
-    const hz = comp.hz || comp.frecuencia;
-    resolucionCompleta += ` ${hz}HZ`;
-  }
-  partes.push(resolucionCompleta);
   
   // 8. GPU VRAM
-  if (comp.placa_de_video || comp.gpu) {
-    let gpu = comp.placa_de_video || comp.gpu;
+  if (comp.placa_video || comp.placa_de_video || comp.gpu) {
+    let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
     if (comp.vram && comp.vram > 0) {
       // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
       const vramLimpio = String(comp.vram).replace(/GB/gi, '');
       gpu += ` ${vramLimpio}GB`;
     }
     partes.push(gpu.toUpperCase());
-  } else {
-    partes.push('N/A');
   }
   
   // 9. BATERIA DURACION
@@ -338,7 +328,9 @@ const generateNotebookCopy = (comp, config) => {
     const duracionLimpio = String(duracion).replace(/H/gi, '');
     bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `${duracionLimpio}H`;
   }
-  partes.push(bateriaInfo || 'N/A');
+  if (bateriaInfo) {
+    partes.push(bateriaInfo);
+  }
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {
@@ -424,11 +416,7 @@ const generateCelularCopy = (cel, config) => {
     partes.push('📱');
   }
   
-  // IMEI al principio (solo en versión completa)
-  if (config.style === 'completo' && (cel.imei || cel.numero_imei)) {
-    const imei = cel.imei || cel.numero_imei;
-    partes.push(imei);
-  }
+  // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
   
   // 1. MODELO (incluye marca)
   const marca = cel.marca || '';
@@ -445,8 +433,6 @@ const generateCelularCopy = (cel, config) => {
   if (cel.capacidad) {
     // La capacidad ya viene formateada (ej: "256GB"), no agregar más unidades
     partes.push(cel.capacidad.toUpperCase());
-  } else {
-    partes.push('N/A');
   }
   
   // 3. COLOR
@@ -456,8 +442,6 @@ const generateCelularCopy = (cel, config) => {
     } else {
       partes.push(cel.color.toUpperCase());
     }
-  } else {
-    partes.push('N/A');
   }
   
   // 4. BATERIA
@@ -466,8 +450,6 @@ const generateCelularCopy = (cel, config) => {
     // Limpiar duplicaciones: quitar "%" si ya viene en el valor
     const bateriaLimpio = String(bateria).replace(/%/g, '');
     partes.push(`${bateriaLimpio}%`);
-  } else {
-    partes.push('N/A');
   }
   
   // 5. ESTADO
@@ -478,8 +460,6 @@ const generateCelularCopy = (cel, config) => {
     } else {
       partes.push(estado.toUpperCase());
     }
-  } else {
-    partes.push('N/A');
   }
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
