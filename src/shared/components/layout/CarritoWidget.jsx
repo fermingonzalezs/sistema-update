@@ -9,6 +9,7 @@ import { formatearMonto } from '../../utils/formatters';
 const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [datosCliente, setDatosCliente] = useState({
     metodo_pago_1: 'efectivo_pesos',
@@ -373,30 +374,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       return;
     }
 
-    // ✅ VALIDACIÓN ESPECIAL: Si es cuenta corriente, confirmar
-    if (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') {
-      const confirmacion = window.confirm(
-        `¿Confirmar venta a CUENTA CORRIENTE por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
-      );
-      
-      if (!confirmacion) {
-        console.log('🚫 Venta a cuenta corriente cancelada por el usuario');
-        return;
-      }
-    } else {
-      // Confirmación normal para otros métodos de pago
-      const confirmacion = window.confirm(
-        `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}?`
-      );
-      
-      if (!confirmacion) {
-        console.log('🚫 Venta cancelada por el usuario');
-        return;
-      }
-    }
+    // Mostrar confirmación
+    setMostrarConfirmacion(true);
+  };
+
+  const confirmarVenta = async () => {
+    setMostrarConfirmacion(false);
 
     try {
-
       // Generar número de transacción único
       const numeroTransaccion = `VT-${Date.now()}`;
       
@@ -1023,6 +1008,40 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {mostrarConfirmacion && (
+        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') 
+                ? 'Confirmar Venta a Cuenta Corriente' 
+                : 'Confirmar Venta'
+              }
+            </h3>
+            <p className="text-slate-800 mb-4">
+              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') 
+                ? `¿Confirmar venta a CUENTA CORRIENTE por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
+                : `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
+              }
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setMostrarConfirmacion(false)}
+                className="flex-1 bg-slate-200 text-slate-800 py-2 rounded-lg font-semibold hover:bg-slate-300 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarVenta}
+                className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}

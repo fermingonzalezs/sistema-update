@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, ChevronDown, Edit, Save, AlertCircle } from 'lucide-react';
+import { X, Filter, ChevronDown, Edit, Save, AlertCircle, Search } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
@@ -1221,6 +1221,21 @@ const Catalogo = ({ onAddToCart }) => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          
+          {/* Búsqueda */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Búsqueda</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Serial o modelo..."
+                value={filtros.busqueda || ''}
+                onChange={(e) => actualizarFiltro('busqueda', e.target.value)}
+                className="w-full pl-8 pr-2 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
           
           {/* Ordenamiento */}
           <div>

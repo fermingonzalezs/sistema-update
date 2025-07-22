@@ -44,6 +44,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     idioma: ''
   });
 
+  // Función para extraer números de strings (ej: "16GB" -> 16, "512GB SSD" -> 512)
+  const extractNumber = (str) => {
+    if (!str) return 0;
+    const match = str.toString().match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
   // Obtener productos del tipo activo
   const getProductosActivos = () => {
     switch (tipoActivo) {
@@ -82,13 +89,26 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     if (!modoFiltros) return cumpleBusqueda;
 
     // Filtros avanzados solo se aplican si están activos
+    const cumpleMarca = filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase());
+    const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
+    const cumpleCondicion = filtros.condicion === '' || (producto.condicion && producto.condicion.toLowerCase() === filtros.condicion.toLowerCase());
+    
+    // Debug temporal
+    if (filtros.marca === 'Apple' && filtros.condicion === 'nueva') {
+      console.log('🍎 Debug Apple Nueva:', {
+        modelo: producto.modelo,
+        marca: producto.marca,
+        condicion: producto.condicion,
+        cumpleMarca,
+        cumpleCondicion,
+        cumpleBusqueda
+      });
+    }
+    
     const cumpleFiltros = 
-      // Filtro por marca
-      (filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase())) &&
-      // Filtro para excluir marca específica (usado para Windows)
-      (filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase()) &&
-      // Filtro por condición
-      (filtros.condicion === '' || (producto.condicion && producto.condicion.toLowerCase() === filtros.condicion.toLowerCase())) &&
+      cumpleMarca &&
+      cumpleExclusionMarca &&
+      cumpleCondicion &&
       // Filtro por precio
       (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
       // Filtro por RAM (solo para computadoras)
@@ -102,13 +122,6 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
     return cumpleBusqueda && cumpleFiltros;
   });
-
-  // Función para extraer números de strings (ej: "16GB" -> 16, "512GB SSD" -> 512)
-  const extractNumber = (str) => {
-    if (!str) return 0;
-    const match = str.toString().match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
-  };
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -195,7 +208,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'usado',
+      condicion: 'usada',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -210,7 +223,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'nuevo',
+      condicion: 'nueva',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -225,14 +238,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'nuevo',
+      condicion: 'nueva',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
       idioma: ''
     });
-    setBusqueda('MacBook');
+    setBusqueda(''); // Eliminar búsqueda específica
+    setFiltroExcluirMarca(''); // Limpiar exclusiones
   };
 
   const aplicarFiltroMacBooksUsadas = () => {
@@ -240,14 +254,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'usado',
+      condicion: 'usada',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
       idioma: ''
     });
-    setBusqueda('MacBook');
+    setBusqueda(''); // Eliminar búsqueda específica
+    setFiltroExcluirMarca(''); // Limpiar exclusiones
   };
 
   const aplicarFiltroWindowsNuevas = () => {
@@ -255,7 +270,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: '',
-      condicion: 'nuevo',
+      condicion: 'nueva',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -272,7 +287,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: '',
-      condicion: 'usado',
+      condicion: 'usada',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',

@@ -13,7 +13,8 @@ export const useCatalogoUnificado = () => {
     sucursal: '',
     precioMax: '',
     precioMin: '',
-    disponible: ''
+    disponible: '',
+    busqueda: ''
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -289,6 +290,19 @@ export const useCatalogoUnificado = () => {
       });
     }
 
+    // Filtrar por búsqueda (serial o modelo)
+    if (filtrosUnificados.busqueda) {
+      const busquedaLower = filtrosUnificados.busqueda.toLowerCase();
+      filtered = filtered.filter(item => {
+        const serial = (item.serial || item.imei || '').toLowerCase();
+        const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
+        const marca = (item.marca || '').toLowerCase();
+        return serial.includes(busquedaLower) || 
+               modelo.includes(busquedaLower) ||
+               marca.includes(busquedaLower);
+      });
+    }
+
     // Aplicar ordenamiento
     if (ordenamiento.campo) {
       filtered.sort((a, b) => {
@@ -327,7 +341,8 @@ export const useCatalogoUnificado = () => {
       precioMax: '',
       precioMin: '',
       categoria: '',
-      disponible: ''
+      disponible: '',
+      busqueda: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
@@ -347,7 +362,8 @@ export const useCatalogoUnificado = () => {
       precioMax: '',
       precioMin: '',
       categoria: '',
-      disponible: ''
+      disponible: '',
+      busqueda: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };

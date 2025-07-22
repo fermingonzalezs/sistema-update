@@ -175,7 +175,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - `clientes` - Customer information
 - `plan_cuentas` - Chart of accounts
 - `asientos_contables` - Accounting journal entries
-- `movimientos_contables` - Detailed accounting movements
+- `movimientos_contables` - Detailed accounting movements (debe/haber por cuenta)
 - `reparaciones` - Repair records
 - `importaciones` - Import tracking
 - `gastos_operativos` - Operating expenses

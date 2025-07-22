@@ -144,23 +144,7 @@ const libroDiarioService = {
 
       if (errorMovimientos) throw errorMovimientos;
 
-      // Guardar cotizaciones en el historial si es necesario (solo si la tabla existe)
-      if (asientoData.cotizacionPromedio) {
-        try {
-          await supabase
-            .from('cotizaciones_manuales')
-            .insert({
-              fecha: asientoData.fecha,
-              cotizacion: asientoData.cotizacionPromedio,
-              usuario: 'admin',
-              observaciones: `Asiento contable N° ${numeroAsiento}`,
-              operacion_tipo: 'libro_diario',
-              operacion_id: asiento.id
-            });
-        } catch (cotError) {
-          console.warn('⚠️ Tabla cotizaciones_manuales no disponible:', cotError.message);
-        }
-      }
+      // La cotización promedio ya está guardada en el campo cotizacion_promedio del asiento
 
       console.log('✅ Asiento creado exitosamente en USD:', numeroAsiento);
 
