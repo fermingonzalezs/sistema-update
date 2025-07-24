@@ -95,6 +95,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     pantalla: '',
     resolucion: 'FHD',
     refresh: '',
+    touchscreen: false,
     placa_video: '',
     vram: '',
     
@@ -144,14 +145,11 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
-      const precio_costo_total = 
-        (parseFloat(formData.precio_costo_usd) || 0) + 
-        (parseFloat(formData.envios_repuestos) || 0);
-
+      // No incluir precio_costo_total ya que es una columna generada automáticamente
       const dataToSubmit = {
         ...formData,
-        precio_costo_total,
         disponible: true
+        // precio_costo_total se calcula automáticamente como precio_costo_usd + envios_repuestos
       };
 
       await onAdd(dataToSubmit);
@@ -176,6 +174,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         pantalla: '',
         resolucion: 'FHD',
         refresh: '',
+        touchscreen: false,
         placa_video: '',
         vram: '',
         teclado_retro: 'SI',
@@ -449,6 +448,19 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Touchscreen</label>
+          <select
+            name="touchscreen"
+            value={formData.touchscreen}
+            onChange={handleChange}
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+          >
+            <option value={false}>No</option>
+            <option value={true}>Sí</option>
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">Refresh Rate</label>
           <input
             type="text"
@@ -604,7 +616,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Computadora'}
           </button>
@@ -1021,7 +1033,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
           <button
             type="submit"
             disabled={isSubmitting || loading}
-            className="w-full bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Guardando...' : 'Agregar Celular'}
           </button>
@@ -1423,7 +1435,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
   <button
     type="submit"
     disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
-    className="w-full bg-blue-600 text-white px-6 py-3 rounded font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+    className="w-full bg-emerald-600 text-white px-6 py-3 rounded font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
   >
     {isSubmitting ? (
       <span className="flex items-center justify-center">

@@ -74,12 +74,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
         recargo_pago_2: 0
       }));
       
-      // Inicializar inputs locales - monto base para el método seleccionado
-      const montoBaseParaInput = esMetodoEnPesos(metodoDefault) ? 
-        Math.round(totalUSD * datosCliente.cotizacion_dolar).toString() :
-        totalUSD.toFixed(2);
-        
-      setInputMonto1(montoBaseParaInput);
+      // No autocompletar el monto - solo inicializar recargos
+      setInputMonto1('');
       setInputMonto2('');
       setInputRecargo1(recargoDefault.toString());
       setInputRecargo2('0');
@@ -175,27 +171,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
         handleMontosChange(metodo, montoInput);
       }, 10);
     } else {
-      // Si no hay monto, auto-completar con el total disponible
-      const totalUSD = calcularTotal();
-      const montoRestante = totalUSD - (metodo === 1 ? 0 : datosCliente.monto_pago_1);
-      
-      if (montoRestante > 0) {
-        // Calcular monto base (sin recargo) para mostrar en el input
-        const montoBaseParaInput = esMetodoEnPesos(nuevoMetodo) ? 
-          Math.round(montoRestante * datosCliente.cotizacion_dolar).toString() :
-          montoRestante.toFixed(2);
-
-        // Actualizar input
-        if (metodo === 1) {
-          setInputMonto1(montoBaseParaInput);
-        } else {
-          setInputMonto2(montoBaseParaInput);
-        }
-
-        // Usar setTimeout para asegurar que el recargo se aplique primero
-        setTimeout(() => {
-          handleMontosChange(metodo, montoBaseParaInput);
-        }, 20);
+      // No autocompletar el campo - el usuario debe ingresar el monto manualmente
+      // Solo limpiar el campo
+      if (metodo === 1) {
+        setInputMonto1('');
+      } else {
+        setInputMonto2('');
       }
     }
   };
@@ -216,17 +197,22 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
 
   // Convertir monto a USD para guardar en base de datos (incluye recargo)
   const convertirMontoAUSD = (monto, metodoPago, recargo = 0) => {
-    let montoConRecargo = monto;
-    
-    // Solo aplicar recargo a tarjeta de crédito
-    if (metodoPago === 'tarjeta_credito' && recargo > 0) {
-      montoConRecargo = monto * (1 + recargo / 100);
-    }
-    
+    // Para métodos en pesos (efectivo_pesos, transferencia, tarjeta_credito)
     if (esMetodoEnPesos(metodoPago)) {
-      return montoConRecargo / datosCliente.cotizacion_dolar;
+      // Aplicar recargo si corresponde y luego convertir a USD
+      if ((metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia') && recargo > 0) {
+        const montoConRecargo = monto * (1 + recargo / 100);
+        return montoConRecargo / datosCliente.cotizacion_dolar;
+      }
+      // Sin recargo, solo convertir a USD
+      return monto / datosCliente.cotizacion_dolar;
     }
-    return montoConRecargo;
+    
+    // Para métodos en USD (dolares_billete, criptomonedas)
+    if ((metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia') && recargo > 0) {
+      return monto * (1 + recargo / 100);
+    }
+    return monto;
   };
 
   // Obtener monto base (sin recargo) para mostrar en input
@@ -249,12 +235,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       Math.round(montoUSD).toString();
   };
 
-  // Obtener monto en la moneda del método de pago para mostrar
-  const obtenerMontoParaMostrar = (metodoPago) => {
+  // Obtener total a pagar (incluyendo recargos) en la moneda del método de pago
+  const obtenerTotalAPagar = (metodoPago, recargo = 0) => {
+    const totalBase = calcularTotal();
+    const totalConRecargo = totalBase * (1 + recargo / 100);
+    
     if (esMetodoEnPesos(metodoPago)) {
-      return calcularTotalPesos();
+      return totalConRecargo * datosCliente.cotizacion_dolar;
     }
-    return calcularTotal();
+    return totalConRecargo;
   };
 
   const handleMontosChange = (metodo, monto) => {
@@ -713,7 +702,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             min="0"
                           />
                           <p className="text-xs text-slate-800 mt-1">
-                            Total disponible: {formatearMonto(obtenerMontoParaMostrar(datosCliente.metodo_pago_1), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
+                            Total a pagar: {formatearMonto(obtenerTotalAPagar(datosCliente.metodo_pago_1, datosCliente.recargo_pago_1), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
                           </p>
                         </div>
                       </div>
@@ -736,9 +725,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           />
                           {datosCliente.recargo_pago_1 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{formatearMonto(
-                                (datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar * datosCliente.recargo_pago_1) / 100, 
-                                'ARS'
+                              Recargo aplicado: +{datosCliente.recargo_pago_1}% = +{formatearMonto(
+                                esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
+                                  (parseFloat(inputMonto1) || 0) * datosCliente.recargo_pago_1 / 100 :
+                                  (datosCliente.monto_pago_1 * datosCliente.recargo_pago_1) / 100, 
+                                obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                               )}
                             </p>
                           )}
@@ -811,9 +802,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           />
                           {datosCliente.recargo_pago_2 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{formatearMonto(
-                                (datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar * datosCliente.recargo_pago_2) / 100, 
-                                'ARS'
+                              Recargo aplicado: +{datosCliente.recargo_pago_2}% = +{formatearMonto(
+                                esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
+                                  (parseFloat(inputMonto2) || 0) * datosCliente.recargo_pago_2 / 100 :
+                                  (datosCliente.monto_pago_2 * datosCliente.recargo_pago_2) / 100, 
+                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                               )}
                             </p>
                           )}
@@ -827,11 +820,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <span className="font-bold">{formatearMonto(calcularTotal(), 'USD')}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span>Total pagado:</span>
-                          <span className="font-bold">{formatearMonto(datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0), 'USD')}</span>
+                          <span>Total con recargos:</span>
+                          <span className="font-bold">{formatearMonto(
+                            (datosCliente.monto_pago_1 * (1 + (necesitaRecargo(datosCliente.metodo_pago_1) ? datosCliente.recargo_pago_1 : 0) / 100)) + 
+                            ((datosCliente.monto_pago_2 || 0) * (1 + (necesitaRecargo(datosCliente.metodo_pago_2) ? datosCliente.recargo_pago_2 : 0) / 100)), 
+                            'USD'
+                          )}</span>
                         </div>
                         <div className="flex justify-between text-sm border-t border-slate-200 pt-2 mt-2">
-                          <span>Diferencia:</span>
+                          <span>Diferencia base:</span>
                           <span className={`font-bold ${Math.abs(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0))) < 0.01 ? 'text-emerald-600' : 'text-slate-800'}`}>
                             {formatearMonto(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0)), 'USD')}
                           </span>

@@ -229,12 +229,7 @@ const GarantiasSection = () => {
                 className="flex-1 px-3 py-2 border border-slate-200 rounded-l text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
               />
-              <button
-                onClick={handleBuscar}
-                className="px-3 py-2 bg-slate-600 text-white rounded-r hover:bg-slate-700 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-              </button>
+              
             </div>
           </div>
 

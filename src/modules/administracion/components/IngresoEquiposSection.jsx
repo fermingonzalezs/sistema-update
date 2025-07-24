@@ -148,28 +148,28 @@ const IngresoEquiposSection = () => {
             <div className="flex space-x-6">
               <button
                 onClick={() => setDestinoSeleccionado('stock')}
-                className={`flex-1 p-6 rounded-lg border-2 transition-all duration-200 transform ${
+                className={`flex-1 p-6 rounded border-2 transition-all duration-200 transform ${
                   destinoSeleccionado === 'stock'
-                    ? 'border-emerald-600 bg-emerald-100 text-emerald-900 shadow-lg scale-105 ring-2 ring-emerald-300'
-                    : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 hover:scale-105'
+                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg scale-105'
+                    : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50 hover:scale-105'
                 }`}
               >
                 <div className="flex items-center justify-center space-x-4">
-                  <div className={`p-3 rounded-full ${
+                  <div className={`p-3 rounded ${
                     destinoSeleccionado === 'stock' 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-white text-emerald-600' 
+                      : 'bg-slate-800 text-white'
                   }`}>
                     <Package className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-lg">Agregar al Stock</div>
-                    <div className="text-sm opacity-80 mt-1">
+                    <div className="font-semibold text-lg">Agregar al Stock</div>
+                    <div className="text-sm opacity-90 mt-1">
                       Disponible inmediatamente para venta
                     </div>
                     {destinoSeleccionado === 'stock' && (
-                      <div className="flex items-center mt-2 text-emerald-700">
-                        <div className="w-2 h-2 bg-emerald-600 rounded-full mr-2"></div>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
                         <span className="text-xs font-medium">SELECCIONADO</span>
                       </div>
                     )}
@@ -179,28 +179,28 @@ const IngresoEquiposSection = () => {
               
               <button
                 onClick={() => setDestinoSeleccionado('testeo')}
-                className={`flex-1 p-6 rounded-lg border-2 transition-all duration-200 transform ${
+                className={`flex-1 p-6 rounded border-2 transition-all duration-200 transform ${
                   destinoSeleccionado === 'testeo'
-                    ? 'border-emerald-600 bg-emerald-100 text-emerald-900 shadow-lg scale-105 ring-2 ring-emerald-300'
-                    : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 hover:scale-105'
+                    ? 'border-slate-800 bg-slate-800 text-white shadow-lg scale-105'
+                    : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50 hover:scale-105'
                 }`}
               >
                 <div className="flex items-center justify-center space-x-4">
-                  <div className={`p-3 rounded-full ${
+                  <div className={`p-3 rounded ${
                     destinoSeleccionado === 'testeo' 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-white text-slate-800' 
+                      : 'bg-slate-800 text-white'
                   }`}>
                     <Clock className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-lg">Enviar a Testeo</div>
-                    <div className="text-sm opacity-80 mt-1">
+                    <div className="font-semibold text-lg">Enviar a Testeo</div>
+                    <div className="text-sm opacity-90 mt-1">
                       Requiere revisión técnica antes de venta
                     </div>
                     {destinoSeleccionado === 'testeo' && (
-                      <div className="flex items-center mt-2 text-emerald-700">
-                        <div className="w-2 h-2 bg-emerald-600 rounded-full mr-2"></div>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
                         <span className="text-xs font-medium">SELECCIONADO</span>
                       </div>
                     )}

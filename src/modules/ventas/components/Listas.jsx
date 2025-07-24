@@ -16,15 +16,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [mensajes, setMensajes] = useState({
     computadora: {
       inicial: '🔥 NOTEBOOKS DISPONIBLES 🔥',
-      final: '💬 Consultas por WhatsApp\n📱 Aceptamos todas las tarjetas\n🚚 Envíos a todo el país'
+      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
     },
     celular: {
       inicial: '📱 CELULARES DISPONIBLES 📱',
-      final: '💬 Consultas por WhatsApp\n📱 Aceptamos todas las tarjetas\n🚚 Envíos a todo el país'
+      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
     },
     otro: {
       inicial: '📦 ACCESORIOS Y MÁS 📦',
-      final: '💬 Consultas por WhatsApp\n📱 Aceptamos todas las tarjetas\n🚚 Envíos a todo el país'
+      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
     }
   });
 

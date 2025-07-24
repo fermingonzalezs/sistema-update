@@ -110,16 +110,16 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center space-x-2">
-            <User className="w-6 h-6 text-blue-600" />
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <h2 className="text-xl font-semibold text-slate-800 flex items-center space-x-2">
+            <User className="w-6 h-6 text-emerald-600" />
             <span>{cliente ? 'Editar Cliente' : 'Nuevo Cliente'}</span>
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-slate-400 hover:text-slate-600 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -130,7 +130,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
           {/* Nombre y Apellido */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <User className="w-4 h-4 inline mr-1" />
                 Nombre *
               </label>
@@ -138,8 +138,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => handleChange('nombre', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.nombre ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  errors.nombre ? 'border-red-500' : 'border-slate-200'
                 }`}
                 placeholder="Ingresa el nombre"
               />
@@ -149,7 +149,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <User className="w-4 h-4 inline mr-1" />
                 Apellido *
               </label>
@@ -157,8 +157,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="text"
                 value={formData.apellido}
                 onChange={(e) => handleChange('apellido', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.apellido ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  errors.apellido ? 'border-red-500' : 'border-slate-200'
                 }`}
                 placeholder="Ingresa el apellido"
               />
@@ -171,7 +171,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
           {/* Email y Teléfono */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <Mail className="w-4 h-4 inline mr-1" />
                 Email
               </label>
@@ -179,8 +179,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  errors.email ? 'border-red-500' : 'border-slate-200'
                 }`}
                 placeholder="ejemplo@email.com"
               />
@@ -190,7 +190,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <Phone className="w-4 h-4 inline mr-1" />
                 Teléfono
               </label>
@@ -198,8 +198,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="tel"
                 value={formData.telefono}
                 onChange={(e) => handleChange('telefono', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.telefono ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  errors.telefono ? 'border-red-500' : 'border-slate-200'
                 }`}
                 placeholder="+54 221 123-4567"
               />
@@ -212,7 +212,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
           {/* Cumpleaños y Procedencia */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 Cumpleaños
               </label>
@@ -220,19 +220,19 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="date"
                 value={formData.cumpleanos}
                 onChange={(e) => handleChange('cumpleanos', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 <MapPin className="w-4 h-4 inline mr-1" />
                 Procedencia
               </label>
               <select
                 value={formData.procedencia}
                 onChange={(e) => handleChange('procedencia', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Seleccionar...</option>
                 {procedenciaOptions.map(option => (
@@ -246,7 +246,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
 
           {/* Profesión */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               <Briefcase className="w-4 h-4 inline mr-1" />
               Profesión
             </label>
@@ -254,14 +254,14 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
               type="text"
               value={formData.profesion}
               onChange={(e) => handleChange('profesion', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="Ej: Ingeniero, Docente, Médico..."
             />
           </div>
 
           {/* Notas */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               <FileText className="w-4 h-4 inline mr-1" />
               Notas
             </label>
@@ -269,17 +269,17 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
               value={formData.notas}
               onChange={(e) => handleChange('notas', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="Notas adicionales sobre el cliente..."
             />
           </div>
 
           {/* Botones */}
-          <div className="flex space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex space-x-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded hover:bg-slate-50 transition-colors"
               disabled={loading}
             >
               Cancelar
@@ -287,7 +287,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Guardando...' : cliente ? 'Actualizar' : 'Crear Cliente'}
             </button>

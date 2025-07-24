@@ -44,6 +44,7 @@ const dashboardService = {
           cantidad, 
           precio_total,
           producto_id,
+          serial_producto,
           precio_costo
         )
       `)
@@ -56,13 +57,63 @@ const dashboardService = {
       throw error;
     }
 
-    // Mapear nombres de vendedores
-    const dataWithVendedores = data.map(transaccion => ({
-      ...transaccion,
-      vendedor_nombre: vendedoresMap[transaccion.vendedor] || transaccion.vendedor || 'Sin asignar'
+    // Mapear nombres de vendedores y obtener costos del inventario
+    const dataWithVendedores = await Promise.all(data.map(async (transaccion) => {
+      const transaccionConVendedor = {
+        ...transaccion,
+        vendedor_nombre: vendedoresMap[transaccion.vendedor] || transaccion.vendedor || 'Sin asignar'
+      };
+
+      // Verificar costos para cada item de la venta
+      if (transaccion.venta_items && transaccion.venta_items.length > 0) {
+        const itemsConCosto = await Promise.all(transaccion.venta_items.map(async (item) => {
+          let precioCosto = parseFloat(item.precio_costo || 0);
+
+          // Si no hay precio_costo en venta_items, obtenerlo del inventario como fallback
+          if (precioCosto === 0 && item.producto_id) {
+            try {
+              if (item.tipo_producto === 'computadora') {
+                const { data: comp } = await supabase
+                  .from('inventario_computadoras')
+                  .select('precio_costo_total')
+                  .eq('id', item.producto_id)
+                  .single();
+                precioCosto = parseFloat(comp?.precio_costo_total || 0);
+              } else if (item.tipo_producto === 'celular') {
+                const { data: cel } = await supabase
+                  .from('inventario_celulares')
+                  .select('precio_compra_usd')
+                  .eq('id', item.producto_id)
+                  .single();
+                precioCosto = parseFloat(cel?.precio_compra_usd || 0);
+              } else if (item.tipo_producto === 'otro') {
+                const { data: otro } = await supabase
+                  .from('inventario_otros')
+                  .select('precio_compra_usd')
+                  .eq('id', item.producto_id)
+                  .single();
+                precioCosto = parseFloat(otro?.precio_compra_usd || 0);
+              }
+            } catch (error) {
+              console.warn(`⚠️ No se pudo obtener costo para producto ${item.producto_id}:`, error);
+            }
+          }
+
+          return {
+            ...item,
+            precio_costo: precioCosto,
+            ganancia_item: parseFloat(item.precio_total || 0) - precioCosto,
+            margen_item: precioCosto > 0 ? (((parseFloat(item.precio_total || 0) - precioCosto) / precioCosto) * 100) : 0
+          };
+        }));
+
+        transaccionConVendedor.venta_items = itemsConCosto;
+      }
+
+      return transaccionConVendedor;
     }));
 
-    console.log('✅ ' + dataWithVendedores.length + ' transacciones obtenidas');
+    console.log('✅ ' + dataWithVendedores.length + ' transacciones obtenidas (con costos)');
     return dataWithVendedores;
   },
 
@@ -251,8 +302,8 @@ const dashboardService = {
 
           const precioVenta = parseFloat(item.precio_total || 0);
           const precioCosto = parseFloat(item.precio_costo || 0);
-          const ganancia = precioVenta - precioCosto;
-          const margenPorcentaje = precioCosto > 0 ? ((ganancia / precioCosto) * 100) : 0;
+          const cantidad = parseInt(item.cantidad || 1);
+          const ganancia = precioVenta - (precioCosto * cantidad);
 
           if (!ventasPorCategoria[categoria]) {
             ventasPorCategoria[categoria] = { 
@@ -265,9 +316,9 @@ const dashboardService = {
             };
           }
           ventasPorCategoria[categoria].ventas += precioVenta;
-          ventasPorCategoria[categoria].costo += precioCosto;
+          ventasPorCategoria[categoria].costo += (precioCosto * cantidad);
           ventasPorCategoria[categoria].ganancia += ganancia;
-          ventasPorCategoria[categoria].cantidad += item.cantidad || 0;
+          ventasPorCategoria[categoria].cantidad += cantidad;
         });
       }
     });
@@ -276,7 +327,11 @@ const dashboardService = {
     
     // Calcular margen final para cada categoría
     Object.values(ventasPorCategoria).forEach(categoria => {
+      // Margen = (Ganancia / Costo) * 100
       categoria.margen = categoria.costo > 0 ? ((categoria.ganancia / categoria.costo) * 100) : 0;
+      
+      // También calculamos el margen sobre ventas para referencia
+      categoria.margenSobreVentas = categoria.ventas > 0 ? ((categoria.ganancia / categoria.ventas) * 100) : 0;
     });
 
     return {
@@ -454,8 +509,19 @@ const DashboardReportesSection = () => {
 
   return (
     <div className="p-0 bg-slate-50">
-      <div className=" p-3 bg-white rounded border border-slate-200 mb-6">
-        
+      {/* Header obligatorio según el sistema de diseño */}
+      <div className="bg-white rounded border border-slate-200 mb-4">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Dashboard de Reportes</h2>
+                <p className="text-slate-300 mt-1">Análisis detallado de ventas y rentabilidad</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Filtros de fecha */}
         <div className="p-4 border-t border-slate-200">
@@ -581,7 +647,7 @@ const DashboardReportesSection = () => {
                         dataKey="ventas"
                       >
                         {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#e2e8f0', '#a1a1aa'][index % 4]} />
+                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#64748b', '#94a3b8'][index % 4]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
@@ -607,7 +673,7 @@ const DashboardReportesSection = () => {
                         dataKey="ventas"
                       >
                         {ventasData?.ventasPorProcedencia.slice(0, 6).map((entry, index) => (
-                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#e2e8f0', '#a1a1aa', '#71717a', '#52525b'][index % 6]} />
+                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0'][index % 6]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />

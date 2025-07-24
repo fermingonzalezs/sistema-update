@@ -157,8 +157,8 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
             </div>
 
             {/* Fecha y hora */}
-            <div className="text-right bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 font-semibold">
-              <div className="text-xs md:text-sm text-slate-200">
+            <div className="text-right bg-white rounded-lg p-2 md:p-4 border border-slate-200 font-semibold">
+              <div className="text-xs md:text-sm text-slate-800">
                 <span className="hidden md:inline">
                   {currentDate.toLocaleDateString('es-AR', { 
                     weekday: 'long', 
@@ -176,7 +176,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
                   })}
                 </span>
               </div>
-              <div className="text-xs md:text-sm text-slate-200 mt-1">
+              <div className="text-xs md:text-sm text-slate-800 mt-1">
                 {currentDate.toLocaleTimeString('es-AR', {
                   hour: '2-digit',
                   minute: '2-digit',

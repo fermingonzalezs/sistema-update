@@ -244,17 +244,22 @@ export const clientesService = {
 
       if (error) throw error;
 
-      // Filtrar cumpleaños próximos (próximos 30 días)
+      // Normalizar fechas a medianoche para comparaciones consistentes
       const hoy = new Date();
-      const en30Dias = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      const en30Dias = new Date(hoy);
       en30Dias.setDate(hoy.getDate() + 30);
 
       const proximosCumpleanos = data.filter(cliente => {
         if (!cliente.cumpleanos) return false;
         
         const cumple = new Date(cliente.cumpleanos);
-        // Ajustar al año actual
+        if (isNaN(cumple.getTime())) return false;
+        
+        // Ajustar al año actual, normalizando a medianoche
         const cumpleEsteAno = new Date(hoy.getFullYear(), cumple.getMonth(), cumple.getDate());
+        cumpleEsteAno.setHours(0, 0, 0, 0);
         
         // Si ya pasó este año, considerar el próximo año
         if (cumpleEsteAno < hoy) {
@@ -284,26 +289,21 @@ export const clientesService = {
           fecha_venta,
           total_venta,
           moneda_pago,
-          metodo_pago,
-          venta_items (
-            id,
-            copy,
-            cantidad,
-            precio_total,
-            serial_producto,
-            tipo_producto
-          )
+          metodo_pago_1
         `)
         .eq('cliente_id', clienteId)
         .order('fecha_venta', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.warn(`⚠️ Error obteniendo historial para cliente ${clienteId}:`, error);
+        return []; // Retornar array vacío en lugar de lanzar error
+      }
 
-      console.log(`✅ ${data.length} compras encontradas para el cliente`);
+      console.log(`✅ ${data?.length || 0} compras encontradas para el cliente`);
       return data || [];
     } catch (error) {
-      console.error('❌ Error obteniendo historial de compras:', error);
-      throw error;
+      console.warn('⚠️ Error obteniendo historial de compras:', error);
+      return []; // Retornar array vacío para que no falle el componente
     }
   },
 
