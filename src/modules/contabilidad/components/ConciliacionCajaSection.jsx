@@ -9,18 +9,20 @@ import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 // Servicio para Conciliación de Caja
 const conciliacionCajaService = {
   async getCuentasCaja() {
-    console.log('📡 Obteniendo cuentas de caja...');
+    console.log('📡 Obteniendo cuentas de caja y bancos (1.1.01)...');
     const { data, error } = await supabase
       .from('plan_cuentas')
       .select('*, moneda_original')
       .eq('activa', true)
-      .ilike('nombre', '%caja%')
+      .eq('tipo', 'activo')
+      .eq('imputable', true)
+      .ilike('codigo', '1.1.01%')
       .order('codigo');
     if (error) {
-      console.error('❌ Error obteniendo cuentas de caja:', error);
+      console.error('❌ Error obteniendo cuentas de caja y bancos:', error);
       throw error;
     }
-    console.log(`✅ ${data.length} cuentas de caja encontradas`);
+    console.log(`✅ ${data.length} cuentas de caja y bancos encontradas`);
     return data;
   },
 
@@ -274,7 +276,7 @@ const ConciliacionCajaSection = () => {
 
   const realizarConciliacion = async () => {
     if (!cuentaSeleccionada) {
-      alert('Debe seleccionar una cuenta de caja');
+      alert('Debe seleccionar una cuenta de caja y bancos');
       return;
     }
 
@@ -329,11 +331,11 @@ const ConciliacionCajaSection = () => {
       fetchDatosCuenta(cuentaSeleccionada.id, fechaConciliacion);
       
       if (diferencia === 0) {
-        alert('✅ Caja conciliada correctamente');
+        alert('✅ Cuenta conciliada correctamente');
       } else {
         alert(`✅ Conciliación guardada con diferencia de ${formatearMoneda(diferencia)}\n\n` +
               `📝 IMPORTANTE: Debe crear manualmente un asiento de ajuste en el Libro Diario para registrar ` +
-              `el ${diferencia > 0 ? 'sobrante' : 'faltante'} de caja.`);
+              `el ${diferencia > 0 ? 'sobrante' : 'faltante'} en la cuenta.`);
       }
     } catch (err) {
       alert('❌ Error: ' + err.message);
@@ -366,7 +368,7 @@ const ConciliacionCajaSection = () => {
             <div className="flex items-center space-x-3">
               <Calculator className="w-6 h-6" />
               <div>
-                <p className="text-slate-300 mt-1">Seleccione una caja para realizar una conciliación.</p>
+                <p className="text-slate-300 mt-1">Seleccione una cuenta de caja y bancos para realizar una conciliación.</p>
               </div>
             </div>
             
@@ -374,7 +376,7 @@ const ConciliacionCajaSection = () => {
         </div>
       </div>
       
-      {/* Selector de cuenta de caja */}
+      {/* Selector de cuenta de caja y bancos */}
       {!cuentaSeleccionada && (
         <div className="bg-white p-6 rounded border border-slate-200">
          
@@ -497,7 +499,7 @@ const ConciliacionCajaSection = () => {
                   <div className="p-4 bg-slate-50 border-b border-slate-200">
                     <h4 className="font-semibold text-slate-800 flex items-center">
                       <Calculator size={18} className="mr-2" />
-                      Monto Físico en Caja
+                      Saldo Físico Real
                       {esMonedaARS && (
                         <span className="ml-2 px-2 py-1 bg-slate-600 text-white text-xs rounded">ARS</span>
                       )}
@@ -509,7 +511,7 @@ const ConciliacionCajaSection = () => {
                         {/* Campos para cuentas en pesos */}
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Monto físico en pesos (ARS)
+                            Saldo físico real en pesos (ARS)
                           </label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
@@ -569,7 +571,7 @@ const ConciliacionCajaSection = () => {
                       /* Campos para cuentas en dólares */
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Monto físico contado (USD)
+                          Saldo físico real (USD)
                         </label>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>

@@ -2,15 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import {
+  buildAccountTree,
+  validateAccountCode,
+  sortAccountsByCode,
+  validateAccountDeletion
+} from '../utils/planCuentasHierarchy';
 
 // Servicio para el Plan de Cuentas conectado a Supabase
 const planCuentasService = {
   async getAll() {
-    console.log('📡 Obteniendo plan de cuentas...');
-    
     const { data, error } = await supabase
       .from('plan_cuentas')
-      .select('*')
+      .select('id, codigo, nombre, tipo, padre_id, nivel, categoria, imputable, activa, moneda_original, requiere_cotizacion, created_at, updated_at')
       .eq('activa', true)
       .order('codigo');
     
@@ -19,13 +23,10 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log(`✅ ${data.length} cuentas obtenidas`);
     return data;
   },
 
   async create(cuenta) {
-    console.log('💾 Creando cuenta:', cuenta);
-    
     // Validar que no exista el código
     const existing = await this.findByCode(cuenta.codigo);
     if (existing) {
@@ -45,13 +46,10 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log('✅ Cuenta creada exitosamente');
     return data[0];
   },
 
   async update(id, updates) {
-    console.log('🔄 Actualizando cuenta:', id);
-    
     const { data, error } = await supabase
       .from('plan_cuentas')
       .update({
@@ -66,13 +64,10 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log('✅ Cuenta actualizada');
     return data[0];
   },
 
   async delete(id) {
-    console.log('🗑️ Verificando dependencias antes de eliminar cuenta:', id);
-    
     // Lista de todas las tablas que pueden referenciar plan_cuentas
     const dependencias = [
       { tabla: 'movimientos_contables', campo: 'cuenta_id', nombre: 'movimientos contables' },
@@ -97,8 +92,6 @@ const planCuentasService = {
       }
     }
     
-    console.log('✅ No hay dependencias, procediendo a eliminar...');
-    
     const { error } = await supabase
       .from('plan_cuentas')
       .delete()
@@ -109,14 +102,11 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log('✅ Cuenta eliminada exitosamente');
     return true;
   },
 
   // Nueva función para desactivar en lugar de eliminar
   async deactivate(id, motivo = 'Desactivada por el usuario') {
-    console.log('🔒 Desactivando cuenta:', id);
-    
     const { error } = await supabase
       .from('plan_cuentas')
       .update({ 
@@ -131,7 +121,6 @@ const planCuentasService = {
       throw error;
     }
     
-    console.log('✅ Cuenta desactivada');
     return true;
   },
 
@@ -148,12 +137,31 @@ const planCuentasService = {
     }
     
     return data;
+  },
+
+  async getPossibleParents(nivelMaximo = 4) {
+    const { data, error } = await supabase
+      .from('plan_cuentas')
+      .select('id, codigo, nombre, nivel, categoria')
+      .eq('activa', true)
+      .lt('nivel', nivelMaximo)
+      .neq('categoria', 'CUENTA')
+      .order('codigo');
+    
+    if (error) {
+      console.error('❌ Error obteniendo cuentas padre:', error);
+      throw error;
+    }
+    
+    return data;
   }
 };
 
 // Hook personalizado para el Plan de Cuentas
 function usePlanCuentas() {
   const [cuentas, setCuentas] = useState([]);
+  const [cuentasArbol, setCuentasArbol] = useState([]);
+  const [posiblesPadres, setPosiblesPadres] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -162,7 +170,12 @@ function usePlanCuentas() {
       setLoading(true);
       setError(null);
       const data = await planCuentasService.getAll();
-      setCuentas(data);
+      const ordenadas = sortAccountsByCode(data);
+      setCuentas(ordenadas);
+      
+      // Construir árbol jerárquico
+      const arbol = buildAccountTree(ordenadas);
+      setCuentasArbol(arbol);
     } catch (err) {
       console.error('Error en usePlanCuentas:', err);
       setError(err.message);
@@ -171,11 +184,25 @@ function usePlanCuentas() {
     }
   };
 
+  const fetchPosiblesPadres = async () => {
+    try {
+      const padres = await planCuentasService.getPossibleParents();
+      setPosiblesPadres(padres);
+    } catch (err) {
+      console.error('Error obteniendo posibles padres:', err);
+    }
+  };
+
   const crearCuenta = async (cuenta) => {
     try {
       setError(null);
       const nueva = await planCuentasService.create(cuenta);
-      setCuentas(prev => [...prev, nueva].sort((a, b) => a.codigo.localeCompare(b.codigo)));
+      
+      // Actualizar lista y reconstruir árbol
+      const nuevasCuentas = sortAccountsByCode([...cuentas, nueva]);
+      setCuentas(nuevasCuentas);
+      setCuentasArbol(buildAccountTree(nuevasCuentas));
+      
       return nueva;
     } catch (err) {
       setError(err.message);
@@ -187,7 +214,13 @@ function usePlanCuentas() {
     try {
       setError(null);
       const actualizada = await planCuentasService.update(id, updates);
-      setCuentas(prev => prev.map(c => c.id === id ? { ...c, ...actualizada } : c));
+      
+      // Actualizar lista y reconstruir árbol
+      const nuevasCuentas = cuentas.map(c => c.id === id ? { ...c, ...actualizada } : c);
+      const ordenadas = sortAccountsByCode(nuevasCuentas);
+      setCuentas(ordenadas);
+      setCuentasArbol(buildAccountTree(ordenadas));
+      
       return actualizada;
     } catch (err) {
       setError(err.message);
@@ -220,9 +253,12 @@ function usePlanCuentas() {
 
   return {
     cuentas,
+    cuentasArbol,
+    posiblesPadres,
     loading,
     error,
     fetchCuentas,
+    fetchPosiblesPadres,
     crearCuenta,
     actualizarCuenta,
     eliminarCuenta,
@@ -234,9 +270,12 @@ function usePlanCuentas() {
 const PlanCuentasSection = () => {
   const {
     cuentas,
+    cuentasArbol,
+    posiblesPadres,
     loading,
     error,
     fetchCuentas,
+    fetchPosiblesPadres,
     crearCuenta,
     actualizarCuenta,
     eliminarCuenta,
@@ -246,77 +285,224 @@ const PlanCuentasSection = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedCuenta, setSelectedCuenta] = useState(null);
   const [formData, setFormData] = useState({
-    grupo: '',
-    subcodigo: '',
+    padre_id: null,
+    codigo: '',
     nombre: '',
-    tipo: 'activo'
+    tipo: 'activo',
+    nivel: 1,
+    categoria: 'PRINCIPAL',
+    imputable: false,
+    moneda_original: 'USD',
+    requiere_cotizacion: false
   });
-  const [expandedGroups, setExpandedGroups] = useState({});
+  const [expandedNodes, setExpandedNodes] = useState({});
 
-  const toggleGroup = (codigo) => {
-    setExpandedGroups(prev => ({ ...prev, [codigo]: !prev[codigo] }));
+  const toggleNode = (nodeId) => {
+    setExpandedNodes(prev => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
 
-  // Definir los grupos principales
-  const grupos = [
-    { codigo: '1', nombre: 'ACTIVO', tipo: 'activo' },
-    { codigo: '2', nombre: 'PASIVO', tipo: 'pasivo' },
-    { codigo: '3', nombre: 'PATRIMONIO NETO', tipo: 'patrimonio' },
-    { codigo: '4', nombre: 'INGRESOS', tipo: 'ingreso' },
-    { codigo: '5', nombre: 'EGRESOS', tipo: 'egreso' }
-  ];
+  // Expandir todas las categorías
+  const expandirTodas = () => {
+    const allNodes = {};
+    const expandRecursively = (cuentas) => {
+      cuentas.forEach(cuenta => {
+        if (!cuenta.imputable && cuenta.children && cuenta.children.length > 0) {
+          allNodes[cuenta.id] = true;
+        }
+        if (cuenta.children) {
+          expandRecursively(cuenta.children);
+        }
+      });
+    };
+    expandRecursively(cuentasArbol);
+    setExpandedNodes(allNodes);
+  };
 
-  // Obtener el grupo seleccionado
-  const grupoSeleccionado = grupos.find(g => g.codigo === formData.grupo);
+  // Colapsar todas las categorías
+  const colapsarTodas = () => {
+    setExpandedNodes({});
+  };
 
-  // Generar el código completo
-  const codigoCompleto = formData.grupo && formData.subcodigo 
-    ? `${formData.grupo}.${formData.subcodigo}` 
-    : '';
+  // Determinar automáticamente configuración de la cuenta según código y nombre
+  const determinarConfiguracionCuenta = (codigo, nombre) => {
+    const cuentasARSEspecificas = [
+      'Caja La Plata Pesos', 'Caja CABA Pesos', 'Bancos físicos',
+      'Banco Provincia Update Tech SRL', 'Banco Mercury Update Tech WW LLC',
+      'Banco Provincia Yael', 'Banco Francés Ramiro', 'Banco Francés Alvaro',
+      'Mercado Pago Yae', 'Ualá Yae', 'Mercado Pago Rama', 'Ualá Rama',
+      'Caja móvil Yae Pesos', 'Caja móvil Rama Pesos', 'Caja móvil Alvaro Pesos'
+    ];
+
+    const esARS = cuentasARSEspecificas.some(cuentaARS => 
+      nombre.toLowerCase().includes(cuentaARS.toLowerCase()) ||
+      nombre.toLowerCase().includes('pesos')
+    );
+
+    return {
+      moneda_original: esARS ? 'ARS' : 'USD',
+      requiere_cotizacion: esARS
+    };
+  };
 
   useEffect(() => {
     fetchCuentas();
+    fetchPosiblesPadres();
   }, []);
-
-  // Debug: mostrar las cuentas que se cargan
+  
+  // Inicializar todos los nodos colapsados para una vista más limpia
   useEffect(() => {
-    console.log('📋 Plan de cuentas cargado:', cuentas);
-  }, [cuentas]);
+    if (cuentasArbol.length > 0) {
+      setExpandedNodes({}); // Todos colapsados por defecto para vista más limpia
+    }
+  }, [cuentasArbol]);
+
+
+  // Función recursiva para renderizar el árbol
+  const renderAccountNode = (cuenta, nivel = 0) => {
+    const tieneHijos = cuenta.children && cuenta.children.length > 0;
+    const estaExpandido = expandedNodes[cuenta.id];
+    const identacion = nivel * 20;
+    const esCategoria = !cuenta.imputable; // Las cuentas no imputables son categorías
+    
+    
+
+    return (
+      <div key={cuenta.id}>
+        <div 
+          className={`flex items-center justify-between py-3 px-4 border-b border-slate-200 transition-all duration-200 ${
+            tieneHijos ? 'cursor-pointer' : 'cursor-default'
+          } ${
+            esCategoria 
+              ? 'hover:bg-slate-100 bg-slate-50' 
+              : 'hover:bg-slate-50 bg-white'
+          }`}
+          onClick={() => {
+            if (tieneHijos) {
+              toggleNode(cuenta.id);
+            }
+          }}
+        >
+          <div className="flex items-center space-x-4 flex-1" style={{ paddingLeft: `${identacion}px` }}>
+            {/* Botón de expansión/colapso - Para todas las cuentas con hijos */}
+            {tieneHijos ? (
+              <div className="w-5 h-5 flex items-center justify-center">
+                {estaExpandido ? (
+                  <ChevronDown size={16} className="text-slate-600" />
+                ) : (
+                  <ChevronDown size={16} className="text-slate-600 transform -rotate-90" />
+                )}
+              </div>
+            ) : (
+              <div className="w-5 h-5 flex-shrink-0"></div>
+            )}
+
+            {/* Código de cuenta */}
+            <code className={`text-sm font-mono font-medium min-w-[100px] ${
+              esCategoria 
+                ? 'text-slate-800 font-semibold' 
+                : 'text-slate-700'
+            }`}>
+              {cuenta.codigo}
+            </code>
+
+            {/* Nombre de cuenta */}
+            <span className={`text-sm flex-1 ${
+              esCategoria 
+                ? 'text-slate-800 font-semibold' 
+                : 'text-slate-800'
+            }`}>
+              {cuenta.nombre}
+            </span>
+
+            {/* Badge de moneda - solo para cuentas imputables */}
+            {!esCategoria && (
+              <span className={`px-2 py-1 text-xs font-medium rounded border ${
+                cuenta.moneda_original === 'USD' 
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                  : 'bg-blue-100 text-blue-700 border-blue-200'
+              }`}>
+                {cuenta.moneda_original}
+              </span>
+            )}
+          </div>
+
+          {/* Botones de acción */}
+          <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => editarCuenta(cuenta)}
+              className="p-1.5 text-slate-600 hover:bg-slate-200 rounded transition-colors"
+              title="Editar cuenta"
+            >
+              <Edit2 size={14} />
+            </button>
+            <button
+              onClick={() => confirmarEliminar(cuenta)}
+              className="p-1.5 text-slate-600 hover:bg-slate-200 rounded transition-colors"
+              title="Eliminar cuenta"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Renderizar hijos si están expandidos */}
+        {tieneHijos && estaExpandido && (
+          <div className="border-l-2 border-slate-300 ml-6">
+            {cuenta.children.map(hijo => renderAccountNode(hijo, nivel + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const nuevaCuenta = () => {
     setSelectedCuenta(null);
+    const configMoneda = determinarConfiguracionCuenta('', '');
     setFormData({
-      grupo: '',
-      subcodigo: '',
+      padre_id: null,
+      codigo: '',
       nombre: '',
-      tipo: 'activo'
+      tipo: 'activo',
+      nivel: 1,
+      categoria: 'PRINCIPAL',
+      imputable: false,
+      moneda_original: configMoneda.moneda_original,
+      requiere_cotizacion: configMoneda.requiere_cotizacion
     });
     setShowModal(true);
   };
 
   const editarCuenta = (cuenta) => {
     setSelectedCuenta(cuenta);
-    const partes = cuenta.codigo.split('.');
     setFormData({
-      grupo: partes[0] || '',
-      subcodigo: partes.slice(1).join('.') || '',
+      padre_id: cuenta.padre_id,
+      codigo: cuenta.codigo,
       nombre: cuenta.nombre,
-      tipo: cuenta.tipo
+      tipo: cuenta.tipo,
+      nivel: cuenta.nivel,
+      categoria: cuenta.categoria,
+      imputable: cuenta.imputable,
+      moneda_original: cuenta.moneda_original || 'USD',
+      requiere_cotizacion: cuenta.requiere_cotizacion || false
     });
     setShowModal(true);
   };
 
   const confirmarEliminar = async (cuenta) => {
-    const mensaje = `La cuenta "${cuenta.codigo} - ${cuenta.nombre}" puede tener registros asociados.
+    // Validar si se puede eliminar (usando las funciones de jerarquía)
+    const validacion = validateAccountDeletion(cuenta, cuentas);
+    
+    if (!validacion.canDelete) {
+      alert(`❌ No se puede eliminar: ${validacion.reason}`);
+      return;
+    }
 
-` +
-                   `Opciones:
-` +
-                   `• CANCELAR - No hacer nada
-` +
-                   `• OK - Intentar eliminar (puede fallar si tiene dependencias)
-` +
-                   `• Si falla, puede desactivar la cuenta en su lugar`;
+    const mensaje = `¿Está seguro que desea eliminar la cuenta "${cuenta.codigo} - ${cuenta.nombre}"?
+
+Esta acción no se puede deshacer.
+
+• CANCELAR - No hacer nada
+• OK - Eliminar definitivamente la cuenta`;
     
     if (confirm(mensaje)) {
       try {
@@ -327,15 +513,10 @@ const PlanCuentasSection = () => {
         
         // Si falla la eliminación, ofrecer desactivar
         const confirmarDesactivar = confirm(
-          `❌ No se pudo eliminar la cuenta porque tiene registros asociados.
+          `❌ No se pudo eliminar la cuenta: ${error.message}
 
-` +
-          `Error: ${error.message}
-
-` +
-          `¿Desea DESACTIVAR la cuenta en su lugar?
-` +
-          `(La cuenta no aparecerá en nuevos registros pero mantendrá el historial)`
+¿Desea DESACTIVAR la cuenta en su lugar?
+(La cuenta no aparecerá en nuevos registros pero mantendrá el historial)`
         );
         
         if (confirmarDesactivar) {
@@ -359,13 +540,9 @@ const PlanCuentasSection = () => {
 
   const guardarCuenta = async () => {
     try {
-      // Validaciones
-      if (!formData.grupo) {
-        alert('Debe seleccionar un grupo');
-        return;
-      }
-      if (!formData.subcodigo.trim()) {
-        alert('El subcódigo es obligatorio');
+      // Validaciones básicas
+      if (!formData.codigo.trim()) {
+        alert('El código es obligatorio');
         return;
       }
       if (!formData.nombre.trim()) {
@@ -373,10 +550,26 @@ const PlanCuentasSection = () => {
         return;
       }
 
+      // Validar código según nivel
+      const validacionCodigo = validateAccountCode(formData.codigo, formData.nivel);
+      if (!validacionCodigo.isValid) {
+        alert(`❌ Código inválido: ${validacionCodigo.message}`);
+        return;
+      }
+
+      // Configurar moneda automáticamente según el nombre
+      const configMoneda = determinarConfiguracionCuenta(formData.codigo, formData.nombre);
+
       const datosParaGuardar = {
-        codigo: codigoCompleto,
+        codigo: formData.codigo,
         nombre: formData.nombre,
-        tipo: formData.tipo
+        tipo: formData.tipo,
+        padre_id: formData.padre_id || null,
+        nivel: formData.nivel,
+        categoria: formData.categoria,
+        imputable: formData.imputable,
+        moneda_original: configMoneda.moneda_original,
+        requiere_cotizacion: configMoneda.requiere_cotizacion
       };
 
       if (selectedCuenta) {
@@ -397,123 +590,108 @@ const PlanCuentasSection = () => {
   }
 
   return (
-    <div className="p-0">
-      <div className="bg-white overflow-hidden">
+    <div className="p-6">
+      <div>
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-800 text-white p-5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-                            <BookOpen size={28} className='mt-2'/>
-
-              <div>
-                
-                <p className="text-slate-200 mt-2">Agregar o editar cuentas activas.</p>
+        <div className="bg-white rounded border border-slate-200 mb-4">
+          <div className="p-6 bg-slate-800 text-white">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <BookOpen className="w-6 h-6" />
+                <div>
+                  <h2 className="text-2xl font-semibold">Plan de Cuentas</h2>
+                  <p className="text-slate-300 mt-1">Estructura jerárquica de cuentas contables</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={expandirTodas}
+                    className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                    title="Expandir todas las categorías"
+                  >
+                    <ChevronDown size={14} />
+                    Expandir
+                  </button>
+                  <button
+                    onClick={colapsarTodas}
+                    className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                    title="Colapsar todas las categorías"
+                  >
+                    <ChevronUp size={14} />
+                    Colapsar
+                  </button>
+                </div>
+                <button
+                  onClick={nuevaCuenta}
+                  className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 transition-colors"
+                >
+                  <Plus size={16} />
+                  Nueva Cuenta
+                </button>
               </div>
             </div>
-            <button
-              onClick={nuevaCuenta}
-              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-white/90 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={18} />
-              Nueva Cuenta
-            </button>
           </div>
         </div>
 
         {/* Estado de error */}
         {error && (
-          <div className="bg-slate-200 border-l-4 border-slate-800 p-6 m-8">
-            <div className="flex items-center">
-              <AlertCircle className="text-slate-800 mr-3" size={20} />
-              <span className="text-slate-800">{error}</span>
+          <div className="bg-white rounded border border-slate-200 mb-4">
+            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+              <div className="flex items-center">
+                <AlertCircle className="text-red-600 mr-3" size={20} />
+                <span className="text-red-800">{error}</span>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Lista de Cuentas con Jerarquía */}
-        <div className="divide-y divide-slate-200">
-          {cuentas.length > 0 ? (
-            grupos.map(grupo => {
-              const cuentasDelGrupo = cuentas.filter(c => c.codigo.startsWith(`${grupo.codigo}.`));
-              if (cuentasDelGrupo.length === 0) return null;
-
-              const isExpanded = expandedGroups[grupo.codigo];
-
-              return (
-                <div key={grupo.codigo}>
-                  <div
-                    onClick={() => toggleGroup(grupo.codigo)}
-                    className="flex items-center justify-between p-4 hover:bg-slate-100 cursor-pointer border-b border-slate-200"
-                  >
-                    <div className="flex items-center space-x-4">
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      <h3 className="font-semibold text-slate-800 text-md">{grupo.nombre}</h3>
-                      <span className="px-2 py-0.5 text-xs rounded font-medium bg-slate-200 text-slate-600">
-                        {cuentasDelGrupo.length} cuentas
-                      </span>
-                    </div>
-                  </div>
-                  {isExpanded && (
-                    <div className="pl-8 divide-y divide-slate-100">
-                      {cuentasDelGrupo.map(cuenta => (
-                        <div key={cuenta.id} className="flex items-center justify-between p-3 hover:bg-slate-50">
-                          <div className="flex items-center space-x-4">
-                            <code className="text-sm font-mono text-slate-700 bg-slate-100 px-3 py-1 rounded min-w-[90px] border border-slate-200">
-                              {cuenta.codigo}
-                            </code>
-                            <span className="font-medium text-slate-800 text-sm">{cuenta.nombre}</span>
-                            <span className="px-2 py-0.5 text-xs rounded font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                              {cuenta.tipo.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => editarCuenta(cuenta)}
-                              className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors border border-slate-200"
-                              title="Editar cuenta"
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button
-                              onClick={() => confirmarEliminar(cuenta)}
-                              className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors border border-slate-200"
-                              title="Eliminar cuenta"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+        {/* Árbol Jerárquico del Plan de Cuentas */}
+        <div className="bg-white rounded border border-slate-200">
+          {cuentasArbol.length > 0 ? (
+            <div className="divide-y divide-slate-200">
+              {cuentasArbol.map(nodoRaiz => renderAccountNode(nodoRaiz))}
+            </div>
           ) : (
-            <div className="p-16 text-center text-slate-800">
-              <BookOpen size={48} className="mx-auto mb-6 text-slate-200" />
-              <p className="mb-6">No hay cuentas configuradas</p>
-              <p className="text-sm text-slate-800 mb-6">
-                Necesitas crear cuentas para poder usar el libro diario
+            <div className="p-16 text-center text-slate-600">
+              <BookOpen size={48} className="mx-auto mb-6 text-slate-300" />
+              <p className="mb-6 text-slate-800">No hay cuentas configuradas</p>
+              <p className="text-sm text-slate-600 mb-6">
+                Necesitas crear cuentas para poder usar el sistema contable
               </p>
               <button
                 onClick={nuevaCuenta}
-                className="bg-slate-800 text-white px-6 py-3 rounded hover:bg-slate-800/90"
+                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
               >
                 Crear primera cuenta
               </button>
             </div>
           )}
-        </div>
-
-        {/* Estadísticas */}
-        {cuentas.length > 0 && (
-          <div className="bg-slate-200 p-6 border-t border-slate-200">
-            <div className="text-sm text-slate-800 text-center">
-              Total de cuentas: <span className="font-semibold">{cuentas.length}</span>
+          
+          {/* Estadísticas en el footer de la tarjeta */}
+          {cuentas.length > 0 && (
+            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 rounded-b">
+              <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
+                <div>
+                  Total: <span className="font-semibold text-slate-800">{cuentas.length}</span>
+                </div>
+                <div className="h-4 w-px bg-slate-300"></div>
+                <div>
+                  Categorías: <span className="font-semibold text-slate-800">{cuentas.filter(c => !c.imputable).length}</span>
+                </div>
+                <div className="h-4 w-px bg-slate-300"></div>
+                <div>
+                  Cuentas: <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable).length}</span>
+                </div>
+                <div className="h-4 w-px bg-slate-300"></div>
+                <div>
+                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.moneda_original === 'USD').length}</span> USD · 
+                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.moneda_original === 'ARS').length}</span> ARS
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Modal para crear/editar cuenta */}
@@ -528,64 +706,47 @@ const PlanCuentasSection = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-800 mb-3">
-                  Grupo Principal *
+                  Cuenta Padre
                 </label>
                 <select
-                  value={formData.grupo}
+                  value={formData.padre_id || ''}
                   onChange={(e) => {
-                    const grupo = grupos.find(g => g.codigo === e.target.value);
+                    const padreId = e.target.value ? parseInt(e.target.value) : null;
+                    const padre = posiblesPadres.find(p => p.id === padreId);
                     setFormData({
                       ...formData, 
-                      grupo: e.target.value,
-                      tipo: grupo ? grupo.tipo : 'activo'
+                      padre_id: padreId,
+                      tipo: padre ? padre.tipo : 'activo',
+                      nivel: padre ? padre.nivel + 1 : 1,
+                      categoria: padre && padre.nivel < 4 ? 'SUBCATEGORIA' : 'CUENTA',
+                      imputable: padre ? padre.nivel >= 4 : false
                     });
                   }}
                   className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                 >
-                  <option value="">Seleccionar grupo...</option>
-                  {grupos.map(grupo => (
-                    <option key={grupo.codigo} value={grupo.codigo}>
-                      {grupo.codigo} - {grupo.nombre}
+                  <option value="">Raíz (Sin padre)</option>
+                  {posiblesPadres.map(padre => (
+                    <option key={padre.id} value={padre.id}>
+                      {padre.codigo} - {padre.nombre}
                     </option>
                   ))}
                 </select>
               </div>
-
-              {formData.grupo && (
-                <div className="bg-slate-200 p-4 rounded border border-slate-200">
-                  <div className="flex items-center space-x-3">
-                    <span className="px-3 py-1 text-xs rounded font-medium border bg-slate-200 text-slate-800 border-slate-200">
-                      {grupoSeleccionado?.tipo.toUpperCase()}
-                    </span>
-                    <span className="text-sm text-slate-800">
-                      Seleccionaste: <strong>{grupoSeleccionado?.nombre}</strong>
-                    </span>
-                  </div>
-                </div>
-              )}
               
               <div>
                 <label className="block text-sm font-medium text-slate-800 mb-3">
-                  Subcódigo *
+                  Código de Cuenta *
                 </label>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg font-mono text-slate-800 bg-slate-200 px-4 py-3 rounded border border-slate-200">
-                    {formData.grupo || '?'}.
-                  </span>
-                  <input
-                    type="text"
-                    value={formData.subcodigo}
-                    onChange={(e) => setFormData({...formData, subcodigo: e.target.value})}
-                    className="flex-1 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                    placeholder="01, 02, 03..."
-                    disabled={!formData.grupo}
-                  />
-                </div>
-                {codigoCompleto && (
-                  <p className="text-xs text-emerald-600 mt-2">
-                    ✓ Código completo: <strong>{codigoCompleto}</strong>
-                  </p>
-                )}
+                <input
+                  type="text"
+                  value={formData.codigo}
+                  onChange={(e) => setFormData({...formData, codigo: e.target.value})}
+                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                  placeholder="Ej: 1.1.01.01 o 4.1.02"
+                />
+                <p className="text-xs text-slate-600 mt-2">
+                  Ingrese el código jerárquico completo según el nivel deseado
+                </p>
               </div>
               
               <div>
@@ -607,12 +768,81 @@ const PlanCuentasSection = () => {
                 </label>
                 <div className="w-full px-4 py-3 rounded border-2 border-dashed border-slate-200 bg-slate-200">
                   <span className="text-sm font-medium text-slate-800">
-                    {grupoSeleccionado ? grupoSeleccionado.tipo.toUpperCase() : 'Selecciona un grupo primero'}
+                    {formData.tipo ? formData.tipo.toUpperCase() : 'ACTIVO'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-800 mt-2">
-                  El tipo se asigna automáticamente según el grupo seleccionado
+                  El tipo se asigna automáticamente según la cuenta padre seleccionada
                 </p>
+              </div>
+
+              {/* Configuración de Moneda */}
+              <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                <h4 className="text-sm font-semibold text-slate-800 mb-4">Configuración de Moneda</h4>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-800 mb-2">
+                      Moneda Original *
+                    </label>
+                    <select
+                      value={formData.moneda_original}
+                      onChange={(e) => {
+                        const nuevaMoneda = e.target.value;
+                        setFormData({
+                          ...formData, 
+                          moneda_original: nuevaMoneda,
+                          // Si es ARS, automáticamente requiere cotización para convertir a USD
+                          requiere_cotizacion: nuevaMoneda === 'ARS'
+                        });
+                      }}
+                      className="w-full border border-slate-200 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                    >
+                      <option value="USD">USD - Dólares Americanos</option>
+                      <option value="ARS">ARS - Pesos Argentinos</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={formData.requiere_cotizacion}
+                        onChange={(e) => setFormData({...formData, requiere_cotizacion: e.target.checked})}
+                        disabled={formData.moneda_original === 'ARS'} // ARS siempre requiere cotización
+                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded"
+                      />
+                      <span className="text-sm font-medium text-slate-800">
+                        Requiere cotización para conversión
+                      </span>
+                    </label>
+                    <p className="text-xs text-slate-600 mt-2 ml-7">
+                      {formData.moneda_original === 'ARS' 
+                        ? 'Las cuentas en ARS siempre requieren cotización para convertir a USD (moneda principal del sistema)'
+                        : 'Las cuentas en USD no requieren cotización ya que es la moneda principal del sistema'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Vista previa */}
+                  <div className="bg-white p-3 rounded border border-slate-200">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-medium text-slate-600">Vista previa:</span>
+                      <span className={`px-2 py-1 text-xs rounded font-medium border ${
+                        formData.moneda_original === 'USD' 
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                          : 'bg-blue-100 text-blue-800 border-blue-200'
+                      }`}>
+                        {formData.moneda_original}
+                      </span>
+                      {formData.requiere_cotizacion && (
+                        <span className="px-2 py-1 text-xs rounded font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                          COT
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             

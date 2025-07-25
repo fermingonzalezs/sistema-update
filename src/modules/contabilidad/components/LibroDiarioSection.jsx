@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import SelectorCuentaConCotizacion from '../../../components/SelectorCuentaConCotizacion';
+import SelectorCuentaImputableConCotizacion from '../../../components/SelectorCuentaImputableConCotizacion';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { prepararMovimientoContable, validarBalanceUSD } from '../../../shared/utils/currency';
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -33,13 +33,14 @@ const libroDiarioService = {
   },
 
   async getCuentasImputables() {
-    console.log('📡 Obteniendo cuentas disponibles...');
+    console.log('📡 Obteniendo cuentas imputables...');
 
     try {
       const { data, error } = await supabase
         .from('plan_cuentas')
         .select('id, codigo, nombre, moneda_original, requiere_cotizacion')
         .eq('activa', true)
+        .eq('imputable', true)  // Solo cuentas imputables
         .order('codigo');
 
       if (error) {
@@ -49,6 +50,7 @@ const libroDiarioService = {
           .from('plan_cuentas')
           .select('id, codigo, nombre')
           .eq('activa', true)
+          .eq('imputable', true)  // Solo cuentas imputables
           .order('codigo');
         
         if (errorBasico) {
@@ -62,14 +64,14 @@ const libroDiarioService = {
           requiere_cotizacion: false
         }));
         
-        console.log(`✅ ${cuentasConDefecto.length} cuentas obtenidas (modo básico)`);
+        console.log(`✅ ${cuentasConDefecto.length} cuentas imputables obtenidas (modo básico)`);
         return cuentasConDefecto;
       }
 
-      console.log(`✅ ${data.length} cuentas obtenidas`);
+      console.log(`✅ ${data.length} cuentas imputables obtenidas`);
       return data;
     } catch (error) {
-      console.error('❌ Error obteniendo cuentas:', error);
+      console.error('❌ Error obteniendo cuentas imputables:', error);
       throw error;
     }
   },
@@ -975,7 +977,7 @@ const LibroDiarioSection = () => {
                   <div className="flex items-center">
                     <AlertCircle className="text-slate-800 mr-3" size={16} />
                     <span className="text-slate-800 text-sm">
-                      No se encontraron cuentas. Verifica que tengas cuentas creadas en el plan de cuentas.
+                      No se encontraron cuentas imputables. Verifica que tengas cuentas marcadas como imputables en el plan de cuentas.
                     </span>
                   </div>
                 </div>
@@ -1046,8 +1048,8 @@ const LibroDiarioSection = () => {
                         </div>
                       </div>
 
-                      {/* Componente SelectorCuentaConCotizacion */}
-                      <SelectorCuentaConCotizacion
+                      {/* Componente SelectorCuentaImputableConCotizacion */}
+                      <SelectorCuentaImputableConCotizacion
                         cuentaSeleccionada={mov.cuenta}
                         onCuentaChange={(cuenta) => actualizarMovimiento(index, 'cuenta', cuenta)}
                         monto={mov.monto}

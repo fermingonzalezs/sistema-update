@@ -159,19 +159,15 @@ export const prepararMovimientoContable = (movimientoData, cuenta, cotizacion = 
       debe: tipo === 'debe' ? conversion.montoUSD : 0,
       haber: tipo === 'haber' ? conversion.montoUSD : 0,
       monto_original_ars: conversion.montoOriginalARS,
-      cotizacion_usada: conversion.cotizacionUsada,
-      fuente_cotizacion: conversion.fuenteCotizacion,
-      observaciones: `Convertido: $${monto} ARS → $${conversion.montoUSD.toFixed(4)} USD (cotización: $${conversion.cotizacionUsada})`
+      cotizacion_manual: conversion.cotizacionUsada,
+      observaciones_cambio: `Convertido: $${monto} ARS → $${conversion.montoUSD.toFixed(4)} USD (cotización: $${conversion.cotizacionUsada})`
     };
   } else {
     return {
       cuenta_id: cuenta.id,
       debe: tipo === 'debe' ? monto : 0,
-      haber: tipo === 'haber' ? monto : 0,
-      monto_original_ars: null,
-      cotizacion_usada: null,
-      fuente_cotizacion: null,
-      observaciones: null
+      haber: tipo === 'haber' ? monto : 0
+      // No agregar campos de conversión para cuentas USD (constraint check)
     };
   }
 };

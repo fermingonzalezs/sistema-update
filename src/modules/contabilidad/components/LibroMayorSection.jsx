@@ -108,6 +108,7 @@ const libroMayorService = {
 
         if (movimientosAnteriores) {
           saldoInicial = movimientosAnteriores.reduce((acc, mov) => {
+            // CORRECCIÓN: Debe aumenta saldo, Haber lo disminuye
             return acc + parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0);
           }, 0);
         }
@@ -119,7 +120,9 @@ const libroMayorService = {
     const movimientosConSaldo = movimientos.map(mov => {
       const debe = parseFloat(mov.debe || 0);
       const haber = parseFloat(mov.haber || 0);
-      saldoAcumulado += haber - debe;
+      
+      // CORRECCIÓN: En contabilidad, Debe aumenta saldo y Haber lo disminuye
+      saldoAcumulado += debe - haber;
       
       return {
         ...mov,
@@ -154,6 +157,7 @@ const libroMayorService = {
     const totalMovimientos = movimientos.length;
     const totalDebe = movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0);
     const totalHaber = movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0);
+    // CORRECCIÓN: Debe aumenta saldo, Haber lo disminuye
     const saldoActual = totalDebe - totalHaber;
 
     // Calcular actividad por mes
@@ -435,11 +439,16 @@ const LibroMayorSection = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-slate-500 mb-1">Saldo actual</div>
-                            <div className={`font-semibold text-sm text-slate-800`}>
+                            <div className={`font-semibold text-sm ${(cuenta.saldoActual || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                               {loadingSaldos ? (
                                 <span className="text-slate-400">Cargando...</span>
                               ) : (
-                                formatearMoneda(Math.abs(cuenta.saldoActual || 0))
+                                <>
+                                  {formatearMoneda(Math.abs(cuenta.saldoActual || 0))}
+                                  <span className="text-xs ml-1">
+                                    {(cuenta.saldoActual || 0) >= 0 ? 'Deudor' : 'Acreedor'}
+                                  </span>
+                                </>
                               )}
                             </div>
                           </div>
@@ -529,8 +538,9 @@ const LibroMayorSection = () => {
 
                   <Tarjeta  
                     icon={TrendingUp}
-                    titulo={'Saldo actual'}
+                    titulo={`Saldo actual ${estadisticas.saldoActual >= 0 ? '(Deudor)' : '(Acreedor)'}`}
                     valor={formatearMoneda(Math.abs(estadisticas.saldoActual))}
+                    className={estadisticas.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}
                   />
 
                   
@@ -560,7 +570,11 @@ const LibroMayorSection = () => {
                   </h3>
                   {filtros.fechaDesde && (
                     <div className="text-sm text-slate-600">
-                      Saldo inicial: <span className="font-medium">{formatearMoneda(libroMayor.saldoInicial)}</span>
+                      Saldo inicial: 
+                      <span className={`font-medium ${libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {formatearMoneda(Math.abs(libroMayor.saldoInicial))} 
+                        {libroMayor.saldoInicial >= 0 ? ' (Deudor)' : ' (Acreedor)'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -586,8 +600,13 @@ const LibroMayorSection = () => {
                           <td className="py-3 px-4 text-sm font-medium text-slate-700">SALDO INICIAL</td>
                           <td className="py-3 px-4"></td>
                           <td className="py-3 px-4"></td>
-                          <td className="text-right py-3 px-4 font-bold text-slate-700">
-                            {formatearMoneda(libroMayor.saldoInicial)}
+                          <td className="text-right py-3 px-4 font-bold">
+                            <span className={libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                              {formatearMoneda(Math.abs(libroMayor.saldoInicial))} 
+                              <span className="text-xs ml-1 font-normal">
+                                {libroMayor.saldoInicial >= 0 ? 'D' : 'A'}
+                              </span>
+                            </span>
                           </td>
                         </tr>
                       )}
@@ -618,8 +637,11 @@ const LibroMayorSection = () => {
                             ) : ''}
                           </td>
                           <td className="text-right py-3 px-4 font-bold">
-                            <span className={'text-slate-800'}>
-                              {formatearMoneda(Math.abs(mov.saldoActual))}
+                            <span className={mov.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                              {formatearMoneda(Math.abs(mov.saldoActual))} 
+                              <span className="text-xs ml-1 font-normal">
+                                {mov.saldoActual >= 0 ? 'D' : 'A'}
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -634,8 +656,13 @@ const LibroMayorSection = () => {
                         <td className="text-right py-3 px-4 text-slate-600">
                           {formatearMoneda(libroMayor.totalHaber)}
                         </td>
-                        <td className="text-right py-3 px-4 text-slate-600">
-                          {formatearMoneda(libroMayor.saldoFinal)}
+                        <td className="text-right py-3 px-4 font-bold">
+                          <span className={libroMayor.saldoFinal >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                            {formatearMoneda(Math.abs(libroMayor.saldoFinal))} 
+                            <span className="text-xs ml-1 font-normal">
+                              {libroMayor.saldoFinal >= 0 ? 'D' : 'A'}
+                            </span>
+                          </span>
                         </td>
                       </tr>
                     </tfoot>
