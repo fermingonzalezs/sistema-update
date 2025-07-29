@@ -1,5 +1,5 @@
 // src/lib/otros.js - Service + Hook completo ACTUALIZADO
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 // 📊 SERVICE: Operaciones de otros productos
@@ -11,7 +11,6 @@ export const otrosService = {
     const { data, error } = await supabase
       .from('otros')
       .select('*')
-      .eq('disponible', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -40,29 +39,21 @@ export const otrosService = {
       .from('otros')
       .insert([{
         // Información básica
-        nombre_producto: producto.nombre_producto.trim(),
+        nombre_producto: producto.nombre_producto?.trim() || producto.descripcion_producto?.trim(),
         descripcion: producto.descripcion?.trim() || '',
-        cantidad: parseInt(producto.cantidad) || 1,
+        categoria: producto.categoria || 'otros',
         
         // Precios - asegurar que sean números
         precio_compra_usd: parseFloat(producto.precio_compra_usd) || 0,
         precio_venta_usd: parseFloat(producto.precio_venta_usd) || 0,
-        precio_venta_pesos: parseFloat(producto.precio_venta_pesos) || 0,
         
-        // Clasificación y estado
-        categoria: producto.categoria || 'otros',
-        condicion: producto.condicion || 'nueva',
-        sucursal: producto.sucursal || 'la_plata',
+        // Cantidades por sucursal
+        cantidad_la_plata: parseInt(producto.cantidad_la_plata) || (producto.sucursal === 'la_plata' ? parseInt(producto.cantidad) || 1 : 0),
+        cantidad_mitre: parseInt(producto.cantidad_mitre) || (producto.sucursal === 'mitre' ? parseInt(producto.cantidad) || 1 : 0),
         
         // Información adicional
         garantia: producto.garantia || '',
-        fallas: producto.fallas || 'Ninguna',
-        
-        // Control
-        disponible: producto.disponible !== false,
-        
-        // Fecha de ingreso
-        ingreso: producto.ingreso || new Date().toISOString().split('T')[0]
+        observaciones: producto.observaciones || producto.fallas || 'Ninguna'
       }])
       .select()
     
@@ -91,11 +82,11 @@ export const otrosService = {
     if (updates.precio_venta_usd !== undefined) {
       cleanUpdates.precio_venta_usd = parseFloat(updates.precio_venta_usd) || 0;
     }
-    if (updates.precio_venta_pesos !== undefined) {
-      cleanUpdates.precio_venta_pesos = parseFloat(updates.precio_venta_pesos) || 0;
+    if (updates.cantidad_la_plata !== undefined) {
+      cleanUpdates.cantidad_la_plata = parseInt(updates.cantidad_la_plata) || 0;
     }
-    if (updates.cantidad !== undefined) {
-      cleanUpdates.cantidad = parseInt(updates.cantidad) || 1;
+    if (updates.cantidad_mitre !== undefined) {
+      cleanUpdates.cantidad_mitre = parseInt(updates.cantidad_mitre) || 0;
     }
 
     const { data, error } = await supabase
@@ -142,19 +133,19 @@ export const otrosService = {
   },
 
   // Reducir cantidad cuando se vende
-  async reducirCantidad(id, cantidadVendida) {
+  async reducirCantidad(id, cantidadVendida, sucursal = 'la_plata') {
     const producto = await this.getById(id)
     if (!producto) throw new Error('Producto no encontrado')
     
-    const nuevaCantidad = producto.cantidad - cantidadVendida
+    const campoSucursal = sucursal === 'mitre' ? 'cantidad_mitre' : 'cantidad_la_plata'
+    const cantidadActual = producto[campoSucursal] || 0
+    const nuevaCantidad = cantidadActual - cantidadVendida
     
-    if (nuevaCantidad <= 0) {
-      // Si no queda stock, marcar como no disponible
-      return await this.update(id, { cantidad: 0, disponible: false })
-    } else {
-      // Solo reducir la cantidad
-      return await this.update(id, { cantidad: nuevaCantidad })
+    if (nuevaCantidad < 0) {
+      throw new Error('No hay suficiente stock en esta sucursal')
     }
+    
+    return await this.update(id, { [campoSucursal]: nuevaCantidad })
   },
 
   // Obtener por ID
@@ -188,15 +179,16 @@ export const otrosService = {
     return data
   },
 
-  // Buscar productos por sucursal
+  // Buscar productos por sucursal (productos que tienen stock en esa sucursal)
   async getBySucursal(sucursal) {
     console.log(`🏢 Buscando productos en sucursal: ${sucursal}`)
+    
+    const campoSucursal = sucursal === 'mitre' ? 'cantidad_mitre' : 'cantidad_la_plata'
     
     const { data, error } = await supabase
       .from('otros')
       .select('*')
-      .eq('sucursal', sucursal)
-      .eq('disponible', true)
+      .gt(campoSucursal, 0)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -213,8 +205,7 @@ export const otrosService = {
     
     const { data, error } = await supabase
       .from('otros')
-      .select('categoria, condicion, cantidad, precio_venta_usd')
-      .eq('disponible', true)
+      .select('categoria, cantidad_la_plata, cantidad_mitre, precio_venta_usd')
     
     if (error) {
       console.error('❌ Error obteniendo estadísticas:', error)
@@ -224,28 +215,26 @@ export const otrosService = {
     // Calcular estadísticas
     const estadisticas = {
       totalProductos: data.length,
-      totalUnidades: data.reduce((sum, item) => sum + item.cantidad, 0),
-      valorInventario: data.reduce((sum, item) => sum + (item.precio_venta_usd * item.cantidad), 0),
-      categorias: {},
-      condiciones: {}
+      totalUnidades: data.reduce((sum, item) => sum + (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0), 0),
+      totalUnidadesLaPlata: data.reduce((sum, item) => sum + (item.cantidad_la_plata || 0), 0),
+      totalUnidadesMitre: data.reduce((sum, item) => sum + (item.cantidad_mitre || 0), 0),
+      valorInventario: data.reduce((sum, item) => sum + (item.precio_venta_usd * ((item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0))), 0),
+      categorias: {}
     }
     
-    // Agrupar por categoría y condición
+    // Agrupar por categoría
     data.forEach(item => {
+      const totalUnidades = (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0)
+      
       // Por categoría
       if (!estadisticas.categorias[item.categoria]) {
-        estadisticas.categorias[item.categoria] = { productos: 0, unidades: 0, valor: 0 }
+        estadisticas.categorias[item.categoria] = { productos: 0, unidades: 0, unidadesLaPlata: 0, unidadesMitre: 0, valor: 0 }
       }
       estadisticas.categorias[item.categoria].productos++
-      estadisticas.categorias[item.categoria].unidades += item.cantidad
-      estadisticas.categorias[item.categoria].valor += item.precio_venta_usd * item.cantidad
-      
-      // Por condición
-      if (!estadisticas.condiciones[item.condicion]) {
-        estadisticas.condiciones[item.condicion] = { productos: 0, unidades: 0 }
-      }
-      estadisticas.condiciones[item.condicion].productos++
-      estadisticas.condiciones[item.condicion].unidades += item.cantidad
+      estadisticas.categorias[item.categoria].unidades += totalUnidades
+      estadisticas.categorias[item.categoria].unidadesLaPlata += item.cantidad_la_plata || 0
+      estadisticas.categorias[item.categoria].unidadesMitre += item.cantidad_mitre || 0
+      estadisticas.categorias[item.categoria].valor += item.precio_venta_usd * totalUnidades
     })
     
     return estadisticas
@@ -331,6 +320,11 @@ export function useOtros() {
       throw err
     }
   }
+
+  // Cargar datos automáticamente al montar el componente
+  useEffect(() => {
+    fetchOtros()
+  }, [])
 
   return {
     otros,

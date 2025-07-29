@@ -11,7 +11,6 @@ const repuestosService = {
     const { data, error } = await supabase
       .from('repuestos')
       .select('*')
-      .eq('disponible', true)
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -29,11 +28,15 @@ const repuestosService = {
     const { data, error } = await supabase
       .from('repuestos')
       .insert([{
-        ...repuesto,
-        precio_compra: parseFloat(repuesto.precio_compra) || 0,
-        precio_venta: parseFloat(repuesto.precio_venta) || 0,
-        cantidad: parseInt(repuesto.cantidad) || 0,
-        disponible: true
+        nombre_producto: repuesto.item,
+        descripcion: repuesto.descripcion || '',
+        categoria: repuesto.categoria,
+        precio_compra_usd: parseFloat(repuesto.precio_compra) || 0,
+        precio_venta_usd: parseFloat(repuesto.precio_venta) || 0,
+        cantidad_la_plata: parseInt(repuesto.cantidad_la_plata) || 0,
+        cantidad_mitre: parseInt(repuesto.cantidad_mitre) || 0,
+        garantia: repuesto.garantia || '',
+        observaciones: repuesto.observaciones || ''
       }])
       .select();
     
@@ -169,17 +172,23 @@ const RepuestosSection = () => {
   
   // Estados para recuento integrado
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
+  const [sucursalRecuento, setSucursalRecuento] = useState('');
   const [stockContado, setStockContado] = useState({});
   const [observacionesRecuento, setObservacionesRecuento] = useState('');
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
+  const [mostrarModalSucursal, setMostrarModalSucursal] = useState(false);
   
   // Estado del formulario
   const [formData, setFormData] = useState({
     item: '',
+    descripcion: '',
     precio_compra: '',
-    cantidad: '',
+    cantidad_la_plata: '',
+    cantidad_mitre: '',
     precio_venta: '',
-    categoria: ''
+    categoria: '',
+    garantia: '',
+    observaciones: ''
   });
 
   // Categorías predefinidas
@@ -226,8 +235,17 @@ const RepuestosSection = () => {
       alert('El precio de venta debe ser mayor a 0');
       return;
     }
-    if (!formData.cantidad || parseInt(formData.cantidad) < 0) {
-      alert('La cantidad debe ser 0 o mayor');
+    // Validar que al menos una cantidad sea válida
+    const cantidadLaPlata = parseInt(formData.cantidad_la_plata) || 0;
+    const cantidadMitre = parseInt(formData.cantidad_mitre) || 0;
+    
+    if (cantidadLaPlata < 0 || cantidadMitre < 0) {
+      alert('Las cantidades no pueden ser negativas');
+      return;
+    }
+    
+    if (cantidadLaPlata === 0 && cantidadMitre === 0) {
+      alert('Debe ingresar al menos una cantidad mayor a 0 para alguna sucursal');
       return;
     }
 
@@ -237,10 +255,14 @@ const RepuestosSection = () => {
       // Limpiar formulario
       setFormData({
         item: '',
+        descripcion: '',
         precio_compra: '',
-        cantidad: '',
+        cantidad_la_plata: '',
+        cantidad_mitre: '',
         precio_venta: '',
-        categoria: ''
+        categoria: '',
+        garantia: '',
+        observaciones: ''
       });
       
       alert('✅ Repuesto agregado exitosamente');
@@ -269,10 +291,16 @@ const RepuestosSection = () => {
 
   // Funciones de recuento integrado
   const iniciarRecuento = () => {
+    setMostrarModalSucursal(true);
+  };
+
+  const confirmarInicioRecuento = (sucursal) => {
+    setSucursalRecuento(sucursal);
     setRecuentoIniciado(true);
     setStockContado({});
     setObservacionesRecuento('');
     setMostrarSoloDiferencias(false);
+    setMostrarModalSucursal(false);
   };
 
   const actualizarStockContado = (repuestoId, cantidad) => {
@@ -287,26 +315,31 @@ const RepuestosSection = () => {
     const repuestosContados = [];
 
     repuestos.forEach(repuesto => {
-      const stockSistema = repuesto.cantidad || 0;
+      // Obtener stock de la sucursal específica
+      const stockSistema = sucursalRecuento === 'la_plata' 
+        ? (repuesto.cantidad_la_plata || 0)
+        : (repuesto.cantidad_mitre || 0);
       const stockReal = stockContado[repuesto.id];
 
       if (stockReal !== undefined) {
         repuestosContados.push({
           id: repuesto.id,
-          item: repuesto.item,
+          item: repuesto.nombre_producto,
           categoria: repuesto.categoria,
           stockSistema,
-          stockReal
+          stockReal,
+          sucursal: sucursalRecuento
         });
 
         if (stockReal !== stockSistema) {
           diferencias.push({
             id: repuesto.id,
-            item: repuesto.item,
+            item: repuesto.nombre_producto,
             categoria: repuesto.categoria,
             stockSistema,
             stockReal,
-            diferencia: stockReal - stockSistema
+            diferencia: stockReal - stockSistema,
+            sucursal: sucursalRecuento
           });
         }
       }
@@ -329,6 +362,7 @@ const RepuestosSection = () => {
         .from('recuentos_repuestos')
         .insert([{
           fecha_recuento: new Date().toISOString().split('T')[0],
+          sucursal: sucursalRecuento,
           tipo_recuento: repuestosContados.length === repuestos.length ? 'completo' : 'parcial',
           repuestos_contados: JSON.stringify(repuestosContados),
           diferencias_encontradas: JSON.stringify(diferencias),
@@ -348,14 +382,22 @@ const RepuestosSection = () => {
         );
 
         if (confirmar) {
-          // Aplicar ajustes al stock
+          // Aplicar ajustes al stock de la sucursal específica
           for (const ajuste of diferencias) {
+            const updateData = {
+              updated_at: new Date().toISOString()
+            };
+            
+            // Actualizar solo la sucursal correspondiente
+            if (sucursalRecuento === 'la_plata') {
+              updateData.cantidad_la_plata = ajuste.stockReal;
+            } else {
+              updateData.cantidad_mitre = ajuste.stockReal;
+            }
+
             const { error: ajusteError } = await supabase
               .from('repuestos')
-              .update({ 
-                cantidad: ajuste.stockReal,
-                disponible: ajuste.stockReal > 0 
-              })
+              .update(updateData)
               .eq('id', ajuste.id);
             
             if (ajusteError) throw ajusteError;
@@ -368,6 +410,7 @@ const RepuestosSection = () => {
 
       // Reiniciar formulario
       setRecuentoIniciado(false);
+      setSucursalRecuento('');
       setStockContado({});
       setObservacionesRecuento('');
       setMostrarSoloDiferencias(false);
@@ -380,14 +423,16 @@ const RepuestosSection = () => {
   // Filtrar repuestos
   const repuestosFiltrados = repuestos.filter(repuesto => {
     const cumpleFiltro = filtro === '' || 
-      repuesto.item.toLowerCase().includes(filtro.toLowerCase()) ||
-      repuesto.categoria.toLowerCase().includes(filtro.toLowerCase());
+      repuesto.nombre_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
+      repuesto.categoria?.toLowerCase().includes(filtro.toLowerCase());
     
     const cumpleCategoria = categoriaFiltro === 'todas' || repuesto.categoria === categoriaFiltro;
     
     // Filtro para mostrar solo diferencias (cuando está en modo recuento)
     if (mostrarSoloDiferencias && recuentoIniciado) {
-      const stockSistema = repuesto.cantidad || 0;
+      const stockSistema = sucursalRecuento === 'la_plata' 
+        ? (repuesto.cantidad_la_plata || 0)
+        : (repuesto.cantidad_mitre || 0);
       const stockReal = stockContado[repuesto.id] || 0;
       return cumpleFiltro && cumpleCategoria && (stockReal !== stockSistema);
     }
@@ -444,20 +489,21 @@ const RepuestosSection = () => {
             <Tarjeta
               icon={Wrench}   
               titulo="Repuestos Disponibles"
-              valor={repuestos.filter(r => r.disponible).length}
+              valor={repuestos.filter(r => (r.cantidad_la_plata || 0) + (r.cantidad_mitre || 0) > 0).length}
             />
 
-            {/* Tarjeta de memorias en stock */}
+            {/* Tarjeta de La Plata */}
             <Tarjeta
               icon={Layers}
-              titulo="Memorias en Stock"
-              valor={repuestos.filter(r => r.categoria && r.categoria.toLowerCase().includes('memoria')).reduce((acc, r) => acc + (r.cantidad || 0), 0)}
+              titulo="Stock La Plata"
+              valor={repuestos.reduce((acc, r) => acc + (r.cantidad_la_plata || 0), 0)}
             />
 
+            {/* Tarjeta de Mitre */}
             <Tarjeta
               icon={Layers}
-              titulo="SSD en Stock"
-              valor={repuestos.filter(r => r.categoria && r.categoria.toLowerCase().includes('SSD')).reduce((acc, r) => acc + (r.cantidad || 0), 0)}
+              titulo="Stock Mitre"
+              valor={repuestos.reduce((acc, r) => acc + (r.cantidad_mitre || 0), 0)}
             />
           </div>
         </div>
@@ -471,7 +517,7 @@ const RepuestosSection = () => {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-emerald-600 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-slate-800">Recuento en proceso</span>
+                  <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalRecuento === 'la_plata' ? 'La Plata' : 'Mitre'}</span>
                 </div>
                 <div className="text-sm text-slate-700">
                   Repuestos contados: {repuestosContados.length} / {repuestos.length}
@@ -509,99 +555,155 @@ const RepuestosSection = () => {
             Agregar Nuevo Repuesto
           </h3>
           
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-800 mb-1">
-                Item *
-              </label>
-              <input
-                type="text"
-                value={formData.item}
-                onChange={(e) => handleInputChange('item', e.target.value)}
-                placeholder="ej: Memoria RAM DDR4 8GB Kingston"
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
-                Categoría *
-              </label>
-              <select
-                value={formData.categoria}
-                onChange={(e) => handleInputChange('categoria', e.target.value)}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                required
-              >
-                <option value="">Seleccionar...</option>
-                {categorias.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
-                Precio Compra *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Row 1 - Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Item *
+                </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.precio_compra}
-                  onChange={(e) => handleInputChange('precio_compra', e.target.value)}
-                  placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  type="text"
+                  value={formData.item}
+                  onChange={(e) => handleInputChange('item', e.target.value)}
+                  placeholder="ej: Memoria RAM DDR4 8GB Kingston"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Categoría *
+                </label>
+                <select
+                  value={formData.categoria}
+                  onChange={(e) => handleInputChange('categoria', e.target.value)}
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  required
+                >
+                  <option value="">Seleccionar...</option>
+                  {categorias.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Descripción
+                </label>
+                <input
+                  type="text"
+                  value={formData.descripcion}
+                  onChange={(e) => handleInputChange('descripcion', e.target.value)}
+                  placeholder="Descripción detallada"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
-                Precio Venta *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+            {/* Row 2 - Prices */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Precio Compra *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio_compra}
+                    onChange={(e) => handleInputChange('precio_compra', e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Precio Venta *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.precio_venta}
+                    onChange={(e) => handleInputChange('precio_venta', e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Cantidad La Plata
+                </label>
                 <input
                   type="number"
-                  step="0.01"
                   min="0"
-                  value={formData.precio_venta}
-                  onChange={(e) => handleInputChange('precio_venta', e.target.value)}
-                  placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                  required
+                  value={formData.cantidad_la_plata}
+                  onChange={(e) => handleInputChange('cantidad_la_plata', e.target.value)}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
                 />
+                <p className="text-xs text-slate-500 mt-1">Stock sucursal La Plata</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Cantidad Mitre
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.cantidad_mitre}
+                  onChange={(e) => handleInputChange('cantidad_mitre', e.target.value)}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+                <p className="text-xs text-slate-500 mt-1">Stock sucursal Mitre</p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-800 mb-1">
-                Cantidad *
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.cantidad}
-                onChange={(e) => handleInputChange('cantidad', e.target.value)}
-                placeholder="0"
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                required
-              />
-            </div>
-
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="w-full bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-medium"
-              >
-                <Save size={16} />
-                Agregar
-              </button>
+            {/* Row 3 - Additional Information and Submit Button */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Garantía
+                </label>
+                <input
+                  type="text"
+                  value={formData.garantia}
+                  onChange={(e) => handleInputChange('garantia', e.target.value)}
+                  placeholder="ej: 12 meses"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-800 mb-1">
+                  Observaciones
+                </label>
+                <input
+                  type="text"
+                  value={formData.observaciones}
+                  onChange={(e) => handleInputChange('observaciones', e.target.value)}
+                  placeholder="Observaciones adicionales"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+              </div>
+              <div className="flex items-end justify-end">
+                <button
+                  type="submit"
+                  className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium"
+                >
+                  <Save size={16} />
+                  Agregar Repuesto
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -670,7 +772,9 @@ const RepuestosSection = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Precio Compra</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Precio Venta</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Margen</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cantidad</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-white uppercase">La Plata</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-white uppercase">Mitre</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-white uppercase">Total</th>
                       {recuentoIniciado && (
                         <>
                           <th className="px-4 py-3 text-center text-xs font-medium text-white uppercase">Stock Real</th>
@@ -684,15 +788,22 @@ const RepuestosSection = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {repuestosFiltrados.map((repuesto) => {
-                      const margen = (repuesto.precio_venta || 0) - (repuesto.precio_compra || 0);
-                      const porcentajeMargen = repuesto.precio_compra > 0 
-                        ? ((margen / repuesto.precio_compra) * 100).toFixed(1)
+                      const margen = (repuesto.precio_venta_usd || 0) - (repuesto.precio_compra_usd || 0);
+                      const porcentajeMargen = repuesto.precio_compra_usd > 0 
+                        ? ((margen / repuesto.precio_compra_usd) * 100).toFixed(1)
                         : 0;
                       
                       // Variables para recuento
-                      const stockSistema = repuesto.cantidad || 0;
+                      const stockLaPlata = repuesto.cantidad_la_plata || 0;
+                      const stockMitre = repuesto.cantidad_mitre || 0;
+                      const stockTotalSistema = stockLaPlata + stockMitre;
+                      
+                      // Para el recuento, usar solo la sucursal seleccionada
+                      const stockSistemaRecuento = recuentoIniciado 
+                        ? (sucursalRecuento === 'la_plata' ? stockLaPlata : stockMitre)
+                        : stockTotalSistema;
                       const stockReal = stockContado[repuesto.id];
-                      const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
+                      const diferencia = stockReal !== undefined ? stockReal - stockSistemaRecuento : null;
                       const contado = stockReal !== undefined;
                       
                       return (
@@ -701,8 +812,8 @@ const RepuestosSection = () => {
                           recuentoIniciado && contado ? 'bg-emerald-50' : ''
                         }`}>
                           <td className="px-4 py-3 text-sm text-slate-900 font-medium max-w-xs">
-                            <div className="truncate" title={repuesto.item}>
-                              {repuesto.item}
+                            <div className="truncate" title={repuesto.nombre_producto}>
+                              {repuesto.nombre_producto}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm">
@@ -711,10 +822,10 @@ const RepuestosSection = () => {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-900">
-                            ${repuesto.precio_compra?.toFixed(2)}
+                            ${repuesto.precio_compra_usd?.toFixed(2)}
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-900 font-semibold">
-                            ${repuesto.precio_venta?.toFixed(2)}
+                            ${repuesto.precio_venta_usd?.toFixed(2)}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <div>
@@ -728,12 +839,30 @@ const RepuestosSection = () => {
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-900 text-center">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              repuesto.cantidad > 10 ? 'bg-emerald-100 text-emerald-800' :
-                              repuesto.cantidad > 5 ? 'bg-slate-100 text-slate-800' :
-                              repuesto.cantidad > 0 ? 'bg-slate-100 text-slate-800' :
+                              stockLaPlata > 5 ? 'bg-emerald-100 text-emerald-800' :
+                              stockLaPlata > 0 ? 'bg-slate-100 text-slate-800' :
                               'bg-slate-200 text-slate-800'
                             }`}>
-                              {repuesto.cantidad}
+                              {stockLaPlata}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-900 text-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              stockMitre > 5 ? 'bg-emerald-100 text-emerald-800' :
+                              stockMitre > 0 ? 'bg-slate-100 text-slate-800' :
+                              'bg-slate-200 text-slate-800'
+                            }`}>
+                              {stockMitre}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-900 text-center font-semibold">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              stockTotalSistema > 10 ? 'bg-emerald-100 text-emerald-800' :
+                              stockTotalSistema > 5 ? 'bg-slate-100 text-slate-800' :
+                              stockTotalSistema > 0 ? 'bg-slate-100 text-slate-800' :
+                              'bg-slate-200 text-slate-800'
+                            }`}>
+                              {stockTotalSistema}
                             </span>
                           </td>
                           {recuentoIniciado && (
@@ -773,12 +902,12 @@ const RepuestosSection = () => {
                           )}
                           <td className="px-4 py-3 text-sm">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              repuesto.cantidad > 10 ? 'bg-emerald-100 text-emerald-800' :
-                              repuesto.cantidad > 5 ? 'bg-slate-100 text-slate-800' :
-                              repuesto.cantidad > 0 ? 'bg-slate-100 text-slate-800' :
+                              stockTotalSistema > 10 ? 'bg-emerald-100 text-emerald-800' :
+                              stockTotalSistema > 5 ? 'bg-slate-100 text-slate-800' :
+                              stockTotalSistema > 0 ? 'bg-slate-100 text-slate-800' :
                               'bg-slate-200 text-slate-800'
                             }`}>
-                              {repuesto.cantidad > 0 ? 'Disponible' : 'Sin Stock'}
+                              {stockTotalSistema > 0 ? 'Disponible' : 'Sin Stock'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm">
@@ -836,6 +965,71 @@ const RepuestosSection = () => {
                 className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-600"
                 rows="3"
               />
+            </div>
+          </div>
+        )}
+        
+        {/* Modal de selección de sucursal */}
+        {mostrarModalSucursal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded border border-slate-200 max-w-md w-full m-4">
+              <div className="p-6 bg-slate-800 text-white">
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <Calculator size={24} />
+                  Seleccionar Sucursal para Recuento
+                </h3>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-slate-600 mb-6">
+                  Seleccione la sucursal en la que realizará el recuento de stock:
+                </p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={() => confirmarInicioRecuento('la_plata')}
+                    className="w-full p-4 border-2 border-slate-200 rounded hover:border-emerald-600 hover:bg-emerald-50 transition-colors text-left"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-slate-800">Sucursal La Plata</h4>
+                        <p className="text-sm text-slate-600">
+                          Stock actual: {repuestos.reduce((acc, r) => acc + (r.cantidad_la_plata || 0), 0)} unidades
+                        </p>
+                      </div>
+                      <div className="text-emerald-600">
+                        →
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => confirmarInicioRecuento('mitre')}
+                    className="w-full p-4 border-2 border-slate-200 rounded hover:border-emerald-600 hover:bg-emerald-50 transition-colors text-left"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-slate-800">Sucursal Mitre</h4>
+                        <p className="text-sm text-slate-600">
+                          Stock actual: {repuestos.reduce((acc, r) => acc + (r.cantidad_mitre || 0), 0)} unidades
+                        </p>
+                      </div>
+                      <div className="text-emerald-600">
+                        →
+                      </div>
+                    </div>
+                  </button>
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setMostrarModalSucursal(false)}
+                    className="flex-1 bg-slate-600 text-white px-4 py-2 rounded font-medium hover:bg-slate-700 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

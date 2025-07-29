@@ -65,7 +65,8 @@
       "Bash(psql:*)",
       "Bash(true)",
       "Bash(python3:*)",
-      "Bash(cut:*)"
+      "Bash(cut:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   },

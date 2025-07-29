@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import SelectorCuentaImputableConCotizacion from '../../../components/SelectorCuentaImputableConCotizacion';
+import BuscadorCuentasImputables from '../../../components/BuscadorCuentasImputables';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { prepararMovimientoContable, validarBalanceUSD } from '../../../shared/utils/currency';
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -391,13 +391,10 @@ const LibroDiarioSection = () => {
       movimientos: prev.movimientos.map((mov, i) => {
         if (i === index) {
           if (campo === 'cuenta') {
-            // Cuando se selecciona una cuenta completa desde SelectorCuentaConCotizacion
             return { 
               ...mov, 
               cuenta_id: valor?.id || '', 
               cuenta: valor,
-              // Limpiar cotización si la nueva cuenta no la requiere
-              cotizacion: valor?.requiere_cotizacion ? mov.cotizacion : 0
             };
           } else {
             return { ...mov, [campo]: valor };
@@ -409,42 +406,25 @@ const LibroDiarioSection = () => {
   };
 
   const calcularTotales = () => {
-    try {
-      // Intentar convertir los movimientos a USD usando el servicio
-      const movimientosConvertidos = formData.movimientos
-        .filter(mov => mov.cuenta && mov.monto > 0)
-        .map(mov => {
-          try {
-            return prepararMovimientoContable(mov, mov.cuenta, mov.cotizacion);
-          } catch (error) {
-              console.warn('⚠️ Error al convertir movimiento:', error.message);
-            return { debe: 0, haber: 0 };
-          }
-        });
+    const totalDebe = formData.movimientos.reduce((sum, mov) => {
+      return sum + (mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0);
+    }, 0);
+    const totalHaber = formData.movimientos.reduce((sum, mov) => {
+      return sum + (mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0);
+    }, 0);
+    const diferencia = totalDebe - totalHaber;
 
-      const totalDebe = movimientosConvertidos.reduce((sum, mov) => sum + (mov.debe || 0), 0);
-      const totalHaber = movimientosConvertidos.reduce((sum, mov) => sum + (mov.haber || 0), 0);
-      const diferencia = totalDebe - totalHaber;
-
-      return { 
-        totalDebe, 
-        totalHaber, 
-        diferencia, 
-        balanceado: Math.abs(diferencia) < 0.01,
-        movimientosConvertidos 
-      };
-    } catch (error) {
-      // En caso de error, retornar totales básicos
-      const totalDebe = formData.movimientos.reduce((sum, mov) => {
-        return sum + (mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0);
-      }, 0);
-      const totalHaber = formData.movimientos.reduce((sum, mov) => {
-        return sum + (mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0);
-      }, 0);
-      const diferencia = totalDebe - totalHaber;
-
-      return { totalDebe, totalHaber, diferencia, balanceado: false, error: error.message };
-    }
+    return { 
+      totalDebe, 
+      totalHaber, 
+      diferencia, 
+      balanceado: Math.abs(diferencia) < 0.01,
+      movimientosConvertidos: formData.movimientos.map(mov => ({
+        ...mov,
+        debe: mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0,
+        haber: mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0,
+      }))
+    };
   };
 
   const guardarAsiento = async () => {
@@ -485,28 +465,17 @@ const LibroDiarioSection = () => {
         return;
       }
 
-      // Usar los totales ya calculados y disponibles en el scope
       if (!totales.balanceado) {
-        alert(`El asiento no está balanceado en USD:\nDebe: ${totales.totalDebe.toFixed(2)}\nHaber: ${totales.totalHaber.toFixed(2)}`);
+        alert(`El asiento no está balanceado:\nDebe: ${totales.totalDebe.toFixed(2)}\nHaber: ${totales.totalHaber.toFixed(2)}`);
         return;
       }
-
-      // Calcular cotización promedio de los movimientos que la tengan
-      const cotizaciones = totales.movimientosConvertidos
-        .map(m => m.cotizacion_manual)
-        .filter(c => c && c > 0);
-      
-      const cotizacionPromedio = cotizaciones.length > 0
-        ? cotizaciones.reduce((a, b) => a + b, 0) / cotizaciones.length
-        : null;
 
       // Crear el asiento usando el servicio actualizado
       await crearAsiento({
         ...formData,
-        movimientosConvertidos: totales.movimientosConvertidos,
+        movimientos: totales.movimientosConvertidos, // Ya no son "convertidos", pero mantienen la estructura
         totalDebeUSD: totales.totalDebe,
         totalHaberUSD: totales.totalHaber,
-        cotizacionPromedio: cotizacionPromedio
       });
       
       setShowModal(false);
@@ -1048,18 +1017,24 @@ const LibroDiarioSection = () => {
                         </div>
                       </div>
 
-                      {/* Componente SelectorCuentaImputableConCotizacion */}
-                      <SelectorCuentaImputableConCotizacion
-                        cuentaSeleccionada={mov.cuenta}
-                        onCuentaChange={(cuenta) => actualizarMovimiento(index, 'cuenta', cuenta)}
-                        monto={mov.monto}
-                        onMontoChange={(monto) => actualizarMovimiento(index, 'monto', monto)}
-                        cotizacion={mov.cotizacion}
-                        onCotizacionChange={(cotizacion) => actualizarMovimiento(index, 'cotizacion', cotizacion)}
-                        tipo={mov.tipo}
-                        required={true}
-                        className="mt-6"
-                      />
+                      {/* Buscador de Cuentas Imputables */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <BuscadorCuentasImputables
+                          cuentaSeleccionada={mov.cuenta}
+                          onCuentaChange={(cuenta) => actualizarMovimiento(index, 'cuenta', cuenta)}
+                          required
+                        />
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Monto (USD)</label>
+                          <input
+                            type="number"
+                            placeholder="0.00"
+                            value={mov.monto}
+                            onChange={(e) => actualizarMovimiento(index, 'monto', e.target.value)}
+                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

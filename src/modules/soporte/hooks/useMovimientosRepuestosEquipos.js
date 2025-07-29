@@ -61,7 +61,7 @@ export const movimientosRepuestosEquiposService = {
       if (todosRepuestosIds.length > 0) {
         const { data: repuestos, error: errorRepuestos } = await supabase
           .from('repuestos')
-          .select('id, item, precio_venta')
+          .select('id, nombre_producto, precio_venta_usd')
           .in('id', todosRepuestosIds);
 
         if (errorRepuestos) throw errorRepuestos;
@@ -74,7 +74,7 @@ export const movimientosRepuestosEquiposService = {
 
       const entradasConPrecio = movimientoData.entradas.map(entrada => {
         const repuesto = repuestosInfo.find(r => r.id === entrada.repuesto_id);
-        const precioVenta = repuesto ? repuesto.precio_venta : 0;
+        const precioVenta = repuesto ? repuesto.precio_venta_usd : 0;
         const subtotal = entrada.cantidad * precioVenta;
         totalEntradas += subtotal;
         
@@ -87,7 +87,7 @@ export const movimientosRepuestosEquiposService = {
 
       const salidasConPrecio = movimientoData.salidas.map(salida => {
         const repuesto = repuestosInfo.find(r => r.id === salida.repuesto_id);
-        const precioVenta = repuesto ? repuesto.precio_venta : 0;
+        const precioVenta = repuesto ? repuesto.precio_venta_usd : 0;
         const subtotal = salida.cantidad * precioVenta;
         totalSalidas += subtotal;
         
@@ -144,13 +144,13 @@ export const movimientosRepuestosEquiposService = {
     try {
       const { data: repuesto, error: errorGet } = await supabase
         .from('repuestos')
-        .select('cantidad')
+        .select('cantidad_la_plata, cantidad_mitre')
         .eq('id', repuestoId)
         .single();
 
       if (errorGet) throw errorGet;
 
-      const stockActual = repuesto.cantidad || 0;
+      const stockActual = (repuesto.cantidad_la_plata || 0) + (repuesto.cantidad_mitre || 0);
       const nuevoStock = tipo === 'entrada' 
         ? stockActual + cantidad 
         : stockActual - cantidad;
@@ -162,8 +162,8 @@ export const movimientosRepuestosEquiposService = {
       const { error: errorUpdate } = await supabase
         .from('repuestos')
         .update({ 
-          cantidad: nuevoStock,
-          disponible: nuevoStock > 0,
+          cantidad_la_plata: nuevoStock,
+          cantidad_mitre: 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', repuestoId);

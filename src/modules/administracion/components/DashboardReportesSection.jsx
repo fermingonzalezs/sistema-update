@@ -598,32 +598,38 @@ const DashboardReportesSection = () => {
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Ventas por día */}
+              {/* Valor de Venta Bruta por Categoría */}
               <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Valor de Venta Bruta por Categoría</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={ventasData?.ventasPorDia}>
+                    <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey="ventas" stroke="#10b981" strokeWidth={2} />
-                    </LineChart>
+                      <XAxis dataKey="categoria" />
+                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <Tooltip 
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="ventas" fill="#10b981" />
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Ventas por día de la semana */}
+              {/* Valor de Venta Bruta por Sucursal */}
               <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día de la Semana</h3>
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Valor de Venta Bruta por Sucursal</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ventasData?.ventasPorDiaSemana}>
+                    <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="dia" />
-                      <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
+                      <XAxis dataKey="sucursal" />
+                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <Tooltip 
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
                       <Bar dataKey="ventas" fill="#1e293b" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -747,6 +753,38 @@ const DashboardReportesSection = () => {
                         labelStyle={{ color: '#1e293b' }}
                       />
                       <Bar dataKey="margen" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Ventas por día */}
+              <div className="bg-white border border-slate-200 rounded p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ventasData?.ventasPorDia}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="fecha" />
+                      <YAxis tickFormatter={(value) => String(value)} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line type="monotone" dataKey="ventas" stroke="#10b981" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Ventas por día de la semana */}
+              <div className="bg-white border border-slate-200 rounded p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día de la Semana</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ventasData?.ventasPorDiaSemana}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="dia" />
+                      <YAxis tickFormatter={(value) => String(value)} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="ventas" fill="#1e293b" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

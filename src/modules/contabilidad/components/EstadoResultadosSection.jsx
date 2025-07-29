@@ -65,6 +65,7 @@ const EstadoResultadosSection = () => {
   };
 
   const ingresosArray = estadoResultados.ingresos || [];
+  const costosArray = estadoResultados.costos || [];
   const gastosArray = estadoResultados.gastos || [];
 
   return (
@@ -98,26 +99,22 @@ const EstadoResultadosSection = () => {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm font-medium text-slate-800">
-              Fecha Desde:
-            </label>
+            <label className="text-sm font-medium text-slate-800">Fecha Desde:</label>
             <input
               type="date"
               value={filtros.fechaDesde}
               onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <div className="flex items-center gap-3">
             <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm font-medium text-slate-800">
-              Fecha Hasta:
-            </label>
+            <label className="text-sm font-medium text-slate-800">Fecha Hasta:</label>
             <input
               type="date"
               value={filtros.fechaHasta}
               onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <button
@@ -125,11 +122,7 @@ const EstadoResultadosSection = () => {
             disabled={loading}
             className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
           >
-            {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Filter className="w-4 h-4" />
-            )}
+            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Filter className="w-4 h-4" />}
             {loading ? 'Calculando...' : 'Aplicar'}
           </button>
         </div>
@@ -140,137 +133,86 @@ const EstadoResultadosSection = () => {
         <div className="bg-red-50 border border-red-200 p-6 rounded mb-6">
           <div className="flex items-center">
             <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-            <span className="text-red-800 font-medium">Error:</span>
+            <span className="text-red-800 font-medium">Error: {error}</span>
           </div>
-          <p className="text-red-700 mt-1">{error}</p>
         </div>
       )}
 
-      {/* Información adicional */}
-      <div className="bg-slate-800 p-8">
-        <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto w-fit">RESULTADO</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6 bg-slate-200 rounded">
-            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalIngresos)}</div>
-            <div className="text-sm text-slate-800">Total Ingresos</div>
-            <div className="text-xs text-slate-800">{ingresosArray.length} conceptos</div>
+      {/* Cuerpo del Estado de Resultados */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Columna Izquierda: Ingresos */}
+        <div className="space-y-4">
+          <div className="bg-white border border-slate-200 rounded-lg">
+            <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
+            <h3 className="font-semibold flex items-center"><TrendingUp className="w-5 h-5 mr-2" /> Ingresos</h3>
           </div>
-          <div className="text-center p-6 bg-slate-200 rounded">
-            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.totalGastos)}</div>
-            <div className="text-sm text-slate-800">Total Egresos</div>
-            <div className="text-xs text-slate-800">{gastosArray.length} conceptos</div>
-          </div>
-          <div className="text-center p-6 bg-slate-200 rounded">
-            <div className="text-3xl font-bold text-slate-800">{formatearMoneda(estadoResultados.utilidadNeta)}</div>
-            <div className="text-sm text-slate-800">{estadoResultados.utilidadNeta >= 0 ? 'Utilidad' : 'Pérdida'} Neta</div>
-            <div className="text-xs text-slate-800">{estadoResultados.utilidadNeta >= 0 ? 'Positivo' : 'Negativo'}</div>
+            <div className="p-4">
+              {ingresosArray.length > 0 ? 
+                ingresosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
+                <p className="text-slate-500 text-center py-2">No se registraron ingresos.</p>}
+            </div>
+            <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
+              <span>Total Ingresos</span>
+              <span>{formatearMoneda(estadoResultados.totalIngresos)}</span>
+            </div>
           </div>
         </div>
-        
-      </div>      
-      
-       {/* Estado de Resultados */}
-      <div className="mt-3">
-        <div className="space-y-6">
-          {/* INGRESOS */}
-          <div className="space-y-6">
-            <div className="bg-slate-800 text-white p-6">
-              <h2 className="text-2xl font-bold flex items-center gap-4">
-                <TrendingUp className="w-7 h-7" />
-                INGRESOS
-                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
-                  {formatearMoneda(estadoResultados.totalIngresos)}
-                </span>
-              </h2>
-              <p className="text-sm text-slate-200 mt-2">
-                {ingresosArray.length} conceptos de ingresos
-              </p>
+
+        {/* Columna Derecha: Egresos (Costos y Gastos) */}
+        <div className="space-y-4">
+          {/* Costos */}
+          <div className="bg-white border border-slate-200 rounded-lg">
+            <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
+              <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Costos</h3>
             </div>
-            
-            <div className="bg-white border border-slate-200">
-              
-              <div className="p-4">
-                <div className="space-y-0">
-                  {ingresosArray.map((item) => (
-                    <CuentaRow key={item.cuenta.id} cuenta={item} />
-                  ))}
-                </div>
-              </div>
+            <div className="p-4">
+              {costosArray.length > 0 ? 
+                costosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
+                <p className="text-slate-500 text-center py-2">No se registraron costos.</p>}
+            </div>
+            <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
+              <span>Total Costos</span>
+              <span>{formatearMoneda(estadoResultados.totalCostos)}</span>
             </div>
           </div>
 
-          {/* EGRESOS */}
-          <div className="space-y-6">
-            <div className="bg-slate-800 text-white p-6">
-              <h2 className="text-2xl font-bold flex items-center gap-4">
-                <TrendingDown className="w-7 h-7" />
-                EGRESOS
-                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
-                  {formatearMoneda(estadoResultados.totalGastos)}
-                </span>
-              </h2>
-              <p className="text-sm text-slate-200 mt-2">
-                {gastosArray.length} conceptos de egresos
-              </p>
+          {/* Gastos */}
+          <div className="bg-white border border-slate-200 rounded-lg">
+            <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
+              <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Gastos</h3>
             </div>
-            
-            <div className="bg-white border border-slate-200">
-              
-              <div className="p-4">
-                <div className="space-y-0">
-                  {gastosArray.map((item) => (
-                    <CuentaRow key={item.cuenta.id} cuenta={item} />
-                  ))}
-                </div>
-              </div>
+            <div className="p-4">
+              {gastosArray.length > 0 ? 
+                gastosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
+                <p className="text-slate-500 text-center py-2">No se registraron gastos.</p>}
+            </div>
+            <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
+              <span>Total Gastos</span>
+              <span>{formatearMoneda(estadoResultados.totalGastos)}</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* RESULTADO DEL EJERCICIO */}
-          <div className="space-y-6">
-            <div className="bg-slate-800 text-white p-6">
-              <h2 className="text-2xl font-bold flex items-center gap-4">
-                <DollarSign className="w-7 h-7" />
-                RESULTADO DEL EJERCICIO
-                <span className="text-lg bg-slate-200 text-slate-800 px-4 py-2 rounded">
-                  {formatearMoneda(estadoResultados.utilidadNeta)}
-                </span>
-              </h2>
-              <p className="text-sm text-slate-200 mt-2">
-                {estadoResultados.utilidadNeta >= 0 ? 'Utilidad generada' : 'Pérdida del período'}
-              </p>
-            </div>
-            
-            <div className="bg-white border border-slate-200">
-              
-              <div className="p-4">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-3 border-b border-slate-200">
-                    <span className="font-medium text-slate-800">TOTAL INGRESOS</span>
-                    <span className="text-lg font-bold text-slate-800">
-                      {formatearMoneda(estadoResultados.totalIngresos)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-b border-slate-200">
-                    <span className="font-medium text-slate-800">TOTAL EGRESOS</span>
-                    <span className="text-lg font-bold text-slate-800">
-                      ({formatearMoneda(estadoResultados.totalGastos)})
-                    </span>
-                  </div>
-                  <div className="pt-4 border-t-2 border-slate-200">
-                    <div className="flex justify-between items-center text-xl font-bold text-slate-800">
-                      <span>{estadoResultados.utilidadNeta >= 0 ? 'UTILIDAD' : 'PÉRDIDA'} NETA</span>
-                      <span className="text-slate-800">
-                        {formatearMoneda(estadoResultados.utilidadNeta)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Resumen Final */}
+      <div className="mt-6 bg-white border border-slate-200 rounded-lg p-6">
+        <h3 className="font-semibold text-lg mb-4 text-center">Resumen del Período</h3>
+        <div className="space-y-3 max-w-md mx-auto">
+          <div className="flex justify-between text-lg">
+            <span className="font-medium">Total Ingresos</span>
+            <span className="font-semibold text-emerald-600">{formatearMoneda(estadoResultados.totalIngresos)}</span>
           </div>
-
-          
+          <div className="flex justify-between text-lg">
+            <span className="font-medium">Total Egresos (Costos + Gastos)</span>
+            <span className="font-semibold text-red-600">({formatearMoneda(estadoResultados.totalCostos + estadoResultados.totalGastos)})</span>
+          </div>
+          <hr className="my-2 border-slate-300"/>
+          <div className="flex justify-between text-xl font-bold">
+            <span>{estadoResultados.utilidadNeta >= 0 ? 'Utilidad Neta' : 'Pérdida Neta'}</span>
+            <span className={estadoResultados.utilidadNeta >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+              {formatearMoneda(estadoResultados.utilidadNeta)}
+            </span>
+          </div>
         </div>
       </div>
     </div>

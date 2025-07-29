@@ -10,6 +10,7 @@ export const useCatalogoUnificado = () => {
   const [filtrosUnificados, setFiltrosUnificados] = useState({
     marca: '',
     condicion: '',
+    estado: '',
     sucursal: '',
     precioMax: '',
     precioMin: '',
@@ -159,24 +160,39 @@ export const useCatalogoUnificado = () => {
 
     // Generar categorías para "otros" basadas en las categorías únicas
     const categoriasUnicas = [...new Set(otros.map(item => item.categoria).filter(Boolean))];
+    console.log('🔍 Categorías únicas encontradas:', categoriasUnicas);
+    console.log('📦 Productos otros:', otros);
     
     categoriasUnicas.forEach(categoria => {
       if (categoria) {
         const categoriaNormalizada = categoria.toLowerCase().replace(/\s+/g, '-');
         const datosCategoria = otros.filter(item => item.categoria === categoria);
         
-        // Iconos por categoría
+        // Iconos por categoría (actualizados para coincidir con las categorías del formulario)
         const iconos = {
+          'accesorios': '🔧',
+          'cables': '🔌',
+          'cargadores': '🔌',
+          'mouse': '🖱️',
+          'teclados': '⌨️',
+          'headsets': '🎧',
+          'webcam': '📹',
+          'monitores': '🖥️',
+          'speakers': '🔊',
+          'almacenamiento': '💾',
+          'memorias': '🧠',
+          'componentes': '⚡',
+          'fundas': '🛡️',
+          'repuestos': '🔧',
+          'otros': '📦',
+          // Iconos adicionales para categorías legacy
           'placas de video': '🎮',
           'procesadores': '⚡',
-          'memorias': '💾',
           'discos': '💿',
           'mothers': '🔌',
           'fuentes': '🔋',
           'gabinetes': '🏠',
-          'monitores': '🖥️',
           'perifericos': '⌨️',
-          'cables': '🔗',
           'cooling': '❄️',
           'audio': '🔊'
         };
@@ -203,6 +219,7 @@ export const useCatalogoUnificado = () => {
       }
     });
 
+    console.log('🏷️ Categorías finales generadas:', Object.keys(base));
     return base;
   }, [computers, celulares, otros, productos, loadingNotebooks, loadingCelulares, loadingOtros, loadingProductos, errorNotebooks, errorCelulares, errorOtros, errorProductos, getCategorias, getProductosPorCategoria]);
 
@@ -222,6 +239,7 @@ export const useCatalogoUnificado = () => {
 
     const marcas = [...new Set(datosActuales.map(item => item.marca).filter(Boolean))];
     const condiciones = [...new Set(datosActuales.map(item => item.condicion).filter(Boolean))];
+    const estados = [...new Set(datosActuales.map(item => item.estado).filter(Boolean))];
     const sucursales = [...new Set(datosActuales.map(item => 
       item.ubicacion || item.sucursal
     ).filter(Boolean))];
@@ -235,6 +253,7 @@ export const useCatalogoUnificado = () => {
     return {
       marcas: marcas.sort(),
       condiciones: condiciones.sort(),
+      estados: estados.sort(),
       sucursales: sucursales.sort(),
       categorias: categorias.sort(),
       precioMin,
@@ -253,6 +272,10 @@ export const useCatalogoUnificado = () => {
 
     if (filtrosUnificados.condicion) {
       filtered = filtered.filter(item => item.condicion === filtrosUnificados.condicion);
+    }
+
+    if (filtrosUnificados.estado) {
+      filtered = filtered.filter(item => item.estado === filtrosUnificados.estado);
     }
 
     if (filtrosUnificados.sucursal) {
@@ -282,11 +305,27 @@ export const useCatalogoUnificado = () => {
     if (filtrosUnificados.disponible !== '') {
       const disponibleValue = filtrosUnificados.disponible === 'true';
       filtered = filtered.filter(item => {
-        // Determinar disponibilidad basada en condición
+        // Para productos "otros", considerar cantidades por sucursal
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          const tieneStock = (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
+          return tieneStock === disponibleValue;
+        }
+        
+        // Para otros productos (notebooks, celulares), usar lógica original
         const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
         const esNoDisponiblePorCondicion = condicionesNoDisponibles.includes(item.condicion);
         const disponibilidadCalculada = item.disponible !== false && !esNoDisponiblePorCondicion;
         return disponibilidadCalculada === disponibleValue;
+      });
+    }
+
+    // Para productos "otros", filtrar automáticamente productos sin stock
+    if (categoriaActiva.startsWith('otros') || categorias[categoriaActiva]?.data === otros) {
+      filtered = filtered.filter(item => {
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
+        }
+        return true;
       });
     }
 
@@ -387,13 +426,22 @@ export const useCatalogoUnificado = () => {
     }
   };
 
-  // Cargar datos al cambiar categoría
+  // Cargar datos iniciales para todas las categorías
   useEffect(() => {
-    const fetchFunction = categoriaConfig?.fetch;
-    if (fetchFunction) {
-      fetchFunction();
-    }
-  }, [categoriaActiva]);
+    console.log('🚀 Cargando datos iniciales de todas las categorías...');
+    fetchProductos(); // Cargar productos unificados
+    fetchComputers(); // Cargar notebooks
+    fetchCelulares(); // Cargar celulares
+    fetchOtros(); // Cargar otros productos
+  }, []);
+
+  // No necesitamos cargar datos individualmente ya que se cargan todos al inicio
+  // useEffect(() => {
+  //   const fetchFunction = categoriaConfig?.fetch;
+  //   if (fetchFunction) {
+  //     fetchFunction();
+  //   }
+  // }, [categoriaActiva]);
 
   return {
     // Estado actual

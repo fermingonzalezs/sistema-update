@@ -83,6 +83,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     // Estado
     sucursal: 'la_plata',
     condicion: 'usado',
+    estado: 'A',
     
     // Especificaciones principales
     procesador: '',
@@ -164,6 +165,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         precio_venta_usd: '',
         sucursal: 'la_plata',
         condicion: 'usado',
+        estado: 'A',
         procesador: '',
         slots: '2',
         tipo_ram: 'DDR4',
@@ -252,14 +254,17 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
-            <option value="nuevo">NUEVO</option>
-            <option value="refurbished">REFURBISHED</option>
-            <option value="usado">USADO</option>
-            <option value="reparacion">REPARACIÓN</option>
-            <option value="reservado">RESERVADO</option>
-            <option value="prestado">PRESTADO</option>
-            <option value="sin_reparacion">SIN REPARACIÓN</option>
-            <option value="reparacion">REPARACION</option>
+            <option value="nuevo">Nuevo</option>
+            <option value="usado">Usado</option>
+            <option value="reacondicionado">Reacondicionado</option>
+            <option value="reparacion">Reparación</option>
+            <option value="reservado">Reservado</option>
+            <option value="prestado">Prestado</option>
+            <option value="sin_reparacion">Sin Reparación</option>
+            <option value="en_preparacion">En Preparación</option>
+            <option value="otro">Otro</option>
+            <option value="uso_oficina">Uso Oficina</option>
+            <option value="defectuoso">Defectuoso</option>
           </select>
         </div>
 
@@ -273,8 +278,24 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
-            <option value="en_camino">EN CAMINO</option>
-            <option value="rsn">RSN/IDM/FIXCENTER</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Estado</label>
+          <select
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+          >
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="A">A</option>
+            <option value="B+">B+</option>
+            <option value="B">B</option>
+            <option value="B-">B-</option>
+            <option value="C">C</option>
           </select>
         </div>
 
@@ -641,7 +662,8 @@ const FormularioCelular = ({ onAdd, loading }) => {
     
     // Estado y ubicación
     condicion: 'usado',
-    ubicacion: 'la_plata',
+    sucursal: 'la_plata',
+    estado: 'A',
     
     // Características del celular
     color: '',
@@ -712,11 +734,14 @@ const FormularioCelular = ({ onAdd, loading }) => {
         repuestos_usd: '0',
         precio_venta_usd: '',
         condicion: 'usado',
-        ubicacion: 'la_plata',
+        sucursal: 'la_plata',
+        estado: 'A',
         color: '',
+        capacidad: '',
         almacenamiento: '128GB',
+        bateria: '',
         porcentaje_bateria: '',
-        estado_estetico: 'B',
+        ciclos: '',
         garantia_update: '3 meses',
         garantia_oficial: '',
         fallas: 'Ninguna',
@@ -788,29 +813,48 @@ const FormularioCelular = ({ onAdd, loading }) => {
             onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
-            <option value="nuevo">NUEVO</option>
-            <option value="refurbished">REFURBISHED</option>
-            <option value="usado">USADO</option>
-            <option value="reparacion">REPARACIÓN</option>
-            <option value="reservado">RESERVADO</option>
-            <option value="prestado">PRESTADO</option>
-            <option value="sin_reparacion">SIN REPARACIÓN</option>
-            <option value="reparacion">REPARACION</option>
+            <option value="nuevo">Nuevo</option>
+            <option value="usado">Usado</option>
+            <option value="reacondicionado">Reacondicionado</option>
+            <option value="reparacion">Reparación</option>
+            <option value="reservado">Reservado</option>
+            <option value="prestado">Prestado</option>
+            <option value="sin_reparacion">Sin Reparación</option>
+            <option value="en_preparacion">En Preparación</option>
+            <option value="otro">Otro</option>
+            <option value="uso_oficina">Uso Oficina</option>
+            <option value="defectuoso">Defectuoso</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Ubicación</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Sucursal</label>
           <select
-            name="ubicacion"
-            value={formData.ubicacion}
+            name="sucursal"
+            value={formData.sucursal}
             onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
             <option value="la_plata">LA PLATA</option>
             <option value="mitre">MITRE</option>
-            <option value="fixcenter">FIXCENTER</option>
-            <option value="en_camino">EN CAMINO</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Estado</label>
+          <select
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+          >
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="A">A</option>
+            <option value="B+">B+</option>
+            <option value="B">B</option>
+            <option value="B-">B-</option>
+            <option value="C">C</option>
           </select>
         </div>
 
@@ -960,21 +1004,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Estado Estético</label>
-          <select
-            name="estado_estetico"
-            value={formData.estado_estetico}
-            onChange={handleChange}
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          >
-            <option value="A+">A+</option>
-            <option value="A">A</option>
-            <option value="B+">B+</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-          </select>
-        </div>
 
         {/* Garantía y Observaciones */}
         <div className="col-span-full">
@@ -1048,26 +1077,21 @@ const FormularioCelular = ({ onAdd, loading }) => {
 const FormularioOtro = ({ onAdd, loading }) => {
   const [formData, setFormData] = useState({
     // Información básica del producto
-    descripcion_producto: '', // DESCRIPCIÓN
-    cantidad: 1, // CANTIDAD
+    nombre_producto: '', // NOMBRE_PRODUCTO
+    descripcion: '', // DESCRIPCIÓN
+    categoria: '', // CATEGORÍA
     
     // Precios
     precio_compra_usd: '', // P.C. USD
     precio_venta_usd: '', // P.V. USD
-    precio_venta_pesos: '', // P.V. PESOS
     
-    // Estado y ubicación
-    condicion: 'nuevo', // CONDICIÓN
-    categoria: '', // CATEGORÍA
-    sucursal: 'la_plata',
+    // Cantidades por sucursal
+    cantidad_la_plata: 0, // CANTIDAD LA PLATA
+    cantidad_mitre: 0, // CANTIDAD MITRE
     
     // Garantía y observaciones
     garantia: '', // GARANTÍA
-    fallas: 'Ninguna', // FALLAS
-    
-    // Fecha automática
-    ingreso: new Date().toISOString().split('T')[0],
-    disponible: true
+    observaciones: '' // OBSERVACIONES
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1122,8 +1146,8 @@ const FormularioOtro = ({ onAdd, loading }) => {
     e.preventDefault();
     
     // Validaciones
-    if (!formData.descripcion_producto.trim()) {
-      alert('La descripción del producto es obligatoria');
+    if (!formData.nombre_producto.trim()) {
+      alert('El nombre del producto es obligatorio');
       return;
     }
     
@@ -1132,8 +1156,8 @@ const FormularioOtro = ({ onAdd, loading }) => {
       return;
     }
 
-    if (formData.cantidad < 1) {
-      alert('La cantidad debe ser mayor a 0');
+    if ((formData.cantidad_la_plata || 0) + (formData.cantidad_mitre || 0) < 1) {
+      alert('Debe ingresar al menos 1 unidad en alguna sucursal');
       return;
     }
 
@@ -1141,30 +1165,27 @@ const FormularioOtro = ({ onAdd, loading }) => {
     try {
       const dataToSubmit = {
         ...formData,
-        // Asegurar que la cantidad sea un número
-        cantidad: parseInt(formData.cantidad) || 1,
+        // Asegurar que las cantidades sean números
+        cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
+        cantidad_mitre: parseInt(formData.cantidad_mitre) || 0,
         // Asegurar que los precios sean números
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || 0,
-        precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0,
-        precio_venta_pesos: parseFloat(formData.precio_venta_pesos) || 0
+        precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0
       };
 
       await onAdd(dataToSubmit);
       
       // Reset form
       setFormData({
-        descripcion_producto: '',
-        cantidad: 1,
+        nombre_producto: '',
+        descripcion: '',
+        categoria: '',
         precio_compra_usd: '',
         precio_venta_usd: '',
-        precio_venta_pesos: '',
-        condicion: 'nueva',
-        categoria: '',
-        sucursal: 'la_plata',
+        cantidad_la_plata: 0,
+        cantidad_mitre: 0,
         garantia: '',
-        fallas: 'Ninguna',
-        ingreso: new Date().toISOString().split('T')[0],
-        disponible: true
+        observaciones: ''
       });
       
       alert('✅ Producto agregado exitosamente!');
@@ -1190,8 +1211,8 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const calcularValorInventario = () => {
     const precioVenta = parseFloat(formData.precio_venta_usd) || 0;
-    const cantidad = parseInt(formData.cantidad) || 1;
-    return (precioVenta * cantidad).toFixed(2);
+    const cantidadTotal = (parseInt(formData.cantidad_la_plata) || 0) + (parseInt(formData.cantidad_mitre) || 0);
+    return (precioVenta * cantidadTotal).toFixed(2);
   };
 
   return (
@@ -1212,13 +1233,13 @@ const FormularioOtro = ({ onAdd, loading }) => {
         
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-slate-800 mb-2">
-            Descripción del Producto *
-            <span className="text-xs text-slate-500 ml-1">(DESCRIPCIÓN)</span>
+            Nombre del Producto *
+            <span className="text-xs text-slate-500 ml-1">(NOMBRE_PRODUCTO)</span>
           </label>
           <input
             type="text"
-            name="descripcion_producto"
-            value={formData.descripcion_producto}
+            name="nombre_producto"
+            value={formData.nombre_producto}
             onChange={handleChange}
             placeholder="ej: Mouse Logitech MX Master 3 Wireless"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
@@ -1226,19 +1247,48 @@ const FormularioOtro = ({ onAdd, loading }) => {
           />
         </div>
 
+        <div className="md:col-span-1">
+          <label className="block text-sm font-medium text-slate-800 mb-2">
+            Descripción
+            <span className="text-xs text-slate-500 ml-1">(DESCRIPCION)</span>
+          </label>
+          <input
+            type="text"
+            name="descripcion"
+            value={formData.descripcion}
+            onChange={handleChange}
+            placeholder="Descripción adicional..."
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">
-            Cantidad *
-            <span className="text-xs text-slate-500 ml-1">(CANTIDAD)</span>
+            Cantidad La Plata
+            <span className="text-xs text-slate-500 ml-1">(CANTIDAD_LA_PLATA)</span>
           </label>
           <input
             type="number"
-            name="cantidad"
-            value={formData.cantidad}
+            name="cantidad_la_plata"
+            value={formData.cantidad_la_plata}
             onChange={handleChange}
-            min="1"
+            min="0"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-800 mb-2">
+            Cantidad Mitre
+            <span className="text-xs text-slate-500 ml-1">(CANTIDAD_MITRE)</span>
+          </label>
+          <input
+            type="number"
+            name="cantidad_mitre"
+            value={formData.cantidad_mitre}
+            onChange={handleChange}
+            min="0"
+            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
 
@@ -1261,37 +1311,6 @@ const FormularioOtro = ({ onAdd, loading }) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">
-            Condición *
-            <span className="text-xs text-slate-500 ml-1">(CONDICIÓN)</span>
-          </label>
-          <select
-            name="condicion"
-            value={formData.condicion}
-            onChange={handleChange}
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          >
-            {opcionesCondicion.map(cond => (
-              <option key={cond.value} value={cond.value}>{cond.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Sucursal</label>
-          <select
-            name="sucursal"
-            value={formData.sucursal}
-            onChange={handleChange}
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          >
-            <option value="la_plata">LA PLATA</option>
-            <option value="mitre">MITRE</option>
-            <option value="en_camino">EN CAMINO</option>
-            <option value="rsn">RSN/IDM/FIXCENTER</option>
-          </select>
-        </div>
 
         {/* Información de Precios */}
         <div className="col-span-full">
@@ -1302,8 +1321,8 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">
-            Precio de Compra USD
-            <span className="text-xs text-slate-500 ml-1">(P.C. USD)</span>
+            Precio de Compra USD *
+            <span className="text-xs text-slate-500 ml-1">(PRECIO_COMPRA_USD)</span>
           </label>
           <input
             type="number"
@@ -1318,8 +1337,8 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">
-            Precio de Venta USD
-            <span className="text-xs text-slate-500 ml-1">(P.V. USD)</span>
+            Precio de Venta USD *
+            <span className="text-xs text-slate-500 ml-1">(PRECIO_VENTA_USD)</span>
           </label>
           <input
             type="number"
@@ -1377,7 +1396,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">
             Garantía
-            <span className="text-xs text-slate-500 ml-1">(GARANTÍA)</span>
+            <span className="text-xs text-slate-500 ml-1">(GARANTIA)</span>
           </label>
           <input
             type="text"
@@ -1391,15 +1410,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-slate-800 mb-2">
-            Fallas/Observaciones
-            <span className="text-xs text-slate-500 ml-1">(FALLAS)</span>
+            Observaciones
+            <span className="text-xs text-slate-500 ml-1">(OBSERVACIONES)</span>
           </label>
           <input
             type="text"
-            name="fallas"
-            value={formData.fallas}
+            name="observaciones"
+            value={formData.observaciones}
             onChange={handleChange}
-            placeholder="Describe cualquier defecto o observación importante"
+            placeholder="Describe cualquier observación importante"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
@@ -1434,7 +1453,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         <div className="col-span-full mt-6">
   <button
     type="submit"
-    disabled={isSubmitting || loading || !formData.descripcion_producto || !formData.categoria}
+    disabled={isSubmitting || loading || !formData.nombre_producto || !formData.categoria}
     className="w-full bg-emerald-600 text-white px-6 py-3 rounded font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
   >
     {isSubmitting ? (

@@ -63,72 +63,60 @@ export const estadoResultadosService = {
       // Agrupar por tipo de cuenta
       const resultado = {
         ingresos: {},
+        costos: {},
         gastos: {}
       };
 
       movimientos.forEach(mov => {
         const cuenta = mov.plan_cuentas;
-        if (!cuenta) return;
-
-        // Validar tipo de cuenta
-        if (!cuenta.tipo || !['ingreso', 'egreso'].includes(cuenta.tipo)) {
-          console.warn(`⚠️ Cuenta con tipo inválido para Estado de Resultados: ${cuenta.nombre} (${cuenta.tipo})`);
-          return;
-        }
+        if (!cuenta || !cuenta.codigo) return;
 
         const debe = parseFloat(mov.debe || 0);
         const haber = parseFloat(mov.haber || 0);
         let monto = 0;
 
-        if (cuenta.tipo === 'ingreso') {
-          // Ingresos: aumentan con HABER, disminuyen con DEBE
+        if (cuenta.codigo.startsWith('4')) { // INGRESOS
           monto = haber - debe;
           if (!resultado.ingresos[cuenta.id]) {
-            resultado.ingresos[cuenta.id] = { 
-              cuenta, 
-              monto: 0,
-              categoria: cuenta.categoria || 'Ingresos Varios'
-            };
+            resultado.ingresos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.ingresos[cuenta.id].monto += monto;
-        } else if (cuenta.tipo === 'egreso') {
-          // Egresos: aumentan con DEBE, disminuyen con HABER
+        } else if (cuenta.codigo.startsWith('5')) { // COSTOS
+          monto = debe - haber;
+          if (!resultado.costos[cuenta.id]) {
+            resultado.costos[cuenta.id] = { cuenta, monto: 0 };
+          }
+          resultado.costos[cuenta.id].monto += monto;
+        } else if (cuenta.codigo.startsWith('6')) { // GASTOS
           monto = debe - haber;
           if (!resultado.gastos[cuenta.id]) {
-            resultado.gastos[cuenta.id] = { 
-              cuenta, 
-              monto: 0,
-              categoria: cuenta.categoria || 'Egresos Varios'
-            };
+            resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.gastos[cuenta.id].monto += monto;
         }
       });
 
-      // Ordenar cuentas por código (sin jerarquía)
+      // Ordenar y calcular totales
       const ingresosOrdenados = ordenarCuentasPorCodigo(resultado.ingresos);
-      const egresosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
+      const costosOrdenados = ordenarCuentasPorCodigo(resultado.costos);
+      const gastosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
 
-      // Calcular totales correctamente (suma directa)
-      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + Math.max(0, item.monto), 0);
-      const totalEgresos = egresosOrdenados.reduce((sum, item) => sum + Math.max(0, item.monto), 0);
-      const utilidadNeta = totalIngresos - totalEgresos;
+      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + item.monto, 0);
+      const totalCostos = costosOrdenados.reduce((sum, item) => sum + item.monto, 0);
+      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + item.monto, 0);
+      const utilidadNeta = totalIngresos - totalCostos - totalGastos;
 
       console.log('✅ Estado de resultados calculado:', {
-        ingresos: ingresosOrdenados.length,
-        egresos: egresosOrdenados.length,
-        totalIngresos,
-        totalEgresos,
-        utilidadNeta,
-        fechaDesde,
-        fechaHasta
+        totalIngresos, totalCostos, totalGastos, utilidadNeta
       });
 
       return {
         ingresos: ingresosOrdenados,
-        gastos: egresosOrdenados, // Mantener 'gastos' para compatibilidad con UI
+        costos: costosOrdenados,
+        gastos: gastosOrdenados,
         totalIngresos,
-        totalGastos: totalEgresos, // Mantener 'totalGastos' para compatibilidad con UI
+        totalCostos,
+        totalGastos,
         utilidadNeta,
         fechaDesde,
         fechaHasta
@@ -173,8 +161,10 @@ export const estadoResultadosService = {
 export function useEstadoResultados() {
   const [estadoResultados, setEstadoResultados] = useState({
     ingresos: [],
+    costos: [],
     gastos: [],
     totalIngresos: 0,
+    totalCostos: 0,
     totalGastos: 0,
     utilidadNeta: 0,
     fechaDesde: null,

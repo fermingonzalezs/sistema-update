@@ -45,12 +45,37 @@ export const ventasService = {
     // Generar número de transacción único
     const numeroTransaccion = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
     
+    // Obtener el nombre del vendedor si se proporcionó un ID
+    let nombreVendedor = datosCliente.vendedor || '';
+    if (datosCliente.vendedor && !isNaN(datosCliente.vendedor)) {
+      // Si vendedor es un número (ID), obtener el nombre
+      try {
+        const { data: vendedorData, error: vendedorError } = await supabase
+          .from('vendedores')
+          .select('nombre, apellido')
+          .eq('id', datosCliente.vendedor)
+          .single();
+        
+        if (!vendedorError && vendedorData) {
+          nombreVendedor = `${vendedorData.nombre} ${vendedorData.apellido}`;
+        }
+      } catch (error) {
+        console.warn('No se pudo obtener nombre del vendedor:', error);
+        nombreVendedor = datosCliente.vendedor; // Usar el ID como fallback
+      }
+    }
+    
     // Calcular totales
     const totalVenta = carritoItems.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0)
     const totalCosto = carritoItems.reduce((sum, item) => {
-      const costo = item.tipo === 'computadora' 
-        ? (item.producto.precio_compra_total || item.producto.precio_compra_usd || 0)
-        : (item.producto.precio_compra_usd || 0)
+      let costo = 0
+      if (item.tipo === 'computadora') {
+        // Para computadoras, priorizar precio_costo_total, fallback a precio_costo_usd
+        costo = item.producto.precio_costo_total || item.producto.precio_costo_usd || 0
+      } else {
+        // Para celulares y otros productos, usar precio_compra_usd
+        costo = item.producto.precio_compra_usd || 0
+      }
       return sum + (costo * item.cantidad)
     }, 0)
     const margenTotal = totalVenta - totalCosto
@@ -69,7 +94,7 @@ export const ventasService = {
         total_costo: totalCosto,
         margen_total: margenTotal,
         observaciones: datosCliente.observaciones,
-        vendedor: datosCliente.vendedor,
+        vendedor: nombreVendedor,
         sucursal: datosCliente.sucursal
       }
 
@@ -89,12 +114,18 @@ export const ventasService = {
 
       // Crear los items de la venta
       const ventaItems = carritoItems.map(item => {
-        const precioCosto = item.tipo === 'computadora' 
-          ? (item.producto.precio_compra_total || item.producto.precio_compra_usd || 0)
-          : (item.producto.precio_compra_usd || 0)
+        let precioCosto = 0
+        if (item.tipo === 'computadora') {
+          // Para computadoras, priorizar precio_costo_total, fallback a precio_costo_usd
+          precioCosto = item.producto.precio_costo_total || item.producto.precio_costo_usd || 0
+        } else {
+          // Para celulares y otros productos, usar precio_compra_usd
+          precioCosto = item.producto.precio_compra_usd || 0
+        }
         
         const precioTotal = item.precio_unitario * item.cantidad
         const margenItem = precioTotal - (precioCosto * item.cantidad)
+
 
         // Generar copy completo del producto al momento de la venta
         let copyCompleto = '';

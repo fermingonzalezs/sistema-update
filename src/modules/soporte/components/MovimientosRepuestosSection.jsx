@@ -78,7 +78,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
     return formData.entradas.reduce((total, entrada) => {
       if (entrada.repuesto_id && entrada.cantidad > 0) {
         const repuesto = repuestos.find(r => r.id.toString() === entrada.repuesto_id);
-        return total + (repuesto ? repuesto.precio_venta * entrada.cantidad : 0);
+        return total + (repuesto ? repuesto.precio_venta_usd * entrada.cantidad : 0);
       }
       return total;
     }, 0);
@@ -88,7 +88,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
     return formData.salidas.reduce((total, salida) => {
       if (salida.repuesto_id && salida.cantidad > 0) {
         const repuesto = repuestos.find(r => r.id.toString() === salida.repuesto_id);
-        return total + (repuesto ? repuesto.precio_venta * salida.cantidad : 0);
+        return total + (repuesto ? repuesto.precio_venta_usd * salida.cantidad : 0);
       }
       return total;
     }, 0);
@@ -172,7 +172,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
                       <option value="">Seleccionar repuesto...</option>
                       {repuestos.map(repuesto => (
                         <option key={repuesto.id} value={repuesto.id}>
-                          {repuesto.item} - ${repuesto.precio_venta?.toFixed(2)}
+                          {repuesto.nombre_producto} - ${repuesto.precio_venta_usd?.toFixed(2)}
                         </option>
                       ))}
                     </select>
@@ -219,7 +219,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
                       <option value="">Seleccionar repuesto...</option>
                       {repuestos.map(repuesto => (
                         <option key={repuesto.id} value={repuesto.id}>
-                          {repuesto.item} - ${repuesto.precio_venta?.toFixed(2)}
+                          {repuesto.nombre_producto} - ${repuesto.precio_venta_usd?.toFixed(2)}
                         </option>
                       ))}
                     </select>
@@ -319,8 +319,7 @@ const MovimientosRepuestosSection = () => {
       const { data: repuestosData } = await supabase
         .from('repuestos')
         .select('*')
-        .eq('disponible', true)
-        .order('item');
+        .order('nombre_producto');
       setRepuestos(repuestosData || []);
 
       // Cargar movimientos

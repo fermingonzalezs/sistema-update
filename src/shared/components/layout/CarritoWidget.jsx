@@ -25,8 +25,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   });
 
   // Estados locales para inputs para evitar problema del cursor
-  const [inputMonto1, setInputMonto1] = useState('');
-  const [inputMonto2, setInputMonto2] = useState('');
+  const [inputMontoBase1, setInputMontoBase1] = useState('');
+  const [inputMontoBase2, setInputMontoBase2] = useState('');
+  const [inputMontoFinal1, setInputMontoFinal1] = useState('');
+  const [inputMontoFinal2, setInputMontoFinal2] = useState('');
   const [inputRecargo1, setInputRecargo1] = useState('0');
   const [inputRecargo2, setInputRecargo2] = useState('0');
 
@@ -75,8 +77,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       }));
       
       // No autocompletar el monto - solo inicializar recargos
-      setInputMonto1('');
-      setInputMonto2('');
+      setInputMontoBase1('');
+      setInputMontoBase2('');
+      setInputMontoFinal1('');
+      setInputMontoFinal2('');
       setInputRecargo1(recargoDefault.toString());
       setInputRecargo2('0');
 
@@ -163,21 +167,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       }
     }
 
-    // Recalcular montos si ya hay monto ingresado
-    const montoInput = metodo === 1 ? inputMonto1 : inputMonto2;
-    if (montoInput && parseFloat(montoInput) > 0) {
-      // Usar setTimeout para asegurar que el estado se actualice primero
-      setTimeout(() => {
-        handleMontosChange(metodo, montoInput);
-      }, 10);
+    // Limpiar los campos de monto cuando cambia el método
+    if (metodo === 1) {
+      setInputMontoBase1('');
+      setInputMontoFinal1('');
     } else {
-      // No autocompletar el campo - el usuario debe ingresar el monto manualmente
-      // Solo limpiar el campo
-      if (metodo === 1) {
-        setInputMonto1('');
-      } else {
-        setInputMonto2('');
-      }
+      setInputMontoBase2('');
+      setInputMontoFinal2('');
     }
   };
 
@@ -195,45 +191,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     return esMetodoEnPesos(metodoPago) ? 'ARS' : 'USD';
   };
 
-  // Convertir monto a USD para guardar en base de datos (incluye recargo)
-  const convertirMontoAUSD = (monto, metodoPago, recargo = 0) => {
-    // Para métodos en pesos (efectivo_pesos, transferencia, tarjeta_credito)
-    if (esMetodoEnPesos(metodoPago)) {
-      // Aplicar recargo si corresponde y luego convertir a USD
-      if ((metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia') && recargo > 0) {
-        const montoConRecargo = monto * (1 + recargo / 100);
-        return montoConRecargo / datosCliente.cotizacion_dolar;
-      }
-      // Sin recargo, solo convertir a USD
-      return monto / datosCliente.cotizacion_dolar;
-    }
-    
-    // Para métodos en USD (dolares_billete, criptomonedas)
-    if ((metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia') && recargo > 0) {
-      return monto * (1 + recargo / 100);
-    }
-    return monto;
-  };
-
-  // Obtener monto base (sin recargo) para mostrar en input
-  const obtenerMontoBaseParaInput = (metodo) => {
-    const montoUSD = metodo === 1 ? datosCliente.monto_pago_1 : datosCliente.monto_pago_2;
-    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
-    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
-    
-    // Si es tarjeta con recargo, obtener monto base
-    if (metodoPago === 'tarjeta_credito' && recargo > 0) {
-      const montoBaseUSD = montoUSD / (1 + recargo / 100);
-      return esMetodoEnPesos(metodoPago) ? 
-        Math.round(montoBaseUSD * datosCliente.cotizacion_dolar).toString() : 
-        Math.round(montoBaseUSD).toString();
-    }
-    
-    // Para otros métodos, mostrar monto normal
-    return esMetodoEnPesos(metodoPago) ? 
-      Math.round(montoUSD * datosCliente.cotizacion_dolar).toString() : 
-      Math.round(montoUSD).toString();
-  };
+  // FUNCIONES COMENTADAS - Ya no se usan con el nuevo sistema de inputs separados
+  // convertirMontoAUSD y obtenerMontoBaseParaInput fueron reemplazadas por handleMontoBaseChange y handleMontoFinalChange
 
   // Obtener total a pagar (incluyendo recargos) en la moneda del método de pago
   const obtenerTotalAPagar = (metodoPago, recargo = 0) => {
@@ -246,24 +205,75 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     return totalConRecargo;
   };
 
-  const handleMontosChange = (metodo, monto) => {
-    // Actualizar input local
-    if (metodo === 1) {
-      setInputMonto1(monto);
-    } else {
-      setInputMonto2(monto);
-    }
-
+  // Manejar cambio en monto base (sin recargo)
+  const handleMontoBaseChange = (metodo, montoBase) => {
     const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
     const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
-    const montoEnMonedaMetodo = parseFloat(monto) || 0;
+    const montoBaseFloat = parseFloat(montoBase) || 0;
     
-    // Convertir a USD para guardar (incluye recargo automáticamente)
-    const montoUSD = convertirMontoAUSD(montoEnMonedaMetodo, metodoPago, recargo);
+    // Actualizar input local del monto base
+    if (metodo === 1) {
+      setInputMontoBase1(montoBase);
+    } else {
+      setInputMontoBase2(montoBase);
+    }
+    
+    // Calcular monto final con recargo
+    const montoFinalEnMonedaMetodo = necesitaRecargo(metodoPago) && recargo > 0 
+      ? montoBaseFloat * (1 + recargo / 100)
+      : montoBaseFloat;
+    
+    // Actualizar input del monto final
+    if (metodo === 1) {
+      setInputMontoFinal1(montoFinalEnMonedaMetodo.toFixed(2));
+    } else {
+      setInputMontoFinal2(montoFinalEnMonedaMetodo.toFixed(2));
+    }
+    
+    // Convertir monto base a USD para guardar en estado
+    const montoBaseUSD = esMetodoEnPesos(metodoPago)
+      ? montoBaseFloat / datosCliente.cotizacion_dolar
+      : montoBaseFloat;
     
     setDatosCliente(prev => ({
       ...prev,
-      [`monto_pago_${metodo}`]: montoUSD
+      [`monto_pago_${metodo}`]: montoBaseUSD
+    }));
+  };
+
+  // Manejar cambio en monto final (con recargo incluido)
+  const handleMontoFinalChange = (metodo, montoFinal) => {
+    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
+    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
+    const montoFinalFloat = parseFloat(montoFinal) || 0;
+    
+    // Actualizar input local del monto final
+    if (metodo === 1) {
+      setInputMontoFinal1(montoFinal);
+    } else {
+      setInputMontoFinal2(montoFinal);
+    }
+    
+    // Calcular monto base (sin recargo)
+    const montoBaseEnMonedaMetodo = necesitaRecargo(metodoPago) && recargo > 0
+      ? montoFinalFloat / (1 + recargo / 100)
+      : montoFinalFloat;
+    
+    // Actualizar input del monto base
+    if (metodo === 1) {
+      setInputMontoBase1(montoBaseEnMonedaMetodo.toFixed(2));
+    } else {
+      setInputMontoBase2(montoBaseEnMonedaMetodo.toFixed(2));
+    }
+    
+    // Convertir monto base a USD para guardar en estado
+    const montoBaseUSD = esMetodoEnPesos(metodoPago)
+      ? montoBaseEnMonedaMetodo / datosCliente.cotizacion_dolar
+      : montoBaseEnMonedaMetodo;
+    
+    setDatosCliente(prev => ({
+      ...prev,
+      [`monto_pago_${metodo}`]: montoBaseUSD
     }));
   };
 
@@ -280,10 +290,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       [`recargo_pago_${metodo}`]: parseFloat(recargo) || 0
     }));
 
-    // Recalcular monto con nuevo recargo
-    const montoInput = metodo === 1 ? inputMonto1 : inputMonto2;
-    if (montoInput) {
-      handleMontosChange(metodo, montoInput);
+    // Recalcular monto final si hay monto base ingresado
+    const montoBaseInput = metodo === 1 ? inputMontoBase1 : inputMontoBase2;
+    if (montoBaseInput && parseFloat(montoBaseInput) > 0) {
+      handleMontoBaseChange(metodo, montoBaseInput);
     }
   };
 
@@ -426,8 +436,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       setIsOpen(false);
       
       // Limpiar inputs locales
-      setInputMonto1('');
-      setInputMonto2('');
+      setInputMontoBase1('');
+      setInputMontoBase2('');
+      setInputMontoFinal1('');
+      setInputMontoFinal2('');
       setInputRecargo1('0');
       setInputRecargo2('0');
 
@@ -687,23 +699,48 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
-                          </label>
-                          <input
-                            type="number"
-                            value={inputMonto1}
-                            onChange={(e) => handleMontosChange(1, e.target.value)}
-                            onBlur={distribuyeMontos}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                            placeholder="0"
-                            step="1"
-                            min="0"
-                          />
-                          <p className="text-xs text-slate-800 mt-1">
-                            Total a pagar: {formatearMonto(obtenerTotalAPagar(datosCliente.metodo_pago_1, datosCliente.recargo_pago_1), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
-                          </p>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-800 mb-2">
+                              Monto Base ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                            </label>
+                            <input
+                              type="number"
+                              value={inputMontoBase1}
+                              onChange={(e) => handleMontoBaseChange(1, e.target.value)}
+                              onBlur={distribuyeMontos}
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                              placeholder="Ingrese monto sin recargo"
+                              step="1"
+                              min="0"
+                            />
+                          </div>
+                          
+                          {necesitaRecargo(datosCliente.metodo_pago_1) && (
+                            <div>
+                              <label className="block text-sm font-medium text-slate-800 mb-2">
+                                Monto Final con Recargo ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                              </label>
+                              <input
+                                type="number"
+                                value={inputMontoFinal1}
+                                onChange={(e) => handleMontoFinalChange(1, e.target.value)}
+                                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 bg-slate-50"
+                                placeholder="Monto final calculado"
+                                step="1"
+                                min="0"
+                              />
+                              <p className="text-xs text-emerald-600 mt-1">
+                                ✓ Monto final incluye {datosCliente.recargo_pago_1}% de recargo
+                              </p>
+                            </div>
+                          )}
+                          
+                          {!necesitaRecargo(datosCliente.metodo_pago_1) && (
+                            <p className="text-xs text-slate-800 mt-1">
+                              Total a pagar: {formatearMonto(obtenerTotalAPagar(datosCliente.metodo_pago_1, 0), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -726,9 +763,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           {datosCliente.recargo_pago_1 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
                               Recargo aplicado: +{datosCliente.recargo_pago_1}% = +{formatearMonto(
-                                esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
-                                  (parseFloat(inputMonto1) || 0) * datosCliente.recargo_pago_1 / 100 :
-                                  (datosCliente.monto_pago_1 * datosCliente.recargo_pago_1) / 100, 
+                                (parseFloat(inputMontoBase1) || 0) * datosCliente.recargo_pago_1 / 100, 
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                               )}
                             </p>
@@ -757,21 +792,44 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
-                          </label>
-                          <input
-                            type="number"
-                            value={inputMonto2}
-                            onChange={(e) => handleMontosChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                            placeholder="0"
-                            step="1"
-                            min="0"
-                            disabled={!datosCliente.metodo_pago_2}
-                          />
-                          {datosCliente.metodo_pago_2 && (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-800 mb-2">
+                              Monto Base ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                            </label>
+                            <input
+                              type="number"
+                              value={inputMontoBase2}
+                              onChange={(e) => handleMontoBaseChange(2, e.target.value)}
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                              placeholder="Ingrese monto sin recargo"
+                              step="1"
+                              min="0"
+                              disabled={!datosCliente.metodo_pago_2}
+                            />
+                          </div>
+                          
+                          {datosCliente.metodo_pago_2 && necesitaRecargo(datosCliente.metodo_pago_2) && (
+                            <div>
+                              <label className="block text-sm font-medium text-slate-800 mb-2">
+                                Monto Final con Recargo ({obtenerMonedaMetodo(datosCliente.metodo_pago_2)})
+                              </label>
+                              <input
+                                type="number"
+                                value={inputMontoFinal2}
+                                onChange={(e) => handleMontoFinalChange(2, e.target.value)}
+                                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 bg-slate-50"
+                                placeholder="Monto final calculado"
+                                step="1"
+                                min="0"
+                              />
+                              <p className="text-xs text-emerald-600 mt-1">
+                                ✓ Monto final incluye {datosCliente.recargo_pago_2}% de recargo
+                              </p>
+                            </div>
+                          )}
+                          
+                          {datosCliente.metodo_pago_2 && !necesitaRecargo(datosCliente.metodo_pago_2) && (
                             <p className="text-xs text-slate-800 mt-1">
                               Restante: {formatearMonto(
                                 esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
@@ -803,9 +861,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           {datosCliente.recargo_pago_2 > 0 && (
                             <p className="text-xs text-emerald-600 mt-1">
                               Recargo aplicado: +{datosCliente.recargo_pago_2}% = +{formatearMonto(
-                                esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
-                                  (parseFloat(inputMonto2) || 0) * datosCliente.recargo_pago_2 / 100 :
-                                  (datosCliente.monto_pago_2 * datosCliente.recargo_pago_2) / 100, 
+                                (parseFloat(inputMontoBase2) || 0) * datosCliente.recargo_pago_2 / 100, 
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                               )}
                             </p>
@@ -820,10 +876,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           <span className="font-bold">{formatearMonto(calcularTotal(), 'USD')}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span>Total con recargos:</span>
+                          <span>Total recaudado:</span>
                           <span className="font-bold">{formatearMonto(
-                            (datosCliente.monto_pago_1 * (1 + (necesitaRecargo(datosCliente.metodo_pago_1) ? datosCliente.recargo_pago_1 : 0) / 100)) + 
-                            ((datosCliente.monto_pago_2 || 0) * (1 + (necesitaRecargo(datosCliente.metodo_pago_2) ? datosCliente.recargo_pago_2 : 0) / 100)), 
+                            // Calcular total recaudado basado en montos finales en cada moneda
+                            (esMetodoEnPesos(datosCliente.metodo_pago_1) 
+                              ? (parseFloat(inputMontoFinal1) || parseFloat(inputMontoBase1) || 0) / datosCliente.cotizacion_dolar
+                              : (parseFloat(inputMontoFinal1) || parseFloat(inputMontoBase1) || 0)) + 
+                            (datosCliente.metodo_pago_2 && (esMetodoEnPesos(datosCliente.metodo_pago_2) 
+                              ? (parseFloat(inputMontoFinal2) || parseFloat(inputMontoBase2) || 0) / datosCliente.cotizacion_dolar
+                              : (parseFloat(inputMontoFinal2) || parseFloat(inputMontoBase2) || 0))), 
                             'USD'
                           )}</span>
                         </div>
@@ -845,13 +906,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                                 }:
                               </span>
                               <span>{formatearMonto(
-                                esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
-                                  datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar : 
-                                  datosCliente.monto_pago_1, 
+                                necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0
+                                  ? parseFloat(inputMontoFinal1) || 0
+                                  : parseFloat(inputMontoBase1) || 0, 
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                               )}</span>
                             </div>
-                            {datosCliente.metodo_pago_2 && datosCliente.monto_pago_2 > 0 && (
+                            {datosCliente.metodo_pago_2 && (parseFloat(inputMontoBase2) > 0 || parseFloat(inputMontoFinal2) > 0) && (
                               <div className="flex justify-between text-xs">
                                 <span>
                                   {datosCliente.metodo_pago_2.replace(/_/g, ' ')}
@@ -860,9 +921,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                                   }:
                                 </span>
                                 <span>{formatearMonto(
-                                  esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
-                                    datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar : 
-                                    datosCliente.monto_pago_2, 
+                                  necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0
+                                    ? parseFloat(inputMontoFinal2) || 0
+                                    : parseFloat(inputMontoBase2) || 0, 
                                   obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                                 )}</span>
                               </div>
@@ -937,19 +998,19 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             {necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0 && 
                               ` (+${datosCliente.recargo_pago_1}%)`
                             }: {formatearMonto(
-                            esMetodoEnPesos(datosCliente.metodo_pago_1) ? 
-                              datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar : 
-                              datosCliente.monto_pago_1, 
+                            necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0
+                              ? parseFloat(inputMontoFinal1) || 0
+                              : parseFloat(inputMontoBase1) || 0, 
                             obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                           )}</p>
-                          {datosCliente.metodo_pago_2 && datosCliente.monto_pago_2 > 0 && (
+                          {datosCliente.metodo_pago_2 && (parseFloat(inputMontoBase2) > 0 || parseFloat(inputMontoFinal2) > 0) && (
                             <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}
                               {necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0 && 
                                 ` (+${datosCliente.recargo_pago_2}%)`
                               }: {formatearMonto(
-                              esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
-                                datosCliente.monto_pago_2 * datosCliente.cotizacion_dolar : 
-                                datosCliente.monto_pago_2, 
+                              necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0
+                                ? parseFloat(inputMontoFinal2) || 0
+                                : parseFloat(inputMontoBase2) || 0, 
                               obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                             )}</p>
                           )}

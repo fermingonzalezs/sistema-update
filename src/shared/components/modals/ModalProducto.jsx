@@ -45,31 +45,22 @@ const CONFIGURACION_PRODUCTOS = {
 // Opciones para selects
 const OPCIONES = {
   sucursal: [
-    { value: 'la_plata', label: 'La Plata' },
-    { value: 'mitre', label: 'Mitre' },
-    { value: 'en_camino', label: 'En Camino' },
-    { value: 'rsn', label: 'RSN/IDM/FIXCENTER' }
+    { value: 'la_plata', label: 'LA PLATA' },
+    { value: 'mitre', label: 'MITRE' }
   ],
-  condicion: {
-    notebook: [
-      { value: 'nuevo', label: 'Nuevo' },
-      { value: 'usado', label: 'Usado' },
-      { value: 'reparacion', label: 'Reparación' },
-      { value: 'reservado', label: 'Reservado' }
-    ],
-    celular: [
-      { value: 'nuevo', label: 'Nuevo' },
-      { value: 'usado', label: 'Usado' },
-      { value: 'reacondicionado', label: 'Reacondicionado' },
-      { value: 'reparacion', label: 'Reparación' }
-    ],
-    otros: [
-      { value: 'nueva', label: 'Nueva' },
-      { value: 'usada', label: 'Usada' },
-      { value: 'reacondicionada', label: 'Reacondicionada' },
-      { value: 'defectuosa', label: 'Defectuosa' }
-    ]
-  },
+  condicion: [
+    { value: 'nuevo', label: 'Nuevo' },
+    { value: 'usado', label: 'Usado' },
+    { value: 'reacondicionado', label: 'Reacondicionado' },
+    { value: 'reparacion', label: 'Reparación' },
+    { value: 'reservado', label: 'Reservado' },
+    { value: 'prestado', label: 'Prestado' },
+    { value: 'sin_reparacion', label: 'Sin Reparación' },
+    { value: 'defectuoso', label: 'Defectuoso' },
+    { value: 'en_preparacion', label: 'En Preparación' },
+    { value: 'otro', label: 'Otro' },
+    { value: 'uso_oficina', label: 'Uso Oficina' }
+  ],
   marca: {
     notebook: ['ASUS', 'Acer', 'HP', 'Lenovo', 'Dell', 'MSI', 'Apple'],
     celular: ['Apple', 'Samsung', 'Xiaomi', 'Motorola', 'Huawei', 'OnePlus']
@@ -77,13 +68,21 @@ const OPCIONES = {
   capacidad: ['64GB', '128GB', 'GB', '512GB', '1TB', '2TB'],
   categoria: [
     'accesorios', 'cables', 'cargadores', 'mouse', 'teclados', 'headsets',
-    'audio', 'fundas', 'apple', 'placas-video', 'casa', 'procesadores',
-    'tablets', 'componentes', 'desktop'
+    'webcam', 'monitores', 'speakers', 'almacenamiento', 'memorias', 
+    'componentes', 'fundas', 'repuestos', 'otros'
   ],
   tipo_ram: ['DDR3', 'DDR4', 'DDR5'],
   so: ['WIN11', 'WIN10', 'Linux', 'macOS', 'Sin SO'],
   resolucion: ['HD', 'FHD', '2K', '4K'],
-  estado: ['Nuevo', 'Muy Bueno', 'Bueno', 'Regular', 'Malo']
+  estado: [
+    { value: 'A+', label: 'A+' },
+    { value: 'A-', label: 'A-' },
+    { value: 'A', label: 'A' },
+    { value: 'B+', label: 'B+' },
+    { value: 'B', label: 'B' },
+    { value: 'B-', label: 'B-' },
+    { value: 'C', label: 'C' }
+  ]
 };
 
 const ModalProducto = ({ 
@@ -132,7 +131,7 @@ const ModalProducto = ({
         },
         otros: {
           sucursal: 'la_plata',
-          condicion: 'usada',
+          condicion: 'usado',
           disponible: true,
           cantidad: 1,
           precio_compra_usd: 0,
@@ -415,7 +414,7 @@ const ModalProducto = ({
             required={configuracion.camposObligatorios.includes('condicion')}
           >
             <option value="">Seleccionar...</option>
-            {OPCIONES.condicion[tipo]?.map(opcion => (
+            {OPCIONES.condicion.map(opcion => (
               <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
             ))}
           </select>
@@ -449,6 +448,21 @@ const ModalProducto = ({
             className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
             placeholder="Ej: Negro, Plata, Azul"
           />
+        </div>
+
+        {/* Estado */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+          <select
+            value={formData.estado || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, estado: e.target.value }))}
+            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="">Seleccionar...</option>
+            {OPCIONES.estado.map(opcion => (
+              <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Cantidad - Solo para otros */}
@@ -795,19 +809,6 @@ const ModalProducto = ({
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-            <select
-              value={formData.estado || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, estado: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="">Seleccionar...</option>
-              {OPCIONES.estado.map(est => (
-                <option key={est} value={est}>{est}</option>
-              ))}
-            </select>
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>

@@ -685,8 +685,8 @@ Esta acción no se puede deshacer.
                 </div>
                 <div className="h-4 w-px bg-slate-300"></div>
                 <div>
-                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.moneda_original === 'USD').length}</span> USD · 
-                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.moneda_original === 'ARS').length}</span> ARS
+                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable && c.moneda_original === 'USD').length}</span> USD · 
+                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable && c.moneda_original === 'ARS').length}</span> ARS
                 </div>
               </div>
             </div>

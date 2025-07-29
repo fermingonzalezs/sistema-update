@@ -160,7 +160,7 @@ export const prepararMovimientoContable = (movimientoData, cuenta, cotizacion = 
       haber: tipo === 'haber' ? conversion.montoUSD : 0,
       monto_original_ars: conversion.montoOriginalARS,
       cotizacion_manual: conversion.cotizacionUsada,
-      observaciones_cambio: `Convertido: $${monto} ARS → $${conversion.montoUSD.toFixed(4)} USD (cotización: $${conversion.cotizacionUsada})`
+      observaciones_cambio: `Convertido: ${monto} ARS → ${conversion.montoUSD.toFixed(4)} USD (cotización: ${conversion.cotizacionUsada})`
     };
   } else {
     return {

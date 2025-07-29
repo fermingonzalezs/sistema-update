@@ -3,21 +3,16 @@ import { Calculator, User, DollarSign, Calendar, Settings, TrendingUp, Edit2, Sa
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useVendedores } from '../../ventas/hooks/useVendedores';
+import { supabase } from '../../../lib/supabase';
 
 const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [vendedorSeleccionado, setVendedorSeleccionado] = useState('todos');
-  const [porcentajes, setPorcentajes] = useState({
-    computadora_nuevo: 6.0,
-    computadora_usado: 4.0,
-    celular_nuevo: 8.0,
-    celular_usado: 6.0,
-    otro: 3.0
-  });
-  const [editandoPorcentajes, setEditandoPorcentajes] = useState(false);
-  const [porcentajesTemp, setPorcentajesTemp] = useState(porcentajes);
+  const [porcentajeFijo, setPorcentajeFijo] = useState(10.0);
+  const [editandoPorcentaje, setEditandoPorcentaje] = useState(false);
+  const [porcentajeTemp, setPorcentajeTemp] = useState(porcentajeFijo);
 
   // Estados para resultados
   const [comisionesCalculadas, setComisionesCalculadas] = useState([]);
@@ -45,7 +40,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     if (fechaInicio && fechaFin) {
       calcularComisiones();
     }
-  }, [fechaInicio, fechaFin, vendedorSeleccionado, porcentajes, ventas]);
+  }, [fechaInicio, fechaFin, vendedorSeleccionado, porcentajeFijo, ventas]);
 
   // Obtener lista de vendedores de la base de datos
   const getVendedores = () => {
@@ -74,14 +69,50 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     });
   };
 
+  // Función para obtener la condición de un producto
+  const obtenerCondicionProducto = async (tipoProducto, productoId) => {
+    if (tipoProducto === 'otro') {
+      return 'nuevo'; // Los "otros" no tienen condición, asumimos nuevo
+    }
+    
+    const tabla = tipoProducto === 'computadora' ? 'inventario' : 'celulares';
+    const { data, error } = await supabase
+      .from(tabla)
+      .select('condicion')
+      .eq('id', productoId)
+      .single();
+    
+    if (error) {
+      console.warn(`Error obteniendo condición para ${tipoProducto} ${productoId}:`, error);
+      return 'usado'; // Por defecto asumimos usado si hay error
+    }
+    
+    // Normalizar la condición a minúsculas
+    return (data?.condicion || 'usado').toLowerCase();
+  };
+
   // Calcular comisiones por vendedor y categoría
-  const calcularComisiones = () => {
+  const calcularComisiones = async () => {
     const ventasFiltradas = filtrarVentas();
     const comisionesPorVendedor = {};
     
     let totalGananciasGeneral = 0;
     let totalVentasGeneral = 0;
     let totalComisionesGeneral = 0;
+
+    // Obtener todas las condiciones de productos primero
+    const productosCondiciones = {};
+    
+    for (const venta of ventasFiltradas) {
+      if (venta.venta_items) {
+        for (const item of venta.venta_items) {
+          const key = `${item.tipo_producto}-${item.producto_id}`;
+          if (!productosCondiciones[key]) {
+            productosCondiciones[key] = await obtenerCondicionProducto(item.tipo_producto, item.producto_id);
+          }
+        }
+      }
+    }
 
     ventasFiltradas.forEach(venta => {
       const vendedor = venta.vendedor;
@@ -100,46 +131,61 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
         };
       }
 
-      // Procesar cada item de la venta
-      venta.venta_items.forEach(item => {
-        // Determinar categoría basada en tipo y condición
-        const getCategoriaCompleta = (tipoProducto, condicion) => {
-          if (tipoProducto === 'computadora') {
-            return condicion === 'nuevo' ? 'computadora_nuevo' : 'computadora_usado';
-          } else if (tipoProducto === 'celular') {
-            return condicion === 'nuevo' ? 'celular_nuevo' : 'celular_usado';
-          } else {
-            return 'otro';
+      // Usar margen_total de la transacción para calcular comisión
+      const margenTotal = parseFloat(venta.margen_total || 0);
+      const comisionVenta = margenTotal * (porcentajeFijo / 100);
+      const ventaTotal = parseFloat(venta.total_venta || 0);
+      
+      // Calcular unidades totales de la venta
+      const unidadesTotales = venta.venta_items ? venta.venta_items.reduce((sum, item) => sum + (item.cantidad || 1), 0) : 1;
+
+      // Distribuir comisión proporcionalmente entre items
+      if (venta.venta_items && venta.venta_items.length > 0) {
+        venta.venta_items.forEach(item => {
+          // Determinar categoría basada en tipo y condición
+          const getCategoriaCompleta = (tipoProducto, condicion) => {
+            const condicionNormalizada = (condicion || 'usado').toLowerCase();
+            if (tipoProducto === 'computadora') {
+              return condicionNormalizada === 'nuevo' ? 'computadora_nuevo' : 'computadora_usado';
+            } else if (tipoProducto === 'celular') {
+              return condicionNormalizada === 'nuevo' ? 'celular_nuevo' : 'celular_usado';
+            } else {
+              return 'otro';
+            }
+          };
+
+          // Obtener la condición del cache
+          const key = `${item.tipo_producto}-${item.producto_id}`;
+          const condicion = productosCondiciones[key] || 'usado';
+          const categoria = getCategoriaCompleta(item.tipo_producto, condicion);
+          const ventaItem = parseFloat(item.precio_total || 0);
+          const unidades = item.cantidad || 1;
+          
+          // Distribución proporcional de comisión y ganancia basada en valor del item
+          const proporcionItem = ventaTotal > 0 ? ventaItem / ventaTotal : 0;
+          const comisionItem = comisionVenta * proporcionItem;
+          const gananciaItem = margenTotal * proporcionItem;
+
+          // Acumular por categoría
+          if (comisionesPorVendedor[vendedor].categorias[categoria]) {
+            comisionesPorVendedor[vendedor].categorias[categoria].ventas += ventaItem;
+            comisionesPorVendedor[vendedor].categorias[categoria].ganancias += gananciaItem;
+            comisionesPorVendedor[vendedor].categorias[categoria].comision += comisionItem;
+            comisionesPorVendedor[vendedor].categorias[categoria].unidades += unidades;
           }
-        };
 
-        const categoria = getCategoriaCompleta(item.tipo_producto, item.condicion);
-        const ventaItem = item.precio_total || 0;
-        const gananciaItem = item.margen_item || 0;
-        const unidades = item.cantidad || 1;
-        
-        // Calcular comisión basada en la ganancia
-        const comisionItem = gananciaItem * (porcentajes[categoria] / 100);
-
-        // Acumular por categoría
-        if (comisionesPorVendedor[vendedor].categorias[categoria]) {
-          comisionesPorVendedor[vendedor].categorias[categoria].ventas += ventaItem;
-          comisionesPorVendedor[vendedor].categorias[categoria].ganancias += gananciaItem;
-          comisionesPorVendedor[vendedor].categorias[categoria].comision += comisionItem;
-          comisionesPorVendedor[vendedor].categorias[categoria].unidades += unidades;
-        }
+          // Acumular totales del vendedor (solo una vez por item para evitar duplicación)
+          totalVentasGeneral += ventaItem;
+          totalGananciasGeneral += gananciaItem;
+          totalComisionesGeneral += comisionItem;
+        });
 
         // Acumular totales del vendedor
-        comisionesPorVendedor[vendedor].totales.ventas += ventaItem;
-        comisionesPorVendedor[vendedor].totales.ganancias += gananciaItem;
-        comisionesPorVendedor[vendedor].totales.comision += comisionItem;
-        comisionesPorVendedor[vendedor].totales.unidades += unidades;
-
-        // Acumular totales generales
-        totalVentasGeneral += ventaItem;
-        totalGananciasGeneral += gananciaItem;
-        totalComisionesGeneral += comisionItem;
-      });
+        comisionesPorVendedor[vendedor].totales.ventas += ventaTotal;
+        comisionesPorVendedor[vendedor].totales.ganancias += margenTotal;
+        comisionesPorVendedor[vendedor].totales.comision += comisionVenta;
+        comisionesPorVendedor[vendedor].totales.unidades += unidadesTotales;
+      }
     });
 
     const comisionesArray = Object.values(comisionesPorVendedor);
@@ -155,27 +201,27 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     });
   };
 
-  // Guardar cambios en porcentajes
-  const guardarPorcentajes = () => {
-    setPorcentajes(porcentajesTemp);
-    setEditandoPorcentajes(false);
-    // Aquí podrías guardar en localStorage o base de datos
-    localStorage.setItem('comisiones_porcentajes', JSON.stringify(porcentajesTemp));
+  // Guardar cambios en porcentaje
+  const guardarPorcentaje = () => {
+    setPorcentajeFijo(porcentajeTemp);
+    setEditandoPorcentaje(false);
+    // Guardar en localStorage
+    localStorage.setItem('comisiones_porcentaje_fijo', JSON.stringify(porcentajeTemp));
   };
 
-  // Cancelar edición de porcentajes
+  // Cancelar edición de porcentaje
   const cancelarEdicion = () => {
-    setPorcentajesTemp(porcentajes);
-    setEditandoPorcentajes(false);
+    setPorcentajeTemp(porcentajeFijo);
+    setEditandoPorcentaje(false);
   };
 
-  // Cargar porcentajes guardados
+  // Cargar porcentaje guardado
   useEffect(() => {
-    const porcentajesGuardados = localStorage.getItem('comisiones_porcentajes');
-    if (porcentajesGuardados) {
-      const parsed = JSON.parse(porcentajesGuardados);
-      setPorcentajes(parsed);
-      setPorcentajesTemp(parsed);
+    const porcentajeGuardado = localStorage.getItem('comisiones_porcentaje_fijo');
+    if (porcentajeGuardado) {
+      const parsed = JSON.parse(porcentajeGuardado);
+      setPorcentajeFijo(parsed);
+      setPorcentajeTemp(parsed);
     }
   }, []);
 
@@ -260,7 +306,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           {/* Botón para actualizar */}
           <div className="flex items-end">
             <button
-              onClick={calcularComisiones}
+              onClick={() => calcularComisiones()}
               className="w-full bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
             >
               Calcular
@@ -268,16 +314,16 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           </div>
         </div>
 
-        {/* Configuración de Porcentajes */}
+        {/* Configuración de Porcentaje Fijo */}
         <div className="border-t border-slate-200 pt-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-medium text-slate-700">
-              <Settings className="w-4 h-4 inline mr-1" />
-              Porcentajes de Comisión por Categoría
+              <Calculator className="w-4 h-4 inline mr-1" />
+              Porcentaje de Comisión Fijo (sobre ganancia)
             </h4>
-            {!editandoPorcentajes ? (
+            {!editandoPorcentaje ? (
               <button
-                onClick={() => setEditandoPorcentajes(true)}
+                onClick={() => setEditandoPorcentaje(true)}
                 className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 text-sm"
               >
                 <Edit2 className="w-4 h-4" />
@@ -286,7 +332,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             ) : (
               <div className="flex space-x-2">
                 <button
-                  onClick={guardarPorcentajes}
+                  onClick={guardarPorcentaje}
                   className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 text-sm"
                 >
                   <Save className="w-4 h-4" />
@@ -303,34 +349,29 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(editandoPorcentajes ? porcentajesTemp : porcentajes).map(([categoria, porcentaje]) => (
-              <div key={categoria} className="flex items-center space-x-3 p-3 bg-slate-100 rounded">
-                <span className="text-xl">{getIconoCategoria(categoria)}</span>
-                <span className="font-medium flex-1 text-sm text-slate-800">{getNombreCategoria(categoria)}:</span>
-                {editandoPorcentajes ? (
-                  <div className="flex items-center space-x-1">
-                    <input
-                      type="number"
-                      value={porcentaje}
-                      onChange={(e) => setPorcentajesTemp(prev => ({
-                        ...prev,
-                        [categoria]: parseFloat(e.target.value) || 0
-                      }))}
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                    <span className="text-xs text-slate-500">%</span>
-                  </div>
-                ) : (
-                  <span className={`font-semibold text-sm text-slate-800`}>
-                    {porcentaje}%
-                  </span>
-                )}
+          <div className="flex items-center space-x-4 p-4 bg-slate-100 rounded">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-slate-600" />
+              <span className="font-medium text-slate-800">Porcentaje de comisión para todas las categorías:</span>
+            </div>
+            {editandoPorcentaje ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  value={porcentajeTemp}
+                  onChange={(e) => setPorcentajeTemp(parseFloat(e.target.value) || 0)}
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  className="w-20 px-3 py-2 border border-slate-300 rounded text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+                <span className="text-slate-600">%</span>
               </div>
-            ))}
+            ) : (
+              <span className="font-semibold text-lg text-emerald-600">
+                {porcentajeFijo}%
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -376,12 +417,11 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
               <thead className="bg-slate-800">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">PC Nuevas</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">PC Usadas</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cel. Nuevos</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Cel. Usados</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Notebooks</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Celulares</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Otros</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total Comisión</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total Ganancia</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
@@ -397,50 +437,32 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                       </div>
                     </td>
                     
-                    {/* PC Nuevas */}
+                    {/* Notebooks (PC Nuevas + PC Usadas) */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-900 font-medium">
-                          {formatearMonto(vendedorData.categorias.computadora_nuevo.comision, 'USD')}
+                          {formatearMonto(vendedorData.categorias.computadora_nuevo.comision + vendedorData.categorias.computadora_usado.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
-                          {vendedorData.categorias.computadora_nuevo.unidades} u.
+                          {vendedorData.categorias.computadora_nuevo.unidades + vendedorData.categorias.computadora_usado.unidades} u.
+                        </div>
+                        <div className="text-slate-400 text-xs">
+                          Ganancia: {formatearMonto(vendedorData.categorias.computadora_nuevo.ganancias + vendedorData.categorias.computadora_usado.ganancias, 'USD')}
                         </div>
                       </div>
                     </td>
 
-                    {/* PC Usadas */}
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        <div className="text-slate-800 font-medium">
-                          {formatearMonto(vendedorData.categorias.computadora_usado.comision, 'USD')}
-                        </div>
-                        <div className="text-slate-500 text-xs">
-                          {vendedorData.categorias.computadora_usado.unidades} u.
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Celulares Nuevos */}
+                    {/* Celulares (Nuevos + Usados) */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="text-slate-900 font-medium">
-                          {formatearMonto(vendedorData.categorias.celular_nuevo.comision, 'USD')}
+                          {formatearMonto(vendedorData.categorias.celular_nuevo.comision + vendedorData.categorias.celular_usado.comision, 'USD')}
                         </div>
                         <div className="text-slate-500 text-xs">
-                          {vendedorData.categorias.celular_nuevo.unidades} u.
+                          {vendedorData.categorias.celular_nuevo.unidades + vendedorData.categorias.celular_usado.unidades} u.
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Celulares Usados */}
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        <div className="text-slate-800 font-medium">
-                          {formatearMonto(vendedorData.categorias.celular_usado.comision, 'USD')}
-                        </div>
-                        <div className="text-slate-500 text-xs">
-                          {vendedorData.categorias.celular_usado.unidades} u.
+                        <div className="text-slate-400 text-xs">
+                          Ganancia: {formatearMonto(vendedorData.categorias.celular_nuevo.ganancias + vendedorData.categorias.celular_usado.ganancias, 'USD')}
                         </div>
                       </div>
                     </td>
@@ -454,14 +476,29 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                         <div className="text-slate-500 text-xs">
                           {vendedorData.categorias.otro.unidades} u.
                         </div>
+                        <div className="text-slate-400 text-xs">
+                          Ganancia: {formatearMonto(vendedorData.categorias.otro.ganancias, 'USD')}
+                        </div>
                       </div>
                     </td>
 
-                    {/* Total */}
+                    {/* Total Comisión */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="font-bold text-emerald-600">
+                          {formatearMonto(vendedorData.totales.comision, 'USD')}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {vendedorData.totales.unidades} unidades
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Total Ganancia */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         <div className="font-bold text-slate-900">
-                          {formatearMonto(vendedorData.totales.comision, 'USD')}
+                          {formatearMonto(vendedorData.totales.ganancias, 'USD')}
                         </div>
                         <div className="text-xs text-slate-500">
                           Ventas: {formatearMonto(vendedorData.totales.ventas, 'USD')}

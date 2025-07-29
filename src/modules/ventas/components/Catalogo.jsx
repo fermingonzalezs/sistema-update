@@ -63,17 +63,25 @@ const Catalogo = ({ onAddToCart }) => {
       ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
       : formatearMonto(producto.precio_venta_usd, 'USD');
     
-    // Determinar tipo simple con emoji para botones copy
-    let tipoSimple = 'otro_simple';
-    if (categoriaActiva === 'notebooks') {
-      tipoSimple = 'notebook_simple';
-    } else if (categoriaActiva === 'celulares') {
-      tipoSimple = 'celular_simple';
+    let infoBase;
+    
+    if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
+      // Para otros productos: formato simple nombre - descripción
+      const nombre = producto.nombre_producto || 'Sin nombre';
+      const descripcion = producto.descripcion ? ` - ${producto.descripcion}` : '';
+      infoBase = `📦 ${nombre}${descripcion}`;
+    } else {
+      // Para notebooks y celulares: usar copy completo con emoji
+      let tipoSimple = 'notebook_simple';
+      if (categoriaActiva === 'celulares') {
+        tipoSimple = 'celular_simple';
+      }
+      
+      infoBase = generateCopy(producto, { 
+        tipo: tipoSimple
+      });
     }
     
-    const infoBase = generateCopy(producto, { 
-      tipo: tipoSimple
-    });
     return `${infoBase} - Estado: ${producto.condicion} - Precio: ${precio}`;
   };
 
@@ -98,6 +106,24 @@ const Catalogo = ({ onAddToCart }) => {
     const tipo = categoriaActiva === 'celulares' ? 'celular' :
                  categoriaActiva === 'notebooks' ? 'notebook' : 'otros';
     
+    // Función para normalizar sucursal a valores válidos
+    const normalizarSucursal = (sucursal) => {
+      const sucursalLower = (sucursal || '').toLowerCase();
+      // Mapear sucursales viejas a nuevas
+      if (sucursalLower.includes('quilmes') || sucursalLower.includes('san') || sucursalLower.includes('martin')) {
+        return 'la_plata'; // Por defecto quilmes/san martin -> la plata
+      }
+      if (sucursalLower.includes('deposito') || sucursalLower.includes('mitre')) {
+        return 'mitre';
+      }
+      // Si ya es un valor válido, mantenerlo
+      if (sucursalLower === 'la_plata' || sucursalLower === 'mitre') {
+        return sucursalLower;
+      }
+      // Por defecto, asignar la plata
+      return 'la_plata';
+    };
+    
     // Inicializar el formulario con los datos del producto según el tipo
     if (tipo === 'notebook') {
       setEditForm({
@@ -107,7 +133,7 @@ const Catalogo = ({ onAddToCart }) => {
         marca: producto.marca || '',
         color: producto.color || '',
         condicion: producto.condicion || '',
-        sucursal: producto.sucursal || '',
+        sucursal: normalizarSucursal(producto.sucursal),
         
         // Precios y costos
         precio_costo_usd: producto.precio_costo_usd || '',
@@ -153,7 +179,7 @@ const Catalogo = ({ onAddToCart }) => {
         marca: producto.marca || '',
         color: producto.color || '',
         condicion: producto.condicion || '',
-        sucursal: producto.sucursal || '',
+        sucursal: normalizarSucursal(producto.sucursal),
         
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
@@ -178,7 +204,7 @@ const Catalogo = ({ onAddToCart }) => {
         descripcion: producto.descripcion || '',
         cantidad: producto.cantidad || 1,
         condicion: producto.condicion || '',
-        sucursal: producto.sucursal || '',
+        sucursal: normalizarSucursal(producto.sucursal),
         
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
@@ -423,6 +449,9 @@ const Catalogo = ({ onAddToCart }) => {
                   <option value="reservado">RESERVADO</option>
                   <option value="prestado">PRESTADO</option>
                   <option value="sin_reparacion">SIN REPARACIÓN</option>
+                  <option value="en_preparacion">EN PREPARACIÓN</option>
+                  <option value="otro">OTRO</option>
+                  <option value="uso_oficina">USO OFICINA</option>
                 </select>
               </div>
               <div>
@@ -433,9 +462,8 @@ const Catalogo = ({ onAddToCart }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="quilmes">Quilmes</option>
-                  <option value="san_martin">San Martín</option>
-                  <option value="deposito">Depósito</option>
+                  <option value="la_plata">LA PLATA</option>
+                  <option value="mitre">MITRE</option>
                 </select>
               </div>
             </div>
@@ -826,6 +854,9 @@ const Catalogo = ({ onAddToCart }) => {
                   <option value="reservado">RESERVADO</option>
                   <option value="prestado">PRESTADO</option>
                   <option value="sin_reparacion">SIN REPARACIÓN</option>
+                  <option value="en_preparacion">EN PREPARACIÓN</option>
+                  <option value="otro">OTRO</option>
+                  <option value="uso_oficina">USO OFICINA</option>
                 </select>
               </div>
               <div>
@@ -836,9 +867,8 @@ const Catalogo = ({ onAddToCart }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="quilmes">Quilmes</option>
-                  <option value="san_martin">San Martín</option>
-                  <option value="deposito">Depósito</option>
+                  <option value="la_plata">LA PLATA</option>
+                  <option value="mitre">MITRE</option>
                 </select>
               </div>
             </div>
@@ -1044,6 +1074,9 @@ const Catalogo = ({ onAddToCart }) => {
                   <option value="reservado">RESERVADO</option>
                   <option value="prestado">PRESTADO</option>
                   <option value="sin_reparacion">SIN REPARACIÓN</option>
+                  <option value="en_preparacion">EN PREPARACIÓN</option>
+                  <option value="otro">OTRO</option>
+                  <option value="uso_oficina">USO OFICINA</option>
                 </select>
               </div>
               <div>
@@ -1054,9 +1087,8 @@ const Catalogo = ({ onAddToCart }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="quilmes">Quilmes</option>
-                  <option value="san_martin">San Martín</option>
-                  <option value="deposito">Depósito</option>
+                  <option value="la_plata">LA PLATA</option>
+                  <option value="mitre">MITRE</option>
                 </select>
               </div>
             </div>
@@ -1284,7 +1316,20 @@ const Catalogo = ({ onAddToCart }) => {
             </select>
           </div>
 
-          
+          {/* Estado */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+            <select
+              value={filtros.estado}
+              onChange={(e) => actualizarFiltro('estado', e.target.value)}
+              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="">Todos</option>
+              {valoresUnicos.estados?.map(estado => (
+                <option key={estado} value={estado}>{estado}</option>
+              ))}
+            </select>
+          </div>
 
           {/* Sucursal/Ubicación */}
           <div>
@@ -1295,11 +1340,8 @@ const Catalogo = ({ onAddToCart }) => {
               className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
-              {valoresUnicos.sucursales?.map(sucursal => (
-                <option key={sucursal} value={sucursal}>
-                  {sucursal.replace('_', ' ').toUpperCase()}
-                </option>
-              ))}
+              <option value="la_plata">LA PLATA</option>
+              <option value="mitre">MITRE</option>
             </select>
           </div>
 
@@ -1361,20 +1403,35 @@ const Catalogo = ({ onAddToCart }) => {
       {!loading && !error && (
         <div className="space-y-3">
           {/* Header */}
-          <div className="rounded p-4 grid grid-cols-12 gap-4 bg-slate-800">
-            <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
-            <div className="col-span-2 text-sm font-bold text-white uppercase">Serial</div>
-            <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
-            <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
-            <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
-            <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
-          </div>
+          {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
+            // Header para otros productos - mostrar stock por sucursal
+            <div className="rounded p-4 grid grid-cols-13 gap-4 bg-slate-800">
+              <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
+              <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
+              <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
+              <div className="col-span-3 text-center text-sm font-bold text-white uppercase">Acciones</div>
+            </div>
+          ) : (
+            // Header para notebooks y celulares - mostrar serial y sucursal
+            <div className="rounded p-4 grid grid-cols-13 gap-6 bg-slate-800">
+              <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-2 text-sm font-bold text-white uppercase">Serial</div>
+              <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
+              <div className="col-span-1 text-sm font-bold text-white uppercase">Sucursal</div>
+              <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
+            </div>
+          )}
           
           {/* Productos */}
           {datos.map((producto) => (
             <div 
               key={producto.id} 
-              className="group cursor-pointer hover:bg-slate-100 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-4 bg-white grid grid-cols-12 gap-4 items-center shadow-sm hover:shadow-md"
+              className={`group cursor-pointer hover:bg-slate-100 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-4 bg-white grid items-center shadow-sm hover:shadow-md ${categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? 'grid-cols-13 gap-4' : 'grid-cols-13 gap-6'}`}
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
@@ -1391,44 +1448,125 @@ const Catalogo = ({ onAddToCart }) => {
                 ) : (
                   <div>
                     <div className="text-sm font-medium">
-                      {generateCopy(producto, { 
-                        tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 
-                              categoriaActiva === 'celulares' ? 'celular_completo' : 
-                              'otro_completo'
-                      })}
+                      {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
+                        // Para otros productos: solo nombre - descripción
+                        <>
+                          <span>{producto.nombre_producto || 'Sin nombre'}</span>
+                          {producto.descripcion && (
+                            <span> - {producto.descripcion}</span>
+                          )}
+                        </>
+                      ) : (
+                        // Para notebooks y celulares: copy completo
+                        generateCopy(producto, { 
+                          tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 'celular_completo'
+                        })
+                      )}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
-                      {producto.descripcion && <span>{producto.descripcion}</span>}
+                      {(categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') && producto.descripcion && <span>{producto.descripcion}</span>}
                       {producto.stock > 0 && <span className="ml-2 text-emerald-600">Stock: {producto.stock}</span>}
                     </div>
                   </div>
                 )}
               </div>
               
-              {/* Serial */}
-              <div className="col-span-2">
-                <div className="text-sm text-slate-700">
-                  {producto.serial || producto.imei || 'N/A'}
-                </div>
-              </div>
-              
-              {/* Condición */}
-              <div className="col-span-1">
-                <div className="space-y-1">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    producto.condicion === 'nuevo' ? 'bg-emerald-100 text-emerald-800' :
-                    producto.condicion === 'refurbished' ? 'bg-blue-100 text-blue-800' :
-                    producto.condicion === 'usado' ? 'bg-yellow-100 text-yellow-800' :
-                    producto.condicion === 'reparacion' ? 'bg-red-100 text-red-800' :
-                    producto.condicion === 'reservado' ? 'bg-purple-100 text-purple-800' :
-                    producto.condicion === 'prestado' ? 'bg-orange-100 text-orange-800' :
-                    producto.condicion === 'sin_reparacion' ? 'bg-gray-100 text-gray-800' :
-                    'bg-slate-100 text-slate-800'
-                  }`}>
-                    {producto.condicion?.toUpperCase() || 'N/A'}
-                  </span>
-                </div>
-              </div>
+              {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
+                // Columnas para otros productos - mostrar stock por sucursal
+                <>
+                  {/* Stock Mitre */}
+                  <div className="col-span-1 text-center">
+                    <span className={`px-2 py-1 text-sm font-medium rounded ${
+                      (producto.cantidad_mitre || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {producto.cantidad_mitre || 0}
+                    </span>
+                  </div>
+                  
+                  {/* Stock La Plata */}
+                  <div className="col-span-1 text-center">
+                    <span className={`px-2 py-1 text-sm font-medium rounded ${
+                      (producto.cantidad_la_plata || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {producto.cantidad_la_plata || 0}
+                    </span>
+                  </div>
+                  
+                  {/* Condición */}
+                  <div className="col-span-1 flex justify-center">
+                    <div className="space-y-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        (() => {
+                          const condicion = (producto.condicion || '').toLowerCase().trim();
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-800';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-800';
+                          if (condicion === 'reacondicionado') return 'bg-blue-100 text-blue-800';
+                          if (condicion === 'defectuoso') return 'bg-red-100 text-red-800';
+                          return 'bg-slate-100 text-slate-800';
+                        })()
+                      }`}>
+                        {(producto.condicion || 'NUEVO').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Columnas para notebooks y celulares - mostrar serial, condición y sucursal
+                <>
+                  {/* Serial */}
+                  <div className="col-span-2">
+                    <div className="text-sm text-slate-700">
+                      {producto.serial || producto.imei || 'N/A'}
+                    </div>
+                  </div>
+                  
+                  {/* Condición */}
+                  <div className="col-span-1 flex justify-center">
+                    <div className="space-y-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        (() => {
+                          const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-800';
+                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-800';
+                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-800';
+                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-800';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-800';
+                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-800';
+                          if (condicion === 'regular') return 'bg-orange-100 text-orange-800';
+                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-800';
+                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-800';
+                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-800';
+                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-800';
+                          return 'bg-slate-100 text-slate-800';
+                        })()
+                      }`}>
+                        {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Sucursal */}
+                  <div className="col-span-1 flex justify-center">
+                    <div className="space-y-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        (producto.sucursal === 'la_plata' || producto.ubicacion === 'la_plata') ? 'bg-blue-100 text-blue-800' :
+                        (producto.sucursal === 'mitre' || producto.ubicacion === 'mitre') ? 'bg-green-100 text-green-800' :
+                        'bg-slate-100 text-slate-800'
+                      }`}>
+                        {(() => {
+                          const sucursal = producto.sucursal || producto.ubicacion || 'N/A';
+                          if (sucursal === 'la_plata') return 'LA PLATA';
+                          if (sucursal === 'mitre') return 'MITRE';
+                          // Mapear sucursales viejas para visualización
+                          if (sucursal.toLowerCase().includes('quilmes') || sucursal.toLowerCase().includes('san') || sucursal.toLowerCase().includes('martin')) return 'LA PLATA';
+                          if (sucursal.toLowerCase().includes('deposito')) return 'MITRE';
+                          return sucursal.toUpperCase();
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
               
               {/* Precio */}
               <div className="col-span-2">
@@ -1459,7 +1597,7 @@ const Catalogo = ({ onAddToCart }) => {
               </div>
 
               {/* Acciones */}
-              <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
+              <div className={`${categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? 'col-span-3' : 'col-span-2'} flex justify-center space-x-1`} onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleAddToCart(producto)}
                   className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"

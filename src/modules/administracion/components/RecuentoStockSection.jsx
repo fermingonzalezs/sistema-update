@@ -5,24 +5,48 @@ import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Recuento de Stock
 const recuentoStockService = {
-  async getInventarioCompleto() {
-    console.log('📦 Obteniendo inventario completo...');
+  async getInventarioCompleto(sucursal = null) {
+    console.log('📦 Obteniendo inventario completo para sucursal:', sucursal || 'todas');
 
-    const [computadoras, celulares, otros] = await Promise.all([
-      supabase.from('inventario').select('*').eq('disponible', true),
-      supabase.from('celulares').select('*').eq('disponible', true),
-      supabase.from('otros').select('*').eq('disponible', true)
-    ]);
+    let computadoras, celulares, otros;
+
+    if (sucursal) {
+      // Filtrar por sucursal específica - convertir a mayúsculas para match
+      const sucursalMayuscula = sucursal === 'la_plata' ? 'LA PLATA' : 'MITRE';
+      [computadoras, celulares, otros] = await Promise.all([
+        supabase.from('inventario').select('*').eq('disponible', true).eq('sucursal', sucursalMayuscula),
+        supabase.from('celulares').select('*').eq('disponible', true).eq('sucursal', sucursalMayuscula),
+        supabase.from('otros').select('*')
+      ]);
+    } else {
+      // Obtener todos los productos
+      [computadoras, celulares, otros] = await Promise.all([
+        supabase.from('inventario').select('*').eq('disponible', true),
+        supabase.from('celulares').select('*').eq('disponible', true),
+        supabase.from('otros').select('*')
+      ]);
+    }
 
     if (computadoras.error) throw computadoras.error;
     if (celulares.error) throw celulares.error;
     if (otros.error) throw otros.error;
 
-    const inventario = [
+    let inventario = [
       ...computadoras.data.map(item => ({ ...item, tipo: 'computadora' })),
       ...celulares.data.map(item => ({ ...item, tipo: 'celular' })),
       ...otros.data.map(item => ({ ...item, tipo: 'otro' }))
     ];
+
+    // Si hay sucursal seleccionada, filtrar productos "otros" por stock en esa sucursal
+    if (sucursal) {
+      inventario = inventario.filter(item => {
+        if (item.tipo === 'otro') {
+          const stockSucursal = sucursal === 'la_plata' ? (item.cantidad_la_plata || 0) : (item.cantidad_mitre || 0);
+          return stockSucursal > 0; // Solo mostrar productos con stock en la sucursal
+        }
+        return true; // Mantener computadoras y celulares ya filtrados por sucursal
+      });
+    }
 
     console.log(`✅ ${inventario.length} productos obtenidos`);
     return inventario;
@@ -35,6 +59,7 @@ const recuentoStockService = {
       .from('recuentos_stock')
       .insert([{
         fecha_recuento: recuentoData.fecha,
+        sucursal: recuentoData.sucursal,
         tipo_recuento: recuentoData.tipo, // 'completo' | 'parcial'
         productos_contados: recuentoData.productosContados,
         diferencias_encontradas: recuentoData.diferencias,
@@ -69,10 +94,14 @@ const recuentoStockService = {
                    ajuste.tipo === 'celular' ? 'celulares' : 'otros';
 
       if (ajuste.tipo === 'otro') {
-        // Para productos "otros", actualizar cantidad
+        // Para productos "otros", actualizar cantidad por sucursal
+        const campo = ajuste.sucursal === 'la_plata' ? 'cantidad_la_plata' : 'cantidad_mitre';
         const { error } = await supabase
           .from(tabla)
-          .update({ cantidad: ajuste.stockReal })
+          .update({ 
+            [campo]: ajuste.stockReal,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', ajuste.id);
         
         if (error) throw error;
@@ -80,7 +109,10 @@ const recuentoStockService = {
         // Para computadoras y celulares, cambiar disponibilidad
         const { error } = await supabase
           .from(tabla)
-          .update({ disponible: ajuste.stockReal > 0 })
+          .update({ 
+            disponible: ajuste.stockReal > 0,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', ajuste.id);
         
         if (error) throw error;
@@ -99,11 +131,11 @@ function useRecuentoStock() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchInventario = async () => {
+  const fetchInventario = async (sucursal = null) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await recuentoStockService.getInventarioCompleto();
+      const data = await recuentoStockService.getInventarioCompleto(sucursal);
       setInventario(data);
     } catch (err) {
       setError(err.message);
@@ -171,6 +203,7 @@ const RecuentoStockSection = () => {
 
   const [filtro, setFiltro] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('todos');
+  const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
   const [stockContado, setStockContado] = useState({});
   const [observaciones, setObservaciones] = useState('');
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
@@ -179,9 +212,20 @@ const RecuentoStockSection = () => {
 
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
-    fetchInventario();
     fetchRecuentosAnteriores();
   }, []);
+
+  useEffect(() => {
+    if (sucursalSeleccionada) {
+      fetchInventario(sucursalSeleccionada);
+      // Limpiar filtros al cambiar sucursal
+      setFiltro('');
+      setTipoFiltro('todos');
+      setStockContado({});
+      setMostrarSoloDiferencias(false);
+      setRecuentoIniciado(false);
+    }
+  }, [sucursalSeleccionada]);
 
   const iniciarRecuento = () => {
     setRecuentoIniciado(true);
@@ -201,11 +245,17 @@ const RecuentoStockSection = () => {
     const cumpleTipo = tipoFiltro === 'todos' || producto.tipo === tipoFiltro;
     const cumpleFiltro = filtro === '' || 
       producto.modelo?.toLowerCase().includes(filtro.toLowerCase()) ||
-      producto.descripcion_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
+      producto.nombre_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
+      producto.descripcion?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.serial?.toLowerCase().includes(filtro.toLowerCase());
     
     if (mostrarSoloDiferencias) {
-      const stockSistema = producto.tipo === 'otro' ? producto.cantidad : (producto.disponible ? 1 : 0);
+      let stockSistema;
+      if (producto.tipo === 'otro') {
+        stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+      } else {
+        stockSistema = producto.disponible ? 1 : 0;
+      }
       const stockReal = stockContado[producto.id] || 0;
       return cumpleTipo && cumpleFiltro && (stockReal !== stockSistema);
     }
@@ -218,28 +268,35 @@ const RecuentoStockSection = () => {
     const productosContados = [];
 
     inventario.forEach(producto => {
-      const stockSistema = producto.tipo === 'otro' ? producto.cantidad : (producto.disponible ? 1 : 0);
+      let stockSistema;
+      if (producto.tipo === 'otro') {
+        stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+      } else {
+        stockSistema = producto.disponible ? 1 : 0;
+      }
       const stockReal = stockContado[producto.id];
 
       if (stockReal !== undefined) {
         productosContados.push({
           id: producto.id,
           tipo: producto.tipo,
-          descripcion: producto.modelo || producto.descripcion_producto,
+          descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
           serial: producto.serial || `${producto.tipo}-${producto.id}`,
           stockSistema,
-          stockReal
+          stockReal,
+          sucursal: sucursalSeleccionada
         });
 
         if (stockReal !== stockSistema) {
           diferencias.push({
             id: producto.id,
             tipo: producto.tipo,
-            descripcion: producto.modelo || producto.descripcion_producto,
+            descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
             serial: producto.serial || `${producto.tipo}-${producto.id}`,
             stockSistema,
             stockReal,
-            diferencia: stockReal - stockSistema
+            diferencia: stockReal - stockSistema,
+            sucursal: sucursalSeleccionada
           });
         }
       }
@@ -249,6 +306,11 @@ const RecuentoStockSection = () => {
   };
 
   const finalizarRecuento = async () => {
+    if (!sucursalSeleccionada) {
+      alert('Debe seleccionar una sucursal antes de finalizar el recuento.');
+      return;
+    }
+
     const { diferencias, productosContados } = calcularDiferencias();
 
     if (productosContados.length === 0) {
@@ -259,6 +321,7 @@ const RecuentoStockSection = () => {
     try {
       const recuentoData = {
         fecha: new Date().toISOString().split('T')[0],
+        sucursal: sucursalSeleccionada,
         tipo: productosContados.length === inventario.length ? 'completo' : 'parcial',
         productosContados: JSON.stringify(productosContados),
         diferencias: JSON.stringify(diferencias),
@@ -327,7 +390,12 @@ const RecuentoStockSection = () => {
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors"
+                  disabled={!sucursalSeleccionada}
+                  className={`px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors ${
+                    sucursalSeleccionada 
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                      : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  }`}
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -353,7 +421,7 @@ const RecuentoStockSection = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="font-medium text-slate-800">Recuento en proceso</span>
+                <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalSeleccionada === 'la_plata' ? 'La Plata' : 'Mitre'}</span>
               </div>
               <div className="text-sm text-slate-700">
                 Productos contados: {productosContados.length} / {inventario.length}
@@ -386,6 +454,23 @@ const RecuentoStockSection = () => {
       <div className="bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal *</label>
+            <select
+              value={sucursalSeleccionada}
+              onChange={(e) => setSucursalSeleccionada(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+              disabled={recuentoIniciado}
+            >
+              <option value="">Seleccionar sucursal...</option>
+              <option value="la_plata">La Plata</option>
+              <option value="mitre">Mitre</option>
+            </select>
+            {recuentoIniciado && (
+              <p className="text-xs text-slate-500 mt-1">No se puede cambiar durante el recuento</p>
+            )}
+          </div>
+          <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Buscar producto</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
@@ -395,6 +480,7 @@ const RecuentoStockSection = () => {
                 onChange={(e) => setFiltro(e.target.value)}
                 placeholder="Modelo, descripción, serial..."
                 className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                disabled={!sucursalSeleccionada}
               />
             </div>
           </div>
@@ -404,6 +490,7 @@ const RecuentoStockSection = () => {
               value={tipoFiltro}
               onChange={(e) => setTipoFiltro(e.target.value)}
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              disabled={!sucursalSeleccionada}
             >
               <option value="todos">Todos los tipos</option>
               <option value="computadora">Computadoras</option>
@@ -439,7 +526,13 @@ const RecuentoStockSection = () => {
 
       {/* Lista de productos */}
       <div className="bg-white rounded border border-slate-200">
-        {inventarioFiltrado.length > 0 ? (
+        {!sucursalSeleccionada ? (
+          <div className="text-center py-12">
+            <Package size={48} className="mx-auto mb-4 text-slate-300" />
+            <p className="text-slate-500 mb-2">Seleccione una sucursal para ver el inventario</p>
+            <p className="text-sm text-slate-400">El recuento se realizará solo para la sucursal seleccionada</p>
+          </div>
+        ) : inventarioFiltrado.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50">
@@ -454,7 +547,12 @@ const RecuentoStockSection = () => {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {inventarioFiltrado.map((producto) => {
-                  const stockSistema = producto.tipo === 'otro' ? producto.cantidad : (producto.disponible ? 1 : 0);
+                  let stockSistema;
+                  if (producto.tipo === 'otro') {
+                    stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+                  } else {
+                    stockSistema = producto.disponible ? 1 : 0;
+                  }
                   const stockReal = stockContado[producto.id];
                   const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
                   const contado = stockReal !== undefined;
@@ -467,7 +565,7 @@ const RecuentoStockSection = () => {
                       <td className="py-3 px-4">
                         <div>
                           <div className="font-medium text-slate-800">
-                            {producto.modelo || producto.descripcion_producto}
+                            {producto.modelo || producto.nombre_producto || producto.descripcion}
                           </div>
                           <div className="text-sm text-slate-500">
                             Serial: {producto.serial || `${producto.tipo}-${producto.id}`}
@@ -566,6 +664,7 @@ const RecuentoStockSection = () => {
                 <thead className="bg-slate-100">
                   <tr>
                     <th className="text-left py-2 px-3 font-semibold text-slate-800">Fecha</th>
+                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Sucursal</th>
                     <th className="text-center py-2 px-3 font-semibold text-slate-800">Tipo</th>
                     <th className="text-right py-2 px-3 font-semibold text-slate-800">Productos</th>
                     <th className="text-right py-2 px-3 font-semibold text-slate-800">Diferencias</th>
@@ -581,6 +680,11 @@ const RecuentoStockSection = () => {
                     return (
                       <tr key={index}>
                         <td className="py-2 px-3">{formatearFecha(recuento.fecha_recuento)}</td>
+                        <td className="text-center py-2 px-3">
+                          <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
+                            {recuento.sucursal === 'la_plata' ? 'La Plata' : 'Mitre'}
+                          </span>
+                        </td>
                         <td className="text-center py-2 px-3 capitalize">{recuento.tipo_recuento}</td>
                         <td className="text-right py-2 px-3">{productos.length}</td>
                         <td className="text-right py-2 px-3">{diferencias.length}</td>

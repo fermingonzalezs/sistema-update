@@ -14,7 +14,7 @@ export const movimientosRepuestosService = {
         *,
         repuestos (
           id,
-          item,
+          nombre_producto,
           categoria
         )
       `)
@@ -53,13 +53,13 @@ export const movimientosRepuestosService = {
       // Iniciar transacción
       const { data: repuesto, error: errorRepuesto } = await supabase
         .from('repuestos')
-        .select('cantidad')
+        .select('cantidad_la_plata, cantidad_mitre')
         .eq('id', movimientoData.repuesto_id)
         .single();
 
       if (errorRepuesto) throw errorRepuesto;
 
-      const stockAnterior = repuesto.cantidad || 0;
+      const stockAnterior = (repuesto.cantidad_la_plata || 0) + (repuesto.cantidad_mitre || 0);
       const stockNuevo = stockAnterior + movimientoData.cantidad;
 
       // Registrar el movimiento
@@ -84,8 +84,8 @@ export const movimientosRepuestosService = {
       const { error: errorUpdate } = await supabase
         .from('repuestos')
         .update({ 
-          cantidad: stockNuevo,
-          disponible: stockNuevo > 0,
+          cantidad_la_plata: stockNuevo,
+          cantidad_mitre: 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', movimientoData.repuesto_id);
@@ -108,13 +108,13 @@ export const movimientosRepuestosService = {
       // Verificar stock disponible
       const { data: repuesto, error: errorRepuesto } = await supabase
         .from('repuestos')
-        .select('cantidad, item')
+        .select('cantidad_la_plata, cantidad_mitre, nombre_producto')
         .eq('id', movimientoData.repuesto_id)
         .single();
 
       if (errorRepuesto) throw errorRepuesto;
 
-      const stockAnterior = repuesto.cantidad || 0;
+      const stockAnterior = (repuesto.cantidad_la_plata || 0) + (repuesto.cantidad_mitre || 0);
       
       if (stockAnterior < movimientoData.cantidad) {
         throw new Error(`Stock insuficiente. Disponible: ${stockAnterior}, Solicitado: ${movimientoData.cantidad}`);
@@ -145,8 +145,8 @@ export const movimientosRepuestosService = {
       const { error: errorUpdate } = await supabase
         .from('repuestos')
         .update({ 
-          cantidad: stockNuevo,
-          disponible: stockNuevo > 0,
+          cantidad_la_plata: stockNuevo,
+          cantidad_mitre: 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', movimientoData.repuesto_id);

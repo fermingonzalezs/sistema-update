@@ -231,7 +231,7 @@ const hasValidStorage = (value) => {
 /**
  * Generar copy para notebooks
  * SIMPLE: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * COMPLETO: SERIAL - MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES - GARANTIA - SUCURSAL
+ * COMPLETO: SERIAL - MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES
  */
 const generateNotebookCopy = (comp, config) => {
   const partes = [];
@@ -277,16 +277,15 @@ const generateNotebookCopy = (comp, config) => {
     partes.push('Sin SSD');
   }
   
-  // 6. HDD
+  // 6. HDD - Solo mostrar si tiene HDD válido
   if (hasValidStorage(comp.hdd)) {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
     const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
     // If the original value had TB, keep TB, otherwise add GB
     const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
     partes.push(`${hddLimpio}${unit} HDD`);
-  } else {
-    partes.push('Sin HDD');
   }
+  // No agregar "Sin HDD" cuando no tiene HDD
   
   // 7. RESOLUCION HZ
   if (comp.resolucion || comp.hz || comp.frecuencia) {
@@ -369,19 +368,9 @@ const generateNotebookCopy = (comp, config) => {
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
     
-    // 16. GARANTIA
-    if (comp.garantia || comp.garantia_meses) {
-      const garantia = comp.garantia || `${comp.garantia_meses} meses`;
-      partes.push(`Garantía: ${garantia.charAt(0).toUpperCase() + garantia.slice(1).toLowerCase()}`);
-    }
+    // 16. GARANTIA - Removida del copy según requerimientos
     
-    // 17. SUCURSAL
-    if (comp.sucursal || comp.ubicacion) {
-      const sucursal = comp.sucursal || comp.ubicacion;
-      // Reemplazar guiones bajos con espacios y formatear
-      const sucursalFormateada = sucursal.replace(/_/g, ' ').charAt(0).toUpperCase() + sucursal.replace(/_/g, ' ').slice(1).toLowerCase();
-      partes.push(`Sucursal: ${sucursalFormateada}`);
-    }
+    // 17. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
   
   // 10. PRECIO (solo en versión simple)
@@ -405,8 +394,8 @@ const generateNotebookCopy = (comp, config) => {
 
 /**
  * Generar copy para celulares
- * SIMPLE: 📱 MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - PRECIO
- * COMPLETO: IMEI - MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - FALLAS - OBSERVACIONES - GARANTIA - SUCURSAL - PROVEEDOR
+ * SIMPLE: 📱 MODELO - CAPACIDAD - COLOR - BATERIA - PRECIO
+ * COMPLETO: IMEI - MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - FALLAS - OBSERVACIONES - PROVEEDOR
  */
 const generateCelularCopy = (cel, config) => {
   const partes = [];
@@ -418,16 +407,9 @@ const generateCelularCopy = (cel, config) => {
   
   // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
   
-  // 1. MODELO (incluye marca)
-  const marca = cel.marca || '';
+  // 1. MODELO (sin marca al principio)
   const modelo = cel.modelo || 'Sin modelo';
-  if (marca && modelo) {
-    partes.push(`${marca} ${modelo}`.toUpperCase());
-  } else if (modelo) {
-    partes.push(modelo.toUpperCase());
-  } else {
-    partes.push('Sin modelo');
-  }
+  partes.push(modelo.toUpperCase());
   
   // 2. CAPACIDAD
   if (cel.capacidad) {
@@ -444,23 +426,23 @@ const generateCelularCopy = (cel, config) => {
     }
   }
   
-  // 4. BATERIA
+  // 4. BATERIA (incluir ciclos si está disponible)
+  let bateriaInfo = '';
   if (cel.bateria || cel.porcentaje_de_bateria) {
     const bateria = cel.bateria || cel.porcentaje_de_bateria;
     // Limpiar duplicaciones: quitar "%" si ya viene en el valor
     const bateriaLimpio = String(bateria).replace(/%/g, '');
-    partes.push(`${bateriaLimpio}%`);
+    bateriaInfo = `${bateriaLimpio}%`;
+  }
+  if (cel.ciclos_bateria && cel.ciclos_bateria > 0) {
+    const ciclos = cel.ciclos_bateria;
+    bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `${ciclos} ciclos`;
+  }
+  if (bateriaInfo) {
+    partes.push(bateriaInfo);
   }
   
-  // 5. ESTADO
-  if (cel.condicion || cel.estado) {
-    const estado = cel.condicion || cel.estado;
-    if (config.style === 'completo') {
-      partes.push(estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase());
-    } else {
-      partes.push(estado.toUpperCase());
-    }
-  }
+  // 5. ESTADO - Removido del copy según requerimientos
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {
@@ -476,19 +458,9 @@ const generateCelularCopy = (cel, config) => {
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
     
-    // 8. GARANTIA
-    if (cel.garantia || cel.garantia_meses || cel.garantia_update) {
-      const garantia = cel.garantia || cel.garantia_update || `${cel.garantia_meses} meses`;
-      partes.push(`Garantía: ${garantia.charAt(0).toUpperCase() + garantia.slice(1).toLowerCase()}`);
-    }
+    // 8. GARANTIA - Removida del copy según requerimientos
     
-    // 9. SUCURSAL
-    if (cel.sucursal || cel.ubicacion) {
-      const sucursal = cel.sucursal || cel.ubicacion;
-      // Reemplazar guiones bajos con espacios y formatear
-      const sucursalFormateada = sucursal.replace(/_/g, ' ').charAt(0).toUpperCase() + sucursal.replace(/_/g, ' ').slice(1).toLowerCase();
-      partes.push(`Sucursal: ${sucursalFormateada}`);
-    }
+    // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
     
     // 10. PROVEEDOR
     if (cel.proveedor || cel.importador) {
@@ -519,7 +491,7 @@ const generateCelularCopy = (cel, config) => {
 /**
  * Generar copy para otros productos
  * SIMPLE: 📦 MODELO - DESCRIPCION - PRECIO
- * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - ESTADO - FALLAS - OBSERVACIONES - GARANTIA - SUCURSAL
+ * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - ESTADO - FALLAS - OBSERVACIONES
  */
 const generateOtroCopy = (otro, config) => {
   const partes = [];
@@ -535,9 +507,11 @@ const generateOtroCopy = (otro, config) => {
     partes.push(codigo);
   }
   
-  // 1. MODELO (puede incluir marca)
+  // 1. MODELO (usar nombre_producto como modelo principal)
   let modelo = '';
-  if (otro.marca && (otro.modelo || otro.modelo_otro)) {
+  if (otro.nombre_producto) {
+    modelo = otro.nombre_producto;
+  } else if (otro.marca && (otro.modelo || otro.modelo_otro)) {
     const modeloProducto = otro.modelo || otro.modelo_otro;
     modelo = `${otro.marca} ${modeloProducto}`;
   } else if (otro.modelo || otro.modelo_otro) {
@@ -549,30 +523,36 @@ const generateOtroCopy = (otro, config) => {
   }
   partes.push(modelo.toUpperCase());
   
-  // 2. DESCRIPCION
+  // 2. DESCRIPCION (solo si es diferente del modelo)
   let descripcion = '';
-  if (otro.descripcion_producto || otro.nombre_producto) {
-    descripcion = otro.descripcion_producto || otro.nombre_producto;
-  } else {
+  if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
+    descripcion = otro.descripcion;
+  } else if (!otro.descripcion && !otro.nombre_producto) {
     descripcion = 'Sin descripción';
   }
+  // Si descripcion está vacía o es igual al nombre_producto, no agregamos descripción duplicada
   
   // Para versión simple: agregar especificaciones y color a la descripción
   if (config.style === 'simple') {
     // Agregar especificaciones si las hay
     if (otro.especificaciones_otro) {
-      descripcion += ` - ${otro.especificaciones_otro}`;
+      descripcion += descripcion ? ` - ${otro.especificaciones_otro}` : otro.especificaciones_otro;
     }
     
     // Agregar color si lo hay
     if (otro.color) {
-      descripcion += ` - ${otro.color}`;
+      descripcion += descripcion ? ` - ${otro.color}` : otro.color;
     }
     
-    partes.push(descripcion.toUpperCase());
+    // Solo agregar descripción si no está vacía
+    if (descripcion) {
+      partes.push(descripcion.toUpperCase());
+    }
   } else {
-    // Para versión completa: descripción con formato normal
-    partes.push(descripcion.charAt(0).toUpperCase() + descripcion.slice(1).toLowerCase());
+    // Para versión completa: descripción con formato normal (solo si no está vacía)
+    if (descripcion) {
+      partes.push(descripcion.charAt(0).toUpperCase() + descripcion.slice(1).toLowerCase());
+    }
   }
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
@@ -605,19 +585,9 @@ const generateOtroCopy = (otro, config) => {
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
     
-    // 8. GARANTIA
-    if (otro.garantia || otro.garantia_meses) {
-      const garantia = otro.garantia || `${otro.garantia_meses} meses`;
-      partes.push(`Garantía: ${garantia.charAt(0).toUpperCase() + garantia.slice(1).toLowerCase()}`);
-    }
+    // 8. GARANTIA - Removida del copy según requerimientos
     
-    // 9. SUCURSAL
-    if (otro.sucursal || otro.ubicacion) {
-      const sucursal = otro.sucursal || otro.ubicacion;
-      // Reemplazar guiones bajos con espacios y formatear
-      const sucursalFormateada = sucursal.replace(/_/g, ' ').charAt(0).toUpperCase() + sucursal.replace(/_/g, ' ').slice(1).toLowerCase();
-      partes.push(`Sucursal: ${sucursalFormateada}`);
-    }
+    // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
   
   // 3. PRECIO (solo en versión simple)
