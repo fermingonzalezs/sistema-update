@@ -29,9 +29,9 @@ export const useAuth = () => {
     try {
       // Llamar a la función de verificación en Supabase
       const { data, error: supabaseError } = await supabase
-        .rpc('verificar_login', {
-          p_username: username,
-          p_password: password
+        .rpc('verificar_usuario_login', {
+          p_email_or_username: username,
+          p_password: password || '' // Si no hay password, enviar string vacío
         });
 
       if (supabaseError) {
@@ -39,7 +39,7 @@ export const useAuth = () => {
       }
 
       if (!data || data.length === 0) {
-        throw new Error('Usuario o contraseña incorrectos');
+        throw new Error('Usuario no encontrado o contraseña incorrecta');
       }
 
       const userData = data[0];
@@ -48,7 +48,17 @@ export const useAuth = () => {
         throw new Error('Usuario desactivado. Contacta al administrador');
       }
 
-      // Guardar datos del usuario
+      // Si necesita establecer contraseña, retornar información especial
+      if (userData.necesita_contrasena) {
+        return {
+          needsPasswordSetup: true,
+          username: userData.username,
+          email: userData.email,
+          nombre: userData.nombre
+        };
+      }
+
+      // Login normal
       const userInfo = {
         id: userData.id,
         username: userData.username,

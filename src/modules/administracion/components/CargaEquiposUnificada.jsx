@@ -650,39 +650,23 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 // Formulario para Celular actualizado
 const FormularioCelular = ({ onAdd, loading }) => {
   const [formData, setFormData] = useState({
-    // Campos básicos obligatorios
+    // Campos básicos obligatorios según tabla celulares
     serial: '',
+    condicion: 'usado',
+    
+    // Campos opcionales
     modelo: '',
     marca: '',
-    
-    // Precios
-    precio_compra_usd: '',
-    repuestos_usd: '0',
-    precio_venta_usd: '',
-    
-    // Estado y ubicación
-    condicion: 'usado',
     sucursal: 'la_plata',
-    estado: 'A',
-    
-    // Características del celular
-    color: '',
+    precio_compra_usd: '',
+    precio_venta_usd: '',
     capacidad: '',
-    almacenamiento: '128GB',
-    bateria: '',
-    porcentaje_bateria: '',
-    ciclos: '',
-    estado: '',
-    estado_estetico: 'B',
-    
-    // Garantía y observaciones
+    color: '',
+    estado: 'A',
+    bateria: '', // Solo porcentaje, ej: "85%"
+    ciclos: '', // Integer opcional
     garantia: '3 meses',
-    garantia_update: '3 meses',
-    garantia_oficial: '',
-    fallas: 'Ninguna',
-    
-    // Fecha automática
-    ingreso: new Date().toISOString().split('T')[0]
+    fallas: 'Ninguna'
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -713,14 +697,13 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
-      // Calcular precio compra total
-      const precio_compra_total = 
-        (parseFloat(formData.precio_compra_usd) || 0) + 
-        (parseFloat(formData.repuestos_usd) || 0);
-
       const dataToSubmit = {
         ...formData,
-        precio_compra_total,
+        // Convertir ciclos a integer si tiene valor
+        ciclos: formData.ciclos ? parseInt(formData.ciclos) : null,
+        // Convertir precios a numeric
+        precio_compra_usd: parseFloat(formData.precio_compra_usd) || null,
+        precio_venta_usd: parseFloat(formData.precio_venta_usd) || null,
         disponible: true
       };
 
@@ -729,23 +712,19 @@ const FormularioCelular = ({ onAdd, loading }) => {
       // Reset form
       setFormData({
         serial: '',
-        modelo: '',
-        precio_compra_usd: '',
-        repuestos_usd: '0',
-        precio_venta_usd: '',
         condicion: 'usado',
+        modelo: '',
+        marca: '',
         sucursal: 'la_plata',
-        estado: 'A',
-        color: '',
+        precio_compra_usd: '',
+        precio_venta_usd: '',
         capacidad: '',
-        almacenamiento: '128GB',
+        color: '',
+        estado: 'A',
         bateria: '',
-        porcentaje_bateria: '',
         ciclos: '',
-        garantia_update: '3 meses',
-        garantia_oficial: '',
-        fallas: 'Ninguna',
-        ingreso: new Date().toISOString().split('T')[0]
+        garantia: '3 meses',
+        fallas: 'Ninguna'
       });
       
       alert('✅ Celular agregado exitosamente!');
@@ -876,18 +855,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Repuestos USD</label>
-          <input
-            type="number"
-            name="repuestos_usd"
-            value={formData.repuestos_usd}
-            onChange={handleChange}
-            step="0.01"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">Precio Venta USD</label>
           <input
             type="number"
@@ -895,21 +862,10 @@ const FormularioCelular = ({ onAdd, loading }) => {
             value={formData.precio_venta_usd}
             onChange={handleChange}
             step="0.01"
+            placeholder="0.00"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
-
-        {/* Mostrar cálculo en tiempo real */}
-        {formData.precio_compra_usd && formData.repuestos_usd && (
-          <div className="col-span-full">
-            <div className="bg-emerald-50 border border-emerald-200 rounded p-4">
-              <h5 className="font-medium text-emerald-800 mb-2">💰 Cálculo de Precios</h5>
-              <div className="text-sm text-emerald-700">
-                <p><strong>Precio Compra Total:</strong> ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.repuestos_usd) || 0)).toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Características del Celular */}
         <div className="col-span-full">
@@ -930,24 +886,13 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">Capacidad</label>
-          <input
-            type="text"
+          <select
             name="capacidad"
             value={formData.capacidad}
             onChange={handleChange}
-            placeholder="ej: 128GB, 256GB"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Almacenamiento</label>
-          <select
-            name="almacenamiento"
-            value={formData.almacenamiento}
-            onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
+            <option value="">Seleccionar...</option>
             <option value="64GB">64GB</option>
             <option value="128GB">128GB</option>
             <option value="256GB">256GB</option>
@@ -957,23 +902,11 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Batería (%)</label>
           <input
             type="text"
             name="bateria"
             value={formData.bateria}
-            onChange={handleChange}
-            placeholder="ej: 85%, 3000mAh"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Porcentaje de Batería</label>
-          <input
-            type="text"
-            name="porcentaje_bateria"
-            value={formData.porcentaje_bateria}
             onChange={handleChange}
             placeholder="ej: 85%, 100%"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
@@ -981,25 +914,14 @@ const FormularioCelular = ({ onAdd, loading }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Ciclos de Batería</label>
+          <label className="block text-sm font-medium text-slate-800 mb-2">Ciclos (opcional)</label>
           <input
-            type="text"
+            type="number"
             name="ciclos"
             value={formData.ciclos}
             onChange={handleChange}
-            placeholder="ej: 150, 200"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Estado General</label>
-          <input
-            type="text"
-            name="estado"
-            value={formData.estado}
-            onChange={handleChange}
-            placeholder="ej: Muy Bueno, Bueno, Regular"
+            placeholder="ej: 150"
+            min="0"
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           />
         </div>
@@ -1022,29 +944,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía Update</label>
-          <input
-            type="text"
-            name="garantia_update"
-            value={formData.garantia_update}
-            onChange={handleChange}
-            placeholder="ej: 3 meses"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-800 mb-2">Garantía Oficial</label>
-          <input
-            type="text"
-            name="garantia_oficial"
-            value={formData.garantia_oficial}
-            onChange={handleChange}
-            placeholder="ej: Samsung, Apple"
-            className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-800 mb-2">Fallas</label>

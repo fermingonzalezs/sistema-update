@@ -78,30 +78,49 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   // Las funciones de generación de copy ahora están unificadas en copyGenerator.js
 
+  // Función auxiliar para normalizar condiciones
+  const normalizarCondicion = (condicion) => {
+    if (!condicion) return '';
+    const cond = condicion.toLowerCase();
+    // Mapear variaciones comunes
+    if (cond === 'nuevo' || cond === 'nueva') return 'nuevo';
+    if (cond === 'usado' || cond === 'usada') return 'usado';
+    if (cond === 'reacondicionado' || cond === 'reacondicionada') return 'reacondicionado';
+    return cond;
+  };
+
   // Filtrar productos con filtros avanzados
   const productosFiltrados = productosConCopy.filter(producto => {
     // Filtro por búsqueda
     const cumpleBusqueda = busqueda === '' || 
       (producto.modelo && producto.modelo.toLowerCase().includes(busqueda.toLowerCase())) ||
       (producto.descripcion_producto && producto.descripcion_producto.toLowerCase().includes(busqueda.toLowerCase())) ||
-      (producto.serial && producto.serial.toLowerCase().includes(busqueda.toLowerCase()));
+      (producto.serial && producto.serial.toLowerCase().includes(busqueda.toLowerCase())) ||
+      (producto.marca && producto.marca.toLowerCase().includes(busqueda.toLowerCase()));
 
     if (!modoFiltros) return cumpleBusqueda;
 
     // Filtros avanzados solo se aplican si están activos
     const cumpleMarca = filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase());
     const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
-    const cumpleCondicion = filtros.condicion === '' || (producto.condicion && producto.condicion.toLowerCase() === filtros.condicion.toLowerCase());
     
-    // Debug temporal
-    if (filtros.marca === 'Apple' && filtros.condicion === 'nueva') {
-      console.log('🍎 Debug Apple Nueva:', {
-        modelo: producto.modelo,
-        marca: producto.marca,
-        condicion: producto.condicion,
+    // Usar normalización para condiciones
+    const condicionProducto = normalizarCondicion(producto.condicion);
+    const condicionFiltro = normalizarCondicion(filtros.condicion);
+    const cumpleCondicion = filtros.condicion === '' || condicionProducto === condicionFiltro;
+    
+    // Debug temporal para troubleshooting
+    if (filtros.marca && filtros.condicion && producto.marca) {
+      console.log('🔍 Debug Filtro:', {
+        producto: producto.modelo || producto.descripcion_producto,
+        marcaProducto: producto.marca,
+        marcaFiltro: filtros.marca,
+        condicionProducto,
+        condicionFiltro,
         cumpleMarca,
         cumpleCondicion,
-        cumpleBusqueda
+        cumpleExclusionMarca,
+        exclusion: filtroExcluirMarca
       });
     }
     
@@ -208,7 +227,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'usada',
+      condicion: 'usado', // Usar 'usado' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -216,6 +235,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       idioma: ''
     });
     setBusqueda('iPhone');
+    setFiltroExcluirMarca(''); // Limpiar exclusión
   };
 
   const aplicarFiltroiPhoneNuevo = () => {
@@ -223,7 +243,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'nueva',
+      condicion: 'nuevo', // Usar 'nuevo' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -231,6 +251,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       idioma: ''
     });
     setBusqueda('iPhone');
+    setFiltroExcluirMarca(''); // Limpiar exclusión
   };
 
   const aplicarFiltroMacBooksNuevas = () => {
@@ -238,7 +259,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'nueva',
+      condicion: 'nuevo', // Usar 'nuevo' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -254,7 +275,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: 'Apple',
-      condicion: 'usada',
+      condicion: 'usado', // Usar 'usado' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -270,7 +291,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: '',
-      condicion: 'nueva',
+      condicion: 'nuevo', // Usar 'nuevo' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -287,7 +308,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setModoFiltros(true);
     setFiltros({
       marca: '',
-      condicion: 'usada',
+      condicion: 'usado', // Usar 'usado' normalizado
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -477,7 +498,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </button>
             <button
               onClick={aplicarFiltroiPhoneNuevo}
-              className="px-3 py-2 bg-slate-800 text-white  rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
             >
               <Smartphone className="w-4 h-4" />
               <span>iPhone Nuevos</span>
@@ -493,21 +514,21 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </button>
             <button
               onClick={aplicarFiltroMacBooksUsadas}
-              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>MacBooks Usadas</span>
             </button>
             <button
               onClick={aplicarFiltroWindowsNuevas}
-              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>Windows Nuevas</span>
             </button>
             <button
               onClick={aplicarFiltroWindowsUsadas}
-              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
+              className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
             >
               <Monitor className="w-4 h-4" />
               <span>Windows Usadas</span>

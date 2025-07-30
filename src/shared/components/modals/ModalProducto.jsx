@@ -65,7 +65,7 @@ const OPCIONES = {
     notebook: ['ASUS', 'Acer', 'HP', 'Lenovo', 'Dell', 'MSI', 'Apple'],
     celular: ['Apple', 'Samsung', 'Xiaomi', 'Motorola', 'Huawei', 'OnePlus']
   },
-  capacidad: ['64GB', '128GB', 'GB', '512GB', '1TB', '2TB'],
+  capacidad: ['64GB', '128GB', '256GB', '512GB', '1TB', '2TB'],
   categoria: [
     'accesorios', 'cables', 'cargadores', 'mouse', 'teclados', 'headsets',
     'webcam', 'monitores', 'speakers', 'almacenamiento', 'memorias', 
@@ -179,6 +179,10 @@ const ModalProducto = ({
 
       // Preparar datos según la tabla
       const datosParaGuardar = prepararDatosSegunTabla();
+      
+      // Debug log para ver qué datos se están enviando
+      console.log('Datos que se van a guardar:', datosParaGuardar);
+      console.log('Tabla destino:', configuracion.tabla);
 
       let resultado;
       if (modo === 'editar') {
@@ -209,6 +213,7 @@ const ModalProducto = ({
       }
 
       onSave(resultado.data);
+      alert(`${configuracion.titulo} ${modo === 'editar' ? 'actualizado' : 'agregado'} correctamente al catálogo`);
       onClose();
     } catch (err) {
       console.error('Error guardando producto:', err);
@@ -809,9 +814,8 @@ const ModalProducto = ({
             </select>
           </div>
 
-
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Batería (%)</label>
             <input
               type="text"
               value={formData.bateria || ''}

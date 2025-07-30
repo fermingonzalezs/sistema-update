@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout, CarritoWidget } from './shared/components/layout';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import Login from './components/Login';
+import SetupPassword from './components/SetupPassword';
 import {
   ImportacionesSection,
   CotizacionesSection,
@@ -606,6 +607,38 @@ const App = () => {
 // Componente que maneja login vs contenido principal
 const AppWithAuth = () => {
   const { isAuthenticated, loading, error, login } = useAuthContext();
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(null);
+
+  // Manejar resultado del login
+  const handleLogin = async (username, password) => {
+    try {
+      const result = await login(username, password);
+      
+      if (result && result.needsPasswordSetup) {
+        setNeedsPasswordSetup({
+          emailOrUsername: result.email || result.username,
+          displayName: result.nombre
+        });
+      }
+    } catch (err) {
+      // Error manejado por el hook useAuth
+      throw err;
+    }
+  };
+
+  // Manejar cuando se establece la contraseña
+  const handlePasswordSet = () => {
+    setNeedsPasswordSetup(null);
+    // Recargar la página para reiniciar el flujo de login
+    window.location.reload();
+  };
+
+  // Volver al login desde configuración de contraseña
+  const handleBackToLogin = () => {
+    setNeedsPasswordSetup(null);
+  };
+
+
   // Mostrar loading mientras se verifica autenticación
   if (loading) {
     return (
@@ -620,9 +653,28 @@ const AppWithAuth = () => {
     );
   }
 
+
+  // Si necesita configurar contraseña
+  if (needsPasswordSetup) {
+    return (
+      <SetupPassword
+        emailOrUsername={needsPasswordSetup.emailOrUsername}
+        displayName={needsPasswordSetup.displayName}
+        onPasswordSet={handlePasswordSet}
+        onBack={handleBackToLogin}
+      />
+    );
+  }
+
   // Si no está autenticado, mostrar login
   if (!isAuthenticated) {
-    return <Login onLogin={login} error={error} loading={loading} />;
+    return (
+      <Login 
+        onLogin={handleLogin} 
+        error={error} 
+        loading={loading}
+      />
+    );
   }
 
   // Si está autenticado, mostrar la aplicación principal

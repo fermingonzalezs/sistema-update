@@ -58,7 +58,7 @@ const Login = ({ onLogin, error, loading }) => {
             {/* Username Field */}
             <div>
               <label className="block text-sm font-medium mb-2 text-slate-800">
-                Usuario
+                Email o Usuario
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-800" />
@@ -68,7 +68,7 @@ const Login = ({ onLogin, error, loading }) => {
                   value={formData.username}
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all bg-white border-slate-200 text-slate-800 placeholder-slate-800"
-                  placeholder="Ingresa tu usuario"
+                  placeholder="Ingresa tu email o usuario"
                   disabled={loading}
                   autoComplete="username"
                 />
@@ -134,6 +134,9 @@ const Login = ({ onLogin, error, loading }) => {
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-800">
               Sistema de gestión empresarial - UPDATE TECH
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              Ingresa con tu email autorizado o usuario admin
             </p>
           </div>
         </div>

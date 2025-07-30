@@ -14,8 +14,8 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
     serial_equipo: '',
     motivo: '',
     descripcion: '',
-    entradas: Array(5).fill({ repuesto_id: '', cantidad: 0 }),
-    salidas: Array(5).fill({ repuesto_id: '', cantidad: 0 })
+    entradas: Array.from({ length: 5 }, () => ({ repuesto_id: '', cantidad: 0 })),
+    salidas: Array.from({ length: 5 }, () => ({ repuesto_id: '', cantidad: 0 }))
   });
 
   const handleSubmit = (e) => {
@@ -78,7 +78,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
     return formData.entradas.reduce((total, entrada) => {
       if (entrada.repuesto_id && entrada.cantidad > 0) {
         const repuesto = repuestos.find(r => r.id.toString() === entrada.repuesto_id);
-        return total + (repuesto ? repuesto.precio_venta_usd * entrada.cantidad : 0);
+        return total + (repuesto ? repuesto.precio_compra_usd * entrada.cantidad : 0);
       }
       return total;
     }, 0);
@@ -88,7 +88,7 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
     return formData.salidas.reduce((total, salida) => {
       if (salida.repuesto_id && salida.cantidad > 0) {
         const repuesto = repuestos.find(r => r.id.toString() === salida.repuesto_id);
-        return total + (repuesto ? repuesto.precio_venta_usd * salida.cantidad : 0);
+        return total + (repuesto ? repuesto.precio_compra_usd * salida.cantidad : 0);
       }
       return total;
     }, 0);
@@ -167,12 +167,12 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
                     <select
                       value={entrada.repuesto_id}
                       onChange={(e) => actualizarEntrada(index, 'repuesto_id', e.target.value)}
-                      className="flex-1 border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-600"
+                      className="w-64 border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-600"
                     >
                       <option value="">Seleccionar repuesto...</option>
                       {repuestos.map(repuesto => (
                         <option key={repuesto.id} value={repuesto.id}>
-                          {repuesto.nombre_producto} - ${repuesto.precio_venta_usd?.toFixed(2)}
+                          {repuesto.nombre_producto} - ${repuesto.precio_compra_usd?.toFixed(2)}
                         </option>
                       ))}
                     </select>
@@ -214,12 +214,12 @@ const ModalNuevoMovimiento = ({ onSubmit, onCancel, repuestos }) => {
                     <select
                       value={salida.repuesto_id}
                       onChange={(e) => actualizarSalida(index, 'repuesto_id', e.target.value)}
-                      className="flex-1 border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-600"
+                      className="w-64 border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-600"
                     >
                       <option value="">Seleccionar repuesto...</option>
                       {repuestos.map(repuesto => (
                         <option key={repuesto.id} value={repuesto.id}>
-                          {repuesto.nombre_producto} - ${repuesto.precio_venta_usd?.toFixed(2)}
+                          {repuesto.nombre_producto} - ${repuesto.precio_compra_usd?.toFixed(2)}
                         </option>
                       ))}
                     </select>
@@ -338,11 +338,14 @@ const MovimientosRepuestosSection = () => {
 
   const handleSubmitMovimiento = async (data) => {
     try {
-      await crearMovimiento(data);
+      console.log('🔄 Enviando datos del movimiento:', data);
+      const resultado = await crearMovimiento(data);
+      console.log('✅ Movimiento creado con éxito:', resultado);
       setMostrarModal(false);
       alert('✅ Movimiento registrado exitosamente');
       cargarDatos(); // Recargar datos
     } catch (err) {
+      console.error('❌ Error completo creando movimiento:', err);
       alert('❌ Error: ' + err.message);
     }
   };

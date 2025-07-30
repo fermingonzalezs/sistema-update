@@ -61,7 +61,7 @@ export const movimientosRepuestosEquiposService = {
       if (todosRepuestosIds.length > 0) {
         const { data: repuestos, error: errorRepuestos } = await supabase
           .from('repuestos')
-          .select('id, nombre_producto, precio_venta_usd')
+          .select('id, nombre_producto, precio_compra_usd')
           .in('id', todosRepuestosIds);
 
         if (errorRepuestos) throw errorRepuestos;
@@ -73,27 +73,31 @@ export const movimientosRepuestosEquiposService = {
       let totalSalidas = 0;
 
       const entradasConPrecio = movimientoData.entradas.map(entrada => {
-        const repuesto = repuestosInfo.find(r => r.id === entrada.repuesto_id);
-        const precioVenta = repuesto ? repuesto.precio_venta_usd : 0;
-        const subtotal = entrada.cantidad * precioVenta;
+        const repuesto = repuestosInfo.find(r => r.id === parseInt(entrada.repuesto_id));
+        const precioCompra = repuesto ? parseFloat(repuesto.precio_compra_usd) : 0;
+        const subtotal = entrada.cantidad * precioCompra;
         totalEntradas += subtotal;
+        
+        console.log(`💰 Entrada - Repuesto: ${repuesto?.nombre_producto || 'No encontrado'}, Precio: $${precioCompra}, Cantidad: ${entrada.cantidad}, Subtotal: $${subtotal}`);
         
         return {
           ...entrada,
-          precio_venta: precioVenta,
+          precio_compra: precioCompra,
           subtotal
         };
       });
 
       const salidasConPrecio = movimientoData.salidas.map(salida => {
-        const repuesto = repuestosInfo.find(r => r.id === salida.repuesto_id);
-        const precioVenta = repuesto ? repuesto.precio_venta_usd : 0;
-        const subtotal = salida.cantidad * precioVenta;
+        const repuesto = repuestosInfo.find(r => r.id === parseInt(salida.repuesto_id));
+        const precioCompra = repuesto ? parseFloat(repuesto.precio_compra_usd) : 0;
+        const subtotal = salida.cantidad * precioCompra;
         totalSalidas += subtotal;
+        
+        console.log(`💰 Salida - Repuesto: ${repuesto?.nombre_producto || 'No encontrado'}, Precio: $${precioCompra}, Cantidad: ${salida.cantidad}, Subtotal: $${subtotal}`);
         
         return {
           ...salida,
-          precio_venta: precioVenta,
+          precio_compra: precioCompra,
           subtotal
         };
       });
@@ -118,16 +122,22 @@ export const movimientosRepuestosEquiposService = {
 
       if (error) throw error;
 
+      console.log('✅ Movimiento insertado en BD:', data[0]);
+
       // Actualizar stock de repuestos
+      console.log('🔄 Actualizando stock para entradas:', movimientoData.entradas);
       for (const entrada of movimientoData.entradas) {
         if (entrada.repuesto_id && entrada.cantidad > 0) {
-          await this.actualizarStockRepuesto(entrada.repuesto_id, entrada.cantidad, 'entrada');
+          console.log(`📦 Actualizando stock entrada - Repuesto: ${entrada.repuesto_id}, Cantidad: ${entrada.cantidad}`);
+          await movimientosRepuestosEquiposService.actualizarStockRepuesto(parseInt(entrada.repuesto_id), entrada.cantidad, 'entrada');
         }
       }
 
+      console.log('🔄 Actualizando stock para salidas:', movimientoData.salidas);
       for (const salida of movimientoData.salidas) {
         if (salida.repuesto_id && salida.cantidad > 0) {
-          await this.actualizarStockRepuesto(salida.repuesto_id, salida.cantidad, 'salida');
+          console.log(`📦 Actualizando stock salida - Repuesto: ${salida.repuesto_id}, Cantidad: ${salida.cantidad}`);
+          await movimientosRepuestosEquiposService.actualizarStockRepuesto(parseInt(salida.repuesto_id), salida.cantidad, 'salida');
         }
       }
 
@@ -142,21 +152,26 @@ export const movimientosRepuestosEquiposService = {
   // Actualizar stock de repuesto
   async actualizarStockRepuesto(repuestoId, cantidad, tipo) {
     try {
+      console.log(`🔍 Obteniendo stock actual del repuesto ${repuestoId}`);
       const { data: repuesto, error: errorGet } = await supabase
         .from('repuestos')
-        .select('cantidad_la_plata, cantidad_mitre')
+        .select('cantidad_la_plata, cantidad_mitre, nombre_producto')
         .eq('id', repuestoId)
         .single();
 
       if (errorGet) throw errorGet;
+
+      console.log(`📊 Stock actual ${repuesto.nombre_producto}: La Plata=${repuesto.cantidad_la_plata}, Mitre=${repuesto.cantidad_mitre}`);
 
       const stockActual = (repuesto.cantidad_la_plata || 0) + (repuesto.cantidad_mitre || 0);
       const nuevoStock = tipo === 'entrada' 
         ? stockActual + cantidad 
         : stockActual - cantidad;
 
+      console.log(`📈 Actualizando stock: ${stockActual} ${tipo === 'entrada' ? '+' : '-'} ${cantidad} = ${nuevoStock}`);
+
       if (nuevoStock < 0) {
-        throw new Error(`Stock insuficiente para repuesto ID ${repuestoId}`);
+        throw new Error(`Stock insuficiente para repuesto ID ${repuestoId}. Stock actual: ${stockActual}, se intenta ${tipo === 'entrada' ? 'agregar' : 'quitar'}: ${cantidad}`);
       }
 
       const { error: errorUpdate } = await supabase
@@ -169,6 +184,8 @@ export const movimientosRepuestosEquiposService = {
         .eq('id', repuestoId);
 
       if (errorUpdate) throw errorUpdate;
+
+      console.log(`✅ Stock actualizado para ${repuesto.nombre_producto}: ${nuevoStock}`);
 
     } catch (error) {
       console.error(`❌ Error actualizando stock del repuesto ${repuestoId}:`, error);
