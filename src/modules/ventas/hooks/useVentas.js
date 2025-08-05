@@ -346,9 +346,14 @@ export function useVentas() {
         console.log(`🔄 Actualizando stock para ${item.tipo}:`, item.producto.id)
         
         if (item.tipo === 'otro') {
-          // Para productos "otros", reducir cantidad
-          console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades`)
-          await otrosService.reducirCantidad(item.producto.id, item.cantidad)
+          // Para productos "otros", reducir cantidad en la sucursal correspondiente
+          console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
+          const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
+          
+          // ✅ NOTIFICAR SI EL PRODUCTO FUE ELIMINADO AUTOMÁTICAMENTE
+          if (resultado.eliminado) {
+            console.log(`🗑️ PRODUCTO ELIMINADO AUTOMÁTICAMENTE: ${item.producto.nombre_producto || item.producto.id} - ${resultado.motivo}`)
+          }
         } else {
           // Para computadoras y celulares, marcar como no disponible
           console.log(`💻 Marcando ${item.tipo} ID ${item.producto.id} como vendido (disponible = false)`)

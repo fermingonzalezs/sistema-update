@@ -125,6 +125,17 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   // Filtrar productos con filtros avanzados
   const productosFiltrados = productosConCopy.filter(producto => {
+    // FILTRO PRINCIPAL: Solo mostrar condiciones permitidas para listas
+    const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada'];
+    const condicionProducto = (producto.condicion || '').toLowerCase();
+    
+    const cumpleCondicionPermitida = condicionesPermitidas.includes(condicionProducto);
+    
+    // Si no cumple la condición permitida, no mostrar el producto
+    if (!cumpleCondicionPermitida) {
+      return false;
+    }
+
     // Filtro por búsqueda - adaptado para diferentes tipos de productos
     let searchFields = [];
     
@@ -156,9 +167,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
     
     // Usar normalización para condiciones
-    const condicionProducto = normalizarCondicion(producto.condicion);
+    const condicionNormalizada = normalizarCondicion(producto.condicion);
     const condicionFiltro = normalizarCondicion(filtros.condicion);
-    const cumpleCondicion = filtros.condicion === '' || condicionProducto === condicionFiltro;
+    const cumpleCondicion = filtros.condicion === '' || condicionNormalizada === condicionFiltro;
     
     // Filtro por estado (para celulares y notebooks)
     const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
@@ -172,7 +183,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         producto: producto.modelo || producto.descripcion_producto,
         marcaProducto: producto.marca,
         marcaFiltro: filtros.marca,
-        condicionProducto,
+        condicionNormalizada,
         condicionFiltro,
         cumpleMarca,
         cumpleCondicion,
@@ -236,24 +247,158 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     return lista;
   };
 
+  // Función de fallback para copiar usando el método legacy
+  const copiarTextoFallback = (texto) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = texto;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    let success = false;
+    try {
+      success = document.execCommand('copy');
+    } catch (err) {
+      console.error('❌ Error en execCommand:', err);
+    }
+    
+    document.body.removeChild(textArea);
+    return success;
+  };
+
   // Copiar lista completa al portapapeles
   const copiarListaCompleta = async () => {
-    if (seleccionados.size === 0) return;
+    console.log('🔄 Botón copiar lista presionado. Productos seleccionados:', seleccionados.size);
+    
+    if (seleccionados.size === 0) {
+      console.log('❌ No hay productos seleccionados');
+      alert('Por favor selecciona al menos un producto');
+      return;
+    }
     
     try {
       const lista = generarListaCompleta();
-      await navigator.clipboard.writeText(lista);
-      setCopiados(prev => new Set([...prev, 'lista-completa']));
+      console.log('📋 Lista generada:', lista.substring(0, 100) + '...');
       
-      setTimeout(() => {
-        setCopiados(prev => {
-          const nuevos = new Set(prev);
-          nuevos.delete('lista-completa');
-          return nuevos;
-        });
-      }, 2000);
+      let copiado = false;
+      
+      // Intentar primero con la API moderna del clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(lista);
+          copiado = true;
+          console.log('✅ Lista copiada con navigator.clipboard');
+        } catch (clipboardErr) {
+          console.warn('⚠️ Clipboard API falló, usando fallback:', clipboardErr);
+          copiado = copiarTextoFallback(lista);
+        }
+      } else {
+        // Usar método de fallback directamente si la API no está disponible
+        console.log('📝 Using fallback copy method');
+        copiado = copiarTextoFallback(lista);
+      }
+      
+      if (copiado) {
+        setCopiados(prev => new Set([...prev, 'lista-completa']));
+        console.log('✅ Lista copiada al portapapeles exitosamente');
+        
+        setTimeout(() => {
+          setCopiados(prev => {
+            const nuevos = new Set(prev);
+            nuevos.delete('lista-completa');
+            return nuevos;
+          });
+        }, 2000);
+      } else {
+        throw new Error('No se pudo copiar el texto al portapapeles');
+      }
+      
     } catch (err) {
-      console.error('Error copiando lista:', err);
+      console.error('❌ Error copiando lista:', err);
+      
+      // Como último recurso, mostrar el texto en un modal para copia manual
+      const lista = generarListaCompleta();
+      const shouldShowModal = window.confirm(
+        'No se pudo copiar automáticamente al portapapeles. ¿Quieres ver el texto para copiarlo manualmente?'
+      );
+      
+      if (shouldShowModal) {
+        // Crear un modal simple con el texto
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          max-width: 600px;
+          max-height: 80%;
+          overflow-y: auto;
+          position: relative;
+        `;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕ Cerrar';
+        closeBtn.style.cssText = `
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: #ef4444;
+          color: white;
+          border: none;
+          padding: 5px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+        `;
+        
+        const textArea = document.createElement('textarea');
+        textArea.value = lista;
+        textArea.style.cssText = `
+          width: 100%;
+          height: 300px;
+          font-family: monospace;
+          font-size: 12px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          padding: 10px;
+          margin-top: 30px;
+        `;
+        textArea.readOnly = true;
+        
+        const instruction = document.createElement('p');
+        instruction.textContent = 'Selecciona todo el texto (Ctrl+A) y cópialo (Ctrl+C):';
+        instruction.style.marginBottom = '10px';
+        
+        closeBtn.onclick = () => document.body.removeChild(modal);
+        modal.onclick = (e) => {
+          if (e.target === modal) document.body.removeChild(modal);
+        };
+        
+        content.appendChild(closeBtn);
+        content.appendChild(instruction);
+        content.appendChild(textArea);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Seleccionar todo el texto automáticamente
+        textArea.focus();
+        textArea.select();
+      }
     }
   };
 
@@ -879,7 +1024,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
                 <button
                   onClick={copiarListaCompleta}
-                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 relative z-20 ${
                     copiados.has('lista-completa')
                       ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
@@ -934,7 +1079,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase w-12">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase w-12 sticky left-0 bg-slate-50 z-10 border-r border-slate-200">
                       <input
                         type="checkbox"
                         checked={seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0}
@@ -942,15 +1087,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Serial</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Modelo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Copy</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[100px]">Serial</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[200px]">Modelo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[100px]">Precio</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[400px]">Copy</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {productosFiltrados.map((producto) => (
                     <tr key={producto.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white hover:bg-slate-50 z-10 border-r border-slate-200">
                         <input
                           type="checkbox"
                           checked={seleccionados.has(producto.id)}
@@ -964,8 +1110,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
                         {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800">
-                        <div className="max-w-md truncate" title={producto.copy}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
+                        ${Math.round(producto.precio_venta_usd || 0)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-800 font-mono">
+                        <div className="whitespace-pre-wrap break-words min-w-[400px] max-w-none">
                           {producto.copy}
                         </div>
                       </td>

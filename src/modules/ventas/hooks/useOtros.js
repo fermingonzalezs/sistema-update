@@ -134,6 +134,8 @@ export const otrosService = {
 
   // Reducir cantidad cuando se vende
   async reducirCantidad(id, cantidadVendida, sucursal = 'la_plata') {
+    console.log(`📦 Reduciendo stock: Producto ${id}, Cantidad: ${cantidadVendida}, Sucursal: ${sucursal}`);
+    
     const producto = await this.getById(id)
     if (!producto) throw new Error('Producto no encontrado')
     
@@ -145,7 +147,30 @@ export const otrosService = {
       throw new Error('No hay suficiente stock en esta sucursal')
     }
     
-    return await this.update(id, { [campoSucursal]: nuevaCantidad })
+    // Actualizar la cantidad
+    const productoActualizado = await this.update(id, { [campoSucursal]: nuevaCantidad })
+    
+    // ✅ VERIFICAR SI EL PRODUCTO SE QUEDÓ SIN STOCK EN AMBAS SUCURSALES
+    const cantidadLaPlata = campoSucursal === 'cantidad_la_plata' ? nuevaCantidad : (producto.cantidad_la_plata || 0);
+    const cantidadMitre = campoSucursal === 'cantidad_mitre' ? nuevaCantidad : (producto.cantidad_mitre || 0);
+    const stockTotal = cantidadLaPlata + cantidadMitre;
+    
+    console.log(`📊 Stock después de venta: La Plata: ${cantidadLaPlata}, Mitre: ${cantidadMitre}, Total: ${stockTotal}`);
+    
+    // Si no hay stock en ninguna sucursal, eliminar el producto
+    if (stockTotal === 0) {
+      console.log(`🗑️ Producto ${id} sin stock en ambas sucursales - Eliminando automáticamente`);
+      await this.delete(id);
+      console.log(`✅ Producto ${id} eliminado exitosamente por falta de stock`);
+      
+      return { 
+        ...productoActualizado, 
+        eliminado: true, 
+        motivo: 'Sin stock en ambas sucursales' 
+      };
+    }
+    
+    return productoActualizado;
   },
 
   // Obtener por ID

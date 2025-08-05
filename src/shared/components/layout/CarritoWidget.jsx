@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2 } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import ConversionMonedas from '../../../components/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
 
-const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProcesarVenta }) => {
+const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
@@ -35,6 +35,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
   // Usar el hook de vendedores
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
   const [editandoCotizacion, setEditandoCotizacion] = useState(false);
+
+  // Estados para edición de precios
+  const [editandoPrecio, setEditandoPrecio] = useState(null); // ID del item siendo editado
+  const [precioEditado, setPrecioEditado] = useState(''); // Valor temporal del precio
+  const [preciosModificados, setPreciosModificados] = useState({}); // Precios originales guardados
+  
+  // Estado para prevenir doble procesamiento de ventas
+  const [procesandoVenta, setProcesandoVenta] = useState(false);
 
   // Determinar si un método necesita recargo
   const necesitaRecargo = (metodoPago) => {
@@ -377,10 +385,108 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
     setMostrarConfirmacion(true);
   };
 
+  // Funciones para edición de precios
+  const iniciarEdicionPrecio = (item) => {
+    setEditandoPrecio(item.id);
+    setPrecioEditado(item.precio_unitario.toString());
+    
+    // Guardar precio original si no está guardado ya
+    if (!preciosModificados[item.id]) {
+      setPreciosModificados(prev => ({
+        ...prev,
+        [item.id]: {
+          precio_original: item.precio_unitario,
+          fue_modificado: false
+        }
+      }));
+    }
+  };
+
+  const confirmarEdicionPrecio = (itemId) => {
+    const nuevoPrecio = parseFloat(precioEditado);
+    
+    // Validaciones
+    if (isNaN(nuevoPrecio) || nuevoPrecio <= 0) {
+      alert('⚠️ El precio debe ser un número mayor a 0');
+      return;
+    }
+
+    // Confirmar si hay una gran diferencia con el precio original
+    const precioOriginal = preciosModificados[itemId]?.precio_original || 0;
+    const diferenciaPorcentaje = Math.abs((nuevoPrecio - precioOriginal) / precioOriginal) * 100;
+    
+    if (diferenciaPorcentaje > 50) {
+      const confirmar = window.confirm(
+        `⚠️ El precio modificado es ${diferenciaPorcentaje.toFixed(1)}% diferente al precio original.\n\n` +
+        `Precio original: $${precioOriginal.toFixed(2)}\n` +
+        `Precio nuevo: $${nuevoPrecio.toFixed(2)}\n\n` +
+        `¿Está seguro de aplicar este cambio?`
+      );
+      
+      if (!confirmar) {
+        cancelarEdicionPrecio();
+        return;
+      }
+    }
+
+    // Actualizar precio del item en el carrito
+    onUpdatePrecio(itemId, nuevoPrecio);
+    
+    // Marcar como modificado
+    setPreciosModificados(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        fue_modificado: true
+      }
+    }));
+
+    // Limpiar estado de edición
+    setEditandoPrecio(null);
+    setPrecioEditado('');
+  };
+
+  const cancelarEdicionPrecio = () => {
+    setEditandoPrecio(null);
+    setPrecioEditado('');
+  };
+
+  const restaurarPrecioOriginal = (itemId) => {
+    const precioOriginal = preciosModificados[itemId]?.precio_original;
+    
+    if (precioOriginal) {
+      const confirmar = window.confirm(
+        `¿Restaurar el precio original de $${precioOriginal.toFixed(2)}?`
+      );
+      
+      if (confirmar) {
+        onUpdatePrecio(itemId, precioOriginal);
+        
+        // Marcar como no modificado
+        setPreciosModificados(prev => ({
+          ...prev,
+          [itemId]: {
+            ...prev[itemId],
+            fue_modificado: false
+          }
+        }));
+      }
+    }
+  };
+
   const confirmarVenta = async () => {
+    // ✅ PROTECCIÓN CONTRA DOBLE CLIC
+    if (procesandoVenta) {
+      console.log('⚠️ Venta ya está siendo procesada, ignorando clic adicional');
+      return;
+    }
+
+    setProcesandoVenta(true);
     setMostrarConfirmacion(false);
 
     try {
+      console.log('🚀 Iniciando procesamiento de venta...');
+      
       // Generar número de transacción único
       const numeroTransaccion = `VT-${Date.now()}`;
       
@@ -443,6 +549,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       setInputRecargo1('0');
       setInputRecargo2('0');
 
+      // Limpiar estados de edición de precios
+      setEditandoPrecio(null);
+      setPrecioEditado('');
+      setPreciosModificados({});
+
       console.log('🎉 Proceso completado exitosamente');
 
     } catch (err) {
@@ -459,6 +570,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
       }
       
       alert(`❌ ${errorMessage}:\n\n${err.message}\n\nIntente nuevamente o contacte al administrador.`);
+    } finally {
+      // ✅ SIEMPRE liberar el bloqueo de procesamiento
+      setProcesandoVenta(false);
+      console.log('🔓 Bloqueo de procesamiento liberado');
     }
   };
 
@@ -552,7 +667,82 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                             {/* Precio */}
                             <div className="text-right">
                               <p className="font-medium text-slate-800">${(item.precio_unitario * item.cantidad).toFixed(2)}</p>
-                              <p className="text-sm text-slate-800">${item.precio_unitario}/ud</p>
+                              
+                              {/* Precio unitario editable */}
+                              <div className="flex items-center justify-end space-x-2">
+                                {editandoPrecio === item.id ? (
+                                  // Modo edición
+                                  <div className="flex items-center space-x-1">
+                                    <input
+                                      type="number"
+                                      value={precioEditado}
+                                      onChange={(e) => setPrecioEditado(e.target.value)}
+                                      onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                          confirmarEdicionPrecio(item.id);
+                                        } else if (e.key === 'Escape') {
+                                          cancelarEdicionPrecio();
+                                        }
+                                      }}
+                                      className="w-20 px-2 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                      step="0.01"
+                                      min="0.01"
+                                      autoFocus
+                                    />
+                                    <button
+                                      onClick={() => confirmarEdicionPrecio(item.id)}
+                                      className="p-1 text-emerald-600 hover:text-emerald-700"
+                                      title="Confirmar precio"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={cancelarEdicionPrecio}
+                                      className="p-1 text-slate-500 hover:text-slate-700"
+                                      title="Cancelar"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  // Modo visualización
+                                  <div className="flex items-center space-x-1">
+                                    <span className={`text-sm ${
+                                      preciosModificados[item.id]?.fue_modificado 
+                                        ? 'text-emerald-600 font-semibold' 
+                                        : 'text-slate-800'
+                                    }`}>
+                                      ${item.precio_unitario}/ud
+                                    </span>
+                                    
+                                    {/* Indicador de precio modificado */}
+                                    {preciosModificados[item.id]?.fue_modificado && (
+                                      <span className="text-xs text-emerald-600" title="Precio modificado">
+                                        ✓
+                                      </span>
+                                    )}
+                                    
+                                    <button
+                                      onClick={() => iniciarEdicionPrecio(item)}
+                                      className="p-1 text-slate-500 hover:text-emerald-600"
+                                      title="Editar precio"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                    
+                                    {/* Botón restaurar precio original */}
+                                    {preciosModificados[item.id]?.fue_modificado && (
+                                      <button
+                                        onClick={() => restaurarPrecioOriginal(item.id)}
+                                        className="p-1 text-slate-500 hover:text-slate-700"
+                                        title={`Restaurar precio original: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                      >
+                                        <RotateCcw className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
                             {/* Eliminar */}
@@ -629,6 +819,149 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
                           {clienteSeleccionado.telefono && (
                             <p className="text-xs text-slate-800">📞 {clienteSeleccionado.telefono}</p>
                           )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Lista de productos del carrito */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-slate-800 mb-4">Productos en el Carrito</h3>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {carrito.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between p-2 border border-slate-200 rounded bg-white">
+                            {/* Nombre del producto */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-800 truncate">
+                                {item.producto.modelo || item.producto.nombre_producto}
+                              </p>
+                            </div>
+
+                            {/* Cantidad */}
+                            <div className="flex items-center space-x-1 mx-3">
+                              <button
+                                onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
+                                className="p-1 text-slate-500 hover:text-emerald-600"
+                                type="button"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-6 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
+                              <button
+                                onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
+                                className="p-1 text-slate-500 hover:text-emerald-600"
+                                disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                type="button"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+
+                            {/* Precio editable */}
+                            <div className="flex items-center space-x-2">
+                              {editandoPrecio === item.id ? (
+                                // Modo edición
+                                <div className="flex items-center space-x-1">
+                                  <input
+                                    type="number"
+                                    value={precioEditado}
+                                    onChange={(e) => setPrecioEditado(e.target.value)}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') {
+                                        confirmarEdicionPrecio(item.id);
+                                      } else if (e.key === 'Escape') {
+                                        cancelarEdicionPrecio();
+                                      }
+                                    }}
+                                    className="w-16 px-1 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                    step="0.01"
+                                    min="0.01"
+                                    autoFocus
+                                  />
+                                  <button
+                                    onClick={() => confirmarEdicionPrecio(item.id)}
+                                    className="p-1 text-emerald-600 hover:text-emerald-700"
+                                    title="Confirmar"
+                                    type="button"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={cancelarEdicionPrecio}
+                                    className="p-1 text-slate-500 hover:text-slate-700"
+                                    title="Cancelar"
+                                    type="button"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                // Modo visualización
+                                <div className="flex items-center space-x-1">
+                                  <span className={`text-sm font-medium ${
+                                    preciosModificados[item.id]?.fue_modificado 
+                                      ? 'text-emerald-600' 
+                                      : 'text-slate-800'
+                                  }`}>
+                                    ${(item.precio_unitario * item.cantidad).toFixed(2)}
+                                  </span>
+                                  
+                                  {preciosModificados[item.id]?.fue_modificado && (
+                                    <span className="text-xs text-emerald-600" title="Precio modificado">✓</span>
+                                  )}
+                                  
+                                  <button
+                                    onClick={() => iniciarEdicionPrecio(item)}
+                                    className="p-1 text-slate-400 hover:text-emerald-600"
+                                    title="Editar precio"
+                                    type="button"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </button>
+                                  
+                                  {preciosModificados[item.id]?.fue_modificado && (
+                                    <button
+                                      onClick={() => restaurarPrecioOriginal(item.id)}
+                                      className="p-1 text-slate-400 hover:text-slate-600"
+                                      title={`Restaurar precio original: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                      type="button"
+                                    >
+                                      <RotateCcw className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Eliminar */}
+                              <button
+                                onClick={() => onRemover(item.id)}
+                                className="p-1 text-slate-400 hover:text-red-600"
+                                title="Eliminar"
+                                type="button"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {carrito.length === 0 && (
+                          <div className="text-center py-4 text-slate-500">
+                            <p className="text-sm">No hay productos en el carrito</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Resumen del carrito */}
+                      {carrito.length > 0 && (
+                        <div className="mt-3 p-2 bg-slate-50 rounded border">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-slate-600">
+                              {calcularCantidadTotal()} productos
+                            </span>
+                            <span className="text-base font-bold text-slate-800">
+                              ${calcularTotal().toFixed(2)}
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1095,9 +1428,21 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onRemover, onLimpiar, onProc
               </button>
               <button
                 onClick={confirmarVenta}
-                className="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+                disabled={procesandoVenta}
+                className={`flex-1 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                  procesandoVenta 
+                    ? 'bg-slate-400 text-slate-200 cursor-not-allowed' 
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
               >
-                Confirmar
+                {procesandoVenta ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Procesando...</span>
+                  </>
+                ) : (
+                  <span>Confirmar</span>
+                )}
               </button>
             </div>
           </div>

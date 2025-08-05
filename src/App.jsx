@@ -106,6 +106,7 @@ const AppContent = () => {
    agregarAlCarrito,
    removerDelCarrito,
    actualizarCantidad,
+   actualizarPrecio,
    limpiarCarrito,
    calcularTotal,
    calcularCantidadTotal
@@ -273,14 +274,38 @@ const AppContent = () => {
        return;
      }
    } else if (tipo === 'otro') {
-     // Para otros productos, verificar stock disponible
+     // Para otros productos, verificar stock disponible por sucursal
      const cantidadEnCarrito = carrito
        .filter(item => item.producto.id === producto.id && item.tipo === tipo)
        .reduce((total, item) => total + item.cantidad, 0);
 
-     if (cantidadEnCarrito + cantidad > producto.cantidad) {
-       alert(`Stock insuficiente. Disponible: ${producto.cantidad - cantidadEnCarrito}`);
+     // ✅ CALCULAR STOCK TOTAL CONSIDERANDO AMBAS SUCURSALES
+     const stockLaPlata = producto.cantidad_la_plata || 0;
+     const stockMitre = producto.cantidad_mitre || 0;
+     const stockTotal = stockLaPlata + stockMitre;
+     
+     console.log(`📊 Validando stock para producto "${producto.nombre_producto}":`, {
+       stockLaPlata,
+       stockMitre,
+       stockTotal,
+       cantidadEnCarrito,
+       cantidadSolicitada: cantidad
+     });
+
+     if (cantidadEnCarrito + cantidad > stockTotal) {
+       alert(`Stock insuficiente. Disponible: ${stockTotal - cantidadEnCarrito} unidades\n\n` +
+             `📍 La Plata: ${stockLaPlata} unidades\n` +
+             `📍 Mitre: ${stockMitre} unidades\n\n` +
+             `💡 Puedes mover stock entre sucursales si es necesario.`);
        return;
+     }
+
+     // ✅ ADVERTENCIA si no hay stock suficiente en La Plata (sucursal por defecto)
+     if (stockLaPlata < (cantidadEnCarrito + cantidad) && stockTotal >= (cantidadEnCarrito + cantidad)) {
+       const stockNecesarioDeOtraSucursal = (cantidadEnCarrito + cantidad) - stockLaPlata;
+       alert(`⚠️ Advertencia: Solo hay ${stockLaPlata} unidades en La Plata.\n\n` +
+             `Se necesitarán ${stockNecesarioDeOtraSucursal} unidades de la sucursal Mitre.\n\n` +
+             `💡 Asegúrate de tener el stock disponible en la sucursal de venta.`);
      }
    }
 
@@ -587,6 +612,7 @@ const AppContent = () => {
      <CarritoWidget
        carrito={carrito}
        onUpdateCantidad={actualizarCantidad}
+       onUpdatePrecio={actualizarPrecio}
        onRemover={removerDelCarrito}
        onLimpiar={limpiarCarrito}
        onProcesarVenta={handleProcesarCarrito}

@@ -79,6 +79,12 @@ export function useCarrito() {
     }
   }
 
+  const actualizarPrecio = (itemId, nuevoPrecio) => {
+    setCarrito(prev => prev.map(item =>
+      item.id === itemId ? { ...item, precio_unitario: nuevoPrecio } : item
+    ))
+  }
+
   const limpiarCarrito = () => {
     setCarrito([])
   }
@@ -98,6 +104,7 @@ export function useCarrito() {
     agregarAlCarrito,
     removerDelCarrito,
     actualizarCantidad,
+    actualizarPrecio,
     limpiarCarrito,
     calcularTotal,
     calcularCantidadTotal

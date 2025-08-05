@@ -163,7 +163,7 @@ const Catalogo = ({ onAddToCart }) => {
         
         // Precios y costos
         precio_costo_usd: producto.precio_costo_usd || '',
-        precio_costo_total: producto.precio_costo_total || '',
+        precio_costo_total: (parseFloat(producto.precio_costo_usd) || 0) + (parseFloat(producto.envios_repuestos) || 0),
         precio_venta_usd: producto.precio_venta_usd || '',
         envios_repuestos: producto.envios_repuestos || '',
         
@@ -401,10 +401,21 @@ const Catalogo = ({ onAddToCart }) => {
 
   // Manejar cambios en el formulario de edición
   const handleEditFormChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setEditForm(prev => {
+      const newForm = {
+        ...prev,
+        [field]: value
+      };
+
+      // Calcular automáticamente precio_costo_total para notebooks
+      if (modalEdit.tipo === 'notebook' && (field === 'precio_costo_usd' || field === 'envios_repuestos')) {
+        const precioCosto = parseFloat(newForm.precio_costo_usd) || 0;
+        const enviosRepuestos = parseFloat(newForm.envios_repuestos) || 0;
+        newForm.precio_costo_total = precioCosto + enviosRepuestos;
+      }
+
+      return newForm;
+    });
   };
 
   const renderEditForm = () => {
@@ -520,14 +531,18 @@ const Catalogo = ({ onAddToCart }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Costo Total</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Precio Costo Total 
+                  <span className="text-xs text-slate-500">(Calculado automáticamente)</span>
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   value={editForm.precio_costo_total}
-                  onChange={(e) => handleEditFormChange('precio_costo_total', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  readOnly
+                  className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed"
                   placeholder="0.00"
+                  title="Este campo se calcula automáticamente: Precio Costo USD + Envíos/Repuestos"
                 />
               </div>
               <div>
