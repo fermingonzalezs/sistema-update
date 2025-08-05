@@ -4,6 +4,7 @@ import {
   Check, FileText, Edit2, Save, X, Filter, Zap
 } from 'lucide-react';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
+import { supabase } from '../../../lib/supabase';
 
 const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [tipoActivo, setTipoActivo] = useState('computadora');
@@ -11,6 +12,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [productosConCopy, setProductosConCopy] = useState([]);
   const [seleccionados, setSeleccionados] = useState(new Set());
   const [copiados, setCopiados] = useState(new Set());
+  const [estadosDisponibles, setEstadosDisponibles] = useState({
+    celulares: [],
+    notebooks: []
+  });
   
   // Mensajes personalizables por tipo
   const [mensajes, setMensajes] = useState({
@@ -37,6 +42,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [filtros, setFiltros] = useState({
     marca: '',
     condicion: '',
+    estado: '',
+    categoria: '',
     precioMax: '',
     ramMin: '',
     almacenamientoMin: '',
@@ -65,6 +72,30 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     }
   };
 
+  // Cargar estados disponibles al inicializar
+  useEffect(() => {
+    const cargarEstadosDisponibles = async () => {
+      try {
+        const [celularesRes, notebooksRes] = await Promise.all([
+          supabase.from('celulares').select('estado').not('estado', 'is', null).neq('estado', ''),
+          supabase.from('inventario').select('estado').not('estado', 'is', null).neq('estado', '')
+        ]);
+
+        const estadosCelulares = [...new Set(celularesRes.data?.map(item => item.estado) || [])].sort();
+        const estadosNotebooks = [...new Set(notebooksRes.data?.map(item => item.estado) || [])].sort();
+
+        setEstadosDisponibles({
+          celulares: estadosCelulares,
+          notebooks: estadosNotebooks
+        });
+      } catch (error) {
+        console.error('Error cargando estados:', error);
+      }
+    };
+
+    cargarEstadosDisponibles();
+  }, []);
+
   // Generar copys cuando cambien los productos o tipo activo
   useEffect(() => {
     const productos = getProductosActivos();
@@ -74,6 +105,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     }));
     setProductosConCopy(productosConCopyGenerado);
     setSeleccionados(new Set()); // Limpiar selección al cambiar tipo
+    
+    // Limpiar filtro de estado al cambiar tipo
+    setFiltros(prev => ({ ...prev, estado: '' }));
   }, [tipoActivo, computers, celulares, otros]);
 
   // Las funciones de generación de copy ahora están unificadas en copyGenerator.js
@@ -91,12 +125,29 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   // Filtrar productos con filtros avanzados
   const productosFiltrados = productosConCopy.filter(producto => {
-    // Filtro por búsqueda
+    // Filtro por búsqueda - adaptado para diferentes tipos de productos
+    let searchFields = [];
+    
+    if (producto.tipo === 'otro') {
+      // Para productos "otros": usar nombre_producto (modelo), descripcion, id (serial)
+      searchFields = [
+        producto.nombre_producto,
+        producto.descripcion,
+        String(producto.id), // ID como serial
+        producto.categoria
+      ];
+    } else {
+      // Para notebooks y celulares: mantener estructura original
+      searchFields = [
+        producto.modelo,
+        producto.descripcion_producto,
+        producto.serial,
+        producto.marca
+      ];
+    }
+    
     const cumpleBusqueda = busqueda === '' || 
-      (producto.modelo && producto.modelo.toLowerCase().includes(busqueda.toLowerCase())) ||
-      (producto.descripcion_producto && producto.descripcion_producto.toLowerCase().includes(busqueda.toLowerCase())) ||
-      (producto.serial && producto.serial.toLowerCase().includes(busqueda.toLowerCase())) ||
-      (producto.marca && producto.marca.toLowerCase().includes(busqueda.toLowerCase()));
+      searchFields.some(field => field && field.toLowerCase().includes(busqueda.toLowerCase()));
 
     if (!modoFiltros) return cumpleBusqueda;
 
@@ -108,6 +159,12 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     const condicionProducto = normalizarCondicion(producto.condicion);
     const condicionFiltro = normalizarCondicion(filtros.condicion);
     const cumpleCondicion = filtros.condicion === '' || condicionProducto === condicionFiltro;
+    
+    // Filtro por estado (para celulares y notebooks)
+    const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
+    
+    // Filtro por categoría (solo para productos "otros")
+    const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
     
     // Debug temporal para troubleshooting
     if (filtros.marca && filtros.condicion && producto.marca) {
@@ -128,6 +185,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       cumpleMarca &&
       cumpleExclusionMarca &&
       cumpleCondicion &&
+      cumpleEstado &&
+      cumpleCategoria &&
       // Filtro por precio
       (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
       // Filtro por RAM (solo para computadoras)
@@ -228,6 +287,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: 'Apple',
       condicion: 'usado', // Usar 'usado' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -244,6 +305,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: 'Apple',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -260,6 +323,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: 'Apple',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -276,6 +341,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: 'Apple',
       condicion: 'usado', // Usar 'usado' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -292,6 +359,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: '',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -309,6 +378,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: '',
       condicion: 'usado', // Usar 'usado' normalizado
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -324,6 +395,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     setFiltros({
       marca: '',
       condicion: '',
+      estado: '',
+      categoria: '',
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
@@ -351,7 +424,12 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     const pantallas = [...new Set(productos.map(p => p.pantalla).filter(Boolean))].sort();
     const idiomas = [...new Set(productos.map(p => p.idioma_teclado).filter(Boolean))].sort();
     
-    return { marcas, condiciones, pantallas, idiomas };
+    // Para categorías de OTROS, usar solo productos de tipo "otro"
+    const categoriasOtros = tipoActivo === 'otro' 
+      ? [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort()
+      : [];
+    
+    return { marcas, condiciones, pantallas, idiomas, categoriasOtros };
   };
 
   // Obtener configuración de cada tipo
@@ -567,6 +645,22 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </select>
             </div>
 
+            {(tipoActivo === 'computadora' || tipoActivo === 'celular') && (
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+                <select
+                  value={filtros.estado}
+                  onChange={(e) => handleFiltroChange('estado', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todos</option>
+                  {(tipoActivo === 'computadora' ? estadosDisponibles.notebooks : estadosDisponibles.celulares).map(estado => (
+                    <option key={estado} value={estado}>{estado}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">Precio Max USD</label>
               <input
@@ -634,11 +728,52 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           </div>
         )}
 
-        {/* Mensaje cuando no hay filtros disponibles para otros productos */}
+        {/* Filtros para productos OTROS */}
         {modoFiltros && tipoActivo === 'otro' && (
-          <div className="text-center py-8 text-slate-500">
-            <p>Los filtros avanzados no están disponibles para otros productos.</p>
-            <p>Usa la búsqueda por texto para filtrar elementos.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+              <select
+                value={filtros.categoria}
+                onChange={(e) => handleFiltroChange('categoria', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Todas las categorías</option>
+                {getUniqueValues().categoriasOtros.map(categoria => (
+                  <option key={categoria} value={categoria}>
+                    {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
+              <select
+                value={filtros.marca}
+                onChange={(e) => handleFiltroChange('marca', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Todas</option>
+                {getUniqueValues().marcas.map(marca => (
+                  <option key={marca} value={marca}>{marca}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+              <select
+                value={filtros.condicion}
+                onChange={(e) => handleFiltroChange('condicion', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Todas</option>
+                {getUniqueValues().condiciones.map(condicion => (
+                  <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>
@@ -824,10 +959,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
-                        {producto.serial || 'N/A'}
+                        {producto.tipo === 'otro' ? producto.id : (producto.serial || 'N/A')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
-                        {producto.modelo || producto.descripcion_producto}
+                        {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-800">
                         <div className="max-w-md truncate" title={producto.copy}>

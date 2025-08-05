@@ -209,10 +209,30 @@ const RecuentoStockSection = () => {
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
+  const [categoriasOtros, setCategoriasOtros] = useState([]);
 
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
     fetchRecuentosAnteriores();
+    
+    // Cargar categorías de otros productos
+    const cargarCategoriasOtros = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('otros')
+          .select('categoria')
+          .not('categoria', 'is', null);
+        
+        if (error) throw error;
+        
+        const categoriasUnicas = [...new Set(data.map(item => item.categoria))].sort();
+        setCategoriasOtros(categoriasUnicas);
+      } catch (err) {
+        console.error('Error cargando categorías:', err);
+      }
+    };
+    
+    cargarCategoriasOtros();
   }, []);
 
   useEffect(() => {
@@ -242,7 +262,17 @@ const RecuentoStockSection = () => {
   };
 
   const inventarioFiltrado = inventario.filter(producto => {
-    const cumpleTipo = tipoFiltro === 'todos' || producto.tipo === tipoFiltro;
+    let cumpleTipo;
+    
+    if (tipoFiltro === 'todos') {
+      cumpleTipo = true;
+    } else if (tipoFiltro === 'computadora' || tipoFiltro === 'celular') {
+      cumpleTipo = producto.tipo === tipoFiltro;
+    } else {
+      // Es una categoría específica de "otros"
+      cumpleTipo = producto.tipo === 'otro' && producto.categoria === tipoFiltro;
+    }
+    
     const cumpleFiltro = filtro === '' || 
       producto.modelo?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.nombre_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
@@ -493,9 +523,13 @@ const RecuentoStockSection = () => {
               disabled={!sucursalSeleccionada}
             >
               <option value="todos">Todos los tipos</option>
-              <option value="computadora">Computadoras</option>
+              <option value="computadora">Notebooks</option>
               <option value="celular">Celulares</option>
-              <option value="otro">Otros</option>
+              {categoriasOtros.map(categoria => (
+                <option key={categoria} value={categoria}>
+                  {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                </option>
+              ))}
             </select>
           </div>
           <div>

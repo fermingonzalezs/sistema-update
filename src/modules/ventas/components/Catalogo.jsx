@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, ChevronDown, Edit, Save, AlertCircle, Search } from 'lucide-react';
+import { X, Filter, ChevronDown, Edit, Save, AlertCircle, Search, CheckCircle } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
 import ModalProducto from '../../../shared/components/modals/ModalProducto';
+import { supabase } from '../../../lib/supabase';
 
 // Importar formatter unificado y copyGenerator
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -40,9 +41,11 @@ const Catalogo = ({ onAddToCart }) => {
   const [modalEdit, setModalEdit] = useState({ open: false, producto: null, tipo: '' });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState(null);
+  const [editSuccess, setEditSuccess] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [categoriasOtros, setCategoriasOtros] = useState([]);
 
-  // Cargar cotización
+  // Cargar cotización y categorías
   useEffect(() => {
     const cargarCotizacion = async () => {
       try {
@@ -53,7 +56,30 @@ const Catalogo = ({ onAddToCart }) => {
       }
     };
 
+    const cargarCategoriasOtros = async () => {
+      try {
+        console.log('🔍 Cargando categorías de otros...');
+        const { data, error } = await supabase
+          .from('otros')
+          .select('categoria')
+          .not('categoria', 'is', null);
+        
+        if (error) {
+          console.error('❌ Error en query categorías:', error);
+          throw error;
+        }
+        
+        console.log('📊 Datos categorías recibidos:', data);
+        const categoriasUnicas = [...new Set(data.map(item => item.categoria))].sort();
+        console.log('📝 Categorías únicas:', categoriasUnicas);
+        setCategoriasOtros(categoriasUnicas);
+      } catch (err) {
+        console.error('❌ Error cargando categorías:', err);
+      }
+    };
+
     cargarCotizacion();
+    cargarCategoriasOtros();
     const interval = setInterval(cargarCotizacion, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -202,37 +228,37 @@ const Catalogo = ({ onAddToCart }) => {
         nombre_producto: producto.nombre_producto || '',
         categoria: producto.categoria || '',
         descripcion: producto.descripcion || '',
-        cantidad: producto.cantidad || 1,
-        condicion: producto.condicion || '',
-        sucursal: normalizarSucursal(producto.sucursal),
+        cantidad_la_plata: producto.cantidad_la_plata || 0,
+        cantidad_mitre: producto.cantidad_mitre || 0,
+        condicion: producto.condicion || 'nuevo',
         
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
         precio_venta_usd: producto.precio_venta_usd || '',
-        precio_venta_pesos: producto.precio_venta_pesos || '',
         
         // Estado y garantía
-        disponible: producto.disponible || true,
-        ingreso: producto.ingreso || '',
         garantia: producto.garantia || '',
-        fallas: producto.fallas || ''
+        observaciones: producto.observaciones || ''
       });
     }
     
     setModalEdit({ open: true, producto, tipo });
     setEditError(null);
+    setEditSuccess(null);
   };
 
   const closeEditModal = () => {
     setModalEdit({ open: false, producto: null, tipo: '' });
     setEditForm({});
     setEditError(null);
+    setEditSuccess(null);
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setEditLoading(true);
     setEditError(null);
+    setEditSuccess(null);
 
     try {
       // Validaciones básicas
@@ -334,20 +360,17 @@ const Catalogo = ({ onAddToCart }) => {
           nombre_producto: editForm.nombre_producto,
           categoria: editForm.categoria,
           descripcion: editForm.descripcion,
-          cantidad: editForm.cantidad ? parseInt(editForm.cantidad) : 1,
+          cantidad_la_plata: editForm.cantidad_la_plata ? parseInt(editForm.cantidad_la_plata) : 0,
+          cantidad_mitre: editForm.cantidad_mitre ? parseInt(editForm.cantidad_mitre) : 0,
           condicion: editForm.condicion,
-          sucursal: editForm.sucursal,
           
           // Precios
           precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
-          precio_venta_pesos: editForm.precio_venta_pesos ? parseFloat(editForm.precio_venta_pesos) : null,
           
           // Estado y garantía
-          disponible: editForm.disponible,
-          ingreso: editForm.ingreso,
           garantia: editForm.garantia,
-          fallas: editForm.fallas
+          observaciones: editForm.observaciones
         };
       }
 
@@ -357,7 +380,16 @@ const Catalogo = ({ onAddToCart }) => {
       await actualizarProducto(modalEdit.producto.id, datosActualizados);
 
       console.log('✅ Producto actualizado exitosamente');
-      closeEditModal();
+      
+      // Mostrar mensaje de éxito
+      const tipoProducto = modalEdit.tipo === 'notebook' ? 'Notebook' : 
+                          modalEdit.tipo === 'celular' ? 'Celular' : 'Producto';
+      setEditSuccess(`${tipoProducto} actualizado correctamente`);
+      
+      // Cerrar modal después de 2 segundos
+      setTimeout(() => {
+        closeEditModal();
+      }, 2000);
       
     } catch (error) {
       console.error('❌ Error actualizando producto:', error);
@@ -377,6 +409,9 @@ const Catalogo = ({ onAddToCart }) => {
 
   const renderEditForm = () => {
     if (!modalEdit.producto) return null;
+    
+    // Debug de categorías
+    console.log('🎨 Estado categorías en render:', categoriasOtros, 'Length:', categoriasOtros.length);
 
     if (modalEdit.tipo === 'notebook') {
       return (
@@ -1023,13 +1058,22 @@ const Catalogo = ({ onAddToCart }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
-                <input
-                  type="text"
+                <select
                   value={editForm.categoria}
                   onChange={(e) => handleEditFormChange('categoria', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: Accesorios, Componentes"
-                />
+                >
+                  <option value="">Seleccionar categoría...</option>
+                  {categoriasOtros.length > 0 ? (
+                    categoriasOtros.map(categoria => (
+                      <option key={categoria} value={categoria}>
+                        {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Cargando categorías...</option>
+                  )}
+                </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
@@ -1042,54 +1086,50 @@ const Catalogo = ({ onAddToCart }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad La Plata</label>
                 <input
                   type="number"
                   min="0"
-                  value={editForm.cantidad}
-                  onChange={(e) => handleEditFormChange('cantidad', e.target.value)}
+                  value={editForm.cantidad_la_plata}
+                  onChange={(e) => handleEditFormChange('cantidad_la_plata', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="1"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad Mitre</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={editForm.cantidad_mitre}
+                  onChange={(e) => handleEditFormChange('cantidad_mitre', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Condición</label>
                 <select
                   value={editForm.condicion}
-                  onChange={(e) => {
-                    const nuevaCondicion = e.target.value;
-                    handleEditFormChange('condicion', nuevaCondicion);
-                    // Actualizar disponibilidad automáticamente
-                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
-                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
-                    handleEditFormChange('disponible', !esNoDisponible);
-                  }}
+                  onChange={(e) => handleEditFormChange('condicion', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
                   <option value="nuevo">NUEVO</option>
-                  <option value="refurbished">REFURBISHED</option>
                   <option value="usado">USADO</option>
-                  <option value="reparacion">REPARACIÓN</option>
-                  <option value="reservado">RESERVADO</option>
-                  <option value="prestado">PRESTADO</option>
-                  <option value="sin_reparacion">SIN REPARACIÓN</option>
-                  <option value="en_preparacion">EN PREPARACIÓN</option>
-                  <option value="otro">OTRO</option>
-                  <option value="uso_oficina">USO OFICINA</option>
+                  <option value="reacondicionado">REACONDICIONADO</option>
+                  <option value="defectuoso">DEFECTUOSO</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
-                <select
-                  value={editForm.sucursal}
-                  onChange={(e) => handleEditFormChange('sucursal', e.target.value)}
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                <input
+                  type="text"
+                  value={editForm.garantia}
+                  onChange={(e) => handleEditFormChange('garantia', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="la_plata">LA PLATA</option>
-                  <option value="mitre">MITRE</option>
-                </select>
+                  placeholder="Ej: 3 meses, 1 año"
+                />
               </div>
             </div>
           </div>
@@ -1097,7 +1137,7 @@ const Catalogo = ({ onAddToCart }) => {
           {/* Precios */}
           <div className="bg-slate-50 p-4 rounded border">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Precios</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD</label>
                 <input
@@ -1121,78 +1161,31 @@ const Catalogo = ({ onAddToCart }) => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta Pesos</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editForm.precio_venta_pesos}
-                  onChange={(e) => handleEditFormChange('precio_venta_pesos', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="0.00"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Estado y garantía */}
+          {/* Observaciones */}
           <div className="bg-slate-50 p-4 rounded border">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
-                <select
-                  value={editForm.disponible}
-                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value={true}>Disponible</option>
-                  <option value={false}>No disponible</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
-                <input
-                  type="date"
-                  value={editForm.ingreso}
-                  onChange={(e) => handleEditFormChange('ingreso', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
-                <input
-                  type="text"
-                  value={editForm.garantia}
-                  onChange={(e) => handleEditFormChange('garantia', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 6 meses"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
-                <textarea
-                  value={editForm.fallas}
-                  onChange={(e) => handleEditFormChange('fallas', e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Descripción de fallas conocidas..."
-                />
-              </div>
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Observaciones</h3>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+              <textarea
+                value={editForm.observaciones}
+                onChange={(e) => handleEditFormChange('observaciones', e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Observaciones adicionales sobre el producto..."
+              />
             </div>
+            {cotizacionDolar > 0 && (
+              <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded">
+                <p className="text-sm text-emerald-700">
+                  💱 Precio estimado en pesos: ${editForm.precio_venta_usd ? Math.round(editForm.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR') : '0'} |
+                  Cotización: ${cotizacionDolar}
+                </p>
+              </div>
+            )}
           </div>
-
-          {/* Vista previa del precio en pesos */}
-          {editForm.precio_venta_usd && (
-            <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
-              <p className="text-sm text-slate-600">
-                <strong>Precio en pesos:</strong> ${Math.round(editForm.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
-              </p>
-              <p className="text-xs text-slate-500">
-                Cotización: ${cotizacionDolar}
-              </p>
-            </div>
-          )}
         </form>
       );
     }
@@ -1680,6 +1673,15 @@ const Catalogo = ({ onAddToCart }) => {
                   <div className="flex items-center space-x-2">
                     <AlertCircle size={16} className="text-red-600" />
                     <span className="text-red-800 text-sm">{editError}</span>
+                  </div>
+                </div>
+              )}
+
+              {editSuccess && (
+                <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded p-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span className="text-emerald-800 text-sm">{editSuccess}</span>
                   </div>
                 </div>
               )}

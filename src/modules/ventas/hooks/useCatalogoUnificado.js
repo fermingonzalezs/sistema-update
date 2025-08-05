@@ -240,9 +240,19 @@ export const useCatalogoUnificado = () => {
     const marcas = [...new Set(datosActuales.map(item => item.marca).filter(Boolean))];
     const condiciones = [...new Set(datosActuales.map(item => item.condicion).filter(Boolean))];
     const estados = [...new Set(datosActuales.map(item => item.estado).filter(Boolean))];
-    const sucursales = [...new Set(datosActuales.map(item => 
-      item.ubicacion || item.sucursal
-    ).filter(Boolean))];
+    const sucursales = [...new Set(datosActuales.map(item => {
+      // Para productos "otros" que usan cantidad_la_plata y cantidad_mitre
+      if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+        const sucursalesConStock = [];
+        if ((item.cantidad_la_plata || 0) > 0) sucursalesConStock.push('la_plata');
+        if ((item.cantidad_mitre || 0) > 0) sucursalesConStock.push('mitre');
+        return sucursalesConStock;
+      }
+      
+      // Para notebooks y celulares que usan ubicacion/sucursal
+      const sucursal = item.ubicacion || item.sucursal;
+      return sucursal ? sucursal.toLowerCase() : null;
+    }).flat().filter(Boolean))];
     
     // Para categorías específicas, extraer categorías de productos
     const categorias = [...new Set(datosActuales.map(item => item.categoria).filter(Boolean))];
@@ -279,9 +289,23 @@ export const useCatalogoUnificado = () => {
     }
 
     if (filtrosUnificados.sucursal) {
-      filtered = filtered.filter(item => 
-        (item.ubicacion || item.sucursal) === filtrosUnificados.sucursal
-      );
+      filtered = filtered.filter(item => {
+        // Para productos "otros" que usan cantidad_la_plata y cantidad_mitre
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          const sucursalFiltro = filtrosUnificados.sucursal.toLowerCase();
+          if (sucursalFiltro === 'la_plata') {
+            return (item.cantidad_la_plata || 0) > 0;
+          } else if (sucursalFiltro === 'mitre') {
+            return (item.cantidad_mitre || 0) > 0;
+          }
+          return false;
+        }
+        
+        // Para notebooks y celulares que usan ubicacion/sucursal
+        const sucursalItem = (item.ubicacion || item.sucursal || '').toLowerCase();
+        const sucursalFiltro = filtrosUnificados.sucursal.toLowerCase();
+        return sucursalItem === sucursalFiltro;
+      });
     }
 
     if (filtrosUnificados.precioMin) {
