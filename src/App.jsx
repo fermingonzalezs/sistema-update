@@ -487,7 +487,7 @@ const AppContent = () => {
      )}
      {/* 📋 CATÁLOGO UNIFICADO */}
      {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
-       <Catalogo onAddToCart={handleAddToCart} />
+       <Catalogo onAddToCart={handleAddToCart} onNavigate={handleSectionChange} />
      )}
 
 

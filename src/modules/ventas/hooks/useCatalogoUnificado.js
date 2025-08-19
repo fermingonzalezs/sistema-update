@@ -336,22 +336,29 @@ export const useCatalogoUnificado = () => {
         }
         
         // Para otros productos (notebooks, celulares), usar lógica original
-        const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+        // RESERVADO debe aparecer en el catálogo, solo excluir reparación, prestado y sin_reparacion
+        const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
         const esNoDisponiblePorCondicion = condicionesNoDisponibles.includes(item.condicion);
         const disponibilidadCalculada = item.disponible !== false && !esNoDisponiblePorCondicion;
         return disponibilidadCalculada === disponibleValue;
       });
     }
 
-    // Para productos "otros", filtrar automáticamente productos sin stock
-    if (categoriaActiva.startsWith('otros') || categorias[categoriaActiva]?.data === otros) {
-      filtered = filtered.filter(item => {
-        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
-          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
-        }
-        return true;
-      });
-    }
+    // Filtrar automáticamente productos sin stock para todos los tipos
+    filtered = filtered.filter(item => {
+      // Para productos "otros" que usan cantidad por sucursal
+      if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+        return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
+      }
+      // Para notebooks y celulares que usan el campo 'disponible'
+      else if (item.disponible !== undefined) {
+        // Solo filtrar si está explícitamente marcado como no disponible (vendido)
+        // No filtrar por condiciones (reparación, prestado, etc.) ya que eso se maneja en el filtro manual
+        return item.disponible !== false;
+      }
+      // Para productos sin sistema de stock definido, mostrar por defecto
+      return true;
+    });
 
     // Filtrar por búsqueda (serial o modelo)
     if (filtrosUnificados.busqueda) {

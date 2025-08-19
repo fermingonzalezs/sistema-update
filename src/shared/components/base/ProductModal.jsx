@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Camera } from 'lucide-react';
 import { formatearMonto } from '../../utils/formatters';
 
 /**
@@ -17,7 +17,8 @@ const ProductModal = ({
   onClose, 
   cotizacionDolar,
   tipoProducto = 'general', // 'celular', 'notebook', 'otro'
-  campos = {} // Configuración de campos a mostrar por tipo
+  campos = {}, // Configuración de campos a mostrar por tipo
+  onVerFotos = null // Callback para ver fotos del producto
 }) => {
   if (!isOpen || !producto) return null;
 
@@ -253,6 +254,19 @@ const ProductModal = ({
 
             </div>
           </div>
+
+          {/* Botón Ver Fotos - Esquina inferior izquierda */}
+          {onVerFotos && (
+            <div className="flex justify-start mt-6">
+              <button
+                onClick={() => onVerFotos(producto, tipoProducto)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors flex items-center space-x-2"
+              >
+                <Camera className="w-5 h-5" />
+                <span>Ver Fotos</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ import { generateCopy } from '../../../shared/utils/copyGenerator';
 
 // Modal de detalle unificado
 
-const Catalogo = ({ onAddToCart }) => {
+const Catalogo = ({ onAddToCart, onNavigate }) => {
   const {
     categoriaActiva,
     categoriaConfig,
@@ -254,6 +254,16 @@ const Catalogo = ({ onAddToCart }) => {
     setEditSuccess(null);
   };
 
+  // Función para navegar a la gestión de fotos
+  const handleVerFotos = (producto, tipoProducto) => {
+    // Cerrar el modal actual
+    setModalDetalle({ open: false, producto: null });
+    // Navegar a la sección de gestión de fotos
+    if (onNavigate) {
+      onNavigate('gestion-fotos');
+    }
+  };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setEditLoading(true);
@@ -480,8 +490,8 @@ const Catalogo = ({ onAddToCart }) => {
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
-                    // Actualizar disponibilidad automáticamente
-                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+                    // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
+                    const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
                     const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
                     handleEditFormChange('disponible', !esNoDisponible);
                   }}
@@ -889,8 +899,8 @@ const Catalogo = ({ onAddToCart }) => {
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
-                    // Actualizar disponibilidad automáticamente
-                    const condicionesNoDisponibles = ['reparacion', 'reservado', 'prestado', 'sin_reparacion'];
+                    // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
+                    const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
                     const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
                     handleEditFormChange('disponible', !esNoDisponible);
                   }}
@@ -1658,6 +1668,7 @@ const Catalogo = ({ onAddToCart }) => {
           categoriaActiva === 'celulares' ? 'celular' :
           categoriaActiva === 'notebooks' ? 'notebook' : 'otro'
         }
+        onVerFotos={handleVerFotos}
       />
 
       {/* Modal de edición */}

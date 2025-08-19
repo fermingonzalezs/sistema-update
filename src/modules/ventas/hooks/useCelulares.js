@@ -41,7 +41,7 @@ export function useCelulares() {
   } = useSupabaseEntity('celulares', {
     // Configuración específica para celulares
     defaultFilters: { 
-      disponible: true 
+      // Removido filtro de disponible para mostrar celulares reservados
     },
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',

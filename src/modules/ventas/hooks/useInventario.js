@@ -11,7 +11,6 @@ export const inventarioService = {
     const { data, error } = await supabase
       .from('inventario')
       .select('*')
-      .eq('disponible', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -211,7 +210,6 @@ export const inventarioService = {
       .from('inventario')
       .select('*')
       .eq('sucursal', sucursal)
-      .eq('disponible', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -230,7 +228,6 @@ export const inventarioService = {
       .from('inventario')
       .select('*')
       .eq('condicion', condicion)
-      .eq('disponible', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -249,7 +246,6 @@ export const inventarioService = {
       .from('inventario')
       .select('*')
       .ilike('procesador', `%${procesador}%`)
-      .eq('disponible', true)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -267,7 +263,6 @@ export const inventarioService = {
     const { data, error } = await supabase
       .from('inventario')
       .select('sucursal, condicion, procesador, precio_venta_usd, precio_costo_total')
-      .eq('disponible', true)
     
     if (error) {
       console.error('❌ Error obteniendo estadísticas:', error)
@@ -366,7 +361,7 @@ export function useInventario() {
   } = useSupabaseEntity('inventario', {
     // Configuración específica para inventario
     defaultFilters: { 
-      disponible: true 
+      // Removido filtro de disponible para mostrar productos reservados
     },
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',
@@ -503,7 +498,6 @@ export function useInventario() {
         query
           .select('*')
           .eq('condicion', condicion)
-          .eq('disponible', true)
           .order('created_at', { ascending: false })
       );
     } catch (err) {
@@ -519,7 +513,6 @@ export function useInventario() {
         query
           .select('*')
           .ilike('procesador', `%${procesador}%`)
-          .eq('disponible', true)
           .order('created_at', { ascending: false })
       );
     } catch (err) {

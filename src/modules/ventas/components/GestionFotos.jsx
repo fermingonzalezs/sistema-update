@@ -33,12 +33,23 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
   const [descripcionTemp, setDescripcionTemp] = useState('');
   const fileInputRef = useRef(null);
 
-  // Combinar todos los productos
+  // Combinar todos los productos y filtrar solo los disponibles
   const todosLosProductos = [
-    ...computers.map(p => ({ ...p, tipo: 'computadora', nombre: p.modelo })),
-    ...celulares.map(p => ({ ...p, tipo: 'celular', nombre: p.modelo })),
-    ...otros.map(p => ({ ...p, tipo: 'otro', nombre: p.descripcion_producto }))
-  ];
+    ...computers.map(p => ({ ...p, tipo: 'computadora', nombre: p.modelo || 'Sin modelo' })),
+    ...celulares.map(p => ({ ...p, tipo: 'celular', nombre: p.modelo || 'Sin modelo' })),
+    ...otros.map(p => ({ ...p, tipo: 'otro', nombre: p.descripcion_producto || 'Sin descripción' }))
+  ].filter(producto => {
+    // Para productos "otros" que usan cantidad por sucursal
+    if (producto.cantidad_la_plata !== undefined || producto.cantidad_mitre !== undefined) {
+      return (producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0) > 0;
+    }
+    // Para notebooks y celulares que usan el campo 'disponible'
+    else if (producto.disponible !== undefined) {
+      return producto.disponible !== false;
+    }
+    // Para productos sin sistema de stock definido, mostrar por defecto
+    return true;
+  });
 
   // Cargar estadísticas al montar
   useEffect(() => {
@@ -307,8 +318,8 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
     }
 
     const cumpleBusqueda = busqueda === '' || 
-      producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (producto.serial && producto.serial.toLowerCase().includes(busqueda.toLowerCase()));
+      (producto.nombre && producto.nombre.toString().toLowerCase().includes(busqueda.toLowerCase())) ||
+      (producto.serial && producto.serial.toString().toLowerCase().includes(busqueda.toLowerCase()));
 
     return cumpleTipo && cumpleEstado && cumpleBusqueda;
   });
@@ -460,7 +471,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                       </div>
                     )}
 
-                    <div className="aspect-square bg-slate-100">
+                    <div className="aspect-square bg-slate-100 relative">
                       <img
                         src={foto.url_foto}
                         alt={`Foto ${index + 1}`}
@@ -468,10 +479,16 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
                         onClick={() => !foto.subiendo && setVistaPrevia(foto)}
                         onError={(e) => {
                           e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
+                          const errorDiv = e.target.parentElement.querySelector('.error-placeholder');
+                          if (errorDiv) errorDiv.style.display = 'flex';
+                        }}
+                        onLoad={(e) => {
+                          e.target.style.display = 'block';
+                          const errorDiv = e.target.parentElement.querySelector('.error-placeholder');
+                          if (errorDiv) errorDiv.style.display = 'none';
                         }}
                       />
-                      <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-500" style={{display: 'none'}}>
+                      <div className="error-placeholder absolute inset-0 w-full h-full flex items-center justify-center bg-slate-200 text-slate-500" style={{display: 'none'}}>
                         <div className="text-center">
                           <Image className="w-6 h-6 mx-auto mb-1" />
                           <span className="text-xs">Error cargando</span>
