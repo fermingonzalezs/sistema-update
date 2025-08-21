@@ -783,9 +783,10 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   value={editForm.disponible}
                   onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  disabled={modalEdit.producto?.disponible === true}
                 >
                   <option value={true}>Disponible</option>
-                  <option value={false}>No disponible</option>
+                  {modalEdit.producto?.disponible !== true && <option value={false}>No disponible</option>}
                 </select>
               </div>
               <div>
@@ -1021,9 +1022,10 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   value={editForm.disponible}
                   onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  disabled={modalEdit.producto?.disponible === true}
                 >
                   <option value={true}>Disponible</option>
-                  <option value={false}>No disponible</option>
+                  {modalEdit.producto?.disponible !== true && <option value={false}>No disponible</option>}
                 </select>
               </div>
               <div>

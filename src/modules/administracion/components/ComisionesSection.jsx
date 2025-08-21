@@ -16,6 +16,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   // Estados para resultados
   const [comisionesCalculadas, setComisionesCalculadas] = useState([]);
+  const [detalleEquipos, setDetalleEquipos] = useState([]);
   const [resumenGeneral, setResumenGeneral] = useState({
     totalComisiones: 0,
     totalGanancias: 0,
@@ -69,50 +70,16 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     });
   };
 
-  // Función para obtener la condición de un producto
-  const obtenerCondicionProducto = async (tipoProducto, productoId) => {
-    if (tipoProducto === 'otro') {
-      return 'nuevo'; // Los "otros" no tienen condición, asumimos nuevo
-    }
-    
-    const tabla = tipoProducto === 'computadora' ? 'inventario' : 'celulares';
-    const { data, error } = await supabase
-      .from(tabla)
-      .select('condicion')
-      .eq('id', productoId)
-      .single();
-    
-    if (error) {
-      console.warn(`Error obteniendo condición para ${tipoProducto} ${productoId}:`, error);
-      return 'usado'; // Por defecto asumimos usado si hay error
-    }
-    
-    // Normalizar la condición a minúsculas
-    return (data?.condicion || 'usado').toLowerCase();
-  };
 
   // Calcular comisiones por vendedor y categoría
-  const calcularComisiones = async () => {
+  const calcularComisiones = () => {
     const ventasFiltradas = filtrarVentas();
     const comisionesPorVendedor = {};
+    const equiposDetalle = [];
     
     let totalGananciasGeneral = 0;
     let totalVentasGeneral = 0;
     let totalComisionesGeneral = 0;
-
-    // Obtener todas las condiciones de productos primero
-    const productosCondiciones = {};
-    
-    for (const venta of ventasFiltradas) {
-      if (venta.venta_items) {
-        for (const item of venta.venta_items) {
-          const key = `${item.tipo_producto}-${item.producto_id}`;
-          if (!productosCondiciones[key]) {
-            productosCondiciones[key] = await obtenerCondicionProducto(item.tipo_producto, item.producto_id);
-          }
-        }
-      }
-    }
 
     ventasFiltradas.forEach(venta => {
       const vendedor = venta.vendedor;
@@ -142,41 +109,72 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
       // Distribuir comisión proporcionalmente entre items
       if (venta.venta_items && venta.venta_items.length > 0) {
         venta.venta_items.forEach(item => {
-          // Determinar categoría basada en tipo y condición
-          const getCategoriaCompleta = (tipoProducto, condicion) => {
-            const condicionNormalizada = (condicion || 'usado').toLowerCase();
+          // Determinar categoría basada en tipo (para "otros" usar condición de copy si está disponible)
+          const getCategoriaCompleta = (tipoProducto, copy) => {
             if (tipoProducto === 'computadora') {
-              return condicionNormalizada === 'nuevo' ? 'computadora_nuevo' : 'computadora_usado';
+              // Determinar si es nuevo o usado basado en el copy
+              const esNuevo = copy && (copy.toLowerCase().includes('nuevo') || copy.toLowerCase().includes('refurbished'));
+              return esNuevo ? 'computadora_nuevo' : 'computadora_usado';
             } else if (tipoProducto === 'celular') {
-              return condicionNormalizada === 'nuevo' ? 'celular_nuevo' : 'celular_usado';
+              // Determinar si es nuevo o usado basado en el copy
+              const esNuevo = copy && (copy.toLowerCase().includes('nuevo') || copy.toLowerCase().includes('refurbished'));
+              return esNuevo ? 'celular_nuevo' : 'celular_usado';
             } else {
               return 'otro';
             }
           };
 
-          // Obtener la condición del cache
-          const key = `${item.tipo_producto}-${item.producto_id}`;
-          const condicion = productosCondiciones[key] || 'usado';
-          const categoria = getCategoriaCompleta(item.tipo_producto, condicion);
+          // Usar datos directamente de venta_items
+          const categoria = getCategoriaCompleta(item.tipo_producto, item.copy);
           const ventaItem = parseFloat(item.precio_total || 0);
           const unidades = item.cantidad || 1;
+          const precioCosto = parseFloat(item.precio_costo || 0);
+          const margenItem = parseFloat(item.margen_item || 0);
           
-          // Distribución proporcional de comisión y ganancia basada en valor del item
+          // Distribución proporcional de comisión basada en valor del item
           const proporcionItem = ventaTotal > 0 ? ventaItem / ventaTotal : 0;
           const comisionItem = comisionVenta * proporcionItem;
-          const gananciaItem = margenTotal * proporcionItem;
+          
+          // Extraer condición del copy si es posible
+          const extraerCondicion = (copy) => {
+            const copyLower = (copy || '').toLowerCase();
+            if (copyLower.includes('nuevo')) return 'nuevo';
+            if (copyLower.includes('refurbished')) return 'refurbished';
+            if (copyLower.includes('usado')) return 'usado';
+            if (copyLower.includes('excelente')) return 'excelente';
+            if (copyLower.includes('muy bueno')) return 'muy bueno';
+            if (copyLower.includes('bueno')) return 'bueno';
+            return 'usado'; // default
+          };
+          
+          // Agregar detalle del equipo usando datos de venta_items
+          equiposDetalle.push({
+            fecha_venta: venta.fecha_venta,
+            vendedor: venta.vendedor,
+            nombre_equipo: item.copy || 'Equipo sin descripción',
+            serial: item.serial_producto || 'N/A',
+            tipo_producto: item.tipo_producto,
+            condicion: extraerCondicion(item.copy),
+            cantidad: unidades,
+            precio_costo: precioCosto,
+            precio_venta: parseFloat(item.precio_unitario || 0),
+            precio_total: ventaItem,
+            ganancia: margenItem, // Usar margen ya calculado del item
+            comision: comisionItem,
+            categoria: categoria
+          });
 
           // Acumular por categoría
           if (comisionesPorVendedor[vendedor].categorias[categoria]) {
             comisionesPorVendedor[vendedor].categorias[categoria].ventas += ventaItem;
-            comisionesPorVendedor[vendedor].categorias[categoria].ganancias += gananciaItem;
+            comisionesPorVendedor[vendedor].categorias[categoria].ganancias += margenItem;
             comisionesPorVendedor[vendedor].categorias[categoria].comision += comisionItem;
             comisionesPorVendedor[vendedor].categorias[categoria].unidades += unidades;
           }
 
           // Acumular totales del vendedor (solo una vez por item para evitar duplicación)
           totalVentasGeneral += ventaItem;
-          totalGananciasGeneral += gananciaItem;
+          totalGananciasGeneral += margenItem;
           totalComisionesGeneral += comisionItem;
         });
 
@@ -190,6 +188,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
     const comisionesArray = Object.values(comisionesPorVendedor);
     setComisionesCalculadas(comisionesArray);
+    setDetalleEquipos(equiposDetalle);
 
     setResumenGeneral({
       totalComisiones: totalComisionesGeneral,
@@ -303,7 +302,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             </select>
           </div>
 
-          {/* Botón para actualizar */}
+          {/* Botón para calcular */}
           <div className="flex items-end">
             <button
               onClick={() => calcularComisiones()}
@@ -518,6 +517,101 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
               <p className="text-sm">Ajusta las fechas o verifica que haya ventas registradas</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tabla de Detalle por Equipo */}
+      {!loading && !error && detalleEquipos.length > 0 && (
+        <div className="bg-white rounded border border-slate-200 overflow-hidden mt-8">
+          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-800">
+              Detalle por Equipo ({detalleEquipos.length} equipos vendidos)
+            </h3>
+            <p className="text-sm text-slate-600 mt-1">
+              Información detallada de cada equipo vendido con su respectiva comisión
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-800">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Equipo</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Serial/IMEI</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Tipo</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Condición</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Cant.</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">P. Costo</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">P. Venta</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Ganancia</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Comisión</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-200">
+                {detalleEquipos.map((equipo, index) => (
+                  <tr key={index} className="hover:bg-slate-50">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-700">
+                      {new Date(equipo.fecha_venta).toLocaleDateString('es-AR')}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <User className="w-3 h-3 text-slate-400 mr-1" />
+                        <span className="text-sm font-medium text-slate-900 truncate max-w-[100px]">
+                          {equipo.vendedor}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="text-sm font-medium text-slate-900 max-w-[200px] truncate">
+                        {equipo.nombre_equipo}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-600 font-mono">
+                      {equipo.serial || 'N/A'}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {equipo.tipo_producto === 'computadora' && <Monitor className="w-4 h-4 text-blue-500 mr-1" />}
+                        {equipo.tipo_producto === 'celular' && <Smartphone className="w-4 h-4 text-green-500 mr-1" />}
+                        {equipo.tipo_producto === 'otro' && <Box className="w-4 h-4 text-purple-500 mr-1" />}
+                        <span className="text-xs font-medium text-slate-600 capitalize">
+                          {equipo.tipo_producto === 'computadora' ? 'PC' : 
+                           equipo.tipo_producto === 'celular' ? 'Celular' : 'Otro'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        equipo.condicion === 'nuevo' ? 'bg-emerald-100 text-emerald-800' :
+                        equipo.condicion === 'usado' ? 'bg-yellow-100 text-yellow-800' :
+                        equipo.condicion === 'refurbished' ? 'bg-blue-100 text-blue-800' :
+                        'bg-slate-100 text-slate-800'
+                      }`}>
+                        {equipo.condicion.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-center text-slate-700 font-medium">
+                      {equipo.cantidad}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-700">
+                      {formatearMonto(equipo.precio_costo * equipo.cantidad, 'USD')}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
+                      {formatearMonto(equipo.precio_total, 'USD')}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-emerald-600">
+                      {formatearMonto(equipo.ganancia, 'USD')}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-bold text-emerald-700">
+                      {formatearMonto(equipo.comision, 'USD')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

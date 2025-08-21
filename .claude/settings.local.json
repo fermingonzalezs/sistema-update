@@ -69,7 +69,8 @@
       "Bash(npm run lint:*)",
       "mcp__supabase__search_docs",
       "mcp__supabase__get_anon_key",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   },
