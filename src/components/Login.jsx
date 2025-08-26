@@ -3,7 +3,7 @@ import { Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 const Login = ({ onLogin, error, loading }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -21,8 +21,8 @@ const Login = ({ onLogin, error, loading }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.username.trim()) {
-      setLocalError('El nombre de usuario es requerido');
+    if (!formData.email.trim()) {
+      setLocalError('El email es requerido');
       return;
     }
     
@@ -32,7 +32,7 @@ const Login = ({ onLogin, error, loading }) => {
     }
 
     try {
-      await onLogin(formData.username, formData.password);
+      await onLogin(formData.email, formData.password);
     } catch (err) {
       // Error handled by parent component
     }
@@ -58,19 +58,19 @@ const Login = ({ onLogin, error, loading }) => {
             {/* Username Field */}
             <div>
               <label className="block text-sm font-medium mb-2 text-slate-800">
-                Email o Usuario
+                Email
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-800" />
                 <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all bg-white border-slate-200 text-slate-800 placeholder-slate-800"
-                  placeholder="Ingresa tu email o usuario"
+                  placeholder="Ingresa tu email"
                   disabled={loading}
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -136,7 +136,7 @@ const Login = ({ onLogin, error, loading }) => {
               Sistema de gestión empresarial - UPDATE TECH
             </p>
             <p className="text-xs text-slate-500 mt-2">
-              Ingresa con tu email autorizado o usuario admin
+              Ingresa con tu email autorizado
             </p>
           </div>
         </div>

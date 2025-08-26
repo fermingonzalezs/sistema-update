@@ -147,17 +147,13 @@ const AppContent = () => {
    }
  }, [isAuthenticated]); // Ejecutar cuando cambie el estado de autenticación
 
- // Verificar acceso a la sección activa
+ // Verificar acceso a la sección activa - simplificado
  useEffect(() => {
-   if (isAuthenticated && !hasAccess(activeSection)) {
-     // Si no tiene acceso a la sección activa, redirigir a la primera permitida
-     const firstAllowedSection = ['inventario', 'carga-equipos', 'ventas', 'plan-cuentas']
-       .find(section => hasAccess(section));
-     if (firstAllowedSection) {
-       setActiveSection(firstAllowedSection);
-     }
+   if (isAuthenticated && activeSection === '') {
+     // Si está autenticado y no hay sección activa, ir a inventario por defecto
+     setActiveSection('inventario');
    }
- }, [activeSection, isAuthenticated, hasAccess]);
+ }, [activeSection, isAuthenticated]);
 
  // 🗑️ Handlers para eliminar
  const handleDeleteComputer = async (id) => {
@@ -455,13 +451,9 @@ const AppContent = () => {
    }
  };
 
- // Protección de acceso a secciones
+ // Cambio de sección simplificado
  const handleSectionChange = (newSection) => {
-   if (hasAccess(newSection)) {
-     setActiveSection(newSection);
-   } else {
-     console.warn('Acceso denegado a la sección:', newSection);
-   }
+   setActiveSection(newSection);
  };
 
  return (
@@ -469,37 +461,37 @@ const AppContent = () => {
      activeSection={activeSection}
      setActiveSection={handleSectionChange}
    >
-     {/* 📋 Renderizado de secciones protegidas */}
-     {activeSection === 'importaciones' && hasAccess('importaciones') && (
+     {/* 📋 Renderizado de secciones */}
+     {activeSection === 'importaciones' && (
        <ImportacionesSection />
      )}
-     {activeSection === 'cotizaciones' && hasAccess('importaciones') && (
+     {activeSection === 'cotizaciones' && (
        <CotizacionesSection />
      )}
-     {activeSection === 'pendientes-compra' && hasAccess('importaciones') && (
+     {activeSection === 'pendientes-compra' && (
        <PendientesCompraSection />
      )}
-     {activeSection === 'en-transito' && hasAccess('importaciones') && (
+     {activeSection === 'en-transito' && (
        <EnTransitoSection />
      )}
-     {activeSection === 'historial-importaciones' && hasAccess('importaciones') && (
+     {activeSection === 'historial-importaciones' && (
        <HistorialImportacionesSection />
      )}
      {/* 📋 CATÁLOGO UNIFICADO */}
-     {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && hasAccess('inventario') && (
+     {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && (
        <Catalogo onAddToCart={handleAddToCart} onNavigate={handleSectionChange} />
      )}
 
 
 
-     {activeSection === 'reparaciones' && hasAccess('reparaciones') && (
+     {activeSection === 'reparaciones' && (
        <ReparacionesMain />
      )}
 
 
 
 
-     {activeSection === 'ventas' && hasAccess('ventas') && (
+     {activeSection === 'ventas' && (
        <VentasSection
          ventas={ventas}
          loading={ventasLoading}
@@ -509,16 +501,16 @@ const AppContent = () => {
      )}
 
      {/* 👥 SECCIÓN DE CLIENTES */}
-     {activeSection === 'clientes' && hasAccess('clientes') && (
+     {activeSection === 'clientes' && (
        <Clientes />
      )}
 
      {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
-     {activeSection === 'cuentas-corrientes' && hasAccess('cuentas-corrientes') && (
+     {activeSection === 'cuentas-corrientes' && (
        <CuentasCorrientesSection />
      )}
 
-     {activeSection === 'gestion-fotos' && hasAccess('gestion-fotos') && (
+     {activeSection === 'gestion-fotos' && (
        <GestionFotos
          computers={computers}
          celulares={celulares}
@@ -530,66 +522,66 @@ const AppContent = () => {
 
 
      {/* 📊 SECCIONES DE CONTABILIDAD */}
-     {activeSection === 'plan-cuentas' && hasAccess('plan-cuentas') && (
+     {activeSection === 'plan-cuentas' && (
        <PlanCuentasSection />
      )}
 
-     {activeSection === 'libro-diario' && hasAccess('libro-diario') && (
+     {activeSection === 'libro-diario' && (
        <LibroDiarioSection />
      )}
 
      {/* ELIMINADO: reporte-movimientos ya no existe */}
 
-     {activeSection === 'libro-mayor' && hasAccess('libro-mayor') && (
+     {activeSection === 'libro-mayor' && (
        <LibroMayorSection />
      )}
 
-     {activeSection === 'conciliacion-caja' && hasAccess('conciliacion-caja') && (
+     {activeSection === 'conciliacion-caja' && (
        <ConciliacionCajaSection />
      )}
 
-     {activeSection === 'estado-situacion-patrimonial' && hasAccess('estado-situacion-patrimonial') && (
+     {activeSection === 'estado-situacion-patrimonial' && (
        <EstadoSituacionPatrimonialSection />
      )}
 
-     {activeSection === 'estado-resultados' && hasAccess('estado-resultados') && (
+     {activeSection === 'estado-resultados' && (
        <EstadoResultadosSection />
      )}
 
-     {activeSection === 'balance-sumas-saldos' && hasAccess('balance-sumas-saldos') && (
+     {activeSection === 'balance-sumas-saldos' && (
        <BalanceSumasYSaldosSection />
      )}
 
-     {activeSection === 'recuento-stock' && hasAccess('recuento-stock') && (
+     {activeSection === 'recuento-stock' && (
        <RecuentoStockSection />
      )}
 
-     {activeSection === 'repuestos' && hasAccess('repuestos') && (
+     {activeSection === 'repuestos' && (
        <RepuestosSection />
      )}
 
-     {activeSection === 'movimientos-repuestos' && hasAccess('movimientos-repuestos') && (
+     {activeSection === 'movimientos-repuestos' && (
        <MovimientosRepuestosSection />
      )}
 
 
-     {activeSection === 'testeo-equipos' && hasAccess('testeo-equipos') && (
+     {activeSection === 'testeo-equipos' && (
        <TesteoEquiposSection />
      )}
 
-     {activeSection === 'dashboard-reportes' && hasAccess('dashboard-reportes') && (
+     {activeSection === 'dashboard-reportes' && (
        <DashboardReportesSection />
      )}
 
-     {activeSection === 'garantias' && hasAccess('garantias') && (
+     {activeSection === 'garantias' && (
        <GarantiasSection />
      )}
 
-     {activeSection === 'ingreso-equipos' && hasAccess('ingreso-equipos') && (
+     {activeSection === 'ingreso-equipos' && (
        <IngresoEquiposSection />
      )}
 
-     {activeSection === 'comisiones' && hasAccess('comisiones') && (
+     {activeSection === 'comisiones' && (
        <ComisionesSection
          ventas={ventas}
          loading={ventasLoading}
@@ -598,7 +590,7 @@ const AppContent = () => {
        />
      )}
 
-     {activeSection === 'copys' && hasAccess('copys') && (
+     {activeSection === 'copys' && (
        <Listas
          computers={computers}
          celulares={celulares}

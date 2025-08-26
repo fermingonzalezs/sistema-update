@@ -108,12 +108,12 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
                   <div className="flex items-center space-x-2 md:space-x-3">
                     <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
-                        {user?.nombre?.charAt(0)?.toUpperCase() || 'U'}
+                        {user?.user_metadata?.nombre?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     </div>
                     <div className="hidden sm:block">
-                      <div className="text-xs font-medium text-white">{user?.nombre || 'Usuario'}</div>
-                      <div className="text-xs text-slate-300 capitalize">{user?.nivel || 'Sin nivel'}</div>
+                      <div className="text-xs font-medium text-white">{user?.user_metadata?.nombre || 'Usuario'}</div>
+                      <div className="text-xs text-slate-300 capitalize">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
                     </div>
                   </div>
                   <button

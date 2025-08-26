@@ -229,7 +229,7 @@ export const fotosService = {
       const [computadoras, celulares, otros] = await Promise.all([
         supabase.from('inventario').select('id').eq('disponible', true),
         supabase.from('celulares').select('id').eq('disponible', true),
-        supabase.from('otros').select('id').eq('disponible', true)
+        supabase.from('otros').select('id')
       ]);
       
       // Obtener fotos agrupadas por tipo

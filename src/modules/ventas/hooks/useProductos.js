@@ -15,7 +15,6 @@ export const useProductos = () => {
       const { data, error } = await supabase
         .from('otros')
         .select('*')
-        .eq('disponible', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -110,7 +109,6 @@ export const useProductos = () => {
         .from('otros')
         .select('*')
         .eq('categoria', categoria)
-        .eq('disponible', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
