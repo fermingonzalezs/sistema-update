@@ -81,7 +81,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     precio_venta_usd: '',
     
     // Estado
-    sucursal: 'la_plata',
+    sucursal: 'LA PLATA',
     condicion: 'usado',
     estado: 'A',
     
@@ -163,7 +163,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         precio_costo_usd: '',
         envios_repuestos: '0',
         precio_venta_usd: '',
-        sucursal: 'la_plata',
+        sucursal: 'LA PLATA',
         condicion: 'usado',
         estado: 'A',
         procesador: '',
@@ -276,8 +276,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
-            <option value="la_plata">LA PLATA</option>
-            <option value="mitre">MITRE</option>
+            <option value="LA PLATA">LA PLATA</option>
+            <option value="MITRE">MITRE</option>
+            <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
           </select>
         </div>
 
@@ -657,7 +658,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
     // Campos opcionales
     modelo: '',
     marca: '',
-    sucursal: 'la_plata',
+    sucursal: 'LA PLATA',
     precio_compra_usd: '',
     precio_venta_usd: '',
     capacidad: '',
@@ -715,7 +716,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
         condicion: 'usado',
         modelo: '',
         marca: '',
-        sucursal: 'la_plata',
+        sucursal: 'LA PLATA',
         precio_compra_usd: '',
         precio_venta_usd: '',
         capacidad: '',
@@ -814,8 +815,9 @@ const FormularioCelular = ({ onAdd, loading }) => {
             onChange={handleChange}
             className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
           >
-            <option value="la_plata">LA PLATA</option>
-            <option value="mitre">MITRE</option>
+            <option value="LA PLATA">LA PLATA</option>
+            <option value="MITRE">MITRE</option>
+            <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
           </select>
         </div>
 

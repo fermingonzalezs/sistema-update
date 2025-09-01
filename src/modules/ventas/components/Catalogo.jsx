@@ -134,20 +134,24 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     
     // Función para normalizar sucursal a valores válidos
     const normalizarSucursal = (sucursal) => {
+      // Si ya es un valor normalizado, mantenerlo
+      if (['LA PLATA', 'MITRE', 'RSN/IDM/FIXCENTER'].includes(sucursal)) {
+        return sucursal;
+      }
+      
       const sucursalLower = (sucursal || '').toLowerCase();
       // Mapear sucursales viejas a nuevas
-      if (sucursalLower.includes('quilmes') || sucursalLower.includes('san') || sucursalLower.includes('martin')) {
-        return 'la_plata'; // Por defecto quilmes/san martin -> la plata
+      if (sucursalLower.includes('quilmes') || sucursalLower.includes('san') || sucursalLower.includes('martin') || sucursalLower === 'la_plata') {
+        return 'LA PLATA';
       }
-      if (sucursalLower.includes('deposito') || sucursalLower.includes('mitre')) {
-        return 'mitre';
+      if (sucursalLower.includes('deposito') || sucursalLower.includes('mitre') || sucursalLower === 'mitre') {
+        return 'MITRE';
       }
-      // Si ya es un valor válido, mantenerlo
-      if (sucursalLower === 'la_plata' || sucursalLower === 'mitre') {
-        return sucursalLower;
+      if (sucursalLower.includes('rsn') || sucursalLower.includes('idm') || sucursalLower.includes('fixcenter')) {
+        return 'RSN/IDM/FIXCENTER';
       }
-      // Por defecto, asignar la plata
-      return 'la_plata';
+      // Por defecto, asignar LA PLATA
+      return 'LA PLATA';
     };
     
     // Inicializar el formulario con los datos del producto según el tipo
@@ -518,8 +522,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="la_plata">LA PLATA</option>
-                  <option value="mitre">MITRE</option>
+                  <option value="LA PLATA">LA PLATA</option>
+                  <option value="MITRE">MITRE</option>
+                  <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
                 </select>
               </div>
             </div>
@@ -928,8 +933,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="la_plata">LA PLATA</option>
-                  <option value="mitre">MITRE</option>
+                  <option value="LA PLATA">LA PLATA</option>
+                  <option value="MITRE">MITRE</option>
+                  <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
                 </select>
               </div>
             </div>
@@ -1360,8 +1366,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
-              <option value="la_plata">LA PLATA</option>
-              <option value="mitre">MITRE</option>
+              <option value="LA PLATA">LA PLATA</option>
+              <option value="MITRE">MITRE</option>
+              <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
             </select>
           </div>
 
@@ -1569,17 +1576,19 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   <div className="col-span-1 flex justify-center">
                     <div className="space-y-1">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        (producto.sucursal === 'la_plata' || producto.ubicacion === 'la_plata') ? 'bg-blue-100 text-blue-800' :
-                        (producto.sucursal === 'mitre' || producto.ubicacion === 'mitre') ? 'bg-green-100 text-green-800' :
+                        (producto.sucursal === 'LA PLATA' || producto.ubicacion === 'LA PLATA') ? 'bg-blue-100 text-blue-800' :
+                        (producto.sucursal === 'MITRE' || producto.ubicacion === 'MITRE') ? 'bg-green-100 text-green-800' :
+                        (producto.sucursal === 'RSN/IDM/FIXCENTER' || producto.ubicacion === 'RSN/IDM/FIXCENTER') ? 'bg-purple-100 text-purple-800' :
                         'bg-slate-100 text-slate-800'
                       }`}>
                         {(() => {
                           const sucursal = producto.sucursal || producto.ubicacion || 'N/A';
-                          if (sucursal === 'la_plata') return 'LA PLATA';
-                          if (sucursal === 'mitre') return 'MITRE';
+                          if (sucursal === 'LA PLATA') return 'LA PLATA';
+                          if (sucursal === 'MITRE') return 'MITRE';
+                          if (sucursal === 'RSN/IDM/FIXCENTER') return 'RSN/IDM/FIXCENTER';
                           // Mapear sucursales viejas para visualización
-                          if (sucursal.toLowerCase().includes('quilmes') || sucursal.toLowerCase().includes('san') || sucursal.toLowerCase().includes('martin')) return 'LA PLATA';
-                          if (sucursal.toLowerCase().includes('deposito')) return 'MITRE';
+                          if (sucursal.toLowerCase().includes('quilmes') || sucursal.toLowerCase().includes('san') || sucursal.toLowerCase().includes('martin') || sucursal === 'la_plata') return 'LA PLATA';
+                          if (sucursal.toLowerCase().includes('deposito') || sucursal === 'mitre') return 'MITRE';
                           return sucursal.toUpperCase();
                         })()}
                       </span>

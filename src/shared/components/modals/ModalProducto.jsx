@@ -45,8 +45,9 @@ const CONFIGURACION_PRODUCTOS = {
 // Opciones para selects
 const OPCIONES = {
   sucursal: [
-    { value: 'la_plata', label: 'LA PLATA' },
-    { value: 'mitre', label: 'MITRE' }
+    { value: 'LA PLATA', label: 'LA PLATA' },
+    { value: 'MITRE', label: 'MITRE' },
+    { value: 'RSN/IDM/FIXCENTER', label: 'RSN/IDM/FIXCENTER' }
   ],
   condicion: [
     { value: 'nuevo', label: 'Nuevo' },

@@ -244,14 +244,14 @@ export const useCatalogoUnificado = () => {
       // Para productos "otros" que usan cantidad_la_plata y cantidad_mitre
       if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
         const sucursalesConStock = [];
-        if ((item.cantidad_la_plata || 0) > 0) sucursalesConStock.push('la_plata');
-        if ((item.cantidad_mitre || 0) > 0) sucursalesConStock.push('mitre');
+        if ((item.cantidad_la_plata || 0) > 0) sucursalesConStock.push('LA PLATA');
+        if ((item.cantidad_mitre || 0) > 0) sucursalesConStock.push('MITRE');
         return sucursalesConStock;
       }
       
       // Para notebooks y celulares que usan ubicacion/sucursal
       const sucursal = item.ubicacion || item.sucursal;
-      return sucursal ? sucursal.toLowerCase() : null;
+      return sucursal || null;
     }).flat().filter(Boolean))];
     
     // Para categorías específicas, extraer categorías de productos
@@ -292,18 +292,14 @@ export const useCatalogoUnificado = () => {
       filtered = filtered.filter(item => {
         // Para productos "otros" que usan cantidad_la_plata y cantidad_mitre
         if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
-          const sucursalFiltro = filtrosUnificados.sucursal.toLowerCase();
-          if (sucursalFiltro === 'la_plata') {
-            return (item.cantidad_la_plata || 0) > 0;
-          } else if (sucursalFiltro === 'mitre') {
-            return (item.cantidad_mitre || 0) > 0;
-          }
-          return false;
+          // CAMBIO: Mostrar TODOS los productos "otros" cuando se filtra por sucursal
+          // El filtro de ubicación ahora solo organiza visualmente, no filtra por stock
+          return true; // Mostrar todos los productos "otros" independientemente del stock
         }
         
         // Para notebooks y celulares que usan ubicacion/sucursal
-        const sucursalItem = (item.ubicacion || item.sucursal || '').toLowerCase();
-        const sucursalFiltro = filtrosUnificados.sucursal.toLowerCase();
+        const sucursalItem = item.ubicacion || item.sucursal || '';
+        const sucursalFiltro = filtrosUnificados.sucursal;
         return sucursalItem === sucursalFiltro;
       });
     }
@@ -344,21 +340,34 @@ export const useCatalogoUnificado = () => {
       });
     }
 
-    // Filtrar automáticamente productos sin stock para todos los tipos
-    filtered = filtered.filter(item => {
-      // Para productos "otros" que usan cantidad por sucursal
-      if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
-        return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
-      }
-      // Para notebooks y celulares que usan el campo 'disponible'
-      else if (item.disponible !== undefined) {
-        // Solo filtrar si está explícitamente marcado como no disponible (vendido)
-        // No filtrar por condiciones (reparación, prestado, etc.) ya que eso se maneja en el filtro manual
-        return item.disponible !== false;
-      }
-      // Para productos sin sistema de stock definido, mostrar por defecto
-      return true;
-    });
+    // DESACTIVADO: Filtro automático de stock para mostrar TODOS los productos en catálogo
+    // Solo aplicar filtro automático cuando hay filtro manual de disponibilidad activo
+    if (filtrosUnificados.disponible === 'true') {
+      filtered = filtered.filter(item => {
+        // Para productos "otros" que usan cantidad por sucursal
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
+        }
+        // Para notebooks y celulares que usan el campo 'disponible'
+        else if (item.disponible !== undefined) {
+          return item.disponible !== false;
+        }
+        return true;
+      });
+    } else if (filtrosUnificados.disponible === 'false') {
+      filtered = filtered.filter(item => {
+        // Para productos "otros" que usan cantidad por sucursal
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) === 0;
+        }
+        // Para notebooks y celulares que usan el campo 'disponible'
+        else if (item.disponible !== undefined) {
+          return item.disponible === false;
+        }
+        return false;
+      });
+    }
+    // Si no hay filtro de disponibilidad activo, mostrar TODOS los productos
 
     // Filtrar por búsqueda (serial o modelo)
     if (filtrosUnificados.busqueda) {

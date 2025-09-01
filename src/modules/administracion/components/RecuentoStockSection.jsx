@@ -11,15 +11,20 @@ const recuentoStockService = {
     let computadoras, celulares, otros;
 
     if (sucursal) {
-      // Filtrar por sucursal específica - convertir a mayúsculas para match
-      const sucursalMayuscula = sucursal === 'la_plata' ? 'LA PLATA' : 'MITRE';
+      // Usar sucursal directamente ya que los valores están normalizados
+      const sucursalNormalizada = sucursal;
       [computadoras, celulares, otros] = await Promise.all([
-        supabase.from('inventario').select('*').eq('disponible', true).eq('sucursal', sucursalMayuscula),
-        supabase.from('celulares').select('*').eq('disponible', true).eq('sucursal', sucursalMayuscula),
+        // Solo equipos disponibles (no vendidos) para recuento físico
+        supabase.from('inventario').select('*')
+          .eq('disponible', true)
+          .eq('sucursal', sucursalNormalizada),
+        supabase.from('celulares').select('*')
+          .eq('disponible', true)
+          .eq('sucursal', sucursalNormalizada),
         supabase.from('otros').select('*')
       ]);
     } else {
-      // Obtener todos los productos
+      // Solo equipos disponibles (no vendidos) para recuento físico
       [computadoras, celulares, otros] = await Promise.all([
         supabase.from('inventario').select('*').eq('disponible', true),
         supabase.from('celulares').select('*').eq('disponible', true),
@@ -41,10 +46,12 @@ const recuentoStockService = {
     if (sucursal) {
       inventario = inventario.filter(item => {
         if (item.tipo === 'otro') {
-          const stockSucursal = sucursal === 'la_plata' ? (item.cantidad_la_plata || 0) : (item.cantidad_mitre || 0);
-          return stockSucursal > 0; // Solo mostrar productos con stock en la sucursal
+          const stockSucursal = sucursal === 'LA PLATA' ? (item.cantidad_la_plata || 0) : 
+                                 sucursal === 'MITRE' ? (item.cantidad_mitre || 0) :
+                                 0; // RSN/IDM/FIXCENTER no maneja productos "otros" por cantidad
+          return stockSucursal > 0; // Solo mostrar productos con stock físico en la sucursal
         }
-        return true; // Mantener computadoras y celulares ya filtrados por sucursal
+        return true; // Mantener notebooks y celulares ya filtrados por disponible=true
       });
     }
 
@@ -282,7 +289,9 @@ const RecuentoStockSection = () => {
     if (mostrarSoloDiferencias) {
       let stockSistema;
       if (producto.tipo === 'otro') {
-        stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+        stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
+                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
       } else {
         stockSistema = producto.disponible ? 1 : 0;
       }
@@ -300,7 +309,9 @@ const RecuentoStockSection = () => {
     inventario.forEach(producto => {
       let stockSistema;
       if (producto.tipo === 'otro') {
-        stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+        stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
+                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
       } else {
         stockSistema = producto.disponible ? 1 : 0;
       }
@@ -413,7 +424,7 @@ const RecuentoStockSection = () => {
               <Package className="w-6 h-6" />
               <div>
                 <h2 className="text-2xl font-semibold">Recuento de Stock</h2>
-                <p className="text-slate-300 mt-1">Verificación física del inventario</p>
+                <p className="text-slate-300 mt-1">Verificación física del inventario disponible</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -451,7 +462,7 @@ const RecuentoStockSection = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalSeleccionada === 'la_plata' ? 'La Plata' : 'Mitre'}</span>
+                <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalSeleccionada}</span>
               </div>
               <div className="text-sm text-slate-700">
                 Productos contados: {productosContados.length} / {inventario.length}
@@ -493,8 +504,9 @@ const RecuentoStockSection = () => {
               disabled={recuentoIniciado}
             >
               <option value="">Seleccionar sucursal...</option>
-              <option value="la_plata">La Plata</option>
-              <option value="mitre">Mitre</option>
+              <option value="LA PLATA">LA PLATA</option>
+              <option value="MITRE">MITRE</option>
+              <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
             </select>
             {recuentoIniciado && (
               <p className="text-xs text-slate-500 mt-1">No se puede cambiar durante el recuento</p>
@@ -523,8 +535,8 @@ const RecuentoStockSection = () => {
               disabled={!sucursalSeleccionada}
             >
               <option value="todos">Todos los tipos</option>
-              <option value="computadora">Notebooks</option>
-              <option value="celular">Celulares</option>
+              <option value="computadora">Notebooks (disponibles)</option>
+              <option value="celular">Celulares (disponibles)</option>
               {categoriasOtros.map(categoria => (
                 <option key={categoria} value={categoria}>
                   {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
@@ -576,14 +588,16 @@ const RecuentoStockSection = () => {
                   <th className="text-right py-3 px-4 font-semibold text-slate-800">Stock Sistema</th>
                   <th className="text-center py-3 px-4 font-semibold text-slate-800">Stock Real</th>
                   <th className="text-center py-3 px-4 font-semibold text-slate-800">Diferencia</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Estado</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Estado Recuento</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {inventarioFiltrado.map((producto) => {
                   let stockSistema;
                   if (producto.tipo === 'otro') {
-                    stockSistema = sucursalSeleccionada === 'la_plata' ? (producto.cantidad_la_plata || 0) : (producto.cantidad_mitre || 0);
+                    stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
+                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
                   } else {
                     stockSistema = producto.disponible ? 1 : 0;
                   }
@@ -598,11 +612,18 @@ const RecuentoStockSection = () => {
                     }`}>
                       <td className="py-3 px-4">
                         <div>
-                          <div className="font-medium text-slate-800">
+                          <div className="font-medium text-slate-800 flex items-center gap-2">
                             {producto.modelo || producto.nombre_producto || producto.descripcion}
+                            {/* Indicador solo para condiciones especiales */}
+                            {(['reparacion', 'prestado', 'sin_reparacion'].includes(producto.condicion)) && (
+                              <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">{producto.condicion.toUpperCase()}</span>
+                            )}
                           </div>
                           <div className="text-sm text-slate-500">
                             Serial: {producto.serial || `${producto.tipo}-${producto.id}`}
+                            {producto.condicion && (
+                              <span className="ml-2 text-slate-400">• {producto.condicion.toUpperCase()}</span>
+                            )}
                           </div>
                         </div>
                       </td>
