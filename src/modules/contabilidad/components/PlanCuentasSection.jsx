@@ -6,7 +6,9 @@ import {
   buildAccountTree,
   validateAccountCode,
   sortAccountsByCode,
-  validateAccountDeletion
+  validateAccountDeletion,
+  generateNextCode,
+  getSubcuentaConfig
 } from '../utils/planCuentasHierarchy';
 
 // Servicio para el Plan de Cuentas conectado a Supabase
@@ -71,8 +73,7 @@ const planCuentasService = {
     // Lista de todas las tablas que pueden referenciar plan_cuentas
     const dependencias = [
       { tabla: 'movimientos_contables', campo: 'cuenta_id', nombre: 'movimientos contables' },
-      { tabla: 'conciliaciones_caja', campo: 'cuenta_caja_id', nombre: 'conciliaciones de caja' },
-      { tabla: 'gastos_operativos', campo: 'cuenta_pago_id', nombre: 'gastos operativos' }
+      { tabla: 'conciliaciones_caja', campo: 'cuenta_caja_id', nombre: 'conciliaciones de caja' }
     ];
     
     // Verificar cada dependencia
@@ -284,6 +285,7 @@ const PlanCuentasSection = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedCuenta, setSelectedCuenta] = useState(null);
+  const [creatingSubcuenta, setCreatingSubcuenta] = useState(null);
   const [formData, setFormData] = useState({
     padre_id: null,
     codigo: '',
@@ -428,6 +430,16 @@ const PlanCuentasSection = () => {
 
           {/* Botones de acción */}
           <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
+            {/* Botón para crear subcuenta - solo para cuentas nivel 3+ para garantizar cuentas imputables */}
+            {cuenta.nivel >= 3 && cuenta.nivel < 5 && (
+              <button
+                onClick={() => crearSubcuenta(cuenta)}
+                className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
+                title="Crear subcuenta"
+              >
+                <Plus size={14} />
+              </button>
+            )}
             <button
               onClick={() => editarCuenta(cuenta)}
               className="p-1.5 text-slate-600 hover:bg-slate-200 rounded transition-colors"
@@ -457,6 +469,7 @@ const PlanCuentasSection = () => {
 
   const nuevaCuenta = () => {
     setSelectedCuenta(null);
+    setCreatingSubcuenta(null);
     const configMoneda = determinarConfiguracionCuenta('', '');
     setFormData({
       padre_id: null,
@@ -472,8 +485,34 @@ const PlanCuentasSection = () => {
     setShowModal(true);
   };
 
+  const crearSubcuenta = (cuentaPadre) => {
+    setSelectedCuenta(null);
+    setCreatingSubcuenta(cuentaPadre);
+    
+    // Usar la función utilitaria para obtener la configuración
+    const subcuentaConfig = getSubcuentaConfig(cuentaPadre, cuentas);
+    
+    setFormData({
+      padre_id: subcuentaConfig.padre_id,
+      codigo: subcuentaConfig.codigo,
+      nombre: '',
+      tipo: subcuentaConfig.tipo,
+      nivel: subcuentaConfig.nivel,
+      categoria: subcuentaConfig.categoria,
+      imputable: subcuentaConfig.imputable,
+      moneda_original: subcuentaConfig.moneda_original,
+      requiere_cotizacion: subcuentaConfig.requiere_cotizacion
+    });
+    
+    // Expandir el nodo padre para mostrar la nueva subcuenta una vez creada
+    setExpandedNodes(prev => ({ ...prev, [cuentaPadre.id]: true }));
+    
+    setShowModal(true);
+  };
+
   const editarCuenta = (cuenta) => {
     setSelectedCuenta(cuenta);
+    setCreatingSubcuenta(null);
     setFormData({
       padre_id: cuenta.padre_id,
       codigo: cuenta.codigo,
@@ -557,20 +596,37 @@ Esta acción no se puede deshacer.
         return;
       }
 
-      // Configurar moneda automáticamente según el nombre
-      const configMoneda = determinarConfiguracionCuenta(formData.codigo, formData.nombre);
+      let datosParaGuardar;
 
-      const datosParaGuardar = {
-        codigo: formData.codigo,
-        nombre: formData.nombre,
-        tipo: formData.tipo,
-        padre_id: formData.padre_id || null,
-        nivel: formData.nivel,
-        categoria: formData.categoria,
-        imputable: formData.imputable,
-        moneda_original: configMoneda.moneda_original,
-        requiere_cotizacion: configMoneda.requiere_cotizacion
-      };
+      if (creatingSubcuenta) {
+        // Para subcuentas, usar los datos ya configurados
+        datosParaGuardar = {
+          codigo: formData.codigo,
+          nombre: formData.nombre,
+          tipo: formData.tipo,
+          padre_id: formData.padre_id,
+          nivel: formData.nivel,
+          categoria: formData.categoria,
+          imputable: formData.imputable,
+          moneda_original: formData.moneda_original,
+          requiere_cotizacion: formData.requiere_cotizacion
+        };
+      } else {
+        // Para cuentas normales, configurar moneda automáticamente según el nombre
+        const configMoneda = determinarConfiguracionCuenta(formData.codigo, formData.nombre);
+        
+        datosParaGuardar = {
+          codigo: formData.codigo,
+          nombre: formData.nombre,
+          tipo: formData.tipo,
+          padre_id: formData.padre_id || null,
+          nivel: formData.nivel,
+          categoria: formData.categoria,
+          imputable: formData.imputable,
+          moneda_original: configMoneda.moneda_original,
+          requiere_cotizacion: configMoneda.requiere_cotizacion
+        };
+      }
 
       if (selectedCuenta) {
         await actualizarCuenta(selectedCuenta.id, datosParaGuardar);
@@ -579,7 +635,10 @@ Esta acción no se puede deshacer.
       }
       
       setShowModal(false);
-      alert('✅ Cuenta guardada exitosamente');
+      const mensaje = creatingSubcuenta ? 
+        '✅ Subcuenta creada exitosamente' : 
+        '✅ Cuenta guardada exitosamente';
+      alert(mensaje);
     } catch (err) {
       alert('❌ Error: ' + err.message);
     }
@@ -603,31 +662,22 @@ Esta acción no se puede deshacer.
                   <p className="text-slate-300 mt-1">Estructura jerárquica de cuentas contables</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={expandirTodas}
-                    className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
-                    title="Expandir todas las categorías"
-                  >
-                    <ChevronDown size={14} />
-                    Expandir
-                  </button>
-                  <button
-                    onClick={colapsarTodas}
-                    className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
-                    title="Colapsar todas las categorías"
-                  >
-                    <ChevronUp size={14} />
-                    Colapsar
-                  </button>
-                </div>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={nuevaCuenta}
-                  className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 transition-colors"
+                  onClick={expandirTodas}
+                  className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                  title="Expandir todas las categorías"
                 >
-                  <Plus size={16} />
-                  Nueva Cuenta
+                  <ChevronDown size={14} />
+                  Expandir
+                </button>
+                <button
+                  onClick={colapsarTodas}
+                  className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                  title="Colapsar todas las categorías"
+                >
+                  <ChevronUp size={14} />
+                  Colapsar
                 </button>
               </div>
             </div>
@@ -700,52 +750,106 @@ Esta acción no se puede deshacer.
           <div className="bg-white rounded p-8 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
               {selectedCuenta ? <Edit2 size={20} /> : <Plus size={20} />}
-              {selectedCuenta ? 'Editar Cuenta' : 'Nueva Cuenta'}
+              {selectedCuenta ? 'Editar Cuenta' : 
+               creatingSubcuenta ? `Nueva Subcuenta de: ${creatingSubcuenta.codigo}` : 'Nueva Cuenta'}
             </h3>
             
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-3">
-                  Cuenta Padre
-                </label>
-                <select
-                  value={formData.padre_id || ''}
-                  onChange={(e) => {
-                    const padreId = e.target.value ? parseInt(e.target.value) : null;
-                    const padre = posiblesPadres.find(p => p.id === padreId);
-                    setFormData({
-                      ...formData, 
-                      padre_id: padreId,
-                      tipo: padre ? padre.tipo : 'activo',
-                      nivel: padre ? padre.nivel + 1 : 1,
-                      categoria: padre && padre.nivel < 4 ? 'SUBCATEGORIA' : 'CUENTA',
-                      imputable: padre ? padre.nivel >= 4 : false
-                    });
-                  }}
-                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                >
-                  <option value="">Raíz (Sin padre)</option>
-                  {posiblesPadres.map(padre => (
-                    <option key={padre.id} value={padre.id}>
-                      {padre.codigo} - {padre.nombre}
-                    </option>
-                  ))}
-                </select>
+            {/* Información contextual para subcuentas */}
+            {creatingSubcuenta && (
+              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded">
+                <div className="flex items-center gap-2 mb-2">
+                  <BookOpen size={16} className="text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-800">Creando subcuenta de:</span>
+                </div>
+                <div className="text-sm text-emerald-700">
+                  <strong>{creatingSubcuenta.codigo}</strong> - {creatingSubcuenta.nombre}
+                </div>
+                <div className="text-xs text-emerald-600 mt-1">
+                  La nueva cuenta heredará el tipo, moneda y configuración del padre
+                </div>
               </div>
+            )}
+            
+            <div className="space-y-6">
+              {/* Cuenta Padre - solo mostrar si no estamos creando subcuenta */}
+              {!creatingSubcuenta && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                    Cuenta Padre
+                  </label>
+                  <select
+                    value={formData.padre_id || ''}
+                    onChange={(e) => {
+                      const padreId = e.target.value ? parseInt(e.target.value) : null;
+                      const padre = posiblesPadres.find(p => p.id === padreId);
+                      
+                      // Si cambia el padre, regenerar código
+                      let nuevoCodigo = '';
+                      if (padre) {
+                        nuevoCodigo = generateNextCode(cuentas, padre.codigo);
+                      } else {
+                        nuevoCodigo = generateNextCode(cuentas, null);
+                      }
+                      
+                      setFormData({
+                        ...formData, 
+                        padre_id: padreId,
+                        codigo: nuevoCodigo,
+                        tipo: padre ? padre.tipo : 'activo',
+                        nivel: padre ? padre.nivel + 1 : 1,
+                        categoria: padre && padre.nivel < 4 ? 'SUBCATEGORIA' : 'CUENTA',
+                        imputable: padre ? padre.nivel >= 4 : false
+                      });
+                    }}
+                    className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                  >
+                    <option value="">Raíz (Sin padre)</option>
+                    {posiblesPadres.map(padre => (
+                      <option key={padre.id} value={padre.id}>
+                        {padre.codigo} - {padre.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium text-slate-800 mb-3">
-                  Código de Cuenta *
+                  {creatingSubcuenta ? 'Código de Subcuenta (generado automáticamente)' : 'Código de Cuenta *'}
                 </label>
-                <input
-                  type="text"
-                  value={formData.codigo}
-                  onChange={(e) => setFormData({...formData, codigo: e.target.value})}
-                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                  placeholder="Ej: 1.1.01.01 o 4.1.02"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.codigo}
+                    onChange={(e) => setFormData({...formData, codigo: e.target.value})}
+                    className={`flex-1 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 ${
+                      creatingSubcuenta ? 'bg-emerald-50' : ''
+                    }`}
+                    placeholder="Ej: 1.1.01.01 o 4.1.02"
+                    readOnly={creatingSubcuenta}
+                  />
+                  {!creatingSubcuenta && formData.padre_id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const padre = posiblesPadres.find(p => p.id === formData.padre_id);
+                        if (padre) {
+                          const nuevoCodigo = generateNextCode(cuentas, padre.codigo);
+                          setFormData({...formData, codigo: nuevoCodigo});
+                        }
+                      }}
+                      className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors text-sm"
+                      title="Generar siguiente código disponible"
+                    >
+                      Auto
+                    </button>
+                  )}
+                </div>
                 <p className="text-xs text-slate-600 mt-2">
-                  Ingrese el código jerárquico completo según el nivel deseado
+                  {creatingSubcuenta ? 
+                    'Código generado automáticamente según la jerarquía del padre' :
+                    'Ingrese el código jerárquico completo según el nivel deseado'
+                  }
                 </p>
               </div>
               
@@ -762,23 +866,28 @@ Esta acción no se puede deshacer.
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-slate-800 mb-3">
-                  Tipo (automático)
-                </label>
-                <div className="w-full px-4 py-3 rounded border-2 border-dashed border-slate-200 bg-slate-200">
-                  <span className="text-sm font-medium text-slate-800">
-                    {formData.tipo ? formData.tipo.toUpperCase() : 'ACTIVO'}
-                  </span>
+              {/* Tipo - solo mostrar si no estamos creando subcuenta */}
+              {!creatingSubcuenta && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                    Tipo (automático)
+                  </label>
+                  <div className="w-full px-4 py-3 rounded border-2 border-dashed border-slate-200 bg-slate-200">
+                    <span className="text-sm font-medium text-slate-800">
+                      {formData.tipo ? formData.tipo.toUpperCase() : 'ACTIVO'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-800 mt-2">
+                    El tipo se asigna automáticamente según la cuenta padre seleccionada
+                  </p>
                 </div>
-                <p className="text-xs text-slate-800 mt-2">
-                  El tipo se asigna automáticamente según la cuenta padre seleccionada
-                </p>
-              </div>
+              )}
 
               {/* Configuración de Moneda */}
               <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                <h4 className="text-sm font-semibold text-slate-800 mb-4">Configuración de Moneda</h4>
+                <h4 className="text-sm font-semibold text-slate-800 mb-4">
+                  Configuración de Moneda
+                </h4>
                 
                 <div className="space-y-4">
                   <div>
@@ -801,6 +910,11 @@ Esta acción no se puede deshacer.
                       <option value="USD">USD - Dólares Americanos</option>
                       <option value="ARS">ARS - Pesos Argentinos</option>
                     </select>
+                    {creatingSubcuenta && (
+                      <p className="text-xs text-slate-600 mt-2">
+                        Valor por defecto heredado del padre: {creatingSubcuenta.moneda_original || 'USD'}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -843,6 +957,8 @@ Esta acción no se puede deshacer.
                     </div>
                   </div>
                 </div>
+
+                )}
               </div>
             </div>
             

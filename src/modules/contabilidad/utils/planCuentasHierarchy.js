@@ -249,7 +249,7 @@ export const generateNextCode = (cuentas, codigoPadre = null) => {
       .filter(n => !isNaN(n));
   } else {
     // Niveles inferiores - buscar códigos que empiecen con el padre
-    const patron = new RegExp(`^${codigoPadre.replace('.', '\\.')}\\.(.+)$`);
+    const patron = new RegExp(`^${codigoPadre.replace(/\./g, '\\.')}\\.(.+)$`);
     codigosExistentes = cuentas
       .map(c => c.codigo.match(patron))
       .filter(match => match !== null)
@@ -264,6 +264,28 @@ export const generateNextCode = (cuentas, codigoPadre = null) => {
   const siguienteCodigo = String(maxCodigo + 1).padStart(2, '0');
   
   return codigoPadre === null ? siguienteCodigo : `${codigoPadre}.${siguienteCodigo}`;
+};
+
+/**
+ * Determina la configuración para una nueva subcuenta basada en el padre
+ * @param {Object} cuentaPadre - Cuenta padre
+ * @param {Array} todasLasCuentas - Array de todas las cuentas
+ * @returns {Object} Configuración para la nueva cuenta
+ */
+export const getSubcuentaConfig = (cuentaPadre, todasLasCuentas) => {
+  const nuevoNivel = cuentaPadre.nivel + 1;
+  const nuevoCodigo = generateNextCode(todasLasCuentas, cuentaPadre.codigo);
+  
+  return {
+    padre_id: cuentaPadre.id,
+    codigo: nuevoCodigo,
+    tipo: cuentaPadre.tipo,
+    nivel: nuevoNivel,
+    categoria: 'CUENTA', // Siempre CUENTA para que sea imputable
+    imputable: true, // Siempre imputable
+    moneda_original: cuentaPadre.moneda_original || 'USD',
+    requiere_cotizacion: cuentaPadre.requiere_cotizacion || false
+  };
 };
 
 /**
