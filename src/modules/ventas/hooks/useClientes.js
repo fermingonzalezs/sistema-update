@@ -357,15 +357,20 @@ export const useClientes = () => {
     }
   }, []);
 
-  // Buscar clientes (sin actualizar el estado principal)
+  // Buscar clientes (actualizar el estado principal con los resultados)
   const searchClientes = useCallback(async (searchTerm) => {
+    setLoading(true);
+    setError(null);
     try {
       const data = await clientesService.search(searchTerm);
+      setClientes(data); // ACTUALIZAR ESTADO CON RESULTADOS DE BÚSQUEDA
       return data;
     } catch (err) {
       setError(err.message);
       console.error('Error searching clientes:', err);
       return [];
+    } finally {
+      setLoading(false);
     }
   }, []);
 

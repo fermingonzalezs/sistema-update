@@ -706,15 +706,9 @@ Esta acción no se puede deshacer.
             <div className="p-16 text-center text-slate-600">
               <BookOpen size={48} className="mx-auto mb-6 text-slate-300" />
               <p className="mb-6 text-slate-800">No hay cuentas configuradas</p>
-              <p className="text-sm text-slate-600 mb-6">
+              <p className="text-sm text-slate-600">
                 Necesitas crear cuentas para poder usar el sistema contable
               </p>
-              <button
-                onClick={nuevaCuenta}
-                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
-              >
-                Crear primera cuenta
-              </button>
             </div>
           )}
           

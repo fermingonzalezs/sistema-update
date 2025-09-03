@@ -145,65 +145,37 @@ const IngresoEquiposSection = () => {
           {/* Selector de destino */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Destino del Equipo</h3>
-            <div className="flex space-x-6">
+            <div className="flex space-x-4">
               <button
                 onClick={() => setDestinoSeleccionado('stock')}
-                className={`flex-1 p-6 rounded border-2 transition-all duration-200 transform ${
+                className={`flex-1 p-4 rounded border transition-all ${
                   destinoSeleccionado === 'stock'
-                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg scale-105'
-                    : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50 hover:scale-105'
+                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                    : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-4">
-                  <div className={`p-3 rounded ${
-                    destinoSeleccionado === 'stock' 
-                      ? 'bg-white text-emerald-600' 
-                      : 'bg-slate-800 text-white'
-                  }`}>
-                    <Package className="w-6 h-6" />
-                  </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <Package className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-semibold text-lg">Agregar al Stock</div>
-                    <div className="text-sm opacity-90 mt-1">
-                      Disponible inmediatamente para venta
-                    </div>
-                    {destinoSeleccionado === 'stock' && (
-                      <div className="flex items-center mt-2">
-                        <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
-                        <span className="text-xs font-medium">SELECCIONADO</span>
-                      </div>
-                    )}
+                    <div className="font-medium text-base">Agregar al Stock</div>
+                    <div className="text-sm opacity-80">Disponible para venta</div>
                   </div>
                 </div>
               </button>
               
               <button
                 onClick={() => setDestinoSeleccionado('testeo')}
-                className={`flex-1 p-6 rounded border-2 transition-all duration-200 transform ${
+                className={`flex-1 p-4 rounded border transition-all ${
                   destinoSeleccionado === 'testeo'
-                    ? 'border-slate-800 bg-slate-800 text-white shadow-lg scale-105'
-                    : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50 hover:scale-105'
+                    ? 'border-slate-800 bg-slate-800 text-white'
+                    : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <div className="flex items-center justify-center space-x-4">
-                  <div className={`p-3 rounded ${
-                    destinoSeleccionado === 'testeo' 
-                      ? 'bg-white text-slate-800' 
-                      : 'bg-slate-800 text-white'
-                  }`}>
-                    <Clock className="w-6 h-6" />
-                  </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <Clock className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-semibold text-lg">Enviar a Testeo</div>
-                    <div className="text-sm opacity-90 mt-1">
-                      Requiere revisión técnica antes de venta
-                    </div>
-                    {destinoSeleccionado === 'testeo' && (
-                      <div className="flex items-center mt-2">
-                        <div className="w-2 h-2 bg-white rounded-full mr-2"></div>
-                        <span className="text-xs font-medium">SELECCIONADO</span>
-                      </div>
-                    )}
+                    <div className="font-medium text-base">Enviar a Testeo</div>
+                    <div className="text-sm opacity-80">Revisión técnica</div>
                   </div>
                 </div>
               </button>
@@ -243,29 +215,23 @@ const IngresoEquiposSection = () => {
                   Precio Compra
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Proveedor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Destino
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Acciones
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {ingresosLoading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
                     Cargando historial...
                   </td>
                 </tr>
               ) : ingresos.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
                     No hay ingresos registrados
                   </td>
                 </tr>
@@ -288,9 +254,6 @@ const IngresoEquiposSection = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                         {formatearPrecio(ingreso.precio_compra)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                        {ingreso.proveedor || 'N/A'}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           <DestinoIcon className="w-4 h-4 text-slate-500" />
@@ -302,21 +265,6 @@ const IngresoEquiposSection = () => {
                           {ingreso.estado === 'completado' && <CheckCircle className="w-3 h-3 mr-1" />}
                           {ingreso.estado}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {ingreso.estado === 'pendiente' && ingreso.destino === 'testeo' && (
-                          <button
-                            onClick={() => handleApprove(ingreso.id)}
-                            className="text-emerald-600 hover:text-emerald-900"
-                          >
-                            Aprobar
-                          </button>
-                        )}
-                        {ingreso.estado === 'aprobado' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            Aprobado
-                          </span>
-                        )}
                       </td>
                     </tr>
                   );
