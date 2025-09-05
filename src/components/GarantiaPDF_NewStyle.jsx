@@ -326,9 +326,8 @@ const GarantiaDocument = ({ data }) => {
             <Text style={styles.sectionTitle}>Información de Compra</Text>
             <Text style={styles.clientInfo}>
               Fecha de compra: {formatearFecha(data.fechaCompra)}{'\n'}
-              Vendedor: {data.vendedor || 'N/A'}{'\n'}
               Método de pago: {data.metodoPago || 'N/A'}{'\n'}
-              Total: ${data.total || '0.00'}
+              Total: U$ {data.total || '0.00'}
             </Text>
           </View>
         </View>
@@ -387,9 +386,7 @@ const GarantiaDocument = ({ data }) => {
         {/* Causales de anulación */}
         <View style={styles.cancellationSection}>
           <Text style={styles.cancellationTitle}>Causales de Anulación de la Garantía</Text>
-          <Text style={styles.cancellationItem}>
-            • Los daños originados por problemas de garantía del producto, y por el mismo producto, o en caso de no haber en stock o existencia por su reemplazo.
-          </Text>
+    
           <Text style={styles.cancellationItem}>
             • Si el producto ha sido abierto.
           </Text>
@@ -427,6 +424,27 @@ const GarantiaDocument = ({ data }) => {
   );
 };
 
+// Función para formatear métodos de pago
+const formatearMetodoPago = (metodoPago) => {
+  if (!metodoPago) return 'N/A';
+  
+  const metodosMap = {
+    'dolar_billete': 'Efectivo',
+    'dolares_billete': 'Efectivo',
+    'peso_billete': 'Efectivo',
+    'pesos_billete': 'Efectivo',
+    'transferencia_peso': 'Transferencia',
+    'transferencia_pesos': 'Transferencia',
+    'transferencia_dolar': 'Transferencia',
+    'transferencia_dolares': 'Transferencia',
+    'cripto': 'Criptomonedas',
+    'tarjeta': 'Tarjeta',
+    'cuenta_corriente': 'Cuenta corriente'
+  };
+  
+  return metodosMap[metodoPago] || metodoPago;
+};
+
 // Función para convertir datos de venta al formato de garantía
 export const convertirVentaAGarantia = (venta, items = []) => {
   const primerItem = items[0] || {};
@@ -446,7 +464,7 @@ export const convertirVentaAGarantia = (venta, items = []) => {
     },
     
     vendedor: venta.vendedor || '',
-    metodoPago: venta.metodo_pago || '',
+    metodoPago: formatearMetodoPago(venta.metodo_pago),
     total: venta.total_venta || 0,
     
     // Información del producto (primer item de la venta)
@@ -473,7 +491,7 @@ export const convertirProductoAGarantia = (producto, cliente = {}, datosVenta = 
     },
     
     vendedor: datosVenta.vendedor || 'Sistema',
-    metodoPago: datosVenta.metodoPago || 'N/A',
+    metodoPago: formatearMetodoPago(datosVenta.metodoPago),
     total: producto.precio_venta_usd || producto.precio_venta || 0,
     
     // Información del producto individual
