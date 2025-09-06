@@ -117,7 +117,7 @@ const libroDiarioService = {
 
       if (errorAsiento) throw errorAsiento;
 
-      // Crear los movimientos (básicos o con información de conversión)
+      // Crear los movimientos con cotización si corresponde
       const movimientos = movimientosParaGuardar.map(mov => {
         const movimientoBasico = {
           asiento_id: asiento.id,
@@ -126,15 +126,10 @@ const libroDiarioService = {
           haber: parseFloat(mov.haber || 0)
         };
         
-        // Solo agregar campos de conversión si AMBOS están disponibles (constraint check)
-        if (mov.monto_original_ars !== undefined && mov.cotizacion_manual !== undefined) {
-          movimientoBasico.monto_original_ars = mov.monto_original_ars;
-          movimientoBasico.cotizacion_manual = mov.cotizacion_manual;
-          if (mov.observaciones_cambio !== undefined) {
-            movimientoBasico.observaciones_cambio = mov.observaciones_cambio;
-          }
+        // Agregar cotización si la cuenta la requiere y hay cotización en el asiento
+        if (mov.cuenta?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
+          movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
         }
-        // Si alguno está pero no ambos, no agregar ninguno (cumplir constraint)
         
         return movimientoBasico;
       });
@@ -287,12 +282,12 @@ const LibroDiarioSection = () => {
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
+    cotizacion_usd: 0, // Cotización única para todo el asiento
     movimientos: [
       { 
         cuenta_id: '', 
         cuenta: null, 
         monto: 0,
-        cotizacion: 0,
         tipo: 'debe', // 'debe' o 'haber'
         debe: '', 
         haber: '' 
@@ -301,7 +296,6 @@ const LibroDiarioSection = () => {
         cuenta_id: '', 
         cuenta: null, 
         monto: 0,
-        cotizacion: 0,
         tipo: 'haber', // 'debe' o 'haber'
         debe: '', 
         haber: '' 
@@ -335,12 +329,12 @@ const LibroDiarioSection = () => {
     setFormData({
       fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
+      cotizacion_usd: 0,
       movimientos: [
         { 
           cuenta_id: '', 
           cuenta: null, 
           monto: 0,
-          cotizacion: 0,
           tipo: 'debe',
           debe: '', 
           haber: '' 
@@ -349,7 +343,6 @@ const LibroDiarioSection = () => {
           cuenta_id: '', 
           cuenta: null, 
           monto: 0,
-          cotizacion: 0,
           tipo: 'haber',
           debe: '', 
           haber: '' 
@@ -366,7 +359,6 @@ const LibroDiarioSection = () => {
         cuenta_id: '', 
         cuenta: null, 
         monto: 0,
-        cotizacion: 0,
         tipo: 'debe',
         debe: '', 
         haber: '' 
@@ -406,24 +398,58 @@ const LibroDiarioSection = () => {
   };
 
   const calcularTotales = () => {
+    const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
+    
     const totalDebe = formData.movimientos.reduce((sum, mov) => {
-      return sum + (mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0);
+      if (mov.tipo !== 'debe') return sum;
+      
+      let montoUSD = parseFloat(mov.monto || 0);
+      
+      // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
+      if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+        montoUSD = montoUSD / cotizacion;
+      }
+      
+      return sum + montoUSD;
     }, 0);
+    
     const totalHaber = formData.movimientos.reduce((sum, mov) => {
-      return sum + (mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0);
+      if (mov.tipo !== 'haber') return sum;
+      
+      let montoUSD = parseFloat(mov.monto || 0);
+      
+      // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
+      if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+        montoUSD = montoUSD / cotizacion;
+      }
+      
+      return sum + montoUSD;
     }, 0);
-    const diferencia = totalDebe - totalHaber;
+    
+    // Redondear a 2 decimales
+    const totalDebeRedondeado = Math.round(totalDebe * 100) / 100;
+    const totalHaberRedondeado = Math.round(totalHaber * 100) / 100;
+    const diferencia = Math.round((totalDebeRedondeado - totalHaberRedondeado) * 100) / 100;
 
     return { 
-      totalDebe, 
-      totalHaber, 
+      totalDebe: totalDebeRedondeado, 
+      totalHaber: totalHaberRedondeado, 
       diferencia, 
       balanceado: Math.abs(diferencia) < 0.01,
-      movimientosConvertidos: formData.movimientos.map(mov => ({
-        ...mov,
-        debe: mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0,
-        haber: mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0,
-      }))
+      movimientosConvertidos: formData.movimientos.map(mov => {
+        let montoUSD = parseFloat(mov.monto || 0);
+        
+        // Convertir si es cuenta ARS
+        if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+          montoUSD = montoUSD / cotizacion;
+        }
+        
+        return {
+          ...mov,
+          debe: mov.tipo === 'debe' ? Math.round(montoUSD * 100) / 100 : 0,
+          haber: mov.tipo === 'haber' ? Math.round(montoUSD * 100) / 100 : 0
+        };
+      })
     };
   };
 
@@ -455,13 +481,10 @@ const LibroDiarioSection = () => {
         return;
       }
 
-      // Validar cotizaciones para cuentas ARS
-      const movimientosSinCotizacion = formData.movimientos.filter(mov => 
-        mov.cuenta?.requiere_cotizacion && (!mov.cotizacion || mov.cotizacion <= 0)
-      );
-      if (movimientosSinCotizacion.length > 0) {
-        const cuentasSinCotizacion = movimientosSinCotizacion.map(mov => mov.cuenta.nombre).join(', ');
-        alert(`Faltan cotizaciones para cuentas en ARS: ${cuentasSinCotizacion}`);
+      // Validar cotización para cuentas ARS
+      const tieneCuentasARS = formData.movimientos.some(mov => mov.cuenta?.requiere_cotizacion);
+      if (tieneCuentasARS && (!formData.cotizacion_usd || formData.cotizacion_usd <= 0)) {
+        alert('Debe ingresar una cotización USD/ARS válida para las cuentas en pesos');
         return;
       }
 
@@ -473,9 +496,11 @@ const LibroDiarioSection = () => {
       // Crear el asiento usando el servicio actualizado
       await crearAsiento({
         ...formData,
-        movimientos: totales.movimientosConvertidos, // Ya no son "convertidos", pero mantienen la estructura
+        movimientos: totales.movimientosConvertidos,
+        movimientosConvertidos: totales.movimientosConvertidos, // Para compatibilidad
         totalDebeUSD: totales.totalDebe,
         totalHaberUSD: totales.totalHaber,
+        cotizacionPromedio: parseFloat(formData.cotizacion_usd) || null,
       });
       
       setShowModal(false);
@@ -914,7 +939,7 @@ const LibroDiarioSection = () => {
 
             <div className="p-8 space-y-8">
               {/* Datos del asiento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-800 mb-3">
                     Fecha *
@@ -937,6 +962,25 @@ const LibroDiarioSection = () => {
                     placeholder="Descripción del asiento contable"
                     className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="w-4 h-4 text-blue-600" />
+                      <span>Cotización USD/ARS</span>
+                    </div>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.cotizacion_usd}
+                    onChange={(e) => setFormData({ ...formData, cotizacion_usd: e.target.value })}
+                    placeholder="Ej: 1150.00"
+                    className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                  />
+                  <p className="text-xs text-slate-600 mt-1">
+                    Solo necesario si hay cuentas en ARS
+                  </p>
                 </div>
               </div>
 
@@ -1025,14 +1069,30 @@ const LibroDiarioSection = () => {
                           required
                         />
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Monto (USD)</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Monto {mov.cuenta?.requiere_cotizacion ? '(ARS)' : '(USD)'}
+                          </label>
                           <input
                             type="number"
+                            step="0.01"
                             placeholder="0.00"
                             value={mov.monto}
                             onChange={(e) => actualizarMovimiento(index, 'monto', e.target.value)}
                             className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500"
                           />
+                          {/* Mostrar conversión automática para cuentas ARS */}
+                          {mov.cuenta?.requiere_cotizacion && mov.monto > 0 && formData.cotizacion_usd > 0 && (
+                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                              <div className="flex items-center space-x-1 text-blue-800">
+                                <Calculator className="w-3 h-3" />
+                                <span>Conversión automática:</span>
+                              </div>
+                              <div className="mt-1 font-mono text-blue-700">
+                                ARS {parseFloat(mov.monto || 0).toFixed(2)} ÷ {formData.cotizacion_usd} = 
+                                <strong> USD {(parseFloat(mov.monto || 0) / parseFloat(formData.cotizacion_usd)).toFixed(2)}</strong>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1074,7 +1134,7 @@ const LibroDiarioSection = () => {
                         ) : (
                           <>
                             <AlertCircle size={12} className="mr-1" />
-                            Diferencia: {formatearMonto(Math.abs(totales.diferencia))}
+                            Diferencia: {Math.abs(totales.diferencia).toFixed(2)}
                           </>
                         )}
                       </div>
