@@ -64,24 +64,129 @@ export const useGarantias = () => {
       // Procesar datos para calcular estado de garantía
       const garantiasProcesadas = [];
       
-      data.forEach(transaccion => {
+      // Usar for...of para poder usar await
+      for (const transaccion of data) {
         if (transaccion.venta_items && transaccion.venta_items.length > 0) {
-          transaccion.venta_items.forEach(item => {
+          for (const item of transaccion.venta_items) {
             if (item.serial_producto) {
               const fechaVenta = new Date(transaccion.fecha_venta);
               const fechaVencimiento = new Date(fechaVenta);
               
               // Calcular días de garantía según tipo de producto y condición
               let diasGarantia;
+              let garantiaTextoOriginal = '';
+              
               if (item.tipo_producto === 'computadora') {
-                // Computadoras: nuevas 6 meses (180 días), usadas 3 meses (90 días)
-                // Asumir que si no se especifica condición, son usadas
-                diasGarantia = 90; // Por defecto 3 meses para computadoras usadas
-                // TODO: Agregar campo 'condicion' a venta_items para distinguir nuevo/usado
+                // Buscar datos reales del inventario usando el serial
+                try {
+                  console.log(`🔍 Buscando en inventario - Serial: ${item.serial_producto}`);
+                  
+                  const { data: inventarioData, error: inventarioError } = await supabase
+                    .from('inventario')
+                    .select('garantia_update, condicion, marca, modelo')
+                    .eq('serial', item.serial_producto)
+                    .single();
+
+                  if (inventarioError || !inventarioData) {
+                    console.warn(`⚠️ No se encontró el equipo en inventario: ${item.serial_producto}`);
+                    console.log(`📝 Usando copy como fallback: "${item.copy}"`);
+                    
+                    // Fallback: extraer condición del copy
+                    const copyLower = item.copy?.toLowerCase() || '';
+                    let condicionFromCopy = 'usado'; // Por defecto
+                    
+                    // Buscar condición al final del copy (patrón común)
+                    if (copyLower.includes('- nuevo') || copyLower.endsWith('nuevo')) {
+                      condicionFromCopy = 'nuevo';
+                    } else if (copyLower.includes('- usado') || copyLower.endsWith('usado')) {
+                      condicionFromCopy = 'usado';
+                    } else if (copyLower.includes('- reparacion') || copyLower.includes('reparación')) {
+                      condicionFromCopy = 'reparacion';
+                    }
+                    
+                    console.log(`🔍 Condición extraída del copy: "${condicionFromCopy}"`);
+                    
+                    // Asignar garantía según la condición extraída
+                    if (condicionFromCopy === 'nuevo') {
+                      diasGarantia = 180;
+                      garantiaTextoOriginal = '6 meses';
+                      console.log(`✅ Producto NUEVO detectado en copy - Asignando 6 meses`);
+                    } else {
+                      diasGarantia = 90;
+                      garantiaTextoOriginal = '3 meses';
+                      console.log(`✅ Producto USADO detectado en copy - Asignando 3 meses`);
+                    }
+                  } else {
+                    // Usar datos reales del inventario
+                    garantiaTextoOriginal = inventarioData.garantia_update || '3 meses';
+                    const condicionReal = inventarioData.condicion || 'usado';
+                    
+                    console.log(`✅ Datos del inventario - Serial: ${item.serial_producto}`);
+                    console.log(`✅ Garantía inventario: "${garantiaTextoOriginal}"`);
+                    console.log(`✅ Condición inventario: "${condicionReal}"`);
+                    
+                    // Convertir texto de garantía a días con mayor flexibilidad
+                    const garantiaLower = garantiaTextoOriginal.toLowerCase().trim();
+                    
+                    // Buscar patrones numéricos más flexibles
+                    if (garantiaLower.includes('18 meses') || garantiaLower.includes('1.5 años') || garantiaLower.includes('año y medio')) {
+                      diasGarantia = 540; // 18 meses
+                    } else if (garantiaLower.includes('12 meses') || garantiaLower.includes('1 año') || garantiaLower.includes('un año')) {
+                      diasGarantia = 365; // 12 meses
+                    } else if (garantiaLower.includes('6 meses') || garantiaLower.includes('seis meses') || garantiaLower.includes('medio año')) {
+                      diasGarantia = 180; // 6 meses
+                    } else if (garantiaLower.includes('3 meses') || garantiaLower.includes('tres meses')) {
+                      // Si es producto nuevo pero dice 3 meses, usar 6 meses
+                      if (condicionReal === 'nuevo') {
+                        diasGarantia = 180; // 6 meses para productos nuevos
+                        garantiaTextoOriginal = '6 meses'; // Actualizar el texto mostrado
+                        console.log(`🔄 Producto NUEVO con 3 meses corregido a 6 meses para ${item.serial_producto}`);
+                      } else {
+                        diasGarantia = 90; // 3 meses para productos usados
+                      }
+                    } else if (garantiaLower.includes('2 meses') || garantiaLower.includes('dos meses')) {
+                      diasGarantia = 60; // 2 meses
+                    } else if (garantiaLower.includes('1 mes') || garantiaLower.includes('un mes')) {
+                      diasGarantia = 30; // 1 mes
+                    } else {
+                      // Buscar números seguidos de 'mes' o 'año'
+                      const mesMatch = garantiaLower.match(/(\d+)\s*(mes|meses)/);
+                      const añoMatch = garantiaLower.match(/(\d+)\s*(año|años)/);
+                      
+                      if (mesMatch) {
+                        const meses = parseInt(mesMatch[1]);
+                        diasGarantia = meses * 30;
+                      } else if (añoMatch) {
+                        const años = parseInt(añoMatch[1]);
+                        diasGarantia = años * 365;
+                      } else {
+                        // Para productos nuevos sin garantía específica, usar 6 meses por defecto
+                        if (condicionReal === 'nuevo') {
+                          diasGarantia = 180;
+                          garantiaTextoOriginal = '6 meses';
+                        } else {
+                          diasGarantia = 90;
+                          garantiaTextoOriginal = '3 meses';
+                        }
+                      }
+                    }
+                  }
+                  
+                  console.log(`📅 RESULTADO FINAL - Serial: ${item.serial_producto}`);
+                  console.log(`📅 RESULTADO FINAL - Garantía: "${garantiaTextoOriginal}" = ${diasGarantia} días`);
+                  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                } catch (error) {
+                  console.error('❌ ERROR al consultar inventario - Serial:', item.serial_producto);
+                  console.error('❌ ERROR completo:', error);
+                  diasGarantia = 90; // Fallback
+                  garantiaTextoOriginal = '3 meses';
+                }
               } else if (item.tipo_producto === 'celular') {
                 diasGarantia = 30; // 1 mes para celulares
+                garantiaTextoOriginal = '1 mes';
               } else {
                 diasGarantia = 30; // 1 mes para otros productos
+                garantiaTextoOriginal = '1 mes';
               }
               
               fechaVencimiento.setDate(fechaVencimiento.getDate() + diasGarantia);
@@ -118,13 +223,13 @@ export const useGarantias = () => {
                 dias_restantes: diasRestantes,
                 estado_garantia: estadoGarantia,
                 plazo_garantia: diasGarantia.toString(),
-                tipo_garantia: item.tipo_producto === 'computadora' ? 'Computadora (3 meses)' : 
-                              item.tipo_producto === 'celular' ? 'Celular (1 mes)' : 'Otros (1 mes)'
+                tipo_garantia: item.tipo_producto === 'computadora' ? `Computadora (${garantiaTextoOriginal})` : 
+                              item.tipo_producto === 'celular' ? `Celular (${garantiaTextoOriginal})` : `Otros (${garantiaTextoOriginal})`
               });
             }
-          });
+          }
         }
-      });
+      }
 
       console.log(`✅ ${garantiasProcesadas.length} garantías obtenidas`);
       setGarantias(garantiasProcesadas);

@@ -247,9 +247,28 @@ const generateNotebookCopy = (comp, config) => {
   const modelo = comp.modelo || 'Sin modelo';
   partes.push(modelo.toUpperCase());
   
-  // 2. PANTALLA
+  // 2. PANTALLA Y RESOLUCIÓN JUNTAS
+  let pantallaResolucion = '';
   if (comp.pantalla) {
-    partes.push(`${comp.pantalla}"`);
+    // Limpiar comillas del valor si ya las tiene
+    const pantallaLimpia = String(comp.pantalla).replace(/"/g, '');
+    pantallaResolucion = `${pantallaLimpia}"`;
+  }
+  if (comp.resolucion || comp.hz || comp.frecuencia) {
+    let resolucionCompleta = '';
+    if (comp.resolucion) {
+      resolucionCompleta = comp.resolucion.toUpperCase();
+    }
+    if (comp.hz || comp.frecuencia) {
+      const hz = comp.hz || comp.frecuencia;
+      resolucionCompleta += resolucionCompleta ? ` ${hz}HZ` : `${hz}HZ`;
+    }
+    if (resolucionCompleta) {
+      pantallaResolucion += pantallaResolucion ? ` ${resolucionCompleta}` : resolucionCompleta;
+    }
+  }
+  if (pantallaResolucion) {
+    partes.push(pantallaResolucion);
   }
   
   // 3. PROCESADOR
@@ -286,21 +305,6 @@ const generateNotebookCopy = (comp, config) => {
     partes.push(`${hddLimpio}${unit} HDD`);
   }
   // No agregar "Sin HDD" cuando no tiene HDD
-  
-  // 7. RESOLUCION HZ
-  if (comp.resolucion || comp.hz || comp.frecuencia) {
-    let resolucionCompleta = '';
-    if (comp.resolucion) {
-      resolucionCompleta = comp.resolucion.toUpperCase();
-    }
-    if (comp.hz || comp.frecuencia) {
-      const hz = comp.hz || comp.frecuencia;
-      resolucionCompleta += resolucionCompleta ? ` ${hz}HZ` : `${hz}HZ`;
-    }
-    if (resolucionCompleta) {
-      partes.push(resolucionCompleta);
-    }
-  }
   
   // 8. GPU VRAM
   if (comp.placa_video || comp.placa_de_video || comp.gpu) {
@@ -376,7 +380,7 @@ const generateNotebookCopy = (comp, config) => {
   // 10. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (comp.precio_venta_usd) {
-      partes.push(`U$${comp.precio_venta_usd}`);
+      partes.push(formatearMonto(comp.precio_venta_usd, 'USD', true));
     } else {
       partes.push('CONSULTAR');
     }
@@ -472,7 +476,7 @@ const generateCelularCopy = (cel, config) => {
   // 6. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (cel.precio_venta_usd) {
-      partes.push(`U$${cel.precio_venta_usd}`);
+      partes.push(formatearMonto(cel.precio_venta_usd, 'USD', true));
     } else {
       partes.push('CONSULTAR');
     }
@@ -593,7 +597,7 @@ const generateOtroCopy = (otro, config) => {
   // 3. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (otro.precio_venta_usd) {
-      partes.push(`U$${otro.precio_venta_usd}`);
+      partes.push(formatearMonto(otro.precio_venta_usd, 'USD', true));
     } else {
       partes.push('CONSULTAR');
     }

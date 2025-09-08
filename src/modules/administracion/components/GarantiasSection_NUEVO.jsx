@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
 import { useGarantias } from '../../../lib/useGarantiasFix';
 import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/GarantiaPDF_NewStyle';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
@@ -160,13 +161,65 @@ const GarantiasSection = () => {
                 <p className="text-slate-300 mt-1">Control y administración de garantías de productos</p>
               </div>
             </div>
-            <button
-              onClick={refrescarDatos}
-              className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors flex items-center space-x-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Actualizar</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={refrescarDatos}
+                className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors flex items-center space-x-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Actualizar</span>
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm('¿Corregir garantías de computadoras nuevas de 3 meses a 6 meses?')) {
+                    try {
+                      // Esta función busca ventas de computadoras con 3 meses y las corrige si son nuevas
+                      const { data: ventas, error } = await supabase
+                        .from('venta_items')
+                        .select(`
+                          id, copy, serial_producto,
+                          transacciones!inner(numero_transaccion, fecha_venta)
+                        `)
+                        .eq('tipo_producto', 'computadora')
+                        .ilike('copy', '%3 meses%')
+                        .order('transacciones.fecha_venta', { ascending: false });
+
+                      if (error) throw error;
+
+                      let corregidas = 0;
+                      for (const venta of ventas) {
+                        try {
+                          const copyData = JSON.parse(venta.copy);
+                          // Si es condición "nuevo" pero tiene 3 meses, cambiar a 6 meses
+                          if (copyData.condicion === 'nuevo' && copyData.garantia_update === '3 meses') {
+                            copyData.garantia_update = '6 meses';
+                            
+                            await supabase
+                              .from('venta_items')
+                              .update({ copy: JSON.stringify(copyData) })
+                              .eq('id', venta.id);
+                            
+                            corregidas++;
+                            console.log(`✅ Corregida garantía para ${venta.serial_producto}`);
+                          }
+                        } catch (e) {
+                          console.warn(`⚠️ Error procesando ${venta.serial_producto}:`, e);
+                        }
+                      }
+                      
+                      alert(`✅ ${corregidas} garantías corregidas de 3 meses a 6 meses`);
+                      refrescarDatos();
+                    } catch (err) {
+                      alert('❌ Error: ' + err.message);
+                    }
+                  }
+                }}
+                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+              >
+                <Shield className="w-4 h-4" />
+                <span>Corregir 3→6 meses</span>
+              </button>
+            </div>
           </div>
         </div>
 

@@ -565,7 +565,7 @@ const LibroDiarioSection = () => {
 
                   <div className="flex items-center space-x-2 text-md text-gray-600">
                     <Calendar size={14} />
-                    <span>{new Date(asiento.fecha).toLocaleDateString()}</span>
+                    <span>{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
                   </div>
 
                   <div className="font-medium text-lg text-gray-900">
@@ -688,7 +688,7 @@ const LibroDiarioSection = () => {
                     {asiento.numero}
                   </span>
                 </div>
-                <div className="col-span-2 text-sm">{new Date(asiento.fecha).toLocaleDateString()}</div>
+                <div className="col-span-2 text-sm">{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</div>
                 <div className="col-span-5 text-sm">{asiento.descripcion}</div>
                 <div className="col-span-2 text-right font-mono pr-4">{formatearMonto(asiento.total_debe, 'USD')}</div>
                 <div className="col-span-2 text-right">

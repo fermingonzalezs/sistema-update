@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from './supabase';
+import { calcularGarantiaProducto, generarTipoGarantia } from './garantiaUtils';
 
 export const useGarantias = () => {
   const [garantias, setGarantias] = useState([]);
@@ -65,25 +66,23 @@ export const useGarantias = () => {
       // Procesar datos para calcular estado de garantía
       const garantiasProcesadas = [];
       
-      data.forEach(transaccion => {
+      // Usar for...of para poder usar await
+      for (const transaccion of data) {
         if (transaccion.venta_items && transaccion.venta_items.length > 0) {
-          transaccion.venta_items.forEach(item => {
+          for (const item of transaccion.venta_items) {
             if (item.serial_producto) {
               const fechaVenta = new Date(transaccion.fecha_venta);
               const fechaVencimiento = new Date(fechaVenta);
               
-              // Calcular días de garantía según tipo de producto y condición
-              let diasGarantia;
-              if (item.tipo_producto === 'computadora') {
-                // Computadoras: nuevas 6 meses (180 días), usadas 3 meses (90 días)
-                // Asumir que si no se especifica condición, son usadas
-                diasGarantia = 90; // Por defecto 3 meses para computadoras usadas
-                // TODO: Agregar campo 'condicion' a venta_items para distinguir nuevo/usado
-              } else if (item.tipo_producto === 'celular') {
-                diasGarantia = 30; // 1 mes para celulares
-              } else {
-                diasGarantia = 30; // 1 mes para otros productos
-              }
+              // ✅ USAR FUNCIÓN UNIFICADA
+              const garantiaInfo = await calcularGarantiaProducto(
+                item.serial_producto, 
+                item.copy, 
+                item.tipo_producto
+              );
+              
+              const diasGarantia = garantiaInfo.diasGarantia;
+              const garantiaTextoOriginal = garantiaInfo.garantiaTexto;
               
               fechaVencimiento.setDate(fechaVencimiento.getDate() + diasGarantia);
               
@@ -160,13 +159,12 @@ export const useGarantias = () => {
                 dias_restantes: diasRestantes,
                 estado_garantia: estadoGarantia,
                 plazo_garantia: diasGarantia.toString(),
-                tipo_garantia: item.tipo_producto === 'computadora' ? 'Computadora (3 meses)' : 
-                              item.tipo_producto === 'celular' ? 'Celular (1 mes)' : 'Otros (1 mes)'
+                tipo_garantia: generarTipoGarantia(item.tipo_producto, garantiaTextoOriginal)
               });
             }
-          });
+          }
         }
-      });
+      }
 
       console.log(`✅ ${garantiasProcesadas.length} garantías obtenidas`);
       setGarantias(garantiasProcesadas);

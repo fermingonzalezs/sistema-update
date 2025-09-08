@@ -2,6 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import RobotoRegular from '../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../Roboto/static/Roboto-Bold.ttf'
+import { calcularGarantiaProducto, diasATexto } from '../lib/garantiaUtils';
 
 // Registrar la fuente
 Font.register({
@@ -446,7 +447,7 @@ const formatearMetodoPago = (metodoPago) => {
 };
 
 // Función para convertir datos de venta al formato de garantía
-export const convertirVentaAGarantia = (venta, items = []) => {
+export const convertirVentaAGarantia = async (venta, items = []) => {
   const primerItem = items[0] || {};
   
   return {
@@ -470,12 +471,52 @@ export const convertirVentaAGarantia = (venta, items = []) => {
     // Información del producto (primer item de la venta)
     producto: primerItem.copy || 'Producto sin especificar',
     numeroSerie: primerItem.numero_serie || '',
-    plazoGarantia: primerItem.garantia_dias || '365'
+    plazoGarantia: await obtenerGarantiaDias(primerItem) || '365'
   };
 };
 
+// Función auxiliar para obtener días de garantía de un item de venta
+const obtenerGarantiaDias = async (item) => {
+  if (!item.serial_producto && !item.numero_serie) {
+    return '365'; // Fallback si no hay serial
+  }
+  
+  const serial = item.serial_producto || item.numero_serie;
+  const tipoProducto = item.tipo_producto || 'computadora';
+  
+  try {
+    const garantiaInfo = await calcularGarantiaProducto(serial, item.copy, tipoProducto);
+    console.log(`📄 [PDF VENTA] Garantía calculada: ${garantiaInfo.diasGarantia} días para ${serial}`);
+    return garantiaInfo.diasGarantia.toString();
+  } catch (error) {
+    console.error('❌ [PDF VENTA] Error calculando garantía:', error);
+    return '365';
+  }
+};
+
+// Función auxiliar para obtener días de garantía de un producto individual
+const obtenerGarantiaDiasProducto = async (producto) => {
+  const serial = producto.serial || producto.numero_serie || '';
+  
+  if (!serial) {
+    return '365'; // Fallback si no hay serial
+  }
+  
+  try {
+    // Para producto individual, crear un copy básico si no existe
+    const copyFallback = `${producto.marca || ''} ${producto.modelo || ''} - ${producto.condicion || 'usado'}`.trim();
+    
+    const garantiaInfo = await calcularGarantiaProducto(serial, copyFallback, 'computadora');
+    console.log(`📄 [PDF PRODUCTO] Garantía calculada: ${garantiaInfo.diasGarantia} días para ${serial}`);
+    return garantiaInfo.diasGarantia.toString();
+  } catch (error) {
+    console.error('❌ [PDF PRODUCTO] Error calculando garantía:', error);
+    return '365';
+  }
+};
+
 // Función para convertir producto individual al formato de garantía
-export const convertirProductoAGarantia = (producto, cliente = {}, datosVenta = {}) => {
+export const convertirProductoAGarantia = async (producto, cliente = {}, datosVenta = {}) => {
   return {
     numeroGarantia: `GT-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
     numeroVenta: datosVenta.numeroTransaccion || 'N/A',
@@ -497,14 +538,14 @@ export const convertirProductoAGarantia = (producto, cliente = {}, datosVenta = 
     // Información del producto individual
     producto: producto.modelo || producto.descripcion_producto || 'Producto sin especificar',
     numeroSerie: producto.serial || producto.numero_serie || '',
-    plazoGarantia: producto.garantia_update || producto.garantia_oficial || producto.garantia || '365'
+    plazoGarantia: await obtenerGarantiaDiasProducto(producto) || '365'
   };
 };
 
 // Función para generar y abrir el PDF de garantía en nueva pestaña (desde venta)
 export const generarYDescargarGarantia = async (venta, items = []) => {
   try {
-    const garantiaData = convertirVentaAGarantia(venta, items);
+    const garantiaData = await convertirVentaAGarantia(venta, items);
     const blob = await pdf(<GarantiaDocument data={garantiaData} />).toBlob();
     
     const url = URL.createObjectURL(blob);
@@ -531,7 +572,7 @@ export const generarYDescargarGarantia = async (venta, items = []) => {
 // Función para generar y abrir el PDF de garantía de producto individual en nueva pestaña
 export const generarYDescargarGarantiaProducto = async (producto, cliente = {}, datosVenta = {}) => {
   try {
-    const garantiaData = convertirProductoAGarantia(producto, cliente, datosVenta);
+    const garantiaData = await convertirProductoAGarantia(producto, cliente, datosVenta);
     const blob = await pdf(<GarantiaDocument data={garantiaData} />).toBlob();
     
     const url = URL.createObjectURL(blob);
