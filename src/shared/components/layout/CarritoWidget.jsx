@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
-import ConversionMonedas from '../../../components/ConversionMonedas';
+import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';

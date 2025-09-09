@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, CarritoWidget } from './shared/components/layout';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
-import Login from './components/Login';
-import SetupPassword from './components/SetupPassword';
+import Login from './components/auth/Login';
+import SetupPassword from './components/auth/SetupPassword';
 import {
   ImportacionesSection,
   CotizacionesSection,

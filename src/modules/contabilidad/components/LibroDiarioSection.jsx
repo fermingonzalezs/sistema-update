@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import BuscadorCuentasImputables from '../../../components/BuscadorCuentasImputables';
+import BuscadorCuentasImputables from '../../../components/contabilidad/BuscadorCuentasImputables';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { prepararMovimientoContable, validarBalanceUSD } from '../../../shared/utils/currency';
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -574,12 +574,6 @@ const LibroDiarioSection = () => {
                 </div>
 
                 <div className="flex items-center text-lg space-x-4">
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-800">
-                      {formatearMonto(asiento.total_debe, 'USD')}
-                    </div>
-                  </div>
-
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -671,18 +665,17 @@ const LibroDiarioSection = () => {
       return (
         <div className="font-mono">
           {/* Header de la tabla principal */}
-          <div className="p-1 grid grid-cols-12 gap-1 items-center bg-gray-800 text-white font-mono font-bold text-md">
+          <div className="p-1 grid grid-cols-10 gap-1 items-center bg-gray-800 text-white font-mono font-bold text-md">
             <div className="col-span-1">N°</div>
             <div className="col-span-2">Fecha</div>
             <div className="col-span-5">Descripción</div>
-            <div className="col-span-2 text-right pr-4">Total</div>
             <div className="col-span-2 text-right">Acciones</div>
           </div>
           {asientosFiltrados.map(asiento => (
             <div key={asiento.id} className="border-b">
 
               {/* Fila del asiento */}
-              <div className=" bg-gray-400 p-1 grid grid-cols-12 gap-4 items-center">
+              <div className=" bg-gray-400 p-1 grid grid-cols-10 gap-4 items-center">
                 <div className="p-1 font-bold">
                   <span className="">
                     {asiento.numero}
@@ -690,7 +683,6 @@ const LibroDiarioSection = () => {
                 </div>
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</div>
                 <div className="col-span-5 text-sm">{asiento.descripcion}</div>
-                <div className="col-span-2 text-right font-mono pr-4">{formatearMonto(asiento.total_debe, 'USD')}</div>
                 <div className="col-span-2 text-right">
                   <button
                     onClick={(e) => {

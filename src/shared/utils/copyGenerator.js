@@ -230,8 +230,8 @@ const hasValidStorage = (value) => {
 
 /**
  * Generar copy para notebooks
- * SIMPLE: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * COMPLETO: SERIAL - MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES
+ * SIMPLE: 💻 MODELO - PROCESADOR - MEMORIA TIPO - GPU VRAM - PANTALLA RESOLUCION HZ - SSD - HDD - BATERIA DURACION - PRECIO
+ * COMPLETO: SERIAL - MODELO - PROCESADOR - MEMORIA TIPO - GPU VRAM - PANTALLA RESOLUCION HZ - SSD - HDD - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES
  */
 const generateNotebookCopy = (comp, config) => {
   const partes = [];
@@ -247,7 +247,32 @@ const generateNotebookCopy = (comp, config) => {
   const modelo = comp.modelo || 'Sin modelo';
   partes.push(modelo.toUpperCase());
   
-  // 2. PANTALLA Y RESOLUCIÓN JUNTAS
+  // 2. PROCESADOR
+  if (comp.procesador) {
+    partes.push(comp.procesador.toUpperCase());
+  }
+  
+  // 3. MEMORIA TIPO
+  if (comp.memoria_ram || comp.ram) {
+    const ram = comp.memoria_ram || comp.ram;
+    const tipoRam = comp.tipo_ram || 'DDR4';
+    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
+    const ramLimpio = String(ram).replace(/GB/gi, '');
+    partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
+  }
+  
+  // 4. GPU VRAM (PLACA VIDEO)
+  if (comp.placa_video || comp.placa_de_video || comp.gpu) {
+    let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
+    if (comp.vram && comp.vram > 0) {
+      // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
+      const vramLimpio = String(comp.vram).replace(/GB/gi, '');
+      gpu += ` ${vramLimpio}GB`;
+    }
+    partes.push(gpu.toUpperCase());
+  }
+  
+  // 5. PANTALLA Y RESOLUCIÓN JUNTAS
   let pantallaResolucion = '';
   if (comp.pantalla) {
     // Limpiar comillas del valor si ya las tiene
@@ -271,21 +296,7 @@ const generateNotebookCopy = (comp, config) => {
     partes.push(pantallaResolucion);
   }
   
-  // 3. PROCESADOR
-  if (comp.procesador) {
-    partes.push(comp.procesador.toUpperCase());
-  }
-  
-  // 4. MEMORIA TIPO
-  if (comp.memoria_ram || comp.ram) {
-    const ram = comp.memoria_ram || comp.ram;
-    const tipoRam = comp.tipo_ram || 'DDR4';
-    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const ramLimpio = String(ram).replace(/GB/gi, '');
-    partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
-  }
-  
-  // 5. SSD
+  // 6. SSD
   if (hasValidStorage(comp.ssd)) {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
     const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
@@ -296,7 +307,7 @@ const generateNotebookCopy = (comp, config) => {
     partes.push('Sin SSD');
   }
   
-  // 6. HDD - Solo mostrar si tiene HDD válido
+  // 7. HDD - Solo mostrar si tiene HDD válido
   if (hasValidStorage(comp.hdd)) {
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
     const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
@@ -306,18 +317,7 @@ const generateNotebookCopy = (comp, config) => {
   }
   // No agregar "Sin HDD" cuando no tiene HDD
   
-  // 8. GPU VRAM
-  if (comp.placa_video || comp.placa_de_video || comp.gpu) {
-    let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
-    if (comp.vram && comp.vram > 0) {
-      // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-      const vramLimpio = String(comp.vram).replace(/GB/gi, '');
-      gpu += ` ${vramLimpio}GB`;
-    }
-    partes.push(gpu.toUpperCase());
-  }
-  
-  // 9. BATERIA DURACION
+  // 8. BATERIA DURACION
   let bateriaInfo = '';
   if (comp.porcentaje_de_bateria || comp.bateria) {
     const bateria = comp.porcentaje_de_bateria || comp.bateria;

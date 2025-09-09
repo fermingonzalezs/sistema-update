@@ -4,7 +4,7 @@ import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
 import { useReparaciones } from '../hooks/useReparaciones';
-import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/PresupuestoReparacionPDF.jsx';
+import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/pdf/soporte/PresupuestoReparacionPDF.jsx';
 
 const estados = {
   ingresado: { label: 'Ingresado', color: 'bg-emerald-100 text-emerald-700' },

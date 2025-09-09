@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useEstadoResultados } from '../hooks/useEstadoResultados';
-import { generarEstadoResultadosPDF } from '../../../components/EstadoResultadosPDF';
+import { generarEstadoResultadosPDF } from '../../../components/pdf/contabilidad/EstadoResultadosPDF';
 
 // Componente principal
 const EstadoResultadosSection = () => {

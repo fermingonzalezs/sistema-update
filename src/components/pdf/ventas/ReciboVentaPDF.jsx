@@ -1,7 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
-import RobotoRegular from '../Roboto/static/Roboto-Regular.ttf'
-import RobotoBold from '../Roboto/static/Roboto-Bold.ttf'
+import RobotoRegular from '../../../Roboto/static/Roboto-Regular.ttf'
+import RobotoBold from '../../../Roboto/static/Roboto-Bold.ttf'
 
 // Sin fuentes personalizadas - usar fuentes nativas de react-pdf que son 100% confiables
 

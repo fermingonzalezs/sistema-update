@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search } from 'lucide-react';
-import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/ReciboVentaPDF_NewTab';
+import { generarYDescargarRecibo as abrirReciboPDF } from '../../../components/pdf/ventas/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';

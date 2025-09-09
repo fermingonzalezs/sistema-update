@@ -1,8 +1,8 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
-import RobotoRegular from '../Roboto/static/Roboto-Regular.ttf'
-import RobotoBold from '../Roboto/static/Roboto-Bold.ttf'
-import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../shared/utils/documentTypeUtils';
+import RobotoRegular from '../../../Roboto/static/Roboto-Regular.ttf'
+import RobotoBold from '../../../Roboto/static/Roboto-Bold.ttf'
+import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../../../shared/utils/documentTypeUtils';
 
 // Registrar la fuente ANTES de los estilos
 Font.register({

@@ -85,30 +85,39 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   }, []);
 
   const generateCopyWithPrice = (producto, usePesos = false) => {
-    const precio = usePesos 
-      ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
-      : formatearMonto(producto.precio_venta_usd, 'USD');
-    
-    let infoBase;
-    
-    if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
-      // Para otros productos: formato simple nombre - descripción
-      const nombre = producto.nombre_producto || 'Sin nombre';
-      const descripcion = producto.descripcion ? ` - ${producto.descripcion}` : '';
-      infoBase = `📦 ${nombre}${descripcion}`;
-    } else {
-      // Para notebooks y celulares: usar copy completo con emoji
-      let tipoSimple = 'notebook_simple';
-      if (categoriaActiva === 'celulares') {
-        tipoSimple = 'celular_simple';
+    try {
+      const precio = usePesos 
+        ? `$${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
+        : formatearMonto(producto.precio_venta_usd, 'USD');
+      
+      let infoBase;
+      
+      if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
+        // Para otros productos: usar la función del generador
+        infoBase = generateCopy(producto, { 
+          tipo: 'otro_simple',
+          includePrice: false // No incluir precio aquí porque lo agregaremos al final
+        });
+      } else {
+        // Para notebooks y celulares: usar copy completo con emoji
+        let tipoSimple = 'notebook_simple';
+        if (categoriaActiva === 'celulares') {
+          tipoSimple = 'celular_simple';
+        }
+        
+        infoBase = generateCopy(producto, { 
+          tipo: tipoSimple,
+          includePrice: false // No incluir precio aquí porque lo agregaremos al final
+        });
       }
       
-      infoBase = generateCopy(producto, { 
-        tipo: tipoSimple
-      });
+      // Agregar estado y precio al final
+      const estado = producto.condicion || producto.estado || 'Sin estado';
+      return `${infoBase} - Estado: ${estado} - Precio: ${precio}`;
+    } catch (error) {
+      console.error('Error generando copy:', error);
+      return `Error al generar información del producto: ${producto.modelo || 'Sin modelo'}`;
     }
-    
-    return `${infoBase} - Estado: ${producto.condicion} - Precio: ${precio}`;
   };
 
   const handleAddToCart = (producto) => {
@@ -1610,15 +1619,47 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               {/* Copys */}
               <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => navigator.clipboard.writeText(generateCopyWithPrice(producto, false))}
-                  className="px-2 py-1 text-white text-[5px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const copyText = generateCopyWithPrice(producto, false);
+                      await navigator.clipboard.writeText(copyText);
+                      console.log('✅ Copiado USD:', copyText);
+                    } catch (error) {
+                      console.error('❌ Error copiando USD:', error);
+                      // Fallback para navegadores sin soporte
+                      const textArea = document.createElement('textarea');
+                      textArea.value = generateCopyWithPrice(producto, false);
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                    }
+                  }}
+                  className="px-2 py-1 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
                   title="Copiar información USD"
                 >
                   USD
                 </button>
                 <button
-                  onClick={() => navigator.clipboard.writeText(generateCopyWithPrice(producto, true))}
-                  className="px-2 py-1 text-white text-[10px] rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const copyText = generateCopyWithPrice(producto, true);
+                      await navigator.clipboard.writeText(copyText);
+                      console.log('✅ Copiado ARS:', copyText);
+                    } catch (error) {
+                      console.error('❌ Error copiando ARS:', error);
+                      // Fallback para navegadores sin soporte
+                      const textArea = document.createElement('textarea');
+                      textArea.value = generateCopyWithPrice(producto, true);
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                    }
+                  }}
+                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                   title="Copiar información Pesos"
                 >
                   ARS

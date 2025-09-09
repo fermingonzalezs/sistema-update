@@ -1,6 +1,6 @@
 import React from 'react';
 import { RefreshCw, TrendingUp } from 'lucide-react';
-import { useCurrency } from "../shared/hooks/useCurrency";
+import { useCurrency } from "../../shared/hooks/useCurrency";
 
 const ConversionMonedas = ({ montoUSD = 0, mostrarActualizacion = true }) => {
   const { 

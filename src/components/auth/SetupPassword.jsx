@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 const SetupPassword = ({ emailOrUsername, displayName, onPasswordSet, onBack }) => {
   const [loading, setLoading] = useState(false);

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Check, ChevronDown, AlertCircle, Hash, FileText } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 const BuscadorCuentasImputables = ({
   cuentaSeleccionada,

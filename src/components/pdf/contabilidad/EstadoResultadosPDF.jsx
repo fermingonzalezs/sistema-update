@@ -1,8 +1,8 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
-import RobotoRegular from '../Roboto/static/Roboto-Regular.ttf'
-import RobotoBold from '../Roboto/static/Roboto-Bold.ttf'
-import { formatearMonto } from '../shared/utils/formatters';
+import RobotoRegular from '../../../Roboto/static/Roboto-Regular.ttf'
+import RobotoBold from '../../../Roboto/static/Roboto-Bold.ttf'
+import { formatearMonto } from '../../../shared/utils/formatters';
 
 // Registrar la fuente
 Font.register({

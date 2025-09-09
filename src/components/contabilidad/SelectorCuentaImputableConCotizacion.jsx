@@ -4,9 +4,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, DollarSign, TrendingUp, Info, Calculator, RefreshCw } from 'lucide-react';
-import { cotizacionService } from '../shared/services/cotizacionService';
-import { requiereConversion, convertirARSaUSD } from '../shared/utils/currency';
-import { formatearMonto } from '../shared/utils/formatters';
+import { cotizacionService } from '../../shared/services/cotizacionService';
+import { requiereConversion, convertirARSaUSD } from '../../shared/utils/currency';
+import { formatearMonto } from '../../shared/utils/formatters';
 import BuscadorCuentasImputables from './BuscadorCuentasImputables';
 
 const SelectorCuentaImputableConCotizacion = ({
