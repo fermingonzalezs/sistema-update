@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useImportaciones } from '../lib/importaciones.js';
 import CotizacionModal from './CotizacionModal';
-import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters.js';
 
 const CotizacionesSection = () => {

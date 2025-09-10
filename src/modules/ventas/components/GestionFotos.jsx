@@ -6,7 +6,7 @@ import {
   Loader2,AlertTriangle, Plus, Filter
 } from 'lucide-react';
 import { fotosService } from '../hooks/useFotos';
-import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 
 const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
   // Estados para estadísticas y productos

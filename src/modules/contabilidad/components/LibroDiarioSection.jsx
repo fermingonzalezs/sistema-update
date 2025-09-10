@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import BuscadorCuentasImputables from '../../../components/contabilidad/BuscadorCuentasImputables';
-import { cotizacionService } from '../../../shared/services/cotizacionService';
-import { prepararMovimientoContable, validarBalanceUSD } from '../../../shared/utils/currency';
+import BuscadorCuentasImputables from './BuscadorCuentasImputables';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import { isAsientoEditable, prepararDatosParaEdicion, validarDatosEdicion } from '../utils/asientos-utils';
 
 // Servicio para el Libro Diario
 const libroDiarioService = {
@@ -82,12 +81,34 @@ const libroDiarioService = {
     // Si hay movimientos convertidos (del nuevo sistema), usar esos
     const movimientosParaGuardar = asientoData.movimientosConvertidos || asientoData.movimientos;
     
-    // Validar que esté balanceado en USD
-    const totalDebe = asientoData.totalDebeUSD || movimientosParaGuardar.reduce((sum, mov) => sum + parseFloat(mov.debe || 0), 0);
-    const totalHaber = asientoData.totalHaberUSD || movimientosParaGuardar.reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
+    // Calcular totales USD correctamente (convertir ARS si es necesario)
+    let totalDebe = 0;
+    let totalHaber = 0;
+    
+    // Si ya tenemos totales USD calculados, usarlos
+    if (asientoData.totalDebeUSD && asientoData.totalHaberUSD) {
+      totalDebe = asientoData.totalDebeUSD;
+      totalHaber = asientoData.totalHaberUSD;
+    } else {
+      // Calcular manualmente, considerando conversiones
+      for (const mov of movimientosParaGuardar) {
+        let debeUSD = parseFloat(mov.debe || 0);
+        let haberUSD = parseFloat(mov.haber || 0);
+        
+        // Si el movimiento tiene cotización, significa que el monto original está en ARS
+        if (mov.cotizacion && mov.cotizacion > 0) {
+          debeUSD = debeUSD / mov.cotizacion;
+          haberUSD = haberUSD / mov.cotizacion;
+        }
+        
+        totalDebe += debeUSD;
+        totalHaber += haberUSD;
+      }
+    }
 
     if (Math.abs(totalDebe - totalHaber) > 0.01) {
-      throw new Error('El asiento no está balanceado en USD. Debe = Haber');
+      console.error('❌ Asiento no balanceado:', { totalDebe, totalHaber, diferencia: Math.abs(totalDebe - totalHaber) });
+      throw new Error(`El asiento no está balanceado en USD. Debe: $${totalDebe.toFixed(4)} - Haber: $${totalHaber.toFixed(4)}`);
     }
 
     try {
@@ -119,15 +140,26 @@ const libroDiarioService = {
 
       // Crear los movimientos con cotización si corresponde
       const movimientos = movimientosParaGuardar.map(mov => {
+        let debeUSD = parseFloat(mov.debe || 0);
+        let haberUSD = parseFloat(mov.haber || 0);
+        
+        // Si el movimiento tiene cotización, convertir ARS a USD para almacenar
+        if (mov.cotizacion && mov.cotizacion > 0) {
+          debeUSD = debeUSD / mov.cotizacion;
+          haberUSD = haberUSD / mov.cotizacion;
+        }
+        
         const movimientoBasico = {
           asiento_id: asiento.id,
           cuenta_id: mov.cuenta_id,
-          debe: parseFloat(mov.debe || 0),
-          haber: parseFloat(mov.haber || 0)
+          debe: debeUSD,
+          haber: haberUSD
         };
         
-        // Agregar cotización si la cuenta la requiere y hay cotización en el asiento
-        if (mov.cuenta?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
+        // Agregar cotización si la cuenta la requiere
+        if (mov.cotizacion && mov.cotizacion > 0) {
+          movimientoBasico.cotizacion = mov.cotizacion;
+        } else if (mov.cuenta?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
           movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
         }
         
@@ -186,6 +218,72 @@ const libroDiarioService = {
     }
 
     return (data?.[0]?.numero || 0) + 1;
+  },
+
+  async obtenerMovimientosAsiento(asientoId) {
+    console.log('📡 Obteniendo movimientos del asiento:', asientoId);
+
+    const { data, error } = await supabase
+      .from('movimientos_contables')
+      .select(`
+        *,
+        plan_cuentas (id, codigo, nombre, moneda_original, requiere_cotizacion)
+      `)
+      .eq('asiento_id', asientoId)
+      .order('id');
+
+    if (error) {
+      console.error('❌ Error obteniendo movimientos:', error);
+      throw error;
+    }
+
+    console.log(`✅ ${data.length} movimientos obtenidos`);
+    return data;
+  },
+
+  async editarAsiento(asientoId, datosEdicion, userRole = null) {
+    console.log('🔄 Editando asiento:', asientoId, datosEdicion);
+
+    try {
+      // Llamar a la función PostgreSQL
+      const { data, error } = await supabase.rpc('editar_asiento_completo', {
+        p_asiento_id: asientoId,
+        p_nueva_fecha: datosEdicion.fecha,
+        p_nueva_descripcion: datosEdicion.descripcion,
+        p_nuevos_movimientos: datosEdicion.movimientos,
+        p_user_role: userRole
+      });
+
+      if (error) {
+        console.error('❌ Error en función PostgreSQL:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No se recibió respuesta de la función de edición');
+      }
+
+      console.log('📝 Respuesta de edición:', data);
+      
+      // La función RPC devuelve directamente el resultado JSONB
+      const resultado = data;
+      
+      if (!resultado.success) {
+        throw new Error(resultado.error || 'Error desconocido al editar asiento');
+      }
+
+      console.log('✅ Asiento editado exitosamente:', resultado);
+      return {
+        success: true,
+        nuevoId: resultado.nuevo_id,
+        nuevoNumero: resultado.nuevo_numero,
+        mensaje: resultado.mensaje
+      };
+
+    } catch (error) {
+      console.error('❌ Error editando asiento:', error);
+      throw error;
+    }
   }
 };
 
@@ -245,6 +343,29 @@ function useLibroDiario() {
     }
   };
 
+  const obtenerMovimientosAsiento = async (asientoId) => {
+    try {
+      setError(null);
+      return await libroDiarioService.obtenerMovimientosAsiento(asientoId);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const editarAsiento = async (asientoId, datosEdicion, userRole = null) => {
+    try {
+      setError(null);
+      const resultado = await libroDiarioService.editarAsiento(asientoId, datosEdicion, userRole);
+      // Refrescar la lista de asientos
+      await fetchAsientos();
+      return resultado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return {
     asientos,
     cuentasImputables,
@@ -253,7 +374,9 @@ function useLibroDiario() {
     fetchAsientos,
     fetchCuentasImputables,
     crearAsiento,
-    eliminarAsiento
+    eliminarAsiento,
+    obtenerMovimientosAsiento,
+    editarAsiento
   };
 }
 
@@ -267,12 +390,16 @@ const LibroDiarioSection = () => {
     fetchAsientos,
     fetchCuentasImputables,
     crearAsiento,
-    eliminarAsiento
+    eliminarAsiento,
+    obtenerMovimientosAsiento,
+    editarAsiento
   } = useLibroDiario();
 
   const [showModal, setShowModal] = useState(false);
   const [expandedAsientos, setExpandedAsientos] = useState({});
   const [viewMode, setViewMode] = useState('tarjeta'); // 'tarjeta' o 'lista'
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [asientoEditando, setAsientoEditando] = useState(null);
   const [filtros, setFiltros] = useState({
     fechaDesde: '',
     fechaHasta: '',
@@ -349,6 +476,8 @@ const LibroDiarioSection = () => {
         }
       ]
     });
+    setModoEdicion(false);
+    setAsientoEditando(null);
     setShowModal(true);
   };
 
@@ -518,6 +647,108 @@ const LibroDiarioSection = () => {
     }
   };
 
+  const iniciarEdicion = async (asiento) => {
+    try {
+      console.log('🔄 Iniciando edición del asiento:', asiento.id);
+      
+      // Verificar si es editable
+      const esEditable = isAsientoEditable(asiento.created_at || asiento.fecha, 'admin'); // Por ahora usar admin
+      if (!esEditable) {
+        alert('Este asiento ya no se puede editar (más de 30 días desde su creación)');
+        return;
+      }
+
+      // Obtener movimientos completos
+      const movimientos = await obtenerMovimientosAsiento(asiento.id);
+      
+      // Preparar datos para edición
+      const datosPreparados = prepararDatosParaEdicion(asiento, movimientos);
+      
+      console.log('📝 Datos preparados para edición:', datosPreparados);
+      
+      // Configurar el formulario con los datos del asiento
+      setFormData({
+        fecha: datosPreparados.fecha,
+        descripcion: datosPreparados.descripcion,
+        cotizacion_usd: asiento.cotizacion_promedio || 0,
+        movimientos: datosPreparados.movimientos.map(mov => ({
+          cuenta_id: mov.cuenta_id,
+          cuenta: mov.cuenta,
+          monto: mov.debe > 0 ? mov.debe : mov.haber,
+          tipo: mov.debe > 0 ? 'debe' : 'haber',
+          debe: mov.debe,
+          haber: mov.haber
+        }))
+      });
+      
+      setAsientoEditando(asiento);
+      setModoEdicion(true);
+      setShowModal(true);
+      
+    } catch (error) {
+      console.error('❌ Error iniciando edición:', error);
+      alert('Error al cargar los datos del asiento: ' + error.message);
+    }
+  };
+
+  const guardarEdicion = async () => {
+    try {
+      console.log('💾 Guardando edición del asiento:', asientoEditando.id);
+      
+      // Validaciones básicas usando la utilidad
+      const validacion = validarDatosEdicion({
+        fecha: formData.fecha,
+        descripcion: formData.descripcion,
+        movimientos: formData.movimientos.map(mov => ({
+          cuenta_id: mov.cuenta_id,
+          debe: mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0,
+          haber: mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0
+        }))
+      });
+      
+      if (!validacion.valido) {
+        alert('Errores de validación:\n' + validacion.errores.join('\n'));
+        return;
+      }
+
+      // Validar cotización para cuentas ARS
+      const tieneCuentasARS = formData.movimientos.some(mov => mov.cuenta?.requiere_cotizacion);
+      if (tieneCuentasARS && (!formData.cotizacion_usd || formData.cotizacion_usd <= 0)) {
+        alert('Debe ingresar una cotización USD/ARS válida para las cuentas en pesos');
+        return;
+      }
+
+      if (!totales.balanceado) {
+        alert(`El asiento no está balanceado:\nDebe: ${totales.totalDebe.toFixed(2)}\nHaber: ${totales.totalHaber.toFixed(2)}`);
+        return;
+      }
+
+      // Preparar datos para edición
+      const datosEdicion = {
+        fecha: formData.fecha,
+        descripcion: formData.descripcion,
+        movimientos: totales.movimientosConvertidos.map(mov => ({
+          cuenta_id: mov.cuenta_id,
+          debe: mov.debe,
+          haber: mov.haber,
+          cotizacion: mov.cuenta?.requiere_cotizacion ? parseFloat(formData.cotizacion_usd) : null
+        }))
+      };
+      
+      const resultado = await editarAsiento(asientoEditando.id, datosEdicion, 'admin'); // Por ahora usar admin
+      
+      setShowModal(false);
+      setModoEdicion(false);
+      setAsientoEditando(null);
+      
+      alert(`✅ Asiento editado exitosamente.\nNuevo número: ${resultado.nuevoNumero}`);
+      
+    } catch (error) {
+      console.error('❌ Error guardando edición:', error);
+      alert('❌ Error: ' + error.message);
+    }
+  };
+
   const asientosFiltrados = asientos.filter(asiento => {
     let cumpleFiltros = true;
 
@@ -573,7 +804,19 @@ const LibroDiarioSection = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center text-lg space-x-4">
+                <div className="flex items-center text-lg space-x-2">
+                  {isAsientoEditable(asiento.created_at || asiento.fecha, 'admin') && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        iniciarEdicion(asiento);
+                      }}
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors border border-emerald-300"
+                      title="Editar asiento"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -683,13 +926,25 @@ const LibroDiarioSection = () => {
                 </div>
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</div>
                 <div className="col-span-5 text-sm">{asiento.descripcion}</div>
-                <div className="col-span-2 text-right">
+                <div className="col-span-2 text-right space-x-2">
+                  {isAsientoEditable(asiento.created_at || asiento.fecha, 'admin') && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        iniciarEdicion(asiento);
+                      }}
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors border border-emerald-300 inline-block"
+                      title="Editar asiento"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       confirmarEliminar(asiento);
                     }}
-                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
+                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400 inline-block"
                     title="Eliminar asiento"
                   >
                     <Trash2 size={16} />
@@ -917,11 +1172,24 @@ const LibroDiarioSection = () => {
             <div className="sticky top-0 bg-white border-b border-slate-200 p-8">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Plus size={20} />
-                  Nuevo Asiento Contable
+                  {modoEdicion ? (
+                    <>
+                      <Edit2 size={20} />
+                      Editar Asiento N° {asientoEditando?.numero}
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={20} />
+                      Nuevo Asiento Contable
+                    </>
+                  )}
                 </h3>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setModoEdicion(false);
+                    setAsientoEditando(null);
+                  }}
                   className="p-2 hover:bg-slate-200 rounded"
                 >
                   <X size={20} />
@@ -1159,14 +1427,18 @@ const LibroDiarioSection = () => {
 
             <div className="sticky bottom-0 bg-white border-t border-slate-200 p-8 flex justify-end gap-4">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setModoEdicion(false);
+                  setAsientoEditando(null);
+                }}
                 className="px-6 py-3 text-slate-800 border border-slate-200 rounded hover:bg-slate-200 transition-colors"
               >
                 <X size={16} className="inline mr-2" />
                 Cancelar
               </button>
               <button
-                onClick={guardarAsiento}
+                onClick={modoEdicion ? guardarEdicion : guardarAsiento}
                 disabled={!totales.balanceado || cuentasImputables.length === 0}
                 className={`px-6 py-3 rounded transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
                     ? 'bg-slate-800 text-white hover:bg-slate-800/90'
@@ -1174,7 +1446,7 @@ const LibroDiarioSection = () => {
                   }`}
               >
                 <Save size={16} />
-                Guardar Asiento
+                {modoEdicion ? 'Guardar Cambios' : 'Guardar Asiento'}
               </button>
             </div>
           </div>

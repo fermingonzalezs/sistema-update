@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, Plus, Trash2, Save, RefreshCw, Search, Package, CheckCircle, AlertCircle, Layers, Calculator, AlertTriangle, Eye } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 
 // Servicio para Repuestos
 const repuestosService = {

@@ -12,7 +12,7 @@ import { formatearMonto } from '../../../shared/utils/formatters';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useBalanceSumasYSaldos } from '../hooks/useBalanceSumasYSaldos';
-import { generarBalancePDF } from '../../../components/pdf/contabilidad/BalanceSumasYSaldosPDF';
+import { generarBalancePDF } from './pdf/BalanceSumasYSaldosPDF';
 
 const BalanceSumasYSaldosSection = () => {
   const {

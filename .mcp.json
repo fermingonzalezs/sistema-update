@@ -1,3 +1,4 @@
+
 {
   "mcpServers": {
     "supabase": {
@@ -8,13 +9,8 @@
         "--project-ref=xixvlncckcfyjpqsxofq"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_2f6758b3aa511e39568097604ecee334ca4e8b08"
+        "SUPABASE_ACCESS_TOKEN": "sbp_041082435e82c426ac641b701b2fc301898cb66c"
       }
-    },
-		"ESLint": {
-			"type": "stdio",
-			"command": "npx",
-			"args": ["@eslint/mcp@latest"]
-	}
+    }
   }
 }

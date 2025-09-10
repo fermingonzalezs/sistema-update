@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useGarantias } from '../../../lib/useGarantiasFix';
-import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../../components/pdf/garantias/GarantiaPDF_NewStyle';
+import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../soporte/components/pdf/GarantiaPDF_NewStyle';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters';

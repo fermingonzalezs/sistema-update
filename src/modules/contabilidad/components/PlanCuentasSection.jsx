@@ -430,8 +430,8 @@ const PlanCuentasSection = () => {
 
           {/* Botones de acción */}
           <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
-            {/* Botón para crear subcuenta - solo para cuentas nivel 3+ para garantizar cuentas imputables */}
-            {cuenta.nivel >= 3 && cuenta.nivel < 5 && (
+            {/* Botón para crear subcuenta - solo para cuentas no imputables (categorías) */}
+            {!cuenta.imputable && cuenta.nivel < 5 && (
               <button
                 onClick={() => crearSubcuenta(cuenta)}
                 className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
@@ -901,8 +901,8 @@ Esta acción no se puede deshacer.
                       }}
                       className="w-full border border-slate-200 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                     >
-                      <option value="USD">USD - Dólares Americanos</option>
-                      <option value="ARS">ARS - Pesos Argentinos</option>
+                      <option value="USD">USD</option>
+                      <option value="ARS">ARS</option>
                     </select>
                     {creatingSubcuenta && (
                       <p className="text-xs text-slate-600 mt-2">
@@ -952,7 +952,6 @@ Esta acción no se puede deshacer.
                   </div>
                 </div>
 
-                )}
               </div>
             </div>
             

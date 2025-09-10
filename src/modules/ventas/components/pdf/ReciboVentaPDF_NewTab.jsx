@@ -1,10 +1,8 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
-import RobotoRegular from '../../../Roboto/static/Roboto-Regular.ttf'
-import RobotoBold from '../../../Roboto/static/Roboto-Bold.ttf'
-
-// Sin fuentes personalizadas - usar fuentes nativas de react-pdf que son 100% confiables
-
+import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
+import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
+import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../../../../shared/utils/documentTypeUtils';
 
 // Registrar la fuente ANTES de los estilos
 Font.register({
@@ -20,7 +18,6 @@ Font.register({
     }
   ]
 });
-
 
 // Estilos profesionales mejorados para el PDF
 const styles = StyleSheet.create({
@@ -296,6 +293,50 @@ const styles = StyleSheet.create({
     height: 15,
   },
   
+  // Sección específica para pagarés
+  pagareSection: {
+    marginTop: 30,
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
+  },
+  pagareTitle: {
+    fontSize: 12,
+    fontFamily: 'Roboto',
+    color: '#DC2626',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  pagareText: {
+    fontSize: 9,
+    color: '#374151',
+    lineHeight: 1.6,
+    textAlign: 'justify',
+    fontFamily: 'Roboto',
+  },
+  vencimientoInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  vencimientoLabel: {
+    fontSize: 9,
+    fontFamily: 'Roboto',
+    color: '#6B7280',
+  },
+  vencimientoFecha: {
+    fontSize: 10,
+    fontFamily: 'Roboto',
+    color: '#DC2626',
+  },
+  
   // Metadatos del documento
   metadata: {
     position: 'absolute',
@@ -307,7 +348,7 @@ const styles = StyleSheet.create({
 });
 
 // Componente del documento PDF mejorado
-const ReciboVentaDocument = ({ data }) => {
+const ReciboVentaDocument = ({ data, tipoDocumento }) => {
   const formatearMoneda = (valor, moneda = 'USD') => {
     const numero = new Intl.NumberFormat('es-AR', {
       minimumFractionDigits: 0,
@@ -335,6 +376,16 @@ const ReciboVentaDocument = ({ data }) => {
     year: 'numeric'
   });
 
+  // Determinar tipo de documento si no se especifica
+  const docInfo = tipoDocumento || determinarTipoDocumento(data.metodoPago);
+  const fechaVencimiento = docInfo.esCredito ? calcularFechaVencimiento(data.invoice.date) : null;
+  const textoLegal = docInfo.esCredito ? generarTextoLegalPagare(
+    calcularTotal(), 
+    data.moneda, 
+    fechaVencimiento, 
+    data.client.name
+  ) : null;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -348,8 +399,8 @@ const ReciboVentaDocument = ({ data }) => {
             </Text>
           </View>
           <View style={styles.documentTitleSection}>
-            <Text style={styles.documentTitle}>RECIBO</Text>
-            <Text style={styles.documentSubtitle}>Comprobante de Venta</Text>
+            <Text style={styles.documentTitle}>{docInfo.tipo}</Text>
+            <Text style={styles.documentSubtitle}>{docInfo.subtitulo}</Text>
             <Text style={styles.documentInfo}>
               N° {data.invoice.number}{'\n'}
               Fecha:    {data.invoice.date}
@@ -447,10 +498,26 @@ const ReciboVentaDocument = ({ data }) => {
           </View>
         </View>
 
+        {/* Sección específica para pagarés */}
+        {docInfo.esCredito && (
+          <View style={styles.pagareSection}>
+            <Text style={styles.pagareTitle}>Términos del Pagaré</Text>
+            <Text style={styles.pagareText}>{textoLegal}</Text>
+            <View style={styles.vencimientoInfo}>
+              <Text style={styles.vencimientoLabel}>Fecha de vencimiento:</Text>
+              <Text style={styles.vencimientoFecha}>{fechaVencimiento}</Text>
+            </View>
+            <View style={styles.vencimientoInfo}>
+              <Text style={styles.vencimientoLabel}>Lugar de pago:</Text>
+              <Text style={styles.vencimientoFecha}>{data.company.address}</Text>
+            </View>
+          </View>
+        )}
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Texto de prueba para el footer.
+            {docInfo.esCredito ? 'Documento de crédito comercial.' : 'Comprobante de pago recibido.'}
           </Text>
           <Text style={styles.footerText}>
             {data.company.name} • {fechaActual}
@@ -466,7 +533,7 @@ const ReciboVentaDocument = ({ data }) => {
   );
 };
 
-// Función para convertir datos de venta al formato del recibo (mejorada)
+// Función para convertir datos de venta al formato del documento (mejorada)
 export const convertirVentaARecibo = (transaccion) => {
   return {
     company: {
@@ -490,7 +557,7 @@ export const convertirVentaARecibo = (transaccion) => {
       email: transaccion.cliente_email || ''
     },
     items: (transaccion.venta_items || []).map(item => ({
-      description: item.modelo_producto || 'Producto sin especificar',
+      description: item.copy || 'Producto sin especificar',
       quantity: item.cantidad || 1,
       unit: 'Un.',
       unitPrice: item.precio_unitario || 0,
@@ -498,29 +565,29 @@ export const convertirVentaARecibo = (transaccion) => {
       serial: item.serial_producto || null
     })),
     discount: transaccion.descuento || 0,
-    moneda: transaccion.moneda_pago || 'USD'
+    moneda: transaccion.moneda_pago || 'USD',
+    metodoPago: transaccion.metodo_pago || 'efectivo'
   };
 };
 
-// Función mejorada para generar y descargar el PDF
+// Función mejorada para generar y abrir el PDF en nueva pestaña
 export const generarYDescargarRecibo = async (transaccion) => {
   try {
     const reciboData = convertirVentaARecibo(transaccion);
-    const blob = await pdf(<ReciboVentaDocument data={reciboData} />).toBlob();
+    const tipoDocumento = determinarTipoDocumento(transaccion.metodo_pago);
+    const blob = await pdf(<ReciboVentaDocument data={reciboData} tipoDocumento={tipoDocumento} />).toBlob();
     
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `recibo-${String(transaccion.numero_transaccion).padStart(6, '0')}-${new Date().toISOString().split('T')[0]}.pdf`;
+    window.open(url, '_blank');
     
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Cleanup después de un tiempo
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
     
     return {
       success: true,
-      filename: link.download
+      message: `${tipoDocumento.tipo} abierto en nueva pestaña`
     };
   } catch (error) {
     console.error('Error generando recibo PDF:', error);

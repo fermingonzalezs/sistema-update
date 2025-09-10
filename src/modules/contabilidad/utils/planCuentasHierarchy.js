@@ -276,13 +276,19 @@ export const getSubcuentaConfig = (cuentaPadre, todasLasCuentas) => {
   const nuevoNivel = cuentaPadre.nivel + 1;
   const nuevoCodigo = generateNextCode(todasLasCuentas, cuentaPadre.codigo);
   
+  // Determinar si debe ser imputable basado en el nivel
+  // Nivel 1-3: categorías (no imputables)
+  // Nivel 4+: cuentas imputables
+  const esImputable = nuevoNivel >= 4;
+  const categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'PRINCIPAL');
+  
   return {
     padre_id: cuentaPadre.id,
     codigo: nuevoCodigo,
     tipo: cuentaPadre.tipo,
     nivel: nuevoNivel,
-    categoria: 'CUENTA', // Siempre CUENTA para que sea imputable
-    imputable: true, // Siempre imputable
+    categoria: categoria,
+    imputable: esImputable,
     moneda_original: cuentaPadre.moneda_original || 'USD',
     requiere_cotizacion: cuentaPadre.requiere_cotizacion || false
   };

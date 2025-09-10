@@ -39,7 +39,7 @@
 ### Project Structure
 ```
 src/
-├── components/          # Shared UI components
+├── components/          # Shared UI components (only global/cross-module)
 ├── lib/                # Utilities and configurations
 ├── modules/            # Business domain modules
 │   ├── administracion/  # Admin functions
@@ -51,6 +51,74 @@ src/
 ├── pages/              # Route components
 └── App.jsx             # Main application component
 ```
+
+## **File Organization by Module - MANDATORY RULES**
+
+### **Module-Specific Organization**
+**CRITICAL RULE**: All files related to a specific business domain MUST be located within their corresponding module directory. No exceptions.
+
+**Module Structure Pattern**:
+```
+src/modules/[module_name]/
+├── components/         # React components specific to this module
+├── hooks/             # Custom hooks for this module
+├── utils/             # Utility functions for this module
+├── services/          # API services (if needed)
+└── lib/               # Module-specific libraries (if needed)
+```
+
+### **Mandatory Organization Rules**
+1. **Contabilidad (Accounting)**: ALL accounting-related files → `src/modules/contabilidad/`
+   - Components: Chart of accounts, journal entries, balance sheets, etc.
+   - Hooks: `useLibroDiario.js`, `usePlanCuentas.js`, etc.
+   - Utils: Accounting calculations, validations, formatters
+   - PDF Reports: Balance sheets, income statements, etc.
+
+2. **Ventas (Sales)**: ALL sales-related files → `src/modules/ventas/`
+   - Components: Inventory, customers, shopping cart, sales processing
+   - Hooks: `useVentas.js`, `useInventario.js`, `useClientes.js`
+   - Utils: Price calculations, currency conversions, validations
+   - PDF Reports: Sales receipts, quotations
+
+3. **Soporte (Support)**: ALL support-related files → `src/modules/soporte/`
+   - Components: Repairs, equipment testing, parts management
+   - Hooks: `useReparaciones.js`, `useTesteo.js`
+   - Utils: Repair calculations, status management
+   - PDF Reports: Repair quotations, service orders
+
+4. **Importaciones (Imports)**: ALL import-related files → `src/modules/importaciones/`
+   - Components: Import tracking, supplier management, quotations
+   - Hooks: `useImportaciones.js`, `useProveedores.js`
+   - Utils: Cost calculations, shipping estimates
+   - Services: External API integrations
+
+5. **Administración (Administration)**: ALL admin-related files → `src/modules/administracion/`
+   - Components: Analytics, reports, user management, system config
+   - Hooks: `useAnalytics.js`, `useUsuarios.js`
+   - Utils: Statistical calculations, data aggregation
+
+### **Global Components Exception**
+Only the following types of components should remain in `src/components/`:
+- **Layout components**: Headers, sidebars, navigation (used across all modules)
+- **UI primitives**: Buttons, modals, form elements (truly generic)
+- **Auth components**: Login, authentication flows
+- **Shared utilities**: Currency display, date formatting (used by multiple modules)
+
+### **Import Path Standards**
+```javascript
+// ✅ CORRECT: Module-specific imports
+import { useLibroDiario } from '../hooks/useLibroDiario'
+import BalanceSheet from './BalanceSheet'
+
+// ✅ CORRECT: Global component imports
+import Layout from '../../../components/layout/Layout'
+import { formatCurrency } from '../../../lib/utils'
+
+// ❌ WRONG: Module components in global components
+import AccountingReport from '../../../components/accounting/AccountingReport'
+```
+
+**ENFORCEMENT**: Any file found outside its proper module location will be moved during code reviews. This organization is non-negotiable and essential for maintainability.
 
 ## Business Modules
 

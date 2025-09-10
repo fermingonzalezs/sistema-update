@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
-import { generarYAbrirEstadoSituacionPatrimonial } from '../../../components/pdf/contabilidad/EstadoSituacionPatrimonialPDF';
+import { generarYAbrirEstadoSituacionPatrimonial } from './pdf/EstadoSituacionPatrimonialPDF';
 
   const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 

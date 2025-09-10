@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, FileDown, Send, ThumbsUp, Wrench, Package, DollarSign, Printer } from 'lucide-react';
-import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from '../../../components/pdf/soporte/PresupuestoReparacionPDF.jsx';
+import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from './pdf/PresupuestoReparacionPDF.jsx';
 
 function ModalVistaPrevia({ open, onClose, presupuestoData }) {
   if (!open || !presupuestoData) return null;

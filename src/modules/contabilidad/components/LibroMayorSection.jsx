@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto } from '../../../shared/utils/formatters';
-import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 // Servicio para Libro Mayor

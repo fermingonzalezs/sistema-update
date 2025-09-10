@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useClientes } from '../hooks/useClientes.js';
 import ClienteModal from './ClienteModal';
-import Tarjeta from '../../../shared/components/layout/Tarjeta.jsx';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import CumpleanosProximos from './CumpleanosProximos';
 
 const Clientes = () => {
