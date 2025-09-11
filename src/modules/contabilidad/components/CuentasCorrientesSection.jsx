@@ -113,7 +113,9 @@ const CuentasCorrientesSection = () => {
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'Sin movimientos';
-    return new Date(fecha).toLocaleDateString();
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { 
+      timeZone: 'America/Argentina/Buenos_Aires' 
+    });
   };
 
   // Filtrar clientes
@@ -759,7 +761,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
                             <div className="flex items-center space-x-1">
                               <Calendar className="w-4 h-4" />
-                              <span>{new Date(movimiento.fecha_operacion).toLocaleDateString()}</span>
+                              <span>{new Date(movimiento.fecha_operacion + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
                             </div>
                             <div className="flex items-center space-x-1">
                               <DollarSign className="w-4 h-4" />

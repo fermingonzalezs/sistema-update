@@ -314,7 +314,9 @@ const LibroMayorSection = () => {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-AR');
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { 
+      timeZone: 'America/Argentina/Buenos_Aires' 
+    });
   };
 
   const getTipoColor = (codigo) => {

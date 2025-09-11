@@ -348,7 +348,12 @@ const ConciliacionCajaSection = () => {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric',
+      timeZone: 'America/Argentina/Buenos_Aires' 
+    });
   };
 
   if (loading && !cuentaSeleccionada) {

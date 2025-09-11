@@ -4,9 +4,10 @@ import { formatearMonto } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
 import { generarYAbrirEstadoSituacionPatrimonial } from './pdf/EstadoSituacionPatrimonialPDF';
 
-  const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
+const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 
-  const CuentaRow = ({ cuenta }) => {
+// Componente para cuentas individuales (patrimonio)
+const CuentaRow = ({ cuenta }) => {
   return (
     <div className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors">
       <div className="flex items-center">
@@ -22,6 +23,73 @@ import { generarYAbrirEstadoSituacionPatrimonial } from './pdf/EstadoSituacionPa
       <div className="text-lg font-semibold text-slate-900">
         {formatearMoneda(cuenta.saldo)}
       </div>
+    </div>
+  );
+};
+
+// Componente para grupos de nivel 3 (activos y pasivos)
+const GrupoNivel3Row = ({ grupo }) => {
+  const [expandido, setExpandido] = useState(false);
+  
+  return (
+    <div className="border border-slate-200 rounded mb-2">
+      {/* Header del grupo - clickeable */}
+      <button
+        onClick={() => setExpandido(!expandido)}
+        className="w-full flex justify-between items-center py-3 px-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+      >
+        <div className="flex items-center">
+          <div className="mr-3">
+            {expandido ? (
+              <ChevronDown className="w-4 h-4 text-slate-600" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-slate-600" />
+            )}
+          </div>
+          <div className="mr-4">
+            <code className="text-sm text-slate-700 font-mono bg-slate-200 px-2 py-1 rounded font-bold">
+              {grupo.codigoNivel3}
+            </code>
+          </div>
+          <div>
+            <span className="font-semibold text-slate-800 text-base">
+              {grupo.nombre}
+            </span>
+            <div className="text-xs text-slate-500 mt-1">
+              {grupo.cuentas.length} cuenta{grupo.cuentas.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </div>
+        <div className="text-lg font-bold text-slate-900">
+          {formatearMoneda(grupo.saldoTotal)}
+        </div>
+      </button>
+      
+      {/* Detalle expandible de cuentas */}
+      {expandido && (
+        <div className="border-t border-slate-200">
+          {grupo.cuentas.map((cuenta) => (
+            <div 
+              key={cuenta.cuenta.id}
+              className="flex justify-between items-center py-2 px-6 border-b border-slate-100 last:border-b-0 bg-white hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center">
+                <div className="mr-3 pl-6"> {/* Indent para mostrar jerarquía */}
+                  <code className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded">
+                    {cuenta.cuenta.codigo}
+                  </code>
+                </div>
+                <span className="font-medium text-slate-700 text-sm">
+                  {cuenta.cuenta.nombre}
+                </span>
+              </div>
+              <div className="text-base font-semibold text-slate-800">
+                {formatearMoneda(cuenta.saldo)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -51,7 +119,22 @@ const EstadoSituacionPatrimonialSection = () => {
 
   const handleGenerarPDF = async () => {
     try {
-      const resultado = await generarYAbrirEstadoSituacionPatrimonial(balance, fechaCorte);
+      // Preparar datos para el PDF - solo categorías nivel 3 para activos/pasivos
+      const datosPDF = {
+        ...balance,
+        // Mantener patrimonio individual como está
+        patrimonio: balance.patrimonio,
+        // Para activos y pasivos ya están como grupos nivel 3
+        activos: balance.activos,
+        pasivos: balance.pasivos,
+        // Mantener totales
+        totalActivos: balance.totalActivos,
+        totalPasivos: balance.totalPasivos,
+        totalPatrimonio: balance.totalPatrimonio,
+        fechaCorte: balance.fechaCorte
+      };
+
+      const resultado = await generarYAbrirEstadoSituacionPatrimonial(datosPDF, fechaCorte);
       if (!resultado.success) {
         alert('Error al generar PDF: ' + resultado.error);
       }
@@ -176,12 +259,16 @@ const EstadoSituacionPatrimonialSection = () => {
                 <div className="text-center p-6 bg-slate-200 rounded">
                   <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalActivos)}</div>
                   <div className="text-sm text-slate-800">Total Activos</div>
-                  <div className="text-xs text-slate-800">{balance.activos.length} cuentas</div>
+                  <div className="text-xs text-slate-800">
+                    {balance.activos.length} grupo{balance.activos.length !== 1 ? 's' : ''} • {balance.activosDetalle?.length || 0} cuentas
+                  </div>
                 </div>
                 <div className="text-center p-6 bg-slate-200 rounded">
                   <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalPasivos)}</div>
                   <div className="text-sm text-slate-800">Total Pasivos</div>
-                  <div className="text-xs text-slate-800">{balance.pasivos.length} cuentas</div>
+                  <div className="text-xs text-slate-800">
+                    {balance.pasivos.length} grupo{balance.pasivos.length !== 1 ? 's' : ''} • {balance.pasivosDetalle?.length || 0} cuentas
+                  </div>
                 </div>
                 <div className="text-center p-6 bg-slate-200 rounded">
                   <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalPatrimonio)}</div>
@@ -204,15 +291,15 @@ const EstadoSituacionPatrimonialSection = () => {
                     </span>
                   </h2>
                   <p className="text-sm text-slate-200 mt-2">
-                    {balance.activos.length} cuentas con movimiento
+                    {balance.activos.length} grupo{balance.activos.length !== 1 ? 's' : ''} con movimiento
                   </p>
                 </div>
 
                 <div className="bg-white border border-slate-200">
                   <div className="p-4">
-                    <div className="space-y-0">
-                      {balance.activos.map((item) => (
-                        <CuentaRow key={item.cuenta.id} cuenta={item} />
+                    <div className="space-y-2">
+                      {balance.activos.map((grupo) => (
+                        <GrupoNivel3Row key={grupo.codigoNivel3} grupo={grupo} />
                       ))}
                     </div>
                   </div>
@@ -232,15 +319,15 @@ const EstadoSituacionPatrimonialSection = () => {
                       </span>
                     </h2>
                     <p className="text-sm text-slate-200 mt-2">
-                      {balance.pasivos.length} cuentas con movimiento
+                      {balance.pasivos.length} grupo{balance.pasivos.length !== 1 ? 's' : ''} con movimiento
                     </p>
                   </div>
 
                   <div className="bg-white border border-slate-200">
                     <div className="p-4">
-                      <div className="space-y-0">
-                        {balance.pasivos.map((item) => (
-                          <CuentaRow key={item.cuenta.id} cuenta={item} />
+                      <div className="space-y-2">
+                        {balance.pasivos.map((grupo) => (
+                          <GrupoNivel3Row key={grupo.codigoNivel3} grupo={grupo} />
                         ))}
                       </div>
                     </div>

@@ -537,6 +537,7 @@ const LibroDiarioSection = () => {
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
         montoUSD = montoUSD / cotizacion;
+        montoUSD = Math.round(montoUSD * 100) / 100;
       }
       
       return sum + montoUSD;
@@ -550,6 +551,7 @@ const LibroDiarioSection = () => {
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
         montoUSD = montoUSD / cotizacion;
+        montoUSD = Math.round(montoUSD * 100) / 100;
       }
       
       return sum + montoUSD;
@@ -660,9 +662,12 @@ const LibroDiarioSection = () => {
 
       // Obtener movimientos completos
       const movimientos = await obtenerMovimientosAsiento(asiento.id);
+      console.log('🔍 DEBUG iniciarEdicion - movimientos desde BD:', movimientos);
+      console.log('🔍 DEBUG iniciarEdicion - asiento cotizacion_promedio:', asiento.cotizacion_promedio);
       
       // Preparar datos para edición
       const datosPreparados = prepararDatosParaEdicion(asiento, movimientos);
+      console.log('🔍 DEBUG iniciarEdicion - datos preparados:', datosPreparados);
       
       console.log('📝 Datos preparados para edición:', datosPreparados);
       
@@ -671,14 +676,27 @@ const LibroDiarioSection = () => {
         fecha: datosPreparados.fecha,
         descripcion: datosPreparados.descripcion,
         cotizacion_usd: asiento.cotizacion_promedio || 0,
-        movimientos: datosPreparados.movimientos.map(mov => ({
-          cuenta_id: mov.cuenta_id,
-          cuenta: mov.cuenta,
-          monto: mov.debe > 0 ? mov.debe : mov.haber,
-          tipo: mov.debe > 0 ? 'debe' : 'haber',
-          debe: mov.debe,
-          haber: mov.haber
-        }))
+        movimientos: datosPreparados.movimientos.map(mov => {
+          const montoUSD = mov.debe > 0 ? mov.debe : mov.haber;
+          const cotizacion = asiento.cotizacion_promedio || 0;
+          
+          // Si la cuenta requiere cotización y hay cotización, convertir USD a ARS para mostrar en el formulario
+          let montoMostrar = montoUSD;
+          if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+            console.log(`🔍 DEBUG conversión para mostrar - ${mov.cuenta?.nombre}: ${montoUSD} USD × ${cotizacion} = ${montoUSD * cotizacion} ARS`);
+            montoMostrar = Math.round((montoUSD * cotizacion) * 100) / 100; // Redondear para evitar errores de precisión
+            console.log(`🔍 DEBUG después de redondear: ${montoMostrar} ARS`);
+          }
+          
+          return {
+            cuenta_id: mov.cuenta_id,
+            cuenta: mov.cuenta,
+            monto: montoMostrar,
+            tipo: mov.debe > 0 ? 'debe' : 'haber',
+            debe: mov.debe,
+            haber: mov.haber
+          };
+        })
       });
       
       setAsientoEditando(asiento);
@@ -695,15 +713,29 @@ const LibroDiarioSection = () => {
     try {
       console.log('💾 Guardando edición del asiento:', asientoEditando.id);
       
-      // Validaciones básicas usando la utilidad
+      // Validaciones básicas usando la utilidad con conversión de monedas
+      const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
       const validacion = validarDatosEdicion({
         fecha: formData.fecha,
         descripcion: formData.descripcion,
-        movimientos: formData.movimientos.map(mov => ({
-          cuenta_id: mov.cuenta_id,
-          debe: mov.tipo === 'debe' ? parseFloat(mov.monto || 0) : 0,
-          haber: mov.tipo === 'haber' ? parseFloat(mov.monto || 0) : 0
-        }))
+        movimientos: formData.movimientos.map(mov => {
+          let montoUSD = parseFloat(mov.monto || 0);
+          
+          // Si la cuenta requiere cotización (ARS) y hay cotización, convertir a USD
+          if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+            montoUSD = montoUSD / cotizacion;
+          }
+          
+          // Aplicar el mismo redondeo que calcularTotales()
+          montoUSD = Math.round(montoUSD * 100) / 100;
+          
+          return {
+            cuenta_id: mov.cuenta_id,
+            debe: mov.tipo === 'debe' ? montoUSD : 0,
+            haber: mov.tipo === 'haber' ? montoUSD : 0,
+            cotizacion: mov.cuenta?.requiere_cotizacion ? cotizacion : null
+          };
+        })
       });
       
       if (!validacion.valido) {

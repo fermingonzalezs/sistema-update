@@ -11,6 +11,75 @@ const ordenarCuentasPorCodigo = (cuentasObj) => {
     });
 };
 
+// Función para extraer código nivel 3 (formato X.X.XX)
+const extraerCodigoNivel3 = (codigoCompleto) => {
+  if (!codigoCompleto) return null;
+  const partes = codigoCompleto.split('.');
+  if (partes.length >= 3) {
+    return `${partes[0]}.${partes[1]}.${partes[2]}`;
+  }
+  return null;
+};
+
+// Función para agrupar cuentas por nivel 3 con nombres correctos desde la base de datos
+const agruparPorNivel3 = async (cuentas) => {
+  const grupos = {};
+  const codigosNivel3 = new Set();
+  
+  // Extraer todos los códigos nivel 3 únicos
+  cuentas.forEach(cuenta => {
+    const codigoNivel3 = extraerCodigoNivel3(cuenta.cuenta.codigo);
+    if (codigoNivel3) {
+      codigosNivel3.add(codigoNivel3);
+    }
+  });
+
+  // Obtener nombres reales de las cuentas nivel 3 desde la base de datos
+  const cuentasNivel3 = {};
+  if (codigosNivel3.size > 0) {
+    try {
+      const { data: cuentasNivel3Data, error } = await supabase
+        .from('plan_cuentas')
+        .select('codigo, nombre')
+        .in('codigo', Array.from(codigosNivel3))
+        .eq('nivel', 3)
+        .eq('activa', true);
+
+      if (!error && cuentasNivel3Data) {
+        cuentasNivel3Data.forEach(cuenta => {
+          cuentasNivel3[cuenta.codigo] = cuenta.nombre;
+        });
+      }
+    } catch (error) {
+      console.warn('Error obteniendo nombres nivel 3:', error);
+    }
+  }
+  
+  // Agrupar cuentas con nombres reales
+  cuentas.forEach(cuenta => {
+    const codigoNivel3 = extraerCodigoNivel3(cuenta.cuenta.codigo);
+    
+    if (codigoNivel3) {
+      if (!grupos[codigoNivel3]) {
+        grupos[codigoNivel3] = {
+          codigoNivel3,
+          nombre: cuentasNivel3[codigoNivel3] || `Grupo ${codigoNivel3}`,
+          saldoTotal: 0,
+          cuentas: []
+        };
+      }
+      
+      grupos[codigoNivel3].cuentas.push(cuenta);
+      grupos[codigoNivel3].saldoTotal += Math.abs(cuenta.saldo);
+    }
+  });
+
+  // Convertir a array y ordenar por código
+  return Object.values(grupos).sort((a, b) => 
+    a.codigoNivel3.localeCompare(b.codigoNivel3)
+  );
+};
+
 // Servicio para Estado de Situación Patrimonial (Balance General)
 export const estadoSituacionPatrimonialService = {
   async getBalanceGeneral(fechaCorte = null) {
@@ -108,10 +177,14 @@ export const estadoSituacionPatrimonialService = {
         }
       });
 
-      // Ordenar cuentas por código (sin jerarquía)
+      // Ordenar cuentas individuales por código 
       const activosOrdenados = ordenarCuentasPorCodigo(balance.activos);
       const pasivosOrdenados = ordenarCuentasPorCodigo(balance.pasivos);
       const patrimonioOrdenado = ordenarCuentasPorCodigo(balance.patrimonio);
+
+      // Agrupar ACTIVOS y PASIVOS por nivel 3 (patrimonio mantiene estructura individual)
+      const activosAgrupados = await agruparPorNivel3(activosOrdenados);
+      const pasivosAgrupados = await agruparPorNivel3(pasivosOrdenados);
 
       // Calcular totales correctamente (suma directa de saldos)
       const totalActivos = activosOrdenados.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
@@ -119,8 +192,10 @@ export const estadoSituacionPatrimonialService = {
       const totalPatrimonio = patrimonioOrdenado.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
 
       console.log('✅ Balance General calculado:', {
-        activos: activosOrdenados.length,
-        pasivos: pasivosOrdenados.length,
+        activosGrupos: activosAgrupados.length,
+        activosCuentas: activosOrdenados.length,
+        pasivosGrupos: pasivosAgrupados.length,
+        pasivosCuentas: pasivosOrdenados.length,
         patrimonio: patrimonioOrdenado.length,
         totalActivos,
         totalPasivos,
@@ -129,9 +204,15 @@ export const estadoSituacionPatrimonialService = {
       });
 
       return {
-        activos: activosOrdenados,
-        pasivos: pasivosOrdenados,
-        patrimonio: patrimonioOrdenado,
+        // Datos agrupados para la vista
+        activos: activosAgrupados,
+        pasivos: pasivosAgrupados,
+        patrimonio: patrimonioOrdenado, // Sin agrupar
+        // Datos individuales para cálculos y PDF
+        activosDetalle: activosOrdenados,
+        pasivosDetalle: pasivosOrdenados,
+        patrimonioDetalle: patrimonioOrdenado,
+        // Totales
         totalActivos,
         totalPasivos,
         totalPatrimonio,

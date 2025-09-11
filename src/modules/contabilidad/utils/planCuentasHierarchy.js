@@ -270,17 +270,28 @@ export const generateNextCode = (cuentas, codigoPadre = null) => {
  * Determina la configuración para una nueva subcuenta basada en el padre
  * @param {Object} cuentaPadre - Cuenta padre
  * @param {Array} todasLasCuentas - Array de todas las cuentas
+ * @param {boolean} tipoSeleccionado - Optional: 'imputable' o 'categoria' para override manual
  * @returns {Object} Configuración para la nueva cuenta
  */
-export const getSubcuentaConfig = (cuentaPadre, todasLasCuentas) => {
+export const getSubcuentaConfig = (cuentaPadre, todasLasCuentas, tipoSeleccionado = null) => {
   const nuevoNivel = cuentaPadre.nivel + 1;
   const nuevoCodigo = generateNextCode(todasLasCuentas, cuentaPadre.codigo);
   
-  // Determinar si debe ser imputable basado en el nivel
-  // Nivel 1-3: categorías (no imputables)
-  // Nivel 4+: cuentas imputables
-  const esImputable = nuevoNivel >= 4;
-  const categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'PRINCIPAL');
+  // Determinar si debe ser imputable
+  let esImputable;
+  let categoria;
+  
+  if (tipoSeleccionado !== null) {
+    // Override manual: el usuario eligió específicamente el tipo
+    esImputable = tipoSeleccionado === 'imputable';
+    categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'CATEGORIA');
+  } else {
+    // Lógica automática por nivel (comportamiento original)
+    // Nivel 1-3: categorías (no imputables)
+    // Nivel 4+: cuentas imputables
+    esImputable = nuevoNivel >= 4;
+    categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'PRINCIPAL');
+  }
   
   return {
     padre_id: cuentaPadre.id,

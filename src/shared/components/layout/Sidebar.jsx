@@ -255,7 +255,9 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
   };
 
   return (
-    <div className="h-screen text-white shadow-2xl flex flex-col w-full relative bg-slate-800">
+    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 transition-all duration-300 ${
+      isCollapsed ? 'w-16' : 'w-70'
+    }`}>
       {/* Header fijo - NO scrolleable */}
       <div className={`${isCollapsed ? "p-2" : "p-8"} ${isCollapsed ? "pb-2" : "pb-4"} border-b border-slate-200 bg-slate-800 relative z-10`}>
         <div className="w-full">

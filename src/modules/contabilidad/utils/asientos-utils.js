@@ -169,12 +169,27 @@ export const validarDatosEdicion = (datosAsiento) => {
       errores.push('Todos los movimientos deben tener un monto en debe o haber');
     }
     
-    // Validar balance (debe = haber)
-    const totalDebe = datosAsiento.movimientos.reduce((sum, mov) => sum + (Number(mov.debe) || 0), 0);
-    const totalHaber = datosAsiento.movimientos.reduce((sum, mov) => sum + (Number(mov.haber) || 0), 0);
+    // Validar balance (debe = haber) considerando conversiones a USD
+    let totalDebeUSD = 0;
+    let totalHaberUSD = 0;
     
-    if (Math.abs(totalDebe - totalHaber) > 0.01) { // Tolerancia para decimales
-      errores.push(`El asiento no está balanceado. Debe: ${totalDebe}, Haber: ${totalHaber}`);
+    datosAsiento.movimientos.forEach(mov => {
+      let debeUSD = Number(mov.debe) || 0;
+      let haberUSD = Number(mov.haber) || 0;
+      
+      // NOTA: Los datos ya vienen convertidos desde guardarEdicion()
+      // NO aplicar conversión aquí porque ya se hizo en guardarEdicion()
+      
+      // Aplicar redondeo consistente a 2 decimales
+      debeUSD = Math.round(debeUSD * 100) / 100;
+      haberUSD = Math.round(haberUSD * 100) / 100;
+      
+      totalDebeUSD += debeUSD;
+      totalHaberUSD += haberUSD;
+    });
+    
+    if (Math.abs(totalDebeUSD - totalHaberUSD) > 0.01) { // Tolerancia para decimales
+      errores.push(`El asiento no está balanceado en USD. Debe: $${totalDebeUSD.toFixed(2)}, Haber: $${totalHaberUSD.toFixed(2)}`);
     }
   }
   

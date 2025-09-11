@@ -7,7 +7,7 @@ import {
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionService } from '../../services/cotizacionService';
 
-const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
+const Header = ({ activeSection, isSidebarCollapsed }) => {
   const { user, logout } = useAuthContext();
   const currentDate = new Date();
 
@@ -83,19 +83,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onShowSidebar }) => {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">
             <div>
-              <div className="flex items-center space-x-3">
-                {sectionInfo.icon && (
-                  <sectionInfo.icon className="w-5 h-5 text-white" />
-                )}
-                <h2 className="text-4xl font-semibold text-white">
-                  {sectionInfo.title}
-                </h2>
-              </div>
-              {sectionInfo.description && (
-                <p className="text-slate-200 text-sm mt-2">
-                  {sectionInfo.description}
-                </p>
-              )}
+              {/* Titles and subtitles removed */}
             </div>
           </div>
           

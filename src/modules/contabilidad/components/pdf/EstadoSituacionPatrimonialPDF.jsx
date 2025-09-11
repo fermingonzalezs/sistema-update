@@ -305,12 +305,12 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Total Activos</Text>
             <Text style={styles.summaryValue}>{formatearMoneda(data.totalActivos)}</Text>
-            <Text style={styles.summaryDetail}>{data.activos?.length || 0} cuentas</Text>
+            <Text style={styles.summaryDetail}>{data.activos?.length || 0} categorías</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Total Pasivos</Text>
             <Text style={styles.summaryValue}>{formatearMoneda(data.totalPasivos)}</Text>
-            <Text style={styles.summaryDetail}>{data.pasivos?.length || 0} cuentas</Text>
+            <Text style={styles.summaryDetail}>{data.pasivos?.length || 0} categorías</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Patrimonio Neto</Text>
@@ -329,7 +329,7 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
                 <Text style={styles.sectionTotal}>{formatearMoneda(data.totalActivos)}</Text>
               </View>
               <View style={styles.accountsTable}>
-                {(data.activos || []).map((item, index) => (
+                {(data.activos || []).map((grupo, index) => (
                   <View 
                     key={index} 
                     style={[
@@ -339,13 +339,13 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
                     ]}
                   >
                     <View style={styles.accountCode}>
-                      <Text>{item.cuenta.codigo}</Text>
+                      <Text>{grupo.codigoNivel3}</Text>
                     </View>
                     <View style={styles.accountName}>
-                      <Text>{item.cuenta.nombre}</Text>
+                      <Text>{grupo.nombre}</Text>
                     </View>
                     <View style={styles.accountAmount}>
-                      <Text>{formatearMoneda(item.saldo)}</Text>
+                      <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
                     </View>
                   </View>
                 ))}
@@ -362,7 +362,7 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
                 <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPasivos)}</Text>
               </View>
               <View style={styles.accountsTable}>
-                {(data.pasivos || []).map((item, index) => (
+                {(data.pasivos || []).map((grupo, index) => (
                   <View 
                     key={index} 
                     style={[
@@ -372,13 +372,13 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
                     ]}
                   >
                     <View style={styles.accountCode}>
-                      <Text>{item.cuenta.codigo}</Text>
+                      <Text>{grupo.codigoNivel3}</Text>
                     </View>
                     <View style={styles.accountName}>
-                      <Text>{item.cuenta.nombre}</Text>
+                      <Text>{grupo.nombre}</Text>
                     </View>
                     <View style={styles.accountAmount}>
-                      <Text>{formatearMoneda(item.saldo)}</Text>
+                      <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
                     </View>
                   </View>
                 ))}

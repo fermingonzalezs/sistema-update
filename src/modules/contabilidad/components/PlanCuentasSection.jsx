@@ -297,6 +297,9 @@ const PlanCuentasSection = () => {
     moneda_original: 'USD',
     requiere_cotizacion: false
   });
+
+  // Estado adicional para el selector de tipo de cuenta
+  const [tipoSeleccionado, setTipoSeleccionado] = useState('automatico'); // 'automatico', 'categoria', 'imputable'
   const [expandedNodes, setExpandedNodes] = useState({});
 
   const toggleNode = (nodeId) => {
@@ -416,12 +419,21 @@ const PlanCuentasSection = () => {
               {cuenta.nombre}
             </span>
 
+            {/* Badge de tipo de cuenta */}
+            <span className={`px-2 py-1 text-xs font-medium rounded border ${
+              esCategoria 
+                ? 'bg-slate-100 text-slate-700 border-slate-200' 
+                : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+            }`}>
+              {esCategoria ? 'Categoría' : 'Imputable'}
+            </span>
+
             {/* Badge de moneda - solo para cuentas imputables */}
             {!esCategoria && (
               <span className={`px-2 py-1 text-xs font-medium rounded border ${
                 cuenta.moneda_original === 'USD' 
-                  ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                  : 'bg-blue-100 text-blue-700 border-blue-200'
+                  ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                  : 'bg-amber-100 text-amber-700 border-amber-200'
               }`}>
                 {cuenta.moneda_original}
               </span>
@@ -435,7 +447,7 @@ const PlanCuentasSection = () => {
               <button
                 onClick={() => crearSubcuenta(cuenta)}
                 className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
-                title="Crear subcuenta"
+                title="Crear subcuenta (puede ser categoría o imputable)"
               >
                 <Plus size={14} />
               </button>
@@ -470,6 +482,10 @@ const PlanCuentasSection = () => {
   const nuevaCuenta = () => {
     setSelectedCuenta(null);
     setCreatingSubcuenta(null);
+    
+    // Resetear selector de tipo a automático
+    setTipoSeleccionado('automatico');
+    
     const configMoneda = determinarConfiguracionCuenta('', '');
     setFormData({
       padre_id: null,
@@ -489,7 +505,10 @@ const PlanCuentasSection = () => {
     setSelectedCuenta(null);
     setCreatingSubcuenta(cuentaPadre);
     
-    // Usar la función utilitaria para obtener la configuración
+    // Resetear selector de tipo a automático
+    setTipoSeleccionado('automatico');
+    
+    // Usar la función utilitaria para obtener la configuración (sin override por ahora)
     const subcuentaConfig = getSubcuentaConfig(cuentaPadre, cuentas);
     
     setFormData({
@@ -508,6 +527,32 @@ const PlanCuentasSection = () => {
     setExpandedNodes(prev => ({ ...prev, [cuentaPadre.id]: true }));
     
     setShowModal(true);
+  };
+
+  // Función para manejar cambio de tipo de cuenta
+  const handleTipoChange = (nuevoTipo) => {
+    setTipoSeleccionado(nuevoTipo);
+    
+    if (creatingSubcuenta && nuevoTipo !== 'automatico') {
+      // Recalcular configuración con override manual
+      const tipoOverride = nuevoTipo === 'categoria' ? 'categoria' : 'imputable';
+      const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas, tipoOverride);
+      
+      setFormData(prev => ({
+        ...prev,
+        categoria: subcuentaConfig.categoria,
+        imputable: subcuentaConfig.imputable
+      }));
+    } else if (creatingSubcuenta && nuevoTipo === 'automatico') {
+      // Volver a lógica automática
+      const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas);
+      
+      setFormData(prev => ({
+        ...prev,
+        categoria: subcuentaConfig.categoria,
+        imputable: subcuentaConfig.imputable
+      }));
+    }
   };
 
   const editarCuenta = (cuenta) => {
@@ -859,6 +904,85 @@ Esta acción no se puede deshacer.
                   placeholder="Ej: Caja, Banco, Proveedores..."
                 />
               </div>
+              
+              {/* Selector de Tipo de Cuenta - solo mostrar cuando estamos creando subcuenta */}
+              {creatingSubcuenta && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                    Tipo de Cuenta
+                  </label>
+                  <div className="space-y-3">
+                    <div className="flex space-x-4">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="tipoSeleccionado"
+                          value="automatico"
+                          checked={tipoSeleccionado === 'automatico'}
+                          onChange={(e) => handleTipoChange(e.target.value)}
+                          className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700">Automático (por nivel)</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="tipoSeleccionado"
+                          value="categoria"
+                          checked={tipoSeleccionado === 'categoria'}
+                          onChange={(e) => handleTipoChange(e.target.value)}
+                          className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700">Categoría</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="tipoSeleccionado"
+                          value="imputable"
+                          checked={tipoSeleccionado === 'imputable'}
+                          onChange={(e) => handleTipoChange(e.target.value)}
+                          className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700">Cuenta Imputable</span>
+                      </label>
+                    </div>
+                    
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded text-sm">
+                      {tipoSeleccionado === 'automatico' ? (
+                        <div>
+                          <p className="font-medium text-slate-800 mb-1">Automático por nivel:</p>
+                          <p className="text-slate-600">
+                            En el nivel {formData.nivel}, la cuenta será <strong>{formData.imputable ? 'imputable' : 'categoría'}</strong> según las reglas jerárquicas.
+                            {formData.imputable ? ' Podrá registrar movimientos contables.' : ' Solo servirá para organización.'}
+                          </p>
+                          <div className="mt-2 text-xs text-slate-500">
+                            • Niveles 1-3: Categorías (no imputables)
+                            <br />
+                            • Nivel 4+: Cuentas imputables por defecto
+                          </div>
+                        </div>
+                      ) : tipoSeleccionado === 'categoria' ? (
+                        <div>
+                          <p className="font-medium text-slate-800 mb-1">✏️ Categoría (Override manual):</p>
+                          <p className="text-slate-600">Solo para organización jerárquica. No podrá registrar movimientos contables.</p>
+                          <div className="mt-2 text-xs text-emerald-600">
+                            ✓ Ideal para: Agrupación de subcuentas, estructura organizativa
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-medium text-slate-800 mb-1">💰 Cuenta Imputable (Override manual):</p>
+                          <p className="text-slate-600">Permitirá registrar movimientos contables (debe/haber). Ideal para cuentas operativas.</p>
+                          <div className="mt-2 text-xs text-emerald-600">
+                            ✓ Ideal para: Caja, bancos, clientes, proveedores, gastos, ingresos
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Tipo - solo mostrar si no estamos creando subcuenta */}
               {!creatingSubcuenta && (
