@@ -120,6 +120,7 @@ const libroDiarioService = {
         numero: numeroAsiento,
         fecha: asientoData.fecha,
         descripcion: asientoData.descripcion,
+        notas: asientoData.notas || null,
         total_debe: totalDebe,
         total_haber: totalHaber,
         usuario: 'admin'
@@ -409,6 +410,7 @@ const LibroDiarioSection = () => {
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
+    notas: '', // Campo para notas adicionales del asiento
     cotizacion_usd: 0, // Cotización única para todo el asiento
     movimientos: [
       { 
@@ -456,6 +458,7 @@ const LibroDiarioSection = () => {
     setFormData({
       fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
+      notas: '',
       cotizacion_usd: 0,
       movimientos: [
         { 
@@ -675,6 +678,7 @@ const LibroDiarioSection = () => {
       setFormData({
         fecha: datosPreparados.fecha,
         descripcion: datosPreparados.descripcion,
+        notas: asiento.notas || '',
         cotizacion_usd: asiento.cotizacion_promedio || 0,
         movimientos: datosPreparados.movimientos.map(mov => {
           const montoUSD = mov.debe > 0 ? mov.debe : mov.haber;
@@ -891,21 +895,21 @@ const LibroDiarioSection = () => {
                             <div className="grid grid-cols-2 gap-6 h-full items-center">
                               <div className="text-center">
                                 {mov.debe > 0 && (
-                                  <div>
-                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs truncate max-w-32">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
                               <div className="text-center">
                                 {mov.haber > 0 && (
-                                  <div>
-                                    <code className="text-sm text-black font-mono bg-slate-200 px-2 py-1">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-sm mt-2">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs truncate max-w-32">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -928,6 +932,19 @@ const LibroDiarioSection = () => {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Mostrar notas si existen */}
+                  {asiento.notas && (
+                    <div className="border-t bg-slate-50 p-4">
+                      <div className="flex items-start space-x-2">
+                        <FileText className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-slate-700 mb-2">Notas:</h4>
+                          <p className="text-sm text-slate-600 whitespace-pre-wrap">{asiento.notas}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1048,6 +1065,22 @@ const LibroDiarioSection = () => {
                     </div>
                   </div>
                 ))}
+                
+                {/* Mostrar notas si existen */}
+                {asiento.notas && (
+                  <div className="flex text-sm border-t py-2 bg-slate-50">
+                    <div className="w-16"></div>
+                    <div className="flex-1 px-4">
+                      <div className="flex items-start space-x-2">
+                        <FileText className="w-3 h-3 text-slate-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-slate-700">Notas: </span>
+                          <span className="text-slate-600">{asiento.notas}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -1274,6 +1307,26 @@ const LibroDiarioSection = () => {
                     Solo necesario si hay cuentas en ARS
                   </p>
                 </div>
+              </div>
+
+              {/* Campo de Notas */}
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-slate-600" />
+                    <span>Notas (opcional)</span>
+                  </div>
+                </label>
+                <textarea
+                  value={formData.notas}
+                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
+                  placeholder="Observaciones adicionales, referencias, documentos relacionados..."
+                  rows={3}
+                  className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 resize-vertical"
+                />
+                <p className="text-xs text-slate-600 mt-1">
+                  Información adicional que consideres relevante para este asiento
+                </p>
               </div>
 
               {/* Debug info */}

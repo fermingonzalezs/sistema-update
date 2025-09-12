@@ -64,9 +64,9 @@ const EstadoResultadosSection = () => {
     );
   };
 
-  const ingresosArray = estadoResultados.ingresos || [];
-  const costosArray = estadoResultados.costos || [];
-  const gastosArray = estadoResultados.gastos || [];
+  // Separar en resultado positivo y negativo
+  const resultadoPositivo = estadoResultados.ingresos || [];
+  const resultadoNegativo = [...(estadoResultados.costos || []), ...(estadoResultados.gastos || [])];
 
   return (
     <div className="p-0">
@@ -81,7 +81,7 @@ const EstadoResultadosSection = () => {
                 <p className="text-slate-300 mt-1">Período: {new Date(filtros.fechaDesde).toLocaleDateString('es-AR')} - {new Date(filtros.fechaHasta).toLocaleDateString('es-AR')}</p>
               </div>
             </div>
-            {!loading && !error && estadoResultados.ingresos?.length > 0 && (
+            {!loading && !error && (resultadoPositivo.length > 0 || resultadoNegativo.length > 0) && (
               <button
                 onClick={handleDescargarPDF}
                 className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
@@ -140,55 +140,38 @@ const EstadoResultadosSection = () => {
 
       {/* Cuerpo del Estado de Resultados */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Columna Izquierda: Ingresos */}
+        {/* Columna Izquierda: Resultado Positivo */}
         <div className="space-y-4">
           <div className="bg-white border border-slate-200 rounded-lg">
             <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
-            <h3 className="font-semibold flex items-center"><TrendingUp className="w-5 h-5 mr-2" /> Ingresos</h3>
-          </div>
+              <h3 className="font-semibold flex items-center"><TrendingUp className="w-5 h-5 mr-2" /> Resultado Positivo</h3>
+            </div>
             <div className="p-4">
-              {ingresosArray.length > 0 ? 
-                ingresosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
-                <p className="text-slate-500 text-center py-2">No se registraron ingresos.</p>}
+              {resultadoPositivo.length > 0 ? 
+                resultadoPositivo.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
+                <p className="text-slate-500 text-center py-2">No se registraron resultados positivos.</p>}
             </div>
             <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
-              <span>Total Ingresos</span>
-              <span>{formatearMoneda(estadoResultados.totalIngresos)}</span>
+              <span>Total Resultado Positivo</span>
+              <span className="text-emerald-600">{formatearMoneda(estadoResultados.totalIngresos)}</span>
             </div>
           </div>
         </div>
 
-        {/* Columna Derecha: Egresos (Costos y Gastos) */}
+        {/* Columna Derecha: Resultado Negativo */}
         <div className="space-y-4">
-          {/* Costos */}
           <div className="bg-white border border-slate-200 rounded-lg">
             <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
-              <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Costos</h3>
+              <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Resultado Negativo</h3>
             </div>
             <div className="p-4">
-              {costosArray.length > 0 ? 
-                costosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
-                <p className="text-slate-500 text-center py-2">No se registraron costos.</p>}
+              {resultadoNegativo.length > 0 ? 
+                resultadoNegativo.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
+                <p className="text-slate-500 text-center py-2">No se registraron resultados negativos.</p>}
             </div>
             <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
-              <span>Total Costos</span>
-              <span>{formatearMoneda(estadoResultados.totalCostos)}</span>
-            </div>
-          </div>
-
-          {/* Gastos */}
-          <div className="bg-white border border-slate-200 rounded-lg">
-            <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
-              <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Gastos</h3>
-            </div>
-            <div className="p-4">
-              {gastosArray.length > 0 ? 
-                gastosArray.map(item => <CuentaRow key={item.cuenta.id} cuenta={item} />) : 
-                <p className="text-slate-500 text-center py-2">No se registraron gastos.</p>}
-            </div>
-            <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
-              <span>Total Gastos</span>
-              <span>{formatearMoneda(estadoResultados.totalGastos)}</span>
+              <span>Total Resultado Negativo</span>
+              <span className="text-red-600">{formatearMoneda(estadoResultados.totalCostos + estadoResultados.totalGastos)}</span>
             </div>
           </div>
         </div>
@@ -199,11 +182,11 @@ const EstadoResultadosSection = () => {
         <h3 className="font-semibold text-lg mb-4 text-center">Resumen del Período</h3>
         <div className="space-y-3 max-w-md mx-auto">
           <div className="flex justify-between text-lg">
-            <span className="font-medium">Total Ingresos</span>
+            <span className="font-medium">Total Resultado Positivo</span>
             <span className="font-semibold text-emerald-600">{formatearMoneda(estadoResultados.totalIngresos)}</span>
           </div>
           <div className="flex justify-between text-lg">
-            <span className="font-medium">Total Egresos (Costos + Gastos)</span>
+            <span className="font-medium">Total Resultado Negativo</span>
             <span className="font-semibold text-red-600">({formatearMoneda(estadoResultados.totalCostos + estadoResultados.totalGastos)})</span>
           </div>
           <hr className="my-2 border-slate-300"/>

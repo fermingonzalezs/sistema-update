@@ -10,37 +10,48 @@ const libroMayorService = {
   async getCuentasConMovimientos() {
     console.log('📡 Obteniendo cuentas para libro mayor...');
 
-    const { data, error } = await supabase
+    // Primero obtenemos las cuentas que tienen movimientos
+    const { data: cuentasConMovimientos, error: errorCuentas } = await supabase
       .from('plan_cuentas')
       .select(`
-        id, codigo, nombre, moneda_original,
-        movimientos_contables!inner (id)
+        id, codigo, nombre, moneda_original
       `)
       .eq('activa', true)
       .order('codigo');
 
-    if (error) {
-      console.error('❌ Error obteniendo cuentas:', error);
-      throw error;
+    if (errorCuentas) {
+      console.error('❌ Error obteniendo cuentas:', errorCuentas);
+      throw errorCuentas;
     }
 
-    // Remover duplicados y contar movimientos
-    const cuentasUnicas = data.reduce((acc, cuenta) => {
-      const existing = acc.find(c => c.id === cuenta.id);
-      if (!existing) {
-        acc.push({
-          id: cuenta.id,
-          codigo: cuenta.codigo,
-          nombre: cuenta.nombre,
-          moneda_original: cuenta.moneda_original,
-          cantidadMovimientos: data.filter(c => c.id === cuenta.id).length
-        });
-      }
-      return acc;
-    }, []);
+    // Luego obtenemos el conteo real de movimientos para cada cuenta
+    const cuentasConConteo = await Promise.all(
+      cuentasConMovimientos.map(async (cuenta) => {
+        const { count, error: errorConteo } = await supabase
+          .from('movimientos_contables')
+          .select('*', { count: 'exact', head: true })
+          .eq('cuenta_id', cuenta.id);
 
-    console.log(`✅ ${cuentasUnicas.length} cuentas con movimientos`);
-    return cuentasUnicas;
+        if (errorConteo) {
+          console.error(`❌ Error contando movimientos para cuenta ${cuenta.codigo}:`, errorConteo);
+          return {
+            ...cuenta,
+            cantidadMovimientos: 0
+          };
+        }
+
+        return {
+          ...cuenta,
+          cantidadMovimientos: count || 0
+        };
+      })
+    );
+
+    // Filtrar solo las cuentas que tienen movimientos
+    const cuentasConMovimientosReales = cuentasConConteo.filter(cuenta => cuenta.cantidadMovimientos > 0);
+
+    console.log(`✅ ${cuentasConMovimientosReales.length} cuentas con movimientos`);
+    return cuentasConMovimientosReales;
   },
 
   async getLibroMayorCuenta(cuentaId, fechaDesde = null, fechaHasta = null) {
