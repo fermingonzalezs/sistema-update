@@ -212,7 +212,7 @@ export const ventasService = {
         .from('cuentas_corrientes')
         .insert([{
           cliente_id: movimientoData.cliente_id,
-          referencia_venta_id: movimientoData.transaccion_id,
+          referencia_venta_id: null, // No usamos referencia a venta_items, solo el numero de transaccion
           tipo_movimiento: 'debe', // El cliente nos debe
           tipo_operacion: 'venta_fiado',
           concepto: movimientoData.concepto,
@@ -320,7 +320,7 @@ export function useVentas() {
       // ✅ PROCESAR CUENTA CORRIENTE si aplica
       let montoCuentaCorriente = 0
       
-      // Calcular cuánto corresponde a cuenta corriente
+      // Calcular cuánto corresponde a cuenta corriente (solo el monto específico de cada método)
       if (datosCliente.metodo_pago_1 === 'cuenta_corriente') {
         montoCuentaCorriente += datosCliente.monto_pago_1 || 0
       }

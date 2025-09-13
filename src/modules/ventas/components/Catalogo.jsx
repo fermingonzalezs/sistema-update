@@ -1441,68 +1441,60 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           {/* Header */}
           {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
             // Header para otros productos - mostrar stock por sucursal
-            <div className="rounded p-4 grid grid-cols-13 gap-4 bg-slate-800">
-              <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
-              <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
-              <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
-              <div className="col-span-3 text-center text-sm font-bold text-white uppercase">Acciones</div>
+            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
+              <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Mitre</div>
+              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">La Plata</div>
+              <div className="col-span-2 text-xs font-bold text-white uppercase">Precio</div>
+              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
             </div>
           ) : (
-            // Header para notebooks y celulares - mostrar serial y sucursal
-            <div className="rounded p-4 grid grid-cols-13 gap-6 bg-slate-800">
-              <div className="col-span-3 text-sm font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-2 text-sm font-bold text-white uppercase">Serial</div>
-              <div className="col-span-1 text-sm font-bold text-white uppercase">Condición</div>
-              <div className="col-span-1 text-sm font-bold text-white uppercase">Sucursal</div>
-              <div className="col-span-2 text-sm font-bold text-white uppercase">Precio</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Copys</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
+            // Header para notebooks y celulares - mostrar serial
+            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
+              <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-2 text-xs font-bold text-white uppercase">Serial</div>
+              <div className="col-span-1 text-xs font-bold text-white uppercase">Precio</div>
+              <div className="col-span-1 text-xs font-bold text-white uppercase">Estado</div>
+              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
             </div>
           )}
           
           {/* Productos */}
           {datos.map((producto) => (
-            <div 
-              key={producto.id} 
-              className={`group cursor-pointer hover:bg-slate-100 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-4 bg-white grid items-center shadow-sm hover:shadow-md ${categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? 'grid-cols-13 gap-4' : 'grid-cols-13 gap-6'}`}
+            <div
+              key={producto.id}
+              className={`group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2`}
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
-              <div className="col-span-3">
+              <div className="col-span-6">
                 {categoriaActiva === 'otros' ? (
                   <div>
-                    <div className="text-sm font-medium">
-                      {producto.nombre_producto}
+                    <div className="text-xs font-medium truncate">
+                      <span className="font-semibold">{producto.nombre_producto}</span>
+                      {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
                     </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {producto.descripcion}
+                    <div className="flex space-x-1 mt-0.5">
+                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
+                        (() => {
+                          const condicion = (producto.condicion || '').toLowerCase().trim();
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'defectuoso') return 'bg-red-100 text-red-700';
+                          return 'bg-slate-100 text-slate-700';
+                        })()
+                      }`}>
+                        {(producto.condicion || 'NUEVO').toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    <div className="text-sm font-medium">
-                      {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
-                        // Para otros productos: solo nombre - descripción
-                        <>
-                          <span>{producto.nombre_producto || 'Sin nombre'}</span>
-                          {producto.descripcion && (
-                            <span> - {producto.descripcion}</span>
-                          )}
-                        </>
-                      ) : (
-                        // Para notebooks y celulares: copy completo
-                        generateCopy(producto, { 
-                          tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 'celular_completo'
-                        })
-                      )}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {(categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') && producto.descripcion && <span>{producto.descripcion}</span>}
-                      {producto.stock > 0 && <span className="ml-2 text-emerald-600">Stock: {producto.stock}</span>}
-                    </div>
+                  <div className="text-xs font-medium truncate">
+                    {generateCopy(producto, {
+                      tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 'celular_completo'
+                    })}
+                    {producto.stock > 0 && <span className="ml-1 text-emerald-600 text-xs">Stock: {producto.stock}</span>}
                   </div>
                 )}
               </div>
@@ -1512,90 +1504,126 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 <>
                   {/* Stock Mitre */}
                   <div className="col-span-1 text-center">
-                    <span className={`px-2 py-1 text-sm font-medium rounded ${
-                      (producto.cantidad_mitre || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    <span className={`px-1 py-0.5 text-xs font-medium rounded ${
+                      (producto.cantidad_mitre || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {producto.cantidad_mitre || 0}
                     </span>
                   </div>
-                  
+
                   {/* Stock La Plata */}
                   <div className="col-span-1 text-center">
-                    <span className={`px-2 py-1 text-sm font-medium rounded ${
-                      (producto.cantidad_la_plata || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    <span className={`px-1 py-0.5 text-xs font-medium rounded ${
+                      (producto.cantidad_la_plata || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {producto.cantidad_la_plata || 0}
                     </span>
                   </div>
-                  
-                  {/* Condición */}
-                  <div className="col-span-1 flex justify-center">
-                    <div className="space-y-1">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        (() => {
-                          const condicion = (producto.condicion || '').toLowerCase().trim();
-                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-800';
-                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-800';
-                          if (condicion === 'reacondicionado') return 'bg-blue-100 text-blue-800';
-                          if (condicion === 'defectuoso') return 'bg-red-100 text-red-800';
-                          return 'bg-slate-100 text-slate-800';
-                        })()
-                      }`}>
-                        {(producto.condicion || 'NUEVO').toUpperCase()}
-                      </span>
+
+                  {/* Precio */}
+                  <div className="col-span-2">
+                    <div className="text-xs font-bold text-slate-800 leading-tight">
+                      {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>
+                    <div className="text-xs text-slate-500 leading-tight">
+                      ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+                    </div>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="col-span-2 flex justify-start gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const copyText = generateCopyWithPrice(producto, false);
+                          await navigator.clipboard.writeText(copyText);
+                          console.log('✅ Copiado USD:', copyText);
+                        } catch (error) {
+                          console.error('❌ Error copiando USD:', error);
+                          const textArea = document.createElement('textarea');
+                          textArea.value = generateCopyWithPrice(producto, false);
+                          document.body.appendChild(textArea);
+                          textArea.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(textArea);
+                        }
+                      }}
+                      className="w-5 h-5 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      title="Copiar información USD"
+                    >
+                      $
+                    </button>
+                    <button
+                      onClick={() => handleAddToCart(producto)}
+                      className="w-5 h-5 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      title="Agregar al carrito"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => openEditModal(producto)}
+                      className="w-5 h-5 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      title="Editar producto"
+                    >
+                      <Edit className="w-3 h-3" />
+                    </button>
                   </div>
                 </>
               ) : (
-                // Columnas para notebooks y celulares - mostrar serial, condición y sucursal
                 <>
-                  {/* Serial */}
+                  {/* Serial para notebooks y celulares */}
                   <div className="col-span-2">
-                    <div className="text-sm text-slate-700">
+                    <div className="text-xs text-slate-700">
                       {producto.serial || producto.imei || 'N/A'}
                     </div>
                   </div>
-                  
-                  {/* Condición */}
-                  <div className="col-span-1 flex justify-center">
-                    <div className="space-y-1">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+
+                  {/* Precio */}
+                  <div className="col-span-1">
+                    <div className="text-xs font-bold text-slate-800">
+                      {formatearMonto(producto.precio_venta_usd, 'USD')}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+                    </div>
+                  </div>
+
+                  {/* Estado completo */}
+                  <div className="col-span-1">
+                    <div className="flex flex-col gap-0.5">
+                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
                         (() => {
                           const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
-                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-800';
-                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-800';
-                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-800';
-                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-800';
-                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-800';
-                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-800';
-                          if (condicion === 'regular') return 'bg-orange-100 text-orange-800';
-                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-800';
-                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-800';
-                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-800';
-                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-800';
-                          return 'bg-slate-100 text-slate-800';
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                          return 'bg-slate-100 text-slate-700';
                         })()
                       }`}>
                         {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
                       </span>
-                    </div>
-                  </div>
-                  
-                  {/* Sucursal */}
-                  <div className="col-span-1 flex justify-center">
-                    <div className="space-y-1">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        (producto.sucursal === 'LA PLATA' || producto.ubicacion === 'LA PLATA') ? 'bg-blue-100 text-blue-800' :
-                        (producto.sucursal === 'MITRE' || producto.ubicacion === 'MITRE') ? 'bg-green-100 text-green-800' :
-                        (producto.sucursal === 'RSN/IDM/FIXCENTER' || producto.ubicacion === 'RSN/IDM/FIXCENTER') ? 'bg-purple-100 text-purple-800' :
-                        'bg-slate-100 text-slate-800'
+                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
+                        (producto.sucursal === 'LA PLATA' || producto.ubicacion === 'LA PLATA') ? 'bg-blue-100 text-blue-700' :
+                        (producto.sucursal === 'MITRE' || producto.ubicacion === 'MITRE') ? 'bg-green-100 text-green-700' :
+                        (producto.sucursal === 'RSN/IDM/FIXCENTER' || producto.ubicacion === 'RSN/IDM/FIXCENTER') ? 'bg-purple-100 text-purple-700' :
+                        'bg-slate-100 text-slate-700'
                       }`}>
                         {(() => {
                           const sucursal = producto.sucursal || producto.ubicacion || 'N/A';
                           if (sucursal === 'LA PLATA') return 'LA PLATA';
                           if (sucursal === 'MITRE') return 'MITRE';
                           if (sucursal === 'RSN/IDM/FIXCENTER') return 'RSN/IDM/FIXCENTER';
-                          // Mapear sucursales viejas para visualización
                           if (sucursal.toLowerCase().includes('quilmes') || sucursal.toLowerCase().includes('san') || sucursal.toLowerCase().includes('martin') || sucursal === 'la_plata') return 'LA PLATA';
                           if (sucursal.toLowerCase().includes('deposito') || sucursal === 'mitre') return 'MITRE';
                           return sucursal.toUpperCase();
@@ -1603,102 +1631,51 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                       </span>
                     </div>
                   </div>
+
+
+                  {/* Acciones */}
+                  <div className="col-span-2 flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const copyText = generateCopyWithPrice(producto, false);
+                          await navigator.clipboard.writeText(copyText);
+                          console.log('✅ Copiado USD:', copyText);
+                        } catch (error) {
+                          console.error('❌ Error copiando USD:', error);
+                          const textArea = document.createElement('textarea');
+                          textArea.value = generateCopyWithPrice(producto, false);
+                          document.body.appendChild(textArea);
+                          textArea.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(textArea);
+                        }
+                      }}
+                      className="w-5 h-5 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      title="Copiar información USD"
+                    >
+                      $
+                    </button>
+                    <button
+                      onClick={() => handleAddToCart(producto)}
+                      className="w-5 h-5 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      title="Agregar al carrito"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 000 3z"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => openEditModal(producto)}
+                      className="w-5 h-5 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      title="Editar producto"
+                    >
+                      <Edit className="w-3 h-3" />
+                    </button>
+                  </div>
                 </>
               )}
-              
-              {/* Precio */}
-              <div className="col-span-2">
-                <div className="text-lg font-bold text-slate-800">
-                  {formatearMonto(producto.precio_venta_usd, 'USD')}
-                </div>
-                <div className="text-xs text-slate-500">
-                  ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
-                </div>
-              </div>
-              
-              {/* Copys */}
-              <div className="col-span-2 flex justify-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    try {
-                      const copyText = generateCopyWithPrice(producto, false);
-                      await navigator.clipboard.writeText(copyText);
-                      console.log('✅ Copiado USD:', copyText);
-                    } catch (error) {
-                      console.error('❌ Error copiando USD:', error);
-                      // Fallback para navegadores sin soporte
-                      const textArea = document.createElement('textarea');
-                      textArea.value = generateCopyWithPrice(producto, false);
-                      document.body.appendChild(textArea);
-                      textArea.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(textArea);
-                    }
-                  }}
-                  className="px-2 py-1 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                  title="Copiar información USD"
-                >
-                  USD
-                </button>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    try {
-                      const copyText = generateCopyWithPrice(producto, true);
-                      await navigator.clipboard.writeText(copyText);
-                      console.log('✅ Copiado ARS:', copyText);
-                    } catch (error) {
-                      console.error('❌ Error copiando ARS:', error);
-                      // Fallback para navegadores sin soporte
-                      const textArea = document.createElement('textarea');
-                      textArea.value = generateCopyWithPrice(producto, true);
-                      document.body.appendChild(textArea);
-                      textArea.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(textArea);
-                    }
-                  }}
-                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Copiar información Pesos"
-                >
-                  ARS
-                </button>
-              </div>
-
-              {/* Acciones */}
-              <div className={`${categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? 'col-span-3' : 'col-span-2'} flex justify-center space-x-1`} onClick={(e) => e.stopPropagation()}>
-                <button
-                  onClick={() => handleAddToCart(producto)}
-                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Agregar al carrito"
-                >
-                  <svg className="w-6 h-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                  </svg>
-                </button>
-                <button
-                  onClick={() => openEditModal(producto)}
-                  className="px-2 py-1 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                  title="Editar producto"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    const producto_info = producto.modelo || producto.marca || 'este producto';
-                    if (window.confirm(`¿Estás seguro que deseas eliminar "${producto_info}"?\n\nEsta acción no se puede deshacer.`)) {
-                      eliminarProducto(producto.id);
-                    }
-                  }}
-                  className="px-2 py-1 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Eliminar producto"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-                  </svg>
-                </button>
-              </div>
             </div>
           ))}
           
