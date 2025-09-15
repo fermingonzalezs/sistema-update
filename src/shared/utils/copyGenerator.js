@@ -523,7 +523,7 @@ const generateOtroCopy = (otro, config) => {
   } else if (otro.marca) {
     modelo = otro.marca;
   } else {
-    modelo = 'Sin modelo';
+    modelo = otro.descripcion || 'Producto sin nombre';
   }
   partes.push(modelo.toUpperCase());
   

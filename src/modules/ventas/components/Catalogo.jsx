@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, ChevronDown, Edit, Save, AlertCircle, Search, CheckCircle } from 'lucide-react';
+import { X, Filter, ChevronDown, ChevronUp, Edit, Save, AlertCircle, Search, CheckCircle } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
@@ -9,6 +9,22 @@ import { supabase } from '../../../lib/supabase';
 // Importar formatter unificado y copyGenerator
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
+
+// Importar constantes normalizadas
+import {
+  CONDICIONES,
+  CONDICIONES_ARRAY,
+  CONDICIONES_LABELS,
+  ESTADOS,
+  ESTADOS_ARRAY,
+  ESTADOS_LABELS,
+  UBICACIONES,
+  UBICACIONES_ARRAY,
+  UBICACIONES_LABELS,
+  getCondicionLabel,
+  getEstadoLabel,
+  getUbicacionLabel
+} from '../../../shared/constants/productConstants';
 
 // La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
@@ -44,6 +60,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [editSuccess, setEditSuccess] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [categoriasOtros, setCategoriasOtros] = useState([]);
+  const [filtrosVisible, setFiltrosVisible] = useState(true);
 
   // Cargar cotización y categorías
   useEffect(() => {
@@ -504,23 +521,18 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
                     // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
-                    const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
+                    const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
                     const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
                     handleEditFormChange('disponible', !esNoDisponible);
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="nuevo">NUEVO</option>
-                  <option value="refurbished">REFURBISHED</option>
-                  <option value="usado">USADO</option>
-                  <option value="reparacion">REPARACIÓN</option>
-                  <option value="reservado">RESERVADO</option>
-                  <option value="prestado">PRESTADO</option>
-                  <option value="sin_reparacion">SIN REPARACIÓN</option>
-                  <option value="en_preparacion">EN PREPARACIÓN</option>
-                  <option value="otro">OTRO</option>
-                  <option value="uso_oficina">USO OFICINA</option>
+                  {CONDICIONES_ARRAY.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {CONDICIONES_LABELS[condicion]}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -531,9 +543,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="LA PLATA">LA PLATA</option>
-                  <option value="MITRE">MITRE</option>
-                  <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
+                  {UBICACIONES_ARRAY.map(ubicacion => (
+                    <option key={ubicacion} value={ubicacion}>
+                      {UBICACIONES_LABELS[ubicacion]}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -915,23 +929,18 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
                     // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
-                    const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
+                    const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
                     const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
                     handleEditFormChange('disponible', !esNoDisponible);
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="nuevo">NUEVO</option>
-                  <option value="refurbished">REFURBISHED</option>
-                  <option value="usado">USADO</option>
-                  <option value="reparacion">REPARACIÓN</option>
-                  <option value="reservado">RESERVADO</option>
-                  <option value="prestado">PRESTADO</option>
-                  <option value="sin_reparacion">SIN REPARACIÓN</option>
-                  <option value="en_preparacion">EN PREPARACIÓN</option>
-                  <option value="otro">OTRO</option>
-                  <option value="uso_oficina">USO OFICINA</option>
+                  {CONDICIONES_ARRAY.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {CONDICIONES_LABELS[condicion]}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -942,9 +951,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="LA PLATA">LA PLATA</option>
-                  <option value="MITRE">MITRE</option>
-                  <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
+                  {UBICACIONES_ARRAY.map(ubicacion => (
+                    <option key={ubicacion} value={ubicacion}>
+                      {UBICACIONES_LABELS[ubicacion]}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -1273,9 +1284,24 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       </div>
 
       {/* Filtros */}
-      <div className="mb-4 bg-white rounded border border-slate-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Filtros</h3>
+      <div className="mb-4 bg-white rounded border border-slate-200">
+        <div className="flex items-center justify-between p-4 pb-2">
+          <button
+            onClick={() => setFiltrosVisible(!filtrosVisible)}
+            className="flex items-center space-x-2 text-lg font-semibold text-slate-800 hover:text-slate-600 transition-colors"
+          >
+            <span>Filtros</span>
+            {filtrosVisible ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+            {hayFiltrosActivos && (
+              <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                Activos
+              </span>
+            )}
+          </button>
           {hayFiltrosActivos && (
             <button
               onClick={limpiarFiltros}
@@ -1287,7 +1313,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {filtrosVisible && (
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           
           {/* Búsqueda */}
           <div>
@@ -1346,7 +1374,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             >
               <option value="">Todas</option>
               {valoresUnicos.condiciones?.map(condicion => (
-                <option key={condicion} value={condicion}>{condicion.toUpperCase()}</option>
+                <option key={condicion} value={condicion}>
+                  {getCondicionLabel(condicion)}
+                </option>
               ))}
             </select>
           </div>
@@ -1361,7 +1391,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             >
               <option value="">Todos</option>
               {valoresUnicos.estados?.map(estado => (
-                <option key={estado} value={estado}>{estado}</option>
+                <option key={estado} value={estado}>
+                  {getEstadoLabel(estado)}
+                </option>
               ))}
             </select>
           </div>
@@ -1375,9 +1407,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
-              <option value="LA PLATA">LA PLATA</option>
-              <option value="MITRE">MITRE</option>
-              <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
+              {UBICACIONES_ARRAY.map(ubicacion => (
+                <option key={ubicacion} value={ubicacion}>
+                  {getUbicacionLabel(ubicacion)}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1417,7 +1451,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </div>
           </div>
 
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Lista de productos */}
@@ -1445,16 +1481,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
               <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Mitre</div>
               <div className="col-span-1 text-center text-xs font-bold text-white uppercase">La Plata</div>
-              <div className="col-span-2 text-xs font-bold text-white uppercase">Precio</div>
+              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Precio</div>
               <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
             </div>
           ) : (
             // Header para notebooks y celulares - mostrar serial
             <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
               <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-2 text-xs font-bold text-white uppercase">Serial</div>
-              <div className="col-span-1 text-xs font-bold text-white uppercase">Precio</div>
-              <div className="col-span-1 text-xs font-bold text-white uppercase">Estado</div>
+              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Serial</div>
+              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Precio</div>
+              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Estado</div>
               <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
             </div>
           )}
@@ -1468,10 +1504,15 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             >
               {/* Información del producto */}
               <div className="col-span-6">
-                {categoriaActiva === 'otros' ? (
+                {console.log('🔍 DEBUG - categoriaActiva:', categoriaActiva, 'producto:', producto.id)}
+                {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
                   <div>
                     <div className="text-xs font-medium truncate">
-                      <span className="font-semibold">{producto.nombre_producto}</span>
+                      <span className="font-semibold">
+                        {/* DEBUG: Mostrar todos los campos posibles */}
+                        {console.log('🔍 DEBUG - Producto otros:', producto)}
+                        {producto.nombre_producto || producto.modelo || producto.descripcion || 'SIN NOMBRE'}
+                      </span>
                       {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
                     </div>
                     <div className="flex space-x-1 mt-0.5">
@@ -1503,7 +1544,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 // Columnas para otros productos - mostrar stock por sucursal
                 <>
                   {/* Stock Mitre */}
-                  <div className="col-span-1 text-center">
+                  <div className="col-span-1 flex justify-center">
                     <span className={`px-1 py-0.5 text-xs font-medium rounded ${
                       (producto.cantidad_mitre || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
@@ -1512,7 +1553,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Stock La Plata */}
-                  <div className="col-span-1 text-center">
+                  <div className="col-span-1 flex justify-center">
                     <span className={`px-1 py-0.5 text-xs font-medium rounded ${
                       (producto.cantidad_la_plata || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
@@ -1521,7 +1562,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Precio */}
-                  <div className="col-span-2">
+                  <div className="col-span-2 text-center">
                     <div className="text-xs font-bold text-slate-800 leading-tight">
                       {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>
@@ -1531,7 +1572,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Acciones */}
-                  <div className="col-span-2 flex justify-start gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="col-span-2 flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
@@ -1549,40 +1590,38 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                           document.body.removeChild(textArea);
                         }
                       }}
-                      className="w-5 h-5 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
                       title="Copiar información USD"
                     >
-                      $
+                      📋
                     </button>
                     <button
                       onClick={() => handleAddToCart(producto)}
-                      className="w-5 h-5 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
                       title="Agregar al carrito"
                     >
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                      </svg>
+                      🛒
                     </button>
                     <button
                       onClick={() => openEditModal(producto)}
-                      className="w-5 h-5 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
                       title="Editar producto"
                     >
-                      <Edit className="w-3 h-3" />
+                      ✏️
                     </button>
                   </div>
                 </>
               ) : (
                 <>
                   {/* Serial para notebooks y celulares */}
-                  <div className="col-span-2">
+                  <div className="col-span-2 text-center">
                     <div className="text-xs text-slate-700">
                       {producto.serial || producto.imei || 'N/A'}
                     </div>
                   </div>
 
                   {/* Precio */}
-                  <div className="col-span-1">
+                  <div className="col-span-1 text-center">
                     <div className="text-xs font-bold text-slate-800">
                       {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>
@@ -1592,8 +1631,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Estado completo */}
-                  <div className="col-span-1">
-                    <div className="flex flex-col gap-0.5">
+                  <div className="col-span-1 text-center">
+                    <div className="flex flex-col gap-0.5 items-center">
                       <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
                         (() => {
                           const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
@@ -1634,7 +1673,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
 
                   {/* Acciones */}
-                  <div className="col-span-2 flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="col-span-2 flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
@@ -1652,26 +1691,24 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                           document.body.removeChild(textArea);
                         }
                       }}
-                      className="w-5 h-5 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
                       title="Copiar información USD"
                     >
-                      $
+                      📋
                     </button>
                     <button
                       onClick={() => handleAddToCart(producto)}
-                      className="w-5 h-5 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
                       title="Agregar al carrito"
                     >
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 000 3z"/>
-                      </svg>
+                      🛒
                     </button>
                     <button
                       onClick={() => openEditModal(producto)}
-                      className="w-5 h-5 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
                       title="Editar producto"
                     >
-                      <Edit className="w-3 h-3" />
+                      ✏️
                     </button>
                   </div>
                 </>

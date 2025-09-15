@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import {
+  CONDICIONES,
+  CONDICIONES_ARRAY,
+  CONDICIONES_LABELS,
+  ESTADOS,
+  ESTADOS_ARRAY,
+  ESTADOS_LABELS,
+  UBICACIONES,
+  UBICACIONES_ARRAY,
+  UBICACIONES_LABELS
+} from '../../constants/productConstants';
 
 // Configuración de campos por tipo de producto
 const CONFIGURACION_PRODUCTOS = {
@@ -44,24 +55,14 @@ const CONFIGURACION_PRODUCTOS = {
 
 // Opciones para selects
 const OPCIONES = {
-  sucursal: [
-    { value: 'LA PLATA', label: 'LA PLATA' },
-    { value: 'MITRE', label: 'MITRE' },
-    { value: 'RSN/IDM/FIXCENTER', label: 'RSN/IDM/FIXCENTER' }
-  ],
-  condicion: [
-    { value: 'nuevo', label: 'Nuevo' },
-    { value: 'usado', label: 'Usado' },
-    { value: 'reacondicionado', label: 'Reacondicionado' },
-    { value: 'reparacion', label: 'Reparación' },
-    { value: 'reservado', label: 'Reservado' },
-    { value: 'prestado', label: 'Prestado' },
-    { value: 'sin_reparacion', label: 'Sin Reparación' },
-    { value: 'defectuoso', label: 'Defectuoso' },
-    { value: 'en_preparacion', label: 'En Preparación' },
-    { value: 'otro', label: 'Otro' },
-    { value: 'uso_oficina', label: 'Uso Oficina' }
-  ],
+  sucursal: UBICACIONES_ARRAY.map(ubicacion => ({
+    value: ubicacion,
+    label: UBICACIONES_LABELS[ubicacion]
+  })),
+  condicion: CONDICIONES_ARRAY.map(condicion => ({
+    value: condicion,
+    label: CONDICIONES_LABELS[condicion]
+  })),
   marca: {
     notebook: ['ASUS', 'Acer', 'HP', 'Lenovo', 'Dell', 'MSI', 'Apple'],
     celular: ['Apple', 'Samsung', 'Xiaomi', 'Motorola', 'Huawei', 'OnePlus']
@@ -75,15 +76,10 @@ const OPCIONES = {
   tipo_ram: ['DDR3', 'DDR4', 'DDR5'],
   so: ['WIN11', 'WIN10', 'Linux', 'macOS', 'Sin SO'],
   resolucion: ['HD', 'FHD', '2K', '4K'],
-  estado: [
-    { value: 'A+', label: 'A+' },
-    { value: 'A-', label: 'A-' },
-    { value: 'A', label: 'A' },
-    { value: 'B+', label: 'B+' },
-    { value: 'B', label: 'B' },
-    { value: 'B-', label: 'B-' },
-    { value: 'C', label: 'C' }
-  ]
+  estado: ESTADOS_ARRAY.map(estado => ({
+    value: estado,
+    label: ESTADOS_LABELS[estado]
+  }))
 };
 
 const ModalProducto = ({ 
@@ -107,8 +103,9 @@ const ModalProducto = ({
       // Valores por defecto según tipo
       const defaults = {
         notebook: {
-          sucursal: 'la_plata',
-          condicion: 'usado',
+          sucursal: UBICACIONES.LA_PLATA,
+          condicion: CONDICIONES.USADO,
+          estado: ESTADOS.A,
           disponible: true,
           precio_costo_usd: 0,
           envios_repuestos: 0,
@@ -124,15 +121,16 @@ const ModalProducto = ({
           fallas: 'Ninguna'
         },
         celular: {
-          sucursal: 'la_plata',
-          condicion: 'usado',
+          sucursal: UBICACIONES.LA_PLATA,
+          condicion: CONDICIONES.USADO,
+          estado: ESTADOS.A,
           disponible: true,
           precio_compra_usd: 0,
           precio_venta_usd: 0
         },
         otros: {
-          sucursal: 'la_plata',
-          condicion: 'usado',
+          sucursal: UBICACIONES.LA_PLATA,
+          condicion: CONDICIONES.USADO,
           disponible: true,
           cantidad: 1,
           precio_compra_usd: 0,

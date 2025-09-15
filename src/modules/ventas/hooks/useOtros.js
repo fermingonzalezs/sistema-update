@@ -1,6 +1,16 @@
 // src/lib/otros.js - Service + Hook completo ACTUALIZADO
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import {
+  CONDICIONES,
+  CONDICIONES_ARRAY,
+  isValidCondicion,
+  normalizeCondicion,
+  UBICACIONES,
+  UBICACIONES_ARRAY,
+  isValidUbicacion,
+  normalizeUbicacion
+} from '../../../shared/constants/productConstants';
 
 // 📊 SERVICE: Operaciones de otros productos
 export const otrosService = {
@@ -25,14 +35,32 @@ export const otrosService = {
   // Crear nuevo producto otro
   async create(producto) {
     console.log('💾 Creando producto otro:', producto.nombre_producto)
-    
+
     // Validación básica
     if (!producto.nombre_producto?.trim()) {
       throw new Error('El nombre del producto es obligatorio')
     }
-    
+
     if (!producto.categoria) {
       throw new Error('La categoría es obligatoria')
+    }
+
+    // Validación y normalización de condición si se proporciona
+    let condicionNormalizada = CONDICIONES.USADO; // Default
+    if (producto.condicion) {
+      condicionNormalizada = normalizeCondicion(producto.condicion);
+      if (!isValidCondicion(condicionNormalizada)) {
+        throw new Error(`Condición inválida: ${producto.condicion}. Debe ser una de: ${CONDICIONES_ARRAY.join(', ')}`);
+      }
+    }
+
+    // Validación y normalización de sucursal si se proporciona
+    let sucursalNormalizada = UBICACIONES.LA_PLATA; // Default
+    if (producto.sucursal) {
+      sucursalNormalizada = normalizeUbicacion(producto.sucursal);
+      if (!isValidUbicacion(sucursalNormalizada)) {
+        throw new Error(`Ubicación inválida: ${producto.sucursal}. Debe ser una de: ${UBICACIONES_ARRAY.join(', ')}`);
+      }
     }
 
     const { data, error } = await supabase
@@ -42,15 +70,18 @@ export const otrosService = {
         nombre_producto: producto.nombre_producto?.trim() || producto.descripcion_producto?.trim(),
         descripcion: producto.descripcion?.trim() || '',
         categoria: producto.categoria || 'otros',
-        
+
+        // Datos normalizados
+        condicion: condicionNormalizada,
+
         // Precios - asegurar que sean números
         precio_compra_usd: parseFloat(producto.precio_compra_usd) || 0,
         precio_venta_usd: parseFloat(producto.precio_venta_usd) || 0,
-        
-        // Cantidades por sucursal
-        cantidad_la_plata: parseInt(producto.cantidad_la_plata) || (producto.sucursal === 'la_plata' ? parseInt(producto.cantidad) || 1 : 0),
-        cantidad_mitre: parseInt(producto.cantidad_mitre) || (producto.sucursal === 'mitre' ? parseInt(producto.cantidad) || 1 : 0),
-        
+
+        // Cantidades por sucursal - usar ubicaciones normalizadas
+        cantidad_la_plata: parseInt(producto.cantidad_la_plata) || (sucursalNormalizada === UBICACIONES.LA_PLATA ? parseInt(producto.cantidad) || 1 : 0),
+        cantidad_mitre: parseInt(producto.cantidad_mitre) || (sucursalNormalizada === UBICACIONES.MITRE ? parseInt(producto.cantidad) || 1 : 0),
+
         // Información adicional
         garantia: producto.garantia || '',
         observaciones: producto.observaciones || producto.fallas || 'Ninguna'
@@ -69,7 +100,25 @@ export const otrosService = {
   // Actualizar producto otro
   async update(id, updates) {
     console.log(`🔄 Actualizando producto otro ID: ${id}`)
-    
+
+    // Validar condición si se actualiza
+    if (updates.condicion !== undefined) {
+      const condicionNormalizada = normalizeCondicion(updates.condicion);
+      if (!isValidCondicion(condicionNormalizada)) {
+        throw new Error(`Condición inválida: ${updates.condicion}. Debe ser una de: ${CONDICIONES_ARRAY.join(', ')}`);
+      }
+      updates.condicion = condicionNormalizada;
+    }
+
+    // Validar sucursal/ubicación si se actualiza
+    if (updates.sucursal !== undefined) {
+      const ubicacionNormalizada = normalizeUbicacion(updates.sucursal);
+      if (!isValidUbicacion(ubicacionNormalizada)) {
+        throw new Error(`Ubicación inválida: ${updates.sucursal}. Debe ser una de: ${UBICACIONES_ARRAY.join(', ')}`);
+      }
+      updates.sucursal = ubicacionNormalizada;
+    }
+
     // Preparar updates con validación de tipos
     const cleanUpdates = {
       ...updates

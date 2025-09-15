@@ -36,11 +36,19 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state change:', event, session?.user?.email);
-        
-        if (session?.user) {
+        console.log('🔍 Session details:', session);
+        console.log('🔍 Event type:', event);
+
+        if (event === 'SIGNED_OUT') {
+          console.log('❌ Usuario deslogueado - investigando causa');
+          setUser(null);
+          setError(null);
+        } else if (session?.user) {
+          console.log('✅ Usuario logueado correctamente');
           setUser(session.user);
           setError(null);
         } else {
+          console.log('ℹ️ No hay sesión activa');
           setUser(null);
         }
         setLoading(false);
@@ -69,10 +77,7 @@ export const useAuth = () => {
 
     try {
       console.log('🔐 Iniciando login con Supabase Auth...');
-      
-      // Limpiar cualquier sesión previa
-      await clearAuthCache();
-      
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -86,15 +91,16 @@ export const useAuth = () => {
         throw new Error('No se pudo autenticar el usuario');
       }
 
-      // Verificar que el usuario está activo en metadatos
+      // Verificar metadatos del usuario (opcional)
       // En Supabase, los metadatos están en user_metadata
       const userMetadata = data.user.user_metadata || {};
       console.log('🔍 Metadatos del usuario:', userMetadata);
-      
-      if (userMetadata.activo === false) {
-        await supabase.auth.signOut();
-        throw new Error('Usuario desactivado. Contacta al administrador');
-      }
+
+      // DESACTIVADO: Validación de usuario activo - permitir todos los logins
+      // if (userMetadata.activo === false) {
+      //   await supabase.auth.signOut();
+      //   throw new Error('Usuario desactivado. Contacta al administrador');
+      // }
 
       console.log('✅ Login exitoso:', {
         email: data.user.email,

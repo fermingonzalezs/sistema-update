@@ -1,6 +1,19 @@
 // src/lib/inventario.js - Service + Hook completo ACTUALIZADO
 import { supabase } from '../../../lib/supabase';
 import { useSupabaseEntity } from '../../../shared/hooks/useSupabaseEntity';
+import {
+  CONDICIONES,
+  CONDICIONES_ARRAY,
+  isValidCondicion,
+  normalizeCondicion,
+  ESTADOS,
+  ESTADOS_ARRAY,
+  isValidEstado,
+  UBICACIONES,
+  UBICACIONES_ARRAY,
+  isValidUbicacion,
+  normalizeUbicacion
+} from '../../../shared/constants/productConstants';
 
 // 📊 SERVICE: Operaciones de inventario de computadoras
 export const inventarioService = {
@@ -25,20 +38,43 @@ export const inventarioService = {
   // Crear nueva computadora
   async create(computadora) {
     console.log('💾 Creando computadora:', computadora.serial)
-    
+
     // Validaciones básicas
     if (!computadora.serial?.trim()) {
       throw new Error('El número de serie es obligatorio')
     }
-    
+
     if (!computadora.modelo?.trim()) {
       throw new Error('El modelo es obligatorio')
     }
-    
+
     // Validar que no exista el serial
     const existing = await this.findBySerial(computadora.serial.trim())
     if (existing) {
       throw new Error(`Ya existe una computadora con serial: ${computadora.serial}`)
+    }
+
+    // Validación y normalización de condición
+    let condicionNormalizada = CONDICIONES.USADO; // Default
+    if (computadora.condicion) {
+      condicionNormalizada = normalizeCondicion(computadora.condicion);
+      if (!isValidCondicion(condicionNormalizada)) {
+        throw new Error(`Condición inválida: ${computadora.condicion}. Debe ser una de: ${CONDICIONES_ARRAY.join(', ')}`);
+      }
+    }
+
+    // Validación de estado si se proporciona
+    if (computadora.estado && !isValidEstado(computadora.estado)) {
+      throw new Error(`Estado inválido: ${computadora.estado}. Debe ser una de: ${ESTADOS_ARRAY.join(', ')}`);
+    }
+
+    // Validación y normalización de sucursal
+    let sucursalNormalizada = UBICACIONES.LA_PLATA; // Default
+    if (computadora.sucursal) {
+      sucursalNormalizada = normalizeUbicacion(computadora.sucursal);
+      if (!isValidUbicacion(sucursalNormalizada)) {
+        throw new Error(`Ubicación inválida: ${computadora.sucursal}. Debe ser una de: ${UBICACIONES_ARRAY.join(', ')}`);
+      }
     }
     
     const { data, error } = await supabase
@@ -55,9 +91,10 @@ export const inventarioService = {
         precio_venta_usd: parseFloat(computadora.precio_venta_usd) || 0,
         // precio_costo_total se calcula automáticamente en la DB
         
-        // Estado y ubicación
-        sucursal: computadora.sucursal || 'la_plata',
-        condicion: computadora.condicion || 'usado',
+        // Estado y ubicación - usar valores normalizados
+        sucursal: sucursalNormalizada,
+        condicion: condicionNormalizada,
+        estado: computadora.estado || ESTADOS.A,
         
         // Especificaciones principales
         procesador: computadora.procesador || '',

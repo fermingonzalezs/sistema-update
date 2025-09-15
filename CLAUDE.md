@@ -271,6 +271,94 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - Financial reports and statements
 - Inventory reports and stock counts
 
+## Data Normalization Standards
+
+### Product Field Normalization
+All product data across categories (notebooks, smartphones, accessories) follows standardized field values and validation rules defined in `/src/shared/constants/productConstants.js`.
+
+#### CONDICION (Functional State) - 8 Standard Values
+- **nuevo**: New/unused product
+- **usado**: Used product in working condition
+- **refurbished**: Refurbished/remanufactured product
+- **reparacion**: Product currently under repair
+- **reservado**: Reserved product (available for display)
+- **prestado**: Loaned product (not available for sale)
+- **sin_reparacion**: Product that cannot be repaired
+- **uso_oficina**: Product for office use
+
+#### ESTADO (Aesthetic Condition) - 5 Standard Grades
+- **A+**: A+ (Excellent) - Like new condition
+- **A**: A (Very Good) - Minor cosmetic wear
+- **A-**: A- (Good) - Light usage marks
+- **B+**: B+ (Regular) - Noticeable wear but fully functional
+- **B**: B (Functional) - Heavy wear but works correctly
+
+#### UBICACION (Location/Branch) - 3 Standard Values
+- **la_plata**: LA PLATA branch
+- **mitre**: MITRE branch
+- **rsn_idm_fixcenter**: RSN/IDM/FIXCENTER branch
+
+### Implementation Details
+
+#### Constants and Validation Functions
+```javascript
+// Import standardized constants
+import {
+  CONDICIONES, CONDICIONES_ARRAY, CONDICIONES_LABELS,
+  ESTADOS, ESTADOS_ARRAY, ESTADOS_LABELS,
+  UBICACIONES, UBICACIONES_ARRAY, UBICACIONES_LABELS,
+  getCondicionColor, getEstadoColor, getUbicacionLabel,
+  isValidCondicion, isValidEstado, isValidUbicacion,
+  normalizeCondicion, normalizeUbicacion
+} from '../../../shared/constants/productConstants';
+```
+
+#### Database Migration
+- **Applied**: `normalize_product_fields_step1` - Normalizes existing data across all product tables
+- **Tables affected**: `inventario`, `celulares`, `otros`, `repuestos`
+- **Legacy mapping**: Handles old formats like 'reparación' → 'reparacion', 'reacondicionado' → 'refurbished'
+
+#### Form Integration
+- **Product input forms**: Use standardized dropdowns with normalized values
+- **Validation**: Automatic validation in hooks prevents invalid values
+- **Legacy support**: Normalization functions handle backward compatibility
+
+#### Filter Integration
+- **Catalog filters**: Display user-friendly labels while maintaining normalized values
+- **Search functionality**: Supports both normalized and legacy formats
+- **Color coding**: Consistent visual representation using predefined color schemes
+
+### Usage Guidelines
+
+#### In Components
+```javascript
+// ✅ CORRECT: Use constants for dropdowns
+<select>
+  {CONDICIONES_ARRAY.map(condicion => (
+    <option key={condicion} value={condicion}>
+      {CONDICIONES_LABELS[condicion]}
+    </option>
+  ))}
+</select>
+
+// ✅ CORRECT: Use helper functions for display
+<span className={getCondicionColor(producto.condicion)}>
+  {getCondicionLabel(producto.condicion)}
+</span>
+```
+
+#### In Hooks/Services
+```javascript
+// ✅ CORRECT: Validate and normalize in data operations
+const condicionNormalizada = normalizeCondicion(input.condicion);
+if (!isValidCondicion(condicionNormalizada)) {
+  throw new Error(`Invalid condition: ${input.condicion}`);
+}
+```
+
+#### Database Constraints
+All product tables enforce referential integrity through database constraints that only accept normalized values, ensuring data consistency at the storage level.
+
 ## Development Guidelines
 
 ### Code Conventions
