@@ -8,10 +8,15 @@ export const useAuth = () => {
 
   // Cargar sesión actual de Supabase Auth al iniciar
   useEffect(() => {
+    let authSubscription = null;
+    let isComponentMounted = true;
+
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
+        if (!isComponentMounted) return;
+
         if (error) {
           console.error('Error obteniendo sesión:', error);
           setError(error.message);
@@ -24,25 +29,67 @@ export const useAuth = () => {
         }
       } catch (err) {
         console.error('Error verificando sesión:', err);
-        setError(err.message);
+        if (isComponentMounted) {
+          setError(err.message);
+        }
       } finally {
-        setLoading(false);
+        if (isComponentMounted) {
+          setLoading(false);
+        }
       }
     };
 
     getSession();
 
-    // Escuchar cambios de autenticación
+    // Escuchar cambios de autenticación con throttling agresivo
+    let lastAuthChange = 0;
+    let lastEventType = '';
+    const THROTTLE_MS = 3000; // 3 segundos de throttling más agresivo
+    const TOKEN_REFRESH_THROTTLE = 10000; // 10 segundos para TOKEN_REFRESHED
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, session?.user?.email);
-        console.log('🔍 Session details:', session);
-        console.log('🔍 Event type:', event);
+        const now = Date.now();
+
+        // Throttling especial para TOKEN_REFRESHED
+        if (event === 'TOKEN_REFRESHED') {
+          if (now - lastAuthChange < TOKEN_REFRESH_THROTTLE) {
+            console.log('🕒 Token refresh throttled agresivamente, ignorando');
+            return;
+          }
+        } else {
+          // Throttling general para otros eventos
+          if (now - lastAuthChange < THROTTLE_MS) {
+            console.log('🕒 Auth change throttled, ignorando evento:', event);
+            return;
+          }
+        }
+
+        // Evitar procesamiento duplicado del mismo evento
+        if (event === lastEventType && now - lastAuthChange < THROTTLE_MS * 2) {
+          console.log('🕒 Evento duplicado ignorado:', event);
+          return;
+        }
+
+        lastAuthChange = now;
+        lastEventType = event;
+
+        if (!isComponentMounted) return;
+
+        console.log('🔄 Auth state change procesado:', event, session?.user?.email);
 
         if (event === 'SIGNED_OUT') {
           console.log('❌ Usuario deslogueado - investigando causa');
           setUser(null);
           setError(null);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('🔄 Token refreshed exitosamente - manteniendo estado actual');
+          // Solo actualizar si no hay usuario actual
+          if (session?.user && !user) {
+            setUser(session.user);
+          }
+          // NO llamar setLoading(false) en TOKEN_REFRESHED
+          return;
         } else if (session?.user) {
           console.log('✅ Usuario logueado correctamente');
           setUser(session.user);
@@ -55,7 +102,14 @@ export const useAuth = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    authSubscription = subscription;
+
+    return () => {
+      isComponentMounted = false;
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+    };
   }, []);
 
   // Función para limpiar cache y sesión

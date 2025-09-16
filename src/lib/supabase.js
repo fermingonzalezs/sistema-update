@@ -10,8 +10,26 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('❌ Faltan variables de entorno de Supabase. Verifica tu archivo .env')
 }
 
-// 📡 Cliente de Supabase (esto lo usan todos los servicios)
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// 📡 Cliente de Supabase con configuración optimizada para evitar rate limiting
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+    // Configuración para reducir frecuencia de refresh
+    storage: localStorage,
+    flowType: 'pkce'
+  },
+  // Configurar timeouts más largos
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'x-application-name': 'sistema-update'
+    }
+  }
+})
 
 // 📦 SERVICIOS Y HOOKS - Importar y reexportar desde archivos modulares
 export { inventarioService, useInventario } from '../modules/ventas/hooks/useInventario.js'

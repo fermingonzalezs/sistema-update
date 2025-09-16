@@ -60,7 +60,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [editSuccess, setEditSuccess] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [categoriasOtros, setCategoriasOtros] = useState([]);
-  const [filtrosVisible, setFiltrosVisible] = useState(true);
 
   // Cargar cotización y categorías
   useEffect(() => {
@@ -1249,16 +1248,27 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   return (
     <div className="p-0">
 
-      {/* Selector de categorías */}
+      {/* Selector de categorías con filtros integrados */}
       <div className="mb-4 bg-slate-800 rounded border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">Categorías de Productos</h3>
-          <div className="text-sm text-white">
-            {productosFiltrados} de {totalProductos} productos
+          <div className="flex items-center space-x-4">
+            {hayFiltrosActivos && (
+              <button
+                onClick={limpiarFiltros}
+                className="flex items-center space-x-1 px-2 py-1 bg-slate-600 text-white text-xs rounded hover:bg-slate-700 transition-colors"
+              >
+                <X size={12} />
+                <span>Limpiar</span>
+              </button>
+            )}
+            <div className="text-sm text-white">
+              {productosFiltrados} de {totalProductos} productos
+            </div>
           </div>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-wrap gap-2 mb-4">
           {Object.values(categorias).map((cat) => (
             <button
               key={cat.id}
@@ -1281,64 +1291,33 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Filtros */}
-      <div className="mb-4 bg-white rounded border border-slate-200">
-        <div className="flex items-center justify-between p-4 pb-2">
-          <button
-            onClick={() => setFiltrosVisible(!filtrosVisible)}
-            className="flex items-center space-x-2 text-lg font-semibold text-slate-800 hover:text-slate-600 transition-colors"
-          >
-            <span>Filtros</span>
-            {filtrosVisible ? (
-              <ChevronUp className="w-5 h-5" />
-            ) : (
-              <ChevronDown className="w-5 h-5" />
-            )}
-            {hayFiltrosActivos && (
-              <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                Activos
-              </span>
-            )}
-          </button>
-          {hayFiltrosActivos && (
-            <button
-              onClick={limpiarFiltros}
-              className="flex items-center space-x-1 px-3 py-1 bg-slate-600 text-white text-sm rounded hover:bg-slate-700 transition-colors"
-            >
-              <X size={14} />
-              <span>Limpiar</span>
-            </button>
-          )}
-        </div>
+        {/* Filtros en una sola fila */}
+        <div className="border-t border-slate-600 pt-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
 
-        {filtrosVisible && (
-          <div className="px-4 pb-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          
           {/* Búsqueda */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Búsqueda</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Búsqueda</label>
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Serial o modelo..."
+                placeholder="Serial..."
                 value={filtros.busqueda || ''}
                 onChange={(e) => actualizarFiltro('busqueda', e.target.value)}
-                className="w-full pl-8 pr-2 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
           </div>
-          
+
           {/* Ordenamiento */}
           <div>
-            <label className="block text-xs font-medium text-slate-800 mb-1">Ordenar por</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Ordenar</label>
             <select
               value={ordenamiento.campo}
               onChange={(e) => actualizarOrdenamiento(e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Sin ordenar</option>
               {categoriaConfig?.camposOrdenamiento?.map(campo => (
@@ -1351,11 +1330,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
           {/* Marca */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Marca</label>
             <select
               value={filtros.marca}
               onChange={(e) => actualizarFiltro('marca', e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {valoresUnicos.marcas?.map(marca => (
@@ -1366,11 +1345,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
           {/* Condición */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Condición</label>
             <select
               value={filtros.condicion}
               onChange={(e) => actualizarFiltro('condicion', e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {valoresUnicos.condiciones?.map(condicion => (
@@ -1383,11 +1362,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
           {/* Estado */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Estado</label>
             <select
               value={filtros.estado}
               onChange={(e) => actualizarFiltro('estado', e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todos</option>
               {valoresUnicos.estados?.map(estado => (
@@ -1400,11 +1379,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
           {/* Sucursal/Ubicación */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Ubicación</label>
+            <label className="block text-xs font-medium text-slate-200 mb-1">Ubicación</label>
             <select
               value={filtros.sucursal}
               onChange={(e) => actualizarFiltro('sucursal', e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="">Todas</option>
               {UBICACIONES_ARRAY.map(ubicacion => (
@@ -1418,11 +1397,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           {/* Categoría para "otros" */}
           {categoriaActiva === 'otros' && (
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+              <label className="block text-xs font-medium text-slate-200 mb-1">Categoría</label>
               <select
                 value={filtros.categoria}
                 onChange={(e) => actualizarFiltro('categoria', e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Todas</option>
                 {valoresUnicos.categorias?.map(categoria => (
@@ -1432,28 +1411,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </div>
           )}
 
-          {/* Precio máximo */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Precio máximo</label>
-            <div className="space-y-2">
-              <input
-                type="range"
-                min="0"
-                max="5000"
-                step="50"
-                value={filtros.precioMax || 0}
-                onChange={(e) => actualizarFiltro('precioMax', e.target.value)}
-                className="w-full h-2 bg-slate-200 rounded appearance-none cursor-pointer slider"
-              />
-              <div className="text-xs text-center text-slate-600">
-                {filtros.precioMax ? `U${filtros.precioMax}` : 'Sin límite'}
-              </div>
-            </div>
           </div>
-
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Lista de productos */}
@@ -1473,25 +1432,25 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       )}
       
       {!loading && !error && (
-        <div className="space-y-3">
+        <div className="space-y-1">
           {/* Header */}
           {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
             // Header para otros productos - mostrar stock por sucursal
             <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
-              <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Mitre</div>
-              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">La Plata</div>
-              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Precio</div>
-              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
+              <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Precio</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
             </div>
           ) : (
             // Header para notebooks y celulares - mostrar serial
             <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
-              <div className="col-span-6 text-xs font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Serial</div>
-              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Precio</div>
-              <div className="col-span-1 text-center text-xs font-bold text-white uppercase">Estado</div>
-              <div className="col-span-2 text-center text-xs font-bold text-white uppercase">Acciones</div>
+              <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Serial</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
+              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
             </div>
           )}
           
@@ -1507,16 +1466,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 {console.log('🔍 DEBUG - categoriaActiva:', categoriaActiva, 'producto:', producto.id)}
                 {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
                   <div>
-                    <div className="text-xs font-medium truncate">
-                      <span className="font-semibold">
+                    <div className="text-sm  truncate">
+                      <span className="">
                         {/* DEBUG: Mostrar todos los campos posibles */}
                         {console.log('🔍 DEBUG - Producto otros:', producto)}
                         {producto.nombre_producto || producto.modelo || producto.descripcion || 'SIN NOMBRE'}
                       </span>
                       {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
                     </div>
-                    <div className="flex space-x-1 mt-0.5">
-                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
+                    <div className="flex space-x-1 mt-1">
+                      <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
                         (() => {
                           const condicion = (producto.condicion || '').toLowerCase().trim();
                           if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
@@ -1531,11 +1490,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-xs font-medium truncate">
+                  <div className="text-sm font-medium truncate">
                     {generateCopy(producto, {
                       tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 'celular_completo'
                     })}
-                    {producto.stock > 0 && <span className="ml-1 text-emerald-600 text-xs">Stock: {producto.stock}</span>}
+                    {producto.stock > 0 && <span className="ml-1 text-emerald-600 text-sm">Stock: {producto.stock}</span>}
                   </div>
                 )}
               </div>
@@ -1545,7 +1504,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 <>
                   {/* Stock Mitre */}
                   <div className="col-span-1 flex justify-center">
-                    <span className={`px-1 py-0.5 text-xs font-medium rounded ${
+                    <span className={`px-2 py-1 text-sm font-medium rounded ${
                       (producto.cantidad_mitre || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {producto.cantidad_mitre || 0}
@@ -1554,7 +1513,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
                   {/* Stock La Plata */}
                   <div className="col-span-1 flex justify-center">
-                    <span className={`px-1 py-0.5 text-xs font-medium rounded ${
+                    <span className={`px-2 py-1 text-sm font-medium rounded ${
                       (producto.cantidad_la_plata || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {producto.cantidad_la_plata || 0}
@@ -1563,10 +1522,10 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
                   {/* Precio */}
                   <div className="col-span-2 text-center">
-                    <div className="text-xs font-bold text-slate-800 leading-tight">
+                    <div className="text-lg font-bold text-slate-800 leading-tight">
                       {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>
-                    <div className="text-xs text-slate-500 leading-tight">
+                    <div className="text-sm text-slate-500 leading-tight">
                       ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
                     </div>
                   </div>
@@ -1590,24 +1549,27 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                           document.body.removeChild(textArea);
                         }
                       }}
-                      className="w-6 h-6 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center "
                       title="Copiar información USD"
+                      style={{fontSize: '12px'}}
                     >
-                      📋
+                      COPY
                     </button>
                     <button
                       onClick={() => handleAddToCart(producto)}
-                      className="w-6 h-6 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center "
                       title="Agregar al carrito"
+                      style={{fontSize: '12px'}}
                     >
-                      🛒
+                      VENTA
                     </button>
                     <button
                       onClick={() => openEditModal(producto)}
-                      className="w-6 h-6 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center "
                       title="Editar producto"
+                      style={{fontSize: '12px'}}
                     >
-                      ✏️
+                      EDITAR
                     </button>
                   </div>
                 </>
@@ -1615,60 +1577,42 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 <>
                   {/* Serial para notebooks y celulares */}
                   <div className="col-span-2 text-center">
-                    <div className="text-xs text-slate-700">
+                    <div className="text-sm text-slate-700">
                       {producto.serial || producto.imei || 'N/A'}
                     </div>
                   </div>
 
                   {/* Precio */}
                   <div className="col-span-1 text-center">
-                    <div className="text-xs font-bold text-slate-800">
+                    <div className="text-lg font-bold text-slate-800">
                       {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-sm text-slate-500">
                       ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
                     </div>
                   </div>
 
-                  {/* Estado completo */}
+                  {/* Estado - Solo condición */}
                   <div className="col-span-1 text-center">
-                    <div className="flex flex-col gap-0.5 items-center">
-                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
-                        (() => {
-                          const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
-                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
-                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
-                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
-                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
-                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
-                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
-                          if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
-                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
-                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
-                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
-                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
-                          return 'bg-slate-100 text-slate-700';
-                        })()
-                      }`}>
-                        {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
-                      </span>
-                      <span className={`px-1 py-0.5 text-xs font-medium rounded inline-block w-fit ${
-                        (producto.sucursal === 'LA PLATA' || producto.ubicacion === 'LA PLATA') ? 'bg-blue-100 text-blue-700' :
-                        (producto.sucursal === 'MITRE' || producto.ubicacion === 'MITRE') ? 'bg-green-100 text-green-700' :
-                        (producto.sucursal === 'RSN/IDM/FIXCENTER' || producto.ubicacion === 'RSN/IDM/FIXCENTER') ? 'bg-purple-100 text-purple-700' :
-                        'bg-slate-100 text-slate-700'
-                      }`}>
-                        {(() => {
-                          const sucursal = producto.sucursal || producto.ubicacion || 'N/A';
-                          if (sucursal === 'LA PLATA') return 'LA PLATA';
-                          if (sucursal === 'MITRE') return 'MITRE';
-                          if (sucursal === 'RSN/IDM/FIXCENTER') return 'RSN/IDM/FIXCENTER';
-                          if (sucursal.toLowerCase().includes('quilmes') || sucursal.toLowerCase().includes('san') || sucursal.toLowerCase().includes('martin') || sucursal === 'la_plata') return 'LA PLATA';
-                          if (sucursal.toLowerCase().includes('deposito') || sucursal === 'mitre') return 'MITRE';
-                          return sucursal.toUpperCase();
-                        })()}
-                      </span>
-                    </div>
+                    <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
+                      (() => {
+                        const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                        if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                        if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                        if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                        if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                        if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                        if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                        if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                        if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                        if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                        if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                        if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                        return 'bg-slate-100 text-slate-700';
+                      })()
+                    }`}>
+                      {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
+                    </span>
                   </div>
 
 
@@ -1691,24 +1635,27 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                           document.body.removeChild(textArea);
                         }
                       }}
-                      className="w-6 h-6 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center "
                       title="Copiar información USD"
+                      style={{fontSize: '12px'}}
                     >
-                      📋
+                      COPY
                     </button>
                     <button
                       onClick={() => handleAddToCart(producto)}
-                      className="w-6 h-6 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center "
                       title="Agregar al carrito"
+                      style={{fontSize: '12px'}}
                     >
-                      🛒
+                      VENTA
                     </button>
                     <button
                       onClick={() => openEditModal(producto)}
-                      className="w-6 h-6 text-white text-xs rounded bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center "
                       title="Editar producto"
+                      style={{fontSize: '12px'}}
                     >
-                      ✏️
+                      EDITAR
                     </button>
                   </div>
                 </>
@@ -1812,6 +1759,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
