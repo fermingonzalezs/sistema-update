@@ -124,10 +124,7 @@ export const inventarioService = {
         garantia_update: computadora.garantia_update || '6 meses',
         garantia_oficial: computadora.garantia_oficial || '',
         fallas: computadora.fallas || 'Ninguna',
-        
-        // Control
-        disponible: computadora.disponible !== false,
-        
+
         // Fecha de ingreso
         ingreso: computadora.ingreso || new Date().toISOString().split('T')[0]
       }])
@@ -356,27 +353,6 @@ export const inventarioService = {
     return estadisticas
   },
 
-  // Marcar como vendida (eliminación lógica)
-  async marcarComoVendida(id) {
-    console.log(`💰 Marcando computadora como vendida ID: ${id}`)
-    
-    const { data, error } = await supabase
-      .from('inventario')
-      .update({ 
-        disponible: false,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-    
-    if (error) {
-      console.error('❌ Error marcando como vendida:', error)
-      throw error
-    }
-    
-    console.log('✅ Computadora marcada como vendida')
-    return data[0]
-  }
 };
 
 // 🎣 HOOK: Lógica de React para inventario - REFACTORIZADO con useSupabaseEntity
@@ -397,9 +373,7 @@ export function useInventario() {
     customQuery
   } = useSupabaseEntity('inventario', {
     // Configuración específica para inventario
-    defaultFilters: { 
-      // Removido filtro de disponible para mostrar productos reservados
-    },
+    defaultFilters: {},
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',
     
@@ -421,7 +395,6 @@ export function useInventario() {
       idioma_teclado: data.idioma_teclado || 'Español',
       garantia_update: data.garantia_update || '6 meses',
       fallas: data.fallas || 'Ninguna',
-      disponible: data.disponible !== false,
       ingreso: data.ingreso || new Date().toISOString().split('T')[0],
       touchscreen: data.touchscreen || false
     }),
@@ -515,17 +488,6 @@ export function useInventario() {
     }
   };
 
-  const marcarComoVendida = async (id) => {
-    try {
-      clearError();
-      const updated = await inventarioService.marcarComoVendida(id);
-      setComputers(prev => prev.filter(comp => comp.id !== id));
-      return updated;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
 
   // Funciones que usan customQuery para operaciones avanzadas
   const getByCondicion = async (condicion) => {
@@ -574,7 +536,6 @@ export function useInventario() {
     // Funciones específicas originales
     getComputersBySucursal,
     getEstadisticas,
-    marcarComoVendida,
     
     // Funciones adicionales que usaban inventarioService
     getByCondicion,

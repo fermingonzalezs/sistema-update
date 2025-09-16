@@ -40,9 +40,7 @@ export function useCelulares() {
     clearError
   } = useSupabaseEntity('celulares', {
     // Configuración específica para celulares
-    defaultFilters: { 
-      // Removido filtro de disponible para mostrar celulares reservados
-    },
+    defaultFilters: {},
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',
     
@@ -52,8 +50,7 @@ export function useCelulares() {
       // Asegurar tipos correctos
       precio_compra_usd: parseFloat(data.precio_compra_usd) || 0,
       precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
-      ciclos: parseInt(data.ciclos) || 0,
-      disponible: data.disponible !== false
+      ciclos: parseInt(data.ciclos) || 0
     }),
     
     transformOnUpdate: (data) => ({

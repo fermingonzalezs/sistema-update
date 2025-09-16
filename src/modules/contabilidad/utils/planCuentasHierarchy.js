@@ -284,7 +284,7 @@ export const getSubcuentaConfig = (cuentaPadre, todasLasCuentas, tipoSeleccionad
   if (tipoSeleccionado !== null) {
     // Override manual: el usuario eligió específicamente el tipo
     esImputable = tipoSeleccionado === 'imputable';
-    categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'CATEGORIA');
+    categoria = esImputable ? 'CUENTA' : (nuevoNivel === 2 ? 'SUBCATEGORIA' : 'PRINCIPAL');
   } else {
     // Lógica automática por nivel (comportamiento original)
     // Nivel 1-3: categorías (no imputables)

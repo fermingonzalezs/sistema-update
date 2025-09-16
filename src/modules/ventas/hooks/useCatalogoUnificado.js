@@ -14,7 +14,6 @@ export const useCatalogoUnificado = () => {
     sucursal: '',
     precioMax: '',
     precioMin: '',
-    disponible: '',
     busqueda: ''
   });
   const [ordenamiento, setOrdenamiento] = useState({
@@ -321,53 +320,16 @@ export const useCatalogoUnificado = () => {
       filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
     }
 
-    // Filtrar por disponibilidad
-    if (filtrosUnificados.disponible !== '') {
-      const disponibleValue = filtrosUnificados.disponible === 'true';
+    // Para productos "otros", aplicar filtro básico de stock positivo
+    if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
       filtered = filtered.filter(item => {
-        // Para productos "otros", considerar cantidades por sucursal
-        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
-          const tieneStock = (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
-          return tieneStock === disponibleValue;
-        }
-        
-        // Para otros productos (notebooks, celulares), usar lógica original
-        // RESERVADO debe aparecer en el catálogo, solo excluir reparación, prestado y sin_reparacion
-        const condicionesNoDisponibles = ['reparacion', 'prestado', 'sin_reparacion'];
-        const esNoDisponiblePorCondicion = condicionesNoDisponibles.includes(item.condicion);
-        const disponibilidadCalculada = item.disponible !== false && !esNoDisponiblePorCondicion;
-        return disponibilidadCalculada === disponibleValue;
-      });
-    }
-
-    // DESACTIVADO: Filtro automático de stock para mostrar TODOS los productos en catálogo
-    // Solo aplicar filtro automático cuando hay filtro manual de disponibilidad activo
-    if (filtrosUnificados.disponible === 'true') {
-      filtered = filtered.filter(item => {
-        // Para productos "otros" que usan cantidad por sucursal
+        // Mostrar solo productos "otros" que tienen stock en alguna sucursal
         if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
           return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
         }
-        // Para notebooks y celulares que usan el campo 'disponible'
-        else if (item.disponible !== undefined) {
-          return item.disponible !== false;
-        }
         return true;
       });
-    } else if (filtrosUnificados.disponible === 'false') {
-      filtered = filtered.filter(item => {
-        // Para productos "otros" que usan cantidad por sucursal
-        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
-          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) === 0;
-        }
-        // Para notebooks y celulares que usan el campo 'disponible'
-        else if (item.disponible !== undefined) {
-          return item.disponible === false;
-        }
-        return false;
-      });
     }
-    // Si no hay filtro de disponibilidad activo, mostrar TODOS los productos
 
     // Filtrar por búsqueda (serial o modelo)
     if (filtrosUnificados.busqueda) {
@@ -420,7 +382,6 @@ export const useCatalogoUnificado = () => {
       precioMax: '',
       precioMin: '',
       categoria: '',
-      disponible: '',
       busqueda: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
@@ -441,7 +402,6 @@ export const useCatalogoUnificado = () => {
       precioMax: '',
       precioMin: '',
       categoria: '',
-      disponible: '',
       busqueda: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });

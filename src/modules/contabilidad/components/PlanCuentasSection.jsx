@@ -535,8 +535,7 @@ const PlanCuentasSection = () => {
     
     if (creatingSubcuenta && nuevoTipo !== 'automatico') {
       // Recalcular configuración con override manual
-      const tipoOverride = nuevoTipo === 'categoria' ? 'categoria' : 'imputable';
-      const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas, tipoOverride);
+      const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas, nuevoTipo);
       
       setFormData(prev => ({
         ...prev,

@@ -138,12 +138,8 @@ const FormularioNotebook = ({ onAdd, loading }) => {
       [name]: value
     };
 
-    // Si se cambió la condición, actualizar disponibilidad automáticamente
-    if (name === 'condicion') {
-      const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.RESERVADO, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
-      const esNoDisponible = condicionesNoDisponibles.includes(value);
-      updatedData.disponible = !esNoDisponible;
-    }
+    // La disponibilidad ahora se maneja por eliminación directa tras venta
+    // No es necesario actualizar el campo 'disponible'
 
     setFormData(updatedData);
   };
@@ -158,8 +154,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     setIsSubmitting(true);
     try {
       const dataToSubmit = {
-        ...formData,
-        disponible: true
+        ...formData
       };
 
       await onAdd(dataToSubmit);
@@ -482,12 +477,8 @@ const FormularioCelular = ({ onAdd, loading }) => {
       [name]: value
     };
 
-    // Si se cambió la condición, actualizar disponibilidad automáticamente
-    if (name === 'condicion') {
-      const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.RESERVADO, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
-      const esNoDisponible = condicionesNoDisponibles.includes(value);
-      updatedData.disponible = !esNoDisponible;
-    }
+    // La disponibilidad ahora se maneja por eliminación directa tras venta
+    // No es necesario actualizar el campo 'disponible'
 
     setFormData(updatedData);
   };
@@ -507,8 +498,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
         ciclos: formData.ciclos ? parseInt(formData.ciclos) : null,
         // Convertir precios a numeric
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || null,
-        precio_venta_usd: parseFloat(formData.precio_venta_usd) || null,
-        disponible: true
+        precio_venta_usd: parseFloat(formData.precio_venta_usd) || null
       };
 
       await onAdd(dataToSubmit);

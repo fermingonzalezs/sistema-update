@@ -103,7 +103,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const generateCopyWithPrice = (producto, usePesos = false) => {
     try {
       const precio = usePesos 
-        ? `$${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
+        ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
         : formatearMonto(producto.precio_venta_usd, 'USD');
       
       let infoBase;
@@ -220,7 +220,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         duracion: producto.duracion || '',
         
         // Estado y garantía
-        disponible: producto.disponible || true,
         ingreso: producto.ingreso || '',
         garantia_update: producto.garantia_update || '',
         garantia_oficial: producto.garantia_oficial || '',
@@ -247,7 +246,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         ciclos: producto.ciclos || '',
         
         // Estado y garantía
-        disponible: producto.disponible || true,
         garantia: producto.garantia || '',
         fallas: producto.fallas || ''
       });
@@ -359,7 +357,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           duracion: editForm.duracion,
           
           // Estado y garantía
-          disponible: editForm.disponible,
           ingreso: editForm.ingreso,
           garantia_update: editForm.garantia_update,
           garantia_oficial: editForm.garantia_oficial,
@@ -387,7 +384,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           ciclos: editForm.ciclos,
           
           // Estado y garantía
-          disponible: editForm.disponible,
           garantia: editForm.garantia,
           fallas: editForm.fallas
         };
@@ -519,10 +515,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
-                    // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
-                    const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
-                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
-                    handleEditFormChange('disponible', !esNoDisponible);
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
@@ -805,18 +797,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
-                <select
-                  value={editForm.disponible}
-                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  disabled={modalEdit.producto?.disponible === true}
-                >
-                  <option value={true}>Disponible</option>
-                  {modalEdit.producto?.disponible !== true && <option value={false}>No disponible</option>}
-                </select>
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
                 <input
                   type="date"
@@ -927,10 +907,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange('condicion', nuevaCondicion);
-                    // Actualizar disponibilidad automáticamente - RESERVADO debe mantenerse disponible para el catálogo
-                    const condicionesNoDisponibles = [CONDICIONES.REPARACION, CONDICIONES.PRESTADO, CONDICIONES.SIN_REPARACION];
-                    const esNoDisponible = condicionesNoDisponibles.includes(nuevaCondicion);
-                    handleEditFormChange('disponible', !esNoDisponible);
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
@@ -1041,18 +1017,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           <div className="bg-slate-50 p-4 rounded border">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Estado y Garantía</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Disponible</label>
-                <select
-                  value={editForm.disponible}
-                  onChange={(e) => handleEditFormChange('disponible', e.target.value === 'true')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  disabled={modalEdit.producto?.disponible === true}
-                >
-                  <option value={true}>Disponible</option>
-                  {modalEdit.producto?.disponible !== true && <option value={false}>No disponible</option>}
-                </select>
-              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
                 <input
@@ -1440,7 +1404,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
               <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
               <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Precio</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
+              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
               <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
             </div>
           ) : (
@@ -1474,20 +1439,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                       </span>
                       {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
                     </div>
-                    <div className="flex space-x-1 mt-1">
-                      <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
-                        (() => {
-                          const condicion = (producto.condicion || '').toLowerCase().trim();
-                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
-                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
-                          if (condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
-                          if (condicion === 'defectuoso') return 'bg-red-100 text-red-700';
-                          return 'bg-slate-100 text-slate-700';
-                        })()
-                      }`}>
-                        {(producto.condicion || 'NUEVO').toUpperCase()}
-                      </span>
-                    </div>
                   </div>
                 ) : (
                   <div className="text-sm font-medium truncate">
@@ -1520,8 +1471,31 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     </span>
                   </div>
 
+                  {/* Estado */}
+                  <div className="col-span-1 text-center">
+                    <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
+                      (() => {
+                        const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                        if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                        if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                        if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                        if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                        if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                        if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                        if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                        if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                        if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                        if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                        if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                        return 'bg-slate-100 text-slate-700';
+                      })()
+                    }`}>
+                      {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
+                    </span>
+                  </div>
+
                   {/* Precio */}
-                  <div className="col-span-2 text-center">
+                  <div className="col-span-1 text-center">
                     <div className="text-lg font-bold text-slate-800 leading-tight">
                       {formatearMonto(producto.precio_venta_usd, 'USD')}
                     </div>

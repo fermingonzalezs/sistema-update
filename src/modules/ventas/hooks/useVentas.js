@@ -185,22 +185,6 @@ export const ventasService = {
     }
   },
 
-  // Marcar producto como vendido
-  async marcarProductoVendido(tipoProducto, productoId) {
-    const tabla = tipoProducto === 'computadora' ? 'inventario' : 'celulares'
-    
-    const { error } = await supabase
-      .from(tabla)
-      .update({ disponible: false })
-      .eq('id', productoId)
-    
-    if (error) {
-      console.error('❌ Error marcando producto como vendido:', error)
-      throw error
-    }
-    
-    console.log(`✅ Producto marcado como vendido en ${tabla}`)
-  },
 
   // ✅ Registrar movimiento en cuenta corriente
   async registrarMovimientoCuentaCorriente(movimientoData) {
@@ -296,11 +280,10 @@ export function useVentas() {
     }
   }
 
-  const registrarVenta = async (ventaData, tipoProducto, productoId) => {
+  const registrarVenta = async () => {
     try {
       setError(null)
-      // Esta función mantiene compatibilidad con ventas individuales
-      // pero ahora usaremos procesarCarrito para múltiples items
+      // Esta función está deprecada, usar procesarCarrito para nuevas ventas
       console.warn('registrarVenta está deprecado, usar procesarCarrito')
       throw new Error('Usar procesarCarrito para nuevas ventas')
     } catch (err) {
@@ -343,36 +326,36 @@ export function useVentas() {
       
       // Actualizar inventario según el tipo de cada item
       for (const item of carrito) {
-        console.log(`🔄 Actualizando stock para ${item.tipo}:`, item.producto.id)
-        
+        console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
+
         if (item.tipo === 'otro') {
           // Para productos "otros", reducir cantidad en la sucursal correspondiente
           console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
           const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
-          
+
           // ✅ NOTIFICAR SI EL PRODUCTO FUE ELIMINADO AUTOMÁTICAMENTE
           if (resultado.eliminado) {
             console.log(`🗑️ PRODUCTO ELIMINADO AUTOMÁTICAMENTE: ${item.producto.nombre_producto || item.producto.id} - ${resultado.motivo}`)
           }
         } else {
-          // Para computadoras y celulares, marcar como no disponible
-          console.log(`💻 Marcando ${item.tipo} ID ${item.producto.id} como vendido (disponible = false)`)
-          
+          // Para computadoras y celulares, eliminar directamente del inventario
+          console.log(`🗑️ Eliminando ${item.tipo} ID ${item.producto.id} del inventario permanentemente`)
+
           // Determinar la tabla correcta
           const tabla = item.tipo === 'computadora' ? 'inventario' : 'celulares'
-          
-          // Marcar como no disponible directamente
+
+          // Eliminar directamente del inventario
           const { error } = await supabase
             .from(tabla)
-            .update({ disponible: false })
+            .delete()
             .eq('id', item.producto.id)
-          
+
           if (error) {
-            console.error(`❌ Error marcando ${item.tipo} como vendido:`, error)
+            console.error(`❌ Error eliminando ${item.tipo} del inventario:`, error)
             throw error
           }
-          
-          console.log(`✅ ${item.tipo} marcado como vendido en tabla ${tabla}`)
+
+          console.log(`✅ ${item.tipo} eliminado permanentemente de la tabla ${tabla}`)
         }
       }
       

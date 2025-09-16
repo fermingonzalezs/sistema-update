@@ -106,7 +106,6 @@ const ModalProducto = ({
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.USADO,
           estado: ESTADOS.A,
-          disponible: true,
           precio_costo_usd: 0,
           envios_repuestos: 0,
           precio_venta_usd: 0,
@@ -124,14 +123,12 @@ const ModalProducto = ({
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.USADO,
           estado: ESTADOS.A,
-          disponible: true,
           precio_compra_usd: 0,
           precio_venta_usd: 0
         },
         otros: {
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.USADO,
-          disponible: true,
           cantidad: 1,
           precio_compra_usd: 0,
           precio_venta_usd: 0,
@@ -900,18 +897,7 @@ const ModalProducto = ({
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="disponible"
-            checked={formData.disponible !== false}
-            onChange={(e) => setFormData(prev => ({ ...prev, disponible: e.target.checked }))}
-            className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
-          />
-          <label htmlFor="disponible" className="text-sm font-medium text-slate-700">
-            Disponible para venta
-          </label>
-        </div>
+        {/* Campo 'disponible' eliminado - ahora se maneja por eliminación directa tras venta */}
       </div>
     );
   }

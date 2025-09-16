@@ -43,11 +43,7 @@ const GestionFotos = ({ computers, celulares, otros, loading, error }) => {
     if (producto.cantidad_la_plata !== undefined || producto.cantidad_mitre !== undefined) {
       return (producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0) > 0;
     }
-    // Para notebooks y celulares que usan el campo 'disponible'
-    else if (producto.disponible !== undefined) {
-      return producto.disponible !== false;
-    }
-    // Para productos sin sistema de stock definido, mostrar por defecto
+    // Para notebooks y celulares, mostrar todos (los vendidos ya se eliminaron directamente)
     return true;
   });
 
