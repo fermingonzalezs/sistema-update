@@ -474,7 +474,7 @@ const BalanceSumasYSaldosDocument = ({ balance, resumen, fechaDesde, fechaHasta,
           <View style={styles.typesSummary}>
             <Text style={styles.typesSummaryTitle}>Resumen por Tipo de Cuenta</Text>
             <View style={styles.typesGrid}>
-              {['activo', 'pasivo', 'patrimonio', 'ingreso', 'gasto'].map((tipo) => {
+              {['activo', 'pasivo', 'patrimonio', 'resultado positivo', 'resultado negativo'].map((tipo) => {
                 const cuentasTipo = balance.filter(item => item.cuenta.tipo === tipo);
                 const totalDebe = cuentasTipo.reduce((sum, item) => sum + item.debeMovimientos, 0);
                 const totalHaber = cuentasTipo.reduce((sum, item) => sum + item.haberMovimientos, 0);

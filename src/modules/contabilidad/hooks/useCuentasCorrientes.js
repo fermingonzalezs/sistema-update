@@ -73,7 +73,7 @@ export const cuentasCorrientesService = {
   // Registrar pago recibido de un cliente
   async registrarPagoRecibido(clienteId, monto, concepto, observaciones = null) {
     console.log('💰 Registrando pago recibido:', { clienteId, monto, concepto });
-    
+
     const { data, error } = await supabase
       .from('cuentas_corrientes')
       .insert([{
@@ -90,13 +90,43 @@ export const cuentasCorrientesService = {
       }])
       .select()
       .single();
-    
+
     if (error) {
       console.error('❌ Error registrando pago:', error);
       throw error;
     }
-    
+
     console.log('✅ Pago registrado:', data);
+    return data;
+  },
+
+  // Registrar nueva deuda (alguien nos debe)
+  async registrarNuevaDeuda(clienteId, monto, concepto, observaciones = null) {
+    console.log('📈 Registrando nueva deuda:', { clienteId, monto, concepto });
+
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .insert([{
+        cliente_id: clienteId,
+        tipo_movimiento: 'debe', // El cliente nos debe
+        tipo_operacion: 'cargo_manual',
+        concepto: concepto || 'Deuda agregada',
+        monto: monto,
+        fecha_operacion: new Date().toISOString().split('T')[0],
+        estado: 'pendiente',
+        comprobante: null,
+        observaciones: observaciones,
+        created_by: 'Usuario'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error registrando deuda:', error);
+      throw error;
+    }
+
+    console.log('✅ Deuda registrada:', data);
     return data;
   }
 };
@@ -154,6 +184,19 @@ export function useCuentasCorrientes() {
     }
   }, [fetchSaldos]);
 
+  const registrarNuevaDeuda = useCallback(async (clienteId, monto, concepto, observaciones) => {
+    try {
+      setError(null);
+      const deuda = await cuentasCorrientesService.registrarNuevaDeuda(clienteId, monto, concepto, observaciones);
+      // Refrescar saldos después de agregar deuda
+      await fetchSaldos();
+      return deuda;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [fetchSaldos]);
+
   return {
     saldos,
     loading,
@@ -161,6 +204,7 @@ export function useCuentasCorrientes() {
     fetchSaldos,
     fetchMovimientosCliente,
     getEstadisticas,
-    registrarPagoRecibido
+    registrarPagoRecibido,
+    registrarNuevaDeuda
   };
 }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import { descargarLibroMayorPDF } from './pdf/LibroMayorPDF';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -319,6 +320,21 @@ const LibroMayorSection = () => {
     }
   };
 
+  const handleDescargarPDF = async () => {
+    try {
+      if (!libroMayor || !libroMayor.movimientos || libroMayor.movimientos.length === 0) {
+        alert('No hay movimientos para descargar');
+        return;
+      }
+
+      await descargarLibroMayorPDF(libroMayor, filtros.fechaDesde, filtros.fechaHasta);
+      alert('✅ PDF del Libro Mayor descargado exitosamente');
+    } catch (error) {
+      console.error('Error descargando PDF:', error);
+      alert('❌ Error al generar el PDF: ' + error.message);
+    }
+  };
+
   const formatearMoneda = (valor) => {
     // En el libro mayor todos los valores se muestran como USD con U$
     return formatearMonto(valor, 'USD');
@@ -521,6 +537,15 @@ const LibroMayorSection = () => {
                       className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 text-sm transition-colors"
                     >
                       <RefreshCw size={16} />
+                    </button>
+                    <button
+                      onClick={handleDescargarPDF}
+                      disabled={!libroMayor || !libroMayor.movimientos || libroMayor.movimientos.length === 0}
+                      className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm flex items-center gap-2 transition-colors"
+                      title="Descargar PDF"
+                    >
+                      <Download size={16} />
+                      PDF
                     </button>
                   </div>
                 </div>

@@ -25,7 +25,7 @@ import { cotizacionService } from '../../../shared/services/cotizacionService';
 
 const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filtroSaldo, setFiltroSaldo] = useState('con_deuda'); // 'todos', 'deudores', 'acreedores', 'saldados', 'con_deuda'
+  const [filtroSaldo, setFiltroSaldo] = useState('todos'); // 'todos', 'deudores', 'acreedores', 'saldados', 'con_deuda'
   const [estadisticas, setEstadisticas] = useState(null);
   const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
@@ -42,7 +42,8 @@ const CuentasCorrientesSection = () => {
     fetchSaldos,
     fetchMovimientosCliente,
     getEstadisticas,
-    registrarPagoRecibido
+    registrarPagoRecibido,
+    registrarNuevaDeuda
   } = useCuentasCorrientes();
 
   useEffect(() => {
@@ -128,20 +129,20 @@ const CuentasCorrientesSection = () => {
     
     switch (filtroSaldo) {
       case 'con_deuda':
-        matchFiltro = saldo > 0;
-        break;
-      case 'deudores':
-        matchFiltro = saldo > 0;
+        matchFiltro = saldo > 0; // Nos deben (saldo positivo)
         break;
       case 'acreedores':
-        matchFiltro = saldo < 0;
+        matchFiltro = saldo > 0; // Nos deben (saldo positivo) - acreedores para nosotros
+        break;
+      case 'deudores':
+        matchFiltro = saldo < 0; // Les debemos (saldo negativo) - somos deudores
         break;
       case 'saldados':
-        matchFiltro = saldo === 0;
+        matchFiltro = saldo === 0; // Sin deuda
         break;
       case 'todos':
       default:
-        matchFiltro = true;
+        matchFiltro = true; // Mostrar todos
         break;
     }
     
@@ -178,25 +179,11 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
 
   const tipoConfig = {
     cobro: {
-      titulo: 'Registrar Cobro',
+      titulo: 'Registrar Pago',
       descripcion: 'Alguien nos paga (reducir su deuda con nosotros)',
       icon: TrendingDown,
       conceptoPlaceholder: 'Pago recibido',
-      filtroClientes: 'deudores' // Solo clientes que nos deben
-    },
-    pago: {
-      titulo: 'Registrar Pago',
-      descripcion: 'Le pagamos a alguien (reducir nuestra deuda)',
-      icon: Minus,
-      conceptoPlaceholder: 'Pago realizado',
-      filtroClientes: 'acreedores' // Solo clientes a los que les debemos
-    },
-    tomar_deuda: {
-      titulo: 'Tomar Deuda',
-      descripcion: 'Registrar cuánto tomamos de deuda con alguien',
-      icon: TrendingUp,
-      conceptoPlaceholder: 'Deuda tomada',
-      filtroClientes: 'todos' // Todos los clientes
+      filtroClientes: 'acreedores' // Solo clientes que nos deben
     },
     agregar_deuda: {
       titulo: 'Agregar Deuda',
@@ -248,12 +235,12 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
   // Filtrar clientes según el tipo de movimiento
   const clientesFiltrados = saldos.filter(cliente => {
     const saldo = parseFloat(cliente.saldo_total || 0);
-    
+
     switch (config.filtroClientes) {
-      case 'deudores':
-        return saldo > 0; // Solo clientes que nos deben
       case 'acreedores':
-        return saldo < 0; // Solo clientes a los que les debemos
+        return saldo > 0; // Solo clientes que nos deben (saldo positivo)
+      case 'deudores':
+        return saldo < 0; // Solo clientes a los que les debemos (saldo negativo)
       case 'todos':
       default:
         return true; // Todos los clientes
@@ -273,7 +260,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
       return;
     }
 
-    if (!cuentaSeleccionada) {
+    if (tipo === 'cobro' && !cuentaSeleccionada) {
       alert('Debe seleccionar un método de pago');
       return;
     }
@@ -282,20 +269,22 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
     
     try {
       // Obtener ID del cliente según el tipo de selector usado
-      const clienteId = (tipo === 'cobro' || tipo === 'pago') 
+      const clienteId = tipo === 'cobro'
         ? personaSeleccionada.cliente_id  // Dropdown simple
         : personaSeleccionada.id;         // ClienteSelector
 
-      // Convertir monto a USD según el método de pago
-      const montoEnUSD = convertirMontoAUSD(formData.monto, cuentaSeleccionada);
+      // Para agregar deuda, el monto siempre es en USD (no necesita conversión)
+      const montoEnUSD = tipo === 'agregar_deuda'
+        ? parseFloat(formData.monto)
+        : convertirMontoAUSD(formData.monto, cuentaSeleccionada);
 
       const movimientoData = {
         persona_id: clienteId,
-        metodo_pago: cuentaSeleccionada,
+        metodo_pago: tipo === 'agregar_deuda' ? null : cuentaSeleccionada,
         monto: montoEnUSD, // Monto convertido a USD
         monto_original: parseFloat(formData.monto), // Monto original en la moneda ingresada
-        moneda_original: esMetodoEnPesos(cuentaSeleccionada) ? 'ARS' : 'USD',
-        cotizacion_usada: cotizacionDolar,
+        moneda_original: tipo === 'agregar_deuda' ? 'USD' : (esMetodoEnPesos(cuentaSeleccionada) ? 'ARS' : 'USD'),
+        cotizacion_usada: tipo === 'agregar_deuda' ? null : cotizacionDolar,
         concepto: formData.concepto || config.conceptoPlaceholder,
         observaciones: formData.observaciones,
         fecha: new Date().toISOString().split('T')[0],
@@ -307,13 +296,21 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
       
       if (tipo === 'cobro') {
         await handleRegistrarPago(
-          clienteId, 
+          clienteId,
           montoEnUSD, // Usar monto convertido a USD
           formData.concepto || 'Pago recibido',
           formData.observaciones
         );
+      } else if (tipo === 'agregar_deuda') {
+        // Implementar agregar deuda
+        await registrarNuevaDeuda(
+          clienteId,
+          montoEnUSD,
+          formData.concepto || 'Deuda agregada',
+          formData.observaciones
+        );
       } else {
-        // TODO: Implementar otros tipos de movimiento
+        // TODO: Implementar otros tipos de movimiento (pago, tomar_deuda)
         alert(`✅ ${config.titulo} registrado exitosamente (funcionalidad próximamente)`);
       }
 
@@ -358,15 +355,14 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
           {/* Cliente */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cliente * {config.filtroClientes === 'deudores' && '(que nos debe)'}
-              {config.filtroClientes === 'acreedores' && '(al que le debemos)'}
+              Cliente * {config.filtroClientes === 'acreedores' && '(que nos debe)'}
             </label>
             
-            {/* Para tipos que requieren filtrado de clientes, usar dropdown simple */}
-            {(tipo === 'cobro' || tipo === 'pago') ? (
+            {/* Para Registrar Pago usar dropdown simple con clientes que tienen deuda */}
+            {tipo === 'cobro' ? (
               clientesFiltrados.length === 0 ? (
                 <div className="w-full p-3 border border-slate-200 rounded bg-slate-50 text-slate-500 text-center">
-                  No hay clientes disponibles para este tipo de movimiento
+                  No hay clientes con deuda pendiente
                 </div>
               ) : (
                 <select
@@ -383,13 +379,13 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                   <option value="">Seleccionar cliente...</option>
                   {clientesFiltrados.map((cliente) => (
                     <option key={cliente.cliente_id} value={cliente.cliente_id}>
-                      {cliente.nombre} {cliente.apellido} - Saldo: ${Math.abs(parseFloat(cliente.saldo_total || 0)).toFixed(2)}
+                      {cliente.nombre} {cliente.apellido} - Debe: ${Math.abs(parseFloat(cliente.saldo_total || 0)).toFixed(2)}
                     </option>
                   ))}
                 </select>
               )
             ) : (
-              /* Para tomar_deuda y agregar_deuda, usar ClienteSelector completo */
+              /* Para Agregar Deuda usar ClienteSelector completo para crear o seleccionar */
               <ClienteSelector
                 selectedCliente={personaSeleccionada}
                 onSelectCliente={setPersonaSeleccionada}
@@ -399,30 +395,36 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
             )}
           </div>
 
-          {/* Método de Pago */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Método de Pago *
-            </label>
-            <select
-              value={cuentaSeleccionada}
-              onChange={(e) => setCuentaSeleccionada(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              required
-            >
-              <option value="">Seleccionar método de pago...</option>
-              {metodosPagoDisponibles.map(metodo => (
-                <option key={metodo.id} value={metodo.id}>
-                  {metodo.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Método de Pago - Solo para tipos que requieren pago físico */}
+          {tipo === 'cobro' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Método de Pago *
+              </label>
+              <select
+                value={cuentaSeleccionada}
+                onChange={(e) => setCuentaSeleccionada(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              >
+                <option value="">Seleccionar método de pago...</option>
+                {metodosPagoDisponibles.map(metodo => (
+                  <option key={metodo.id} value={metodo.id}>
+                    {metodo.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Monto */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Monto * {cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) ? '(en Pesos ARS)' : '(en USD)'}
+              Monto * {tipo === 'agregar_deuda'
+                ? '(en USD)'
+                : cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada)
+                  ? '(en Pesos ARS)'
+                  : '(en USD)'}
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
@@ -437,8 +439,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
               />
             </div>
             
-            {/* Información de conversión */}
-            {cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && formData.monto && (
+            {/* Información de conversión - Solo para cobros con métodos en pesos */}
+            {tipo === 'cobro' && cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && formData.monto && (
               <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">Cotización USD:</span>
@@ -494,7 +496,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
             </button>
             <button
               type="submit"
-              disabled={loading || !personaSeleccionada || !cuentaSeleccionada}
+              disabled={loading || !personaSeleccionada || (tipo === 'cobro' && !cuentaSeleccionada)}
               className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
@@ -505,7 +507,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
               ) : (
                 <>
                   <Icon className="w-4 h-4" />
-                  <span>Registrar {tipo === 'cobro' ? 'Cobro' : tipo === 'pago' ? 'Pago' : tipo === 'ajustar_deuda' ? 'Ajuste' : 'Deuda'}</span>
+                  <span>Registrar {tipo === 'cobro' ? 'Pago' : 'Deuda'}</span>
                 </>
               )}
             </button>
@@ -588,11 +590,11 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
               onChange={(e) => setFiltroSaldo(e.target.value)}
               className="w-full p-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="con_deuda">Solo con deuda</option>
-              <option value="deudores">Deudas de la empresa (les debemos)</option>
-              <option value="acreedores">Créditos a favor (nos deben)</option>
               <option value="todos">Todas las personas</option>
-              <option value="saldados">Saldados</option>
+              <option value="con_deuda">Solo con deuda (nos deben)</option>
+              <option value="acreedores">A favor nuestro (nos deben)</option>
+              <option value="deudores">Debemos nosotros (les debemos)</option>
+              <option value="saldados">Saldados (sin deuda)</option>
             </select>
           </div>
         </div>
@@ -835,38 +837,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                       <TrendingDown className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-slate-800">Registrar Cobro</h4>
-                      <p className="text-sm text-slate-500">Alguien nos paga (reducir su deuda con nosotros)</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleSelectTipoMovimiento('pago')}
-                  className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-slate-100 rounded">
-                      <Minus className="w-5 h-5 text-slate-600" />
-                    </div>
-                    <div>
                       <h4 className="font-medium text-slate-800">Registrar Pago</h4>
-                      <p className="text-sm text-slate-500">Le pagamos a alguien (reducir nuestra deuda)</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleSelectTipoMovimiento('tomar_deuda')}
-                  className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-slate-100 rounded">
-                      <TrendingUp className="w-5 h-5 text-slate-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-slate-800">Tomar Deuda</h4>
-                      <p className="text-sm text-slate-500">Registrar cuánto tomamos de deuda con alguien</p>
+                      <p className="text-sm text-slate-500">Alguien nos paga (reducir su deuda con nosotros)</p>
                     </div>
                   </div>
                 </button>

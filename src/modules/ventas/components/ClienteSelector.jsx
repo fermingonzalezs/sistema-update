@@ -351,12 +351,12 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
         setSearchLoading(false);
       }
     }, 300);
-    
+
     return () => {
       clearTimeout(handler);
       setSearchLoading(false);
     };
-  }, [searchTerm, searchClientes, clientes]);
+  }, [searchTerm]); // ✅ REMOVIDO searchClientes y clientes de dependencias
 
   // ✅ CERRAR DROPDOWN - Sin interferir con el modal
   useEffect(() => {

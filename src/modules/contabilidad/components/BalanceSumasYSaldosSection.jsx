@@ -362,7 +362,7 @@ const BalanceSumasYSaldosSection = () => {
         <div className="bg-white p-6 rounded border border-slate-200 mb-6">
           <h4 className="text-lg font-semibold text-slate-800 mb-4">Resumen por Tipo de Cuenta</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {['activo', 'pasivo', 'patrimonio', 'ingreso', 'gasto'].map((tipo) => {
+            {['activo', 'pasivo', 'patrimonio', 'resultado positivo', 'resultado negativo'].map((tipo) => {
               const cuentasTipo = balance.filter(item => item.cuenta.tipo === tipo);
               const totalDebe = cuentasTipo.reduce((sum, item) => sum + item.debeMovimientos, 0);
               const totalHaber = cuentasTipo.reduce((sum, item) => sum + item.haberMovimientos, 0);

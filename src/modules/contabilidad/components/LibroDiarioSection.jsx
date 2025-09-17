@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import BuscadorCuentasImputables from './BuscadorCuentasImputables';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { isAsientoEditable, prepararDatosParaEdicion, validarDatosEdicion } from '../utils/asientos-utils';
+import { descargarLibroDiarioPDF } from './pdf/LibroDiarioPDF';
 
 // Servicio para el Libro Diario
 const libroDiarioService = {
@@ -801,6 +802,21 @@ const LibroDiarioSection = () => {
     return cumpleFiltros;
   });
 
+  const handleDescargarPDF = async () => {
+    try {
+      if (asientosFiltrados.length === 0) {
+        alert('No hay asientos para descargar');
+        return;
+      }
+
+      await descargarLibroDiarioPDF(asientosFiltrados, filtros.fechaDesde, filtros.fechaHasta);
+      alert('✅ PDF del Libro Diario descargado exitosamente');
+    } catch (error) {
+      console.error('Error descargando PDF:', error);
+      alert('❌ Error al generar el PDF: ' + error.message);
+    }
+  };
+
   const totales = calcularTotales();
 
   if (loading) {
@@ -1119,8 +1135,17 @@ const LibroDiarioSection = () => {
                 </button>
               </div>
               <button
+                onClick={handleDescargarPDF}
+                disabled={asientosFiltrados.length === 0}
+                className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-colors"
+                title="Descargar PDF"
+              >
+                <Download size={18} />
+                PDF
+              </button>
+              <button
                 onClick={nuevoAsiento}
-                className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-gray-100 flex items-center gap-2 font-medium transition-colors"
+                className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
               >
                 <Plus size={18} />
                 Nuevo Asiento

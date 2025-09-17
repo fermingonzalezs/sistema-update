@@ -113,7 +113,7 @@ export const balanceSumasYSaldosService = {
               const cuenta = movimiento.plan_cuentas;
               const saldoInicial = saldosIniciales[cuentaId];
               
-              if (cuenta.tipo === 'activo' || cuenta.tipo === 'gasto') {
+              if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
                 saldoInicial.saldo = saldoInicial.debe - saldoInicial.haber;
               } else {
                 saldoInicial.saldo = saldoInicial.haber - saldoInicial.debe;
@@ -187,7 +187,7 @@ export const balanceSumasYSaldosService = {
         const cuenta = item.cuenta;
         
         // Calcular saldo final según naturaleza de la cuenta
-        if (cuenta.tipo === 'activo' || cuenta.tipo === 'gasto') {
+        if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
           item.saldoFinal = item.debeFinal - item.haberFinal;
         } else {
           item.saldoFinal = item.haberFinal - item.debeFinal;
@@ -195,7 +195,7 @@ export const balanceSumasYSaldosService = {
 
         // Clasificar como deudor o acreedor basado en el saldo final
         if (item.saldoFinal > 0) {
-          if (cuenta.tipo === 'activo' || cuenta.tipo === 'gasto') {
+          if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
             item.esDeudor = true;
             resumenGeneral.totalSaldosDeudores += Math.abs(item.saldoFinal);
           } else {
@@ -203,7 +203,7 @@ export const balanceSumasYSaldosService = {
             resumenGeneral.totalSaldosAcreedores += Math.abs(item.saldoFinal);
           }
         } else if (item.saldoFinal < 0) {
-          if (cuenta.tipo === 'activo' || cuenta.tipo === 'gasto') {
+          if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
             item.esAcreedor = true;
             resumenGeneral.totalSaldosAcreedores += Math.abs(item.saldoFinal);
           } else {
