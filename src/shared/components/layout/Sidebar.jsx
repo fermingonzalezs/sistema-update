@@ -165,6 +165,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Balance de Sumas y Saldos',
           icon: ArrowUpDown,
           description: 'Verificación contable'
+        },
+        {
+          id: 'cuentas-auxiliares',
+          label: 'Cuentas Auxiliares',
+          icon: Calculator,
+          description: 'Control detallado de inventarios'
         }
       ]
     },

@@ -38,7 +38,8 @@ import {
   EstadoSituacionPatrimonialSection,
   EstadoResultadosSection,
   CuentasCorrientesSection,
-  BalanceSumasYSaldosSection
+  BalanceSumasYSaldosSection,
+  CuentasAuxiliaresSection
 } from './modules/contabilidad/components';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
@@ -348,6 +349,13 @@ const AppContent = () => {
          count: 0, // Se calculará dinámicamente
          type: 'cuentas corrientes'
        };
+     case 'cuentas-auxiliares':
+       return {
+         loading: false,
+         error: null,
+         count: 3, // Número de cuentas con auxiliares
+         type: 'cuentas auxiliares'
+       };
      case 'estado-situacion-patrimonial':
        return {
          loading: false,
@@ -435,6 +443,9 @@ const AppContent = () => {
      case 'cuentas-corrientes': // ✅ NUEVO
        // fetchSaldosCuentasCorrientes();
        break;
+     case 'cuentas-auxiliares':
+       // fetchCuentasAuxiliares();
+       break;
      case 'estado-situacion-patrimonial':
        // No requiere fetch específico
        break;
@@ -508,6 +519,10 @@ const AppContent = () => {
      {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}
      {activeSection === 'cuentas-corrientes' && (
        <CuentasCorrientesSection />
+     )}
+     {/* 📊 NUEVA SECCIÓN DE CUENTAS AUXILIARES */}
+     {activeSection === 'cuentas-auxiliares' && (
+       <CuentasAuxiliaresSection />
      )}
 
      {activeSection === 'gestion-fotos' && (

@@ -5,4 +5,5 @@ export { default as ConciliacionCajaSection } from './ConciliacionCajaSection';
 export { default as EstadoSituacionPatrimonialSection } from './EstadoSituacionPatrimonialSection';
 export { default as EstadoResultadosSection } from './EstadoResultadosSection';
 export { default as CuentasCorrientesSection } from './CuentasCorrientesSection';
-export { default as BalanceSumasYSaldosSection } from './BalanceSumasYSaldosSection'; 
+export { default as BalanceSumasYSaldosSection } from './BalanceSumasYSaldosSection';
+export { default as CuentasAuxiliaresSection } from './CuentasAuxiliaresSection'; 
