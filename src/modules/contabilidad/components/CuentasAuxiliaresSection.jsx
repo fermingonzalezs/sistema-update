@@ -6,17 +6,13 @@ import {
   Eye,
   Edit3,
   Trash2,
-  Package,
-  DollarSign,
   AlertTriangle,
-  CheckCircle,
   XCircle,
   Search,
   Filter,
   Download,
   BarChart3
 } from 'lucide-react';
-import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useCuentasAuxiliares } from '../hooks/useCuentasAuxiliares';
 import { supabase } from '../../../lib/supabase';
@@ -32,9 +28,9 @@ const CuentasAuxiliaresSection = () => {
     cuentas,
     loading,
     error,
-    estadisticas,
     getCuentaById,
-    createCuenta
+    createCuenta,
+    addItem
   } = useCuentasAuxiliares();
 
   // Estado para modal de nueva cuenta auxiliar
@@ -203,33 +199,6 @@ const CuentasAuxiliaresSection = () => {
         </div>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Tarjeta
-          titulo="Total Cuentas"
-          valor={estadisticas.totalCuentas.toString()}
-          icono={Package}
-          color="emerald"
-        />
-        <Tarjeta
-          titulo="Con Items"
-          valor={estadisticas.cuentasConItems.toString()}
-          icono={CheckCircle}
-          color="emerald"
-        />
-        <Tarjeta
-          titulo="Sin Items"
-          valor={estadisticas.cuentasSinItems.toString()}
-          icono={AlertTriangle}
-          color="slate"
-        />
-        <Tarjeta
-          titulo="Total General"
-          valor={formatearMonto(estadisticas.totalGeneral, 'USD')}
-          icono={DollarSign}
-          color="emerald"
-        />
-      </div>
 
       {/* Filtros */}
       <div className="bg-white rounded border border-slate-200 p-4">
@@ -317,22 +286,22 @@ const CuentasAuxiliaresSection = () => {
                     <td className="px-4 py-4">
                       <div>
                         <div className="text-sm font-medium text-slate-800">
-                          {cuenta.plan_cuentas?.codigo || 'Sin código'}
+                          {cuenta.cuenta?.codigo || 'Sin código'}
                         </div>
                         <div className="text-sm text-slate-500">
-                          {cuenta.plan_cuentas?.nombre || cuenta.nombre || 'Sin nombre'}
+                          {cuenta.cuenta?.nombre || cuenta.nombre || 'Sin nombre'}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-slate-800">
-                      {formatearMonto(0, 'USD')}
+                      {formatearMonto(cuenta.cuenta?.saldo_contable || 0, 'USD')}
                     </td>
                     <td className="px-4 py-4 text-sm text-slate-800">
                       {formatearMonto(cuenta.total_auxiliar || 0, 'USD')}
                     </td>
                     <td className="px-4 py-4 text-sm">
-                      <span className={`${getDiferenciaColor(0)} font-medium`}>
-                        Balanceado
+                      <span className={`${getDiferenciaColor(cuenta.diferencia || 0)} font-medium`}>
+                        {Math.abs(cuenta.diferencia || 0) < 0.01 ? 'Balanceado' : formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}
                       </span>
                     </td>
                     <td className="px-4 py-4">
@@ -419,7 +388,10 @@ const CuentasAuxiliaresSection = () => {
               {/* Acciones */}
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-lg font-semibold text-slate-800">Items del Auxiliar</h4>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors">
+                <button
+                  onClick={() => setShowNuevoItem(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
+                >
                   <Plus className="w-4 h-4" />
                   <span>Agregar Item</span>
                 </button>
@@ -434,9 +406,6 @@ const CuentasAuxiliaresSection = () => {
                         Descripción
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Código
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Cantidad
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -444,9 +413,6 @@ const CuentasAuxiliaresSection = () => {
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Total
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Estado
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Acciones
@@ -457,17 +423,9 @@ const CuentasAuxiliaresSection = () => {
                     {(selectedCuenta.items || itemsEjemplo).map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50">
                         <td className="px-4 py-3">
-                          <div>
-                            <div className="text-sm font-medium text-slate-800">
-                              {item.descripcion}
-                            </div>
-                            <div className="text-sm text-slate-500">
-                              {item.categoria}
-                            </div>
+                          <div className="text-sm font-medium text-slate-800">
+                            {item.descripcion}
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {item.codigo_interno}
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-800">
                           {item.cantidad}
@@ -477,13 +435,6 @@ const CuentasAuxiliaresSection = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-800">
                           {formatearMonto(item.valor_total, 'USD')}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
-                            item.estado === 'disponible' ? 'text-emerald-600 bg-emerald-100' : 'text-slate-600 bg-slate-100'
-                          }`}>
-                            {item.estado}
-                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex space-x-2">
@@ -513,6 +464,16 @@ const CuentasAuxiliaresSection = () => {
           planCuentas={planCuentas}
           loadingPlanCuentas={loadingPlanCuentas}
           onCrear={createCuenta}
+        />
+      )}
+
+      {/* Modal para Nuevo Item */}
+      {showNuevoItem && selectedCuenta && (
+        <ModalNuevoItem
+          isOpen={showNuevoItem}
+          onClose={() => setShowNuevoItem(false)}
+          cuenta={selectedCuenta}
+          onAgregar={addItem}
         />
       )}
     </div>
@@ -679,6 +640,191 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
                 <>
                   <Plus className="w-4 h-4" />
                   <span>Crear Cuenta Auxiliar</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Componente Modal para Nuevo Item
+const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
+  const [formData, setFormData] = useState({
+    descripcion: '',
+    cantidad: 1,
+    valor_unitario: 0
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.descripcion.trim()) {
+      setError('La descripción es obligatoria');
+      return;
+    }
+
+    if (!formData.valor_unitario || parseFloat(formData.valor_unitario) <= 0) {
+      setError('El valor unitario debe ser mayor a 0');
+      return;
+    }
+
+    if (!formData.cantidad || parseFloat(formData.cantidad) <= 0) {
+      setError('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const itemData = {
+        descripcion: formData.descripcion.trim(),
+        cantidad: parseFloat(formData.cantidad),
+        valor_unitario: parseFloat(formData.valor_unitario),
+        fecha_ingreso: new Date().toISOString().split('T')[0]
+      };
+
+      await onAgregar(cuenta.id, itemData);
+
+      // Limpiar formulario y cerrar modal
+      setFormData({
+        descripcion: '',
+        cantidad: 1,
+        valor_unitario: 0
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const valorTotal = parseFloat(formData.cantidad || 0) * parseFloat(formData.valor_unitario || 0);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
+          <div>
+            <h3 className="text-xl font-semibold">Nuevo Item</h3>
+            <p className="text-slate-300 mt-1">
+              {cuenta.cuenta?.codigo} - {cuenta.cuenta?.nombre}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-300 hover:text-white p-2 rounded hover:bg-slate-700 transition-colors"
+          >
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Contenido */}
+        <form onSubmit={handleSubmit} className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Descripción */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Descripción *
+              </label>
+              <input
+                type="text"
+                value={formData.descripcion}
+                onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Ej: Notebook Lenovo ThinkPad E14"
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+                maxLength={255}
+              />
+            </div>
+
+            {/* Cantidad */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Cantidad *
+              </label>
+              <input
+                type="number"
+                step="1"
+                min="1"
+                value={formData.cantidad}
+                onChange={(e) => setFormData(prev => ({ ...prev, cantidad: e.target.value }))}
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              />
+            </div>
+
+            {/* Valor Unitario */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Valor Unitario (USD) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.valor_unitario}
+                onChange={(e) => setFormData(prev => ({ ...prev, valor_unitario: e.target.value }))}
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Resumen de Valor Total */}
+          {valorTotal > 0 && (
+            <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">Valor Total:</span>
+                <span className="text-lg font-semibold text-slate-800">
+                  {formatearMonto(valorTotal, 'USD')}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Botones */}
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="px-4 py-2 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || !formData.descripcion.trim() || !formData.valor_unitario || !formData.cantidad}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  <span>Agregando...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span>Agregar Item</span>
                 </>
               )}
             </button>

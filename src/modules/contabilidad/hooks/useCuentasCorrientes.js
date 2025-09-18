@@ -43,21 +43,27 @@ export const cuentasCorrientesService = {
   // Obtener estadísticas generales
   async getEstadisticas() {
     console.log('📊 Calculando estadísticas de cuentas corrientes...');
-    
+
     const { data, error } = await supabase
       .from('saldos_cuentas_corrientes')
       .select('saldo_total, total_movimientos');
-    
+
     if (error) {
       console.error('❌ Error obteniendo estadísticas:', error);
       throw error;
     }
-    
-    const totalClientes = data.length;
-    const clientesConDeuda = data.filter(cliente => parseFloat(cliente.saldo_total) > 0).length;
-    const totalDeuda = data.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0);
-    const totalMovimientos = data.reduce((sum, cliente) => sum + parseInt(cliente.total_movimientos || 0), 0);
-    
+
+    // Separar clientes por tipo de saldo
+    const clientesConDeudaPositiva = data.filter(cliente => parseFloat(cliente.saldo_total) > 0); // Nos deben
+    const clientesConDeudaNegativa = data.filter(cliente => parseFloat(cliente.saldo_total) < 0); // Les debemos
+
+    const clientesConDeuda = clientesConDeudaPositiva.length;
+    const clientesAQuienesDedemos = clientesConDeudaNegativa.length;
+
+    // Calcular totales
+    const totalQueNosDeben = clientesConDeudaPositiva.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0);
+    const totalQueDebemos = Math.abs(clientesConDeudaNegativa.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0));
+
     // Calcular clientes saldados: aquellos que tienen movimientos pero saldo = 0
     const { data: clientesSaldadosData, error: saldadosError } = await supabase
       .from('saldos_cuentas_corrientes')
@@ -72,13 +78,13 @@ export const cuentasCorrientesService = {
     const clientesSaldados = clientesSaldadosData?.length || 0;
 
     const estadisticas = {
-      totalClientes,
-      clientesConDeuda,
+      clientesConDeuda, // Clientes con saldo positivo (nos deben)
+      clientesAQuienesDedemos, // Clientes con saldo negativo (les debemos)
       clientesSaldados,
-      totalDeuda,
-      totalMovimientos
+      totalQueNosDeben, // Total que nos deben (saldos positivos)
+      totalQueDebemos // Total que debemos (saldos negativos, en positivo)
     };
-    
+
     console.log('✅ Estadísticas calculadas:', estadisticas);
     return estadisticas;
   },

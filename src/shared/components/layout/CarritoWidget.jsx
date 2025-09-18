@@ -44,18 +44,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
 
-  // Determinar si un método necesita recargo
+  // Determinar si un método necesita recargo (deshabilitado - solo un campo de monto)
   const necesitaRecargo = (metodoPago) => {
-    return metodoPago === 'tarjeta_credito' || metodoPago === 'transferencia';
+    return false; // Siempre false, solo un campo de monto
   };
 
-  // Obtener recargo por defecto según el método de pago
+  // Obtener recargo por defecto según el método de pago (opcional, usuario puede modificar)
   const obtenerRecargoPorDefecto = (metodoPago) => {
     switch (metodoPago) {
       case 'tarjeta_credito':
-        return 30; // 30% para tarjeta de crédito
+        return 0; // Sin recargo automático, el usuario decide
       case 'transferencia':
-        return 5;  // 5% para transferencia
+        return 0; // Sin recargo automático, el usuario decide
       default:
         return 0;
     }
@@ -67,32 +67,27 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     cargarCotizacionInicial();
   }, [fetchVendedores]);
 
-  // Inicializar monto_pago_1 cuando se abre el formulario
+  // Inicializar formulario cuando se abre (sin autocompletar montos)
   useEffect(() => {
     if (mostrarFormulario && carrito.length > 0) {
-      const totalUSD = calcularTotal();
-      
-      // Aplicar recargo automático si el método por defecto lo necesita
-      const metodoDefault = datosCliente.metodo_pago_1;
-      const recargoDefault = obtenerRecargoPorDefecto(metodoDefault);
-      
+      // Solo inicializar campos vacíos, sin autocompletar montos
       setDatosCliente(prev => ({
         ...prev,
-        monto_pago_1: totalUSD,
+        monto_pago_1: 0,
         monto_pago_2: 0,
-        recargo_pago_1: recargoDefault,
+        recargo_pago_1: 0,
         recargo_pago_2: 0
       }));
-      
-      // No autocompletar el monto - solo inicializar recargos
+
+      // Limpiar todos los inputs
       setInputMontoBase1('');
       setInputMontoBase2('');
       setInputMontoFinal1('');
       setInputMontoFinal2('');
-      setInputRecargo1(recargoDefault.toString());
+      setInputRecargo1('0');
       setInputRecargo2('0');
 
-      console.log(`🔄 Inicializando formulario - Método: ${metodoDefault}, Recargo: ${recargoDefault}%`);
+      console.log('🔄 Formulario inicializado - Usuario debe ingresar montos manualmente');
     }
   }, [mostrarFormulario, carrito]);
 
@@ -142,37 +137,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       [`metodo_pago_${metodo}`]: nuevoMetodo
     }));
 
-    // Aplicar recargo automático si es necesario
-    const recargoDefault = obtenerRecargoPorDefecto(nuevoMetodo);
-    
-    if (recargoDefault > 0) {
-      // Aplicar recargo automático
-      setDatosCliente(prev => ({
-        ...prev,
-        [`recargo_pago_${metodo}`]: recargoDefault
-      }));
+    // Limpiar recargos al cambiar método (usuario decide si aplicar recargo)
+    setDatosCliente(prev => ({
+      ...prev,
+      [`recargo_pago_${metodo}`]: 0
+    }));
 
-      // Actualizar input local del recargo
-      if (metodo === 1) {
-        setInputRecargo1(recargoDefault.toString());
-      } else {
-        setInputRecargo2(recargoDefault.toString());
-      }
-
-      console.log(`🔄 Aplicando recargo automático del ${recargoDefault}% para ${nuevoMetodo}`);
+    // Limpiar input local del recargo
+    if (metodo === 1) {
+      setInputRecargo1('0');
     } else {
-      // Limpiar recargo si no es necesario
-      setDatosCliente(prev => ({
-        ...prev,
-        [`recargo_pago_${metodo}`]: 0
-      }));
-
-      // Limpiar input local del recargo
-      if (metodo === 1) {
-        setInputRecargo1('0');
-      } else {
-        setInputRecargo2('0');
-      }
+      setInputRecargo2('0');
     }
 
     // Limpiar los campos de monto cuando cambia el método
@@ -183,6 +158,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       setInputMontoBase2('');
       setInputMontoFinal2('');
     }
+
+    console.log(`🔄 Método de pago cambiado a ${nuevoMetodo} - Usuario puede aplicar recargos manualmente`);
   };
 
   const calcularTotalPesos = () => {
@@ -351,33 +328,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       return;
     }
 
-    // ✅ VALIDACIÓN: Verificar que los montos suman correctamente
-    // Para métodos con recargo, el total pagado debe cubrir el total base + recargos
-    const totalUSD = calcularTotal();
+    // ✅ VALIDACIÓN: Verificar que hay montos ingresados (sin restricciones de coincidencia exacta)
     const totalPagadoUSD = datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0);
-    
-    // Calcular total base esperado (sumando montos base sin recargos)
-    let totalBaseEsperado = 0;
-    
-    // Método 1
-    if (datosCliente.metodo_pago_1 === 'tarjeta_credito' && datosCliente.recargo_pago_1 > 0) {
-      totalBaseEsperado += datosCliente.monto_pago_1 / (1 + datosCliente.recargo_pago_1 / 100);
-    } else {
-      totalBaseEsperado += datosCliente.monto_pago_1;
-    }
-    
-    // Método 2
-    if (datosCliente.monto_pago_2 > 0) {
-      if (datosCliente.metodo_pago_2 === 'tarjeta_credito' && datosCliente.recargo_pago_2 > 0) {
-        totalBaseEsperado += datosCliente.monto_pago_2 / (1 + datosCliente.recargo_pago_2 / 100);
-      } else {
-        totalBaseEsperado += datosCliente.monto_pago_2;
-      }
-    }
-    
-    if (Math.abs(totalUSD - totalBaseEsperado) > 0.01) { // Tolerancia de 1 centavo por redondeo
-      console.error('❌ Los montos base no coinciden con el total de la venta');
-      alert(`⚠️ Los montos base no cubren el total de la venta.\n\nTotal venta: ${formatearMonto(totalUSD, 'USD')}\nTotal base cubierto: ${formatearMonto(totalBaseEsperado, 'USD')}\nTotal a cobrar (con recargos): ${formatearMonto(totalPagadoUSD, 'USD')}\n\nAjuste los montos antes de continuar.`);
+
+    if (totalPagadoUSD <= 0) {
+      console.error('❌ No se ha ingresado ningún monto de pago');
+      alert('⚠️ Debe ingresar al menos un monto de pago antes de procesar la venta.');
       return;
     }
 
@@ -598,8 +554,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
       {/* Modal del carrito */}
       {isOpen && (
-        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {!mostrarFormulario ? (
               <>
                 {/* Header */}
@@ -786,23 +742,31 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
             ) : (
               <>
                 {/* Formulario de venta */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200">
-                  <h2 className="text-2xl font-bold text-slate-800">Datos de la Venta</h2>
-                  <button
-                    onClick={() => setMostrarFormulario(false)}
-                    className="text-slate-800 hover:text-slate-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
+                <div className="p-6 border-b border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800">Datos de la Venta</h3>
+                      <p className="text-sm text-slate-600 mt-1">Complete la información para procesar la venta</p>
+                    </div>
+                    <button
+                      onClick={() => setMostrarFormulario(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
-                  <form onSubmit={handleProcesarVenta} className="p-6">
+                <form onSubmit={handleProcesarVenta} className="p-6 space-y-6">
                     {/* ✅ Selector de cliente */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-slate-800 mb-2">
-                        Cliente *
-                      </label>
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Cliente
+                      </h4>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2">
+                          Cliente *
+                        </label>
                       <ClienteSelector
                         selectedCliente={clienteSeleccionado}
                         onSelectCliente={setClienteSeleccionado}
@@ -824,8 +788,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
 
                     {/* Lista de productos del carrito */}
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4">Productos en el Carrito</h3>
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Productos en el Carrito
+                      </h4>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {carrito.map((item) => (
                           <div key={item.id} className="flex items-center justify-between p-2 border border-slate-200 rounded bg-white">
@@ -967,11 +933,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
 
                     {/* Cotización del Dólar */}
-                    <div className="mb-6 p-4 bg-slate-200 border border-slate-200 rounded-lg">
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Cotización del Dólar
+                      </h4>
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <DollarSign className="w-5 h-5 text-emerald-600" />
-                          <h3 className="text-lg font-semibold text-slate-800">Cotización del Dólar</h3>
                         </div>
                         <button
                           type="button"
@@ -1007,10 +976,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                       </div>
                     </div>
+                    </div>
 
                     {/* Métodos de Pago */}
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4">Métodos de Pago</h3>
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Métodos de Pago
+                      </h4>
                       
                       {/* Primer método de pago */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1035,7 +1007,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <div className="space-y-3">
                           <div>
                             <label className="block text-sm font-medium text-slate-800 mb-2">
-                              Monto Base ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                              Monto de Venta ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
                             </label>
                             <input
                               type="number"
@@ -1043,66 +1015,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               onChange={(e) => handleMontoBaseChange(1, e.target.value)}
                               onBlur={distribuyeMontos}
                               className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                              placeholder="Ingrese monto sin recargo"
+                              placeholder="Ingrese el monto a cobrar"
                               step="1"
                               min="0"
                             />
                           </div>
-                          
-                          {necesitaRecargo(datosCliente.metodo_pago_1) && (
-                            <div>
-                              <label className="block text-sm font-medium text-slate-800 mb-2">
-                                Monto Final con Recargo ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
-                              </label>
-                              <input
-                                type="number"
-                                value={inputMontoFinal1}
-                                onChange={(e) => handleMontoFinalChange(1, e.target.value)}
-                                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 bg-slate-50"
-                                placeholder="Monto final calculado"
-                                step="1"
-                                min="0"
-                              />
-                              <p className="text-xs text-emerald-600 mt-1">
-                                ✓ Monto final incluye {datosCliente.recargo_pago_1}% de recargo
-                              </p>
-                            </div>
-                          )}
-                          
-                          {!necesitaRecargo(datosCliente.metodo_pago_1) && (
-                            <p className="text-xs text-slate-800 mt-1">
-                              Total a pagar: {formatearMonto(obtenerTotalAPagar(datosCliente.metodo_pago_1, 0), obtenerMonedaMetodo(datosCliente.metodo_pago_1))}
-                            </p>
-                          )}
                         </div>
                       </div>
 
-                      {/* Recargo para primer método si es tarjeta de crédito */}
-                      {necesitaRecargo(datosCliente.metodo_pago_1) && (
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Recargo {datosCliente.metodo_pago_1 === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Transferencia'} (%)
-                          </label>
-                          <input
-                            type="number"
-                            value={inputRecargo1}
-                            onChange={(e) => handleRecargoChange(1, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                            placeholder="0"
-                            step="0.1"
-                            min="0"
-                            max="100"
-                          />
-                          {datosCliente.recargo_pago_1 > 0 && (
-                            <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{datosCliente.recargo_pago_1}% = +{formatearMonto(
-                                (parseFloat(inputMontoBase1) || 0) * datosCliente.recargo_pago_1 / 100, 
-                                obtenerMonedaMetodo(datosCliente.metodo_pago_1)
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      )}
 
                       {/* Segundo método de pago (opcional) */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1128,135 +1048,54 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <div className="space-y-3">
                           <div>
                             <label className="block text-sm font-medium text-slate-800 mb-2">
-                              Monto Base ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                              Monto de Venta ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
                             </label>
                             <input
                               type="number"
                               value={inputMontoBase2}
                               onChange={(e) => handleMontoBaseChange(2, e.target.value)}
                               className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                              placeholder="Ingrese monto sin recargo"
+                              placeholder="Ingrese el monto a cobrar"
                               step="1"
                               min="0"
                               disabled={!datosCliente.metodo_pago_2}
                             />
                           </div>
-                          
-                          {datosCliente.metodo_pago_2 && necesitaRecargo(datosCliente.metodo_pago_2) && (
-                            <div>
-                              <label className="block text-sm font-medium text-slate-800 mb-2">
-                                Monto Final con Recargo ({obtenerMonedaMetodo(datosCliente.metodo_pago_2)})
-                              </label>
-                              <input
-                                type="number"
-                                value={inputMontoFinal2}
-                                onChange={(e) => handleMontoFinalChange(2, e.target.value)}
-                                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 bg-slate-50"
-                                placeholder="Monto final calculado"
-                                step="1"
-                                min="0"
-                              />
-                              <p className="text-xs text-emerald-600 mt-1">
-                                ✓ Monto final incluye {datosCliente.recargo_pago_2}% de recargo
-                              </p>
-                            </div>
-                          )}
-                          
-                          {datosCliente.metodo_pago_2 && !necesitaRecargo(datosCliente.metodo_pago_2) && (
-                            <p className="text-xs text-slate-800 mt-1">
-                              Restante: {formatearMonto(
-                                esMetodoEnPesos(datosCliente.metodo_pago_2) ? 
-                                  (calcularTotal() - datosCliente.monto_pago_1) * datosCliente.cotizacion_dolar : 
-                                  calcularTotal() - datosCliente.monto_pago_1, 
-                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                              )}
-                            </p>
-                          )}
                         </div>
                       </div>
 
-                      {/* Recargo para segundo método si es tarjeta de crédito */}
-                      {necesitaRecargo(datosCliente.metodo_pago_2) && (
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Recargo {datosCliente.metodo_pago_2 === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Transferencia'} 2 (%)
-                          </label>
-                          <input
-                            type="number"
-                            value={inputRecargo2}
-                            onChange={(e) => handleRecargoChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                            placeholder="0"
-                            step="0.1"
-                            min="0"
-                            max="100"
-                          />
-                          {datosCliente.recargo_pago_2 > 0 && (
-                            <p className="text-xs text-emerald-600 mt-1">
-                              Recargo aplicado: +{datosCliente.recargo_pago_2}% = +{formatearMonto(
-                                (parseFloat(inputMontoBase2) || 0) * datosCliente.recargo_pago_2 / 100, 
-                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      )}
 
                       {/* Resumen de pagos */}
                       <div className="bg-slate-200 p-3 rounded-lg">
                         <div className="flex justify-between text-sm">
-                          <span>Total a pagar:</span>
-                          <span className="font-bold">{formatearMonto(calcularTotal(), 'USD')}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Total recaudado:</span>
+                          <span>Total a cobrar:</span>
                           <span className="font-bold">{formatearMonto(
-                            // Calcular total recaudado basado en montos finales en cada moneda
-                            (esMetodoEnPesos(datosCliente.metodo_pago_1) 
-                              ? (parseFloat(inputMontoFinal1) || parseFloat(inputMontoBase1) || 0) / datosCliente.cotizacion_dolar
-                              : (parseFloat(inputMontoFinal1) || parseFloat(inputMontoBase1) || 0)) + 
-                            (datosCliente.metodo_pago_2 && (esMetodoEnPesos(datosCliente.metodo_pago_2) 
-                              ? (parseFloat(inputMontoFinal2) || parseFloat(inputMontoBase2) || 0) / datosCliente.cotizacion_dolar
-                              : (parseFloat(inputMontoFinal2) || parseFloat(inputMontoBase2) || 0))), 
+                            // Calcular total que se va a cobrar basado en montos ingresados
+                            (esMetodoEnPesos(datosCliente.metodo_pago_1)
+                              ? (parseFloat(inputMontoBase1) || 0) / datosCliente.cotizacion_dolar
+                              : (parseFloat(inputMontoBase1) || 0)) +
+                            (datosCliente.metodo_pago_2 && (esMetodoEnPesos(datosCliente.metodo_pago_2)
+                              ? (parseFloat(inputMontoBase2) || 0) / datosCliente.cotizacion_dolar
+                              : (parseFloat(inputMontoBase2) || 0))),
                             'USD'
                           )}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-t border-slate-200 pt-2 mt-2">
-                          <span>Diferencia base:</span>
-                          <span className={`font-bold ${Math.abs(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0))) < 0.01 ? 'text-emerald-600' : 'text-slate-800'}`}>
-                            {formatearMonto(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0)), 'USD')}
-                          </span>
                         </div>
                         {/* Desglose por método */}
                         {datosCliente.metodo_pago_1 && (
                           <div className="mt-3 pt-2 border-t border-slate-200">
                             <p className="text-xs text-slate-800 mb-1">Desglose por método:</p>
                             <div className="flex justify-between text-xs">
-                              <span>
-                                {datosCliente.metodo_pago_1.replace(/_/g, ' ')}
-                                {necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0 && 
-                                  ` (+${datosCliente.recargo_pago_1}%)`
-                                }:
-                              </span>
+                              <span>{datosCliente.metodo_pago_1.replace(/_/g, ' ')}:</span>
                               <span>{formatearMonto(
-                                necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0
-                                  ? parseFloat(inputMontoFinal1) || 0
-                                  : parseFloat(inputMontoBase1) || 0, 
+                                parseFloat(inputMontoBase1) || 0,
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                               )}</span>
                             </div>
-                            {datosCliente.metodo_pago_2 && (parseFloat(inputMontoBase2) > 0 || parseFloat(inputMontoFinal2) > 0) && (
+                            {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
                               <div className="flex justify-between text-xs">
-                                <span>
-                                  {datosCliente.metodo_pago_2.replace(/_/g, ' ')}
-                                  {necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0 && 
-                                    ` (+${datosCliente.recargo_pago_2}%)`
-                                  }:
-                                </span>
+                                <span>{datosCliente.metodo_pago_2.replace(/_/g, ' ')}:</span>
                                 <span>{formatearMonto(
-                                  necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0
-                                    ? parseFloat(inputMontoFinal2) || 0
-                                    : parseFloat(inputMontoBase2) || 0, 
+                                  parseFloat(inputMontoBase2) || 0,
                                   obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                                 )}</span>
                               </div>
@@ -1266,8 +1105,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      
+                    {/* Información adicional */}
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Información Adicional
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2">Vendedor</label>
                         <select
@@ -1302,21 +1146,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
                     </div>
 
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-slate-800 mb-2">Observaciones</label>
-                      <textarea
-                        name="observaciones"
-                        value={datosCliente.observaciones}
-                        onChange={handleInputChange}
-                        rows="2"
-                        className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                        placeholder="Observaciones adicionales..."
-                      />
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-slate-800 mb-2">Observaciones</label>
+                        <textarea
+                          name="observaciones"
+                          value={datosCliente.observaciones}
+                          onChange={handleInputChange}
+                          rows="2"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                          placeholder="Observaciones adicionales..."
+                        />
+                      </div>
+                      </div>
                     </div>
 
                     {/* Resumen */}
-                    <div className="bg-slate-200 p-4 rounded-lg mb-6">
-                      <h3 className="font-medium text-slate-800 mb-3">Resumen de la Venta</h3>
+                    <div className="space-y-4">
+                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
+                        Resumen de la Venta
+                      </h4>
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       <div className="text-sm space-y-2">
                         {clienteSeleccionado && (
                           <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
@@ -1327,34 +1176,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         
                         <div className="mt-3 space-y-1">
                           <p className="font-medium">Métodos de Pago:</p>
-                          <p className="ml-2">• {datosCliente.metodo_pago_1.replace(/_/g, ' ')}
-                            {necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0 && 
-                              ` (+${datosCliente.recargo_pago_1}%)`
-                            }: {formatearMonto(
-                            necesitaRecargo(datosCliente.metodo_pago_1) && datosCliente.recargo_pago_1 > 0
-                              ? parseFloat(inputMontoFinal1) || 0
-                              : parseFloat(inputMontoBase1) || 0, 
+                          <p className="ml-2">• {datosCliente.metodo_pago_1.replace(/_/g, ' ')}: {formatearMonto(
+                            parseFloat(inputMontoBase1) || 0,
                             obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                           )}</p>
-                          {datosCliente.metodo_pago_2 && (parseFloat(inputMontoBase2) > 0 || parseFloat(inputMontoFinal2) > 0) && (
-                            <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}
-                              {necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0 && 
-                                ` (+${datosCliente.recargo_pago_2}%)`
-                              }: {formatearMonto(
-                              necesitaRecargo(datosCliente.metodo_pago_2) && datosCliente.recargo_pago_2 > 0
-                                ? parseFloat(inputMontoFinal2) || 0
-                                : parseFloat(inputMontoBase2) || 0, 
+                          {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
+                            <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}: {formatearMonto(
+                              parseFloat(inputMontoBase2) || 0,
                               obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                             )}</p>
                           )}
                         </div>
                         
-                        {/* ✅ ALERTA si hay diferencia en el pago */}
-                        {Math.abs(calcularTotal() - (datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0))) > 0.01 && (
-                          <div className="mt-2 p-2 bg-slate-800 text-white rounded-lg text-xs">
-                            ⚠️ Los montos no coinciden con el total de la venta
-                          </div>
-                        )}
                         
                         {/* ✅ RESUMEN especial para cuenta corriente */}
                         {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
@@ -1363,40 +1196,43 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           </div>
                         )}
                       </div>
+                      </div>
                     </div>
 
-                    <div className="flex space-x-4">
-                      <button
-                        type="button"
-                        onClick={() => setMostrarFormulario(false)}
-                        className="flex-1 bg-slate-200 text-slate-800 py-3 rounded-lg font-semibold hover:bg-slate-800 hover:text-white transition-colors"
-                      >
-                        Volver
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!clienteSeleccionado}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-200 disabled:cursor-not-allowed ${
-                          (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                            ? 'bg-slate-800 text-white hover:bg-slate-600' 
-                            : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                        }`}
-                      >
-                        {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
-                          <>
-                            <CreditCard className="w-5 h-5" />
-                            <span>Procesar con Cuenta Corriente</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-5 h-5" />
-                            <span>Procesar Venta</span>
-                          </>
-                        )}
-                      </button>
+                    {/* Botones */}
+                    <div className="border-t border-slate-200 pt-6">
+                      <div className="flex space-x-4">
+                        <button
+                          type="button"
+                          onClick={() => setMostrarFormulario(false)}
+                          className="flex-1 bg-slate-200 text-slate-800 py-3 rounded font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+                        >
+                          Volver
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={!clienteSeleccionado}
+                          className={`flex-1 py-3 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-200 disabled:cursor-not-allowed ${
+                            (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                              ? 'bg-slate-800 text-white hover:bg-slate-600'
+                              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          }`}
+                        >
+                          {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
+                            <>
+                              <CreditCard className="w-5 h-5" />
+                              <span>Procesar con Cuenta Corriente</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="w-5 h-5" />
+                              <span>Procesar Venta</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </form>
-                </div>
               </>
             )}
           </div>

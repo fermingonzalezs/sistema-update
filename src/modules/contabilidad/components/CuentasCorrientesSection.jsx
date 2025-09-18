@@ -1,17 +1,16 @@
 // src/components/CuentasCorrientesSection.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
+import {
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  Users,
   Search,
   Plus,
   Eye,
   DollarSign,
   Calendar,
   X,
-  Calculator,
   Building2,
   Minus,
   Edit3,
@@ -570,25 +569,29 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
       {/* Estadísticas */}
       {estadisticas && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Tarjeta 
+          <Tarjeta
             icon={TrendingDown}
-            titulo="Total a Cobrar"
-            valor={formatearMonto(estadisticas.totalDeuda, 'USD')}
+            titulo="Nos Deben"
+            valor={formatearMonto(estadisticas.totalQueNosDeben, 'USD')}
+            colorVariant="emerald"
           />
-          <Tarjeta 
+          <Tarjeta
+            icon={TrendingUp}
+            titulo="Debemos"
+            valor={formatearMonto(estadisticas.totalQueDebemos, 'USD')}
+            colorVariant="slate"
+          />
+          <Tarjeta
             icon={Users}
-            titulo="Clientes con Deuda"
+            titulo="Acreedores"
             valor={estadisticas.clientesConDeuda}
+            colorVariant="emerald"
           />
-          <Tarjeta 
-            icon={Calculator}
-            titulo="Total Movimientos"
-            valor={estadisticas.totalMovimientos}
-          />
-          <Tarjeta 
-            icon={CreditCard}
-            titulo="Clientes Saldados"
-            valor={estadisticas.clientesSaldados}
+          <Tarjeta
+            icon={Users}
+            titulo="Deudores"
+            valor={estadisticas.clientesAQuienesDedemos}
+            colorVariant="slate"
           />
         </div>
       )}

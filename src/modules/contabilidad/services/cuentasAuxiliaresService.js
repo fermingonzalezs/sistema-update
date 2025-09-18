@@ -8,7 +8,8 @@ export const cuentasAuxiliaresService = {
     try {
       console.log('📡 Obteniendo cuentas auxiliares...');
 
-      const { data, error } = await supabase
+      // Primero obtener las cuentas auxiliares con info del plan
+      const { data: cuentasData, error: cuentasError } = await supabase
         .from('cuentas_auxiliares')
         .select(`
           *,
@@ -20,26 +21,53 @@ export const cuentasAuxiliaresService = {
         .eq('activo', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (cuentasError) throw cuentasError;
 
-      // Transformar datos para el frontend
-      const cuentasTransformadas = data.map(cuenta => ({
-        id: cuenta.id,
-        cuenta: {
-          codigo: cuenta.plan_cuentas?.codigo || '',
-          nombre: cuenta.plan_cuentas?.nombre || ''
-        },
-        nombre: cuenta.nombre,
-        descripcion: cuenta.descripcion,
-        total_auxiliar: parseFloat(cuenta.total_calculado || 0),
-        items_count: Array.isArray(cuenta.items) ? cuenta.items.length : 0,
-        ultima_actualizacion: cuenta.updated_at?.split('T')[0] || cuenta.created_at?.split('T')[0],
-        // Calcular estado basado en si tiene items o no
-        estado: Array.isArray(cuenta.items) && cuenta.items.length > 0 ? 'activo' : 'sin_items'
-      }));
+      // Obtener saldos contables para cada cuenta
+      const cuentasConSaldos = await Promise.all(
+        cuentasData.map(async (cuenta) => {
+          let saldoContable = 0;
 
-      console.log(`✅ ${cuentasTransformadas.length} cuentas auxiliares obtenidas`);
-      return cuentasTransformadas;
+          if (cuenta.cuenta_id) {
+            // Calcular saldo sumando movimientos contables
+            const { data: movimientos, error: movError } = await supabase
+              .from('movimientos_contables')
+              .select('debe, haber')
+              .eq('cuenta_id', cuenta.cuenta_id);
+
+            if (!movError && movimientos) {
+              saldoContable = movimientos.reduce((total, mov) => {
+                return total + (parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0));
+              }, 0);
+            }
+          }
+
+          const totalAuxiliar = parseFloat(cuenta.total_calculado || 0);
+          const diferencia = saldoContable - totalAuxiliar;
+
+          return {
+            id: cuenta.id,
+            cuenta: {
+              codigo: cuenta.plan_cuentas?.codigo || '',
+              nombre: cuenta.plan_cuentas?.nombre || '',
+              saldo_contable: saldoContable
+            },
+            nombre: cuenta.nombre,
+            descripcion: cuenta.descripcion,
+            total_auxiliar: totalAuxiliar,
+            diferencia: diferencia,
+            items_count: Array.isArray(cuenta.items) ? cuenta.items.length : 0,
+            ultima_actualizacion: cuenta.updated_at?.split('T')[0] || cuenta.created_at?.split('T')[0],
+            // Calcular estado basado en diferencia
+            estado: Math.abs(diferencia) < 0.01 ? 'balanceado' : 'desbalanceado',
+            created_at: cuenta.created_at,
+            updated_at: cuenta.updated_at
+          };
+        })
+      );
+
+      console.log(`✅ ${cuentasConSaldos.length} cuentas auxiliares obtenidas`);
+      return cuentasConSaldos;
     } catch (error) {
       console.error('❌ Error obteniendo cuentas auxiliares:', error);
       throw error;
@@ -166,7 +194,7 @@ export const cuentasAuxiliaresService = {
       // Generar ID único para el item
       const itemWithId = {
         ...item,
-        id: crypto.randomUUID(),
+        id: Date.now() + Math.random().toString(36).substring(2, 11),
         fecha_ingreso: item.fecha_ingreso || new Date().toISOString().split('T')[0],
         valor_total: parseFloat(item.cantidad || 1) * parseFloat(item.valor_unitario || 0)
       };
