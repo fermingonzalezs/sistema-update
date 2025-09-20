@@ -114,17 +114,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
                 </div>
               </div>
 
-              {/* Estado del sistema - Oculto en móviles */}
-              <div className="hidden md:block bg-slate-700 rounded-lg p-4 border border-slate-600 w-40 h-15">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
-                  <span className="text-xs font-medium text-white">Sistema Activo</span>
-                </div>
-                <div className="text-xs text-slate-300 mt-1">
-                  BD: <span className="text-emerald-600 font-medium">Conectada</span>
-                </div>
-              </div>
-
+             
               {/* Cotización USD/ARS */}
               <div className="bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 w-auto md:w-40 h-auto md:h-15">
                 {cotizacion ? (

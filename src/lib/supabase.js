@@ -98,9 +98,18 @@ export function useCarrito() {
   }
 
   const actualizarPrecio = (itemId, nuevoPrecio) => {
-    setCarrito(prev => prev.map(item =>
-      item.id === itemId ? { ...item, precio_unitario: nuevoPrecio } : item
-    ))
+    console.log(`🛒 Actualizando precio: ID=${itemId}, Nuevo precio=${nuevoPrecio}`);
+    setCarrito(prev => {
+      const carritoActualizado = prev.map(item => {
+        if (item.id === itemId) {
+          console.log(`✅ Item actualizado:`, { ...item, precio_unitario: nuevoPrecio });
+          return { ...item, precio_unitario: nuevoPrecio };
+        }
+        return item;
+      });
+      console.log('🛒 Carrito después de actualizar precio:', carritoActualizado);
+      return carritoActualizado;
+    });
   }
 
   const limpiarCarrito = () => {

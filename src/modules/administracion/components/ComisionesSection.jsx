@@ -20,7 +20,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   const [resumenGeneral, setResumenGeneral] = useState({
     totalComisiones: 0,
     totalGanancias: 0,
-    porcentajeRepresentacion: 0,
+    comisionPromedio: 0,
     totalVentas: 0
   });
 
@@ -80,9 +80,11 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
     let totalGananciasGeneral = 0;
     let totalVentasGeneral = 0;
     let totalComisionesGeneral = 0;
+    let totalTransacciones = 0;
 
     ventasFiltradas.forEach(venta => {
       const vendedor = venta.vendedor;
+      totalTransacciones += 1;
       
       if (!comisionesPorVendedor[vendedor]) {
         comisionesPorVendedor[vendedor] = {
@@ -101,7 +103,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
       // Usar margen_total de la transacción para calcular comisión
       const margenTotal = parseFloat(venta.margen_total || 0);
       const comisionVenta = margenTotal * (porcentajeFijo / 100);
-      const ventaTotal = parseFloat(venta.total_venta || 0);
+      const ventaTotal = parseFloat(venta.monto_pago_1 || 0) + parseFloat(venta.monto_pago_2 || 0);
       
       // Calcular unidades totales de la venta
       const unidadesTotales = venta.venta_items ? venta.venta_items.reduce((sum, item) => sum + (item.cantidad || 1), 0) : 1;
@@ -194,8 +196,8 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
       totalComisiones: totalComisionesGeneral,
       totalGanancias: totalGananciasGeneral,
       totalVentas: totalVentasGeneral,
-      porcentajeRepresentacion: totalGananciasGeneral > 0 
-        ? (totalComisionesGeneral / totalGananciasGeneral) * 100 
+      comisionPromedio: totalTransacciones > 0
+        ? totalComisionesGeneral / totalTransacciones
         : 0
     });
   };
@@ -249,128 +251,137 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
   return (
     <div className="p-0 bg-slate-50">
-      
 
-      {/* Filtros */}
-      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Filtros y Configuración</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* Fecha Inicio */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Fecha Inicio
-            </label>
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
-          </div>
 
-          {/* Fecha Fin */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Fecha Fin
-            </label>
-            <input
-              type="date"
-              value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
-          </div>
-
-          {/* Vendedor */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <User className="w-4 h-4 inline mr-1" />
-              Vendedor
-            </label>
-            <select
-              value={vendedorSeleccionado}
-              onChange={(e) => setVendedorSeleccionado(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="todos">Todos los vendedores</option>
-              {getVendedores().map(vendedor => (
-                <option key={vendedor} value={vendedor}>{vendedor}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Botón para calcular */}
-          <div className="flex items-end">
-            <button
-              onClick={() => calcularComisiones()}
-              className="w-full bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
-            >
-              Calcular
-            </button>
+      {/* Header con fondo slate */}
+      <div className="bg-white rounded border border-slate-200 mb-6">
+        <div className="p-6 bg-slate-800 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Calculator className="w-6 h-6" />
+              <div>
+                <h2 className="text-2xl font-semibold">Comisiones</h2>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Configuración de Porcentaje Fijo */}
-        <div className="border-t border-slate-200 pt-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-medium text-slate-700">
-              <Calculator className="w-4 h-4 inline mr-1" />
-              Porcentaje de Comisión Fijo (sobre ganancia)
-            </h4>
-            {!editandoPorcentaje ? (
-              <button
-                onClick={() => setEditandoPorcentaje(true)}
-                className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 text-sm"
-              >
-                <Edit2 className="w-4 h-4" />
-                <span>Editar</span>
-              </button>
-            ) : (
-              <div className="flex space-x-2">
-                <button
-                  onClick={guardarPorcentaje}
-                  className="text-emerald-600 hover:text-emerald-800 flex items-center space-x-1 text-sm"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Guardar</span>
-                </button>
-                <button
-                  onClick={cancelarEdicion}
-                  className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 text-sm"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Cancelar</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-4 p-4 bg-slate-100 rounded">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-slate-600" />
-              <span className="font-medium text-slate-800">Porcentaje de comisión para todas las categorías:</span>
+        {/* Filtros y configuración en una línea */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-end">
+            {/* Fecha Inicio */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Fecha Inicio
+              </label>
+              <input
+                type="date"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
             </div>
-            {editandoPorcentaje ? (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  value={porcentajeTemp}
-                  onChange={(e) => setPorcentajeTemp(parseFloat(e.target.value) || 0)}
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  className="w-20 px-3 py-2 border border-slate-300 rounded text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-                <span className="text-slate-600">%</span>
+
+            {/* Fecha Fin */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Fecha Fin
+              </label>
+              <input
+                type="date"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Vendedor */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <User className="w-4 h-4 inline mr-1" />
+                Vendedor
+              </label>
+              <select
+                value={vendedorSeleccionado}
+                onChange={(e) => setVendedorSeleccionado(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="todos">Todos los vendedores</option>
+                {getVendedores().map(vendedor => (
+                  <option key={vendedor} value={vendedor}>{vendedor}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Porcentaje de comisión */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <TrendingUp className="w-4 h-4 inline mr-1" />
+                Comisión %
+              </label>
+              {editandoPorcentaje ? (
+                <div className="flex items-center space-x-1">
+                  <input
+                    type="number"
+                    value={porcentajeTemp}
+                    onChange={(e) => setPorcentajeTemp(parseFloat(e.target.value) || 0)}
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    className="w-16 px-2 py-2 border border-slate-200 rounded text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                  <span className="text-slate-600 text-sm">%</span>
+                </div>
+              ) : (
+                <div className="px-3 py-2 bg-slate-100 rounded font-semibold text-emerald-600">
+                  {porcentajeFijo}%
+                </div>
+              )}
+            </div>
+
+            {/* Botones de acción */}
+            <div>
+              <div className="flex space-x-2">
+                {editandoPorcentaje ? (
+                  <>
+                    <button
+                      onClick={guardarPorcentaje}
+                      className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+                      title="Guardar porcentaje"
+                    >
+                      <Save className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={cancelarEdicion}
+                      className="px-3 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 transition-colors"
+                      title="Cancelar"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setEditandoPorcentaje(true)}
+                    className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+                    title="Editar porcentaje"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-            ) : (
-              <span className="font-semibold text-lg text-emerald-600">
-                {porcentajeFijo}%
-              </span>
-            )}
+            </div>
+
+            {/* Botón Calcular */}
+            <div>
+              <button
+                onClick={() => calcularComisiones()}
+                className="w-full bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
+              >
+                Calcular
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -387,10 +398,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           titulo="Total Ganancias"
           valor={formatearMonto(resumenGeneral.totalGanancias, 'USD')}
         />
-        <Tarjeta 
+        <Tarjeta
           icon={Settings}
-          titulo="% Representación"
-          valor={`${resumenGeneral.porcentajeRepresentacion.toFixed(1)}%`}
+          titulo="Comisión Promedio"
+          valor={formatearMonto(resumenGeneral.comisionPromedio, 'USD')}
         />
         <Tarjeta 
           icon={FileText}
@@ -405,11 +416,6 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
       
       {!loading && !error && (
         <div className="bg-white rounded border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">
-              Comisiones por Vendedor ({fechaInicio} - {fechaFin})
-            </h3>
-          </div>
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">

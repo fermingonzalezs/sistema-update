@@ -33,6 +33,8 @@ const dashboardService = {
         vendedor,
         sucursal,
         total_venta,
+        monto_pago_1,
+        monto_pago_2,
         metodo_pago,
         observaciones,
         clientes (
@@ -197,7 +199,7 @@ const dashboardService = {
       const fecha = new Date(transaccion.fecha_venta).toISOString().split('T')[0];
       const diaSemana = new Date(transaccion.fecha_venta).toLocaleDateString('es-ES', { weekday: 'long' });
       
-      const ventaAmount = parseFloat(transaccion.total_venta || 0);
+      const ventaAmount = parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0);
       const descuentoAmount = 0; // Campo no disponible en estructura actual
       const promocioneAmount = 0; // Campo no disponible en estructura actual
       const efectivoAmount = 0; // Simplificado por ahora

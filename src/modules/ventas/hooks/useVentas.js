@@ -78,7 +78,46 @@ export const ventasService = {
       }
       return sum + (costo * item.cantidad)
     }, 0)
-    const margenTotal = totalVenta - totalCosto
+
+    // 💰 CALCULAR MONTO REAL COBRADO
+    const montoCobrado = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0)
+    const diferenciaPrecio = montoCobrado - totalVenta
+
+    console.log(`💰 Análisis de precios:`, {
+      totalVenta: totalVenta,
+      montoCobrado: montoCobrado,
+      diferenciaPrecio: diferenciaPrecio
+    });
+
+    // 🎯 AJUSTAR PRECIOS SI HAY DIFERENCIA
+    let carritoAjustado = [...carritoItems]
+    if (Math.abs(diferenciaPrecio) > 0.01) { // Solo si la diferencia es significativa (> 1 centavo)
+      // Encontrar el item más caro del carrito
+      const itemMasCaro = carritoAjustado.reduce((max, item) =>
+        (item.precio_unitario * item.cantidad) > (max.precio_unitario * max.cantidad) ? item : max
+      );
+
+      console.log(`🎯 Aplicando diferencia de $${diferenciaPrecio} al item más caro:`, {
+        producto: itemMasCaro.producto?.modelo || itemMasCaro.producto?.nombre_producto,
+        precio_original: itemMasCaro.precio_unitario,
+        cantidad: itemMasCaro.cantidad
+      });
+
+      // Crear una copia ajustada del carrito con el precio corregido
+      carritoAjustado = carritoItems.map(item => {
+        if (item === itemMasCaro) {
+          const nuevoPrecioUnitario = item.precio_unitario + (diferenciaPrecio / item.cantidad)
+          console.log(`💰 Precio ajustado: $${item.precio_unitario} → $${nuevoPrecioUnitario}`);
+          return {
+            ...item,
+            precio_unitario: nuevoPrecioUnitario
+          }
+        }
+        return item
+      })
+    }
+
+    const margenTotal = montoCobrado - totalCosto
 
     try {
       // Crear la transacción principal con soporte para doble método de pago
@@ -89,8 +128,8 @@ export const ventasService = {
         cliente_email: datosCliente.cliente_email,
         cliente_telefono: datosCliente.cliente_telefono,
         metodo_pago: datosCliente.metodo_pago_1 || datosCliente.metodo_pago,
-        monto_pago_1: datosCliente.monto_pago_1 || totalVenta,
-        total_venta: totalVenta,
+        monto_pago_1: datosCliente.monto_pago_1 || montoCobrado,
+        total_venta: montoCobrado,
         total_costo: totalCosto,
         margen_total: margenTotal,
         observaciones: datosCliente.observaciones,
@@ -112,8 +151,16 @@ export const ventasService = {
 
       if (errorTransaccion) throw errorTransaccion
 
-      // Crear los items de la venta
-      const ventaItems = carritoItems.map(item => {
+      // Crear los items de la venta usando el carrito ajustado
+      const ventaItems = carritoAjustado.map(item => {
+        console.log(`💾 DEBUG: Procesando item para BD:`, {
+          id: item.id,
+          tipo: item.tipo,
+          precio_unitario_carrito: item.precio_unitario,
+          cantidad: item.cantidad,
+          producto: item.producto?.modelo || item.producto?.nombre_producto
+        });
+
         let precioCosto = 0
         if (item.tipo === 'computadora') {
           // Para computadoras, priorizar precio_costo_total, fallback a precio_costo_usd
@@ -122,9 +169,16 @@ export const ventasService = {
           // Para celulares y otros productos, usar precio_compra_usd
           precioCosto = item.producto.precio_compra_usd || 0
         }
-        
+
         const precioTotal = item.precio_unitario * item.cantidad
         const margenItem = precioTotal - (precioCosto * item.cantidad)
+
+        console.log(`💾 DEBUG: Precios calculados:`, {
+          precio_unitario: item.precio_unitario,
+          precio_total: precioTotal,
+          precio_costo: precioCosto,
+          margen_item: margenItem
+        });
 
 
         // Generar copy completo del producto al momento de la venta
@@ -227,12 +281,12 @@ export const ventasService = {
   async getEstadisticas() {
     const { data, error } = await supabase
       .from('transacciones')
-      .select('total_venta, total_costo, margen_total, fecha_venta')
-    
+      .select('total_venta, total_costo, margen_total, fecha_venta, monto_pago_1, monto_pago_2')
+
     if (error) throw error
-    
+
     const totalTransacciones = data.length
-    const totalIngresos = data.reduce((sum, txn) => sum + parseFloat(txn.total_venta), 0)
+    const totalIngresos = data.reduce((sum, txn) => sum + (parseFloat(txn.monto_pago_1 || 0) + parseFloat(txn.monto_pago_2 || 0)), 0)
     const totalCostos = data.reduce((sum, txn) => sum + parseFloat(txn.total_costo || 0), 0)
     const totalGanancias = data.reduce((sum, txn) => sum + parseFloat(txn.margen_total || 0), 0)
     
@@ -296,7 +350,18 @@ export function useVentas() {
   const procesarCarrito = async (carrito, datosCliente) => {
     try {
       setError(null)
-      
+
+      console.log('🛒 DEBUG: Carrito recibido en procesarCarrito:', carrito);
+      carrito.forEach((item, index) => {
+        console.log(`📦 Item ${index + 1}:`, {
+          id: item.id,
+          tipo: item.tipo,
+          precio_unitario: item.precio_unitario,
+          cantidad: item.cantidad,
+          producto: item.producto?.modelo || item.producto?.nombre_producto
+        });
+      });
+
       // Crear la transacción con todos los items
       const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito)
       

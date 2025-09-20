@@ -19,15 +19,15 @@ Font.register({
   ]
 });
 
-// Estilos profesionales mejorados para el PDF
+// Estilos profesionales mejorados para el PDF - Versión compacta
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 40,
+    padding: 25,
     fontFamily: 'Roboto',
-    fontSize: 10,
-    lineHeight: 1.4,
+    fontSize: 8,
+    lineHeight: 1.2,
   },
   
   // Header de la empresa
@@ -35,8 +35,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 30,
-    paddingBottom: 20,
+    marginBottom: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -44,16 +44,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   companyName: {
-    fontSize: 24,
+    fontSize: 15,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginBottom: 20,
+    marginBottom: 6,
     letterSpacing: 0.3,
   },
   companyDetails: {
-    fontSize: 9,
+    fontSize: 6,
     color: '#6B7280',
-    lineHeight: 1.5,
+    lineHeight: 1.2,
     fontFamily: 'Roboto',
   },
   
@@ -61,72 +61,72 @@ const styles = StyleSheet.create({
   documentTitleSection: {
     alignItems: 'flex-end',
     backgroundColor: '#F8FAFC',
-    padding: 15,
+    padding: 6,
     borderRadius: 4,
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: '#1F2937',
-    minWidth: 200,
+    minWidth: 120,
   },
   documentTitle: {
-    fontSize: 20,
+    fontSize: 12,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginTop:10,
-    marginBottom: 5,
+    marginTop: 3,
+    marginBottom: 2,
     letterSpacing: 1,
   },
   documentSubtitle: {
-    fontSize: 8,
+    fontSize: 5,
     color: '#6B7280',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     fontFamily: 'Roboto',
   },
   documentInfo: {
-    fontSize: 9,
+    fontSize: 6,
     color: '#374151',
     textAlign: 'right',
-    lineHeight: 1.6,
-    marginTop: 8,
+    lineHeight: 1.3,
+    marginTop: 3,
     fontFamily: 'Roboto',
   },
   
   // Información del cliente
   clientSection: {
     flexDirection: 'row',
-    marginBottom: 35,
-    gap: 40,
+    marginBottom: 20,
+    gap: 25,
   },
   clientColumn: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginBottom: 8,
+    marginBottom: 5,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 4,
+    paddingBottom: 3,
   },
   clientInfo: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#374151',
-    lineHeight: 1.6,
+    lineHeight: 1.4,
     fontFamily: 'Roboto',
   },
   clientName: {
-    fontSize: 11,
+    fontSize: 8,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   
   // Tabla de productos
   table: {
-    marginBottom: 30,
+    marginBottom: 18,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 4,
@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#1F2937',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableHeaderText: {
     color: '#FFFFFF',
-    fontSize: 8,
+    fontSize: 6,
     fontFamily: 'Roboto',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
@@ -148,31 +148,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    minHeight: 45,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    minHeight: 30,
   },
   tableRowLast: {
     borderBottomWidth: 0,
   },
   tableCell: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#374151',
     justifyContent: 'center',
   },
   tableCellBold: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#1F2937',
     fontFamily: 'Roboto',
     justifyContent: 'center',
   },
   tableCellDescription: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#374151',
-    lineHeight: 1.4,
+    lineHeight: 1.3,
   },
   serialText: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#6B7280',
     fontFamily: 'Roboto',
     marginTop: 2,
@@ -184,15 +184,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   colDescription: {
-    width: '44%',
+    width: '52%',
     textAlign: 'left',
   },
   colQty: {
-    width: '10%',
-    textAlign: 'center',
-  },
-  colUnit: {
-    width: '10%',
+    width: '12%',
     textAlign: 'center',
   },
   colUnitPrice: {
@@ -206,29 +202,29 @@ const styles = StyleSheet.create({
   
   // Sección de totales
   totalsSection: {
-    marginTop: 20,
+    marginTop: 15,
     alignItems: 'flex-end',
   },
   totalsContainer: {
     width: '50%',
-    minWidth: 200,
+    minWidth: 150,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   totalLabel: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#6B7280',
     fontFamily: 'Roboto',
   },
   totalValue: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#374151',
     fontFamily: 'Roboto',
     textAlign: 'right',
@@ -247,19 +243,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#1F2937',
-    paddingVertical: 15,
-    paddingHorizontal: 12,
-    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginTop: 6,
     borderRadius: 4,
   },
   finalTotalLabel: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#FFFFFF',
     fontFamily: 'Roboto',
     letterSpacing: 0.3,
   },
   finalTotalValue: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#FFFFFF',
     fontFamily: 'Roboto',
     letterSpacing: 0.3,
@@ -267,18 +263,18 @@ const styles = StyleSheet.create({
   
   // Footer
   footer: {
-    marginTop: 50,
-    paddingTop: 20,
+    marginTop: 20,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 1.5,
-    marginBottom: 3,
+    lineHeight: 1.3,
+    marginBottom: 2,
   },
   
   // Elementos decorativos
@@ -295,54 +291,106 @@ const styles = StyleSheet.create({
   
   // Sección específica para pagarés
   pagareSection: {
-    marginTop: 30,
-    marginBottom: 20,
-    padding: 20,
+    marginTop: 15,
+    marginBottom: 12,
+    padding: 12,
     backgroundColor: '#F8FAFC',
     borderRadius: 4,
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: '#DC2626',
   },
   pagareTitle: {
-    fontSize: 12,
+    fontSize: 8,
     fontFamily: 'Roboto',
     color: '#DC2626',
-    marginBottom: 10,
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   pagareText: {
-    fontSize: 9,
+    fontSize: 6,
     color: '#374151',
-    lineHeight: 1.6,
+    lineHeight: 1.3,
     textAlign: 'justify',
     fontFamily: 'Roboto',
   },
   vencimientoInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 15,
-    paddingTop: 15,
+    marginTop: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   vencimientoLabel: {
-    fontSize: 9,
+    fontSize: 6,
     fontFamily: 'Roboto',
     color: '#6B7280',
   },
   vencimientoFecha: {
-    fontSize: 10,
+    fontSize: 7,
     fontFamily: 'Roboto',
     color: '#DC2626',
   },
   
+  // Sección de información de garantía
+  warrantySection: {
+    marginTop: 15,
+    marginBottom: 15,
+  },
+  warrantyTitle: {
+    fontSize: 8,
+    fontFamily: 'Roboto',
+    color: '#1F2937',
+    marginBottom: 6,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 3,
+  },
+  warrantyText: {
+    fontSize: 6,
+    color: '#374151',
+    lineHeight: 1.3,
+    fontFamily: 'Roboto',
+    marginBottom: 4,
+    textAlign: 'justify',
+  },
+
+  // Sección importante
+  importantSection: {
+    marginBottom: 8,
+    backgroundColor: '#F8FAFC',
+    padding: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#DC2626',
+    borderRadius: 4,
+  },
+  importantTitle: {
+    fontSize: 6,
+    fontFamily: 'Roboto',
+    color: '#DC2626',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  importantText: {
+    fontSize: 5,
+    color: '#374151',
+    lineHeight: 1.3,
+    fontFamily: 'Roboto',
+    marginBottom: 3,
+    textAlign: 'justify',
+  },
+
   // Metadatos del documento
   metadata: {
     position: 'absolute',
-    bottom: 30,
-    right: 40,
-    fontSize: 7,
+    bottom: 20,
+    right: 25,
+    fontSize: 5,
     color: '#D1D5DB',
   },
 });
@@ -432,7 +480,6 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
             <Text style={[styles.tableHeaderText, styles.colNumber]}>Item</Text>
             <Text style={[styles.tableHeaderText, styles.colDescription]}>Descripción</Text>
             <Text style={[styles.tableHeaderText, styles.colQty]}>Cant.</Text>
-            <Text style={[styles.tableHeaderText, styles.colUnit]}>Unidad</Text>
             <Text style={[styles.tableHeaderText, styles.colUnitPrice]}>Precio Unit.</Text>
             <Text style={[styles.tableHeaderText, styles.colAmount]}>Importe</Text>
           </View>
@@ -456,9 +503,6 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
               </View>
               <View style={[styles.tableCell, styles.colQty]}>
                 <Text>{item.quantity}</Text>
-              </View>
-              <View style={[styles.tableCell, styles.colUnit]}>
-                <Text>{item.unit || 'Un.'}</Text>
               </View>
               <View style={[styles.tableCellBold, styles.colUnitPrice]}>
                 <Text>{formatearMoneda(item.unitPrice, data.moneda)}</Text>
@@ -514,13 +558,19 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
           </View>
         )}
 
+
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            {docInfo.esCredito ? 'Documento de crédito comercial.' : 'Comprobante de pago recibido.'}
+            UPDATE TECH - 221-641-9901 - LA PLATA - BUENOS AIRES - ARGENTINA{'\n'}
+            UPDATE TECH - 221-359-9837 - CABA - BUENOS AIRES - ARGENTINA
           </Text>
           <Text style={styles.footerText}>
-            {data.company.name} • {fechaActual}
+            Email: info@updatetech.com.ar • Web: www.updatetech.com.ar
+          </Text>
+          <Text style={styles.footerText}>
+            UPDATE TECH WW SRL • {fechaActual}
           </Text>
         </View>
 
@@ -556,14 +606,48 @@ export const convertirVentaARecibo = (transaccion) => {
       phone: transaccion.cliente_telefono || '',
       email: transaccion.cliente_email || ''
     },
-    items: (transaccion.venta_items || []).map(item => ({
-      description: item.copy || 'Producto sin especificar',
-      quantity: item.cantidad || 1,
-      unit: 'Un.',
-      unitPrice: item.precio_unitario || 0,
-      amount: item.precio_total || 0,
-      serial: item.serial_producto || null
-    })),
+    items: (transaccion.venta_items || []).map(item => {
+      // Extraer información básica del copy
+      const copy = item.copy || 'Producto sin especificar';
+
+      // Intentar extraer modelo y condición del copy
+      let modelo = copy;
+      let condicion = '';
+
+      // Buscar patrones comunes para extraer condición
+      const condicionPatterns = [
+        /- (nuevo|usado|refurbished|reacondicionado)/i,
+        /\((nuevo|usado|refurbished|reacondicionado)\)/i,
+        /(nuevo|usado|refurbished|reacondicionado)$/i
+      ];
+
+      for (const pattern of condicionPatterns) {
+        const match = copy.match(pattern);
+        if (match) {
+          condicion = match[1].toLowerCase();
+          // Normalizar condición
+          if (condicion === 'reacondicionado') condicion = 'refurbished';
+          modelo = copy.replace(pattern, '').trim();
+          break;
+        }
+      }
+
+      // Si no se encontró condición, asumir "usado"
+      if (!condicion) {
+        condicion = 'usado';
+      }
+
+      // Construir descripción simplificada
+      const descripcionSimple = `${modelo} - ${condicion}`;
+
+      return {
+        description: descripcionSimple,
+        quantity: item.cantidad || 1,
+        unitPrice: item.precio_unitario || 0,
+        amount: item.precio_total || 0,
+        serial: item.serial_producto || null
+      };
+    }),
     discount: transaccion.descuento || 0,
     moneda: transaccion.moneda_pago || 'USD',
     metodoPago: transaccion.metodo_pago || 'efectivo'

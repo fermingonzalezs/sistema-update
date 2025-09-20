@@ -326,9 +326,7 @@ const GarantiaDocument = ({ data }) => {
           <View style={styles.clientColumn}>
             <Text style={styles.sectionTitle}>Información de Compra</Text>
             <Text style={styles.clientInfo}>
-              Fecha de compra: {formatearFecha(data.fechaCompra)}{'\n'}
-              Método de pago: {data.metodoPago || 'N/A'}{'\n'}
-              Total: U$ {data.total || '0.00'}
+              Fecha de compra: {formatearFecha(data.fechaCompra)}
             </Text>
           </View>
         </View>
@@ -350,7 +348,7 @@ const GarantiaDocument = ({ data }) => {
               </View>
               <View style={styles.productField}>
                 <Text style={styles.productLabel}>Plazo de Garantía</Text>
-                <Text style={styles.productValue}>{data.plazoGarantia || '365'} DÍAS</Text>
+                <Text style={styles.productValue}>{data.plazoGarantia || data.plazoGarantiaDias || '365'} DÍAS</Text>
               </View>
             </View>
           </View>
@@ -517,12 +515,20 @@ const obtenerGarantiaDiasProducto = async (producto) => {
 
 // Función para convertir producto individual al formato de garantía
 export const convertirProductoAGarantia = async (producto, cliente = {}, datosVenta = {}) => {
+  // Si el producto ya tiene un plazo definido, usarlo directamente
+  let plazoGarantia = producto.plazo_garantia_dias || producto.garantia_update;
+
+  // Si no tiene plazo definido, calcularlo
+  if (!plazoGarantia) {
+    plazoGarantia = await obtenerGarantiaDiasProducto(producto) || '365';
+  }
+
   return {
     numeroGarantia: `GT-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
     numeroVenta: datosVenta.numeroTransaccion || 'N/A',
     fecha: new Date(),
     fechaCompra: datosVenta.fechaVenta || new Date(),
-    
+
     cliente: {
       nombre: cliente.nombre || 'Cliente no especificado',
       telefono: cliente.telefono || '',
@@ -530,15 +536,16 @@ export const convertirProductoAGarantia = async (producto, cliente = {}, datosVe
       dni: cliente.dni || '',
       direccion: cliente.direccion || ''
     },
-    
+
     vendedor: datosVenta.vendedor || 'Sistema',
-    metodoPago: formatearMetodoPago(datosVenta.metodoPago),
-    total: producto.precio_venta_usd || producto.precio_venta || 0,
-    
+    // Remover metodoPago y total para no mostrarlos
+    // metodoPago: formatearMetodoPago(datosVenta.metodoPago),
+    // total: producto.precio_venta_usd || producto.precio_venta || 0,
+
     // Información del producto individual
     producto: producto.modelo || producto.descripcion_producto || 'Producto sin especificar',
     numeroSerie: producto.serial || producto.numero_serie || '',
-    plazoGarantia: await obtenerGarantiaDiasProducto(producto) || '365'
+    plazoGarantia: plazoGarantia.toString()
   };
 };
 

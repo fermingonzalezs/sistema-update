@@ -85,7 +85,8 @@ const GarantiasSection = () => {
         modelo: garantia.modelo_producto,
         numero_serie: garantia.serial_producto,
         precio_venta_usd: garantia.precio_total,
-        garantia_update: garantia.plazo_garantia
+        garantia_update: garantia.plazo_garantia,
+        plazo_garantia_dias: garantia.plazo_garantia // Asegurar que se pase el plazo
       };
 
       const cliente = {
@@ -100,10 +101,11 @@ const GarantiasSection = () => {
         numeroTransaccion: garantia.numero_transaccion,
         fechaVenta: garantia.fecha_venta,
         vendedor: garantia.vendedor,
-        vendedorCompleto: garantia.vendedor, // Aquí podrías mapear a nombre completo si tienes la data
-        metodoPago: garantia.metodo_pago,
-        totalPesos: garantia.total_pesos, // Si está disponible
-        cotizacionDolar: garantia.cotizacion_dolar // Si está disponible
+        vendedorCompleto: garantia.vendedor,
+        // Remover metodoPago y totales para no mostrarlos en el PDF
+        // metodoPago: garantia.metodo_pago,
+        // totalPesos: garantia.total_pesos,
+        // cotizacionDolar: garantia.cotizacion_dolar
       };
 
       const resultado = await abrirGarantiaPDF(producto, cliente, datosVenta);
@@ -333,13 +335,16 @@ const GarantiasSection = () => {
                     <button
                       onClick={() => manejarAbrirGarantia(garantia)}
                       disabled={descargando === garantia.id}
-                      className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-100 disabled:opacity-50"
+                      className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
                       title="Ver certificado de garantía"
                     >
                       {descargando === garantia.id ? (
                         <LoadingSpinner size="small" showText={false} />
                       ) : (
-                        <Eye className="w-4 h-4" />
+                        <>
+                          <Eye className="w-4 h-4" />
+                          <span className="text-xs">Garantía</span>
+                        </>
                       )}
                     </button>
                   </td>
@@ -390,13 +395,16 @@ const GarantiasSection = () => {
                   <button
                     onClick={() => manejarAbrirGarantia(garantia)}
                     disabled={descargando === garantia.id}
-                    className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-100 disabled:opacity-50"
+                    className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
                     title="Ver certificado de garantía"
                   >
                     {descargando === garantia.id ? (
                       <LoadingSpinner size="small" showText={false} />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <>
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs">Garantía</span>
+                      </>
                     )}
                   </button>
                 </div>

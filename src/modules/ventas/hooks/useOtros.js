@@ -12,6 +12,12 @@ import {
   normalizeUbicacion
 } from '../../../shared/constants/productConstants';
 
+import {
+  CATEGORIAS_OTROS,
+  normalizeCategoria,
+  isValidCategoria
+} from '../../../shared/constants/categoryConstants';
+
 // 📊 SERVICE: Operaciones de otros productos
 export const otrosService = {
   // Obtener todos los productos otros disponibles
@@ -45,6 +51,12 @@ export const otrosService = {
       throw new Error('La categoría es obligatoria')
     }
 
+    // Validación y normalización de categoría
+    const categoriaNormalizada = normalizeCategoria(producto.categoria);
+    if (!isValidCategoria(categoriaNormalizada)) {
+      throw new Error(`Categoría inválida: ${producto.categoria}. Debe ser una de las categorías válidas`);
+    }
+
     // Validación y normalización de condición si se proporciona
     let condicionNormalizada = CONDICIONES.USADO; // Default
     if (producto.condicion) {
@@ -69,7 +81,7 @@ export const otrosService = {
         // Información básica
         nombre_producto: producto.nombre_producto?.trim() || producto.descripcion_producto?.trim(),
         descripcion: producto.descripcion?.trim() || '',
-        categoria: producto.categoria || 'otros',
+        categoria: categoriaNormalizada,
 
         // Datos normalizados
         condicion: condicionNormalizada,
@@ -100,6 +112,15 @@ export const otrosService = {
   // Actualizar producto otro
   async update(id, updates) {
     console.log(`🔄 Actualizando producto otro ID: ${id}`)
+
+    // Validar categoría si se actualiza
+    if (updates.categoria !== undefined) {
+      const categoriaNormalizada = normalizeCategoria(updates.categoria);
+      if (!isValidCategoria(categoriaNormalizada)) {
+        throw new Error(`Categoría inválida: ${updates.categoria}. Debe ser una de las categorías válidas`);
+      }
+      updates.categoria = categoriaNormalizada;
+    }
 
     // Validar condición si se actualiza
     if (updates.condicion !== undefined) {

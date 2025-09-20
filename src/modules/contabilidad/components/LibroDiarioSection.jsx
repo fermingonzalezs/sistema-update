@@ -911,21 +911,21 @@ const LibroDiarioSection = () => {
                             <div className="grid grid-cols-2 gap-6 h-full items-center">
                               <div className="text-center">
                                 {mov.debe > 0 && (
-                                  <div className="flex items-center justify-center space-x-2">
+                                  <div className="flex flex-col items-center justify-center space-y-1">
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs truncate max-w-32">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs truncate max-w-32 text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
                               <div className="text-center">
                                 {mov.haber > 0 && (
-                                  <div className="flex items-center justify-center space-x-2">
+                                  <div className="flex flex-col items-center justify-center space-y-1">
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs truncate max-w-32">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs truncate max-w-32 text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -1043,8 +1043,8 @@ const LibroDiarioSection = () => {
                       <div className="pl-4">
                         {mov.debe > 0 ? (
                           <div>
-                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                             <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           </div>
                         ) : ''}
                       </div>
@@ -1052,8 +1052,8 @@ const LibroDiarioSection = () => {
                       <div className="pl-4">
                         {mov.haber > 0 ? (
                           <div>
-                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                             <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                            <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           </div>
                         ) : ''}
                       </div>

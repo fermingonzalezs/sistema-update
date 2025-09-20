@@ -76,7 +76,39 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
 
   const getProductosDetallados = (items) => {
     if (!items || items.length === 0) return 'Sin productos';
-    
+
+    return items.map((item, index) => (
+      <div key={index} className="mb-1 last:mb-0">
+        <div className="flex items-center space-x-2 flex-1 min-w-0">
+          {getIconoProducto(item.tipo_producto)}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-xs text-slate-800 truncate">{item.copy}</div>
+            {item.serial_producto && (
+              <div className="text-xs text-slate-500 font-mono truncate">
+                S/N: {item.serial_producto}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    ));
+  };
+
+  const getTotalesUnitarios = (items) => {
+    if (!items || items.length === 0) return 'Sin precios';
+
+    return items.map((item, index) => (
+      <div key={index} className="mb-1 last:mb-0">
+        <div className="text-xs font-semibold text-slate-700">
+          {formatearMonto(item.precio_total, 'USD')}
+        </div>
+      </div>
+    ));
+  };
+
+  const getProductosConPrecios = (items) => {
+    if (!items || items.length === 0) return 'Sin productos';
+
     return items.map((item, index) => (
       <div key={index} className="mb-1 last:mb-0">
         <div className="flex items-center justify-between">
@@ -94,6 +126,37 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           <span className="text-xs font-semibold text-slate-700 ml-2">
             {formatearMonto(item.precio_total, 'USD')}
           </span>
+        </div>
+      </div>
+    ));
+  };
+
+  const getMetodosPago = (transaccion) => {
+    const metodos = [];
+
+    // Método de pago 1 (siempre existe)
+    if (transaccion.metodo_pago) {
+      metodos.push({
+        metodo: transaccion.metodo_pago,
+        monto: transaccion.monto_pago_1 || 0
+      });
+    }
+
+    // Método de pago 2 (si existe)
+    if (transaccion.metodo_pago_2) {
+      metodos.push({
+        metodo: transaccion.metodo_pago_2,
+        monto: transaccion.monto_pago_2 || 0
+      });
+    }
+
+    return metodos.map((pago, index) => (
+      <div key={index} className="mb-1 last:mb-0">
+        <div className="text-sm text-slate-800 capitalize">
+          {pago.metodo.replace(/_/g, ' ')}
+        </div>
+        <div className="text-xs text-slate-500">
+          {formatearMonto(pago.monto, 'USD')}
         </div>
       </div>
     ));
@@ -191,6 +254,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Productos</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total Unitario</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Cliente</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Método Pago</th>
@@ -209,6 +273,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         {getProductosDetallados(transaccion.venta_items || [])}
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-slate-800">
+                      <div className="space-y-1">
+                        {getTotalesUnitarios(transaccion.venta_items || [])}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-slate-600" />
@@ -221,14 +290,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
-                      {formatearMonto(transaccion.total_venta, 'USD')}
+                      {formatearMonto((parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)), 'USD')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="w-4 h-4 text-slate-600" />
-                        <span className="text-sm text-slate-800 capitalize">
-                          {transaccion.metodo_pago.replace(/_/g, ' ')}
-                        </span>
+                    <td className="px-6 py-4">
+                      <div className="flex items-start space-x-2">
+                        <CreditCard className="w-4 h-4 text-slate-600 mt-0.5" />
+                        <div className="space-y-1">
+                          {getMetodosPago(transaccion)}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
@@ -260,15 +329,17 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                     <div className="text-xs text-slate-500">{formatearFechaCompleta(transaccion.fecha_venta)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-slate-800">{formatearMonto(transaccion.total_venta, 'USD')}</div>
-                    <div className="text-xs text-slate-500 capitalize">{transaccion.metodo_pago.replace(/_/g, ' ')}</div>
+                    <div className="text-sm font-semibold text-slate-800">{formatearMonto((parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)), 'USD')}</div>
+                    <div className="space-y-0.5">
+                      {getMetodosPago(transaccion)}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="text-sm text-slate-800">
                     <div className="space-y-1">
-                      {getProductosDetallados(transaccion.venta_items || [])}
+                      {getProductosConPrecios(transaccion.venta_items || [])}
                     </div>
                   </div>
                   

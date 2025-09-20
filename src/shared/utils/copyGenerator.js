@@ -317,7 +317,32 @@ const generateNotebookCopy = (comp, config) => {
   }
   // No agregar "Sin HDD" cuando no tiene HDD
   
-  // 8. BATERIA DURACION
+  // 8. CONDICIÓN Y ESTADO (después de almacenamiento, antes de precio)
+  if (comp.condicion) {
+    const condicion = comp.condicion.toLowerCase();
+    // Normalizar texto de condición para display
+    let condicionDisplay = '';
+    switch (condicion) {
+      case 'nuevo': condicionDisplay = 'NUEVO'; break;
+      case 'usado': condicionDisplay = 'USADO'; break;
+      case 'refurbished': condicionDisplay = 'REFURBISHED'; break;
+      case 'reparacion': condicionDisplay = 'REPARACIÓN'; break;
+      case 'reservado': condicionDisplay = 'RESERVADO'; break;
+      case 'prestado': condicionDisplay = 'PRESTADO'; break;
+      case 'sin_reparacion': condicionDisplay = 'SIN REPARACIÓN'; break;
+      case 'uso_oficina': condicionDisplay = 'USO OFICINA'; break;
+      default: condicionDisplay = comp.condicion.toUpperCase();
+    }
+    partes.push(condicionDisplay);
+  }
+
+  // 9. ESTADO ESTÉTICO
+  if (comp.estado) {
+    const estado = comp.estado.toUpperCase();
+    partes.push(estado);
+  }
+
+  // 10. BATERIA DURACION
   let bateriaInfo = '';
   if (comp.porcentaje_de_bateria || comp.bateria) {
     const bateria = comp.porcentaje_de_bateria || comp.bateria;
@@ -337,47 +362,41 @@ const generateNotebookCopy = (comp, config) => {
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {
-    // 10. SISTEMA OPERATIVO
+    // 11. SISTEMA OPERATIVO
     if (comp.sistema_operativo || comp.so) {
       const so = comp.sistema_operativo || comp.so;
       partes.push(so.toUpperCase());
     }
-    
-    // 11. COLOR
+
+    // 12. COLOR
     if (comp.color) {
       partes.push(comp.color.charAt(0).toUpperCase() + comp.color.slice(1).toLowerCase());
     }
-    
-    // 12. IDIOMA
+
+    // 13. IDIOMA
     if (comp.idioma || comp.idioma_teclado) {
       const idioma = comp.idioma || comp.idioma_teclado;
       partes.push(idioma.charAt(0).toUpperCase() + idioma.slice(1).toLowerCase());
     }
-    
-    // 13. ESTADO/CONDICION
-    if (comp.condicion || comp.estado) {
-      const estado = comp.condicion || comp.estado;
-      partes.push(estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase());
-    }
-    
+
     // 14. FALLAS
     if (comp.fallas || comp.problemas || comp.defectos) {
       const fallas = comp.fallas || comp.problemas || comp.defectos;
       partes.push(`Fallas: ${fallas.charAt(0).toUpperCase() + fallas.slice(1).toLowerCase()}`);
     }
-    
+
     // 15. OBSERVACIONES
     if (comp.observaciones || comp.notas || comp.comentarios) {
       const obs = comp.observaciones || comp.notas || comp.comentarios;
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
-    
+
     // 16. GARANTIA - Removida del copy según requerimientos
-    
+
     // 17. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
-  
-  // 10. PRECIO (solo en versión simple)
+
+  // 11. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (comp.precio_venta_usd) {
       partes.push(formatearMonto(comp.precio_venta_usd, 'USD', true));

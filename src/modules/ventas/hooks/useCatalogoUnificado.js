@@ -4,6 +4,11 @@ import { useInventario } from './useInventario';
 import { useCelulares } from './useCelulares';
 import { useOtros } from './useOtros';
 import { useProductos } from './useProductos';
+import {
+  CATEGORIAS_OTROS,
+  CATEGORIAS_OTROS_ARRAY,
+  getCategoriaLabel
+} from '../../../shared/constants/categoryConstants';
 
 export const useCatalogoUnificado = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('notebooks');
@@ -157,49 +162,28 @@ export const useCatalogoUnificado = () => {
       }
     });
 
-    // Generar categorías para "otros" basadas en las categorías únicas
-    const categoriasUnicas = [...new Set(otros.map(item => item.categoria).filter(Boolean))];
-    console.log('🔍 Categorías únicas encontradas:', categoriasUnicas);
+    // Usar las nuevas categorías estándar en lugar de dinámicas
+    const categoriasUnicas = CATEGORIAS_OTROS_ARRAY;
+    console.log('🔍 Usando categorías estándar:', categoriasUnicas);
     console.log('📦 Productos otros:', otros);
-    
+
     categoriasUnicas.forEach(categoria => {
       if (categoria) {
         const categoriaNormalizada = categoria.toLowerCase().replace(/\s+/g, '-');
         const datosCategoria = otros.filter(item => item.categoria === categoria);
         
-        // Iconos por categoría (actualizados para coincidir con las categorías del formulario)
+        // Iconos por las nuevas categorías estándar
         const iconos = {
-          'accesorios': '🔧',
-          'cables': '🔌',
-          'cargadores': '🔌',
-          'mouse': '🖱️',
-          'teclados': '⌨️',
-          'headsets': '🎧',
-          'webcam': '📹',
-          'monitores': '🖥️',
-          'speakers': '🔊',
-          'almacenamiento': '💾',
-          'memorias': '🧠',
-          'componentes': '⚡',
-          'fundas': '🛡️',
-          'repuestos': '🔧',
-          'otros': '📦',
-          // Iconos adicionales para categorías legacy
-          'placas de video': '🎮',
-          'procesadores': '⚡',
-          'discos': '💿',
-          'mothers': '🔌',
-          'fuentes': '🔋',
-          'gabinetes': '🏠',
-          'perifericos': '⌨️',
-          'cooling': '❄️',
-          'audio': '🔊'
+          'ACCESORIOS': '🔧',
+          'MONITORES': '🖥️',
+          'PERIFERICOS': '⌨️',
+          'COMPONENTES': '⚡'
         };
         
         base[`otros-${categoriaNormalizada}`] = {
           id: `otros-${categoriaNormalizada}`,
-          label: categoria.charAt(0).toUpperCase() + categoria.slice(1),
-          icon: iconos[categoria.toLowerCase()] || '🔧',
+          label: getCategoriaLabel(categoria),
+          icon: iconos[categoria] || '🔧',
           data: datosCategoria,
           loading: loadingOtros,
           error: errorOtros,

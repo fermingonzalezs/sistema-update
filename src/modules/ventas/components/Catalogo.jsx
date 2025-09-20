@@ -23,8 +23,16 @@ import {
   UBICACIONES_LABELS,
   getCondicionLabel,
   getEstadoLabel,
-  getUbicacionLabel
+  getUbicacionLabel,
+  getCondicionColor
 } from '../../../shared/constants/productConstants';
+
+import {
+  CATEGORIAS_OTROS,
+  CATEGORIAS_OTROS_ARRAY,
+  CATEGORIAS_OTROS_LABELS,
+  getCategoriaLabel
+} from '../../../shared/constants/categoryConstants';
 
 // La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
@@ -74,23 +82,14 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
     const cargarCategoriasOtros = async () => {
       try {
-        console.log('🔍 Cargando categorías de otros...');
-        const { data, error } = await supabase
-          .from('otros')
-          .select('categoria')
-          .not('categoria', 'is', null);
-        
-        if (error) {
-          console.error('❌ Error en query categorías:', error);
-          throw error;
-        }
-        
-        console.log('📊 Datos categorías recibidos:', data);
-        const categoriasUnicas = [...new Set(data.map(item => item.categoria))].sort();
-        console.log('📝 Categorías únicas:', categoriasUnicas);
-        setCategoriasOtros(categoriasUnicas);
+        console.log('🔍 Configurando nuevas categorías estándar...');
+        // Usar las nuevas categorías estándar en lugar de cargar desde BD
+        setCategoriasOtros(CATEGORIAS_OTROS_ARRAY);
+        console.log('📝 Categorías configuradas:', CATEGORIAS_OTROS_ARRAY);
       } catch (err) {
-        console.error('❌ Error cargando categorías:', err);
+        console.error('❌ Error configurando categorías:', err);
+        // Fallback a las categorías estándar
+        setCategoriasOtros(CATEGORIAS_OTROS_ARRAY);
       }
     };
 
@@ -157,26 +156,27 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     const tipo = categoriaActiva === 'celulares' ? 'celular' :
                  categoriaActiva === 'notebooks' ? 'notebook' : 'otros';
     
-    // Función para normalizar sucursal a valores válidos
+    // Función para normalizar sucursal a valores válidos para la base de datos
     const normalizarSucursal = (sucursal) => {
-      // Si ya es un valor normalizado, mantenerlo
-      if (['LA PLATA', 'MITRE', 'RSN/IDM/FIXCENTER'].includes(sucursal)) {
+      // Si ya es un valor normalizado de BD, mantenerlo
+      if (['la_plata', 'mitre', 'rsn_idm_fixcenter'].includes(sucursal)) {
         return sucursal;
       }
-      
+
       const sucursalLower = (sucursal || '').toLowerCase();
-      // Mapear sucursales viejas a nuevas
-      if (sucursalLower.includes('quilmes') || sucursalLower.includes('san') || sucursalLower.includes('martin') || sucursalLower === 'la_plata') {
-        return 'LA PLATA';
+      // Mapear sucursales viejas a nuevas (valores de BD)
+      if (sucursalLower.includes('quilmes') || sucursalLower.includes('san') || sucursalLower.includes('martin') ||
+          sucursalLower === 'la_plata' || sucursalLower === 'la plata') {
+        return 'la_plata';
       }
-      if (sucursalLower.includes('deposito') || sucursalLower.includes('mitre') || sucursalLower === 'mitre') {
-        return 'MITRE';
+      if (sucursalLower.includes('deposito') || sucursalLower.includes('mitre')) {
+        return 'mitre';
       }
       if (sucursalLower.includes('rsn') || sucursalLower.includes('idm') || sucursalLower.includes('fixcenter')) {
-        return 'RSN/IDM/FIXCENTER';
+        return 'rsn_idm_fixcenter';
       }
-      // Por defecto, asignar LA PLATA
-      return 'LA PLATA';
+      // Por defecto, asignar la_plata
+      return 'la_plata';
     };
     
     // Inicializar el formulario con los datos del producto según el tipo
@@ -1083,7 +1083,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   {categoriasOtros.length > 0 ? (
                     categoriasOtros.map(categoria => (
                       <option key={categoria} value={categoria}>
-                        {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                        {getCategoriaLabel(categoria)}
                       </option>
                     ))
                   ) : (
@@ -1369,7 +1369,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <option value="">Todas</option>
                 {valoresUnicos.categorias?.map(categoria => (
-                  <option key={categoria} value={categoria}>{categoria}</option>
+                  <option key={categoria} value={categoria}>{getCategoriaLabel(categoria)}</option>
                 ))}
               </select>
             </div>
@@ -1487,10 +1487,15 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                         if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
                         if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
                         if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                        if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
                         return 'bg-slate-100 text-slate-700';
                       })()
                     }`}>
-                      {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
+                      {(() => {
+                        const condicion = producto.condicion || producto.estado || 'N/A';
+                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                        return condicion.toUpperCase();
+                      })()}
                     </span>
                   </div>
 
@@ -1582,10 +1587,15 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                         if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
                         if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
                         if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                        if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
                         return 'bg-slate-100 text-slate-700';
                       })()
                     }`}>
-                      {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
+                      {(() => {
+                        const condicion = producto.condicion || producto.estado || 'N/A';
+                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                        return condicion.toUpperCase();
+                      })()}
                     </span>
                   </div>
 
