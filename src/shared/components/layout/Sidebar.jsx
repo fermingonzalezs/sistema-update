@@ -27,7 +27,8 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
@@ -171,7 +172,7 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Cuentas Auxiliares',
           icon: Calculator,
           description: 'Control detallado de inventarios'
-        }
+        },
       ]
     },
     {
@@ -203,6 +204,19 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Testeo Equipos',
           icon: Monitor,
           description: 'Testeo de notebooks y celulares'
+        }
+      ]
+    },
+    {
+      title: 'COMPRAS',
+      color: 'from-purple-500 to-purple-600',
+      level: 'compras',
+      items: [
+        {
+          id: 'compras',
+          label: 'Registro de Compras',
+          icon: ShoppingBag,
+          description: 'Compras de la empresa'
         }
       ]
     },

@@ -436,6 +436,126 @@ NUNCA poner padding o margen entre el elemento activo y el resto de la aplicacio
 
 **ESTE SISTEMA ES OBLIGATORIO EN TODOS LOS COMPONENTES Y PÁGINAS SIN EXCEPCIÓN**
 
+#### Estilo de Tablas ESTÁNDAR OBLIGATORIO:
+TODAS las tablas deben seguir ESTRICTAMENTE este estilo sin excepción:
+```jsx
+<table className="w-full">
+  <thead className="bg-slate-800 text-white">
+    <tr>
+      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Columna</th>
+      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Datos</th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-slate-200">
+    <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+      <td className="px-4 py-3 text-sm text-slate-800">Contenido</td>
+    </tr>
+  </tbody>
+  {/* Footer de totales si aplica */}
+  <tfoot className="bg-slate-800 text-white">
+    <tr>
+      <td className="px-4 py-3 text-sm font-semibold">TOTALES</td>
+    </tr>
+  </tfoot>
+</table>
+```
+
+**Características obligatorias de las tablas**:
+- Header: `bg-slate-800 text-white` (fondo slate oscuro, texto blanco)
+- Footer de totales: `bg-slate-800 text-white` (igual que header)
+- Filas alternadas: `bg-white` y `bg-slate-50`
+- Divisores: `divide-y divide-slate-200`
+- Padding: `px-4 py-3` en todas las celdas
+- Headers: `text-xs font-medium uppercase tracking-wider`
+- Contenido: `text-sm` con colores apropiados (text-slate-800, text-slate-600, etc.)
+
+Este estilo se basa en BalanceSumasYSaldosSection.jsx y debe aplicarse consistentemente.
+
+#### Headers de Sección ESTÁNDAR OBLIGATORIO:
+TODOS los headers de sección deben seguir ESTRICTAMENTE este estilo basado en LibroDiarioSection.jsx:
+```jsx
+{/* Header */}
+<div className="bg-slate-800 p-6 text-white">
+  <div className="flex justify-between items-center">
+    <div className="flex items-center space-x-3">
+      <IconoSeccion size={28} />
+      <div>
+        <p className="text-gray-300 mt-1">Descripción de la sección</p>
+      </div>
+    </div>
+    <div className="flex items-center gap-4">
+      {/* Botones de acción como PDF, vistas, etc. */}
+      <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors">
+        <Plus size={18} />
+        Acción Principal
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+#### Filtros ESTÁNDAR OBLIGATORIO:
+TODOS los filtros deben seguir ESTRICTAMENTE este estilo:
+```jsx
+{/* Filtros */}
+<div className="bg-gray-50 p-4 border-b">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Desde
+      </label>
+      <input
+        type="date"
+        value={filtroFechaDesde}
+        onChange={(e) => setFiltroFechaDesde(e.target.value)}
+        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Hasta
+      </label>
+      <input
+        type="date"
+        value={filtroFechaHasta}
+        onChange={(e) => setFiltroFechaHasta(e.target.value)}
+        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Descripción/Filtro
+      </label>
+      <input
+        type="text"
+        value={filtroDescripcion}
+        onChange={(e) => setFiltroDescripcion(e.target.value)}
+        placeholder="Buscar en descripción..."
+        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+      />
+    </div>
+    <div className="flex items-end">
+      <button
+        onClick={limpiarFiltros}
+        className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
+      >
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+**Características obligatorias de Headers y Filtros**:
+- Header: `bg-slate-800 p-6 text-white` (fondo slate oscuro con padding)
+- Filtros: `bg-gray-50 p-4 border-b` (fondo gris claro con borde inferior)
+- Labels: `text-sm font-medium text-gray-700 mb-1`
+- Inputs: `border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600`
+- Botón Limpiar: `bg-slate-700 text-white rounded hover:bg-black`
+- Grid responsive: `grid grid-cols-1 md:grid-cols-4 gap-4`
+
+Este estilo se basa en LibroDiarioSection.jsx y debe aplicarse consistentemente.
+
 ### Component Structure
 ```javascript
 // Standard component pattern

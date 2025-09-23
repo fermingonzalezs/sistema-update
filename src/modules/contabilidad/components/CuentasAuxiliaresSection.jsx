@@ -11,7 +11,12 @@ import {
   Search,
   Filter,
   Download,
-  BarChart3
+  BarChart3,
+  DollarSign,
+  Minus,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle
 } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { useCuentasAuxiliares } from '../hooks/useCuentasAuxiliares';
@@ -21,7 +26,7 @@ const CuentasAuxiliaresSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuenta, setSelectedCuenta] = useState(null);
   const [showDetalles, setShowDetalles] = useState(false);
-  const [showNuevoItem, setShowNuevoItem] = useState(false);
+  const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
 
   // Hook para datos reales
   const {
@@ -64,41 +69,52 @@ const CuentasAuxiliaresSection = () => {
     cargarPlanCuentas();
   };
 
-  const itemsEjemplo = [
+  const movimientosEjemplo = [
     {
       id: 1,
-      descripcion: 'Notebook Lenovo ThinkPad E14',
-      codigo_interno: 'NB-LP-001',
-      cantidad: 3,
-      valor_unitario: 850.00,
-      valor_total: 2550.00,
-      categoria: 'Notebooks',
-      fecha_ingreso: '2024-01-10',
-      estado: 'disponible'
+      fecha: '2024-01-10',
+      descripcion: 'Venta de equipos computación',
+      tipo: 'ingreso',
+      monto: 2550.00,
+      referencia: 'FAC-001-2024',
+      created_at: '2024-01-10T10:30:00Z'
     },
     {
       id: 2,
-      descripcion: 'iPhone 13 128GB',
-      codigo_interno: 'IP-LP-013',
-      cantidad: 2,
-      valor_unitario: 900.00,
-      valor_total: 1800.00,
-      categoria: 'Smartphones',
-      fecha_ingreso: '2024-01-12',
-      estado: 'disponible'
+      fecha: '2024-01-12',
+      descripcion: 'Compra de inventario smartphones',
+      tipo: 'egreso',
+      monto: 1800.00,
+      referencia: 'COMP-045-2024',
+      created_at: '2024-01-12T14:15:00Z'
     },
     {
       id: 3,
-      descripcion: 'Reparación pantalla Samsung',
-      codigo_interno: 'REP-LP-045',
-      cantidad: 1,
-      valor_unitario: 120.00,
-      valor_total: 120.00,
-      categoria: 'Reparaciones',
-      fecha_ingreso: '2024-01-15',
-      estado: 'en_proceso'
+      fecha: '2024-01-15',
+      descripcion: 'Servicio técnico reparaciones',
+      tipo: 'ingreso',
+      monto: 120.00,
+      referencia: 'SRV-098-2024',
+      created_at: '2024-01-15T16:45:00Z'
+    },
+    {
+      id: 4,
+      fecha: '2024-01-18',
+      descripcion: 'Pago proveedores',
+      tipo: 'egreso',
+      monto: 950.00,
+      referencia: 'PAG-012-2024',
+      created_at: '2024-01-18T09:20:00Z'
     }
   ];
+
+  // Calcular totales de movimientos
+  const calcularTotalesMovimientos = (movimientos) => {
+    const ingresos = movimientos.filter(m => m.tipo === 'ingreso').reduce((sum, m) => sum + m.monto, 0);
+    const egresos = movimientos.filter(m => m.tipo === 'egreso').reduce((sum, m) => sum + m.monto, 0);
+    const saldo = ingresos - egresos;
+    return { ingresos, egresos, saldo };
+  };
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -176,53 +192,70 @@ const CuentasAuxiliaresSection = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white rounded border border-slate-200">
-        <div className="p-6 bg-slate-800 text-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Calculator className="w-6 h-6" />
-              <div>
-                <h2 className="text-2xl font-semibold">Cuentas Auxiliares</h2>
-                <p className="text-slate-300 mt-1">Control detallado de inventarios y auxiliares contables</p>
-              </div>
+      <div className="bg-slate-800 p-6 text-white">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Calculator size={28} />
+            <div>
+              <h2 className="text-2xl font-semibold">Cuentas Auxiliares</h2>
+              <p className="text-gray-300 mt-1">Control de movimientos por cuenta auxiliar</p>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleNuevaCuenta}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nueva Cuenta Auxiliar</span>
-              </button>
-            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleNuevaCuenta}
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+            >
+              <Plus size={18} />
+              Nueva Cuenta Auxiliar
+            </button>
           </div>
         </div>
       </div>
 
 
       {/* Filtros */}
-      <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4 items-center">
-          <div className="flex-1">
+      <div className="bg-gray-50 p-4 border-b">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Buscar Cuenta
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Buscar por cuenta, código o descripción..."
+                placeholder="Buscar por cuenta, código..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
-              <Filter className="w-4 h-4" />
-              <span>Filtros</span>
-            </button>
-            <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
-              <Download className="w-4 h-4" />
-              <span>Exportar</span>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Estado
+            </label>
+            <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+              <option value="">Todos los estados</option>
+              <option value="balanceado">Balanceado</option>
+              <option value="desbalanceado">Desbalanceado</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tipo
+            </label>
+            <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+              <option value="">Todos los tipos</option>
+              <option value="activo">Activos</option>
+              <option value="pasivo">Pasivos</option>
+              <option value="resultado">Resultados</option>
+            </select>
+          </div>
+          <div className="flex items-end">
+            <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
+              Limpiar Filtros
             </button>
           </div>
         </div>
@@ -230,8 +263,10 @@ const CuentasAuxiliaresSection = () => {
 
       {/* Lista de Cuentas Auxiliares */}
       <div className="bg-white rounded border border-slate-200">
-        <div className="p-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800">Cuentas con Auxiliares</h3>
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-slate-800">Cuentas con Movimientos Auxiliares</h3>
+          </div>
         </div>
 
         {mostrarMensajeVacio ? (
@@ -239,7 +274,7 @@ const CuentasAuxiliaresSection = () => {
             <Calculator className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-800 mb-2">No hay cuentas auxiliares</h3>
             <p className="text-slate-600 mb-4">
-              Comienza agregando cuentas del plan de cuentas para llevar un control detallado.
+              Comienza agregando cuentas del plan de cuentas para llevar un control de movimientos detallado.
             </p>
             <button
               onClick={handleNuevaCuenta}
@@ -252,89 +287,96 @@ const CuentasAuxiliaresSection = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                     Cuenta
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     Saldo Contable
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Total Auxiliar
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Total Ingresos
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Total Egresos
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Saldo Auxiliar
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     Diferencia
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Estado
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Movimientos
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Items
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Actualización
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {cuentas.map((cuenta) => (
-                  <tr key={cuenta.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-4">
-                      <div>
-                        <div className="text-sm font-medium text-slate-800">
-                          {cuenta.cuenta?.codigo || 'Sin código'}
+              <tbody className="divide-y divide-slate-200">
+                {cuentas.map((cuenta, index) => {
+                  const totales = calcularTotalesMovimientos(movimientosEjemplo);
+                  return (
+                    <tr key={cuenta.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <td className="px-4 py-3 text-sm text-slate-800">
+                        <div>
+                          <div className="font-medium">{cuenta.cuenta?.codigo || 'Sin código'}</div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            {cuenta.cuenta?.nombre || cuenta.nombre || 'Sin nombre'}
+                          </div>
                         </div>
-                        <div className="text-sm text-slate-500">
-                          {cuenta.cuenta?.nombre || cuenta.nombre || 'Sin nombre'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-700 text-center">
+                        {formatearMonto(cuenta.cuenta?.saldo_contable || 0, 'USD')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <TrendingUp className="w-4 h-4 text-emerald-600" />
+                          <span className="font-medium text-emerald-700">
+                            {formatearMonto(totales.ingresos, 'USD')}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-slate-800">
-                      {formatearMonto(cuenta.cuenta?.saldo_contable || 0, 'USD')}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-slate-800">
-                      {formatearMonto(cuenta.total_auxiliar || 0, 'USD')}
-                    </td>
-                    <td className="px-4 py-4 text-sm">
-                      <span className={`${getDiferenciaColor(cuenta.diferencia || 0)} font-medium`}>
-                        {Math.abs(cuenta.diferencia || 0) < 0.01 ? 'Balanceado' : formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium ${getEstadoColor(cuenta.estado || 'sin_items')}`}>
-                        {getEstadoIcon(cuenta.estado || 'sin_items')}
-                        <span className="capitalize">{cuenta.estado || 'sin_items'}</span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-slate-800">
-                      {cuenta.items_count || 0} items
-                    </td>
-                    <td className="px-4 py-4 text-sm text-slate-500">
-                      {formatFecha(cuenta.updated_at?.split('T')[0] || cuenta.created_at?.split('T')[0] || new Date().toISOString().split('T')[0])}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleVerDetalles(cuenta)}
-                          className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-50 transition-colors"
-                          title="Ver detalles"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-50 transition-colors" title="Editar">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-50 transition-colors" title="Reportes">
-                          <BarChart3 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <TrendingDown className="w-4 h-4 text-red-600" />
+                          <span className="font-medium text-red-700">
+                            {formatearMonto(totales.egresos, 'USD')}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <span className={`font-medium ${totales.saldo >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                          {formatearMonto(totales.saldo, 'USD')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <span className={`${getDiferenciaColor(cuenta.diferencia || 0)} font-medium`}>
+                          {Math.abs(cuenta.diferencia || 0) < 0.01 ? 'Balanceado' : formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-700 text-center">
+                        {movimientosEjemplo.length} movimientos
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleVerDetalles(cuenta)}
+                            className="text-emerald-600 hover:text-emerald-800 transition-colors"
+                            title="Ver movimientos"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button className="text-slate-600 hover:text-slate-800 transition-colors" title="Reportes">
+                            <BarChart3 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -344,11 +386,11 @@ const CuentasAuxiliaresSection = () => {
       {/* Modal de Detalles */}
       {showDetalles && selectedCuenta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-200 max-w-6xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 max-w-7xl w-full max-h-[90vh] overflow-hidden">
             {/* Header del Modal */}
             <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-semibold">Detalle de Cuenta Auxiliar</h3>
+                <h3 className="text-xl font-semibold">Movimientos de Cuenta Auxiliar</h3>
                 <p className="text-slate-300 mt-1">
                   {selectedCuenta.plan_cuentas?.codigo || selectedCuenta.cuenta?.codigo || 'Sin código'} - {selectedCuenta.plan_cuentas?.nombre || selectedCuenta.cuenta?.nombre || selectedCuenta.nombre || 'Sin nombre'}
                 </p>
@@ -363,93 +405,202 @@ const CuentasAuxiliaresSection = () => {
 
             {/* Contenido del Modal */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {/* Resumen */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {/* Resumen - Cards de totales */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="text-sm text-slate-600">Saldo Contable</div>
-                  <div className="text-xl font-semibold text-slate-800">
+                  <div className="flex items-center space-x-2">
+                    <BarChart3 className="w-5 h-5 text-slate-600" />
+                    <div className="text-sm text-slate-600">Saldo Contable</div>
+                  </div>
+                  <div className="text-xl font-semibold text-slate-800 mt-2">
                     {formatearMonto(selectedCuenta.cuenta?.saldo_contable || 0, 'USD')}
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="text-sm text-slate-600">Total Auxiliar</div>
-                  <div className="text-xl font-semibold text-slate-800">
-                    {formatearMonto(selectedCuenta.total_auxiliar || 0, 'USD')}
+                <div className="bg-emerald-50 p-4 rounded border border-slate-200">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-600" />
+                    <div className="text-sm text-emerald-700">Total Ingresos</div>
+                  </div>
+                  <div className="text-xl font-semibold text-emerald-700 mt-2">
+                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                  </div>
+                </div>
+                <div className="bg-red-50 p-4 rounded border border-slate-200">
+                  <div className="flex items-center space-x-2">
+                    <TrendingDown className="w-5 h-5 text-red-600" />
+                    <div className="text-sm text-red-700">Total Egresos</div>
+                  </div>
+                  <div className="text-xl font-semibold text-red-700 mt-2">
+                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
                   </div>
                 </div>
                 <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="text-sm text-slate-600">Diferencia</div>
-                  <div className={`text-xl font-semibold ${getDiferenciaColor(selectedCuenta.diferencia || 0)}`}>
-                    {(selectedCuenta.diferencia || 0) === 0 ? 'Balanceado' : formatearMonto(Math.abs(selectedCuenta.diferencia || 0), 'USD')}
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="w-5 h-5 text-slate-600" />
+                    <div className="text-sm text-slate-600">Saldo Auxiliar</div>
+                  </div>
+                  <div className={`text-xl font-semibold mt-2 ${calcularTotalesMovimientos(movimientosEjemplo).saldo >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
                   </div>
                 </div>
               </div>
 
-              {/* Acciones */}
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-slate-800">Items del Auxiliar</h4>
-                <button
-                  onClick={() => setShowNuevoItem(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Agregar Item</span>
-                </button>
+              {/* Filtros de movimientos */}
+              <div className="bg-gray-50 p-4 rounded border border-slate-200 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                    <input
+                      type="date"
+                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                    <input
+                      type="date"
+                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+                      <option value="">Todos</option>
+                      <option value="ingreso">Solo Ingresos</option>
+                      <option value="egreso">Solo Egresos</option>
+                    </select>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
+                      Filtrar
+                    </button>
+                    <button
+                      onClick={() => setShowNuevoMovimiento(true)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors text-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Nuevo Movimiento</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Tabla de Items */}
+              {/* Vista estilo Libro Diario - Dos columnas */}
               <div className="bg-white border border-slate-200 rounded overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Descripción
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Cantidad
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Valor Unit.
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {(selectedCuenta.items || itemsEjemplo).map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-slate-800">
-                            {item.descripcion}
+                {/* Header */}
+                <div className="bg-slate-800 text-white p-4">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <TrendingUp className="w-5 h-5 text-emerald-400" />
+                        <h4 className="text-lg font-semibold">INGRESOS</h4>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <TrendingDown className="w-5 h-5 text-red-400" />
+                        <h4 className="text-lg font-semibold">EGRESOS</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contenido dividido */}
+                <div className="grid grid-cols-2 gap-0 min-h-[400px]">
+                  {/* Columna de Ingresos */}
+                  <div className="border-r border-slate-200">
+                    <div className="bg-emerald-50 p-3 border-b border-slate-200">
+                      <h5 className="font-medium text-emerald-800">Movimientos de Ingreso</h5>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {movimientosEjemplo
+                        .filter(m => m.tipo === 'ingreso')
+                        .map((movimiento, index) => (
+                          <div key={movimiento.id} className={`p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-emerald-50'}`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-slate-800">{movimiento.descripcion}</div>
+                                <div className="text-xs text-slate-500 mt-1">{formatFecha(movimiento.fecha)}</div>
+                                {movimiento.referencia && (
+                                  <div className="text-xs text-slate-500">Ref: {movimiento.referencia}</div>
+                                )}
+                              </div>
+                              <div className="ml-4 text-right">
+                                <div className="font-semibold text-emerald-700">
+                                  {formatearMonto(movimiento.monto, 'USD')}
+                                </div>
+                                <div className="flex space-x-1 mt-2">
+                                  <button className="text-slate-500 hover:text-slate-700 p-1">
+                                    <Edit3 className="w-3 h-3" />
+                                  </button>
+                                  <button className="text-slate-500 hover:text-red-600 p-1">
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {item.cantidad}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {formatearMonto(item.valor_unitario, 'USD')}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {formatearMonto(item.valor_total, 'USD')}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex space-x-2">
-                            <button className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-50 transition-colors">
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-50 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                        ))
+                      }
+                    </div>
+                    {/* Total Ingresos */}
+                    <div className="bg-emerald-100 p-3 border-t border-slate-200">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-emerald-800">Total Ingresos:</span>
+                        <span className="font-bold text-emerald-800">
+                          {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Columna de Egresos */}
+                  <div>
+                    <div className="bg-red-50 p-3 border-b border-slate-200">
+                      <h5 className="font-medium text-red-800">Movimientos de Egreso</h5>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {movimientosEjemplo
+                        .filter(m => m.tipo === 'egreso')
+                        .map((movimiento, index) => (
+                          <div key={movimiento.id} className={`p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-red-50'}`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-slate-800">{movimiento.descripcion}</div>
+                                <div className="text-xs text-slate-500 mt-1">{formatFecha(movimiento.fecha)}</div>
+                                {movimiento.referencia && (
+                                  <div className="text-xs text-slate-500">Ref: {movimiento.referencia}</div>
+                                )}
+                              </div>
+                              <div className="ml-4 text-right">
+                                <div className="font-semibold text-red-700">
+                                  {formatearMonto(movimiento.monto, 'USD')}
+                                </div>
+                                <div className="flex space-x-1 mt-2">
+                                  <button className="text-slate-500 hover:text-slate-700 p-1">
+                                    <Edit3 className="w-3 h-3" />
+                                  </button>
+                                  <button className="text-slate-500 hover:text-red-600 p-1">
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        ))
+                      }
+                    </div>
+                    {/* Total Egresos */}
+                    <div className="bg-red-100 p-3 border-t border-slate-200">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-red-800">Total Egresos:</span>
+                        <span className="font-bold text-red-800">
+                          {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -467,11 +618,11 @@ const CuentasAuxiliaresSection = () => {
         />
       )}
 
-      {/* Modal para Nuevo Item */}
-      {showNuevoItem && selectedCuenta && (
-        <ModalNuevoItem
-          isOpen={showNuevoItem}
-          onClose={() => setShowNuevoItem(false)}
+      {/* Modal para Nuevo Movimiento */}
+      {showNuevoMovimiento && selectedCuenta && (
+        <ModalNuevoMovimiento
+          isOpen={showNuevoMovimiento}
+          onClose={() => setShowNuevoMovimiento(false)}
           cuenta={selectedCuenta}
           onAgregar={addItem}
         />
@@ -650,17 +801,17 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
   );
 };
 
-// Componente Modal para Nuevo Item
-const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
+// Componente Modal para Nuevo Movimiento
+const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
   const [formData, setFormData] = useState({
+    fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
-    cantidad: 1,
-    valor_unitario: 0
+    tipo: '',
+    monto: '',
+    referencia: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -670,13 +821,18 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
       return;
     }
 
-    if (!formData.valor_unitario || parseFloat(formData.valor_unitario) <= 0) {
-      setError('El valor unitario debe ser mayor a 0');
+    if (!formData.tipo) {
+      setError('Debe seleccionar el tipo de movimiento');
       return;
     }
 
-    if (!formData.cantidad || parseFloat(formData.cantidad) <= 0) {
-      setError('La cantidad debe ser mayor a 0');
+    if (!formData.monto || parseFloat(formData.monto) <= 0) {
+      setError('El monto debe ser mayor a 0');
+      return;
+    }
+
+    if (!formData.fecha) {
+      setError('La fecha es obligatoria');
       return;
     }
 
@@ -684,20 +840,24 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
       setSubmitting(true);
       setError(null);
 
-      const itemData = {
+      const movimientoData = {
+        fecha: formData.fecha,
         descripcion: formData.descripcion.trim(),
-        cantidad: parseFloat(formData.cantidad),
-        valor_unitario: parseFloat(formData.valor_unitario),
-        fecha_ingreso: new Date().toISOString().split('T')[0]
+        tipo: formData.tipo,
+        monto: parseFloat(formData.monto),
+        referencia: formData.referencia?.trim() || null
       };
 
-      await onAgregar(cuenta.id, itemData);
+      // En el futuro, esto llamará al servicio para agregar el movimiento
+      await onAgregar(cuenta.id, movimientoData);
 
       // Limpiar formulario y cerrar modal
       setFormData({
+        fecha: new Date().toISOString().split('T')[0],
         descripcion: '',
-        cantidad: 1,
-        valor_unitario: 0
+        tipo: '',
+        monto: '',
+        referencia: ''
       });
       onClose();
     } catch (err) {
@@ -707,8 +867,6 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
     }
   };
 
-  const valorTotal = parseFloat(formData.cantidad || 0) * parseFloat(formData.valor_unitario || 0);
-
   if (!isOpen) return null;
 
   return (
@@ -717,9 +875,9 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
           <div>
-            <h3 className="text-xl font-semibold">Nuevo Item</h3>
+            <h3 className="text-xl font-semibold">Nuevo Movimiento</h3>
             <p className="text-slate-300 mt-1">
-              {cuenta.cuenta?.codigo} - {cuenta.cuenta?.nombre}
+              {cuenta.plan_cuentas?.codigo || cuenta.cuenta?.codigo || 'Sin código'} - {cuenta.plan_cuentas?.nombre || cuenta.cuenta?.nombre || cuenta.nombre || 'Sin nombre'}
             </p>
           </div>
           <button
@@ -740,6 +898,37 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Fecha */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Fecha *
+              </label>
+              <input
+                type="date"
+                value={formData.fecha}
+                onChange={(e) => setFormData(prev => ({ ...prev, fecha: e.target.value }))}
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              />
+            </div>
+
+            {/* Tipo */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Tipo de Movimiento *
+              </label>
+              <select
+                value={formData.tipo}
+                onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value }))}
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              >
+                <option value="">Seleccionar tipo...</option>
+                <option value="ingreso">Ingreso</option>
+                <option value="egreso">Egreso</option>
+              </select>
+            </div>
+
             {/* Descripción */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -749,53 +938,70 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
                 type="text"
                 value={formData.descripcion}
                 onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
-                placeholder="Ej: Notebook Lenovo ThinkPad E14"
+                placeholder="Ej: Venta de equipos computación"
                 className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 required
                 maxLength={255}
               />
             </div>
 
-            {/* Cantidad */}
+            {/* Monto */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Cantidad *
-              </label>
-              <input
-                type="number"
-                step="1"
-                min="1"
-                value={formData.cantidad}
-                onChange={(e) => setFormData(prev => ({ ...prev, cantidad: e.target.value }))}
-                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                required
-              />
-            </div>
-
-            {/* Valor Unitario */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Valor Unitario (USD) *
+                Monto (USD) *
               </label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.valor_unitario}
-                onChange={(e) => setFormData(prev => ({ ...prev, valor_unitario: e.target.value }))}
+                value={formData.monto}
+                onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
                 className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 required
               />
             </div>
+
+            {/* Referencia */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Referencia (Opcional)
+              </label>
+              <input
+                type="text"
+                value={formData.referencia}
+                onChange={(e) => setFormData(prev => ({ ...prev, referencia: e.target.value }))}
+                placeholder="Ej: FAC-001-2024"
+                className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                maxLength={100}
+              />
+            </div>
           </div>
 
-          {/* Resumen de Valor Total */}
-          {valorTotal > 0 && (
-            <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Valor Total:</span>
-                <span className="text-lg font-semibold text-slate-800">
-                  {formatearMonto(valorTotal, 'USD')}
+          {/* Indicador visual del tipo */}
+          {formData.tipo && formData.monto && (
+            <div className={`mt-4 p-4 border rounded ${
+              formData.tipo === 'ingreso'
+                ? 'bg-emerald-50 border-emerald-200'
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {formData.tipo === 'ingreso' ? (
+                    <>
+                      <TrendingUp className="w-5 h-5 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Movimiento de Ingreso</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="w-5 h-5 text-red-600" />
+                      <span className="text-sm font-medium text-red-800">Movimiento de Egreso</span>
+                    </>
+                  )}
+                </div>
+                <span className={`text-lg font-semibold ${
+                  formData.tipo === 'ingreso' ? 'text-emerald-700' : 'text-red-700'
+                }`}>
+                  {formatearMonto(parseFloat(formData.monto || 0), 'USD')}
                 </span>
               </div>
             </div>
@@ -813,7 +1019,7 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
             </button>
             <button
               type="submit"
-              disabled={submitting || !formData.descripcion.trim() || !formData.valor_unitario || !formData.cantidad}
+              disabled={submitting || !formData.descripcion.trim() || !formData.tipo || !formData.monto || !formData.fecha}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
@@ -824,7 +1030,7 @@ const ModalNuevoItem = ({ isOpen, onClose, cuenta, onAgregar }) => {
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
-                  <span>Agregar Item</span>
+                  <span>Agregar Movimiento</span>
                 </>
               )}
             </button>

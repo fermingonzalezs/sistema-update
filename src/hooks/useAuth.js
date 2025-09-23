@@ -206,7 +206,7 @@ export const useAuth = () => {
     if (!user) return [];
 
     // Usuarios autenticados tienen acceso a todas las secciones
-    return ['ventas', 'soporte', 'administracion', 'contabilidad'];
+    return ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras'];
   };
 
   return {

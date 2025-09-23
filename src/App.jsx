@@ -41,6 +41,7 @@ import {
   BalanceSumasYSaldosSection,
   CuentasAuxiliaresSection
 } from './modules/contabilidad/components';
+import ComprasSection from './modules/compras/components/ComprasSection';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
 import { useInventario } from './modules/ventas/hooks/useInventario';
@@ -523,6 +524,10 @@ const AppContent = () => {
      {/* 📊 NUEVA SECCIÓN DE CUENTAS AUXILIARES */}
      {activeSection === 'cuentas-auxiliares' && (
        <CuentasAuxiliaresSection />
+     )}
+     {/* 🛒 NUEVA SECCIÓN DE COMPRAS */}
+     {activeSection === 'compras' && (
+       <ComprasSection />
      )}
 
      {activeSection === 'gestion-fotos' && (
