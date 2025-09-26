@@ -10,6 +10,41 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevenir cursor de texto en elementos no editables */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* Permitir selección y cursor de texto solo en campos editables */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+.editable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+/* Cursor pointer para elementos clickeables */
+button,
+a,
+[role="button"],
+.clickable,
+.cursor-pointer {
+  cursor: pointer !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 /* Eliminar los estilos que causaban problemas */
 body {
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;

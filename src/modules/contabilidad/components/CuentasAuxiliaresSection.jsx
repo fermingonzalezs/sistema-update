@@ -25,7 +25,6 @@ import { supabase } from '../../../lib/supabase';
 const CuentasAuxiliaresSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuenta, setSelectedCuenta] = useState(null);
-  const [showDetalles, setShowDetalles] = useState(false);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
 
   // Hook para datos reales
@@ -155,9 +154,14 @@ const CuentasAuxiliaresSection = () => {
 
   const handleVerDetalles = async (cuenta) => {
     try {
+      // Si ya está seleccionada, la deselecciona
+      if (selectedCuenta && selectedCuenta.id === cuenta.id) {
+        setSelectedCuenta(null);
+        return;
+      }
+
       const cuentaCompleta = await getCuentaById(cuenta.id);
       setSelectedCuenta(cuentaCompleta);
-      setShowDetalles(true);
     } catch (error) {
       console.error('Error obteniendo detalles de cuenta:', error);
     }
@@ -332,28 +336,22 @@ const CuentasAuxiliaresSection = () => {
                         {formatearMonto(cuenta.cuenta?.saldo_contable || 0, 'USD')}
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <div className="flex items-center justify-center space-x-1">
-                          <TrendingUp className="w-4 h-4 text-emerald-600" />
-                          <span className="font-medium text-emerald-700">
-                            {formatearMonto(totales.ingresos, 'USD')}
-                          </span>
-                        </div>
+                        <span className="font-medium text-slate-800">
+                          {formatearMonto(totales.ingresos, 'USD')}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <div className="flex items-center justify-center space-x-1">
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                          <span className="font-medium text-red-700">
-                            {formatearMonto(totales.egresos, 'USD')}
-                          </span>
-                        </div>
+                        <span className="font-medium text-slate-800">
+                          {formatearMonto(totales.egresos, 'USD')}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <span className={`font-medium ${totales.saldo >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                        <span className="font-medium text-slate-800">
                           {formatearMonto(totales.saldo, 'USD')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <span className={`${getDiferenciaColor(cuenta.diferencia || 0)} font-medium`}>
+                        <span className="font-medium text-slate-800">
                           {Math.abs(cuenta.diferencia || 0) < 0.01 ? 'Balanceado' : formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}
                         </span>
                       </td>
@@ -361,18 +359,17 @@ const CuentasAuxiliaresSection = () => {
                         {movimientosEjemplo.length} movimientos
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button
-                            onClick={() => handleVerDetalles(cuenta)}
-                            className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                            title="Ver movimientos"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button className="text-slate-600 hover:text-slate-800 transition-colors" title="Reportes">
-                            <BarChart3 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleVerDetalles(cuenta)}
+                          className={`transition-colors ${
+                            selectedCuenta && selectedCuenta.id === cuenta.id
+                              ? 'text-emerald-800 bg-emerald-100 p-1 rounded'
+                              : 'text-emerald-600 hover:text-emerald-800'
+                          }`}
+                          title={selectedCuenta && selectedCuenta.id === cuenta.id ? 'Ocultar movimientos' : 'Ver movimientos'}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -383,221 +380,267 @@ const CuentasAuxiliaresSection = () => {
         )}
       </div>
 
-      {/* Modal de Detalles */}
-      {showDetalles && selectedCuenta && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-200 max-w-7xl w-full max-h-[90vh] overflow-hidden">
-            {/* Header del Modal */}
-            <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
+      {/* Resumen expandible de cuenta seleccionada */}
+      {selectedCuenta && (
+        <div className="bg-white rounded border border-slate-200 mt-4">
+          {/* Header del resumen */}
+          <div className="p-4 bg-slate-800 text-white">
+            <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-semibold">Movimientos de Cuenta Auxiliar</h3>
-                <p className="text-slate-300 mt-1">
+                <h3 className="text-lg font-semibold">Resumen de Movimientos</h3>
+                <p className="text-slate-300 text-sm">
                   {selectedCuenta.plan_cuentas?.codigo || selectedCuenta.cuenta?.codigo || 'Sin código'} - {selectedCuenta.plan_cuentas?.nombre || selectedCuenta.cuenta?.nombre || selectedCuenta.nombre || 'Sin nombre'}
                 </p>
               </div>
               <button
-                onClick={() => setShowDetalles(false)}
+                onClick={() => setSelectedCuenta(null)}
                 className="text-slate-300 hover:text-white p-2 rounded hover:bg-slate-700 transition-colors"
+                title="Cerrar resumen"
               >
-                <XCircle className="w-6 h-6" />
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
+          </div>
 
-            {/* Contenido del Modal */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {/* Resumen - Cards de totales */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center space-x-2">
-                    <BarChart3 className="w-5 h-5 text-slate-600" />
-                    <div className="text-sm text-slate-600">Saldo Contable</div>
-                  </div>
-                  <div className="text-xl font-semibold text-slate-800 mt-2">
-                    {formatearMonto(selectedCuenta.cuenta?.saldo_contable || 0, 'USD')}
-                  </div>
+          {/* Tarjetas de totales */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5 text-slate-600" />
+                  <div className="text-sm text-slate-600">Saldo Contable</div>
                 </div>
-                <div className="bg-emerald-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-600" />
-                    <div className="text-sm text-emerald-700">Total Ingresos</div>
-                  </div>
-                  <div className="text-xl font-semibold text-emerald-700 mt-2">
-                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
-                  </div>
-                </div>
-                <div className="bg-red-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center space-x-2">
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                    <div className="text-sm text-red-700">Total Egresos</div>
-                  </div>
-                  <div className="text-xl font-semibold text-red-700 mt-2">
-                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
-                  </div>
-                </div>
-                <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="w-5 h-5 text-slate-600" />
-                    <div className="text-sm text-slate-600">Saldo Auxiliar</div>
-                  </div>
-                  <div className={`text-xl font-semibold mt-2 ${calcularTotalesMovimientos(movimientosEjemplo).saldo >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-                    {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
-                  </div>
+                <div className="text-xl font-semibold text-slate-800 mt-2">
+                  {formatearMonto(selectedCuenta.cuenta?.saldo_contable || 0, 'USD')}
                 </div>
               </div>
-
-              {/* Filtros de movimientos */}
-              <div className="bg-gray-50 p-4 rounded border border-slate-200 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
-                    <input
-                      type="date"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                    <input
-                      type="date"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                    <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
-                      <option value="">Todos</option>
-                      <option value="ingreso">Solo Ingresos</option>
-                      <option value="egreso">Solo Egresos</option>
-                    </select>
-                  </div>
-                  <div className="flex items-end gap-2">
-                    <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
-                      Filtrar
-                    </button>
-                    <button
-                      onClick={() => setShowNuevoMovimiento(true)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors text-sm"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Nuevo Movimiento</span>
-                    </button>
-                  </div>
+              <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5 text-slate-600" />
+                  <div className="text-sm text-slate-600">Total Ingresos</div>
+                </div>
+                <div className="text-xl font-semibold text-slate-800 mt-2">
+                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
                 </div>
               </div>
+              <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                <div className="flex items-center space-x-2">
+                  <TrendingDown className="w-5 h-5 text-slate-600" />
+                  <div className="text-sm text-slate-600">Total Egresos</div>
+                </div>
+                <div className="text-xl font-semibold text-slate-800 mt-2">
+                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                </div>
+              </div>
+              <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="w-5 h-5 text-slate-600" />
+                  <div className="text-sm text-slate-600">Saldo Auxiliar</div>
+                </div>
+                <div className="text-xl font-semibold text-slate-800 mt-2">
+                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
+                </div>
+              </div>
+            </div>
 
-              {/* Vista estilo Libro Diario - Dos columnas */}
+            {/* Filtros de movimientos */}
+            <div className="bg-gray-50 p-4 rounded border border-slate-200 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                  <input
+                    type="date"
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                  <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+                    <option value="">Todos</option>
+                    <option value="ingreso">Solo Ingresos</option>
+                    <option value="egreso">Solo Egresos</option>
+                  </select>
+                </div>
+                <div className="flex items-end gap-2">
+                  <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
+                    Filtrar
+                  </button>
+                  <button
+                    onClick={() => setShowNuevoMovimiento(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Nuevo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabla de movimientos estilo libro diario - Ingresos y Egresos separados */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Columna Egresos */}
               <div className="bg-white border border-slate-200 rounded overflow-hidden">
-                {/* Header */}
                 <div className="bg-slate-800 text-white p-4">
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <TrendingUp className="w-5 h-5 text-emerald-400" />
-                        <h4 className="text-lg font-semibold">INGRESOS</h4>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <TrendingDown className="w-5 h-5 text-red-400" />
-                        <h4 className="text-lg font-semibold">EGRESOS</h4>
-                      </div>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <TrendingDown className="w-5 h-5" />
+                    <h4 className="font-semibold text-lg">EGRESOS</h4>
                   </div>
                 </div>
-
-                {/* Contenido dividido */}
-                <div className="grid grid-cols-2 gap-0 min-h-[400px]">
-                  {/* Columna de Ingresos */}
-                  <div className="border-r border-slate-200">
-                    <div className="bg-emerald-50 p-3 border-b border-slate-200">
-                      <h5 className="font-medium text-emerald-800">Movimientos de Ingreso</h5>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {movimientosEjemplo
-                        .filter(m => m.tipo === 'ingreso')
-                        .map((movimiento, index) => (
-                          <div key={movimiento.id} className={`p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-emerald-50'}`}>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="font-medium text-sm text-slate-800">{movimiento.descripcion}</div>
-                                <div className="text-xs text-slate-500 mt-1">{formatFecha(movimiento.fecha)}</div>
-                                {movimiento.referencia && (
-                                  <div className="text-xs text-slate-500">Ref: {movimiento.referencia}</div>
-                                )}
-                              </div>
-                              <div className="ml-4 text-right">
-                                <div className="font-semibold text-emerald-700">
-                                  {formatearMonto(movimiento.monto, 'USD')}
-                                </div>
-                                <div className="flex space-x-1 mt-2">
-                                  <button className="text-slate-500 hover:text-slate-700 p-1">
-                                    <Edit3 className="w-3 h-3" />
-                                  </button>
-                                  <button className="text-slate-500 hover:text-red-600 p-1">
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      }
-                    </div>
-                    {/* Total Ingresos */}
-                    <div className="bg-emerald-100 p-3 border-t border-slate-200">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-emerald-800">Total Ingresos:</span>
-                        <span className="font-bold text-emerald-800">
-                          {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Columna de Egresos */}
-                  <div>
-                    <div className="bg-red-50 p-3 border-b border-slate-200">
-                      <h5 className="font-medium text-red-800">Movimientos de Egreso</h5>
-                    </div>
-                    <div className="divide-y divide-slate-100">
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-700 text-white sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
                       {movimientosEjemplo
                         .filter(m => m.tipo === 'egreso')
                         .map((movimiento, index) => (
-                          <div key={movimiento.id} className={`p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-red-50'}`}>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="font-medium text-sm text-slate-800">{movimiento.descripcion}</div>
-                                <div className="text-xs text-slate-500 mt-1">{formatFecha(movimiento.fecha)}</div>
-                                {movimiento.referencia && (
-                                  <div className="text-xs text-slate-500">Ref: {movimiento.referencia}</div>
-                                )}
-                              </div>
-                              <div className="ml-4 text-right">
-                                <div className="font-semibold text-red-700">
-                                  {formatearMonto(movimiento.monto, 'USD')}
-                                </div>
-                                <div className="flex space-x-1 mt-2">
-                                  <button className="text-slate-500 hover:text-slate-700 p-1">
-                                    <Edit3 className="w-3 h-3" />
-                                  </button>
-                                  <button className="text-slate-500 hover:text-red-600 p-1">
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
+                        <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {formatFecha(movimiento.fecha)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {movimiento.descripcion}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
+                            {formatearMonto(movimiento.monto, 'USD')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-center">
+                            <div className="flex justify-center space-x-2">
+                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                          </div>
-                        ))
-                      }
+                          </td>
+                        </tr>
+                      ))}
+                      {movimientosEjemplo.filter(m => m.tipo === 'egreso').length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
+                            No hay egresos registrados
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-slate-800 text-white p-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold">TOTAL EGRESOS:</span>
+                    <span className="text-sm font-semibold">
+                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Columna Ingresos */}
+              <div className="bg-white border border-slate-200 rounded overflow-hidden">
+                <div className="bg-slate-800 text-white p-4">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <h4 className="font-semibold text-lg">INGRESOS</h4>
+                  </div>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-700 text-white sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {movimientosEjemplo
+                        .filter(m => m.tipo === 'ingreso')
+                        .map((movimiento, index) => (
+                        <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {formatFecha(movimiento.fecha)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {movimiento.descripcion}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
+                            {formatearMonto(movimiento.monto, 'USD')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-center">
+                            <div className="flex justify-center space-x-2">
+                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {movimientosEjemplo.filter(m => m.tipo === 'ingreso').length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
+                            No hay ingresos registrados
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-slate-800 text-white p-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold">TOTAL INGRESOS:</span>
+                    <span className="text-sm font-semibold">
+                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Resumen final */}
+            <div className="bg-white border border-slate-200 rounded mt-6">
+              <div className="bg-slate-800 text-white p-4">
+                <h4 className="font-semibold text-lg">RESUMEN GENERAL</h4>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="text-sm text-slate-600">Total Ingresos</div>
+                    <div className="text-xl font-semibold text-emerald-600">
+                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
                     </div>
-                    {/* Total Egresos */}
-                    <div className="bg-red-100 p-3 border-t border-slate-200">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-red-800">Total Egresos:</span>
-                        <span className="font-bold text-red-800">
-                          {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
-                        </span>
-                      </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-slate-600">Total Egresos</div>
+                    <div className="text-xl font-semibold text-red-600">
+                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-slate-600">Saldo Neto</div>
+                    <div className={`text-xl font-semibold ${
+                      calcularTotalesMovimientos(movimientosEjemplo).saldo >= 0
+                        ? 'text-emerald-600'
+                        : 'text-red-600'
+                    }`}>
+                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
                     </div>
                   </div>
                 </div>
@@ -606,6 +649,7 @@ const CuentasAuxiliaresSection = () => {
           </div>
         </div>
       )}
+
 
       {/* Modal para Nueva Cuenta Auxiliar */}
       {showNuevaCuenta && (
