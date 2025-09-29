@@ -75,7 +75,8 @@
       "Bash(SUPABASE_ACCESS_TOKEN=\"sbp_f8277923e5af0a729f4753adde37d2d155653c6b\" SUPABASE_PROJECT_REF=\"xixvlncckcfyjpqsxofq\" npx -y @supabase/mcp-server-supabase@latest)",
       "Bash(source:*)",
       "Bash(npm ls:*)",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "Bash(timeout 3 npm run dev)"
     ],
     "deny": []
   },

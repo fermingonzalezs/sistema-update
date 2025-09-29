@@ -294,6 +294,60 @@ export const otrosService = {
     return data
   },
 
+  // Crear producto custom específicamente para ventas
+  async crearProductoCustom(datosCustom) {
+    console.log('💾 Creando producto custom para venta:', datosCustom);
+
+    // Validaciones específicas para productos custom
+    if (!datosCustom.serial?.trim()) {
+      throw new Error('El serial/nombre es obligatorio');
+    }
+
+    if (!datosCustom.descripcion?.trim()) {
+      throw new Error('La descripción es obligatoria');
+    }
+
+    if (!datosCustom.precio_compra || datosCustom.precio_compra <= 0) {
+      throw new Error('El precio de compra debe ser mayor a 0');
+    }
+
+    if (!datosCustom.precio_venta || datosCustom.precio_venta <= 0) {
+      throw new Error('El precio de venta debe ser mayor a 0');
+    }
+
+    if (!datosCustom.cantidad || datosCustom.cantidad <= 0) {
+      throw new Error('La cantidad debe ser mayor a 0');
+    }
+
+    // Validar condición
+    const condicionNormalizada = normalizeCondicion(datosCustom.condicion || 'usado');
+    if (!isValidCondicion(condicionNormalizada)) {
+      throw new Error(`Condición inválida: ${datosCustom.condicion}`);
+    }
+
+    // Preparar datos para inserción
+    const productoData = {
+      nombre_producto: datosCustom.serial.trim(),
+      descripcion: datosCustom.descripcion.trim(),
+      categoria: 'ACCESORIOS', // Fijo según especificación
+      condicion: condicionNormalizada,
+      precio_compra_usd: parseFloat(datosCustom.precio_compra),
+      precio_venta_usd: parseFloat(datosCustom.precio_venta),
+      cantidad_la_plata: parseInt(datosCustom.cantidad), // Fijo en La Plata según especificación
+      cantidad_mitre: 0,
+      garantia: '30 días', // Fijo según especificación
+      observaciones: datosCustom.observaciones || 'Producto custom creado para venta'
+    };
+
+    console.log('📦 Datos preparados para producto custom:', productoData);
+
+    // Usar el método create existente
+    const nuevoProducto = await this.create(productoData);
+
+    console.log('✅ Producto custom creado exitosamente:', nuevoProducto);
+    return nuevoProducto;
+  },
+
   // Obtener estadísticas del inventario
   async getEstadisticas() {
     console.log('📊 Obteniendo estadísticas del inventario...')
@@ -416,6 +470,19 @@ export function useOtros() {
     }
   }
 
+  // Crear producto custom específicamente para ventas
+  const crearProductoCustom = async (datosCustom) => {
+    try {
+      setError(null)
+      const nuevoProducto = await otrosService.crearProductoCustom(datosCustom)
+      setOtros(prev => [nuevoProducto, ...prev])
+      return nuevoProducto
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
   // Cargar datos automáticamente al montar el componente
   useEffect(() => {
     fetchOtros()
@@ -430,6 +497,7 @@ export function useOtros() {
     updateOtro,
     deleteOtro,
     getOtrosByCategoria,
-    getEstadisticas
+    getEstadisticas,
+    crearProductoCustom
   }
 }

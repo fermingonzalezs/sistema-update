@@ -14,7 +14,8 @@ import {
   Building2,
   Minus,
   Edit3,
-  UserPlus
+  UserPlus,
+  Trash2
 } from 'lucide-react';
 import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
@@ -26,13 +27,14 @@ const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroSaldo, setFiltroSaldo] = useState('acreedores'); // 'deudores', 'acreedores'
   const [estadisticas, setEstadisticas] = useState(null);
-  const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState(null); // 'cobro', 'pago', 'ajustar_deuda', 'tomar_deuda'
-  const [showMovimientos, setShowMovimientos] = useState(false);
-  const [movimientosCliente, setMovimientosCliente] = useState([]);
-  const [loadingMovimientos, setLoadingMovimientos] = useState(false);
   const [clientePreseleccionado, setClientePreseleccionado] = useState(null);
+  const [clienteSeleccionadoFiltro, setClienteSeleccionadoFiltro] = useState(null);
+  const [todosMovimientos, setTodosMovimientos] = useState([]);
+  const [loadingMovimientos, setLoadingMovimientos] = useState(false);
+  const [showEditarMovimiento, setShowEditarMovimiento] = useState(false);
+  const [movimientoAEditar, setMovimientoAEditar] = useState(null);
 
   const {
     saldos,
@@ -40,15 +42,19 @@ const CuentasCorrientesSection = () => {
     error,
     fetchSaldos,
     fetchMovimientosCliente,
+    fetchTodosMovimientos,
     getEstadisticas,
     registrarPagoRecibido,
     registrarNuevaDeuda,
     registrarPagoRealizado,
-    registrarDeudaUpdate
+    registrarDeudaUpdate,
+    eliminarMovimiento,
+    editarMovimiento
   } = useCuentasCorrientes();
 
   useEffect(() => {
     loadData();
+    cargarTodosMovimientos();
   }, []);
 
   const loadData = async () => {
@@ -57,13 +63,11 @@ const CuentasCorrientesSection = () => {
     setEstadisticas(stats);
   };
 
-  const handleVerMovimientos = async (cliente) => {
+  const cargarTodosMovimientos = async () => {
     try {
-      setPersonaSeleccionada(cliente);
       setLoadingMovimientos(true);
-      const movimientos = await fetchMovimientosCliente(cliente.cliente_id);
-      setMovimientosCliente(movimientos);
-      setShowMovimientos(true);
+      const movimientos = await fetchTodosMovimientos();
+      setTodosMovimientos(movimientos);
     } catch (error) {
       console.error('Error cargando movimientos:', error);
       alert('Error cargando movimientos: ' + error.message);
@@ -76,6 +80,7 @@ const CuentasCorrientesSection = () => {
     try {
       await registrarPagoRecibido(clienteId, monto, concepto, observaciones);
       await loadData(); // Recargar estadísticas
+      await cargarTodosMovimientos(); // Recargar movimientos
       alert('✅ Pago registrado exitosamente');
     } catch (error) {
       console.error('Error registrando pago:', error);
@@ -100,8 +105,8 @@ const CuentasCorrientesSection = () => {
       return {
         texto: 'A favor',
         valor: Math.abs(valor),
-        color: 'text-emerald-600',
-        bgColor: 'bg-emerald-100'
+        color: 'text-slate-600',
+        bgColor: 'bg-slate-200'
       };
     } else {
       return {
@@ -148,6 +153,184 @@ const CuentasCorrientesSection = () => {
     setShowNuevoMovimiento(false);
     setClientePreseleccionado(null);
   };
+
+  // Filtrar movimientos por cliente seleccionado
+  const movimientosFiltrados = clienteSeleccionadoFiltro
+    ? todosMovimientos.filter(mov => mov.cliente_id === clienteSeleccionadoFiltro.cliente_id)
+    : todosMovimientos;
+
+  // Funciones para editar y eliminar movimientos
+  const handleEditarMovimiento = (movimiento) => {
+    console.log('Editar movimiento:', movimiento);
+    setMovimientoAEditar(movimiento);
+    setShowEditarMovimiento(true);
+  };
+
+  const handleEliminarMovimiento = async (movimiento) => {
+    const mensaje = `¿Está seguro de que desea eliminar este movimiento?
+
+Cliente: ${movimiento.nombre_cliente} ${movimiento.apellido_cliente}
+Tipo: ${movimiento.tipo_movimiento === 'debe' ? 'Debe' : 'Haber'}
+Monto: $${movimiento.monto}
+Concepto: ${movimiento.concepto}
+Fecha: ${new Date(movimiento.fecha_operacion).toLocaleDateString()}
+
+Esta acción no se puede deshacer.`;
+
+    if (!window.confirm(mensaje)) {
+      return;
+    }
+
+    try {
+      await eliminarMovimiento(movimiento.id);
+      await loadData();
+      await cargarTodosMovimientos();
+      alert('✅ Movimiento eliminado exitosamente');
+    } catch (error) {
+      console.error('Error eliminando movimiento:', error);
+      alert('❌ Error eliminando movimiento: ' + error.message);
+    }
+  };
+
+// 🔧 Componente Formulario para Editar Movimiento
+const EditarMovimientoForm = ({ movimiento, onClose, onSuccess, editarMovimiento }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    monto: movimiento.monto || '',
+    concepto: movimiento.concepto || '',
+    observaciones: movimiento.observaciones || '',
+    fecha_operacion: movimiento.fecha_operacion || ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.monto || !formData.concepto) {
+      alert('Monto y concepto son requeridos');
+      return;
+    }
+
+    if (parseFloat(formData.monto) <= 0) {
+      alert('El monto debe ser mayor a 0');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await editarMovimiento(movimiento.id, {
+        monto: parseFloat(formData.monto),
+        concepto: formData.concepto.trim(),
+        observaciones: formData.observaciones?.trim() || null,
+        fecha_operacion: formData.fecha_operacion
+      });
+
+      alert('✅ Movimiento editado exitosamente');
+      onSuccess();
+    } catch (error) {
+      console.error('Error editando movimiento:', error);
+      alert('❌ Error editando movimiento: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-6">
+      <div className="space-y-4">
+        {/* Información no editable */}
+        <div className="bg-slate-50 p-3 rounded">
+          <p className="text-sm text-slate-600">
+            <strong>Cliente:</strong> {movimiento.nombre_cliente} {movimiento.apellido_cliente}
+          </p>
+          <p className="text-sm text-slate-600">
+            <strong>Tipo:</strong> {movimiento.tipo_movimiento === 'debe' ? 'Debe (Cliente nos debe)' : 'Haber (Nosotros debemos)'}
+          </p>
+          <p className="text-sm text-slate-600">
+            <strong>Operación:</strong> {movimiento.tipo_operacion?.replace(/_/g, ' ')}
+          </p>
+        </div>
+
+        {/* Campo Monto */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Monto USD *
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            value={formData.monto}
+            onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Concepto */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Concepto *
+          </label>
+          <input
+            type="text"
+            value={formData.concepto}
+            onChange={(e) => setFormData(prev => ({ ...prev, concepto: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Fecha */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Fecha de Operación
+          </label>
+          <input
+            type="date"
+            value={formData.fecha_operacion}
+            onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Observaciones */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Observaciones
+          </label>
+          <textarea
+            value={formData.observaciones}
+            onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            rows={3}
+            disabled={loading}
+          />
+        </div>
+      </div>
+
+      {/* Botones */}
+      <div className="flex gap-3 pt-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 px-4 py-2 border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          disabled={loading}
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="flex-1 px-4 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
+        >
+          {loading ? 'Guardando...' : 'Guardar Cambios'}
+        </button>
+      </div>
+    </form>
+  );
+};
 
 // 🔧 Componente Modal Unificado para Movimientos
 const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = null }) => {
@@ -340,7 +523,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
 
       onSuccess();
       onClose();
-      
+
     } catch (error) {
       console.error('Error registrando movimiento:', error);
       alert('❌ Error: ' + error.message);
@@ -596,241 +779,245 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
         </div>
       )}
 
-      {/* Filtros */}
-      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Búsqueda */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
-          </div>
+      {/* Layout principal: Clientes (izquierda) + Movimientos (derecha) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Filtro de saldo */}
-          <div>
-            <select
-              value={filtroSaldo}
-              onChange={(e) => setFiltroSaldo(e.target.value)}
-              className="w-full p-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="acreedores">Acreedores (nos deben)</option>
-              <option value="deudores">Deudores (les debemos)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de personas */}
-      <div className="bg-white rounded border border-slate-200">
-        <div className="p-4 bg-slate-50 border-b border-slate-200">
-          <h3 className="font-semibold text-slate-700">
-            {loading ? 'Cargando...' : `${clientesFiltrados.length} personas`}
-          </h3>
-        </div>
-
-        {loading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-            <p className="text-slate-500">Cargando cuentas corrientes...</p>
-          </div>
-        ) : error ? (
-          <div className="p-8 text-center">
-            <p className="text-slate-600">Error: {error}</p>
-            <button 
-              onClick={loadData}
-              className="mt-2 text-emerald-600 hover:underline"
-            >
-              Reintentar
-            </button>
-          </div>
-        ) : clientesFiltrados.length === 0 ? (
-          <div className="p-8 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-            <p className="text-slate-500">No se encontraron personas</p>
-            <p className="text-sm text-slate-400">
-              {searchTerm ? 'Intenta con otros términos de búsqueda' : 'No hay personas registradas en cuentas corrientes'}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-200">
-            {clientesFiltrados.map((cliente) => {
-              const saldoInfo = formatSaldo(cliente.saldo_total);
-              
-              return (
-                <div key={cliente.cliente_id} className="p-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-slate-800">
-                          {cliente.nombre} {cliente.apellido}
-                        </h4>
-                        
-                        {/* Saldo */}
-                        <div className={`px-3 py-1 rounded text-sm font-medium ${saldoInfo.bgColor} ${saldoInfo.color}`}>
-                          {saldoInfo.texto}: {formatearMonto(saldoInfo.valor, 'USD')}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Último mov: {formatFecha(cliente.ultimo_movimiento)}</span>
-                        </div>
-                        
-                        <div className="flex items-center space-x-1">
-                          <CreditCard className="w-4 h-4" />
-                          <span>Movimientos: {cliente.total_movimientos || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => handleVerMovimientos(cliente)}
-                        className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                        title="Ver movimientos"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setClientePreseleccionado(cliente);
-                          setShowNuevoMovimiento(true);
-                        }}
-                        className="p-2 text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
-                        title="Nuevo movimiento"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Modal de movimientos de la persona */}
-      {showMovimientos && personaSeleccionada && (
-        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-4xl w-full max-h-[80vh] overflow-y-auto border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <CreditCard className="w-6 h-6 text-emerald-600" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-800">
-                      Movimientos de {personaSeleccionada.nombre} {personaSeleccionada.apellido}
-                    </h3>
-                    <p className="text-sm text-slate-500">
-                      Saldo actual: {formatearMonto(personaSeleccionada.saldo_total, 'USD')}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowMovimientos(false);
-                    setPersonaSeleccionada(null);
-                    setMovimientosCliente([]);
-                  }}
-                  className="text-slate-500 hover:text-slate-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+        {/* COLUMNA IZQUIERDA: Lista de Clientes */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded border border-slate-200">
+            {/* Header Clientes */}
+            <div className="p-4 bg-slate-800 text-white">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <h3 className="font-semibold">Clientes</h3>
               </div>
             </div>
-            
-            <div className="p-6">
-              {loadingMovimientos ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-                  <span className="ml-2 text-slate-600">Cargando movimientos...</span>
+
+            {/* Filtros Clientes */}
+            <div className="p-4 bg-slate-50 border-b border-slate-200 space-y-3">
+              {/* Búsqueda */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar cliente..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Filtro de saldo */}
+              <select
+                value={filtroSaldo}
+                onChange={(e) => setFiltroSaldo(e.target.value)}
+                className="w-full p-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="acreedores">Acreedores (nos deben)</option>
+                <option value="deudores">Deudores (les debemos)</option>
+              </select>
+
+              {/* Botón limpiar filtro de cliente */}
+              {clienteSeleccionadoFiltro && (
+                <button
+                  onClick={() => setClienteSeleccionadoFiltro(null)}
+                  className="w-full px-3 py-2 text-sm bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+                >
+                  Mostrar todos los movimientos
+                </button>
+              )}
+            </div>
+
+            {/* Lista de Clientes */}
+            <div className="max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="p-6 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500 mx-auto mb-2"></div>
+                  <p className="text-sm text-slate-500">Cargando...</p>
                 </div>
-              ) : movimientosCliente.length === 0 ? (
-                <div className="text-center py-8">
-                  <CreditCard className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                  <p className="text-slate-500">No hay movimientos registrados</p>
+              ) : error ? (
+                <div className="p-6 text-center">
+                  <p className="text-sm text-slate-600">Error: {error}</p>
+                  <button
+                    onClick={loadData}
+                    className="mt-2 text-sm text-emerald-600 hover:underline"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              ) : clientesFiltrados.length === 0 ? (
+                <div className="p-6 text-center">
+                  <Users className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                  <p className="text-sm text-slate-500">No se encontraron clientes</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {movimientosCliente.map((movimiento) => (
-                    <div key={movimiento.id} className="border border-slate-200 rounded p-4 hover:bg-slate-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <div className={`p-2 rounded ${
-                              movimiento.tipo_movimiento === 'debe' 
-                                ? 'bg-slate-100' 
-                                : 'bg-emerald-100'
-                            }`}>
-                              {movimiento.tipo_movimiento === 'debe' ? (
-                                <TrendingUp className={`w-4 h-4 ${
-                                  movimiento.tipo_movimiento === 'debe' 
-                                    ? 'text-slate-600' 
-                                    : 'text-emerald-600'
-                                }`} />
-                              ) : (
-                                <TrendingDown className="w-4 h-4 text-emerald-600" />
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-slate-800">{movimiento.concepto}</h4>
-                              <p className="text-sm text-slate-500">{movimiento.tipo_operacion}</p>
+                <div className="divide-y divide-slate-200">
+                  {clientesFiltrados.map((cliente) => {
+                    const saldoInfo = formatSaldo(cliente.saldo_total);
+                    const isSelected = clienteSeleccionadoFiltro?.cliente_id === cliente.cliente_id;
+
+                    return (
+                      <div
+                        key={cliente.cliente_id}
+                        className={`p-3 cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'bg-slate-100 border-l-4 border-slate-500'
+                            : 'hover:bg-slate-50'
+                        }`}
+                        onClick={() => setClienteSeleccionadoFiltro(isSelected ? null : cliente)}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-slate-800 text-sm">
+                              {cliente.nombre} {cliente.apellido}
+                            </h4>
+                            <div className={`px-2 py-0.5 rounded text-xs font-medium ${saldoInfo.bgColor} ${saldoInfo.color}`}>
+                              {saldoInfo.texto}: {formatearMonto(saldoInfo.valor, 'USD')}
                             </div>
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
+
+                          {/* Info adicional en una línea */}
+                          <div className="flex items-center justify-between text-xs text-slate-500">
                             <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{new Date(movimiento.fecha_operacion + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
+                              <Calendar className="w-3 h-3" />
+                              <span>{formatFecha(cliente.ultimo_movimiento)}</span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <DollarSign className="w-4 h-4" />
-                              <span>Estado: {movimiento.estado}</span>
+                              <CreditCard className="w-3 h-3" />
+                              <span>{cliente.total_movimientos || 0} movs</span>
                             </div>
-                            {movimiento.comprobante && (
-                              <div className="flex items-center space-x-1">
-                                <Building2 className="w-4 h-4" />
-                                <span>Comp: {movimiento.comprobante}</span>
-                              </div>
-                            )}
                           </div>
-                          
-                          {movimiento.observaciones && (
-                            <p className="text-sm text-slate-500 mt-2">
-                              <strong>Obs:</strong> {movimiento.observaciones}
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className="text-right ml-4">
-                          <p className={`text-lg font-semibold ${
-                            movimiento.tipo_movimiento === 'debe' 
-                              ? 'text-slate-800' 
-                              : 'text-emerald-600'
-                          }`}>
-                            {movimiento.tipo_movimiento === 'debe' ? '+' : '-'}
-                            {formatearMonto(movimiento.monto, 'USD')}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {movimiento.tipo_movimiento === 'debe' ? 'Adeuda' : 'Pagó'}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* COLUMNA DERECHA: Tabla de Movimientos */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded border border-slate-200">
+            {/* Header Movimientos */}
+            <div className="p-4 bg-slate-800 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="w-5 h-5" />
+                  <h3 className="font-semibold">
+                    Movimientos {clienteSeleccionadoFiltro && `- ${clienteSeleccionadoFiltro.nombre} ${clienteSeleccionadoFiltro.apellido}`}
+                  </h3>
+                </div>
+                <span className="text-sm text-slate-300">
+                  {movimientosFiltrados.length} registros
+                </span>
+              </div>
+            </div>
+
+            {/* Tabla de Movimientos */}
+            <div className="overflow-x-auto">
+              {loadingMovimientos ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+                  <p className="text-slate-500">Cargando movimientos...</p>
+                </div>
+              ) : movimientosFiltrados.length === 0 ? (
+                <div className="p-8 text-center">
+                  <CreditCard className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <p className="text-slate-500">
+                    {clienteSeleccionadoFiltro
+                      ? 'No hay movimientos para este cliente'
+                      : 'No hay movimientos registrados'
+                    }
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cliente</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Concepto</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tipo</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {movimientosFiltrados.map((movimiento, index) => (
+                      <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="px-4 py-3 text-sm text-slate-800">
+                          <div>
+                            <div className="font-medium">{movimiento.nombre_cliente} {movimiento.apellido_cliente}</div>
+                            {movimiento.observaciones && (
+                              <div className="text-xs text-slate-500 mt-1">{movimiento.observaciones}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-800">
+                          {movimiento.concepto}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                            movimiento.tipo_movimiento === 'debe'
+                              ? 'bg-slate-100 text-slate-800'
+                              : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {movimiento.tipo_movimiento === 'debe' ? (
+                              <>
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                Debe
+                              </>
+                            ) : (
+                              <>
+                                <TrendingDown className="w-3 h-3 mr-1" />
+                                Haber
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`font-semibold ${
+                            movimiento.tipo_movimiento === 'debe'
+                              ? 'text-slate-800'
+                              : 'text-slate-600'
+                          }`}>
+                            {movimiento.tipo_movimiento === 'debe' ? '+' : '-'}
+                            {formatearMonto(movimiento.monto, 'USD')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-600">
+                          {formatFecha(movimiento.fecha_operacion)}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex justify-center space-x-2">
+                            <button
+                              onClick={() => handleEditarMovimiento(movimiento)}
+                              className="text-emerald-600 hover:text-emerald-800 transition-colors p-1"
+                              title="Editar movimiento"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleEliminarMovimiento(movimiento)}
+                              className="text-red-600 hover:text-red-800 transition-colors p-1"
+                              title="Eliminar movimiento"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       {/* Modal de Nuevo Movimiento - Selector */}
       {showNuevoMovimiento && !tipoMovimiento && (
@@ -852,36 +1039,36 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
             </div>
             
             <div className="p-6">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Sección CLIENTES */}
                 <div>
                   <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">CLIENTES</h4>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button
                       onClick={() => handleSelectTipoMovimiento('cobro')}
-                      className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                      className="p-3 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-emerald-100 rounded">
-                          <TrendingDown className="w-5 h-5 text-emerald-600" />
+                        <div className="p-1.5 bg-emerald-100 rounded">
+                          <TrendingDown className="w-4 h-4 text-emerald-600" />
                         </div>
-                        <div>
-                          <h4 className="font-medium text-slate-800">Registrar Pago</h4>
-                          <p className="text-sm text-slate-500">Un cliente nos paga (reducir su deuda con nosotros)</p>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-slate-800 text-sm">Registrar Pago</h4>
+                          <p className="text-xs text-slate-500 truncate">Cliente nos paga</p>
                         </div>
                       </div>
                     </button>
                     <button
                       onClick={() => handleSelectTipoMovimiento('agregar_deuda')}
-                      className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                      className="p-3 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-emerald-100 rounded">
-                          <Plus className="w-5 h-5 text-emerald-600" />
+                        <div className="p-1.5 bg-emerald-100 rounded">
+                          <Plus className="w-4 h-4 text-emerald-600" />
                         </div>
-                        <div>
-                          <h4 className="font-medium text-slate-800">Agregar Deuda</h4>
-                          <p className="text-sm text-slate-500">Registrar deuda que un cliente tiene con nosotros</p>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-slate-800 text-sm">Agregar Deuda</h4>
+                          <p className="text-xs text-slate-500 truncate">Cliente nos debe</p>
                         </div>
                       </div>
                     </button>
@@ -894,32 +1081,32 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                 {/* Sección UPDATE */}
                 <div>
                   <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">UPDATE</h4>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button
                       onClick={() => handleSelectTipoMovimiento('pago_realizado')}
-                      className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                      className="p-3 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-slate-100 rounded">
-                          <TrendingUp className="w-5 h-5 text-slate-600" />
+                        <div className="p-1.5 bg-slate-100 rounded">
+                          <TrendingUp className="w-4 h-4 text-slate-600" />
                         </div>
-                        <div>
-                          <h4 className="font-medium text-slate-800">Pago Realizado</h4>
-                          <p className="text-sm text-slate-500">Update paga a un proveedor o tercero</p>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-slate-800 text-sm">Pago Realizado</h4>
+                          <p className="text-xs text-slate-500 truncate">Update paga</p>
                         </div>
                       </div>
                     </button>
                     <button
                       onClick={() => handleSelectTipoMovimiento('tomar_deuda')}
-                      className="w-full p-4 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                      className="p-3 text-left border border-slate-200 rounded hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-slate-100 rounded">
-                          <Minus className="w-5 h-5 text-slate-600" />
+                        <div className="p-1.5 bg-slate-100 rounded">
+                          <Minus className="w-4 h-4 text-slate-600" />
                         </div>
-                        <div>
-                          <h4 className="font-medium text-slate-800">Tomar Deuda</h4>
-                          <p className="text-sm text-slate-500">Registrar deuda que Update tiene con un proveedor</p>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-slate-800 text-sm">Tomar Deuda</h4>
+                          <p className="text-xs text-slate-500 truncate">Update debe</p>
                         </div>
                       </div>
                     </button>
@@ -933,12 +1120,52 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
 
       {/* Modal Unificado para Movimientos */}
       {tipoMovimiento && (
-        <MovimientoModal 
+        <MovimientoModal
           tipo={tipoMovimiento}
           onClose={handleCerrarMovimiento}
-          onSuccess={loadData}
+          onSuccess={async () => {
+            await loadData();
+            await cargarTodosMovimientos();
+          }}
           clientePreseleccionado={clientePreseleccionado}
         />
+      )}
+
+      {/* Modal de Edición de Movimiento */}
+      {showEditarMovimiento && movimientoAEditar && (
+        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded max-w-md w-full border border-slate-200">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-800">Editar Movimiento</h3>
+                <button
+                  onClick={() => {
+                    setShowEditarMovimiento(false);
+                    setMovimientoAEditar(null);
+                  }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <EditarMovimientoForm
+              movimiento={movimientoAEditar}
+              onClose={() => {
+                setShowEditarMovimiento(false);
+                setMovimientoAEditar(null);
+              }}
+              onSuccess={async () => {
+                await loadData();
+                await cargarTodosMovimientos();
+                setShowEditarMovimiento(false);
+                setMovimientoAEditar(null);
+              }}
+              editarMovimiento={editarMovimiento}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

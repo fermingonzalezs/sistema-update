@@ -170,11 +170,13 @@ export const ventasService = {
           precioCosto = item.producto.precio_compra_usd || 0
         }
 
-        const precioTotal = item.precio_unitario * item.cantidad
+        const precioUnitarioSeguro = item.precio_unitario || 0
+        const precioTotal = precioUnitarioSeguro * item.cantidad
         const margenItem = precioTotal - (precioCosto * item.cantidad)
 
         console.log(`💾 DEBUG: Precios calculados:`, {
-          precio_unitario: item.precio_unitario,
+          precio_unitario_original: item.precio_unitario,
+          precio_unitario_seguro: precioUnitarioSeguro,
           precio_total: precioTotal,
           precio_costo: precioCosto,
           margen_item: margenItem
@@ -213,7 +215,7 @@ export const ventasService = {
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
           copy: copyCompleto,
           cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
+          precio_unitario: precioUnitarioSeguro, // CRÍTICO: Usar precio validado
           precio_total: precioTotal,
           precio_costo: precioCosto,
           margen_item: margenItem

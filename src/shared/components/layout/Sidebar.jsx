@@ -51,10 +51,10 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           description: 'Listado total de productos'
         },
         {
-          id: 'gestion-fotos',
-          label: 'Gestión de Fotos',
-          icon: Camera,
-          description: 'Fotos de productos'
+          id: 'registrar-venta',
+          label: 'Registrar Venta',
+          icon: Plus,
+          description: 'Seleccionar productos y carrito'
         },
         {
           id: 'copys',
@@ -67,6 +67,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Clientes',
           icon: Users,
           description: 'Gestión de clientes'
+        },
+        {
+          id: 'gestion-fotos',
+          label: 'Gestión de Fotos',
+          icon: Camera,
+          description: 'Fotos de productos'
         }
       ]
     },

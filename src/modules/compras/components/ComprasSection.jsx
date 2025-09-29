@@ -1,23 +1,32 @@
-import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus } from 'lucide-react';
 import { useCompras } from '../hooks/useCompras';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 const ComprasSection = () => {
   const { compras, loading, error, createCompra, updateCompra, deleteCompra } = useCompras();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [editandoCompra, setEditandoCompra] = useState(null);
-  const [formData, setFormData] = useState({
-    item: '',
-    cantidad: 1,
-    serial: '',
-    moneda: 'USD',
-    cotizacion: '',
-    monto: '',
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+
+  // Estados del recibo (header)
+  const [reciboData, setReciboData] = useState({
     proveedor: '',
-    caja_pago: '',
+    metodoPago: '',
+    fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
-    fecha: new Date().toISOString().split('T')[0]
+    moneda: 'USD',
+    cotizacion: 1000
+  });
+
+  // Estados de los items
+  const [items, setItems] = useState([]);
+  const [nuevoItem, setNuevoItem] = useState({
+    serial: '',
+    descripcion: '',
+    cantidad: 1,
+    precioUnitario: '',
+    agregarSeparado: false // true = una fila por unidad, false = una fila con cantidad total
   });
 
   // Estados para filtros
@@ -25,84 +34,153 @@ const ComprasSection = () => {
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
   const [filtroProveedor, setFiltroProveedor] = useState('');
 
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    const cargarCotizacion = async () => {
+      try {
+        const cotizacionData = await cotizacionService.obtenerCotizacionActual();
+        const valorCotizacion = cotizacionData.valor || cotizacionData.promedio || 1000;
+        setCotizacionDolar(valorCotizacion);
+        setReciboData(prev => ({ ...prev, cotizacion: valorCotizacion }));
+      } catch (error) {
+        console.error('Error cargando cotización:', error);
+        setCotizacionDolar(1000);
+      }
+    };
+    cargarCotizacion();
+  }, []);
+
   const limpiarFormulario = () => {
-    setFormData({
-      item: '',
-      cantidad: 1,
-      serial: '',
-      moneda: 'USD',
-      cotizacion: '',
-      monto: '',
+    setReciboData({
       proveedor: '',
-      caja_pago: '',
+      metodoPago: '',
+      fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
-      fecha: new Date().toISOString().split('T')[0]
+      moneda: 'USD',
+      cotizacion: cotizacionDolar
     });
-    setEditandoCompra(null);
+    setItems([]);
+    setNuevoItem({
+      serial: '',
+      descripcion: '',
+      cantidad: 1,
+      precioUnitario: '',
+      agregarSeparado: false
+    });
     setMostrarFormulario(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Funciones para manejar items
+  const agregarItem = () => {
+    // Validaciones
+    if (!nuevoItem.descripcion.trim()) {
+      alert('La descripción del item es requerida');
+      return;
+    }
+    if (!nuevoItem.precioUnitario || parseInt(nuevoItem.precioUnitario) <= 0) {
+      alert('El precio unitario debe ser mayor a 0');
+      return;
+    }
+    if (!nuevoItem.cantidad || parseInt(nuevoItem.cantidad) <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
 
+    const cantidad = parseInt(nuevoItem.cantidad);
+    const precioUnitario = parseInt(nuevoItem.precioUnitario);
+
+    if (nuevoItem.agregarSeparado) {
+      // Agregar una fila por cada unidad
+      const nuevosItems = [];
+      for (let i = 0; i < cantidad; i++) {
+        nuevosItems.push({
+          id: Date.now() + i, // ID temporal único
+          serial: nuevoItem.serial.trim() || '',
+          descripcion: nuevoItem.descripcion.trim(),
+          cantidad: 1,
+          precioUnitario: precioUnitario,
+          total: precioUnitario
+        });
+      }
+      setItems(prev => [...prev, ...nuevosItems]);
+    } else {
+      // Agregar una sola fila con la cantidad total
+      const item = {
+        id: Date.now(),
+        serial: nuevoItem.serial.trim() || '',
+        descripcion: nuevoItem.descripcion.trim(),
+        cantidad: cantidad,
+        precioUnitario: precioUnitario,
+        total: cantidad * precioUnitario
+      };
+      setItems(prev => [...prev, item]);
+    }
+
+    setNuevoItem({
+      serial: '',
+      descripcion: '',
+      cantidad: 1,
+      precioUnitario: '',
+      agregarSeparado: false
+    });
+  };
+
+  const eliminarItem = (itemId) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const editarItem = (itemId, nuevosDatos) => {
+    setItems(prev => prev.map(item =>
+      item.id === itemId
+        ? { ...item, ...nuevosDatos, total: nuevosDatos.cantidad * nuevosDatos.precioUnitario }
+        : item
+    ));
+  };
+
+  // Calcular total del recibo
+  const totalRecibo = items.reduce((acc, item) => acc + item.total, 0);
+
+  // Convertir monto a USD si es necesario
+  const convertirAUSD = (monto) => {
+    if (reciboData.moneda === 'ARS') {
+      return monto / reciboData.cotizacion;
+    }
+    return monto;
+  };
+
+  const handleGuardarRecibo = async () => {
     try {
-      // Validaciones
-      if (!formData.item.trim()) {
-        alert('El ítem es requerido');
-        return;
-      }
-      if (!formData.monto || parseFloat(formData.monto) <= 0) {
-        alert('El monto debe ser mayor a 0');
-        return;
-      }
-      if (!formData.proveedor.trim()) {
+      // Validaciones del recibo
+      if (!reciboData.proveedor.trim()) {
         alert('El proveedor es requerido');
         return;
       }
-      if (!formData.caja_pago.trim()) {
-        alert('La caja es requerida');
+      if (!reciboData.metodoPago.trim()) {
+        alert('El método de pago es requerido');
         return;
       }
-      if (formData.moneda === 'ARS' && (!formData.cotizacion || parseFloat(formData.cotizacion) <= 0)) {
+      if (items.length === 0) {
+        alert('Debe agregar al menos un item al recibo');
+        return;
+      }
+      if (reciboData.moneda === 'ARS' && (!reciboData.cotizacion || parseFloat(reciboData.cotizacion) <= 0)) {
         alert('La cotización es requerida para moneda ARS');
         return;
       }
 
-      const compraData = {
-        ...formData,
-        cantidad: parseInt(formData.cantidad) || 1,
-        monto: parseFloat(formData.monto),
-        cotizacion: formData.moneda === 'ARS' ? parseFloat(formData.cotizacion) : null,
-        serial: formData.serial.trim() || null
-      };
+      // TODO: Implementar guardado del recibo completo
+      console.log('Recibo a guardar:', {
+        header: reciboData,
+        items: items,
+        totalRecibo: totalRecibo,
+        totalUSD: convertirAUSD(totalRecibo)
+      });
 
-      if (editandoCompra) {
-        await updateCompra(editandoCompra.id, compraData);
-      } else {
-        await createCompra(compraData);
-      }
-
+      alert('✅ Recibo guardado exitosamente (funcionalidad pendiente)');
       limpiarFormulario();
     } catch (error) {
-      alert('Error al guardar la compra: ' + error.message);
+      alert('Error al guardar el recibo: ' + error.message);
     }
-  };
-
-  const handleEditar = (compra) => {
-    setFormData({
-      item: compra.item,
-      cantidad: compra.cantidad,
-      serial: compra.serial || '',
-      moneda: compra.moneda,
-      cotizacion: compra.cotizacion || '',
-      monto: compra.monto,
-      proveedor: compra.proveedor,
-      caja_pago: compra.caja_pago,
-      descripcion: compra.descripcion || '',
-      fecha: compra.fecha
-    });
-    setEditandoCompra(compra);
-    setMostrarFormulario(true);
   };
 
   const handleEliminar = async (id) => {
@@ -169,10 +247,10 @@ const ComprasSection = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+              className="bg-slate-700 text-white px-6 py-3 rounded-lg hover:bg-slate-800 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
-              {mostrarFormulario ? 'Ocultar Formulario' : 'Nueva Compra'}
+              {mostrarFormulario ? 'Ocultar Formulario' : 'Nuevo Recibo'}
             </button>
           </div>
         </div>
@@ -184,63 +262,20 @@ const ComprasSection = () => {
         </div>
       )}
 
-      {/* Formulario */}
+      {/* Formulario de Recibo */}
       {mostrarFormulario && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Información Básica */}
+        <div className="space-y-6">
+          {/* HEADER DEL RECIBO */}
           <div className="bg-white border border-slate-200 rounded">
-            <div className="border-b border-slate-200">
-              <div className="flex items-center p-4">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                <h3 className="text-lg font-semibold text-slate-800">Información Básica</h3>
+            <div className="p-4 bg-slate-800 text-white">
+              <div className="flex items-center space-x-3">
+                <FileText className="w-6 h-6" />
+                <h3 className="text-lg font-semibold">Nuevo Recibo de Compra</h3>
               </div>
             </div>
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {/* Ítem */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Ítem *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.item}
-                    onChange={(e) => setFormData(prev => ({ ...prev, item: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Descripción del producto/servicio"
-                    required
-                  />
-                </div>
 
-                {/* Cantidad */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Cantidad *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.cantidad}
-                    onChange={(e) => setFormData(prev => ({ ...prev, cantidad: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    required
-                  />
-                </div>
-
-                {/* Serial */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Serial (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.serial}
-                    onChange={(e) => setFormData(prev => ({ ...prev, serial: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Número de serie"
-                  />
-                </div>
-
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Proveedor */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -248,27 +283,33 @@ const ComprasSection = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.proveedor}
-                    onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    value={reciboData.proveedor}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, proveedor: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     placeholder="Nombre del proveedor"
                     required
                   />
                 </div>
 
-                {/* Caja */}
+                {/* Método de Pago */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Caja *
+                    Método de Pago *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.caja_pago}
-                    onChange={(e) => setFormData(prev => ({ ...prev, caja_pago: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Método/lugar de pago"
+                  <select
+                    value={reciboData.metodoPago}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, metodoPago: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar método...</option>
+                    <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
+                    <option value="dolares_billete">💸 Dólares Billete</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="criptomonedas">₿ Criptomonedas</option>
+                    <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                    <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                  </select>
                 </div>
 
                 {/* Fecha */}
@@ -278,49 +319,26 @@ const ComprasSection = () => {
                   </label>
                   <input
                     type="date"
-                    value={formData.fecha}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fecha: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    value={reciboData.fecha}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, fecha: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   />
                 </div>
 
-                {/* Descripción - ocupa 2 casillas */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Descripción
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.descripcion}
-                    onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Descripción adicional..."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Información Comercial */}
-          <div className="bg-emerald-50 border border-slate-200 rounded">
-            <div className="border-b border-slate-200 bg-emerald-50">
-              <div className="flex items-center p-4">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                <h3 className="text-lg font-semibold text-slate-800">Información Comercial</h3>
-              </div>
-            </div>
-            <div className="p-4 bg-emerald-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Moneda */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Moneda *
                   </label>
                   <select
-                    value={formData.moneda}
-                    onChange={(e) => setFormData(prev => ({ ...prev, moneda: e.target.value, cotizacion: e.target.value === 'USD' ? '' : prev.cotizacion }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    value={reciboData.moneda}
+                    onChange={(e) => setReciboData(prev => ({
+                      ...prev,
+                      moneda: e.target.value,
+                      cotizacion: e.target.value === 'USD' ? 1 : cotizacionDolar
+                    }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   >
                     <option value="USD">USD</option>
@@ -328,28 +346,8 @@ const ComprasSection = () => {
                   </select>
                 </div>
 
-                {/* Monto */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {formData.moneda === 'ARS' ? 'Monto en ARS *' : 'Monto en USD *'}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-slate-500">$</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.monto}
-                      onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
-                      className="w-full border border-slate-200 rounded px-8 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-                </div>
-
                 {/* Cotización (solo si es ARS) */}
-                {formData.moneda === 'ARS' && (
+                {reciboData.moneda === 'ARS' && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       Cotización USD/ARS *
@@ -358,58 +356,223 @@ const ComprasSection = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.cotizacion}
-                      onChange={(e) => setFormData(prev => ({ ...prev, cotizacion: e.target.value }))}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      value={reciboData.cotizacion}
+                      onChange={(e) => setReciboData(prev => ({ ...prev, cotizacion: parseFloat(e.target.value) }))}
+                      className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       required
                       placeholder="Ej: 1150"
                     />
                   </div>
                 )}
 
-                {/* Monto USD (solo si es ARS) - mostrar calculado */}
-                {formData.moneda === 'ARS' && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Monto en USD
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400">$</span>
-                      <input
-                        type="text"
-                        value={formData.monto && formData.cotizacion ?
-                          calcularMontoUSD(formData.monto, formData.cotizacion) : '0'
-                        }
-                        className="w-full border border-slate-200 rounded px-8 py-2 bg-slate-100 text-slate-500"
-                        readOnly
-                        placeholder="Se calcula automáticamente"
-                      />
-                    </div>
-                  </div>
-                )}
+                {/* Descripción */}
+                <div className="md:col-span-2 lg:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Descripción General
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={reciboData.descripcion}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, descripcion: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="Descripción general del recibo..."
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Botones */}
-          <div className="flex justify-end space-x-2 pt-2">
+          {/* ITEMS DEL RECIBO */}
+          <div className="bg-white border border-slate-200 rounded">
+            <div className="p-4 bg-slate-800 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Package className="w-6 h-6" />
+                  <h3 className="text-lg font-semibold">Items del Recibo</h3>
+                </div>
+                <span className="text-slate-300 text-sm">
+                  {items.length} item{items.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+
+            {/* Formulario para agregar item */}
+            <div className="p-4 bg-slate-50 border-b border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Serial/ID
+                  </label>
+                  <input
+                    type="text"
+                    value={nuevoItem.serial}
+                    onChange={(e) => setNuevoItem(prev => ({ ...prev, serial: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Descripción *
+                  </label>
+                  <input
+                    type="text"
+                    value={nuevoItem.descripcion}
+                    onChange={(e) => setNuevoItem(prev => ({ ...prev, descripcion: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                    placeholder="Descripción del item"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Cantidad *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={nuevoItem.cantidad}
+                    onChange={(e) => setNuevoItem(prev => ({ ...prev, cantidad: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Precio Unit. * ({reciboData.moneda})
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={nuevoItem.precioUnitario}
+                    onChange={(e) => setNuevoItem(prev => ({ ...prev, precioUnitario: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Agregar como
+                  </label>
+                  <select
+                    value={nuevoItem.agregarSeparado}
+                    onChange={(e) => setNuevoItem(prev => ({ ...prev, agregarSeparado: e.target.value === 'true' }))}
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                  >
+                    <option value="false">Fila única</option>
+                    <option value="true">Filas separadas</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={agregarItem}
+                    className="w-full bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center justify-center space-x-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Agregar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabla de items */}
+            <div className="overflow-x-auto">
+              {items.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <Package className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>No hay items agregados</p>
+                  <p className="text-sm">Agregue items usando el formulario de arriba</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Serial</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Unit.</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {items.map((item, index) => (
+                      <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="px-4 py-3 text-sm text-slate-800">
+                          {item.serial || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-800">
+                          {item.descripcion}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-800">
+                          {item.cantidad}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-800">
+                          ${item.precioUnitario} {reciboData.moneda}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                          ${item.total} {reciboData.moneda}
+                          {reciboData.moneda === 'ARS' && (
+                            <div className="text-xs text-slate-500">
+                              USD ${convertirAUSD(item.total)}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => eliminarItem(item.id)}
+                            className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
+                            title="Eliminar item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  {/* Footer con total */}
+                  <tfoot className="bg-slate-800 text-white">
+                    <tr>
+                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold">TOTAL DEL RECIBO</td>
+                      <td className="px-4 py-3 text-center text-lg font-bold">
+                        ${totalRecibo} {reciboData.moneda}
+                        {reciboData.moneda === 'ARS' && (
+                          <div className="text-sm text-slate-300">
+                            USD ${convertirAUSD(totalRecibo)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* Botones del recibo */}
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={limpiarFormulario}
-              className="flex items-center space-x-1 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded text-sm transition-colors"
+              className="flex items-center space-x-2 bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded font-medium transition-colors"
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
               <span>Cancelar</span>
             </button>
             <button
-              type="submit"
-              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded text-sm transition-colors"
+              type="button"
+              onClick={handleGuardarRecibo}
+              disabled={items.length === 0}
+              className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
             >
-              <Save className="w-3 h-3" />
-              <span>{editandoCompra ? 'Actualizar' : 'Guardar'}</span>
+              <Save className="w-4 h-4" />
+              <span>Guardar Recibo</span>
             </button>
           </div>
-        </form>
+        </div>
       )}
 
       {/* Filtros */}

@@ -10,11 +10,12 @@ import {
   EnTransitoSection,
   HistorialImportacionesSection
 } from './modules/importaciones/components';
-import { 
+import {
   Clientes,
   Listas,
   GestionFotos,
-  Catalogo
+  Catalogo,
+  RegistrarVentaSection
 } from './modules/ventas/components';
 import {
   ReparacionesMain,
@@ -515,6 +516,11 @@ const AppContent = () => {
      {/* 👥 SECCIÓN DE CLIENTES */}
      {activeSection === 'clientes' && (
        <Clientes />
+     )}
+
+     {/* 🛒 NUEVA SECCIÓN REGISTRAR VENTA */}
+     {activeSection === 'registrar-venta' && (
+       <RegistrarVentaSection />
      )}
 
      {/* 🏦 NUEVA SECCIÓN DE CUENTAS CORRIENTES */}

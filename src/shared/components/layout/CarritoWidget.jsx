@@ -6,7 +6,7 @@ import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
 
-const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta }) => {
+const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
@@ -43,6 +43,29 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
+
+  // Establecer cliente inicial cuando se proporciona
+  useEffect(() => {
+    if (clienteInicial && !clienteSeleccionado) {
+      setClienteSeleccionado(clienteInicial);
+      console.log('🧑‍💼 Cliente inicial establecido:', clienteInicial);
+    }
+  }, [clienteInicial, clienteSeleccionado]);
+
+  // Estado para evitar reapertura automática
+  const [carritoAnterior, setCarritoAnterior] = useState([]);
+  const [aperturaManual, setAperturaManual] = useState(false);
+
+  // Abrir automáticamente el widget cuando se agreguen items desde RegistrarVenta
+  // Solo cuando el carrito pasa de vacío a tener elementos
+  useEffect(() => {
+    if (carrito && carrito.length > 0 && carritoAnterior.length === 0 && !isOpen && !procesandoVenta && !aperturaManual) {
+      setIsOpen(true);
+      setMostrarFormulario(true);
+      console.log('🛒 CarritoWidget abierto automáticamente con', carrito.length, 'items');
+    }
+    setCarritoAnterior(carrito || []);
+  }, [carrito]);
 
   // Determinar si un método necesita recargo (deshabilitado - solo un campo de monto)
   const necesitaRecargo = (metodoPago) => {
@@ -496,6 +519,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       });
       setMostrarFormulario(false);
       setIsOpen(false);
+      setAperturaManual(false);
+      setCarritoAnterior([]);
       
       // Limpiar inputs locales
       setInputMontoBase1('');
@@ -538,7 +563,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       {/* Botón flotante del carrito */}
       <div className="fixed bottom-6 right-6 z-50">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setAperturaManual(true);
+          }}
           className="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-lg shadow-lg transition-all duration-300"
         >
           <div className="relative">
@@ -567,7 +595,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </h2>
                   </div>
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      setAperturaManual(false);
+                    }}
                     className="text-slate-800 hover:text-slate-600"
                   >
                     <X className="w-6 h-6" />
@@ -749,7 +780,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       <p className="text-sm text-slate-600 mt-1">Complete la información para procesar la venta</p>
                     </div>
                     <button
-                      onClick={() => setMostrarFormulario(false)}
+                      onClick={() => {
+                        setMostrarFormulario(false);
+                        setAperturaManual(false);
+                      }}
                       className="text-slate-400 hover:text-slate-600"
                     >
                       <X className="w-6 h-6" />
@@ -1204,7 +1238,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       <div className="flex space-x-4">
                         <button
                           type="button"
-                          onClick={() => setMostrarFormulario(false)}
+                          onClick={() => {
+                        setMostrarFormulario(false);
+                        setAperturaManual(false);
+                      }}
                           className="flex-1 bg-slate-200 text-slate-800 py-3 rounded font-semibold hover:bg-slate-800 hover:text-white transition-colors"
                         >
                           Volver

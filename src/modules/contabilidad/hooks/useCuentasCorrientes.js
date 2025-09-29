@@ -3,22 +3,69 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 export const cuentasCorrientesService = {
-  // Obtener todos los saldos de cuentas corrientes
+  // Obtener todos los saldos de cuentas corrientes (query directo)
   async getSaldos() {
     console.log('📡 Obteniendo saldos de cuentas corrientes...');
-    
-    const { data, error } = await supabase
-      .from('saldos_cuentas_corrientes')
-      .select('*')
-      .order('saldo_total', { ascending: false });
-    
-    if (error) {
-      console.error('❌ Error obteniendo saldos:', error);
-      throw error;
+
+    // Obtener todos los clientes con sus movimientos
+    const { data: clientes, error: clientesError } = await supabase
+      .from('clientes')
+      .select(`
+        id,
+        nombre,
+        apellido,
+        cuentas_corrientes (
+          monto,
+          tipo_movimiento,
+          fecha_operacion,
+          created_at
+        )
+      `);
+
+    if (clientesError) {
+      console.error('❌ Error obteniendo clientes:', clientesError);
+      throw clientesError;
     }
-    
-    console.log(`✅ ${data.length} saldos obtenidos`);
-    return data;
+
+    // Procesar saldos en JavaScript
+    const saldosCalculados = clientes.map(cliente => {
+      const movimientos = cliente.cuentas_corrientes || [];
+
+      // Calcular saldo total
+      const saldoTotal = movimientos.reduce((acc, mov) => {
+        if (mov.tipo_movimiento === 'debe') {
+          return acc + parseFloat(mov.monto);
+        } else if (mov.tipo_movimiento === 'haber') {
+          return acc - parseFloat(mov.monto);
+        }
+        return acc;
+      }, 0);
+
+      // Obtener último movimiento
+      const ultimoMovimiento = movimientos.length > 0
+        ? movimientos.reduce((ultimo, mov) => {
+            const fechaMov = new Date(mov.fecha_operacion);
+            const fechaUltimo = new Date(ultimo.fecha_operacion);
+            return fechaMov > fechaUltimo ? mov : ultimo;
+          }).fecha_operacion
+        : null;
+
+      return {
+        cliente_id: cliente.id,
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        saldo_total: saldoTotal.toFixed(2),
+        total_movimientos: movimientos.length,
+        ultimo_movimiento: ultimoMovimiento
+      };
+    })
+    // Filtrar solo clientes que tienen movimientos o saldo diferente de 0
+    .filter(cliente => cliente.total_movimientos > 0 || parseFloat(cliente.saldo_total) !== 0)
+    // Ordenar por saldo total descendente
+    .sort((a, b) => parseFloat(b.saldo_total) - parseFloat(a.saldo_total));
+
+    console.log(`✅ ${saldosCalculados.length} saldos calculados`);
+    return saldosCalculados;
   },
 
   // Obtener movimientos de un cliente específico
@@ -40,22 +87,17 @@ export const cuentasCorrientesService = {
     return data;
   },
 
-  // Obtener estadísticas generales
+  // Obtener estadísticas generales (basado en getSaldos)
   async getEstadisticas() {
     console.log('📊 Calculando estadísticas de cuentas corrientes...');
 
-    const { data, error } = await supabase
-      .from('saldos_cuentas_corrientes')
-      .select('saldo_total, total_movimientos');
-
-    if (error) {
-      console.error('❌ Error obteniendo estadísticas:', error);
-      throw error;
-    }
+    // Obtener saldos calculados
+    const saldos = await this.getSaldos();
 
     // Separar clientes por tipo de saldo
-    const clientesConDeudaPositiva = data.filter(cliente => parseFloat(cliente.saldo_total) > 0); // Nos deben
-    const clientesConDeudaNegativa = data.filter(cliente => parseFloat(cliente.saldo_total) < 0); // Les debemos
+    const clientesConDeudaPositiva = saldos.filter(cliente => parseFloat(cliente.saldo_total) > 0); // Nos deben
+    const clientesConDeudaNegativa = saldos.filter(cliente => parseFloat(cliente.saldo_total) < 0); // Les debemos
+    const clientesSaldados = saldos.filter(cliente => parseFloat(cliente.saldo_total) === 0 && cliente.total_movimientos > 0); // Saldados con movimientos
 
     const clientesConDeuda = clientesConDeudaPositiva.length;
     const clientesAQuienesDedemos = clientesConDeudaNegativa.length;
@@ -64,23 +106,10 @@ export const cuentasCorrientesService = {
     const totalQueNosDeben = clientesConDeudaPositiva.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0);
     const totalQueDebemos = Math.abs(clientesConDeudaNegativa.reduce((sum, cliente) => sum + parseFloat(cliente.saldo_total || 0), 0));
 
-    // Calcular clientes saldados: aquellos que tienen movimientos pero saldo = 0
-    const { data: clientesSaldadosData, error: saldadosError } = await supabase
-      .from('saldos_cuentas_corrientes')
-      .select('cliente_id')
-      .eq('saldo_total', 0)
-      .gt('total_movimientos', 0); // Que tengan al menos un movimiento
-
-    if (saldadosError) {
-      console.error('Error obteniendo clientes saldados:', saldadosError);
-    }
-
-    const clientesSaldados = clientesSaldadosData?.length || 0;
-
     const estadisticas = {
       clientesConDeuda, // Clientes con saldo positivo (nos deben)
       clientesAQuienesDedemos, // Clientes con saldo negativo (les debemos)
-      clientesSaldados,
+      clientesSaldados: clientesSaldados.length,
       totalQueNosDeben, // Total que nos deben (saldos positivos)
       totalQueDebemos // Total que debemos (saldos negativos, en positivo)
     };
@@ -207,6 +236,92 @@ export const cuentasCorrientesService = {
 
     console.log('✅ Deuda de Update registrada:', data);
     return data;
+  },
+
+  // Obtener TODOS los movimientos con datos del cliente
+  async getTodosMovimientos() {
+    console.log('📡 Obteniendo todos los movimientos...');
+
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .select(`
+        *,
+        clientes:cliente_id (
+          nombre,
+          apellido
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Error obteniendo todos los movimientos:', error);
+      throw error;
+    }
+
+    // Transformar datos para que coincidan con la estructura esperada
+    const movimientosFormateados = data.map(movimiento => ({
+      ...movimiento,
+      nombre_cliente: movimiento.clientes?.nombre || 'N/A',
+      apellido_cliente: movimiento.clientes?.apellido || 'N/A'
+    }));
+
+    console.log(`✅ ${movimientosFormateados.length} movimientos obtenidos`);
+    return movimientosFormateados;
+  },
+
+  // Eliminar movimiento de cuenta corriente
+  async eliminarMovimiento(movimientoId) {
+    console.log('🗑️ Eliminando movimiento:', movimientoId);
+
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .delete()
+      .eq('id', movimientoId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error eliminando movimiento:', error);
+      throw error;
+    }
+
+    console.log('✅ Movimiento eliminado:', data);
+    return data;
+  },
+
+  // Editar movimiento de cuenta corriente
+  async editarMovimiento(movimientoId, nuevosDatos) {
+    console.log('✏️ Editando movimiento:', movimientoId, nuevosDatos);
+
+    // Solo permitir editar campos seguros
+    const camposEditables = {
+      monto: nuevosDatos.monto,
+      concepto: nuevosDatos.concepto,
+      observaciones: nuevosDatos.observaciones,
+      fecha_operacion: nuevosDatos.fecha_operacion
+    };
+
+    // Limpiar campos undefined
+    Object.keys(camposEditables).forEach(key => {
+      if (camposEditables[key] === undefined) {
+        delete camposEditables[key];
+      }
+    });
+
+    const { data, error } = await supabase
+      .from('cuentas_corrientes')
+      .update(camposEditables)
+      .eq('id', movimientoId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error editando movimiento:', error);
+      throw error;
+    }
+
+    console.log('✅ Movimiento editado:', data);
+    return data;
   }
 };
 
@@ -302,16 +417,55 @@ export function useCuentasCorrientes() {
     }
   }, [fetchSaldos]);
 
+  const fetchTodosMovimientos = useCallback(async () => {
+    try {
+      setError(null);
+      return await cuentasCorrientesService.getTodosMovimientos();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  const eliminarMovimiento = useCallback(async (movimientoId) => {
+    try {
+      setError(null);
+      const resultado = await cuentasCorrientesService.eliminarMovimiento(movimientoId);
+      // Refrescar saldos después de eliminar
+      await fetchSaldos();
+      return resultado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [fetchSaldos]);
+
+  const editarMovimiento = useCallback(async (movimientoId, nuevosDatos) => {
+    try {
+      setError(null);
+      const resultado = await cuentasCorrientesService.editarMovimiento(movimientoId, nuevosDatos);
+      // Refrescar saldos después de editar
+      await fetchSaldos();
+      return resultado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [fetchSaldos]);
+
   return {
     saldos,
     loading,
     error,
     fetchSaldos,
     fetchMovimientosCliente,
+    fetchTodosMovimientos,
     getEstadisticas,
     registrarPagoRecibido,
     registrarNuevaDeuda,
     registrarPagoRealizado,
-    registrarDeudaUpdate
+    registrarDeudaUpdate,
+    eliminarMovimiento,
+    editarMovimiento
   };
 }
