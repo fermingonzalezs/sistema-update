@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search, CheckCircle, Circle, Loader } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
+import { supabase } from '../../../lib/supabase';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [filtroTipo, setFiltroTipo] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [estadisticas, setEstadisticas] = useState(null);
+  const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
 
   useEffect(() => {
     if (onLoadStats) {
@@ -171,63 +173,90 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     return Math.round((estadisticas.totalGanancias / estadisticas.totalIngresos) * 100);
   };
 
+  const toggleContabilizado = async (transaccionId, valorActual) => {
+    try {
+      setActualizandoContabilizado(prev => ({ ...prev, [transaccionId]: true }));
+
+      const { error } = await supabase
+        .from('transacciones')
+        .update({ contabilizado: !valorActual })
+        .eq('id', transaccionId);
+
+      if (error) throw error;
+
+      // Actualizar el estado local para reflejar el cambio inmediatamente
+      const transaccion = ventas.find(v => v.id === transaccionId);
+      if (transaccion) {
+        transaccion.contabilizado = !valorActual;
+      }
+    } catch (err) {
+      console.error('Error al actualizar contabilizado:', err);
+      alert('Error al actualizar el estado de contabilizado');
+    } finally {
+      setActualizandoContabilizado(prev => ({ ...prev, [transaccionId]: false }));
+    }
+  };
+
   return (
     <div className="bg-slate-50 w-full min-w-0">
-      
-      {/* Estadísticas generales usando Tarjeta */}
-      {estadisticas && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Tarjeta 
-            icon={BarChart3}
-            titulo="Total Transacciones"
-            valor={estadisticas.totalVentas}
-          />
-          <Tarjeta 
-            icon={DollarSign}
-            titulo="Ingresos Totales"
-            valor={formatearMonto(estadisticas.totalIngresos, 'USD')}
-          />
-          <Tarjeta 
-            icon={TrendingUp}
-            titulo="Ganancias"
-            valor={formatearMonto(estadisticas.totalGanancias, 'USD')}
-          />
-          <Tarjeta 
-            icon={TrendingUp}
-            titulo="Margen Promedio"
-            valor={`${calcularMargenPorcentaje()}%`}
-          />
-        </div>
-      )}
-      
-      {/* Filtros y Búsqueda */}
-      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Producto</label>
-            <select
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="todos">Todos los productos</option>
-              <option value="computadora">Computadoras</option>
-              <option value="celular">Celulares</option>
-              <option value="otro">Otros</option>
-            </select>
+
+      {/* Contenedor con ancho máximo para tarjetas y filtros */}
+      <div className="max-w-[1400px]">
+        {/* Estadísticas generales usando Tarjeta */}
+        {estadisticas && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Tarjeta
+              icon={BarChart3}
+              titulo="Total Transacciones"
+              valor={estadisticas.totalVentas}
+            />
+            <Tarjeta
+              icon={DollarSign}
+              titulo="Ingresos Totales"
+              valor={formatearMonto(estadisticas.totalIngresos, 'USD')}
+            />
+            <Tarjeta
+              icon={TrendingUp}
+              titulo="Ganancias"
+              valor={formatearMonto(estadisticas.totalGanancias, 'USD')}
+            />
+            <Tarjeta
+              icon={TrendingUp}
+              titulo="Margen Promedio"
+              valor={`${calcularMargenPorcentaje()}%`}
+            />
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por producto, serial, cliente, vendedor..."
-                className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+        )}
+
+        {/* Filtros y Búsqueda */}
+        <div className="bg-white p-6 rounded border border-slate-200 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Producto</label>
+              <select
+                value={filtroTipo}
+                onChange={(e) => setFiltroTipo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="todos">Todos los productos</option>
+                <option value="computadora">Computadoras</option>
+                <option value="celular">Celulares</option>
+                <option value="otro">Otros</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar por producto, serial, cliente, vendedor..."
+                  className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -252,19 +281,42 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-800">
                 <tr>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase">Contab.</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Productos</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total Unitario</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Cliente</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Total</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Costo</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Ganancia</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Método Pago</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Acciones</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Observaciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {ventasLimitadas.map((transaccion) => (
-                  <tr key={transaccion.id} className="hover:bg-slate-50">
+                  <tr
+                    key={transaccion.id}
+                    className={`hover:bg-slate-50 ${transaccion.contabilizado ? 'bg-emerald-50' : ''}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <button
+                        onClick={() => toggleContabilizado(transaccion.id, transaccion.contabilizado)}
+                        disabled={actualizandoContabilizado[transaccion.id]}
+                        className="inline-flex items-center justify-center p-1 rounded hover:bg-slate-100 disabled:opacity-50"
+                        title={transaccion.contabilizado ? 'Marcar como no contabilizado' : 'Marcar como contabilizado'}
+                      >
+                        {actualizandoContabilizado[transaccion.id] ? (
+                          <Loader className="w-5 h-5 text-slate-400 animate-spin" />
+                        ) : transaccion.contabilizado ? (
+                          <CheckCircle className="w-5 h-5 text-emerald-600" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-slate-400" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
                       {formatearFechaCompleta(transaccion.fecha_venta)}
                     </td>
@@ -289,12 +341,20 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">
                       {formatearMonto((parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)), 'USD')}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 text-right">
+                      {formatearMonto(transaccion.total_costo || 0, 'USD')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-right">
+                      <span className={transaccion.margen_total >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                        {formatearMonto(transaccion.margen_total || 0, 'USD')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4" style={{ minWidth: '160px' }}>
                       <div className="flex items-start space-x-2">
-                        <CreditCard className="w-4 h-4 text-slate-600 mt-0.5" />
+                        <CreditCard className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
                           {getMetodosPago(transaccion)}
                         </div>
@@ -312,6 +372,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         <Eye className="w-4 h-4" />
                         <span className="text-xs">{obtenerTextoBoton(transaccion.metodo_pago)}</span>
                       </button>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-800" style={{ minWidth: '300px', maxWidth: '500px' }}>
+                      <div className="whitespace-normal break-words">
+                        {transaccion.observaciones || '-'}
+                      </div>
                     </td>
                   </tr>
                 ))}

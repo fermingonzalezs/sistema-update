@@ -76,7 +76,8 @@
       "Bash(source:*)",
       "Bash(npm ls:*)",
       "mcp__supabase__get_logs",
-      "Bash(timeout 3 npm run dev)"
+      "Bash(timeout 3 npm run dev)",
+      "Bash(/home/fermin/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -l \"recuento\" --type js --type jsx)"
     ],
     "deny": []
   },

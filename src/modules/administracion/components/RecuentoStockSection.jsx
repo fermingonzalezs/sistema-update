@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator } from 'lucide-react';
+import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
@@ -11,23 +11,23 @@ const recuentoStockService = {
     let computadoras, celulares, otros;
 
     if (sucursal) {
-      // Usar sucursal directamente ya que los valores están normalizados
-      const sucursalNormalizada = sucursal;
+      // Normalizar sucursal: convertir a minúsculas y reemplazar espacios/barras
+      const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+      console.log('🔄 Sucursal normalizada:', sucursalNormalizada);
+
       [computadoras, celulares, otros] = await Promise.all([
-        // Solo equipos disponibles (no vendidos) para recuento físico
+        // Obtener todos los productos de la sucursal (sin filtro disponible para inventario)
         supabase.from('inventario').select('*')
-          .eq('disponible', true)
           .eq('sucursal', sucursalNormalizada),
         supabase.from('celulares').select('*')
-          .eq('disponible', true)
           .eq('sucursal', sucursalNormalizada),
         supabase.from('otros').select('*')
       ]);
     } else {
-      // Solo equipos disponibles (no vendidos) para recuento físico
+      // Obtener todos los productos
       [computadoras, celulares, otros] = await Promise.all([
-        supabase.from('inventario').select('*').eq('disponible', true),
-        supabase.from('celulares').select('*').eq('disponible', true),
+        supabase.from('inventario').select('*'),
+        supabase.from('celulares').select('*'),
         supabase.from('otros').select('*')
       ]);
     }
@@ -44,14 +44,15 @@ const recuentoStockService = {
 
     // Si hay sucursal seleccionada, filtrar productos "otros" por stock en esa sucursal
     if (sucursal) {
+      const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
       inventario = inventario.filter(item => {
         if (item.tipo === 'otro') {
-          const stockSucursal = sucursal === 'LA PLATA' ? (item.cantidad_la_plata || 0) : 
-                                 sucursal === 'MITRE' ? (item.cantidad_mitre || 0) :
+          const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
+                                 sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
                                  0; // RSN/IDM/FIXCENTER no maneja productos "otros" por cantidad
           return stockSucursal > 0; // Solo mostrar productos con stock físico en la sucursal
         }
-        return true; // Mantener notebooks y celulares ya filtrados por disponible=true
+        return true; // Mantener notebooks y celulares ya filtrados
       });
     }
 
@@ -97,32 +98,27 @@ const recuentoStockService = {
     console.log('🔄 Aplicando ajustes de stock...');
 
     for (const ajuste of ajustes) {
-      const tabla = ajuste.tipo === 'computadora' ? 'inventario' : 
+      const tabla = ajuste.tipo === 'computadora' ? 'inventario' :
                    ajuste.tipo === 'celular' ? 'celulares' : 'otros';
 
       if (ajuste.tipo === 'otro') {
         // Para productos "otros", actualizar cantidad por sucursal
-        const campo = ajuste.sucursal === 'la_plata' ? 'cantidad_la_plata' : 'cantidad_mitre';
+        const sucursalNormalizada = ajuste.sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+        const campo = sucursalNormalizada === 'la_plata' ? 'cantidad_la_plata' : 'cantidad_mitre';
         const { error } = await supabase
           .from(tabla)
-          .update({ 
+          .update({
             [campo]: ajuste.stockReal,
             updated_at: new Date().toISOString()
           })
           .eq('id', ajuste.id);
-        
+
         if (error) throw error;
       } else {
-        // Para computadoras y celulares, cambiar disponibilidad
-        const { error } = await supabase
-          .from(tabla)
-          .update({ 
-            disponible: ajuste.stockReal > 0,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', ajuste.id);
-        
-        if (error) throw error;
+        // Para computadoras y celulares, no cambiar disponibilidad
+        // El recuento físico NO debe marcar productos como no disponibles
+        // Solo registrar la diferencia en el JSON
+        console.log(`⚠️ Diferencia detectada en ${tabla} ID ${ajuste.id}, pero no se modifica disponibilidad`);
       }
     }
 
@@ -217,6 +213,7 @@ const RecuentoStockSection = () => {
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
   const [categoriasOtros, setCategoriasOtros] = useState([]);
+  const [recuentoExpandido, setRecuentoExpandido] = useState(null);
 
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
@@ -288,12 +285,13 @@ const RecuentoStockSection = () => {
     
     if (mostrarSoloDiferencias) {
       let stockSistema;
+      const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
       if (producto.tipo === 'otro') {
-        stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
-                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+        stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
+                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
                        0; // RSN/IDM/FIXCENTER no maneja productos "otros"
       } else {
-        stockSistema = producto.disponible ? 1 : 0;
+        stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
       }
       const stockReal = stockContado[producto.id] || 0;
       return cumpleTipo && cumpleFiltro && (stockReal !== stockSistema);
@@ -305,15 +303,16 @@ const RecuentoStockSection = () => {
   const calcularDiferencias = () => {
     const diferencias = [];
     const productosContados = [];
+    const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
 
     inventario.forEach(producto => {
       let stockSistema;
       if (producto.tipo === 'otro') {
-        stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
-                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+        stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
+                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
                        0; // RSN/IDM/FIXCENTER no maneja productos "otros"
       } else {
-        stockSistema = producto.disponible ? 1 : 0;
+        stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
       }
       const stockReal = stockContado[producto.id];
 
@@ -329,15 +328,15 @@ const RecuentoStockSection = () => {
         });
 
         if (stockReal !== stockSistema) {
+          // JSON simplificado: solo nombre, diferencia cantidad y diferencia USD
+          const diferenciaQuantity = stockReal - stockSistema;
+          const precioVenta = producto.precio_venta_usd || 0;
+          const diferenciaUSD = diferenciaQuantity * precioVenta;
+
           diferencias.push({
-            id: producto.id,
-            tipo: producto.tipo,
-            descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
-            serial: producto.serial || `${producto.tipo}-${producto.id}`,
-            stockSistema,
-            stockReal,
-            diferencia: stockReal - stockSistema,
-            sucursal: sucursalSeleccionada
+            nombre: producto.modelo || producto.nombre_producto || producto.descripcion,
+            diferencia_cantidad: diferenciaQuantity,
+            diferencia_usd: diferenciaUSD
           });
         }
       }
@@ -593,13 +592,14 @@ const RecuentoStockSection = () => {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {inventarioFiltrado.map((producto) => {
+                  const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
                   let stockSistema;
                   if (producto.tipo === 'otro') {
-                    stockSistema = sucursalSeleccionada === 'LA PLATA' ? (producto.cantidad_la_plata || 0) : 
-                       sucursalSeleccionada === 'MITRE' ? (producto.cantidad_mitre || 0) : 
+                    stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
+                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
                        0; // RSN/IDM/FIXCENTER no maneja productos "otros"
                   } else {
-                    stockSistema = producto.disponible ? 1 : 0;
+                    stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
                   }
                   const stockReal = stockContado[producto.id];
                   const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
@@ -716,44 +716,160 @@ const RecuentoStockSection = () => {
           <div className="bg-slate-50 rounded p-4">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-100">
+                <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="text-left py-2 px-3 font-semibold text-slate-800">Fecha</th>
-                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Sucursal</th>
-                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Tipo</th>
-                    <th className="text-right py-2 px-3 font-semibold text-slate-800">Productos</th>
-                    <th className="text-right py-2 px-3 font-semibold text-slate-800">Diferencias</th>
-                    <th className="text-center py-2 px-3 font-semibold text-slate-800">Estado</th>
-                    <th className="text-left py-2 px-3 font-semibold text-slate-800">Usuario</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium uppercase tracking-wider">Fecha</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Sucursal</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Tipo</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Productos</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Diferencias</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Estado</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium uppercase tracking-wider">Usuario</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {recuentosAnteriores.map((recuento, index) => {
                     const productos = JSON.parse(recuento.productos_contados || '[]');
                     const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
-                    
+                    const totalFaltantes = diferencias.filter(d => d.diferencia_cantidad < 0).length;
+                    const totalSobrantes = diferencias.filter(d => d.diferencia_cantidad > 0).length;
+                    const impactoUSD = diferencias.reduce((sum, d) => sum + (d.diferencia_usd || 0), 0);
+
                     return (
-                      <tr key={index}>
-                        <td className="py-2 px-3">{formatearFecha(recuento.fecha_recuento)}</td>
-                        <td className="text-center py-2 px-3">
-                          <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
-                            {recuento.sucursal === 'la_plata' ? 'La Plata' : 'Mitre'}
-                          </span>
-                        </td>
-                        <td className="text-center py-2 px-3 capitalize">{recuento.tipo_recuento}</td>
-                        <td className="text-right py-2 px-3">{productos.length}</td>
-                        <td className="text-right py-2 px-3">{diferencias.length}</td>
-                        <td className="text-center py-2 px-3">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            recuento.estado === 'sin_diferencias' 
-                              ? 'bg-emerald-100 text-emerald-800' 
-                              : 'bg-slate-100 text-slate-800'
-                          }`}>
-                            {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3">{recuento.usuario_recuento}</td>
-                      </tr>
+                      <React.Fragment key={index}>
+                        <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          <td className="py-3 px-4 text-sm text-slate-800">{formatearFecha(recuento.fecha_recuento)}</td>
+                          <td className="text-center py-3 px-4">
+                            <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
+                              {recuento.sucursal === 'la_plata' ? 'La Plata' : recuento.sucursal === 'LA PLATA' ? 'La Plata' : recuento.sucursal === 'MITRE' ? 'Mitre' : recuento.sucursal}
+                            </span>
+                          </td>
+                          <td className="text-center py-3 px-4 text-sm text-slate-800 capitalize">{recuento.tipo_recuento}</td>
+                          <td className="text-right py-3 px-4 text-sm text-slate-800 font-medium">{productos.length}</td>
+                          <td className="text-right py-3 px-4 text-sm font-medium">
+                            {diferencias.length > 0 ? (
+                              <span className="text-slate-600">{diferencias.length}</span>
+                            ) : (
+                              <span className="text-emerald-600">0</span>
+                            )}
+                          </td>
+                          <td className="text-center py-3 px-4">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              recuento.estado === 'sin_diferencias'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-slate-100 text-slate-800'
+                            }`}>
+                              {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-800">{recuento.usuario_recuento}</td>
+                          <td className="text-center py-3 px-4">
+                            {diferencias.length > 0 && (
+                              <button
+                                onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
+                                className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1 mx-auto"
+                              >
+                                {recuentoExpandido === index ? (
+                                  <>
+                                    <ChevronUp size={14} />
+                                    Ocultar
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown size={14} />
+                                    Ver detalles
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+
+                        {/* Tabla expandible con detalles de diferencias */}
+                        {recuentoExpandido === index && diferencias.length > 0 && (
+                          <tr>
+                            <td colSpan="8" className="py-4 px-4 bg-slate-100">
+                              <div className="max-w-4xl mx-auto">
+                                <h4 className="text-sm font-semibold text-slate-800 mb-3">
+                                  Detalle de Diferencias - {formatearFecha(recuento.fecha_recuento)}
+                                </h4>
+
+                                {/* Resumen */}
+                                <div className="grid grid-cols-3 gap-4 mb-4">
+                                  <div className="bg-white border border-slate-200 rounded p-3">
+                                    <div className="text-xs text-slate-500 mb-1">Faltantes</div>
+                                    <div className="text-lg font-semibold text-red-600">{totalFaltantes}</div>
+                                  </div>
+                                  <div className="bg-white border border-slate-200 rounded p-3">
+                                    <div className="text-xs text-slate-500 mb-1">Sobrantes</div>
+                                    <div className="text-lg font-semibold text-emerald-600">{totalSobrantes}</div>
+                                  </div>
+                                  <div className="bg-white border border-slate-200 rounded p-3">
+                                    <div className="text-xs text-slate-500 mb-1">Impacto Total USD</div>
+                                    <div className={`text-lg font-semibold ${impactoUSD < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                      ${Math.abs(impactoUSD).toFixed(2)}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Tabla de diferencias */}
+                                <div className="bg-white border border-slate-200 rounded overflow-hidden">
+                                  <table className="w-full">
+                                    <thead className="bg-slate-800 text-white">
+                                      <tr>
+                                        <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Producto</th>
+                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia Cantidad</th>
+                                        <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia USD</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                      {diferencias.map((diff, diffIndex) => (
+                                        <tr key={diffIndex} className={diffIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                          <td className="py-2 px-3 text-sm text-slate-800">{diff.nombre}</td>
+                                          <td className="text-center py-2 px-3">
+                                            <span className={`text-sm font-medium ${
+                                              diff.diferencia_cantidad < 0 ? 'text-red-600' : 'text-emerald-600'
+                                            }`}>
+                                              {diff.diferencia_cantidad > 0 ? '+' : ''}{diff.diferencia_cantidad}
+                                            </span>
+                                          </td>
+                                          <td className="text-right py-2 px-3">
+                                            <span className={`text-sm font-medium ${
+                                              diff.diferencia_usd < 0 ? 'text-red-600' : 'text-emerald-600'
+                                            }`}>
+                                              ${Math.abs(diff.diferencia_usd || 0).toFixed(2)}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                    <tfoot className="bg-slate-800 text-white">
+                                      <tr>
+                                        <td className="py-2 px-3 text-sm font-semibold">TOTAL</td>
+                                        <td className="text-center py-2 px-3 text-sm font-semibold">
+                                          {diferencias.reduce((sum, d) => sum + d.diferencia_cantidad, 0)}
+                                        </td>
+                                        <td className="text-right py-2 px-3 text-sm font-semibold">
+                                          ${impactoUSD.toFixed(2)}
+                                        </td>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                                </div>
+
+                                {/* Observaciones si existen */}
+                                {recuento.observaciones && (
+                                  <div className="mt-3 bg-white border border-slate-200 rounded p-3">
+                                    <div className="text-xs font-medium text-slate-700 mb-1">Observaciones:</div>
+                                    <div className="text-sm text-slate-600">{recuento.observaciones}</div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

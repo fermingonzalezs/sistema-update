@@ -586,11 +586,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
           <div className="bg-white rounded max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {!mostrarFormulario ? (
               <>
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200">
+                {/* Header compacto */}
+                <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
                   <div className="flex items-center space-x-2">
-                    <ShoppingCart className="w-6 h-6 text-emerald-600" />
-                    <h2 className="text-2xl font-bold text-slate-800">
+                    <ShoppingCart className="w-5 h-5" />
+                    <h2 className="text-lg font-semibold">
                       Carrito de Compras ({calcularCantidadTotal()} items)
                     </h2>
                   </div>
@@ -599,175 +599,192 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       setIsOpen(false);
                       setAperturaManual(false);
                     }}
-                    className="text-slate-800 hover:text-slate-600"
+                    className="text-white hover:text-slate-300 transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Contenido del carrito */}
-                <div className="p-6 max-h-96 overflow-y-auto">
-                  {carrito.length === 0 ? (
-                    <div className="text-center py-8 text-slate-800">
-                      <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-slate-200" />
-                      <p className="text-lg">Tu carrito está vacío</p>
-                      <p className="text-sm">Agrega productos desde el inventario</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {carrito.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-slate-200 rounded-lg">
-                              {getIconoTipo(item.tipo)}
-                            </div>
-                            <div>
-                              <h3 className="font-medium text-slate-800">
-                                {item.producto.modelo || item.producto.nombre_producto}
-                              </h3>
-                              <p className="text-sm text-slate-800 capitalize">{item.tipo}</p>
-                              {item.producto.serial && (
-                                <p className="text-xs text-slate-800">Serial: {item.producto.serial}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center space-x-4">
-                            {/* Controles de cantidad */}
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
-                                className="p-1 text-slate-800 hover:text-emerald-600"
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span className="w-8 text-center font-medium text-slate-800">{item.cantidad}</span>
-                              <button
-                                onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
-                                className="p-1 text-slate-800 hover:text-emerald-600"
-                                disabled={item.tipo !== 'otro' && item.cantidad >= 1}
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            {/* Precio */}
-                            <div className="text-right">
-                              <p className="font-medium text-slate-800">${(item.precio_unitario * item.cantidad).toFixed(2)}</p>
-                              
-                              {/* Precio unitario editable */}
-                              <div className="flex items-center justify-end space-x-2">
-                                {editandoPrecio === item.id ? (
-                                  // Modo edición
-                                  <div className="flex items-center space-x-1">
-                                    <input
-                                      type="number"
-                                      value={precioEditado}
-                                      onChange={(e) => setPrecioEditado(e.target.value)}
-                                      onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                          confirmarEdicionPrecio(item.id);
-                                        } else if (e.key === 'Escape') {
-                                          cancelarEdicionPrecio();
-                                        }
-                                      }}
-                                      className="w-20 px-2 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                                      step="0.01"
-                                      min="0.01"
-                                      autoFocus
-                                    />
-                                    <button
-                                      onClick={() => confirmarEdicionPrecio(item.id)}
-                                      className="p-1 text-emerald-600 hover:text-emerald-700"
-                                      title="Confirmar precio"
-                                    >
-                                      <Check className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                      onClick={cancelarEdicionPrecio}
-                                      className="p-1 text-slate-500 hover:text-slate-700"
-                                      title="Cancelar"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                {/* Contenido del carrito como tabla */}
+                {carrito.length === 0 ? (
+                  <div className="text-center py-12 text-slate-600">
+                    <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                    <p className="text-base font-medium">Tu carrito está vacío</p>
+                    <p className="text-sm text-slate-500 mt-1">Agrega productos desde el inventario</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-y-auto max-h-96">
+                      <table className="w-full">
+                        <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Producto</th>
+                            <th className="px-4 py-2 text-center text-xs font-medium text-slate-600 uppercase tracking-wider">Cantidad</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">Precio Unit.</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">Subtotal</th>
+                            <th className="px-4 py-2 text-center text-xs font-medium text-slate-600 uppercase tracking-wider">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-slate-200">
+                          {carrito.map((item) => (
+                            <tr key={item.id} className="hover:bg-slate-50">
+                              {/* Producto */}
+                              <td className="px-4 py-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="p-1 bg-slate-100 rounded">
+                                    {getIconoTipo(item.tipo)}
                                   </div>
-                                ) : (
-                                  // Modo visualización
-                                  <div className="flex items-center space-x-1">
-                                    <span className={`text-sm ${
-                                      preciosModificados[item.id]?.fue_modificado 
-                                        ? 'text-emerald-600 font-semibold' 
-                                        : 'text-slate-800'
-                                    }`}>
-                                      ${item.precio_unitario}/ud
-                                    </span>
-                                    
-                                    {/* Indicador de precio modificado */}
-                                    {preciosModificados[item.id]?.fue_modificado && (
-                                      <span className="text-xs text-emerald-600" title="Precio modificado">
-                                        ✓
-                                      </span>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium text-slate-800 truncate">
+                                      {item.producto.modelo || item.producto.nombre_producto}
+                                    </p>
+                                    <p className="text-xs text-slate-500 capitalize">{item.tipo}</p>
+                                    {item.producto.serial && (
+                                      <p className="text-xs text-slate-400 truncate">S/N: {item.producto.serial}</p>
                                     )}
-                                    
-                                    <button
-                                      onClick={() => iniciarEdicionPrecio(item)}
-                                      className="p-1 text-slate-500 hover:text-emerald-600"
-                                      title="Editar precio"
-                                    >
-                                      <Edit2 className="w-3 h-3" />
-                                    </button>
-                                    
-                                    {/* Botón restaurar precio original */}
-                                    {preciosModificados[item.id]?.fue_modificado && (
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Cantidad */}
+                              <td className="px-4 py-2">
+                                <div className="flex items-center justify-center space-x-1">
+                                  <button
+                                    onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
+                                    className="p-1 text-slate-500 hover:text-emerald-600 transition-colors"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="w-8 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
+                                  <button
+                                    onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
+                                    className="p-1 text-slate-500 hover:text-emerald-600 transition-colors"
+                                    disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </td>
+
+                              {/* Precio Unitario */}
+                              <td className="px-4 py-2">
+                                <div className="flex items-center justify-end space-x-1">
+                                  {editandoPrecio === item.id ? (
+                                    // Modo edición
+                                    <div className="flex items-center space-x-1">
+                                      <input
+                                        type="number"
+                                        value={precioEditado}
+                                        onChange={(e) => setPrecioEditado(e.target.value)}
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter') {
+                                            confirmarEdicionPrecio(item.id);
+                                          } else if (e.key === 'Escape') {
+                                            cancelarEdicionPrecio();
+                                          }
+                                        }}
+                                        className="w-20 px-2 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                        step="0.01"
+                                        min="0.01"
+                                        autoFocus
+                                      />
                                       <button
-                                        onClick={() => restaurarPrecioOriginal(item.id)}
-                                        className="p-1 text-slate-500 hover:text-slate-700"
-                                        title={`Restaurar precio original: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                        onClick={() => confirmarEdicionPrecio(item.id)}
+                                        className="p-1 text-emerald-600 hover:text-emerald-700"
+                                        title="Confirmar"
                                       >
-                                        <RotateCcw className="w-3 h-3" />
+                                        <Check className="w-3 h-3" />
                                       </button>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                                      <button
+                                        onClick={cancelarEdicionPrecio}
+                                        className="p-1 text-slate-500 hover:text-slate-700"
+                                        title="Cancelar"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    // Modo visualización
+                                    <>
+                                      <span className={`text-sm ${
+                                        preciosModificados[item.id]?.fue_modificado
+                                          ? 'text-emerald-600 font-semibold'
+                                          : 'text-slate-700'
+                                      }`}>
+                                        ${item.precio_unitario.toFixed(2)}
+                                      </span>
 
-                            {/* Eliminar */}
-                            <button
-                              onClick={() => onRemover(item.id)}
-                              className="p-1 text-slate-800 hover:text-emerald-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                                      {preciosModificados[item.id]?.fue_modificado && (
+                                        <span className="text-xs text-emerald-600" title="Precio modificado">✓</span>
+                                      )}
+
+                                      <button
+                                        onClick={() => iniciarEdicionPrecio(item)}
+                                        className="p-1 text-slate-400 hover:text-emerald-600"
+                                        title="Editar precio"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+
+                                      {preciosModificados[item.id]?.fue_modificado && (
+                                        <button
+                                          onClick={() => restaurarPrecioOriginal(item.id)}
+                                          className="p-1 text-slate-400 hover:text-slate-700"
+                                          title={`Restaurar: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                        >
+                                          <RotateCcw className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Subtotal */}
+                              <td className="px-4 py-2 text-right">
+                                <span className="text-sm font-semibold text-slate-800">
+                                  ${(item.precio_unitario * item.cantidad).toFixed(2)}
+                                </span>
+                              </td>
+
+                              {/* Acciones */}
+                              <td className="px-4 py-2 text-center">
+                                <button
+                                  onClick={() => onRemover(item.id)}
+                                  className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
-                </div>
 
-                {/* Footer */}
-                {carrito.length > 0 && (
-                  <div className="border-t border-slate-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-2xl font-bold text-slate-800">
-                        Total: ${calcularTotal().toFixed(2)}
+                    {/* Footer compacto */}
+                    <div className="border-t border-slate-200 p-4 bg-white">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-bold text-slate-800">
+                          Total: ${calcularTotal().toFixed(2)}
+                        </span>
+                        <button
+                          onClick={onLimpiar}
+                          className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                        >
+                          Limpiar carrito
+                        </button>
                       </div>
                       <button
-                        onClick={onLimpiar}
-                        className="text-slate-800 hover:text-emerald-600 text-sm"
+                        onClick={() => setMostrarFormulario(true)}
+                        className="w-full bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
                       >
-                        Limpiar carrito
+                        <ShoppingCart className="w-5 h-5" />
+                        <span>Procesar Venta</span>
                       </button>
                     </div>
-                    <button
-                      onClick={() => setMostrarFormulario(true)}
-                      className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      <span>Procesar Venta</span>
-                    </button>
-                  </div>
+                  </>
                 )}
               </>
             ) : (

@@ -9,7 +9,7 @@ export const ventasService = {
   // Obtener todas las transacciones con sus items
   async getAll() {
     console.log('📡 Obteniendo todas las transacciones...')
-    
+
     const { data, error } = await supabase
       .from('transacciones')
       .select(`
