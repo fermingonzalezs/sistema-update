@@ -1,21 +1,22 @@
 // src/modules/contabilidad/services/cuentasAuxiliaresService.js
 import { supabase } from '../../../lib/supabase';
 
-// 📊 SERVICE: Operaciones de cuentas auxiliares
+// 📊 SERVICE: Operaciones de cuentas auxiliares con tabla relacional
 export const cuentasAuxiliaresService = {
   // 📋 Obtener todas las cuentas auxiliares con información del plan de cuentas
   async getAll() {
     try {
       console.log('📡 Obteniendo cuentas auxiliares...');
 
-      // Primero obtener las cuentas auxiliares con info del plan
+      // Obtener las cuentas auxiliares con info del plan
       const { data: cuentasData, error: cuentasError } = await supabase
         .from('cuentas_auxiliares')
         .select(`
           *,
           plan_cuentas:cuenta_id(
             codigo,
-            nombre
+            nombre,
+            tipo
           )
         `)
         .eq('activo', true)
@@ -23,13 +24,36 @@ export const cuentasAuxiliaresService = {
 
       if (cuentasError) throw cuentasError;
 
-      // Obtener saldos contables para cada cuenta
-      const cuentasConSaldos = await Promise.all(
+      // Para cada cuenta, obtener sus asientos y calcular totales
+      const cuentasConDatos = await Promise.all(
         cuentasData.map(async (cuenta) => {
-          let saldoContable = 0;
+          // Obtener asientos auxiliares de esta cuenta
+          const { data: asientos, error: asientosError } = await supabase
+            .from('asientos_auxiliares')
+            .select('*')
+            .eq('cuenta_auxiliar_id', cuenta.id)
+            .order('fecha', { ascending: false });
 
+          if (asientosError) {
+            console.error('Error obteniendo asientos:', asientosError);
+          }
+
+          const asientosArray = asientos || [];
+
+          // Calcular totales de ingresos y egresos
+          const totalIngresos = asientosArray
+            .filter(a => a.tipo === 'ingreso')
+            .reduce((sum, a) => sum + parseFloat(a.monto || 0), 0);
+
+          const totalEgresos = asientosArray
+            .filter(a => a.tipo === 'egreso')
+            .reduce((sum, a) => sum + parseFloat(a.monto || 0), 0);
+
+          const totalAuxiliar = totalIngresos - totalEgresos;
+
+          // Obtener saldo contable de movimientos_contables
+          let saldoContable = 0;
           if (cuenta.cuenta_id) {
-            // Calcular saldo sumando movimientos contables
             const { data: movimientos, error: movError } = await supabase
               .from('movimientos_contables')
               .select('debe, haber')
@@ -42,23 +66,25 @@ export const cuentasAuxiliaresService = {
             }
           }
 
-          const totalAuxiliar = parseFloat(cuenta.total_calculado || 0);
           const diferencia = saldoContable - totalAuxiliar;
 
           return {
             id: cuenta.id,
+            cuenta_id: cuenta.cuenta_id,
             cuenta: {
               codigo: cuenta.plan_cuentas?.codigo || '',
               nombre: cuenta.plan_cuentas?.nombre || '',
+              tipo: cuenta.plan_cuentas?.tipo || '',
               saldo_contable: saldoContable
             },
             nombre: cuenta.nombre,
             descripcion: cuenta.descripcion,
+            total_ingresos: totalIngresos,
+            total_egresos: totalEgresos,
             total_auxiliar: totalAuxiliar,
             diferencia: diferencia,
-            items_count: Array.isArray(cuenta.items) ? cuenta.items.length : 0,
+            items_count: asientosArray.length,
             ultima_actualizacion: cuenta.updated_at?.split('T')[0] || cuenta.created_at?.split('T')[0],
-            // Calcular estado basado en diferencia
             estado: Math.abs(diferencia) < 0.01 ? 'balanceado' : 'desbalanceado',
             created_at: cuenta.created_at,
             updated_at: cuenta.updated_at
@@ -66,35 +92,84 @@ export const cuentasAuxiliaresService = {
         })
       );
 
-      console.log(`✅ ${cuentasConSaldos.length} cuentas auxiliares obtenidas`);
-      return cuentasConSaldos;
+      console.log(`✅ ${cuentasConDatos.length} cuentas auxiliares obtenidas`);
+      return cuentasConDatos;
     } catch (error) {
       console.error('❌ Error obteniendo cuentas auxiliares:', error);
       throw error;
     }
   },
 
-  // 👤 Obtener cuenta auxiliar por ID con todos sus items
+  // 👤 Obtener cuenta auxiliar por ID con todos sus asientos (items)
   async getById(id) {
     try {
       console.log('👤 Obteniendo cuenta auxiliar ID:', id);
 
-      const { data, error } = await supabase
+      // Obtener cuenta auxiliar
+      const { data: cuenta, error: cuentaError } = await supabase
         .from('cuentas_auxiliares')
         .select(`
           *,
           plan_cuentas:cuenta_id(
             codigo,
-            nombre
+            nombre,
+            tipo
           )
         `)
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (cuentaError) throw cuentaError;
 
-      console.log('✅ Cuenta auxiliar obtenida:', data.nombre);
-      return data;
+      // Obtener todos los asientos auxiliares de esta cuenta
+      const { data: asientos, error: asientosError } = await supabase
+        .from('asientos_auxiliares')
+        .select('*')
+        .eq('cuenta_auxiliar_id', id)
+        .order('fecha', { ascending: false });
+
+      if (asientosError) throw asientosError;
+
+      // Obtener saldo contable
+      let saldoContable = 0;
+      if (cuenta.cuenta_id) {
+        const { data: movimientos, error: movError } = await supabase
+          .from('movimientos_contables')
+          .select('debe, haber')
+          .eq('cuenta_id', cuenta.cuenta_id);
+
+        if (!movError && movimientos) {
+          saldoContable = movimientos.reduce((total, mov) => {
+            return total + (parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0));
+          }, 0);
+        }
+      }
+
+      // Transformar asientos a formato "items" para el frontend
+      const items = (asientos || []).map(asiento => ({
+        id: asiento.id,
+        fecha: asiento.fecha,
+        descripcion: asiento.descripcion,
+        tipo: asiento.tipo,
+        monto: parseFloat(asiento.monto),
+        referencia: asiento.referencia,
+        usuario: asiento.usuario,
+        created_at: asiento.created_at,
+        updated_at: asiento.updated_at
+      }));
+
+      console.log('✅ Cuenta auxiliar obtenida:', cuenta.nombre, `con ${items.length} items`);
+
+      return {
+        ...cuenta,
+        cuenta: {
+          codigo: cuenta.plan_cuentas?.codigo || '',
+          nombre: cuenta.plan_cuentas?.nombre || '',
+          tipo: cuenta.plan_cuentas?.tipo || '',
+          saldo_contable: saldoContable
+        },
+        items // Array de asientos transformados como "items"
+      };
     } catch (error) {
       console.error('❌ Error obteniendo cuenta auxiliar:', error);
       throw error;
@@ -116,8 +191,7 @@ export const cuentasAuxiliaresService = {
         .insert([{
           cuenta_id: cuentaData.cuenta_id,
           nombre: cuentaData.nombre.trim(),
-          descripcion: cuentaData.descripcion?.trim() || null,
-          items: cuentaData.items || []
+          descripcion: cuentaData.descripcion?.trim() || null
         }])
         .select()
         .single();
@@ -147,8 +221,7 @@ export const cuentasAuxiliaresService = {
         .from('cuentas_auxiliares')
         .update({
           nombre: cuentaData.nombre?.trim(),
-          descripcion: cuentaData.descripcion?.trim() || null,
-          items: cuentaData.items || []
+          descripcion: cuentaData.descripcion?.trim() || null
         })
         .eq('id', id)
         .select()
@@ -186,124 +259,106 @@ export const cuentasAuxiliaresService = {
     }
   },
 
-  // 📦 Agregar item a cuenta auxiliar
-  async addItem(cuentaId, item) {
+  // 📦 Agregar asiento (item) a cuenta auxiliar
+  async addItem(cuentaId, itemData) {
     try {
-      console.log('📦 Agregando item a cuenta auxiliar:', cuentaId);
+      console.log('📦 Agregando asiento a cuenta auxiliar:', cuentaId);
 
-      // Generar ID único para el item
-      const itemWithId = {
-        ...item,
-        id: Date.now() + Math.random().toString(36).substring(2, 11),
-        fecha_ingreso: item.fecha_ingreso || new Date().toISOString().split('T')[0],
-        valor_total: parseFloat(item.cantidad || 1) * parseFloat(item.valor_unitario || 0)
-      };
+      // Validaciones
+      if (!itemData.fecha || !itemData.descripcion || !itemData.tipo || !itemData.monto) {
+        throw new Error('Todos los campos son obligatorios: fecha, descripcion, tipo, monto');
+      }
 
-      // Obtener cuenta actual
-      const { data: cuentaActual, error: errorGet } = await supabase
-        .from('cuentas_auxiliares')
-        .select('items')
-        .eq('id', cuentaId)
-        .single();
+      if (!['ingreso', 'egreso'].includes(itemData.tipo)) {
+        throw new Error('El tipo debe ser "ingreso" o "egreso"');
+      }
 
-      if (errorGet) throw errorGet;
+      if (parseFloat(itemData.monto) <= 0) {
+        throw new Error('El monto debe ser mayor a 0');
+      }
 
-      // Agregar nuevo item al array
-      const itemsActualizados = [...(cuentaActual.items || []), itemWithId];
-
-      // Actualizar cuenta con nuevos items
+      // Insertar asiento auxiliar en la tabla
       const { data, error } = await supabase
-        .from('cuentas_auxiliares')
-        .update({ items: itemsActualizados })
-        .eq('id', cuentaId)
+        .from('asientos_auxiliares')
+        .insert([{
+          cuenta_auxiliar_id: cuentaId,
+          fecha: itemData.fecha,
+          descripcion: itemData.descripcion.trim(),
+          tipo: itemData.tipo,
+          monto: parseFloat(itemData.monto),
+          referencia: itemData.referencia?.trim() || null,
+          usuario: itemData.usuario || 'sistema'
+        }])
         .select()
         .single();
 
       if (error) throw error;
 
-      console.log('✅ Item agregado exitosamente');
-      return data;
+      console.log('✅ Asiento agregado exitosamente');
+
+      // Retornar la cuenta completa actualizada
+      return await this.getById(cuentaId);
     } catch (error) {
-      console.error('❌ Error agregando item:', error);
+      console.error('❌ Error agregando asiento:', error);
       throw error;
     }
   },
 
-  // ✏️ Actualizar item específico en cuenta auxiliar
+  // ✏️ Actualizar asiento (item) específico
   async updateItem(cuentaId, itemId, itemData) {
     try {
-      console.log('✏️ Actualizando item:', itemId);
+      console.log('✏️ Actualizando asiento:', itemId);
 
-      // Obtener cuenta actual
-      const { data: cuentaActual, error: errorGet } = await supabase
-        .from('cuentas_auxiliares')
-        .select('items')
-        .eq('id', cuentaId)
-        .single();
+      const updateData = {};
 
-      if (errorGet) throw errorGet;
+      if (itemData.fecha) updateData.fecha = itemData.fecha;
+      if (itemData.descripcion) updateData.descripcion = itemData.descripcion.trim();
+      if (itemData.tipo && ['ingreso', 'egreso'].includes(itemData.tipo)) {
+        updateData.tipo = itemData.tipo;
+      }
+      if (itemData.monto && parseFloat(itemData.monto) > 0) {
+        updateData.monto = parseFloat(itemData.monto);
+      }
+      if (itemData.referencia !== undefined) {
+        updateData.referencia = itemData.referencia?.trim() || null;
+      }
 
-      // Encontrar y actualizar el item
-      const itemsActualizados = (cuentaActual.items || []).map(item => {
-        if (item.id === itemId) {
-          return {
-            ...item,
-            ...itemData,
-            valor_total: parseFloat(itemData.cantidad || item.cantidad || 1) * parseFloat(itemData.valor_unitario || item.valor_unitario || 0)
-          };
-        }
-        return item;
-      });
-
-      // Actualizar cuenta con items modificados
       const { data, error } = await supabase
-        .from('cuentas_auxiliares')
-        .update({ items: itemsActualizados })
-        .eq('id', cuentaId)
+        .from('asientos_auxiliares')
+        .update(updateData)
+        .eq('id', itemId)
+        .eq('cuenta_auxiliar_id', cuentaId) // Seguridad: verificar que pertenece a la cuenta
         .select()
         .single();
 
       if (error) throw error;
 
-      console.log('✅ Item actualizado exitosamente');
-      return data;
+      console.log('✅ Asiento actualizado exitosamente');
+
+      // Retornar la cuenta completa actualizada
+      return await this.getById(cuentaId);
     } catch (error) {
-      console.error('❌ Error actualizando item:', error);
+      console.error('❌ Error actualizando asiento:', error);
       throw error;
     }
   },
 
-  // 🗑️ Eliminar item de cuenta auxiliar
+  // 🗑️ Eliminar asiento (item) de cuenta auxiliar
   async removeItem(cuentaId, itemId) {
     try {
-      console.log('🗑️ Eliminando item:', itemId);
+      console.log('🗑️ Eliminando asiento:', itemId);
 
-      // Obtener cuenta actual
-      const { data: cuentaActual, error: errorGet } = await supabase
-        .from('cuentas_auxiliares')
-        .select('items')
-        .eq('id', cuentaId)
-        .single();
-
-      if (errorGet) throw errorGet;
-
-      // Filtrar el item a eliminar
-      const itemsActualizados = (cuentaActual.items || []).filter(item => item.id !== itemId);
-
-      // Actualizar cuenta sin el item eliminado
-      const { data, error } = await supabase
-        .from('cuentas_auxiliares')
-        .update({ items: itemsActualizados })
-        .eq('id', cuentaId)
-        .select()
-        .single();
+      const { error } = await supabase
+        .from('asientos_auxiliares')
+        .delete()
+        .eq('id', itemId)
+        .eq('cuenta_auxiliar_id', cuentaId); // Seguridad: verificar que pertenece a la cuenta
 
       if (error) throw error;
 
-      console.log('✅ Item eliminado exitosamente');
-      return data;
+      console.log('✅ Asiento eliminado exitosamente');
     } catch (error) {
-      console.error('❌ Error eliminando item:', error);
+      console.error('❌ Error eliminando asiento:', error);
       throw error;
     }
   },
@@ -313,17 +368,40 @@ export const cuentasAuxiliaresService = {
     try {
       console.log('📊 Calculando estadísticas de cuentas auxiliares...');
 
-      const { data, error } = await supabase
+      // Contar cuentas activas
+      const { data: cuentas, error: errorCuentas } = await supabase
         .from('cuentas_auxiliares')
-        .select('total_calculado, items')
+        .select('id')
         .eq('activo', true);
 
-      if (error) throw error;
+      if (errorCuentas) throw errorCuentas;
 
-      const totalCuentas = data.length;
-      const cuentasConItems = data.filter(cuenta => Array.isArray(cuenta.items) && cuenta.items.length > 0).length;
+      const totalCuentas = cuentas.length;
+
+      // Contar asientos por cuenta
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_auxiliares')
+        .select('cuenta_auxiliar_id, monto, tipo');
+
+      if (errorAsientos) throw errorAsientos;
+
+      // Agrupar por cuenta
+      const asientosPorCuenta = {};
+      let totalGeneral = 0;
+
+      asientos.forEach(asiento => {
+        if (!asientosPorCuenta[asiento.cuenta_auxiliar_id]) {
+          asientosPorCuenta[asiento.cuenta_auxiliar_id] = [];
+        }
+        asientosPorCuenta[asiento.cuenta_auxiliar_id].push(asiento);
+
+        // Sumar al total general
+        const monto = parseFloat(asiento.monto || 0);
+        totalGeneral += asiento.tipo === 'ingreso' ? monto : -monto;
+      });
+
+      const cuentasConItems = Object.keys(asientosPorCuenta).length;
       const cuentasSinItems = totalCuentas - cuentasConItems;
-      const totalGeneral = data.reduce((sum, cuenta) => sum + parseFloat(cuenta.total_calculado || 0), 0);
 
       const estadisticas = {
         totalCuentas,

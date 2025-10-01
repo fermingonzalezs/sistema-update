@@ -68,49 +68,13 @@ const CuentasAuxiliaresSection = () => {
     cargarPlanCuentas();
   };
 
-  const movimientosEjemplo = [
-    {
-      id: 1,
-      fecha: '2024-01-10',
-      descripcion: 'Venta de equipos computación',
-      tipo: 'ingreso',
-      monto: 2550.00,
-      referencia: 'FAC-001-2024',
-      created_at: '2024-01-10T10:30:00Z'
-    },
-    {
-      id: 2,
-      fecha: '2024-01-12',
-      descripcion: 'Compra de inventario smartphones',
-      tipo: 'egreso',
-      monto: 1800.00,
-      referencia: 'COMP-045-2024',
-      created_at: '2024-01-12T14:15:00Z'
-    },
-    {
-      id: 3,
-      fecha: '2024-01-15',
-      descripcion: 'Servicio técnico reparaciones',
-      tipo: 'ingreso',
-      monto: 120.00,
-      referencia: 'SRV-098-2024',
-      created_at: '2024-01-15T16:45:00Z'
-    },
-    {
-      id: 4,
-      fecha: '2024-01-18',
-      descripcion: 'Pago proveedores',
-      tipo: 'egreso',
-      monto: 950.00,
-      referencia: 'PAG-012-2024',
-      created_at: '2024-01-18T09:20:00Z'
-    }
-  ];
-
-  // Calcular totales de movimientos
+  // Calcular totales de movimientos (items)
   const calcularTotalesMovimientos = (movimientos) => {
-    const ingresos = movimientos.filter(m => m.tipo === 'ingreso').reduce((sum, m) => sum + m.monto, 0);
-    const egresos = movimientos.filter(m => m.tipo === 'egreso').reduce((sum, m) => sum + m.monto, 0);
+    if (!movimientos || !Array.isArray(movimientos)) {
+      return { ingresos: 0, egresos: 0, saldo: 0 };
+    }
+    const ingresos = movimientos.filter(m => m.tipo === 'ingreso').reduce((sum, m) => sum + parseFloat(m.monto || 0), 0);
+    const egresos = movimientos.filter(m => m.tipo === 'egreso').reduce((sum, m) => sum + parseFloat(m.monto || 0), 0);
     const saldo = ingresos - egresos;
     return { ingresos, egresos, saldo };
   };
@@ -321,7 +285,6 @@ const CuentasAuxiliaresSection = () => {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {cuentas.map((cuenta, index) => {
-                  const totales = calcularTotalesMovimientos(movimientosEjemplo);
                   return (
                     <tr key={cuenta.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                       <td className="px-4 py-3 text-sm text-slate-800">
@@ -337,17 +300,17 @@ const CuentasAuxiliaresSection = () => {
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
                         <span className="font-medium text-slate-800">
-                          {formatearMonto(totales.ingresos, 'USD')}
+                          {formatearMonto(cuenta.total_ingresos || 0, 'USD')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
                         <span className="font-medium text-slate-800">
-                          {formatearMonto(totales.egresos, 'USD')}
+                          {formatearMonto(cuenta.total_egresos || 0, 'USD')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
                         <span className="font-medium text-slate-800">
-                          {formatearMonto(totales.saldo, 'USD')}
+                          {formatearMonto(cuenta.total_auxiliar || 0, 'USD')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
@@ -356,7 +319,7 @@ const CuentasAuxiliaresSection = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-700 text-center">
-                        {movimientosEjemplo.length} movimientos
+                        {cuenta.items_count || 0} movimientos
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
                         <button
@@ -420,7 +383,7 @@ const CuentasAuxiliaresSection = () => {
                   <div className="text-sm text-slate-600">Total Ingresos</div>
                 </div>
                 <div className="text-xl font-semibold text-slate-800 mt-2">
-                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                  {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).ingresos, 'USD')}
                 </div>
               </div>
               <div className="bg-slate-50 p-4 rounded border border-slate-200">
@@ -429,7 +392,7 @@ const CuentasAuxiliaresSection = () => {
                   <div className="text-sm text-slate-600">Total Egresos</div>
                 </div>
                 <div className="text-xl font-semibold text-slate-800 mt-2">
-                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                  {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).egresos, 'USD')}
                 </div>
               </div>
               <div className="bg-slate-50 p-4 rounded border border-slate-200">
@@ -438,7 +401,7 @@ const CuentasAuxiliaresSection = () => {
                   <div className="text-sm text-slate-600">Saldo Auxiliar</div>
                 </div>
                 <div className="text-xl font-semibold text-slate-800 mt-2">
-                  {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
+                  {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).saldo, 'USD')}
                 </div>
               </div>
             </div>
@@ -504,7 +467,7 @@ const CuentasAuxiliaresSection = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {movimientosEjemplo
+                      {selectedCuenta.items && selectedCuenta.items
                         .filter(m => m.tipo === 'egreso')
                         .map((movimiento, index) => (
                         <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
@@ -529,7 +492,7 @@ const CuentasAuxiliaresSection = () => {
                           </td>
                         </tr>
                       ))}
-                      {movimientosEjemplo.filter(m => m.tipo === 'egreso').length === 0 && (
+                      {(!selectedCuenta.items || selectedCuenta.items.filter(m => m.tipo === 'egreso').length === 0) && (
                         <tr>
                           <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
                             No hay egresos registrados
@@ -543,7 +506,7 @@ const CuentasAuxiliaresSection = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold">TOTAL EGRESOS:</span>
                     <span className="text-sm font-semibold">
-                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                      {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).egresos, 'USD')}
                     </span>
                   </div>
                 </div>
@@ -568,7 +531,7 @@ const CuentasAuxiliaresSection = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {movimientosEjemplo
+                      {selectedCuenta.items && selectedCuenta.items
                         .filter(m => m.tipo === 'ingreso')
                         .map((movimiento, index) => (
                         <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
@@ -593,7 +556,7 @@ const CuentasAuxiliaresSection = () => {
                           </td>
                         </tr>
                       ))}
-                      {movimientosEjemplo.filter(m => m.tipo === 'ingreso').length === 0 && (
+                      {(!selectedCuenta.items || selectedCuenta.items.filter(m => m.tipo === 'ingreso').length === 0) && (
                         <tr>
                           <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
                             No hay ingresos registrados
@@ -607,7 +570,7 @@ const CuentasAuxiliaresSection = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold">TOTAL INGRESOS:</span>
                     <span className="text-sm font-semibold">
-                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                      {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).ingresos, 'USD')}
                     </span>
                   </div>
                 </div>
@@ -624,23 +587,23 @@ const CuentasAuxiliaresSection = () => {
                   <div className="text-center">
                     <div className="text-sm text-slate-600">Total Ingresos</div>
                     <div className="text-xl font-semibold text-emerald-600">
-                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).ingresos, 'USD')}
+                      {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).ingresos, 'USD')}
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-slate-600">Total Egresos</div>
                     <div className="text-xl font-semibold text-red-600">
-                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).egresos, 'USD')}
+                      {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).egresos, 'USD')}
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-slate-600">Saldo Neto</div>
                     <div className={`text-xl font-semibold ${
-                      calcularTotalesMovimientos(movimientosEjemplo).saldo >= 0
+                      calcularTotalesMovimientos(selectedCuenta.items).saldo >= 0
                         ? 'text-emerald-600'
                         : 'text-red-600'
                     }`}>
-                      {formatearMonto(calcularTotalesMovimientos(movimientosEjemplo).saldo, 'USD')}
+                      {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).saldo, 'USD')}
                     </div>
                   </div>
                 </div>
