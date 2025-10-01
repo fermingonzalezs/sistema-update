@@ -142,29 +142,37 @@ const libroDiarioService = {
 
       // Crear los movimientos con cotización si corresponde
       const movimientos = movimientosParaGuardar.map(mov => {
-        let debeUSD = parseFloat(mov.debe || 0);
-        let haberUSD = parseFloat(mov.haber || 0);
-        
-        // Si el movimiento tiene cotización, convertir ARS a USD para almacenar
-        if (mov.cotizacion && mov.cotizacion > 0) {
-          debeUSD = debeUSD / mov.cotizacion;
-          haberUSD = haberUSD / mov.cotizacion;
-        }
-        
+        const debeUSD = parseFloat(mov.debe || 0);
+        const haberUSD = parseFloat(mov.haber || 0);
+
         const movimientoBasico = {
           asiento_id: asiento.id,
           cuenta_id: mov.cuenta_id,
           debe: debeUSD,
           haber: haberUSD
         };
-        
-        // Agregar cotización si la cuenta la requiere
+
+        // Agregar cotización y montos ARS originales si la cuenta la requiere
         if (mov.cotizacion && mov.cotizacion > 0) {
           movimientoBasico.cotizacion = mov.cotizacion;
+          // Guardar montos originales en campos debe_ars/haber_ars (ya vienen del monto_original_ars)
+          if (mov.monto_original_ars && mov.debe > 0) {
+            movimientoBasico.debe_ars = mov.monto_original_ars;
+          }
+          if (mov.monto_original_ars && mov.haber > 0) {
+            movimientoBasico.haber_ars = mov.monto_original_ars;
+          }
         } else if (mov.cuenta?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
           movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
+          // Guardar montos originales en campos debe_ars/haber_ars
+          if (mov.monto_original_ars && mov.debe > 0) {
+            movimientoBasico.debe_ars = mov.monto_original_ars;
+          }
+          if (mov.monto_original_ars && mov.haber > 0) {
+            movimientoBasico.haber_ars = mov.monto_original_ars;
+          }
         }
-        
+
         return movimientoBasico;
       });
 
@@ -573,17 +581,25 @@ const LibroDiarioSection = () => {
       balanceado: Math.abs(diferencia) < 0.01,
       movimientosConvertidos: formData.movimientos.map(mov => {
         let montoUSD = parseFloat(mov.monto || 0);
-        
+        const montoOriginalARS = parseFloat(mov.monto || 0);
+
         // Convertir si es cuenta ARS
         if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
           montoUSD = montoUSD / cotizacion;
         }
-        
-        return {
+
+        const resultado = {
           ...mov,
           debe: mov.tipo === 'debe' ? Math.round(montoUSD * 100) / 100 : 0,
           haber: mov.tipo === 'haber' ? Math.round(montoUSD * 100) / 100 : 0
         };
+
+        // Agregar monto original ARS si la cuenta lo requiere
+        if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+          resultado.monto_original_ars = montoOriginalARS;
+        }
+
+        return resultado;
       })
     };
   };
@@ -764,12 +780,30 @@ const LibroDiarioSection = () => {
       const datosEdicion = {
         fecha: formData.fecha,
         descripcion: formData.descripcion,
-        movimientos: totales.movimientosConvertidos.map(mov => ({
-          cuenta_id: mov.cuenta_id,
-          debe: mov.debe,
-          haber: mov.haber,
-          cotizacion: mov.cuenta?.requiere_cotizacion ? parseFloat(formData.cotizacion_usd) : null
-        }))
+        movimientos: totales.movimientosConvertidos.map(mov => {
+          const movimientoEdicion = {
+            cuenta_id: mov.cuenta_id,
+            debe: mov.debe,
+            haber: mov.haber,
+            cotizacion: mov.cuenta?.requiere_cotizacion ? parseFloat(formData.cotizacion_usd) : null
+          };
+
+          // Si la cuenta requiere cotización, guardar montos originales en ARS
+          if (mov.cuenta?.requiere_cotizacion && parseFloat(formData.cotizacion_usd) > 0) {
+            const montoOriginal = formData.movimientos.find(m => m.cuenta_id === mov.cuenta_id);
+            if (montoOriginal) {
+              const montoARS = parseFloat(montoOriginal.monto || 0);
+              // Guardar en campos debe_ars/haber_ars según corresponda
+              if (mov.tipo === 'debe' && mov.debe > 0) {
+                movimientoEdicion.debe_ars = montoARS;
+              } else if (mov.tipo === 'haber' && mov.haber > 0) {
+                movimientoEdicion.haber_ars = montoARS;
+              }
+            }
+          }
+
+          return movimientoEdicion;
+        })
       };
       
       const resultado = await editarAsiento(asientoEditando.id, datosEdicion, 'admin'); // Por ahora usar admin
@@ -936,11 +970,29 @@ const LibroDiarioSection = () => {
                           {/* Importes */}
                           <div className="w-1/3 px-4">
                             <div className="grid grid-cols-2 gap-6 h-full items-center">
-                              <div className="text-center font-medium">
-                                {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : ''}
+                              <div className="text-center">
+                                {mov.debe > 0 && (
+                                  <div className="flex flex-col items-center">
+                                    <div className="font-medium">{formatearMonto(mov.debe, 'USD')}</div>
+                                    {mov.debe_ars && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        (ARS {formatearMonto(mov.debe_ars, 'ARS')})
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-center font-medium">
-                                {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : ''}
+                              <div className="text-center">
+                                {mov.haber > 0 && (
+                                  <div className="flex flex-col items-center">
+                                    <div className="font-medium">{formatearMonto(mov.haber, 'USD')}</div>
+                                    {mov.haber_ars && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        (ARS {formatearMonto(mov.haber_ars, 'ARS')})
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1065,16 +1117,30 @@ const LibroDiarioSection = () => {
                       {/* Importe Debe */}
                       <div className="text-right pr-4">
                         {mov.debe > 0 ? (
-                          <div className="font-mono font-semibold text-red-600">
-                            {formatearMonto(mov.debe, 'USD')}
+                          <div>
+                            <div className="font-mono font-semibold text-red-600">
+                              {formatearMonto(mov.debe, 'USD')}
+                            </div>
+                            {mov.debe_ars && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                (ARS {formatearMonto(mov.debe_ars, 'ARS')})
+                              </div>
+                            )}
                           </div>
                         ) : ''}
                       </div>
                       {/* Importe Haber */}
                       <div className="text-right pr-4">
                         {mov.haber > 0 ? (
-                          <div className="font-mono font-semibold text-green-600">
-                            {formatearMonto(mov.haber, 'USD')}
+                          <div>
+                            <div className="font-mono font-semibold text-green-600">
+                              {formatearMonto(mov.haber, 'USD')}
+                            </div>
+                            {mov.haber_ars && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                (ARS {formatearMonto(mov.haber_ars, 'ARS')})
+                              </div>
+                            )}
                           </div>
                         ) : ''}
                       </div>
@@ -1366,15 +1432,14 @@ const LibroDiarioSection = () => {
                 </div>
               )}
 
-              {/* Movimientos con Sistema de Conversión USD */}
+              {/* Movimientos */}
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h4 className="font-medium text-lg flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-gray-700" />
-                      Movimientos Contables (Sistema USD)
+                      Movimientos Contables
                     </h4>
-                    <p className="text-sm text-gray-600">Todas las operaciones se guardan en dólares americanos</p>
                   </div>
                   <button
                     onClick={agregarMovimiento}
@@ -1469,22 +1534,22 @@ const LibroDiarioSection = () => {
                   ))}
                 </div>
 
-                {/* Resumen de Totales en USD */}
+                {/* Resumen de Totales */}
                 <div className="mt-8 bg-slate-200 border border-slate-200 rounded p-6">
                   <div className="flex items-center space-x-3 mb-4">
                     <Calculator className="w-5 h-5 text-slate-800" />
-                    <h5 className="font-medium text-slate-800">Resumen del Asiento (en USD)</h5>
+                    <h5 className="font-medium text-slate-800">Resumen del Asiento</h5>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                     <div className="flex justify-between">
-                      <span>Total Debe USD:</span>
+                      <span>Total Debe:</span>
                       <span className={`font-medium ${totales.totalDebe > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
                         {formatearMonto(totales.totalDebe)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Total Haber USD:</span>
+                      <span>Total Haber:</span>
                       <span className={`font-medium ${totales.totalHaber > 0 ? 'text-slate-800' : 'text-slate-800/60'}`}>
                         {formatearMonto(totales.totalHaber)}
                       </span>
@@ -1518,20 +1583,6 @@ const LibroDiarioSection = () => {
                   )}
                 </div>
 
-                {/* Información de ayuda */}
-                <div className="mt-6 p-6 bg-slate-200 rounded border border-slate-200">
-                  <div className="flex items-start space-x-3">
-                    <AlertCircle size={16} className="text-slate-800 mt-0.5" />
-                    <div className="text-sm text-slate-800">
-                      <p className="font-medium mb-2">Reglas de la partida doble:</p>
-                      <ul className="space-y-1 text-xs">
-                        <li>• El total del DEBE debe ser igual al total del HABER</li>
-                        <li>• Cada movimiento debe tener importe en DEBE o en HABER, pero no en ambos</li>
-                        <li>• Un asiento debe tener al menos 2 movimientos</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 

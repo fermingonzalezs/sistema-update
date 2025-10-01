@@ -1272,20 +1272,9 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const opcionesCategorias = [
     { value: 'accesorios', label: 'Accesorios' },
-    { value: 'cables', label: 'Cables' },
-    { value: 'cargadores', label: 'Cargadores' },
-    { value: 'mouse', label: 'Mouse' },
-    { value: 'teclados', label: 'Teclados' },
-    { value: 'headsets', label: 'Headsets' },
-    { value: 'webcam', label: 'Webcam' },
     { value: 'monitores', label: 'Monitores' },
-    { value: 'speakers', label: 'Speakers' },
-    { value: 'almacenamiento', label: 'Almacenamiento' },
-    { value: 'memorias', label: 'Memorias RAM' },
-    { value: 'componentes', label: 'Componentes PC' },
-    { value: 'fundas', label: 'Fundas y Cases' },
-    { value: 'repuestos', label: 'Repuestos' },
-    { value: 'otros', label: 'Otros' }
+    { value: 'perifericos', label: 'Periféricos' },
+    { value: 'componentes', label: 'Componentes' }
   ];
 
   const handleChange = (e) => {

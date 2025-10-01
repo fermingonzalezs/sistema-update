@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCompras } from '../hooks/useCompras';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import { supabase } from '../../../lib/supabase';
 
 const ComprasSection = () => {
   const { compras, loading, error, createCompra, updateCompra, deleteCompra } = useCompras();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+  const [recibosExpandidos, setRecibosExpandidos] = useState({});
 
   // Estados del recibo (header)
   const [reciboData, setReciboData] = useState({
@@ -16,7 +18,8 @@ const ComprasSection = () => {
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
     moneda: 'USD',
-    cotizacion: 1000
+    cotizacion: 1000,
+    costosAdicionales: 0
   });
 
   // Estados de los items
@@ -57,7 +60,8 @@ const ComprasSection = () => {
       fecha: new Date().toISOString().split('T')[0],
       descripcion: '',
       moneda: 'USD',
-      cotizacion: cotizacionDolar
+      cotizacion: cotizacionDolar,
+      costosAdicionales: 0
     });
     setItems([]);
     setNuevoItem({
@@ -140,12 +144,33 @@ const ComprasSection = () => {
   // Calcular total del recibo
   const totalRecibo = items.reduce((acc, item) => acc + item.total, 0);
 
+  // Calcular distribución proporcional de costos adicionales
+  const calcularCostosAdicionalesPorItem = () => {
+    const costosAdicionales = parseFloat(reciboData.costosAdicionales) || 0;
+    if (costosAdicionales === 0 || totalRecibo === 0) {
+      return items.map(item => ({ ...item, costoAdicionalProrrateado: 0 }));
+    }
+
+    return items.map(item => {
+      const proporcion = item.total / totalRecibo;
+      const costoAdicionalProrrateado = proporcion * costosAdicionales;
+      return {
+        ...item,
+        costoAdicionalProrrateado: parseFloat(costoAdicionalProrrateado.toFixed(2))
+      };
+    });
+  };
+
+  const itemsConCostosAdicionales = calcularCostosAdicionalesPorItem();
+  const totalCostosAdicionales = parseFloat(reciboData.costosAdicionales) || 0;
+  const granTotal = totalRecibo + totalCostosAdicionales;
+
   // Convertir monto a USD si es necesario
   const convertirAUSD = (monto) => {
     if (reciboData.moneda === 'ARS') {
-      return monto / reciboData.cotizacion;
+      return (monto / reciboData.cotizacion).toFixed(2);
     }
-    return monto;
+    return monto.toFixed(2);
   };
 
   const handleGuardarRecibo = async () => {
@@ -168,17 +193,41 @@ const ComprasSection = () => {
         return;
       }
 
-      // TODO: Implementar guardado del recibo completo
-      console.log('Recibo a guardar:', {
-        header: reciboData,
-        items: items,
-        totalRecibo: totalRecibo,
-        totalUSD: convertirAUSD(totalRecibo)
-      });
+      // Obtener el último recibo_id y sumar 1
+      const { data: ultimaCompra, error: errorMax } = await supabase
+        .from('compras')
+        .select('recibo_id')
+        .order('recibo_id', { ascending: false })
+        .limit(1)
+        .single();
 
-      alert('✅ Recibo guardado exitosamente (funcionalidad pendiente)');
+      const reciboId = (ultimaCompra?.recibo_id || 0) + 1;
+
+      // Crear un registro por cada item con costos adicionales prorrateados
+      const comprasAGuardar = itemsConCostosAdicionales.map(item => ({
+        recibo_id: reciboId,
+        item: item.descripcion,
+        cantidad: item.cantidad,
+        serial: item.serial || null,
+        moneda: reciboData.moneda,
+        cotizacion: reciboData.moneda === 'ARS' ? parseFloat(reciboData.cotizacion) : null,
+        monto: parseFloat(item.precioUnitario),
+        costo_adicional: item.costoAdicionalProrrateado,
+        proveedor: reciboData.proveedor,
+        caja_pago: reciboData.metodoPago,
+        descripcion: reciboData.descripcion || null,
+        fecha: reciboData.fecha
+      }));
+
+      // Guardar cada compra
+      for (const compra of comprasAGuardar) {
+        await createCompra(compra);
+      }
+
+      alert(`✅ Compra guardada exitosamente (${comprasAGuardar.length} items)`);
       limpiarFormulario();
     } catch (error) {
+      console.error('Error al guardar el recibo:', error);
       alert('Error al guardar el recibo: ' + error.message);
     }
   };
@@ -204,25 +253,68 @@ const ComprasSection = () => {
 
   const calcularMontoUSD = (montoARS, cotizacion) => {
     if (!montoARS || !cotizacion) return 0;
-    return Math.round(parseFloat(montoARS) / parseFloat(cotizacion));
+    return (parseFloat(montoARS) / parseFloat(cotizacion)).toFixed(2);
   };
 
-  // Filtrar compras
-  const comprasFiltradas = compras.filter(compra => {
+  // Agrupar compras por recibo_id
+  const recibosAgrupados = compras.reduce((acc, compra) => {
+    const reciboId = compra.recibo_id || compra.id; // Usar id si no tiene recibo_id
+    if (!acc[reciboId]) {
+      acc[reciboId] = {
+        recibo_id: reciboId,
+        fecha: compra.fecha,
+        proveedor: compra.proveedor,
+        caja_pago: compra.caja_pago,
+        moneda: compra.moneda,
+        cotizacion: compra.cotizacion,
+        descripcion: compra.descripcion,
+        items: []
+      };
+    }
+    acc[reciboId].items.push({
+      id: compra.id,
+      item: compra.item,
+      cantidad: compra.cantidad,
+      serial: compra.serial,
+      monto: compra.monto
+    });
+    return acc;
+  }, {});
+
+  // Convertir a array y ordenar por fecha descendente
+  const recibos = Object.values(recibosAgrupados).sort((a, b) =>
+    new Date(b.fecha) - new Date(a.fecha)
+  );
+
+  // Filtrar recibos
+  const recibosFiltrados = recibos.filter(recibo => {
     // Filtro por fecha desde
-    if (filtroFechaDesde && compra.fecha < filtroFechaDesde) return false;
+    if (filtroFechaDesde && recibo.fecha < filtroFechaDesde) return false;
 
     // Filtro por fecha hasta
-    if (filtroFechaHasta && compra.fecha > filtroFechaHasta) return false;
+    if (filtroFechaHasta && recibo.fecha > filtroFechaHasta) return false;
 
     // Filtro por proveedor
-    if (filtroProveedor && !compra.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase())) return false;
+    if (filtroProveedor && !recibo.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase())) return false;
 
     return true;
   });
 
   // Obtener proveedores únicos para el filtro
-  const proveedoresUnicos = [...new Set(compras.map(compra => compra.proveedor))].sort();
+  const proveedoresUnicos = [...new Set(recibos.map(recibo => recibo.proveedor))].sort();
+
+  // Función para toggle expandir recibo
+  const toggleRecibo = (reciboId) => {
+    setRecibosExpandidos(prev => ({
+      ...prev,
+      [reciboId]: !prev[reciboId]
+    }));
+  };
+
+  // Calcular total de un recibo
+  const calcularTotalRecibo = (items) => {
+    return items.reduce((sum, item) => sum + (item.monto * item.cantidad), 0);
+  };
 
   // Limpiar filtros
   const limpiarFiltros = () => {
@@ -250,7 +342,7 @@ const ComprasSection = () => {
               className="bg-slate-700 text-white px-6 py-3 rounded-lg hover:bg-slate-800 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
-              {mostrarFormulario ? 'Ocultar Formulario' : 'Nuevo Recibo'}
+              {mostrarFormulario ? 'Ocultar Formulario' : 'Nueva Compra'}
             </button>
           </div>
         </div>
@@ -270,7 +362,7 @@ const ComprasSection = () => {
             <div className="p-4 bg-slate-800 text-white">
               <div className="flex items-center space-x-3">
                 <FileText className="w-6 h-6" />
-                <h3 className="text-lg font-semibold">Nuevo Recibo de Compra</h3>
+                <h3 className="text-lg font-semibold">Nueva Compra</h3>
               </div>
             </div>
 
@@ -365,30 +457,47 @@ const ComprasSection = () => {
                   </div>
                 )}
 
+                {/* Costos Adicionales */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Costos Adicionales ({reciboData.moneda})
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={reciboData.costosAdicionales}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, costosAdicionales: parseFloat(e.target.value) || 0 }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="Envío, impuestos, etc."
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Se distribuirá proporcionalmente entre items</p>
+                </div>
+
                 {/* Descripción */}
                 <div className="md:col-span-2 lg:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Descripción General
+                    Descripción General de la Compra
                   </label>
                   <textarea
                     rows={2}
                     value={reciboData.descripcion}
                     onChange={(e) => setReciboData(prev => ({ ...prev, descripcion: e.target.value }))}
                     className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Descripción general del recibo..."
+                    placeholder="Descripción de la compra..."
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ITEMS DEL RECIBO */}
+          {/* PRODUCTOS */}
           <div className="bg-white border border-slate-200 rounded">
             <div className="p-4 bg-slate-800 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Package className="w-6 h-6" />
-                  <h3 className="text-lg font-semibold">Items del Recibo</h3>
+                  <h3 className="text-lg font-semibold">Productos</h3>
                 </div>
                 <span className="text-slate-300 text-sm">
                   {items.length} item{items.length !== 1 ? 's' : ''}
@@ -493,12 +602,14 @@ const ComprasSection = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Unit.</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Subtotal</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costo Adic.</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total Final</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {items.map((item, index) => (
+                    {itemsConCostosAdicionales.map((item, index) => (
                       <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                         <td className="px-4 py-3 text-sm text-slate-800">
                           {item.serial || 'N/A'}
@@ -512,11 +623,17 @@ const ComprasSection = () => {
                         <td className="px-4 py-3 text-center text-sm text-slate-800">
                           ${item.precioUnitario} {reciboData.moneda}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                        <td className="px-4 py-3 text-center text-sm text-slate-800">
                           ${item.total} {reciboData.moneda}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-emerald-600">
+                          {item.costoAdicionalProrrateado > 0 ? `+$${item.costoAdicionalProrrateado.toFixed(2)}` : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                          ${(item.total + item.costoAdicionalProrrateado).toFixed(2)} {reciboData.moneda}
                           {reciboData.moneda === 'ARS' && (
                             <div className="text-xs text-slate-500">
-                              USD ${convertirAUSD(item.total)}
+                              USD ${convertirAUSD(item.total + item.costoAdicionalProrrateado)}
                             </div>
                           )}
                         </td>
@@ -535,16 +652,31 @@ const ComprasSection = () => {
                   {/* Footer con total */}
                   <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold">TOTAL DEL RECIBO</td>
-                      <td className="px-4 py-3 text-center text-lg font-bold">
-                        ${totalRecibo} {reciboData.moneda}
+                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">SUBTOTAL ITEMS</td>
+                      <td className="px-4 py-3 text-center text-sm font-bold">
+                        ${totalRecibo.toFixed(2)} {reciboData.moneda}
+                      </td>
+                      <td colSpan="3"></td>
+                    </tr>
+                    {totalCostosAdicionales > 0 && (
+                      <tr>
+                        <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">COSTOS ADICIONALES</td>
+                        <td className="px-4 py-3 text-center text-sm font-bold text-emerald-300">
+                          +${totalCostosAdicionales.toFixed(2)} {reciboData.moneda}
+                        </td>
+                        <td colSpan="3"></td>
+                      </tr>
+                    )}
+                    <tr className="border-t-2 border-slate-600">
+                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">GRAN TOTAL</td>
+                      <td colSpan="4" className="px-4 py-3 text-center text-lg font-bold">
+                        ${granTotal.toFixed(2)} {reciboData.moneda}
                         {reciboData.moneda === 'ARS' && (
                           <div className="text-sm text-slate-300">
-                            USD ${convertirAUSD(totalRecibo)}
+                            USD ${convertirAUSD(granTotal)}
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3"></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -634,94 +766,183 @@ const ComprasSection = () => {
               Historial
             </h3>
             <p className="text-sm text-slate-600">
-              {comprasFiltradas.length} de {compras.length} compras
+              {recibosFiltrados.length} de {recibos.length} recibos
             </p>
           </div>
         </div>
 
-        {compras.length === 0 ? (
+        {recibos.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             <Package className="w-12 h-12 mx-auto mb-3 text-slate-400" />
             <p>No hay compras registradas</p>
             <p className="text-sm">Haz clic en "Nueva Compra" para comenzar</p>
           </div>
-        ) : comprasFiltradas.length === 0 ? (
+        ) : recibosFiltrados.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             <Package className="w-12 h-12 mx-auto mb-3 text-slate-400" />
             <p>No hay compras que coincidan con los filtros</p>
             <p className="text-sm">Ajusta los filtros o limpia la búsqueda</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-800 text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Ítem</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Proveedor</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Caja</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {comprasFiltradas.map((compra, index) => (
-                  <tr key={compra.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="px-4 py-3 text-sm text-slate-800">
-                      {new Date(compra.fecha).toLocaleDateString('es-AR')}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-800">
-                      <div className="font-medium">{compra.item}</div>
-                      {compra.descripcion && (
-                        <div className="text-xs text-slate-500 mt-1">{compra.descripcion}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-700 text-center">
-                      {compra.cantidad}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 text-center">
-                      {compra.serial || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      <div className="font-medium text-slate-800">
-                        {formatearMonto(compra.monto, compra.moneda)}
-                      </div>
-                      {compra.moneda === 'ARS' && compra.cotizacion && (
-                        <div className="text-xs text-slate-500">
-                          USD ${calcularMontoUSD(compra.monto, compra.cotizacion)} (${compra.cotizacion})
+          <div className="space-y-2 p-4">
+            {recibosFiltrados.map((recibo) => {
+              const totalRecibo = calcularTotalRecibo(recibo.items);
+              const isExpanded = recibosExpandidos[recibo.recibo_id];
+
+              return (
+                <div key={recibo.recibo_id} className="border border-slate-200 rounded overflow-hidden">
+                  {/* Header del recibo - clickeable */}
+                  <div
+                    className="p-4 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors flex items-center justify-between"
+                    onClick={() => toggleRecibo(recibo.recibo_id)}
+                  >
+                    <div className="flex items-center space-x-4 flex-1">
+                      <button className="p-1">
+                        {isExpanded ? (
+                          <ChevronDown size={20} className="text-slate-600" />
+                        ) : (
+                          <ChevronRight size={20} className="text-slate-600" />
+                        )}
+                      </button>
+
+                      <div className="flex items-center gap-8 flex-1">
+                        <div className="min-w-[80px] text-center">
+                          <div className="text-xs text-slate-500">Recibo</div>
+                          <div className="font-mono text-sm font-semibold text-slate-800">#{recibo.recibo_id}</div>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
-                      {compra.proveedor}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
-                      {compra.caja_pago}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      <div className="flex justify-center space-x-2">
-                        <button
-                          onClick={() => handleEditar(compra)}
-                          className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleEliminar(compra.id)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                        <div className="min-w-[100px] text-center">
+                          <div className="text-xs text-slate-500">Fecha</div>
+                          <div className="text-sm text-slate-800">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</div>
+                        </div>
+
+                        <div className="flex-1 min-w-[150px] text-center">
+                          <div className="text-xs text-slate-500">Proveedor</div>
+                          <div className="text-sm font-medium text-slate-800">{recibo.proveedor}</div>
+                        </div>
+
+                        <div className="min-w-[60px] text-center">
+                          <div className="text-xs text-slate-500">Items</div>
+                          <div className="text-sm text-slate-800">{recibo.items.length}</div>
+                        </div>
+
+                        <div className="min-w-[120px] text-center">
+                          <div className="text-xs text-slate-500">Total</div>
+                          <div className="text-sm font-bold text-slate-800">
+                            {formatearMonto(totalRecibo, recibo.moneda)}
+                          </div>
+                          {recibo.moneda === 'ARS' && recibo.cotizacion && (
+                            <div className="text-xs text-slate-500">
+                              USD ${calcularMontoUSD(totalRecibo, recibo.cotizacion)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+
+                  {/* Detalle de items - expandible */}
+                  {isExpanded && (
+                    <div className="border-t border-slate-200 bg-white">
+                      {/* Info adicional - arriba */}
+                      <div className="p-4 bg-slate-50 border-b border-slate-200 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-slate-600">Método de pago:</span>
+                            <span className="ml-2 font-medium text-slate-800">{recibo.caja_pago}</span>
+                          </div>
+                          {recibo.cotizacion && (
+                            <div>
+                              <span className="text-slate-600">Cotización USD:</span>
+                              <span className="ml-2 font-medium text-slate-800">${recibo.cotizacion}</span>
+                            </div>
+                          )}
+                          {recibo.descripcion && (
+                            <div className="col-span-2">
+                              <span className="text-slate-600">Notas:</span>
+                              <span className="ml-2 text-slate-800">{recibo.descripcion}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Tabla de items - abajo */}
+                      <table className="w-full">
+                        <thead className="bg-slate-800 text-white">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase">Item</th>
+                            <th className="px-4 py-2 text-center text-xs font-medium uppercase">Cant.</th>
+                            <th className="px-4 py-2 text-center text-xs font-medium uppercase">Serial</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase">Precio Unit.</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase">Subtotal</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase">Costo Adic.</th>
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase">Total Final</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {recibo.items.map((item, idx) => {
+                            const subtotal = item.monto * item.cantidad;
+                            const costoAdicional = item.costo_adicional || 0;
+                            const totalFinal = subtotal + costoAdicional;
+                            return (
+                              <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                <td className="px-4 py-2 text-sm text-slate-800">{item.item}</td>
+                                <td className="px-4 py-2 text-sm text-slate-700 text-center">{item.cantidad}</td>
+                                <td className="px-4 py-2 text-sm text-slate-600 text-center">{item.serial || '-'}</td>
+                                <td className="px-4 py-2 text-sm text-slate-800 text-right">
+                                  {formatearMonto(item.monto, recibo.moneda)}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-slate-800 text-right">
+                                  {formatearMonto(subtotal, recibo.moneda)}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-emerald-600 text-right">
+                                  {costoAdicional > 0 ? `+${formatearMonto(costoAdicional, recibo.moneda)}` : '-'}
+                                </td>
+                                <td className="px-4 py-2 text-sm font-medium text-slate-800 text-right">
+                                  {formatearMonto(totalFinal, recibo.moneda)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-slate-800 text-white">
+                          {(() => {
+                            const subtotalItems = recibo.items.reduce((sum, item) => sum + (item.monto * item.cantidad), 0);
+                            const totalCostosAdic = recibo.items.reduce((sum, item) => sum + (item.costo_adicional || 0), 0);
+                            const granTotalRecibo = subtotalItems + totalCostosAdic;
+                            return (
+                              <>
+                                <tr>
+                                  <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">SUBTOTAL ITEMS</td>
+                                  <td className="px-4 py-2 text-sm font-bold text-right">
+                                    {formatearMonto(subtotalItems, recibo.moneda)}
+                                  </td>
+                                  <td colSpan="2"></td>
+                                </tr>
+                                {totalCostosAdic > 0 && (
+                                  <tr>
+                                    <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">COSTOS ADICIONALES</td>
+                                    <td colSpan="3" className="px-4 py-2 text-sm font-bold text-emerald-300 text-right">
+                                      +{formatearMonto(totalCostosAdic, recibo.moneda)}
+                                    </td>
+                                  </tr>
+                                )}
+                                <tr className="border-t-2 border-slate-600">
+                                  <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">GRAN TOTAL</td>
+                                  <td colSpan="3" className="px-4 py-2 text-sm font-bold text-right">
+                                    {formatearMonto(granTotalRecibo, recibo.moneda)}
+                                  </td>
+                                </tr>
+                              </>
+                            );
+                          })()}
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

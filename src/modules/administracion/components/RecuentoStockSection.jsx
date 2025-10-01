@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator, ChevronDown, ChevronUp, Edit2, X } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
@@ -124,6 +124,21 @@ const recuentoStockService = {
 
     console.log('✅ Ajustes aplicados al sistema');
     return true;
+  },
+
+  async actualizarComentarioRecuento(recuentoId, nuevoComentario) {
+    console.log('💬 Actualizando comentario del recuento...');
+
+    const { data, error } = await supabase
+      .from('recuentos_stock')
+      .update({
+        observaciones: nuevoComentario
+      })
+      .eq('id', recuentoId)
+      .select();
+
+    if (error) throw error;
+    return data[0];
   }
 };
 
@@ -179,6 +194,17 @@ function useRecuentoStock() {
     }
   };
 
+  const actualizarComentario = async (recuentoId, nuevoComentario) => {
+    try {
+      setError(null);
+      await recuentoStockService.actualizarComentarioRecuento(recuentoId, nuevoComentario);
+      fetchRecuentosAnteriores(); // Refrescar historial
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return {
     inventario,
     recuentosAnteriores,
@@ -187,7 +213,8 @@ function useRecuentoStock() {
     fetchInventario,
     fetchRecuentosAnteriores,
     guardarRecuento,
-    aplicarAjustes
+    aplicarAjustes,
+    actualizarComentario
   };
 }
 
@@ -201,7 +228,8 @@ const RecuentoStockSection = () => {
     fetchInventario,
     fetchRecuentosAnteriores,
     guardarRecuento,
-    aplicarAjustes
+    aplicarAjustes,
+    actualizarComentario
   } = useRecuentoStock();
 
   const [filtro, setFiltro] = useState('');
@@ -214,6 +242,8 @@ const RecuentoStockSection = () => {
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
   const [categoriasOtros, setCategoriasOtros] = useState([]);
   const [recuentoExpandido, setRecuentoExpandido] = useState(null);
+  const [editandoComentario, setEditandoComentario] = useState(null);
+  const [nuevoComentario, setNuevoComentario] = useState('');
 
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
@@ -328,16 +358,23 @@ const RecuentoStockSection = () => {
         });
 
         if (stockReal !== stockSistema) {
-          // JSON simplificado: solo nombre, diferencia cantidad y diferencia USD
+          // JSON: nombre, serial (si es faltante), diferencia cantidad y diferencia USD (usando precio de COSTO)
           const diferenciaQuantity = stockReal - stockSistema;
-          const precioVenta = producto.precio_venta_usd || 0;
-          const diferenciaUSD = diferenciaQuantity * precioVenta;
+          const precioCosto = producto.precio_costo_usd || producto.precio_compra_usd || 0;
+          const diferenciaUSD = diferenciaQuantity * precioCosto;
 
-          diferencias.push({
+          const diferencia = {
             nombre: producto.modelo || producto.nombre_producto || producto.descripcion,
             diferencia_cantidad: diferenciaQuantity,
             diferencia_usd: diferenciaUSD
-          });
+          };
+
+          // Agregar serial solo cuando es faltante (diferencia negativa)
+          if (diferenciaQuantity < 0) {
+            diferencia.serial = producto.serial || `${producto.tipo}-${producto.id}`;
+          }
+
+          diferencias.push(diferencia);
         }
       }
     });
@@ -406,6 +443,27 @@ const RecuentoStockSection = () => {
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-AR');
+  };
+
+  const iniciarEdicionComentario = (recuentoId, comentarioActual) => {
+    setEditandoComentario(recuentoId);
+    setNuevoComentario(comentarioActual || '');
+  };
+
+  const cancelarEdicionComentario = () => {
+    setEditandoComentario(null);
+    setNuevoComentario('');
+  };
+
+  const guardarComentario = async (recuentoId) => {
+    try {
+      await actualizarComentario(recuentoId, nuevoComentario);
+      setEditandoComentario(null);
+      setNuevoComentario('');
+      alert('✅ Comentario actualizado correctamente');
+    } catch (err) {
+      alert('❌ Error al actualizar comentario: ' + err.message);
+    }
   };
 
   const { diferencias, productosContados } = calcularDiferencias();
@@ -819,6 +877,7 @@ const RecuentoStockSection = () => {
                                     <thead className="bg-slate-800 text-white">
                                       <tr>
                                         <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Producto</th>
+                                        <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Serial</th>
                                         <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia Cantidad</th>
                                         <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia USD</th>
                                       </tr>
@@ -827,6 +886,13 @@ const RecuentoStockSection = () => {
                                       {diferencias.map((diff, diffIndex) => (
                                         <tr key={diffIndex} className={diffIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                           <td className="py-2 px-3 text-sm text-slate-800">{diff.nombre}</td>
+                                          <td className="py-2 px-3 text-sm text-slate-600">
+                                            {diff.serial ? (
+                                              <span className="font-mono">{diff.serial}</span>
+                                            ) : (
+                                              <span className="text-slate-400">-</span>
+                                            )}
+                                          </td>
                                           <td className="text-center py-2 px-3">
                                             <span className={`text-sm font-medium ${
                                               diff.diferencia_cantidad < 0 ? 'text-red-600' : 'text-emerald-600'
@@ -846,7 +912,7 @@ const RecuentoStockSection = () => {
                                     </tbody>
                                     <tfoot className="bg-slate-800 text-white">
                                       <tr>
-                                        <td className="py-2 px-3 text-sm font-semibold">TOTAL</td>
+                                        <td colSpan="2" className="py-2 px-3 text-sm font-semibold">TOTAL</td>
                                         <td className="text-center py-2 px-3 text-sm font-semibold">
                                           {diferencias.reduce((sum, d) => sum + d.diferencia_cantidad, 0)}
                                         </td>
@@ -858,13 +924,53 @@ const RecuentoStockSection = () => {
                                   </table>
                                 </div>
 
-                                {/* Observaciones si existen */}
-                                {recuento.observaciones && (
-                                  <div className="mt-3 bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs font-medium text-slate-700 mb-1">Observaciones:</div>
-                                    <div className="text-sm text-slate-600">{recuento.observaciones}</div>
+                                {/* Observaciones - editables */}
+                                <div className="mt-3 bg-white border border-slate-200 rounded p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-medium text-slate-700">Observaciones:</div>
+                                    {editandoComentario !== recuento.id && (
+                                      <button
+                                        onClick={() => iniciarEdicionComentario(recuento.id, recuento.observaciones)}
+                                        className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 text-xs"
+                                      >
+                                        <Edit2 size={12} />
+                                        {recuento.observaciones ? 'Editar' : 'Agregar'}
+                                      </button>
+                                    )}
                                   </div>
-                                )}
+
+                                  {editandoComentario === recuento.id ? (
+                                    <div className="space-y-2">
+                                      <textarea
+                                        value={nuevoComentario}
+                                        onChange={(e) => setNuevoComentario(e.target.value)}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        rows="3"
+                                        placeholder="Agregar comentarios sobre las diferencias..."
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => guardarComentario(recuento.id)}
+                                          className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1"
+                                        >
+                                          <Save size={12} />
+                                          Guardar
+                                        </button>
+                                        <button
+                                          onClick={cancelarEdicionComentario}
+                                          className="px-3 py-1 bg-slate-600 text-white rounded hover:bg-slate-700 text-xs flex items-center gap-1"
+                                        >
+                                          <X size={12} />
+                                          Cancelar
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-slate-600">
+                                      {recuento.observaciones || <span className="text-slate-400 italic">Sin observaciones</span>}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>

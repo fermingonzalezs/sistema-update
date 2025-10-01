@@ -217,21 +217,18 @@ const IngresoEquiposSection = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Destino
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Estado
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {ingresosLoading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
                     Cargando historial...
                   </td>
                 </tr>
               ) : ingresos.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
                     No hay ingresos registrados
                   </td>
                 </tr>
@@ -259,12 +256,6 @@ const IngresoEquiposSection = () => {
                           <DestinoIcon className="w-4 h-4 text-slate-500" />
                           <span className="text-sm text-slate-900 capitalize">{ingreso.destino}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(ingreso.estado)}`}>
-                          {ingreso.estado === 'completado' && <CheckCircle className="w-3 h-3 mr-1" />}
-                          {ingreso.estado}
-                        </span>
                       </td>
                     </tr>
                   );

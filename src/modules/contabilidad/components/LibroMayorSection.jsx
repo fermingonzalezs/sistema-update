@@ -659,12 +659,26 @@ const LibroMayorSection = () => {
                           </td>
                           <td className="text-right py-3 px-4 font-medium">
                             {mov.debe > 0 ? (
-                              <span className="text-slate-800">{formatearMoneda(mov.debe)}</span>
+                              <div className="flex flex-col items-end">
+                                <span className="text-slate-800">{formatearMoneda(mov.debe)}</span>
+                                {mov.debe_ars && (
+                                  <span className="text-xs text-gray-500 mt-1">
+                                    (ARS {formatearMoneda(mov.debe_ars)})
+                                  </span>
+                                )}
+                              </div>
                             ) : ''}
                           </td>
                           <td className="text-right py-3 px-4 font-medium">
                             {mov.haber > 0 ? (
-                              <span className="text-slate-600">{formatearMoneda(mov.haber)}</span>
+                              <div className="flex flex-col items-end">
+                                <span className="text-slate-600">{formatearMoneda(mov.haber)}</span>
+                                {mov.haber_ars && (
+                                  <span className="text-xs text-gray-500 mt-1">
+                                    (ARS {formatearMoneda(mov.haber_ars)})
+                                  </span>
+                                )}
+                              </div>
                             ) : ''}
                           </td>
                           <td className="text-right py-3 px-4 font-bold">

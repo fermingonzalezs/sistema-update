@@ -337,7 +337,7 @@ const RegistrarVentaSection = () => {
         precio: nuevoProducto.precio_venta_usd || 0,
         stock: nuevoProducto.cantidad_la_plata + nuevoProducto.cantidad_mitre,
         condicion: nuevoProducto.condicion,
-        tipo: 'otros', // Se guarda en tabla otros
+        tipo: 'otro', // CORREGIDO: Debe ser singular para que coincida con useVentas
         cantidad: 1,
         total: nuevoProducto.precio_venta_usd || 0,
         precio_unitario: nuevoProducto.precio_venta_usd || 0, // CRÍTICO: Agregar precio_unitario
