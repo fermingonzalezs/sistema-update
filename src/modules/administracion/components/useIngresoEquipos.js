@@ -95,7 +95,11 @@ export const useIngresoEquipos = () => {
         return `${datos.marca || ''} ${datos.modelo || ''} - ${datos.capacidad || ''} / ${datos.color || ''} / Batería: ${datos.porcentaje_bateria || ''}%`;
       
       case 'otro':
-        return `${datos.categoria || ''} - ${datos.descripcion_producto || ''} ${datos.marca ? `(${datos.marca})` : ''}`;
+        const nombre = datos.nombre_producto || datos.descripcion_producto || 'Sin nombre';
+        const categoria = datos.categoria || 'Accesorio';
+        const marca = datos.marca ? ` ${datos.marca}` : '';
+        const descripcion = datos.descripcion ? ` - ${datos.descripcion}` : '';
+        return `${categoria} -${marca} ${nombre}${descripcion}`;
       
       default:
         return JSON.stringify(datos);

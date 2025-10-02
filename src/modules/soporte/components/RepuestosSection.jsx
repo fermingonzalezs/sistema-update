@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, Trash2, Save, RefreshCw, Search, Package, CheckCircle, AlertCircle, Layers, Calculator, AlertTriangle, Eye } from 'lucide-react';
+import { Wrench, Plus, Trash2, Save, RefreshCw, Search, Package, CheckCircle, AlertCircle, Layers, Calculator, AlertTriangle, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 
@@ -177,6 +177,12 @@ const RepuestosSection = () => {
   const [observacionesRecuento, setObservacionesRecuento] = useState('');
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
   const [mostrarModalSucursal, setMostrarModalSucursal] = useState(false);
+
+  // Estados para historial
+  const [recuentosAnteriores, setRecuentosAnteriores] = useState([]);
+  const [mostrarHistorial, setMostrarHistorial] = useState(true);
+  const [recuentoExpandido, setRecuentoExpandido] = useState(null);
+  const [aplicarAjustes, setAplicarAjustes] = useState(false);
   
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -213,7 +219,23 @@ const RepuestosSection = () => {
   useEffect(() => {
     console.log('🚀 Iniciando carga de repuestos...');
     fetchRepuestos();
+    fetchRecuentosAnteriores();
   }, []);
+
+  const fetchRecuentosAnteriores = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('recuentos_repuestos')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setRecuentosAnteriores(data || []);
+    } catch (err) {
+      console.error('Error cargando recuentos anteriores:', err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -316,7 +338,7 @@ const RepuestosSection = () => {
 
     repuestos.forEach(repuesto => {
       // Obtener stock de la sucursal específica
-      const stockSistema = sucursalRecuento === 'la_plata' 
+      const stockSistema = sucursalRecuento === 'la_plata'
         ? (repuesto.cantidad_la_plata || 0)
         : (repuesto.cantidad_mitre || 0);
       const stockReal = stockContado[repuesto.id];
@@ -328,7 +350,8 @@ const RepuestosSection = () => {
           categoria: repuesto.categoria,
           stockSistema,
           stockReal,
-          sucursal: sucursalRecuento
+          sucursal: sucursalRecuento,
+          precio_compra_usd: repuesto.precio_compra_usd || 0
         });
 
         if (stockReal !== stockSistema) {
@@ -339,7 +362,8 @@ const RepuestosSection = () => {
             stockSistema,
             stockReal,
             diferencia: stockReal - stockSistema,
-            sucursal: sucursalRecuento
+            sucursal: sucursalRecuento,
+            precio_compra_usd: repuesto.precio_compra_usd || 0
           });
         }
       }
@@ -357,11 +381,23 @@ const RepuestosSection = () => {
     }
 
     try {
+      // Obtener fecha y timestamp locales
+      const ahora = new Date();
+
+      // Fecha en formato YYYY-MM-DD (zona horaria local)
+      const fechaLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+
+      // Timestamp completo en ISO format (con zona horaria local)
+      const offset = ahora.getTimezoneOffset();
+      const localTime = new Date(ahora.getTime() - (offset * 60 * 1000));
+      const timestampLocal = localTime.toISOString();
+
       // Guardar recuento en la tabla de recuentos
       const { error: recuentoError } = await supabase
         .from('recuentos_repuestos')
         .insert([{
-          fecha_recuento: new Date().toISOString().split('T')[0],
+          fecha_recuento: fechaLocal,
+          timestamp_recuento: timestampLocal,
           sucursal: sucursalRecuento,
           tipo_recuento: repuestosContados.length === repuestos.length ? 'completo' : 'parcial',
           repuestos_contados: JSON.stringify(repuestosContados),
@@ -372,22 +408,18 @@ const RepuestosSection = () => {
         }]);
 
       if (recuentoError) throw recuentoError;
-      
-      if (diferencias.length === 0) {
-        alert('✅ Recuento finalizado sin diferencias');
-      } else {
-        const confirmar = confirm(
-          `⚠️ Se encontraron ${diferencias.length} diferencias.\\n\\n` +
-          '¿Desea aplicar los ajustes al sistema automáticamente?'
-        );
 
-        if (confirmar) {
+      if (diferencias.length === 0) {
+        alert('✅ Recuento finalizado sin diferencias. Reporte guardado correctamente.');
+      } else {
+        // Si se marcó aplicar ajustes, aplicarlos
+        if (aplicarAjustes) {
           // Aplicar ajustes al stock de la sucursal específica
           for (const ajuste of diferencias) {
             const updateData = {
               updated_at: new Date().toISOString()
             };
-            
+
             // Actualizar solo la sucursal correspondiente
             if (sucursalRecuento === 'la_plata') {
               updateData.cantidad_la_plata = ajuste.stockReal;
@@ -399,14 +431,22 @@ const RepuestosSection = () => {
               .from('repuestos')
               .update(updateData)
               .eq('id', ajuste.id);
-            
+
             if (ajusteError) throw ajusteError;
           }
-          
-          alert('✅ Ajustes aplicados al sistema');
+
+          alert('✅ Recuento guardado y ajustes aplicados al sistema');
           fetchRepuestos(); // Refrescar datos
+        } else {
+          alert(
+            `✅ Recuento finalizado y guardado.\n\n` +
+            `⚠️ Se encontraron ${diferencias.length} diferencias que quedan registradas en el reporte.`
+          );
         }
       }
+
+      // Actualizar historial
+      fetchRecuentosAnteriores();
 
       // Reiniciar formulario
       setRecuentoIniciado(false);
@@ -414,6 +454,7 @@ const RepuestosSection = () => {
       setStockContado({});
       setObservacionesRecuento('');
       setMostrarSoloDiferencias(false);
+      setAplicarAjustes(false);
 
     } catch (err) {
       alert('❌ Error: ' + err.message);
@@ -954,17 +995,34 @@ const RepuestosSection = () => {
         {/* Observaciones del recuento */}
         {recuentoIniciado && (
           <div className="border-t bg-slate-50 p-6">
-            <div className="max-w-2xl">
-              <label className="block text-sm font-medium text-slate-800 mb-2">
-                Observaciones del recuento
-              </label>
-              <textarea
-                value={observacionesRecuento}
-                onChange={(e) => setObservacionesRecuento(e.target.value)}
-                placeholder="Comentarios sobre el recuento, repuestos dañados, faltantes, etc..."
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-600"
-                rows="3"
-              />
+            <div className="max-w-2xl space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-2">
+                  Observaciones del recuento
+                </label>
+                <textarea
+                  value={observacionesRecuento}
+                  onChange={(e) => setObservacionesRecuento(e.target.value)}
+                  placeholder="Comentarios sobre el recuento, repuestos dañados, faltantes, etc..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-600"
+                  rows="3"
+                />
+              </div>
+
+              {diferencias.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="aplicarAjustes"
+                    checked={aplicarAjustes}
+                    onChange={(e) => setAplicarAjustes(e.target.checked)}
+                    className="rounded border-slate-200"
+                  />
+                  <label htmlFor="aplicarAjustes" className="text-sm text-slate-800 cursor-pointer">
+                    Aplicar ajustes al stock automáticamente al finalizar
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1034,6 +1092,181 @@ const RepuestosSection = () => {
           </div>
         )}
       </div>
+
+      {/* Historial de Recuentos */}
+      {!recuentoIniciado && (
+        <div className="bg-white rounded border border-slate-200 mt-4">
+          <div className="p-6 bg-slate-800 text-white cursor-pointer" onClick={() => setMostrarHistorial(!mostrarHistorial)}>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <Eye className="w-6 h-6" />
+                <div>
+                  <h3 className="text-xl font-semibold">Historial de Recuentos</h3>
+                  <p className="text-slate-300 mt-1">Ver recuentos anteriores y sus diferencias</p>
+                </div>
+              </div>
+              {mostrarHistorial ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+            </div>
+          </div>
+
+          {mostrarHistorial && (
+            <div className="p-6">
+              {recuentosAnteriores.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  No hay recuentos registrados
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-800 text-white">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Sucursal</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tipo</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Repuestos Contados</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {recuentosAnteriores.map((recuento, index) => {
+                        const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
+                        const productosContados = JSON.parse(recuento.repuestos_contados || '[]');
+                        const expandido = recuentoExpandido === recuento.id;
+
+                        return (
+                          <React.Fragment key={recuento.id}>
+                            <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                              <td className="py-3 px-4 text-sm text-slate-800">
+                                {new Date(recuento.fecha_recuento).toLocaleDateString('es-AR')}
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
+                                  {recuento.sucursal === 'la_plata' ? 'La Plata' : 'Mitre'}
+                                </span>
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
+                                  {recuento.tipo_recuento}
+                                </span>
+                              </td>
+                              <td className="text-center py-3 px-4 text-sm text-slate-800">
+                                {productosContados.length}
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                {diferencias.length === 0 ? (
+                                  <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs font-medium">
+                                    Sin diferencias
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs font-medium">
+                                    {diferencias.length} diferencias
+                                  </span>
+                                )}
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                <button
+                                  onClick={() => setRecuentoExpandido(expandido ? null : recuento.id)}
+                                  className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mx-auto"
+                                >
+                                  {expandido ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                  {expandido ? 'Ocultar' : 'Ver detalles'}
+                                </button>
+                              </td>
+                            </tr>
+
+                            {expandido && (
+                              <tr>
+                                <td colSpan="6" className="p-6 bg-slate-50">
+                                  <div className="space-y-4">
+                                    {recuento.observaciones && (
+                                      <div className="bg-white border border-slate-200 rounded p-4">
+                                        <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                                          <Eye size={18} />
+                                          Descripción del recuento:
+                                        </h4>
+                                        <p className="text-sm text-slate-700">{recuento.observaciones}</p>
+                                      </div>
+                                    )}
+
+                                    {diferencias.length > 0 && (
+                                      <div>
+                                        <h4 className="font-semibold text-slate-800 mb-3">Diferencias encontradas:</h4>
+                                        <table className="w-full">
+                                          <thead className="bg-slate-700 text-white">
+                                            <tr>
+                                              <th className="px-3 py-2 text-left text-xs">Repuesto</th>
+                                              <th className="px-3 py-2 text-left text-xs">Categoría</th>
+                                              <th className="px-3 py-2 text-center text-xs">Precio Compra (USD)</th>
+                                              <th className="px-3 py-2 text-center text-xs">Stock Sistema</th>
+                                              <th className="px-3 py-2 text-center text-xs">Stock Real</th>
+                                              <th className="px-3 py-2 text-center text-xs">Diferencia</th>
+                                              <th className="px-3 py-2 text-center text-xs">Valor USD</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-slate-200">
+                                            {diferencias.map((dif, idx) => {
+                                              const valorDiferencia = (dif.precio_compra_usd || 0) * dif.diferencia;
+                                              return (
+                                                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                                  <td className="px-3 py-2 text-sm text-slate-800">{dif.item}</td>
+                                                  <td className="px-3 py-2 text-sm text-slate-600">{dif.categoria}</td>
+                                                  <td className="px-3 py-2 text-center text-sm text-slate-600">
+                                                    U${(dif.precio_compra_usd || 0).toFixed(2)}
+                                                  </td>
+                                                  <td className="px-3 py-2 text-center text-sm text-slate-800">{dif.stockSistema}</td>
+                                                  <td className="px-3 py-2 text-center text-sm text-slate-800">{dif.stockReal}</td>
+                                                  <td className="px-3 py-2 text-center text-sm">
+                                                    <span className={`font-medium ${dif.diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                                                      {dif.diferencia > 0 ? '+' : ''}{dif.diferencia}
+                                                    </span>
+                                                  </td>
+                                                  <td className="px-3 py-2 text-center text-sm">
+                                                    <span className={`font-semibold ${valorDiferencia > 0 ? 'text-emerald-600' : valorDiferencia < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                                                      {valorDiferencia > 0 ? '+' : ''}U${valorDiferencia.toFixed(2)}
+                                                    </span>
+                                                  </td>
+                                                </tr>
+                                              );
+                                            })}
+                                          </tbody>
+                                          <tfoot className="bg-slate-800 text-white">
+                                            <tr>
+                                              <td colSpan="6" className="px-3 py-3 text-sm font-semibold text-right">
+                                                TOTAL DIFERENCIA EN USD:
+                                              </td>
+                                              <td className="px-3 py-3 text-center text-sm font-semibold">
+                                                {(() => {
+                                                  const totalUSD = diferencias.reduce((sum, dif) => {
+                                                    return sum + ((dif.precio_compra_usd || 0) * dif.diferencia);
+                                                  }, 0);
+                                                  return (
+                                                    <span className={totalUSD > 0 ? 'text-emerald-300' : totalUSD < 0 ? 'text-red-300' : ''}>
+                                                      {totalUSD > 0 ? '+' : ''}U${totalUSD.toFixed(2)}
+                                                    </span>
+                                                  );
+                                                })()}
+                                              </td>
+                                            </tr>
+                                          </tfoot>
+                                        </table>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

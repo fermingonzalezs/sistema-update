@@ -81,6 +81,20 @@ const libroDiarioService = {
 
     // Si hay movimientos convertidos (del nuevo sistema), usar esos
     const movimientosParaGuardar = asientoData.movimientosConvertidos || asientoData.movimientos;
+
+    // Obtener información de las cuentas para verificar requiere_cotizacion
+    const cuentasIds = movimientosParaGuardar.map(m => m.cuenta_id);
+    const { data: cuentasInfo } = await supabase
+      .from('plan_cuentas')
+      .select('id, requiere_cotizacion, moneda_original')
+      .in('id', cuentasIds);
+
+    const cuentasMap = {};
+    if (cuentasInfo) {
+      cuentasInfo.forEach(c => {
+        cuentasMap[c.id] = c;
+      });
+    }
     
     // Calcular totales USD correctamente (convertir ARS si es necesario)
     let totalDebe = 0;
@@ -153,22 +167,29 @@ const libroDiarioService = {
         };
 
         // Agregar cotización y montos ARS originales si la cuenta la requiere
+        const cuentaInfo = cuentasMap[mov.cuenta_id];
+
+        // Si el movimiento tiene cotización, significa que se ingresó en ARS
         if (mov.cotizacion && mov.cotizacion > 0) {
           movimientoBasico.cotizacion = mov.cotizacion;
-          // Guardar montos originales en campos debe_ars/haber_ars (ya vienen del monto_original_ars)
-          if (mov.monto_original_ars && mov.debe > 0) {
+
+          // Guardar el monto original en ARS que ingresó el usuario
+          if (mov.debe > 0 && mov.monto_original_ars) {
             movimientoBasico.debe_ars = mov.monto_original_ars;
           }
-          if (mov.monto_original_ars && mov.haber > 0) {
+          if (mov.haber > 0 && mov.monto_original_ars) {
             movimientoBasico.haber_ars = mov.monto_original_ars;
           }
-        } else if (mov.cuenta?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
+        } else if (cuentaInfo?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
+          // Si no tiene cotización individual pero la cuenta requiere cotización,
+          // usar cotización promedio del asiento
           movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
-          // Guardar montos originales en campos debe_ars/haber_ars
-          if (mov.monto_original_ars && mov.debe > 0) {
+
+          // Guardar el monto original en ARS
+          if (mov.debe > 0 && mov.monto_original_ars) {
             movimientoBasico.debe_ars = mov.monto_original_ars;
           }
-          if (mov.monto_original_ars && mov.haber > 0) {
+          if (mov.haber > 0 && mov.monto_original_ars) {
             movimientoBasico.haber_ars = mov.monto_original_ars;
           }
         }

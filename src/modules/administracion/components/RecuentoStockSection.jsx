@@ -67,6 +67,7 @@ const recuentoStockService = {
       .from('recuentos_stock')
       .insert([{
         fecha_recuento: recuentoData.fecha,
+        timestamp_recuento: recuentoData.timestamp,
         sucursal: recuentoData.sucursal,
         tipo_recuento: recuentoData.tipo, // 'completo' | 'parcial'
         productos_contados: recuentoData.productosContados,
@@ -87,7 +88,7 @@ const recuentoStockService = {
     const { data, error } = await supabase
       .from('recuentos_stock')
       .select('*')
-      .order('fecha_recuento', { ascending: false })
+      .order('id', { ascending: false })
       .limit(limite);
 
     if (error) throw error;
@@ -240,7 +241,6 @@ const RecuentoStockSection = () => {
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
-  const [categoriasOtros, setCategoriasOtros] = useState([]);
   const [recuentoExpandido, setRecuentoExpandido] = useState(null);
   const [editandoComentario, setEditandoComentario] = useState(null);
   const [nuevoComentario, setNuevoComentario] = useState('');
@@ -248,25 +248,6 @@ const RecuentoStockSection = () => {
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
     fetchRecuentosAnteriores();
-    
-    // Cargar categorías de otros productos
-    const cargarCategoriasOtros = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('otros')
-          .select('categoria')
-          .not('categoria', 'is', null);
-        
-        if (error) throw error;
-        
-        const categoriasUnicas = [...new Set(data.map(item => item.categoria))].sort();
-        setCategoriasOtros(categoriasUnicas);
-      } catch (err) {
-        console.error('Error cargando categorías:', err);
-      }
-    };
-    
-    cargarCategoriasOtros();
   }, []);
 
   useEffect(() => {
@@ -296,23 +277,15 @@ const RecuentoStockSection = () => {
   };
 
   const inventarioFiltrado = inventario.filter(producto => {
-    let cumpleTipo;
-    
-    if (tipoFiltro === 'todos') {
-      cumpleTipo = true;
-    } else if (tipoFiltro === 'computadora' || tipoFiltro === 'celular') {
-      cumpleTipo = producto.tipo === tipoFiltro;
-    } else {
-      // Es una categoría específica de "otros"
-      cumpleTipo = producto.tipo === 'otro' && producto.categoria === tipoFiltro;
-    }
-    
-    const cumpleFiltro = filtro === '' || 
+    // Filtro por tipo (computadora, celular, otro, o todos)
+    const cumpleTipo = tipoFiltro === 'todos' || producto.tipo === tipoFiltro;
+
+    const cumpleFiltro = filtro === '' ||
       producto.modelo?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.nombre_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.descripcion?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.serial?.toLowerCase().includes(filtro.toLowerCase());
-    
+
     if (mostrarSoloDiferencias) {
       let stockSistema;
       const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
@@ -326,7 +299,7 @@ const RecuentoStockSection = () => {
       const stockReal = stockContado[producto.id] || 0;
       return cumpleTipo && cumpleFiltro && (stockReal !== stockSistema);
     }
-    
+
     return cumpleTipo && cumpleFiltro;
   });
 
@@ -335,7 +308,15 @@ const RecuentoStockSection = () => {
     const productosContados = [];
     const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
 
-    inventario.forEach(producto => {
+    // Solo iterar sobre los productos que fueron contados Y que pertenecen al filtro actual
+    Object.keys(stockContado).forEach(productoId => {
+      const producto = inventario.find(p => p.id === parseInt(productoId));
+      if (!producto) return;
+
+      // Verificar que el producto pertenece al filtro actual (solo verificar tipo: computadora, celular, otro)
+      if (tipoFiltro !== 'todos') {
+        if (producto.tipo !== tipoFiltro) return; // No pertenece al tipo seleccionado
+      }
       let stockSistema;
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
@@ -344,38 +325,36 @@ const RecuentoStockSection = () => {
       } else {
         stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
       }
-      const stockReal = stockContado[producto.id];
+      const stockReal = stockContado[productoId];
 
-      if (stockReal !== undefined) {
-        productosContados.push({
-          id: producto.id,
-          tipo: producto.tipo,
-          descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
-          serial: producto.serial || `${producto.tipo}-${producto.id}`,
-          stockSistema,
-          stockReal,
-          sucursal: sucursalSeleccionada
-        });
+      productosContados.push({
+        id: producto.id,
+        tipo: producto.tipo,
+        descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
+        serial: producto.serial || `${producto.tipo}-${producto.id}`,
+        stockSistema,
+        stockReal,
+        sucursal: sucursalSeleccionada
+      });
 
-        if (stockReal !== stockSistema) {
-          // JSON: nombre, serial (si es faltante), diferencia cantidad y diferencia USD (usando precio de COSTO)
-          const diferenciaQuantity = stockReal - stockSistema;
-          const precioCosto = producto.precio_costo_usd || producto.precio_compra_usd || 0;
-          const diferenciaUSD = diferenciaQuantity * precioCosto;
+      if (stockReal !== stockSistema) {
+        // JSON: nombre, serial (si es faltante), diferencia cantidad y diferencia USD (usando precio de COSTO)
+        const diferenciaQuantity = stockReal - stockSistema;
+        const precioCosto = producto.precio_costo_usd || producto.precio_compra_usd || 0;
+        const diferenciaUSD = diferenciaQuantity * precioCosto;
 
-          const diferencia = {
-            nombre: producto.modelo || producto.nombre_producto || producto.descripcion,
-            diferencia_cantidad: diferenciaQuantity,
-            diferencia_usd: diferenciaUSD
-          };
+        const diferencia = {
+          nombre: producto.modelo || producto.nombre_producto || producto.descripcion,
+          diferencia_cantidad: diferenciaQuantity,
+          diferencia_usd: diferenciaUSD
+        };
 
-          // Agregar serial solo cuando es faltante (diferencia negativa)
-          if (diferenciaQuantity < 0) {
-            diferencia.serial = producto.serial || `${producto.tipo}-${producto.id}`;
-          }
-
-          diferencias.push(diferencia);
+        // Agregar serial solo cuando es faltante (diferencia negativa)
+        if (diferenciaQuantity < 0) {
+          diferencia.serial = producto.serial || `${producto.tipo}-${producto.id}`;
         }
+
+        diferencias.push(diferencia);
       }
     });
 
@@ -390,14 +369,29 @@ const RecuentoStockSection = () => {
 
     const { diferencias, productosContados } = calcularDiferencias();
 
+    console.log('📊 Diferencias calculadas:', diferencias);
+    console.log('📦 Productos contados:', productosContados);
+
     if (productosContados.length === 0) {
       alert('No se han contado productos. Debe contar al menos un producto.');
       return;
     }
 
     try {
+      // Obtener fecha y timestamp locales
+      const ahora = new Date();
+
+      // Fecha en formato YYYY-MM-DD (zona horaria local)
+      const fechaLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+
+      // Timestamp completo en ISO format (con zona horaria local)
+      const offset = ahora.getTimezoneOffset();
+      const localTime = new Date(ahora.getTime() - (offset * 60 * 1000));
+      const timestampLocal = localTime.toISOString();
+
       const recuentoData = {
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: fechaLocal,
+        timestamp: timestampLocal,
         sucursal: sucursalSeleccionada,
         tipo: productosContados.length === inventario.length ? 'completo' : 'parcial',
         productosContados: JSON.stringify(productosContados),
@@ -406,19 +400,14 @@ const RecuentoStockSection = () => {
       };
 
       await guardarRecuento(recuentoData);
-      
-      if (diferencias.length === 0) {
-        alert('✅ Recuento finalizado sin diferencias');
-      } else {
-        const confirmar = confirm(
-          `⚠️ Se encontraron ${diferencias.length} diferencias.\n\n` +
-          '¿Desea aplicar los ajustes al sistema automáticamente?'
-        );
 
-        if (confirmar) {
-          await aplicarAjustes(diferencias);
-          alert('✅ Ajustes aplicados al sistema');
-        }
+      if (diferencias.length === 0) {
+        alert('✅ Recuento finalizado sin diferencias. Reporte guardado correctamente.');
+      } else {
+        alert(
+          `✅ Recuento finalizado y guardado.\n\n` +
+          `⚠️ Se encontraron ${diferencias.length} diferencias que quedan registradas en el reporte.`
+        );
       }
 
       // Reiniciar formulario
@@ -442,7 +431,14 @@ const RecuentoStockSection = () => {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-AR');
+    // Parsear la fecha como local, no como UTC
+    const [year, month, day] = fecha.split('-');
+    const fechaLocal = new Date(year, month - 1, day);
+    return fechaLocal.toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const iniciarEdicionComentario = (recuentoId, comentarioActual) => {
@@ -592,13 +588,9 @@ const RecuentoStockSection = () => {
               disabled={!sucursalSeleccionada}
             >
               <option value="todos">Todos los tipos</option>
-              <option value="computadora">Notebooks (disponibles)</option>
-              <option value="celular">Celulares (disponibles)</option>
-              {categoriasOtros.map(categoria => (
-                <option key={categoria} value={categoria}>
-                  {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
-                </option>
-              ))}
+              <option value="computadora">Notebooks</option>
+              <option value="celular">Celulares</option>
+              <option value="otro">Otros</option>
             </select>
           </div>
           <div>
@@ -672,6 +664,13 @@ const RecuentoStockSection = () => {
                         <div>
                           <div className="font-medium text-slate-800 flex items-center gap-2">
                             {producto.modelo || producto.nombre_producto || producto.descripcion}
+                            {/* Info adicional para celulares */}
+                            {producto.tipo === 'celular' && (
+                              <span className="text-sm font-normal text-slate-600">
+                                {producto.capacidad && `• ${producto.capacidad}`}
+                                {producto.color && ` • ${producto.color}`}
+                              </span>
+                            )}
                             {/* Indicador solo para condiciones especiales */}
                             {(['reparacion', 'prestado', 'sin_reparacion'].includes(producto.condicion)) && (
                               <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">{producto.condicion.toUpperCase()}</span>

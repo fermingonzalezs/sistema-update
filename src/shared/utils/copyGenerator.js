@@ -230,29 +230,31 @@ const hasValidStorage = (value) => {
 
 /**
  * Generar copy para notebooks
- * SIMPLE: 💻 MODELO - PROCESADOR - MEMORIA TIPO - GPU VRAM - PANTALLA RESOLUCION HZ - SSD - HDD - BATERIA DURACION - PRECIO
- * COMPLETO: SERIAL - MODELO - PROCESADOR - MEMORIA TIPO - GPU VRAM - PANTALLA RESOLUCION HZ - SSD - HDD - BATERIA DURACION - SO - COLOR - IDIOMA - ESTADO - FALLAS - OBSERVACIONES
+ * NUEVAS: 💻 MODELO - PROCESADOR - MEMORIA - ALMACENAMIENTO - PANTALLA - PRECIO
+ * USADAS/REFURBISHED: 💻 MODELO - PROCESADOR - MEMORIA - ALMACENAMIENTO - PANTALLA - 🔋 BATERIA DURACION - ESTADO ESTÉTICO - PRECIO
  */
 const generateNotebookCopy = (comp, config) => {
   const partes = [];
-  
+
+  // Determinar si es nueva o usada/refurbished
+  const condicion = (comp.condicion || '').toLowerCase();
+  const esNueva = condicion === 'nuevo' || condicion === 'nueva';
+
   // Emoji solo en versión simple
   if (config.includeEmojis) {
     partes.push('💻');
   }
-  
-  // SERIAL removido del copy - ahora se muestra en columna separada
-  
+
   // 1. MODELO
   const modelo = comp.modelo || 'Sin modelo';
   partes.push(modelo.toUpperCase());
-  
+
   // 2. PROCESADOR
   if (comp.procesador) {
     partes.push(comp.procesador.toUpperCase());
   }
-  
-  // 3. MEMORIA TIPO
+
+  // 3. MEMORIA
   if (comp.memoria_ram || comp.ram) {
     const ram = comp.memoria_ram || comp.ram;
     const tipoRam = comp.tipo_ram || 'DDR4';
@@ -260,18 +262,23 @@ const generateNotebookCopy = (comp, config) => {
     const ramLimpio = String(ram).replace(/GB/gi, '');
     partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
   }
-  
-  // 4. GPU VRAM (PLACA VIDEO)
-  if (comp.placa_video || comp.placa_de_video || comp.gpu) {
-    let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
-    if (comp.vram && comp.vram > 0) {
-      // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-      const vramLimpio = String(comp.vram).replace(/GB/gi, '');
-      gpu += ` ${vramLimpio}GB`;
-    }
-    partes.push(gpu.toUpperCase());
+
+  // 4. ALMACENAMIENTO (después de memoria, antes de pantalla)
+  const almacenamientos = [];
+  if (hasValidStorage(comp.ssd)) {
+    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
+    const unit = String(comp.ssd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    almacenamientos.push(`${ssdLimpio}${unit} SSD`);
   }
-  
+  if (hasValidStorage(comp.hdd)) {
+    const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
+    const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    almacenamientos.push(`${hddLimpio}${unit} HDD`);
+  }
+  if (almacenamientos.length > 0) {
+    partes.push(almacenamientos.join(' + '));
+  }
+
   // 5. PANTALLA Y RESOLUCIÓN JUNTAS
   let pantallaResolucion = '';
   if (comp.pantalla) {
@@ -295,69 +302,41 @@ const generateNotebookCopy = (comp, config) => {
   if (pantallaResolucion) {
     partes.push(pantallaResolucion);
   }
-  
-  // 6. SSD
-  if (hasValidStorage(comp.ssd)) {
-    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
-    // If the original value had TB, keep TB, otherwise add GB
-    const unit = String(comp.ssd).toLowerCase().includes('tb') ? 'TB' : 'GB';
-    partes.push(`${ssdLimpio}${unit} SSD`);
-  } else {
-    partes.push('Sin SSD');
-  }
-  
-  // 7. HDD - Solo mostrar si tiene HDD válido
-  if (hasValidStorage(comp.hdd)) {
-    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
-    // If the original value had TB, keep TB, otherwise add GB
-    const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
-    partes.push(`${hddLimpio}${unit} HDD`);
-  }
-  // No agregar "Sin HDD" cuando no tiene HDD
-  
-  // 8. CONDICIÓN Y ESTADO (después de almacenamiento, antes de precio)
-  if (comp.condicion) {
-    const condicion = comp.condicion.toLowerCase();
-    // Normalizar texto de condición para display
-    let condicionDisplay = '';
-    switch (condicion) {
-      case 'nuevo': condicionDisplay = 'NUEVO'; break;
-      case 'usado': condicionDisplay = 'USADO'; break;
-      case 'refurbished': condicionDisplay = 'REFURBISHED'; break;
-      case 'reparacion': condicionDisplay = 'REPARACIÓN'; break;
-      case 'reservado': condicionDisplay = 'RESERVADO'; break;
-      case 'prestado': condicionDisplay = 'PRESTADO'; break;
-      case 'sin_reparacion': condicionDisplay = 'SIN REPARACIÓN'; break;
-      case 'uso_oficina': condicionDisplay = 'USO OFICINA'; break;
-      default: condicionDisplay = comp.condicion.toUpperCase();
+
+  // 6. GPU VRAM (AL FINAL, después de pantalla)
+  if (comp.placa_video || comp.placa_de_video || comp.gpu) {
+    let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
+    if (comp.vram && comp.vram > 0) {
+      // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
+      const vramLimpio = String(comp.vram).replace(/GB/gi, '');
+      gpu += ` ${vramLimpio}GB`;
     }
-    partes.push(condicionDisplay);
+    partes.push(gpu.toUpperCase());
   }
 
-  // 9. ESTADO ESTÉTICO
-  if (comp.estado) {
-    const estado = comp.estado.toUpperCase();
-    partes.push(estado);
-  }
+  // 7. BATERÍA Y ESTADO - SOLO para USADAS/REFURBISHED (antes del precio)
+  if (!esNueva) {
+    // Batería con emoji 🔋
+    let bateriaInfo = '';
+    if (comp.porcentaje_de_bateria || comp.bateria) {
+      const bateria = comp.porcentaje_de_bateria || comp.bateria;
+      const bateriaLimpio = String(bateria).replace(/%/g, '');
+      bateriaInfo = `🔋 ${bateriaLimpio}%`;
+    }
+    if (comp.duracion_bateria && comp.duracion_bateria > 0) {
+      const duracion = comp.duracion_bateria;
+      const duracionLimpio = String(duracion).replace(/H/gi, '');
+      bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `🔋 ${duracionLimpio}H`;
+    }
+    if (bateriaInfo) {
+      partes.push(bateriaInfo);
+    }
 
-  // 10. BATERIA DURACION
-  let bateriaInfo = '';
-  if (comp.porcentaje_de_bateria || comp.bateria) {
-    const bateria = comp.porcentaje_de_bateria || comp.bateria;
-    // Limpiar duplicaciones: quitar "%" si ya viene en el valor
-    const bateriaLimpio = String(bateria).replace(/%/g, '');
-    bateriaInfo = `${bateriaLimpio}%`;
-  }
-  if (comp.duracion_bateria && comp.duracion_bateria > 0) {
-    const duracion = comp.duracion_bateria;
-    // Limpiar duplicaciones: quitar "H" si ya viene en el valor
-    const duracionLimpio = String(duracion).replace(/H/gi, '');
-    bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `${duracionLimpio}H`;
-  }
-  if (bateriaInfo) {
-    partes.push(bateriaInfo);
+    // Estado estético
+    if (comp.estado) {
+      const estado = comp.estado.toUpperCase();
+      partes.push(estado);
+    }
   }
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
@@ -417,29 +396,33 @@ const generateNotebookCopy = (comp, config) => {
 
 /**
  * Generar copy para celulares
- * SIMPLE: 📱 MODELO - CAPACIDAD - COLOR - BATERIA - PRECIO
- * COMPLETO: IMEI - MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - FALLAS - OBSERVACIONES - PROVEEDOR
+ * NUEVOS: 📱 MODELO - CAPACIDAD - COLOR - PRECIO (sin batería, sin estado)
+ * USADOS/REFURBISHED: 📱 MODELO - CAPACIDAD - COLOR - 🔋 BATERIA - ESTADO ESTÉTICO - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
   const partes = [];
-  
+
+  // Determinar si es nuevo o usado/refurbished
+  const condicion = (cel.condicion || '').toLowerCase();
+  const esNuevo = condicion === 'nuevo' || condicion === 'nueva';
+
   // Emoji solo en versión simple
   if (config.includeEmojis) {
     partes.push('📱');
   }
-  
+
   // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
-  
+
   // 1. MODELO (sin marca al principio)
   const modelo = cel.modelo || 'Sin modelo';
   partes.push(modelo.toUpperCase());
-  
+
   // 2. CAPACIDAD
   if (cel.capacidad) {
     // La capacidad ya viene formateada (ej: "256GB"), no agregar más unidades
     partes.push(cel.capacidad.toUpperCase());
   }
-  
+
   // 3. COLOR
   if (cel.color) {
     if (config.style === 'completo') {
@@ -448,24 +431,32 @@ const generateCelularCopy = (cel, config) => {
       partes.push(cel.color.toUpperCase());
     }
   }
-  
-  // 4. BATERIA (incluir ciclos si está disponible)
-  let bateriaInfo = '';
-  if (cel.bateria || cel.porcentaje_de_bateria) {
-    const bateria = cel.bateria || cel.porcentaje_de_bateria;
-    // Limpiar duplicaciones: quitar "%" si ya viene en el valor
-    const bateriaLimpio = String(bateria).replace(/%/g, '');
-    bateriaInfo = `${bateriaLimpio}%`;
+
+  // 4. BATERÍA Y ESTADO - SOLO para USADOS/REFURBISHED (antes del precio)
+  if (!esNuevo) {
+    // Batería con emoji 🔋
+    let bateriaInfo = '';
+    if (cel.bateria || cel.porcentaje_de_bateria) {
+      const bateria = cel.bateria || cel.porcentaje_de_bateria;
+      const bateriaLimpio = String(bateria).replace(/%/g, '');
+      bateriaInfo = `🔋 ${bateriaLimpio}%`;
+    }
+    if (cel.ciclos_bateria && cel.ciclos_bateria > 0) {
+      const ciclos = cel.ciclos_bateria;
+      bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `🔋 ${ciclos} ciclos`;
+    }
+    if (bateriaInfo) {
+      partes.push(bateriaInfo);
+    }
+
+    // Estado estético
+    if (cel.estado) {
+      const estado = cel.estado.toUpperCase();
+      partes.push(estado);
+    }
   }
-  if (cel.ciclos_bateria && cel.ciclos_bateria > 0) {
-    const ciclos = cel.ciclos_bateria;
-    bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `${ciclos} ciclos`;
-  }
-  if (bateriaInfo) {
-    partes.push(bateriaInfo);
-  }
-  
-  // 5. ESTADO - Removido del copy según requerimientos
+
+  // 5. CAMPOS ADICIONALES - Removidos según nuevos requerimientos
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {

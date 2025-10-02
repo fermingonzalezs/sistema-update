@@ -194,14 +194,34 @@ export const normalizeUbicacion = (ubicacion) => {
 
   const normalized = ubicacion.toLowerCase().trim();
 
-  // Mapeo de valores legacy
+  // Mapeo de valores legacy (todo en minúsculas porque normalized ya está en minúsculas)
   const legacyMap = {
     'la plata': UBICACIONES.LA_PLATA,
-    'LA PLATA': UBICACIONES.LA_PLATA,
-    'MITRE': UBICACIONES.MITRE,
-    'RSN/IDM/FIXCENTER': UBICACIONES.RSN_IDM_FIXCENTER,
-    'rsn/idm/fixcenter': UBICACIONES.RSN_IDM_FIXCENTER
+    'mitre': UBICACIONES.MITRE,
+    'rsn/idm/fixcenter': UBICACIONES.RSN_IDM_FIXCENTER,
+    'la_plata': UBICACIONES.LA_PLATA,
+    'rsn_idm_fixcenter': UBICACIONES.RSN_IDM_FIXCENTER
   };
 
   return legacyMap[normalized] || normalized;
+};
+
+/**
+ * Normaliza un valor de estado estético
+ * @param {string} estado - Valor original
+ * @returns {string} Valor normalizado
+ */
+export const normalizeEstado = (estado) => {
+  if (!estado) return null;
+
+  const normalized = estado.toUpperCase().trim();
+
+  // Los valores válidos son: A+, A, A-, B+, B
+  const validEstados = ['A+', 'A', 'A-', 'B+', 'B'];
+
+  if (validEstados.includes(normalized)) {
+    return normalized;
+  }
+
+  return null;
 };

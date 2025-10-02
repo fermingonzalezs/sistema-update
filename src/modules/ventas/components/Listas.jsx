@@ -16,20 +16,26 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     celulares: [],
     notebooks: []
   });
-  
+
+  // Estado para ordenamiento
+  const [ordenamiento, setOrdenamiento] = useState({
+    campo: 'precio_venta_usd', // Por defecto ordenar por precio
+    direccion: 'asc' // 'asc' o 'desc'
+  });
+
   // Mensajes personalizables por tipo
   const [mensajes, setMensajes] = useState({
     computadora: {
       inicial: '🔥 NOTEBOOKS DISPONIBLES 🔥',
-      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
+      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 3 meses\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
     },
     celular: {
       inicial: '📱 CELULARES DISPONIBLES 📱',
-      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
+      final: '✅ EQUIPOS ORIGINALES DE APPLE\n 100% Nuevos\n Sellados en caja\n Garantía oficial de Apple\n La garantía se gestiona directamente con Apple sin excepción\n\n🛡️ GARANTÍAS\n Productos nuevos: garantía oficial.\n Productos usados o reacondicionados: 1 mes\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
     },
     otro: {
       inicial: '📦 ACCESORIOS Y MÁS 📦',
-      final: '🛡️ GARANTÍAS\nProductos nuevos 6 meses.\nProductos reacondicionados 3 meses.\n\n💳 MÉTODOS DE PAGO\nEfectivo (pesos o dólares)\nTransferencia (+5%)\nTarjeta de crédito (+30% en hasta 3 cuotas)\nCriptomonedas\n\n🏢 OFICINAS\nTenemos dos sucursales, una en el centro de La Plata y otra en Microcentro (CABA).'
+      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 3 meses\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
     }
   });
 
@@ -123,8 +129,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     return cond;
   };
 
+  // Función para cambiar ordenamiento
+  const actualizarOrdenamiento = (campo) => {
+    setOrdenamiento(prev => ({
+      campo,
+      direccion: prev.campo === campo && prev.direccion === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   // Filtrar productos con filtros avanzados
-  const productosFiltrados = productosConCopy.filter(producto => {
+  let productosFiltrados = productosConCopy.filter(producto => {
     // FILTRO PRINCIPAL: Solo mostrar condiciones permitidas para listas
     const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada'];
     const condicionProducto = (producto.condicion || '').toLowerCase();
@@ -211,6 +225,34 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
     return cumpleBusqueda && cumpleFiltros;
   });
+
+  // Aplicar ordenamiento
+  if (ordenamiento.campo) {
+    productosFiltrados = [...productosFiltrados].sort((a, b) => {
+      let valorA = a[ordenamiento.campo];
+      let valorB = b[ordenamiento.campo];
+
+      // Manejar precios
+      if (ordenamiento.campo === 'precio_venta_usd') {
+        valorA = parseFloat(valorA) || 0;
+        valorB = parseFloat(valorB) || 0;
+      }
+
+      // Manejar fechas
+      if (ordenamiento.campo === 'fecha_ingreso' || ordenamiento.campo === 'created_at') {
+        valorA = new Date(valorA || 0).getTime();
+        valorB = new Date(valorB || 0).getTime();
+      }
+
+      // Normalizar strings
+      if (typeof valorA === 'string') valorA = valorA.toLowerCase();
+      if (typeof valorB === 'string') valorB = valorB.toLowerCase();
+
+      if (valorA < valorB) return ordenamiento.direccion === 'asc' ? -1 : 1;
+      if (valorA > valorB) return ordenamiento.direccion === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -644,72 +686,80 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const tipoConfig = getTipoConfig(tipoActivo);
 
   return (
-    <div className="p-0">
-      
-
+    <div className="space-y-4">
       {/* Tabs para tipos de productos */}
-      <div className="bg-slate-800 p-6 rounded border border-slate-200 mb-6">
-        <div className="flex space-x-1 bg-slate-700 p-1 rounded">
-          {['computadora', 'celular', 'otro'].map((tipo) => {
-            const config = getTipoConfig(tipo);
-            const Icon = config.icon;
-            return (
-              <button
-                key={tipo}
-                onClick={() => setTipoActivo(tipo)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
-                  tipoActivo === tipo
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-white hover:text-slate-800 hover:bg-white'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{config.label}</span>
-                <span className="text-sm opacity-75">
-                  ({tipo === 'computadora' ? computers.length : 
-                    tipo === 'celular' ? celulares.length : otros.length})
-                </span>
-              </button>
-            );
-          })}
+      <div className="bg-white rounded border border-slate-200">
+        <div className="p-4">
+          <div className="flex space-x-1 bg-slate-100 p-1 rounded">
+            {['computadora', 'celular', 'otro'].map((tipo) => {
+              const config = getTipoConfig(tipo);
+              const Icon = config.icon;
+              return (
+                <button
+                  key={tipo}
+                  onClick={() => setTipoActivo(tipo)}
+                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
+                    tipoActivo === tipo
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{config.label}</span>
+                  <span className={`text-sm px-2 py-0.5 rounded ${
+                    tipoActivo === tipo
+                      ? 'bg-emerald-700 text-white'
+                      : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {tipo === 'computadora' ? computers.length :
+                      tipo === 'celular' ? celulares.length : otros.length}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Sección de filtros avanzados y presets */}
-      <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-slate-800 flex items-center space-x-2">
-            <Filter className="w-5 h-5" />
-            <span>Selección por Filtros</span>
-          </h3>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setModoFiltros(!modoFiltros)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                modoFiltros 
-                  ? 'bg-emerald-100 text-emerald-700' 
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
-            </button>
-            {modoFiltros && (
+      <div className="bg-white rounded border border-slate-200">
+        <div className="px-4 py-3 bg-slate-800 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5" />
+              <h3 className="text-base font-semibold">Filtros y Selección</h3>
+            </div>
+            <div className="flex space-x-2">
               <button
-                onClick={limpiarFiltros}
-                className="px-3 py-1 bg-slate-100 text-slate-700 rounded text-sm font-medium hover:bg-slate-200"
+                onClick={() => setModoFiltros(!modoFiltros)}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  modoFiltros
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
               >
-                Limpiar
+                {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
               </button>
-            )}
+              {modoFiltros && (
+                <button
+                  onClick={limpiarFiltros}
+                  className="px-3 py-1.5 bg-slate-700 text-white rounded text-sm font-medium hover:bg-slate-600 transition-colors"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Filtros prearmados */}
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-slate-700 mb-2 flex items-center space-x-1">
-            <Zap className="w-4 h-4" />
-            <span>Filtros Prearmados</span>
-          </h4>
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+
+          {/* Filtros prearmados */}
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-slate-800 mb-3 flex items-center space-x-2">
+              <Zap className="w-4 h-4" />
+              <span>Filtros Rápidos</span>
+            </h4>
           <div className="flex flex-wrap gap-2">
             {/* Filtros para celulares */}
             <button
@@ -921,22 +971,26 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
           </div>
         )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Columna izquierda: Configuración de mensajes */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Mensaje inicial */}
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-800">Mensaje Inicial</h3>
-              <button
-                onClick={() => iniciarEdicionMensaje(tipoActivo, 'inicial')}
-                className="text-slate-500 hover:text-slate-700"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+          <div className="bg-white rounded border border-slate-200">
+            <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Mensaje Inicial</h3>
+                <button
+                  onClick={() => iniciarEdicionMensaje(tipoActivo, 'inicial')}
+                  className="text-white hover:text-emerald-400 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
+            <div className="p-4">
             
             {editandoMensaje === `${tipoActivo}-inicial` ? (
               <div className="space-y-3">
@@ -964,23 +1018,27 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-50 p-3 rounded text-sm whitespace-pre-line">
+              <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
                 {mensajes[tipoActivo].inicial}
               </div>
             )}
+            </div>
           </div>
 
           {/* Mensaje final */}
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-800">Mensaje Final</h3>
-              <button
-                onClick={() => iniciarEdicionMensaje(tipoActivo, 'final')}
-                className="text-slate-500 hover:text-slate-700"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+          <div className="bg-white rounded border border-slate-200">
+            <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Mensaje Final</h3>
+                <button
+                  onClick={() => iniciarEdicionMensaje(tipoActivo, 'final')}
+                  className="text-white hover:text-emerald-400 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
+            <div className="p-4">
             
             {editandoMensaje === `${tipoActivo}-final` ? (
               <div className="space-y-3">
@@ -1008,19 +1066,27 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-50 p-3 rounded text-sm whitespace-pre-line">
+              <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
                 {mensajes[tipoActivo].final}
               </div>
             )}
+            </div>
           </div>
 
           {/* Botón para copiar lista */}
           {seleccionados.size > 0 && (
-            <div className="bg-white p-6 rounded border border-slate-200">
-              <h3 className="font-semibold text-slate-800 mb-4">Lista Generada</h3>
-              <div className="space-y-3">
-                <div className="text-sm text-slate-600">
-                  {seleccionados.size} producto{seleccionados.size !== 1 ? 's' : ''} seleccionado{seleccionados.size !== 1 ? 's' : ''}
+            <div className="bg-white rounded border border-slate-200">
+              <div className="px-4 py-2 bg-emerald-600 text-white border-b border-emerald-700">
+                <h3 className="text-sm font-semibold flex items-center space-x-2">
+                  <Check className="w-4 h-4" />
+                  <span>Lista Generada</span>
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
+                  <p className="text-xs font-medium text-emerald-800">
+                    {seleccionados.size} producto{seleccionados.size !== 1 ? 's' : ''} seleccionado{seleccionados.size !== 1 ? 's' : ''}
+                  </p>
                 </div>
                 <button
                   onClick={copiarListaCompleta}
@@ -1039,47 +1105,78 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         </div>
 
         {/* Columna derecha: Tabla de productos */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Búsqueda y controles */}
-          <div className="bg-white p-6 rounded border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-800">
-                {tipoConfig.label} Disponibles ({productosFiltrados.length})
-              </h3>
-              <button
-                onClick={seleccionarTodos}
-                className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                }`}
-              >
-                {seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0 
-                  ? 'Deseleccionar Todos' 
-                  : 'Seleccionar Todos'
-                }
-              </button>
+          <div className="bg-white rounded border border-slate-200">
+            <div className="px-4 py-3 bg-slate-800 text-white border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold flex items-center space-x-2">
+                  <Search className="w-5 h-5" />
+                  <span>{tipoConfig.label} Disponibles</span>
+                  <span className="bg-emerald-600 px-2 py-0.5 rounded text-xs">
+                    {productosFiltrados.length}
+                  </span>
+                </h3>
+                <button
+                  onClick={seleccionarTodos}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
+                      ? 'bg-slate-700 text-white hover:bg-slate-600'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  }`}
+                >
+                  {seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
+                    ? 'Deseleccionar Todos'
+                    : 'Seleccionar Todos'
+                  }
+                </button>
+              </div>
             </div>
-            
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder={`Buscar ${tipoConfig.label.toLowerCase()}...`}
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-              />
+
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Búsqueda */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Buscar</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder={`Buscar ${tipoConfig.label.toLowerCase()}...`}
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Ordenamiento */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Ordenar por</label>
+                  <select
+                    value={ordenamiento.campo}
+                    onChange={(e) => actualizarOrdenamiento(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Sin ordenar</option>
+                    <option value="modelo">Modelo</option>
+                    <option value="marca">Marca</option>
+                    <option value="precio_venta_usd">Precio</option>
+                    <option value="condicion">Condición</option>
+                    <option value="fecha_ingreso">Fecha Ingreso</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Tabla de productos */}
           <div className="bg-white rounded border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+              <table className="w-full">
+                <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase w-12 sticky left-0 bg-slate-50 z-10 border-r border-slate-200">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider w-12">
                       <input
                         type="checkbox"
                         checked={seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0}
@@ -1087,16 +1184,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[100px]">Serial</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[200px]">Modelo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[100px]">Precio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase min-w-[400px]">Copy</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[100px]">Serial</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[150px]">Modelo</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[80px]">Precio</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[500px]">Copy del Producto</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
-                  {productosFiltrados.map((producto) => (
-                    <tr key={producto.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white hover:bg-slate-50 z-10 border-r border-slate-200">
+                <tbody className="divide-y divide-slate-200">
+                  {productosFiltrados.map((producto, index) => (
+                    <tr key={producto.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-emerald-50 transition-colors`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={seleccionados.has(producto.id)}
@@ -1104,17 +1201,17 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                           className="rounded border-slate-300"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-800">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-700">
                         {producto.tipo === 'otro' ? producto.id : (producto.serial || 'N/A')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-800">
                         {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">
-                        ${Math.round(producto.precio_venta_usd || 0)}
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-emerald-700">
+                        USD {Math.round(producto.precio_venta_usd || 0)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800 font-mono">
-                        <div className="whitespace-pre-wrap break-words min-w-[400px] max-w-none">
+                      <td className="px-4 py-3 text-sm text-slate-700 font-mono">
+                        <div className="whitespace-pre-wrap break-words">
                           {producto.copy}
                         </div>
                       </td>
@@ -1125,7 +1222,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
 
             {productosFiltrados.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-12 bg-white">
                 <tipoConfig.icon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>
               </div>

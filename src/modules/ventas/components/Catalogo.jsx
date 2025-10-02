@@ -24,7 +24,10 @@ import {
   getCondicionLabel,
   getEstadoLabel,
   getUbicacionLabel,
-  getCondicionColor
+  getCondicionColor,
+  normalizeCondicion,
+  normalizeUbicacion,
+  normalizeEstado
 } from '../../../shared/constants/productConstants';
 
 import {
@@ -126,9 +129,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         });
       }
       
-      // Agregar estado y precio al final
-      const estado = producto.condicion || producto.estado || 'Sin estado';
-      return `${infoBase} - Estado: ${estado} - Precio: ${precio}`;
+      // Agregar precio al final (el estado ya está incluido en infoBase si es necesario)
+      return `${infoBase} - Precio: ${precio}`;
     } catch (error) {
       console.error('Error generando copy:', error);
       return `Error al generar información del producto: ${producto.modelo || 'Sin modelo'}`;
@@ -324,8 +326,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           serial: editForm.serial,
           marca: editForm.marca,
           color: editForm.color,
-          condicion: editForm.condicion,
-          sucursal: editForm.sucursal,
+          condicion: normalizeCondicion(editForm.condicion),
+          sucursal: normalizeUbicacion(editForm.sucursal),
           
           // Precios y costos
           precio_costo_usd: editForm.precio_costo_usd ? parseFloat(editForm.precio_costo_usd) : null,
@@ -341,6 +343,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           ssd: editForm.ssd,
           hdd: editForm.hdd,
           so: editForm.so,
+          estado: normalizeEstado(editForm.estado),
           placa_video: editForm.placa_video,
           vram: editForm.vram,
           
@@ -370,8 +373,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           serial: editForm.serial,
           marca: editForm.marca,
           color: editForm.color,
-          condicion: editForm.condicion,
-          sucursal: editForm.sucursal,
+          condicion: normalizeCondicion(editForm.condicion),
+          sucursal: normalizeUbicacion(editForm.sucursal),
           
           // Precios
           precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
@@ -379,7 +382,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           
           // Especificaciones técnicas
           capacidad: editForm.capacidad,
-          estado: editForm.estado,
+          estado: normalizeEstado(editForm.estado),
           bateria: editForm.bateria,
           ciclos: editForm.ciclos,
           
@@ -397,7 +400,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           descripcion: editForm.descripcion,
           cantidad_la_plata: editForm.cantidad_la_plata ? parseInt(editForm.cantidad_la_plata) : 0,
           cantidad_mitre: editForm.cantidad_mitre ? parseInt(editForm.cantidad_mitre) : 0,
-          condicion: editForm.condicion,
+          condicion: normalizeCondicion(editForm.condicion),
           
           // Precios
           precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
