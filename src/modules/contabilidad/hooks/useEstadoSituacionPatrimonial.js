@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -86,7 +87,7 @@ export const estadoSituacionPatrimonialService = {
     console.log('📡 Obteniendo Balance General...', { fechaCorte });
 
     try {
-      const fecha = fechaCorte || new Date().toISOString().split('T')[0];
+      const fecha = fechaCorte || obtenerFechaLocal();
 
       // Primero obtener asientos hasta la fecha de corte
       const { data: asientos, error: errorAsientos } = await supabase

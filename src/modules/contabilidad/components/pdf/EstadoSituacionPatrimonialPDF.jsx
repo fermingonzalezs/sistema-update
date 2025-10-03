@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
-import { formatearMonto } from '../../../../shared/utils/formatters';
+import { formatearMonto, formatearFechaReporte } from '../../../../shared/utils/formatters';
 
 // Registrar la fuente
 Font.register({
@@ -55,73 +55,103 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 1.4,
   },
-  
-  documentTitle: {
-    fontSize: 16,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    textAlign: 'right',
-    marginBottom: 5,
-  },
-  
+
   documentInfo: {
     fontSize: 9,
     color: '#6B7280',
     textAlign: 'right',
     lineHeight: 1.4,
   },
-  
-  dateInfo: {
-    backgroundColor: '#F8FAFC',
-    padding: 15,
+
+  titleSection: {
+    backgroundColor: '#1e293b',
+    padding: 20,
     marginBottom: 20,
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-  },
-  
-  dateText: {
-    fontSize: 10,
-    color: '#1F2937',
-    fontFamily: 'Roboto',
-    marginBottom: 5,
-  },
-  
-  // Resumen Cards
-  summarySection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 10,
-  },
-  
-  summaryCard: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-    padding: 12,
-    borderRadius: 4,
     alignItems: 'center',
   },
-  
-  summaryTitle: {
-    fontSize: 8,
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    marginBottom: 5,
-  },
-  
-  summaryValue: {
-    fontSize: 12,
-    color: '#1F2937',
+
+  mainTitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
     fontFamily: 'Roboto',
-    marginBottom: 2,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+
+  dateText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   
-  summaryDetail: {
-    fontSize: 7,
-    color: '#6B7280',
+  // Resumen
+  resultSection: {
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  
+
+  summaryHeader: {
+    backgroundColor: '#1e293b',
+    padding: 12,
+    marginBottom: 0,
+  },
+
+  summaryHeaderText: {
+    fontSize: 11,
+    fontFamily: 'Roboto',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+
+  resultFinal: {
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  resultFinalLabel: {
+    fontSize: 11,
+    fontFamily: 'Roboto',
+    color: '#1F2937',
+  },
+
+  resultFinalValue: {
+    fontSize: 16,
+    fontFamily: 'Roboto',
+    color: '#1F2937',
+  },
+
+  balanceStatus: {
+    padding: 15,
+    paddingTop: 10,
+    alignItems: 'center',
+  },
+
+  balanceStatusText: {
+    fontSize: 10,
+    fontFamily: 'Roboto',
+    textAlign: 'center',
+  },
+
+  balanceOk: {
+    color: '#10B981',
+  },
+
+  balanceError: {
+    color: '#DC2626',
+  },
+
+  diferenceText: {
+    fontSize: 9,
+    color: '#DC2626',
+    marginTop: 3,
+    textAlign: 'center',
+  },
+
   // Secciones principales
   sectionContainer: {
     marginBottom: 15,
@@ -276,46 +306,53 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>UPDATE TECH WW SRL</Text>
             <Text style={styles.companyDetails}>
-              Avenida 44 N° 862 1/2 Piso 4{'\n'}
-              La Plata, Buenos Aires, Argentina{'\n'}
-              Tel: 221-641-9901 • CUIT: 30-71850553-2
+              44 N° 862 1/2 Piso 4, La Plata{'\n'}
+              Bartolomé Mitre 797 Piso 14 Oficina 1{'\n'}
+              CUIT: 30-71850553-2
             </Text>
           </View>
           <View>
-            <Text style={styles.documentTitle}>Estado de Situación Patrimonial</Text>
             <Text style={styles.documentInfo}>
               Generado: {fechaGeneracion}
             </Text>
           </View>
         </View>
 
-        {/* Información de fecha */}
-        <View style={styles.dateInfo}>
+        {/* Título y fecha con fondo slate */}
+        <View style={styles.titleSection}>
+          <Text style={styles.mainTitle}>ESTADO DE SITUACIÓN PATRIMONIAL</Text>
           <Text style={styles.dateText}>
-            Fecha de Corte: {new Date(fechaCorte).toLocaleDateString('es-AR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            })}
+            Fecha de Corte: {formatearFechaReporte(fechaCorte)}
           </Text>
         </View>
 
-        {/* Resumen Ejecutivo */}
-        <View style={styles.summarySection}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Total Activos</Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.totalActivos)}</Text>
-            <Text style={styles.summaryDetail}>{data.activos?.length || 0} categorías</Text>
+        {/* Resumen */}
+        <View style={styles.resultSection}>
+          <View style={styles.summaryHeader}>
+            <Text style={styles.summaryHeaderText}>ECUACIÓN PATRIMONIAL</Text>
           </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Total Pasivos</Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.totalPasivos)}</Text>
-            <Text style={styles.summaryDetail}>{data.pasivos?.length || 0} categorías</Text>
+
+          <View style={styles.resultFinal}>
+            <Text style={styles.resultFinalLabel}>
+              {formatearMoneda(data.totalActivos)} = {formatearMoneda(data.totalPasivos)} + {formatearMoneda(data.totalPatrimonio)} =
+            </Text>
+            <Text style={styles.resultFinalValue}>
+              {formatearMoneda(data.totalPasivos + data.totalPatrimonio)}
+            </Text>
           </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Patrimonio Neto</Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.totalPatrimonio)}</Text>
-            <Text style={styles.summaryDetail}>{data.patrimonio?.length || 0} cuentas</Text>
+
+          <View style={styles.balanceStatus}>
+            <Text style={[
+              styles.balanceStatusText,
+              ecuacionBalanceada ? styles.balanceOk : styles.balanceError
+            ]}>
+              {ecuacionBalanceada ? '✓ Balance Equilibrado' : '⚠ Balance Desequilibrado'}
+            </Text>
+            {!ecuacionBalanceada && (
+              <Text style={styles.diferenceText}>
+                Diferencia: {formatearMoneda(Math.abs(diferencia))}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -415,35 +452,6 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
               </View>
             </View>
           </View>
-        </View>
-
-        {/* Verificación Ecuación Contable */}
-        <View style={styles.equationSection}>
-          <Text style={styles.equationTitle}>VERIFICACIÓN ECUACIÓN CONTABLE</Text>
-          <Text style={styles.equationText}>
-            ACTIVOS = PASIVOS + PATRIMONIO
-          </Text>
-          <Text style={styles.equationText}>
-            {formatearMoneda(data.totalActivos)} = {formatearMoneda(data.totalPasivos)} + {formatearMoneda(data.totalPatrimonio)}
-          </Text>
-          {!ecuacionBalanceada && (
-            <Text style={styles.equationText}>
-              Diferencia: {formatearMoneda(Math.abs(diferencia))}
-            </Text>
-          )}
-          <Text style={[
-            styles.balanceStatus,
-            ecuacionBalanceada ? styles.balanceOk : styles.balanceError
-          ]}>
-            {ecuacionBalanceada ? '✓ Balance Equilibrado' : '⚠ Balance Desequilibrado'}
-          </Text>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Documento generado automáticamente por Sistema Update • {fechaGeneracion}
-          </Text>
         </View>
       </Page>
     </Document>

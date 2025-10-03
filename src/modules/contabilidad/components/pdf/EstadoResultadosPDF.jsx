@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
-import { formatearMonto } from '../../../../shared/utils/formatters';
+import { formatearMonto, formatearFechaReporte } from '../../../../shared/utils/formatters';
 
 // Registrar la fuente
 Font.register({
@@ -71,20 +71,25 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   
-  periodInfo: {
-    backgroundColor: '#F8FAFC',
-    padding: 15,
+  titleSection: {
+    backgroundColor: '#1e293b',
+    padding: 20,
     marginBottom: 20,
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
+    alignItems: 'center',
   },
-  
+
+  mainTitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontFamily: 'Roboto',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+
   periodText: {
     fontSize: 10,
-    color: '#1F2937',
-    fontFamily: 'Roboto',
-    marginBottom: 5,
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   
   // Resumen Cards
@@ -200,14 +205,25 @@ const styles = StyleSheet.create({
   
   // Resultado final
   resultSection: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  
+
+  summaryHeader: {
+    backgroundColor: '#1e293b',
+    padding: 12,
+    marginBottom: 0,
+  },
+
+  summaryHeaderText: {
+    fontSize: 11,
+    fontFamily: 'Roboto',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+
   resultTitle: {
     fontSize: 11,
     fontFamily: 'Roboto',
@@ -221,6 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 5,
     paddingVertical: 3,
+    paddingHorizontal: 15,
   },
   
   resultLabel: {
@@ -235,22 +252,21 @@ const styles = StyleSheet.create({
   },
   
   resultFinal: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 8,
-    marginTop: 8,
+    padding: 15,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
   },
-  
+
   resultFinalLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Roboto',
     color: '#1F2937',
   },
-  
+
   resultFinalValue: {
-    fontSize: 12,
+    fontSize: 16,
     fontFamily: 'Roboto',
     color: '#1F2937',
   },
@@ -299,141 +315,107 @@ const EstadoResultadosDocument = ({ data, fechaDesde, fechaHasta }) => {
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>UPDATE TECH WW SRL</Text>
             <Text style={styles.companyDetails}>
-              Avenida 44 N° 862 1/2 Piso 4{'\n'}
-              La Plata, Buenos Aires, Argentina{'\n'}
-              Tel: 221-641-9901 • CUIT: 30-71850553-2
+              44 N° 862 1/2 Piso 4, La Plata{'\n'}
+              Bartolomé Mitre 797 Piso 14 Oficina 1{'\n'}
+              CUIT: 30-71850553-2
             </Text>
           </View>
           <View>
-            <Text style={styles.documentTitle}>Estado de Resultados</Text>
             <Text style={styles.documentInfo}>
               Generado: {fechaGeneracion}
             </Text>
           </View>
         </View>
 
-        {/* Información del período */}
-        <View style={styles.periodInfo}>
+        {/* Título y período con fondo slate */}
+        <View style={styles.titleSection}>
+          <Text style={styles.mainTitle}>ESTADO DE RESULTADOS</Text>
           <Text style={styles.periodText}>
-            Período: {new Date(fechaDesde).toLocaleDateString('es-AR')} al {new Date(fechaHasta).toLocaleDateString('es-AR')}
+            Período: {formatearFechaReporte(fechaDesde)} al {formatearFechaReporte(fechaHasta)}
           </Text>
         </View>
 
-        {/* Resumen */}
-        <View style={styles.summarySection}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Total Ingresos</Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.totalIngresos)}</Text>
-            <Text style={styles.summaryDetail}>{data.ingresos?.length || 0} conceptos</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Total Egresos</Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.totalGastos)}</Text>
-            <Text style={styles.summaryDetail}>{data.gastos?.length || 0} conceptos</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>
-              {data.utilidadNeta >= 0 ? 'Utilidad Neta' : 'Pérdida Neta'}
-            </Text>
-            <Text style={styles.summaryValue}>{formatearMoneda(data.utilidadNeta)}</Text>
-            <Text style={styles.summaryDetail}>
-              {data.utilidadNeta >= 0 ? 'Positivo' : 'Negativo'}
-            </Text>
-          </View>
-        </View>
-
-        {/* INGRESOS */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>INGRESOS</Text>
-            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalIngresos)}</Text>
-          </View>
-          <View style={styles.accountsTable}>
-            {(data.ingresos || []).map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.accountRow,
-                  index % 2 === 1 && styles.accountRowEven,
-                  index === data.ingresos.length - 1 && styles.accountRowLast
-                ]}
-              >
-                <View style={styles.accountCode}>
-                  <Text>{item.cuenta.codigo}</Text>
-                </View>
-                <View style={styles.accountName}>
-                  <Text>{item.cuenta.nombre}</Text>
-                </View>
-                <View style={styles.accountAmount}>
-                  <Text>{formatearMoneda(item.monto)}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* EGRESOS */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>EGRESOS</Text>
-            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalGastos)}</Text>
-          </View>
-          <View style={styles.accountsTable}>
-            {(data.gastos || []).map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.accountRow,
-                  index % 2 === 1 && styles.accountRowEven,
-                  index === data.gastos.length - 1 && styles.accountRowLast
-                ]}
-              >
-                <View style={styles.accountCode}>
-                  <Text>{item.cuenta.codigo}</Text>
-                </View>
-                <View style={styles.accountName}>
-                  <Text>{item.cuenta.nombre}</Text>
-                </View>
-                <View style={styles.accountAmount}>
-                  <Text>{formatearMoneda(item.monto)}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Resultado del Ejercicio */}
+        {/* Resumen del Período */}
         <View style={styles.resultSection}>
-          <Text style={styles.resultTitle}>RESULTADO DEL EJERCICIO</Text>
-          
-          <View style={styles.resultCalculation}>
-            <Text style={styles.resultLabel}>TOTAL INGRESOS</Text>
-            <Text style={styles.resultValue}>{formatearMoneda(data.totalIngresos)}</Text>
+          <View style={styles.summaryHeader}>
+            <Text style={styles.summaryHeaderText}>RESUMEN DEL PERÍODO</Text>
           </View>
-          
-          <View style={styles.resultCalculation}>
-            <Text style={styles.resultLabel}>TOTAL EGRESOS</Text>
-            <Text style={styles.resultValue}>({formatearMoneda(data.totalGastos)})</Text>
-          </View>
-          
+
           <View style={styles.resultFinal}>
             <Text style={styles.resultFinalLabel}>
-              {data.utilidadNeta >= 0 ? 'UTILIDAD NETA' : 'PÉRDIDA NETA'}
+              UTILIDAD NETA =
             </Text>
-            <Text style={[
-              styles.resultFinalValue,
-              data.utilidadNeta >= 0 ? styles.utilidadPositiva : styles.utilidadNegativa
-            ]}>
+            <Text style={styles.resultFinalValue}>
               {formatearMoneda(data.utilidadNeta)}
             </Text>
           </View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Documento generado automáticamente por Sistema Update • {fechaGeneracion}
-          </Text>
+        {/* Layout de dos columnas */}
+        <View style={{ flexDirection: 'row', gap: 15 }}>
+          {/* COLUMNA IZQUIERDA - RESULTADO POSITIVO */}
+          <View style={{ flex: 1 }}>
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>RESULTADO POSITIVO</Text>
+                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalIngresos)}</Text>
+              </View>
+              <View style={styles.accountsTable}>
+                {(data.ingresos || []).map((item, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.accountRow,
+                      index % 2 === 1 && styles.accountRowEven,
+                      index === data.ingresos.length - 1 && styles.accountRowLast
+                    ]}
+                  >
+                    <View style={styles.accountCode}>
+                      <Text>{item.cuenta.codigo}</Text>
+                    </View>
+                    <View style={styles.accountName}>
+                      <Text>{item.cuenta.nombre}</Text>
+                    </View>
+                    <View style={styles.accountAmount}>
+                      <Text>{formatearMoneda(item.monto)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          {/* COLUMNA DERECHA - RESULTADO NEGATIVO */}
+          <View style={{ flex: 1 }}>
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>RESULTADO NEGATIVO</Text>
+                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalCostos + data.totalGastos)}</Text>
+              </View>
+              <View style={styles.accountsTable}>
+                {[...(data.costos || []), ...(data.gastos || [])].map((item, index, array) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.accountRow,
+                      index % 2 === 1 && styles.accountRowEven,
+                      index === array.length - 1 && styles.accountRowLast
+                    ]}
+                  >
+                    <View style={styles.accountCode}>
+                      <Text>{item.cuenta.codigo}</Text>
+                    </View>
+                    <View style={styles.accountName}>
+                      <Text>{item.cuenta.nombre}</Text>
+                    </View>
+                    <View style={styles.accountAmount}>
+                      <Text>{formatearMoneda(item.monto)}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
       </Page>
     </Document>

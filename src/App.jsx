@@ -13,7 +13,6 @@ import {
 import {
   Clientes,
   Listas,
-  GestionFotos,
   Catalogo,
   RegistrarVentaSection
 } from './modules/ventas/components';
@@ -535,17 +534,6 @@ const AppContent = () => {
      {activeSection === 'compras' && (
        <ComprasSection />
      )}
-
-     {activeSection === 'gestion-fotos' && (
-       <GestionFotos
-         computers={computers}
-         celulares={celulares}
-         otros={otros}
-         loading={computersLoading || celularesLoading || otrosLoading}
-         error={computersError || celularesError || otrosError}
-       />
-     )}
-
 
      {/* 📊 SECCIONES DE CONTABILIDAD */}
      {activeSection === 'plan-cuentas' && (

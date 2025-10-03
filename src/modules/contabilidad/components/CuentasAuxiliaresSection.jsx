@@ -18,7 +18,7 @@ import {
   TrendingDown,
   CheckCircle
 } from 'lucide-react';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { useCuentasAuxiliares } from '../hooks/useCuentasAuxiliares';
 import { supabase } from '../../../lib/supabase';
 
@@ -811,7 +811,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
 // Componente Modal para Nuevo Movimiento
 const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
   const [formData, setFormData] = useState({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: obtenerFechaLocal(),
     descripcion: '',
     tipo: '',
     monto: '',
@@ -860,7 +860,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
       // Limpiar formulario y cerrar modal
       setFormData({
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: obtenerFechaLocal(),
         descripcion: '',
         tipo: '',
         monto: '',

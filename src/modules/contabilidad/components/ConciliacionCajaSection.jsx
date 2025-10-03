@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { convertirARSaUSD, validarRangoCotizacion } from '../../../shared/utils/currency';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
@@ -87,7 +87,7 @@ const conciliacionCajaService = {
     // Crear el asiento principal
     const { data: asiento, error: errorAsiento } = await supabase
       .from('asientos_contables')
-      .insert([{        numero: numeroAsiento,        fecha: new Date().toISOString().split('T')[0],        descripcion: descripcion,        total_debe: Math.abs(diferencia),        total_haber: Math.abs(diferencia),        estado: 'registrado',        usuario: 'admin'      }])      .select()      .single();
+      .insert([{        numero: numeroAsiento,        fecha: obtenerFechaLocal(),        descripcion: descripcion,        total_debe: Math.abs(diferencia),        total_haber: Math.abs(diferencia),        estado: 'registrado',        usuario: 'admin'      }])      .select()      .single();
     if (errorAsiento) throw errorAsiento;
     // Crear el movimiento de ajuste en la cuenta de caja
     const movimiento = {      asiento_id: asiento.id,      cuenta_id: cuentaId,      debe: diferencia > 0 ? diferencia : 0,      haber: diferencia < 0 ? Math.abs(diferencia) : 0    };
@@ -208,9 +208,7 @@ const ConciliacionCajaSection = () => {
     guardarConciliacion
   } = useConciliacionCaja();
 
-  const [fechaConciliacion, setFechaConciliacion] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [fechaConciliacion, setFechaConciliacion] = useState(obtenerFechaLocal());
   
   // Estado para el monto físico
   const [montoFisico, setMontoFisico] = useState('');

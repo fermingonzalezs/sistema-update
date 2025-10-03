@@ -62,6 +62,30 @@ export const formatearFechaInput = (fecha) => {
 };
 
 /**
+ * Obtiene la fecha actual en formato YYYY-MM-DD en zona horaria local (Argentina)
+ * Evita problemas de conversión UTC que pueden causar desfase de un día
+ * Usar esta función en lugar de new Date().toISOString().split('T')[0]
+ */
+export const obtenerFechaLocal = () => {
+  const ahora = new Date();
+  return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * Formatea una fecha en formato YYYY-MM-DD a formato local (DD/MM/YYYY) sin problemas de zona horaria
+ * Evita que new Date('2024-09-01') se interprete como UTC y reste un día
+ * @param {string} fechaString - Fecha en formato YYYY-MM-DD
+ * @returns {string} Fecha formateada en formato DD/MM/YYYY
+ */
+export const formatearFechaReporte = (fechaString) => {
+  if (!fechaString) return '';
+  // Separar la fecha en partes para crear Date en zona local
+  const [year, month, day] = fechaString.split('-');
+  const fecha = new Date(year, month - 1, day);
+  return fecha.toLocaleDateString('es-AR');
+};
+
+/**
  * Determina si un valor es USD o ARS basado en contexto
  */
 export const esMonedaUSD = (cuenta, monto, contexto = 'general') => {
@@ -129,6 +153,8 @@ export default {
   formatearNumeroReporte,
   formatearFecha,
   formatearFechaInput,
+  obtenerFechaLocal,
+  formatearFechaReporte,
   esMonedaUSD,
   formatearMonto,
   formatearMontoCompleto,

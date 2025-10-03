@@ -6,7 +6,7 @@ import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { supabase } from '../../../lib/supabase';
 
 const ComprasSection = () => {
-  const { compras, loading, error, createCompra, updateCompra, deleteCompra } = useCompras();
+  const { compras, loading, error, createCompra, updateCompra, deleteCompra, deleteReciboCompleto } = useCompras();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
   const [recibosExpandidos, setRecibosExpandidos] = useState({});
@@ -309,6 +309,29 @@ const ComprasSection = () => {
       ...prev,
       [reciboId]: !prev[reciboId]
     }));
+  };
+
+  // Función para eliminar recibo completo
+  const handleEliminarRecibo = async (recibo, e) => {
+    e.stopPropagation(); // Evitar que se expanda/colapse el recibo
+
+    const confirmar = window.confirm(
+      `¿Estás seguro de eliminar el recibo #${recibo.recibo_id}?\n\n` +
+      `Proveedor: ${recibo.proveedor}\n` +
+      `Items: ${recibo.items.length}\n` +
+      `Total: ${formatearMonto(calcularTotalRecibo(recibo.items), recibo.moneda)}\n\n` +
+      `Esta acción eliminará todas las compras asociadas a este recibo y no se puede deshacer.`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await deleteReciboCompleto(recibo.recibo_id);
+      alert(`✅ Recibo #${recibo.recibo_id} eliminado exitosamente`);
+    } catch (error) {
+      console.error('Error eliminando recibo:', error);
+      alert(`❌ Error al eliminar el recibo: ${error.message}`);
+    }
   };
 
   // Calcular total de un recibo
@@ -839,6 +862,15 @@ const ComprasSection = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Botón eliminar recibo */}
+                    <button
+                      onClick={(e) => handleEliminarRecibo(recibo, e)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Eliminar recibo completo"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
 
                   {/* Detalle de items - expandible */}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
+import { formatearFechaReporte } from '../../../../shared/utils/formatters';
 
 // Registrar la fuente
 Font.register({
@@ -350,7 +351,7 @@ const BalanceSumasYSaldosDocument = ({ balance, resumen, fechaDesde, fechaHasta,
         {/* Información del período */}
         <View style={styles.periodInfo}>
           <Text style={styles.periodText}>
-            Período: {new Date(fechaDesde).toLocaleDateString('es-AR')} al {new Date(fechaHasta).toLocaleDateString('es-AR')}
+            Período: {formatearFechaReporte(fechaDesde)} al {formatearFechaReporte(fechaHasta)}
           </Text>
           <Text style={styles.periodDetails}>
             {balance.length} cuentas • {resumen?.cantidadMovimientos || 0} movimientos contables

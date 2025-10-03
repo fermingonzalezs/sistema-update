@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useCuentasCorrientes } from '../hooks/useCuentasCorrientes.js';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 
@@ -173,7 +173,7 @@ Cliente: ${movimiento.nombre_cliente} ${movimiento.apellido_cliente}
 Tipo: ${movimiento.tipo_movimiento === 'debe' ? 'Debe' : 'Haber'}
 Monto: $${movimiento.monto}
 Concepto: ${movimiento.concepto}
-Fecha: ${new Date(movimiento.fecha_operacion).toLocaleDateString()}
+Fecha: ${formatearFechaReporte(movimiento.fecha_operacion)}
 
 Esta acción no se puede deshacer.`;
 
@@ -479,7 +479,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
         cotizacion_usada: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cotizacionDolar,
         concepto: formData.concepto || config.conceptoPlaceholder,
         observaciones: formData.observaciones,
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: obtenerFechaLocal(),
         tipo: tipo,
         created_by: 'Usuario' // TODO: Obtener del contexto de usuario
       };

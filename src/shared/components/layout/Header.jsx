@@ -50,7 +50,6 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
       'clientes': { title: 'Clientes', icon: Users, description: 'Base de datos de clientes.' },
       'ventas': { title: 'Ventas', icon: ShoppingCart, description: 'Gestión de ventas y transacciones' },
       'copys': { title: 'Listas', icon: FileText, description: 'Generador de listas de copys para copiar y pegar.' },
-      'gestion-fotos': { title: 'Gestión de Fotos', icon: Camera, description: 'Sistema de gestión de fotos para productos' },
       'plan-cuentas': { title: 'Plan de Cuentas', icon: BookOpen, description: 'Estructura contable de la empresa' },
       'libro-diario': { title: 'Libro Diario', icon: FileText, description: 'Registro de asientos contables' },
       'libro-mayor': { title: 'Libro Mayor', icon: BookOpen, description: 'Mayor general por cuentas' },

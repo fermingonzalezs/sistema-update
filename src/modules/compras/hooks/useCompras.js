@@ -71,6 +71,22 @@ export const comprasService = {
     }
 
     console.log('✅ Compra eliminada exitosamente');
+  },
+
+  async deleteReciboCompleto(reciboId) {
+    console.log('🗑️ Eliminando recibo completo:', reciboId);
+
+    const { error } = await supabase
+      .from('compras')
+      .delete()
+      .eq('recibo_id', reciboId);
+
+    if (error) {
+      console.error('❌ Error eliminando recibo:', error);
+      throw error;
+    }
+
+    console.log('✅ Recibo eliminado exitosamente');
   }
 };
 
@@ -133,6 +149,18 @@ export const useCompras = () => {
     }
   };
 
+  const deleteReciboCompleto = async (reciboId) => {
+    try {
+      setError(null);
+      await comprasService.deleteReciboCompleto(reciboId);
+      setCompras(prev => prev.filter(compra => compra.recibo_id !== reciboId));
+    } catch (err) {
+      setError(err.message);
+      console.error('Error en deleteReciboCompleto:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchCompras();
   }, []);
@@ -144,6 +172,7 @@ export const useCompras = () => {
     createCompra,
     updateCompra,
     deleteCompra,
+    deleteReciboCompleto,
     refetch: fetchCompras
   };
 };

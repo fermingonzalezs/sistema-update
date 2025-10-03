@@ -1,6 +1,7 @@
 // src/modules/contabilidad/hooks/useCuentasCorrientes.js
 import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 export const cuentasCorrientesService = {
   // Obtener todos los saldos de cuentas corrientes (query directo)
@@ -130,7 +131,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'pago_recibido',
         concepto: concepto || 'Pago recibido',
         monto: monto,
-        fecha_operacion: new Date().toISOString().split('T')[0],
+        fecha_operacion: obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
@@ -160,7 +161,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'cargo_manual',
         concepto: concepto || 'Deuda agregada',
         monto: monto,
-        fecha_operacion: new Date().toISOString().split('T')[0],
+        fecha_operacion: obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
@@ -190,7 +191,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'pago_recibido', // Update realiza un pago
         concepto: concepto || 'Pago realizado por Update',
         monto: monto,
-        fecha_operacion: new Date().toISOString().split('T')[0],
+        fecha_operacion: obtenerFechaLocal(),
         estado: 'completado',
         comprobante: null,
         observaciones: observaciones,
@@ -220,7 +221,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'cargo_manual', // Deuda contraída
         concepto: concepto || 'Deuda contraída por Update',
         monto: monto,
-        fecha_operacion: new Date().toISOString().split('T')[0],
+        fecha_operacion: obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,

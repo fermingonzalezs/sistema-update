@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import { useEstadoResultados } from '../hooks/useEstadoResultados';
 import { generarEstadoResultadosPDF } from './pdf/EstadoResultadosPDF';
 
@@ -14,8 +14,11 @@ const EstadoResultadosSection = () => {
   } = useEstadoResultados();
 
   const [filtros, setFiltros] = useState({
-    fechaDesde: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Inicio del año
-    fechaHasta: new Date().toISOString().split('T')[0] // Hoy
+    fechaDesde: (() => {
+      const ahora = new Date();
+      return `${ahora.getFullYear()}-01-01`; // Inicio del año
+    })(),
+    fechaHasta: obtenerFechaLocal() // Hoy
   });
 
   useEffect(() => {
@@ -78,7 +81,7 @@ const EstadoResultadosSection = () => {
               <FileText className="w-6 h-6" />
               <div>
                 <h2 className="text-2xl font-semibold">Estado de Resultados</h2>
-                <p className="text-slate-300 mt-1">Período: {new Date(filtros.fechaDesde).toLocaleDateString('es-AR')} - {new Date(filtros.fechaHasta).toLocaleDateString('es-AR')}</p>
+                <p className="text-slate-300 mt-1">Período: {formatearFechaReporte(filtros.fechaDesde)} - {formatearFechaReporte(filtros.fechaHasta)}</p>
               </div>
             </div>
             {!loading && !error && (resultadoPositivo.length > 0 || resultadoNegativo.length > 0) && (

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download, Paperclip } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import BuscadorCuentasImputables from './BuscadorCuentasImputables';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { isAsientoEditable, prepararDatosParaEdicion, validarDatosEdicion } from '../utils/asientos-utils';
 import { descargarLibroDiarioPDF } from './pdf/LibroDiarioPDF';
+import ModalFotosAsiento from './ModalFotosAsiento';
+import { fotosAsientosService } from '../hooks/useFotosAsientos';
 
 // Servicio para el Libro Diario
 const libroDiarioService = {
@@ -431,6 +433,12 @@ const LibroDiarioSection = () => {
   const [viewMode, setViewMode] = useState('tarjeta'); // 'tarjeta' o 'lista'
   const [modoEdicion, setModoEdicion] = useState(false);
   const [asientoEditando, setAsientoEditando] = useState(null);
+  const [asientosConFotos, setAsientosConFotos] = useState({});
+  const [modalFotos, setModalFotos] = useState({
+    open: false,
+    asientoId: null,
+    numeroAsiento: null
+  });
   const [filtros, setFiltros] = useState({
     fechaDesde: '',
     fechaHasta: '',
@@ -438,7 +446,7 @@ const LibroDiarioSection = () => {
   });
 
   const [formData, setFormData] = useState({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: obtenerFechaLocal(),
     descripcion: '',
     notas: '', // Campo para notas adicionales del asiento
     cotizacion_usd: 0, // Cotización única para todo el asiento
@@ -474,6 +482,28 @@ const LibroDiarioSection = () => {
     console.log('🔍 Cuentas disponibles:', cuentasImputables);
   }, [cuentasImputables]);
 
+  // Verificar qué asientos tienen fotos
+  useEffect(() => {
+    const verificarFotos = async () => {
+      const fotosMap = {};
+      for (const asiento of asientos.slice(0, 50)) { // Limitar a los primeros 50 para performance
+        try {
+          const tieneFotos = await fotosAsientosService.tieneFotos(asiento.id);
+          if (tieneFotos) {
+            fotosMap[asiento.id] = true;
+          }
+        } catch (err) {
+          console.error('Error verificando fotos del asiento:', asiento.id, err);
+        }
+      }
+      setAsientosConFotos(fotosMap);
+    };
+
+    if (asientos.length > 0) {
+      verificarFotos();
+    }
+  }, [asientos]);
+
   const toggleAsiento = (id) => {
     setExpandedAsientos(prev => ({
       ...prev,
@@ -486,7 +516,7 @@ const LibroDiarioSection = () => {
     console.log('🔍 Cuentas disponibles para seleccionar:', cuentasImputables);
 
     setFormData({
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: obtenerFechaLocal(),
       descripcion: '',
       notas: '',
       cotizacion_usd: 0,
@@ -666,7 +696,7 @@ const LibroDiarioSection = () => {
       }
 
       // Crear el asiento usando el servicio actualizado
-      await crearAsiento({
+      const nuevoAsiento = await crearAsiento({
         ...formData,
         movimientos: totales.movimientosConvertidos,
         movimientosConvertidos: totales.movimientosConvertidos, // Para compatibilidad
@@ -674,10 +704,23 @@ const LibroDiarioSection = () => {
         totalHaberUSD: totales.totalHaber,
         cotizacionPromedio: parseFloat(formData.cotizacion_usd) || null,
       });
-      
+
       setShowModal(false);
-      alert('✅ Asiento creado exitosamente en USD');
-      
+
+      // Mostrar confirmación y preguntar si desea adjuntar fotos
+      const deseaAdjuntarFotos = window.confirm(
+        `✅ Asiento N° ${nuevoAsiento.numero} creado exitosamente\n\n` +
+        '¿Deseas adjuntar archivos (facturas, recibos, etc.) a este asiento?'
+      );
+
+      if (deseaAdjuntarFotos) {
+        setModalFotos({
+          open: true,
+          asientoId: nuevoAsiento.id,
+          numeroAsiento: nuevoAsiento.numero
+        });
+      }
+
     } catch (err) {
       console.error('Error guardando asiento:', err);
       alert('❌ Error: ' + err.message);
@@ -844,9 +887,11 @@ const LibroDiarioSection = () => {
   const asientosFiltrados = asientos.filter(asiento => {
     let cumpleFiltros = true;
 
+    // Filtro de fecha desde (mayor o igual)
     if (filtros.fechaDesde && asiento.fecha < filtros.fechaDesde) {
       cumpleFiltros = false;
     }
+    // Filtro de fecha hasta (menor o igual)
     if (filtros.fechaHasta && asiento.fecha > filtros.fechaHasta) {
       cumpleFiltros = false;
     }
@@ -906,12 +951,29 @@ const LibroDiarioSection = () => {
                     <span>{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
                   </div>
 
-                  <div className="font-medium text-lg text-gray-900">
+                  <div className="font-medium text-lg text-gray-900 flex items-center gap-2">
                     {asiento.descripcion}
+                    {asientosConFotos[asiento.id] && (
+                      <Paperclip size={16} className="text-emerald-600" title="Tiene archivos adjuntos" />
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center text-lg space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalFotos({
+                        open: true,
+                        asientoId: asiento.id,
+                        numeroAsiento: asiento.numero
+                      });
+                    }}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors border border-blue-300"
+                    title="Ver/Adjuntar fotos"
+                  >
+                    <Paperclip size={16} />
+                  </button>
                   {isAsientoEditable(asiento.created_at || asiento.fecha, 'admin') && (
                     <button
                       onClick={(e) => {
@@ -1063,8 +1125,27 @@ const LibroDiarioSection = () => {
                   </span>
                 </div>
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</div>
-                <div className="col-span-5 text-sm">{asiento.descripcion}</div>
+                <div className="col-span-5 text-sm flex items-center gap-2">
+                  {asiento.descripcion}
+                  {asientosConFotos[asiento.id] && (
+                    <Paperclip size={14} className="text-emerald-600" title="Tiene archivos adjuntos" />
+                  )}
+                </div>
                 <div className="col-span-2 text-right space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalFotos({
+                        open: true,
+                        asientoId: asiento.id,
+                        numeroAsiento: asiento.numero
+                      });
+                    }}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors border border-blue-300 inline-block"
+                    title="Ver/Adjuntar fotos"
+                  >
+                    <Paperclip size={16} />
+                  </button>
                   {isAsientoEditable(asiento.created_at || asiento.fecha, 'admin') && (
                     <button
                       onClick={(e) => {
@@ -1634,6 +1715,14 @@ const LibroDiarioSection = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Fotos */}
+      <ModalFotosAsiento
+        isOpen={modalFotos.open}
+        onClose={() => setModalFotos({ open: false, asientoId: null, numeroAsiento: null })}
+        asientoId={modalFotos.asientoId}
+        numeroAsiento={modalFotos.numeroAsiento}
+      />
     </div>
   );
 };

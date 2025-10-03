@@ -283,15 +283,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     setEditSuccess(null);
   };
 
-  // Función para navegar a la gestión de fotos
-  const handleVerFotos = (producto, tipoProducto) => {
-    // Cerrar el modal actual
-    setModalDetalle({ open: false, producto: null });
-    // Navegar a la sección de gestión de fotos
-    if (onNavigate) {
-      onNavigate('gestion-fotos');
-    }
-  };
+  // NOTA: La gestión de fotos fue movida a asientos contables
+  // Esta funcionalidad ya no está disponible para productos
+  // const handleVerFotos = (producto, tipoProducto) => {
+  //   // Cerrar el modal actual
+  //   setModalDetalle({ open: false, producto: null });
+  //   // Navegar a la sección de gestión de fotos
+  //   if (onNavigate) {
+  //     onNavigate('gestion-fotos');
+  //   }
+  // };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -1668,7 +1669,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           categoriaActiva === 'celulares' ? 'celular' :
           categoriaActiva === 'notebooks' ? 'notebook' : 'otro'
         }
-        onVerFotos={handleVerFotos}
       />
 
       {/* Modal de edición */}

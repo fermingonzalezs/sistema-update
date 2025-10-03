@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
 import { generarYAbrirEstadoSituacionPatrimonial } from './pdf/EstadoSituacionPatrimonialPDF';
 
@@ -103,9 +103,7 @@ const EstadoSituacionPatrimonialSection = () => {
     fetchBalance
   } = useEstadoSituacionPatrimonial();
 
-  const [fechaCorte, setFechaCorte] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [fechaCorte, setFechaCorte] = useState(obtenerFechaLocal());
 
   useEffect(() => {
     console.log('🚀 Iniciando carga de Balance General...');
@@ -192,7 +190,7 @@ const EstadoSituacionPatrimonialSection = () => {
               <Building2 className="w-6 h-6" />
               <div>
                 <h2 className="text-2xl font-semibold">Estado de Situación Patrimonial</h2>
-                <p className="text-slate-300 mt-1">Balance general al {new Date(fechaCorte).toLocaleDateString('es-AR')}</p>
+                <p className="text-slate-300 mt-1">Balance general al {formatearFechaReporte(fechaCorte)}</p>
               </div>
             </div>
             {!loading && !error && balance.activos && (
@@ -254,7 +252,35 @@ const EstadoSituacionPatrimonialSection = () => {
           <div className="space-y-6">
             {/* Resumen Ejecutivo */}
             <div className="bg-slate-800 p-8 rounded">
-              <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto">RESULTADO</h3>
+              <h3 className="font-bold text-white mb-6 text-2xl text-center mx-auto">ECUACIÓN PATRIMONIAL</h3>
+
+              {/* Ecuación */}
+              <div className="bg-white p-6 rounded mb-6">
+                <div className="flex items-center justify-center gap-4 text-lg font-semibold text-slate-800">
+                  <span>{formatearMoneda(balance.totalActivos)}</span>
+                  <span>=</span>
+                  <span>{formatearMoneda(balance.totalPasivos)}</span>
+                  <span>+</span>
+                  <span>{formatearMoneda(balance.totalPatrimonio)}</span>
+                  <span>=</span>
+                  <span className="text-2xl">{formatearMoneda(balance.totalPasivos + balance.totalPatrimonio)}</span>
+                </div>
+                <div className="text-center mt-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${ecuacionBalanceada ? 'bg-emerald-600' : 'bg-red-600'}`}></div>
+                    <span className={`font-bold ${ecuacionBalanceada ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {ecuacionBalanceada ? 'Balance Equilibrado' : 'Balance Desequilibrado'}
+                    </span>
+                  </div>
+                  {!ecuacionBalanceada && (
+                    <div className="text-sm text-red-600 font-medium mt-1">
+                      Diferencia: {formatearMoneda(Math.abs(diferencia))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Totales */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center p-6 bg-slate-200 rounded">
                   <div className="text-3xl font-bold text-slate-800">{formatearMoneda(balance.totalActivos)}</div>
@@ -357,36 +383,6 @@ const EstadoSituacionPatrimonialSection = () => {
                         ))}
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Verificación de Ecuación Contable */}
-            <div className="mt-8 p-8 border-2 border-slate-200" style={{
-              backgroundColor: ecuacionBalanceada ? '#f8fafc' : '#fef2f2'
-            }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-4 h-4 rounded-full ${ecuacionBalanceada ? 'bg-emerald-600' : 'bg-slate-800'}`}></div>
-                  <span className="text-lg font-bold text-slate-800">
-                    Ecuación Contable
-                  </span>
-                  <span className="text-sm text-slate-800">
-                    ACTIVOS = PASIVOS + PATRIMONIO
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-slate-800">
-                    {formatearMoneda(balance.totalActivos)} = {formatearMoneda(balance.totalPasivos)} + {formatearMoneda(balance.totalPatrimonio)}
-                  </div>
-                  {!ecuacionBalanceada && (
-                    <div className="text-sm text-slate-800 font-medium">
-                      Diferencia: {formatearMoneda(Math.abs(diferencia))}
-                    </div>
-                  )}
-                  <div className={`text-xs ${ecuacionBalanceada ? 'text-slate-800' : 'text-slate-800'} mt-1`}>
-                    {ecuacionBalanceada ? 'Balance Equilibrado' : 'Balance Desequilibrado'}
                   </div>
                 </div>
               </div>
