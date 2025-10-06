@@ -106,12 +106,6 @@ export const estadoResultadosService = {
       const costosOrdenados = ordenarCuentasPorCodigo(resultado.costos);
       const gastosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
 
-<<<<<<< HEAD
-      // Los totales deben sumarse en valor absoluto
-      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
-      const totalCostos = costosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
-      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
-=======
       // Para ingresos: sumar normalmente (pueden ser negativos si hay devoluciones)
       const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + item.monto, 0);
 
@@ -122,7 +116,6 @@ export const estadoResultadosService = {
       const totalGastos = gastosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
 
       // Utilidad = Ingresos - Costos - Gastos
->>>>>>> 91ced05e88bc86edb3e95428ecc7bdfdd29df5e3
       const utilidadNeta = totalIngresos - totalCostos - totalGastos;
 
       // Debug: Verificar montos negativos ANTES de calcular totales
