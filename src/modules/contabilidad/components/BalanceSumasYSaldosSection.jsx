@@ -8,11 +8,22 @@ import {
   Download,
   AlertCircle
 } from 'lucide-react';
-import { formatearMonto } from '../../../shared/utils/formatters';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useBalanceSumasYSaldos } from '../hooks/useBalanceSumasYSaldos';
 import { generarBalancePDF } from './pdf/BalanceSumasYSaldosPDF';
+
+// Función para formatear montos con 2 decimales
+const formatearMonto = (valor, moneda = 'USD') => {
+  const numero = parseFloat(valor || 0);
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  return `${simbolo}${formatter.format(numero)}`;
+};
 
 const BalanceSumasYSaldosSection = () => {
   const {

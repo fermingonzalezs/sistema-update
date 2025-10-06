@@ -101,9 +101,10 @@ export const estadoResultadosService = {
       const costosOrdenados = ordenarCuentasPorCodigo(resultado.costos);
       const gastosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
 
-      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + item.monto, 0);
-      const totalCostos = costosOrdenados.reduce((sum, item) => sum + item.monto, 0);
-      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + item.monto, 0);
+      // Los totales deben sumarse en valor absoluto
+      const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
+      const totalCostos = costosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
+      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
       const utilidadNeta = totalIngresos - totalCostos - totalGastos;
 
       console.log('✅ Estado de resultados calculado:', {

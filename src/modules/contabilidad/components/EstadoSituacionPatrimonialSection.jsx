@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, BarChart3, RefreshCw, Filter, Building2, TrendingUp, TrendingDown, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
-import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
+import { obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import { useEstadoSituacionPatrimonial } from '../hooks/useEstadoSituacionPatrimonial';
 import { generarYAbrirEstadoSituacionPatrimonial } from './pdf/EstadoSituacionPatrimonialPDF';
+
+// Función para formatear montos con 2 decimales
+const formatearMonto = (valor, moneda = 'USD') => {
+  const numero = parseFloat(valor || 0);
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  return `${simbolo}${formatter.format(numero)}`;
+};
 
 const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
 

@@ -1,11 +1,12 @@
 // Constantes para categorías de productos "otros"
 
-// Categorías normalizadas - 4 únicas permitidas
+// Categorías normalizadas - 5 únicas permitidas
 export const CATEGORIAS_OTROS = {
   ACCESORIOS: 'ACCESORIOS',
   MONITORES: 'MONITORES',
   PERIFERICOS: 'PERIFERICOS',
-  COMPONENTES: 'COMPONENTES'
+  COMPONENTES: 'COMPONENTES',
+  FUNDAS_TEMPLADOS: 'FUNDAS_TEMPLADOS'
 };
 
 export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
@@ -15,7 +16,8 @@ export const CATEGORIAS_OTROS_LABELS = {
   ACCESORIOS: 'Accesorios',
   MONITORES: 'Monitores',
   PERIFERICOS: 'Periféricos',
-  COMPONENTES: 'Componentes'
+  COMPONENTES: 'Componentes',
+  FUNDAS_TEMPLADOS: 'Fundas/Templados'
 };
 
 // Mapeo de categorías legacy a nuevas categorías

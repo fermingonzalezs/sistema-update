@@ -177,7 +177,8 @@ export const useCatalogoUnificado = () => {
           'ACCESORIOS': '🔧',
           'MONITORES': '🖥️',
           'PERIFERICOS': '⌨️',
-          'COMPONENTES': '⚡'
+          'COMPONENTES': '⚡',
+          'FUNDAS_TEMPLADOS': '📱'
         };
         
         base[`otros-${categoriaNormalizada}`] = {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, formatearMontoCompleto } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { descargarLibroMayorPDF } from './pdf/LibroMayorPDF';
@@ -335,9 +335,16 @@ const LibroMayorSection = () => {
     }
   };
 
-  const formatearMoneda = (valor) => {
-    // En el libro mayor todos los valores se muestran como USD con U$
-    return formatearMonto(valor, 'USD');
+  const formatearMoneda = (valor, moneda = 'USD') => {
+    // Formatear con 2 decimales siempre
+    const numero = parseFloat(valor || 0);
+    const formatter = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const simbolo = moneda === 'USD' ? 'U$' : '$';
+    return `${simbolo}${formatter.format(numero)}`;
   };
 
   const formatearFecha = (fecha) => {
@@ -660,10 +667,10 @@ const LibroMayorSection = () => {
                           <td className="text-right py-3 px-4 font-medium">
                             {mov.debe > 0 ? (
                               <div className="flex flex-col items-end">
-                                <span className="text-slate-800">{formatearMoneda(mov.debe)}</span>
+                                <span className="text-slate-800">{formatearMoneda(mov.debe, 'USD')}</span>
                                 {mov.debe_ars && (
                                   <span className="text-xs text-gray-500 mt-1">
-                                    (ARS {formatearMoneda(mov.debe_ars)})
+                                    ({formatearMoneda(mov.debe_ars, 'ARS')})
                                   </span>
                                 )}
                               </div>
@@ -672,10 +679,10 @@ const LibroMayorSection = () => {
                           <td className="text-right py-3 px-4 font-medium">
                             {mov.haber > 0 ? (
                               <div className="flex flex-col items-end">
-                                <span className="text-slate-600">{formatearMoneda(mov.haber)}</span>
+                                <span className="text-slate-600">{formatearMoneda(mov.haber, 'USD')}</span>
                                 {mov.haber_ars && (
                                   <span className="text-xs text-gray-500 mt-1">
-                                    (ARS {formatearMoneda(mov.haber_ars)})
+                                    ({formatearMoneda(mov.haber_ars, 'ARS')})
                                   </span>
                                 )}
                               </div>

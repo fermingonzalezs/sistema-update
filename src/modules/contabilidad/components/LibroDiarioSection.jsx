@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download, Paperclip } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import BuscadorCuentasImputables from './BuscadorCuentasImputables';
-import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { isAsientoEditable, prepararDatosParaEdicion, validarDatosEdicion } from '../utils/asientos-utils';
 import { descargarLibroDiarioPDF } from './pdf/LibroDiarioPDF';
@@ -412,6 +412,18 @@ function useLibroDiario() {
     editarAsiento
   };
 }
+
+// Función local para formatear montos con 2 decimales
+const formatearMonto = (valor, moneda = 'USD') => {
+  const numero = parseFloat(valor || 0);
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  return `${simbolo}${formatter.format(numero)}`;
+};
 
 // Componente Principal del Libro Diario
 const LibroDiarioSection = () => {
@@ -1410,7 +1422,7 @@ const LibroDiarioSection = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">
-                  {formatearMonto(asientos.reduce((sum, a) => sum + a.total_debe, 0))}
+                  {formatearMonto(asientos.reduce((sum, a) => sum + a.total_debe, 0), 'USD')}
                 </div>
                 <div className="text-sm text-gray-600">Movimiento Total</div>
               </div>

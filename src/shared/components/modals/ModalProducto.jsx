@@ -12,6 +12,10 @@ import {
   UBICACIONES_ARRAY,
   UBICACIONES_LABELS
 } from '../../constants/productConstants';
+import {
+  CATEGORIAS_OTROS_ARRAY,
+  CATEGORIAS_OTROS_LABELS
+} from '../../constants/categoryConstants';
 
 // Configuración de campos por tipo de producto
 const CONFIGURACION_PRODUCTOS = {
@@ -68,11 +72,10 @@ const OPCIONES = {
     celular: ['Apple', 'Samsung', 'Xiaomi', 'Motorola', 'Huawei', 'OnePlus']
   },
   capacidad: ['64GB', '128GB', '256GB', '512GB', '1TB', '2TB'],
-  categoria: [
-    'accesorios', 'cables', 'cargadores', 'mouse', 'teclados', 'headsets',
-    'webcam', 'monitores', 'speakers', 'almacenamiento', 'memorias', 
-    'componentes', 'fundas', 'repuestos', 'otros'
-  ],
+  categoria: CATEGORIAS_OTROS_ARRAY.map(cat => ({
+    value: cat,
+    label: CATEGORIAS_OTROS_LABELS[cat]
+  })),
   tipo_ram: ['DDR3', 'DDR4', 'DDR5'],
   so: ['WIN11', 'WIN10', 'Linux', 'macOS', 'Sin SO'],
   resolucion: ['HD', 'FHD', '2K', '4K'],
@@ -493,7 +496,7 @@ const ModalProducto = ({
             >
               <option value="">Seleccionar...</option>
               {OPCIONES.categoria.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
           </div>

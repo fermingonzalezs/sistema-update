@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, FileText, TrendingUp, TrendingDown, DollarSign, RefreshCw, Filter, ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
-import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
+import { obtenerFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import { useEstadoResultados } from '../hooks/useEstadoResultados';
 import { generarEstadoResultadosPDF } from './pdf/EstadoResultadosPDF';
+
+// Función para formatear montos con 2 decimales
+const formatearMonto = (valor, moneda = 'USD') => {
+  const numero = parseFloat(valor || 0);
+  const formatter = new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const simbolo = moneda === 'USD' ? 'U$' : '$';
+  return `${simbolo}${formatter.format(numero)}`;
+};
 
 // Componente principal
 const EstadoResultadosSection = () => {
@@ -45,8 +57,6 @@ const EstadoResultadosSection = () => {
     }
   };
 
-  const formatearMoneda = (monto) => formatearMonto(monto, 'USD');
-
   const CuentaRow = ({ cuenta }) => {
     return (
       <div className="flex justify-between items-center py-2 px-4 border-b border-slate-200 hover:bg-slate-100 transition-colors">
@@ -61,7 +71,7 @@ const EstadoResultadosSection = () => {
           </span>
         </div>
         <div className="text-lg font-semibold text-slate-900">
-          {formatearMoneda(cuenta.monto)}
+          {formatearMonto(Math.abs(cuenta.monto), 'USD')}
         </div>
       </div>
     );
@@ -156,7 +166,7 @@ const EstadoResultadosSection = () => {
             </div>
             <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
               <span>Total Resultado Positivo</span>
-              <span className="text-emerald-600">{formatearMoneda(estadoResultados.totalIngresos)}</span>
+              <span className="text-emerald-600">{formatearMonto(Math.abs(estadoResultados.totalIngresos), 'USD')}</span>
             </div>
           </div>
         </div>
@@ -174,7 +184,7 @@ const EstadoResultadosSection = () => {
             </div>
             <div className="p-4 bg-slate-100 border-t border-slate-200 font-bold flex justify-between">
               <span>Total Resultado Negativo</span>
-              <span className="text-red-600">{formatearMoneda(estadoResultados.totalCostos + estadoResultados.totalGastos)}</span>
+              <span className="text-red-600">{formatearMonto(Math.abs(estadoResultados.totalCostos + estadoResultados.totalGastos), 'USD')}</span>
             </div>
           </div>
         </div>
@@ -186,17 +196,17 @@ const EstadoResultadosSection = () => {
         <div className="space-y-3 max-w-md mx-auto">
           <div className="flex justify-between text-lg">
             <span className="font-medium">Total Resultado Positivo</span>
-            <span className="font-semibold text-emerald-600">{formatearMoneda(estadoResultados.totalIngresos)}</span>
+            <span className="font-semibold text-emerald-600">{formatearMonto(Math.abs(estadoResultados.totalIngresos), 'USD')}</span>
           </div>
           <div className="flex justify-between text-lg">
             <span className="font-medium">Total Resultado Negativo</span>
-            <span className="font-semibold text-red-600">({formatearMoneda(estadoResultados.totalCostos + estadoResultados.totalGastos)})</span>
+            <span className="font-semibold text-red-600">({formatearMonto(Math.abs(estadoResultados.totalCostos + estadoResultados.totalGastos), 'USD')})</span>
           </div>
           <hr className="my-2 border-slate-300"/>
           <div className="flex justify-between text-xl font-bold">
             <span>{estadoResultados.utilidadNeta >= 0 ? 'Utilidad Neta' : 'Pérdida Neta'}</span>
             <span className={estadoResultados.utilidadNeta >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-              {formatearMoneda(estadoResultados.utilidadNeta)}
+              {formatearMonto(Math.abs(estadoResultados.utilidadNeta), 'USD')}
             </span>
           </div>
         </div>
