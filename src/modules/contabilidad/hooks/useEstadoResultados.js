@@ -76,18 +76,23 @@ export const estadoResultadosService = {
         let monto = 0;
 
         if (cuenta.codigo.startsWith('4')) { // INGRESOS
+          // Los ingresos aumentan con el haber y disminuyen con el debe
           monto = haber - debe;
           if (!resultado.ingresos[cuenta.id]) {
             resultado.ingresos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.ingresos[cuenta.id].monto += monto;
         } else if (cuenta.codigo.startsWith('5')) { // COSTOS
+          // Los costos aumentan con el debe y disminuyen con el haber
+          // Guardamos como positivo para mostrarlo
           monto = debe - haber;
           if (!resultado.costos[cuenta.id]) {
             resultado.costos[cuenta.id] = { cuenta, monto: 0 };
           }
           resultado.costos[cuenta.id].monto += monto;
         } else if (cuenta.codigo.startsWith('6')) { // GASTOS
+          // Los gastos aumentan con el debe y disminuyen con el haber
+          // Guardamos como positivo para mostrarlo
           monto = debe - haber;
           if (!resultado.gastos[cuenta.id]) {
             resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
@@ -101,14 +106,52 @@ export const estadoResultadosService = {
       const costosOrdenados = ordenarCuentasPorCodigo(resultado.costos);
       const gastosOrdenados = ordenarCuentasPorCodigo(resultado.gastos);
 
+      // Para ingresos: sumar normalmente (pueden ser negativos si hay devoluciones)
       const totalIngresos = ingresosOrdenados.reduce((sum, item) => sum + item.monto, 0);
-      const totalCostos = costosOrdenados.reduce((sum, item) => sum + item.monto, 0);
-      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + item.monto, 0);
+
+      // Para costos y gastos: sumamos el VALOR ABSOLUTO
+      // En un Estado de Resultados, costos y gastos siempre se presentan como positivos
+      // y se restan de los ingresos
+      const totalCostos = costosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
+      const totalGastos = gastosOrdenados.reduce((sum, item) => sum + Math.abs(item.monto), 0);
+
+      // Utilidad = Ingresos - Costos - Gastos
       const utilidadNeta = totalIngresos - totalCostos - totalGastos;
 
-      console.log('✅ Estado de resultados calculado:', {
-        totalIngresos, totalCostos, totalGastos, utilidadNeta
+      // Debug: Verificar montos negativos ANTES de calcular totales
+      const costosNegativos = costosOrdenados.filter(c => c.monto < 0);
+      const gastosNegativos = gastosOrdenados.filter(g => g.monto < 0);
+
+      console.log('✅ Estado de resultados calculado:');
+      console.log('  📊 Totales:', {
+        totalIngresos,
+        totalCostos,
+        totalGastos,
+        utilidadNeta
       });
+      console.log('  📝 Detalle completo:', {
+        ingresos: ingresosOrdenados.map(i => ({ codigo: i.cuenta.codigo, nombre: i.cuenta.nombre, monto: i.monto })),
+        costos: costosOrdenados.map(c => ({ codigo: c.cuenta.codigo, nombre: c.cuenta.nombre, monto: c.monto })),
+        gastos: gastosOrdenados.map(g => ({ codigo: g.cuenta.codigo, nombre: g.cuenta.nombre, monto: g.monto }))
+      });
+
+      if (costosNegativos.length > 0 || gastosNegativos.length > 0) {
+        console.warn('⚠️ MONTOS NEGATIVOS ENCONTRADOS (ajustes/devoluciones):');
+        if (costosNegativos.length > 0) {
+          console.warn('  Costos negativos:', costosNegativos.map(c => ({
+            codigo: c.cuenta.codigo,
+            nombre: c.cuenta.nombre,
+            monto: c.monto
+          })));
+        }
+        if (gastosNegativos.length > 0) {
+          console.warn('  Gastos negativos:', gastosNegativos.map(g => ({
+            codigo: g.cuenta.codigo,
+            nombre: g.cuenta.nombre,
+            monto: g.monto
+          })));
+        }
+      }
 
       return {
         ingresos: ingresosOrdenados,

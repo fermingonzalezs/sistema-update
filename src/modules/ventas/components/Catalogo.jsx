@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Filter, ChevronDown, ChevronUp, Edit, Save, AlertCircle, Search, CheckCircle } from 'lucide-react';
+import { X, Filter, ChevronDown, ChevronUp, Edit, Save, AlertCircle, Search, CheckCircle, Trash2 } from 'lucide-react';
 import { useCatalogoUnificado } from '../hooks/useCatalogoUnificado';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import ProductModal from '../../../shared/components/base/ProductModal';
@@ -281,6 +281,42 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     setEditForm({});
     setEditError(null);
     setEditSuccess(null);
+  };
+
+  const handleDelete = async () => {
+    if (!modalEdit.producto) return;
+
+    // Confirmación doble para evitar eliminaciones accidentales
+    const confirmacion = window.confirm(
+      `¿Estás seguro de que deseas eliminar este producto?\n\n${
+        modalEdit.tipo === 'otros'
+          ? editForm.nombre_producto
+          : editForm.modelo
+      }\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (!confirmacion) return;
+
+    setEditLoading(true);
+    setEditError(null);
+
+    try {
+      console.log('🗑️ Eliminando producto:', modalEdit.producto.id);
+
+      // Usar la función del hook para eliminar
+      await eliminarProducto(modalEdit.producto.id);
+
+      console.log('✅ Producto eliminado exitosamente');
+
+      // Cerrar modal
+      closeEditModal();
+
+    } catch (error) {
+      console.error('❌ Error eliminando producto:', error);
+      setEditError(error.message || 'Error al eliminar el producto');
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   // NOTA: La gestión de fotos fue movida a asientos contables
@@ -1716,32 +1752,45 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-6 flex justify-end space-x-4">
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-6 flex justify-between items-center">
+              {/* Botón de eliminar a la izquierda */}
               <button
-                onClick={closeEditModal}
+                onClick={handleDelete}
                 disabled={editLoading}
-                className="px-4 py-2 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
               >
-                Cancelar
+                <Trash2 size={16} />
+                <span>Eliminar Producto</span>
               </button>
-              <button
-                type="submit"
-                form="edit-product-form"
-                disabled={editLoading}
-                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-              >
-                {editLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Guardando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} />
-                    <span>Guardar Cambios</span>
-                  </>
-                )}
-              </button>
+
+              {/* Botones de acción a la derecha */}
+              <div className="flex space-x-4">
+                <button
+                  onClick={closeEditModal}
+                  disabled={editLoading}
+                  className="px-4 py-2 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="edit-product-form"
+                  disabled={editLoading}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {editLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>Guardar Cambios</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
