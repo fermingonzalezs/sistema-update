@@ -107,8 +107,12 @@ const ProductModal = ({
     );
   };
 
-  // Obtener precios (compatibilidad con todos los tipos)
-  const precioCompra = producto.precio_compra_usd || producto.precio_costo_usd || 0;
+  // Obtener precios según tipo de producto
+  // ✅ Notebooks: usar precio_costo_total (incluye envíos/repuestos)
+  // ✅ Celulares/Otros: usar precio_compra_usd
+  const precioCompra = tipoProducto === 'notebook'
+    ? (producto.precio_costo_total || producto.precio_costo_usd || 0)
+    : (producto.precio_compra_usd || 0);
   const precioVenta = producto.precio_venta_usd || 0;
 
   return (

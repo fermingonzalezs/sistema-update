@@ -1405,6 +1405,21 @@ const FormularioOtro = ({ onAdd, loading }) => {
                   required
                 />
               </div>
+
+              <div className="md:col-span-2 lg:col-span-3">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Serial/Descripción
+                  <span className="text-xs text-slate-500 ml-1">(Opcional)</span>
+                </label>
+                <textarea
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleChange}
+                  placeholder="Serial del producto o descripción adicional..."
+                  rows={2}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+              </div>
             </div>
           </div>
 

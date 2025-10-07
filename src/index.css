@@ -10,13 +10,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevenir cursor de texto en elementos no editables */
+/* Permitir selección de texto pero mantener cursor default */
 * {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  cursor: default;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  cursor: default; /* Mantener cursor default (sin el palito |) */
 }
 
 /* Permitir selección y cursor de texto solo en campos editables */

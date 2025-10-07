@@ -71,10 +71,10 @@ export function useCarrito() {
           : item
       ))
     } else {
-      // Agregar nuevo item
+      // Agregar nuevo item - PASAR PRODUCTO COMPLETO con todos sus campos originales
       const nuevoItem = {
         id: `${tipoValido}-${producto.id}`,
-        producto,
+        producto: producto, // ✅ Pasar producto completo con precio_costo_total (notebooks) o precio_compra_usd (celulares/otros)
         tipo: tipoValido, // 'computadora', 'celular', 'otro' validado
         cantidad,
         precio_unitario: producto.precio_venta_usd || producto.precio_venta || 0
