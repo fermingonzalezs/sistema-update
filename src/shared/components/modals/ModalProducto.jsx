@@ -686,15 +686,13 @@ const ModalProducto = ({
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
-              <select
-                value={formData.resolucion || 'FHD'}
+              <input
+                type="text"
+                value={formData.resolucion || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, resolucion: e.target.value }))}
+                placeholder="Ej: FHD, 2K, 4K, 1920x1080, 2560x1600"
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {OPCIONES.resolucion.map(res => (
-                  <option key={res} value={res}>{res}</option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>

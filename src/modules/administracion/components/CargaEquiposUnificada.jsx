@@ -597,17 +597,14 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   Resolución
                   <span className="text-xs text-slate-500 ml-1">(Calidad)</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   name="resolucion"
                   value={formData.resolucion}
                   onChange={handleChange}
+                  placeholder="Ej: FHD, 2K, 4K, 1920x1080, 2560x1600"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="HD">HD (1366x768)</option>
-                  <option value="FHD">Full HD (1920x1080)</option>
-                  <option value="2K">2K (2560x1440)</option>
-                  <option value="4K">4K (3840x2160)</option>
-                </select>
+                />
               </div>
 
               <div>
