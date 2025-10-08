@@ -11,6 +11,11 @@ import {
   UBICACIONES_ARRAY,
   UBICACIONES_LABELS
 } from '../../../shared/constants/productConstants';
+import {
+  CATEGORIAS_OTROS,
+  CATEGORIAS_OTROS_ARRAY,
+  CATEGORIAS_OTROS_LABELS
+} from '../../../shared/constants/categoryConstants';
 
 const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
@@ -1267,12 +1272,11 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const opcionesCategorias = [
-    { value: 'accesorios', label: 'Accesorios' },
-    { value: 'monitores', label: 'Monitores' },
-    { value: 'perifericos', label: 'Periféricos' },
-    { value: 'componentes', label: 'Componentes' }
-  ];
+  // Usar constantes centralizadas en lugar de hardcodear
+  const opcionesCategorias = CATEGORIAS_OTROS_ARRAY.map(cat => ({
+    value: cat,
+    label: CATEGORIAS_OTROS_LABELS[cat]
+  }));
 
   const handleChange = (e) => {
     const { name, value } = e.target;

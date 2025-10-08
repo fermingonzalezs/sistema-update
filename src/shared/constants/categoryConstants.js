@@ -6,7 +6,8 @@ export const CATEGORIAS_OTROS = {
   MONITORES: 'MONITORES',
   PERIFERICOS: 'PERIFERICOS',
   COMPONENTES: 'COMPONENTES',
-  FUNDAS_TEMPLADOS: 'FUNDAS_TEMPLADOS'
+  FUNDAS_TEMPLADOS: 'FUNDAS_TEMPLADOS',
+  TABLETS: 'TABLETS'
 };
 
 export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
@@ -17,7 +18,8 @@ export const CATEGORIAS_OTROS_LABELS = {
   MONITORES: 'Monitores',
   PERIFERICOS: 'Periféricos',
   COMPONENTES: 'Componentes',
-  FUNDAS_TEMPLADOS: 'Fundas/Templados'
+  FUNDAS_TEMPLADOS: 'Fundas/Templados',
+  TABLETS: 'Tablets'
 };
 
 // Mapeo de categorías legacy a nuevas categorías
