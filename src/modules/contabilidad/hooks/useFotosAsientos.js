@@ -14,7 +14,33 @@ export const fotosAsientosService = {
         .order('orden', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+
+      // Regenerar URLs públicas para cada foto
+      const fotosConUrlsActualizadas = (data || []).map(foto => {
+        try {
+          // Extraer la ruta del storage desde la URL guardada
+          const url = new URL(foto.url_foto);
+          const rutaStorage = url.pathname.split('/fotos-asientos/')[1];
+
+          if (rutaStorage) {
+            // Generar nueva URL pública
+            const { data: urlData } = supabase.storage
+              .from('fotos-asientos')
+              .getPublicUrl(rutaStorage);
+
+            return {
+              ...foto,
+              url_foto: urlData.publicUrl
+            };
+          }
+        } catch (err) {
+          console.error('Error regenerando URL para foto:', foto.id, err);
+        }
+
+        return foto;
+      });
+
+      return fotosConUrlsActualizadas;
     } catch (error) {
       console.error('Error obteniendo fotos del asiento:', error);
       throw error;

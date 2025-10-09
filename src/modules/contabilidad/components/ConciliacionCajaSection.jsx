@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft } from 'lucide-react';
+import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft, TrendingUp, X } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { convertirARSaUSD, validarRangoCotizacion } from '../../../shared/utils/currency';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import Tarjeta from '../../../shared/components/layout/Tarjeta';
 
 // Servicio para Conciliación de Caja
 const conciliacionCajaService = {
@@ -65,7 +66,15 @@ const conciliacionCajaService = {
     console.log('📋 Obteniendo últimos movimientos de caja...');
     const { data, error } = await supabase
       .from('movimientos_contables')
-      .select(`        *,        asientos_contables (          numero, fecha, descripcion        )      `)
+      .select(`
+        *,
+        asientos_contables (
+          id,
+          numero,
+          fecha,
+          descripcion
+        )
+      `)
       .eq('cuenta_id', cuentaId)
       .order('id', { ascending: false })
       .limit(limite);
@@ -127,11 +136,13 @@ const conciliacionCajaService = {
 // Hook personalizado
 function useConciliacionCaja() {
   const [cuentasCaja, setCuentasCaja] = useState([]);
+  const [cuentasCajaConSaldos, setCuentasCajaConSaldos] = useState([]);
   const [cuentaSeleccionada, setCuentaSeleccionada] = useState(null);
   const [saldoContable, setSaldoContable] = useState(null);
   const [ultimosMovimientos, setUltimosMovimientos] = useState([]);
   const [conciliacionesAnteriores, setConciliacionesAnteriores] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSaldos, setLoadingSaldos] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchCuentasCaja = async () => {
@@ -139,8 +150,31 @@ function useConciliacionCaja() {
       setError(null);
       const data = await conciliacionCajaService.getCuentasCaja();
       setCuentasCaja(data);
+
+      // Obtener saldos para cada cuenta
+      setLoadingSaldos(true);
+      const cuentasConSaldosData = await Promise.all(
+        data.map(async (cuenta) => {
+          try {
+            const saldo = await conciliacionCajaService.getSaldoContableCaja(cuenta.id);
+            return {
+              ...cuenta,
+              saldoActual: saldo.saldoContable
+            };
+          } catch (err) {
+            console.error(`Error obteniendo saldo para cuenta ${cuenta.codigo}:`, err);
+            return {
+              ...cuenta,
+              saldoActual: 0
+            };
+          }
+        })
+      );
+      setCuentasCajaConSaldos(cuentasConSaldosData);
+      setLoadingSaldos(false);
     } catch (err) {
       setError(err.message);
+      setLoadingSaldos(false);
     }
   };
 
@@ -179,11 +213,13 @@ function useConciliacionCaja() {
 
   return {
     cuentasCaja,
+    cuentasCajaConSaldos,
     cuentaSeleccionada,
     saldoContable,
     ultimosMovimientos,
     conciliacionesAnteriores,
     loading,
+    loadingSaldos,
     error,
     fetchCuentasCaja,
     fetchDatosCuenta,
@@ -196,11 +232,13 @@ function useConciliacionCaja() {
 const ConciliacionCajaSection = () => {
   const {
     cuentasCaja,
+    cuentasCajaConSaldos,
     cuentaSeleccionada,
     saldoContable,
     ultimosMovimientos,
     conciliacionesAnteriores,
     loading,
+    loadingSaldos,
     error,
     fetchCuentasCaja,
     fetchDatosCuenta,
@@ -217,6 +255,7 @@ const ConciliacionCajaSection = () => {
   const [cotizacionActual, setCotizacionActual] = useState(null);
   const [observaciones, setObservaciones] = useState('');
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
+  const [modalAsiento, setModalAsiento] = useState({ open: false, asiento: null });
 
   useEffect(() => {
     console.log('🚀 Iniciando conciliación de caja...');
@@ -233,6 +272,59 @@ const ConciliacionCajaSection = () => {
       }
     } catch (error) {
       console.error('Error obteniendo cotización:', error);
+    }
+  };
+
+  const abrirModalAsiento = async (asientoId) => {
+    if (!asientoId) {
+      alert('Este movimiento no tiene un asiento asociado o el ID es inválido.');
+      console.error('Intento de abrir modal con ID de asiento inválido:', asientoId);
+      return;
+    }
+    try {
+      console.log('🔍 Cargando asiento ID:', asientoId);
+
+      // Obtener el asiento completo con todos sus movimientos
+      const { data: asiento, error: errorAsiento } = await supabase
+        .from('asientos_contables')
+        .select('*')
+        .eq('id', asientoId)
+        .single();
+
+      if (errorAsiento) {
+        console.error('❌ Error obteniendo asiento:', errorAsiento);
+        throw errorAsiento;
+      }
+
+      console.log('✅ Asiento obtenido:', asiento);
+
+      // Obtener todos los movimientos del asiento con información de las cuentas
+      const { data: movimientos, error: errorMovimientos } = await supabase
+        .from('movimientos_contables')
+        .select(`
+          *,
+          plan_cuentas (codigo, nombre)
+        `)
+        .eq('asiento_id', asientoId)
+        .order('id');
+
+      if (errorMovimientos) {
+        console.error('❌ Error obteniendo movimientos:', errorMovimientos);
+        throw errorMovimientos;
+      }
+
+      console.log('✅ Movimientos obtenidos:', movimientos);
+
+      setModalAsiento({
+        open: true,
+        asiento: {
+          ...asiento,
+          movimientos
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error completo:', error);
+      alert(`Error al cargar el detalle del asiento: ${error.message || 'Error desconocido'}`);
     }
   };
 
@@ -379,12 +471,62 @@ const ConciliacionCajaSection = () => {
         </div>
       </div>
       
+      {/* Tarjetas de totales */}
+      {!cuentaSeleccionada && cuentasCajaConSaldos.length > 0 && (
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Tarjeta
+              icon={DollarSign}
+              titulo="Total en Cuentas USD"
+              valor={formatearMonto(
+                cuentasCajaConSaldos
+                  .filter(c =>
+                    (c.codigo.startsWith('1.1.01.01') ||
+                     c.codigo.startsWith('1.1.01.02') ||
+                     c.codigo.startsWith('1.1.01.03') ||
+                     c.codigo.startsWith('1.1.01.05')) &&
+                    c.moneda_original === 'USD' &&
+                    !c.requiere_cotizacion
+                  )
+                  .reduce((sum, c) => sum + (c.saldoActual || 0), 0),
+                'USD'
+              )}
+              className="text-emerald-600"
+            />
+            <Tarjeta
+              icon={DollarSign}
+              titulo="Total en Cuentas ARS"
+              valor={formatearMonto(
+                cuentasCajaConSaldos
+                  .filter(c => c.moneda_original === 'ARS' || c.requiere_cotizacion)
+                  .reduce((sum, c) => sum + (c.saldoActual || 0), 0),
+                'USD'
+              )}
+              className="text-emerald-600"
+            />
+            <Tarjeta
+              icon={DollarSign}
+              titulo="Total en Cripto"
+              valor={formatearMonto(
+                cuentasCajaConSaldos
+                  .filter(c => c.codigo.startsWith('1.1.01.04'))
+                  .reduce((sum, c) => sum + (c.saldoActual || 0), 0),
+                'USD'
+              )}
+              className="text-emerald-600"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Selector de cuenta de caja y bancos */}
       {!cuentaSeleccionada && (
         <div className="bg-white p-6 rounded border border-slate-200">
-         
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cuentasCaja.map(cuenta => {
+            {cuentasCajaConSaldos
+              .filter(cuenta => (cuenta.saldoActual || 0) !== 0)
+              .map(cuenta => {
               const esARS = cuenta.moneda_original === 'ARS' || cuenta.requiere_cotizacion;
               return (
                 <button
@@ -403,7 +545,16 @@ const ConciliacionCajaSection = () => {
                       {cuenta.codigo}
                     </code>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-slate-400" />
+                  <div className="flex flex-col items-end ml-4 min-w-0">
+                    <div className="text-xs text-slate-500 mb-1 whitespace-nowrap">Saldo</div>
+                    <div className={`font-semibold text-base truncate max-w-full ${(cuenta.saldoActual || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {loadingSaldos ? (
+                        <span className="text-slate-400">Cargando...</span>
+                      ) : (
+                        formatearMonto(Math.abs(cuenta.saldoActual || 0), cuenta.moneda_original || 'USD')
+                      )}
+                    </div>
+                  </div>
                 </button>
               );
             })}
@@ -461,14 +612,6 @@ const ConciliacionCajaSection = () => {
                       <p className="text-sm text-slate-600">Total Movimientos</p>
                       <p className="text-2xl font-bold text-slate-800">{saldoContable.totalMovimientos}</p>
                     </div>
-                    <div className="bg-emerald-50 text-emerald-800 p-4 rounded border border-emerald-200">
-                      <p className="text-sm">Total Ingresos</p>
-                      <p className="text-lg font-bold">{formatearMoneda(saldoContable.totalIngresos)}</p>
-                    </div>
-                    <div className="bg-slate-100 text-slate-800 p-4 rounded border border-slate-200">
-                      <p className="text-sm">Total Egresos</p>
-                      <p className="text-lg font-bold">{formatearMoneda(saldoContable.totalEgresos)}</p>
-                    </div>
                   </div>
                 </div>
                 {/* Últimos movimientos */}
@@ -479,20 +622,49 @@ const ConciliacionCajaSection = () => {
                       Últimos Movimientos
                     </h5>
                   </div>
-                  <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-                    {ultimosMovimientos.map((mov, index) => (
-                      <div key={index} className="text-sm bg-white p-3 rounded border border-slate-200">
-                        <div className="flex justify-between items-center">
-                          <span className="font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">N° {mov.asientos_contables.numero}</span>
-                          <span className="text-slate-500">{formatearFecha(mov.asientos_contables.fecha)}</span>
-                        </div>
-                        <p className="text-slate-700 truncate my-2">{mov.asientos_contables.descripcion}</p>
-                        <div className="flex justify-end items-center mt-1">
-                          {mov.debe > 0 && <span className="font-semibold text-emerald-600 text-base">+{formatearMoneda(mov.debe)}</span>}
-                          {mov.haber > 0 && <span className="font-semibold text-slate-600 text-base">-{formatearMoneda(mov.haber)}</span>}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-800 text-white">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Asiento</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Debe</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Haber</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {ultimosMovimientos.map((mov, index) => (
+                          <tr
+                            key={index}
+                            onClick={() => abrirModalAsiento(mov.asiento_id)}
+                            className={`cursor-pointer hover:bg-slate-100 transition-colors ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+                            }`}
+                          >
+                            <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
+                              {formatearFecha(mov.asientos_contables.fecha)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                                N° {mov.asientos_contables.numero}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                              <div className="truncate" title={mov.asientos_contables.descripcion}>
+                                {mov.asientos_contables.descripcion}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm font-medium text-emerald-600">
+                              {mov.debe > 0 ? formatearMoneda(mov.debe) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm font-medium text-slate-600">
+                              {mov.haber > 0 ? formatearMoneda(mov.haber) : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -712,6 +884,123 @@ const ConciliacionCajaSection = () => {
         <div className="mt-6 bg-slate-50 border-l-4 border-slate-600 p-4">
           <p className="font-bold text-slate-800">Error</p>
           <span className="text-slate-700">{error}</span>
+        </div>
+      )}
+
+      {/* Modal de detalle del asiento */}
+      {modalAsiento.open && modalAsiento.asiento && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold">Detalle del Asiento Contable</h2>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Asiento N° {modalAsiento.asiento.numero} - {formatearFecha(modalAsiento.asiento.fecha)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setModalAsiento({ open: false, asiento: null })}
+                  className="p-2 hover:bg-slate-700 rounded transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenido */}
+            <div className="p-6">
+              {/* Información del asiento */}
+              <div className="bg-slate-50 p-4 rounded border border-slate-200 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Descripción</p>
+                    <p className="text-slate-800 font-medium">{modalAsiento.asiento.descripcion}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Usuario</p>
+                    <p className="text-slate-800 font-medium">{modalAsiento.asiento.usuario || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Estado</p>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      modalAsiento.asiento.estado === 'registrado'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-100 text-slate-800'
+                    }`}>
+                      {modalAsiento.asiento.estado?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Fecha</p>
+                    <p className="text-slate-800 font-medium">{formatearFecha(modalAsiento.asiento.fecha)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabla de movimientos */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cuenta</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Debe</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Haber</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {modalAsiento.asiento.movimientos?.map((mov, index) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="px-4 py-3 text-sm font-mono text-slate-600">
+                          {mov.plan_cuentas?.codigo}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-800">
+                          {mov.plan_cuentas?.nombre}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-medium text-emerald-600">
+                          {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-medium text-slate-600">
+                          {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-slate-800 text-white">
+                    <tr>
+                      <td colSpan="2" className="px-4 py-3 text-sm font-semibold">TOTALES</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold">
+                        {formatearMonto(modalAsiento.asiento.total_debe || 0, 'USD')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold">
+                        {formatearMonto(modalAsiento.asiento.total_haber || 0, 'USD')}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Observaciones si existen */}
+              {modalAsiento.asiento.observaciones && (
+                <div className="mt-6 bg-slate-50 p-4 rounded border border-slate-200">
+                  <p className="text-sm text-slate-600 mb-2">Observaciones</p>
+                  <p className="text-slate-800">{modalAsiento.asiento.observaciones}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4 flex justify-end">
+              <button
+                onClick={() => setModalAsiento({ open: false, asiento: null })}
+                className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

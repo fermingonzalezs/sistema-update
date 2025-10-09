@@ -283,6 +283,7 @@ const libroDiarioService = {
         p_asiento_id: asientoId,
         p_nueva_fecha: datosEdicion.fecha,
         p_nueva_descripcion: datosEdicion.descripcion,
+        p_nuevas_notas: datosEdicion.notas,
         p_nuevos_movimientos: datosEdicion.movimientos,
         p_user_role: userRole
       });
@@ -856,6 +857,7 @@ const LibroDiarioSection = () => {
       const datosEdicion = {
         fecha: formData.fecha,
         descripcion: formData.descripcion,
+        notas: formData.notas,
         movimientos: totales.movimientosConvertidos.map(mov => {
           const movimientoEdicion = {
             cuenta_id: mov.cuenta_id,

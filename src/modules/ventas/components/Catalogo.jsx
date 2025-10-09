@@ -141,15 +141,20 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     if (onAddToCart) {
       // Determinar el tipo según la categoría activa
       let tipo = 'computadora'; // default
+      let categoria = null; // Nueva propiedad para categorías específicas de "otros"
+
       if (categoriaActiva === 'celulares') {
         tipo = 'celular';
       } else if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
         tipo = 'otro';
+        // Para productos "otros", usar la categoría del producto para análisis detallado
+        categoria = producto.categoria || 'otros';
       } else if (['desktop', 'tablets', 'gpu', 'apple', 'componentes', 'audio'].includes(categoriaActiva)) {
-        tipo = 'otro'; // Categorías especiales se clasifican como 'otro'
+        tipo = 'otro';
+        categoria = producto.categoria || categoriaActiva;
       }
-      
-      onAddToCart(producto, tipo);
+
+      onAddToCart(producto, tipo, categoria);
     }
   };
 
@@ -1436,11 +1441,12 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       )}
       
       {!loading && !error && (
-        <div className="space-y-1">
+        <div className="overflow-x-auto w-full">
+          <div className="space-y-1 inline-block min-w-full">
           {/* Header */}
           {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
             // Header para otros productos - mostrar stock por sucursal
-            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
+            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
               <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
               <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
               <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
@@ -1450,7 +1456,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </div>
           ) : (
             // Header para notebooks y celulares - mostrar serial
-            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800">
+            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
               <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
               <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Serial</div>
               <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
@@ -1463,7 +1469,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           {datos.map((producto) => (
             <div
               key={producto.id}
-              className={`group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2`}
+              className={`group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2 min-w-[950px]`}
               onClick={() => setModalDetalle({ open: true, producto })}
             >
               {/* Información del producto */}
@@ -1512,25 +1518,32 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Estado */}
-                  <div className="col-span-1 text-center">
-                    <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
-                      (() => {
-                        const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
-                        if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
-                        if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
-                        if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
-                        if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
-                        if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
-                        if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
-                        if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
-                        if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
-                        if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
-                        if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
-                        if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
-                        if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
-                        return 'bg-slate-100 text-slate-700';
-                      })()
-                    }`}>
+                  <div className="col-span-1 text-center flex justify-center items-center px-2">
+                    <span
+                      className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${
+                        (() => {
+                          const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                          if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
+                          return 'bg-slate-100 text-slate-700';
+                        })()
+                      }`}
+                      title={(() => {
+                        const condicion = producto.condicion || producto.estado || 'N/A';
+                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                        return condicion.toUpperCase();
+                      })()}
+                    >
                       {(() => {
                         const condicion = producto.condicion || producto.estado || 'N/A';
                         if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
@@ -1612,25 +1625,32 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   </div>
 
                   {/* Estado - Solo condición */}
-                  <div className="col-span-1 text-center">
-                    <span className={`px-2 py-1 text-sm font-medium rounded inline-block w-fit ${
-                      (() => {
-                        const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
-                        if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
-                        if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
-                        if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
-                        if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
-                        if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
-                        if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
-                        if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
-                        if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
-                        if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
-                        if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
-                        if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
-                        if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
-                        return 'bg-slate-100 text-slate-700';
-                      })()
-                    }`}>
+                  <div className="col-span-1 text-center flex justify-center items-center px-2">
+                    <span
+                      className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${
+                        (() => {
+                          const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                          if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                          if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
+                          return 'bg-slate-100 text-slate-700';
+                        })()
+                      }`}
+                      title={(() => {
+                        const condicion = producto.condicion || producto.estado || 'N/A';
+                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                        return condicion.toUpperCase();
+                      })()}
+                    >
                       {(() => {
                         const condicion = producto.condicion || producto.estado || 'N/A';
                         if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
@@ -1692,6 +1712,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               No se encontraron productos con los filtros aplicados
             </div>
           )}
+          </div>
         </div>
       )}
 

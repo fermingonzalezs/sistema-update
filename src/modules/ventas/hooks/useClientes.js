@@ -230,47 +230,53 @@ export const clientesService = {
     }
   },
 
-  // 🎂 Obtener próximos cumpleaños (próximos 30 días)
+  // 🎂 Obtener próximos cumpleaños con orden de proximidad
   async getProximosCumpleanos() {
     try {
-      console.log('🎂 Obteniendo próximos cumpleaños...');
+      console.log('🎂 Obteniendo próximos cumpleaños (con nueva lógica)...');
       
       const { data, error } = await supabase
         .from('clientes')
         .select('*')
         .eq('activo', true)
-        .not('cumpleanos', 'is', null)
-        .order('cumpleanos', { ascending: true });
+        .not('cumpleanos', 'is', null);
 
       if (error) throw error;
 
-      // Normalizar fechas a medianoche para comparaciones consistentes
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      
-      const en30Dias = new Date(hoy);
-      en30Dias.setDate(hoy.getDate() + 30);
 
-      const proximosCumpleanos = data.filter(cliente => {
-        if (!cliente.cumpleanos) return false;
-        
+      const clientesConCumpleanos = data.map(cliente => {
         const cumple = new Date(cliente.cumpleanos);
-        if (isNaN(cumple.getTime())) return false;
-        
-        // Ajustar al año actual, normalizando a medianoche
-        const cumpleEsteAno = new Date(hoy.getFullYear(), cumple.getMonth(), cumple.getDate());
+        if (isNaN(cumple.getTime())) return null;
+
+        let cumpleEsteAno = new Date(hoy.getFullYear(), cumple.getMonth(), cumple.getDate());
         cumpleEsteAno.setHours(0, 0, 0, 0);
-        
-        // Si ya pasó este año, considerar el próximo año
-        if (cumpleEsteAno < hoy) {
-          cumpleEsteAno.setFullYear(hoy.getFullYear() + 1);
+
+        // Calcula la diferencia en días. Si el cumpleaños ya pasó, la diferencia será negativa.
+        let diff = (cumpleEsteAno.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
+
+        // Si la diferencia es muy negativa (más de 2 días atrás), calcula para el próximo año
+        if (diff < -2) {
+          let cumpleProximoAno = new Date(hoy.getFullYear() + 1, cumple.getMonth(), cumple.getDate());
+          cumpleProximoAno.setHours(0, 0, 0, 0);
+          diff = (cumpleProximoAno.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
         }
         
-        return cumpleEsteAno <= en30Dias;
-      });
+        return {
+          ...cliente,
+          diasParaCumple: diff
+        };
+      }).filter(Boolean); // Eliminar nulos si la fecha de cumpleaños es inválida
 
-      console.log(`✅ ${proximosCumpleanos.length} cumpleaños próximos encontrados`);
-      return proximosCumpleanos;
+      // Ordenar por proximidad (los que ya pasaron hace poco primero, luego los que vienen)
+      const cumpleañosOrdenados = clientesConCumpleanos.sort((a, b) => a.diasParaCumple - b.diasParaCumple);
+      
+      // Filtrar para incluir solo los que pasaron hace 2 días o menos, y los próximos 15 días.
+      const cumpleañosFiltrados = cumpleañosOrdenados.filter(c => c.diasParaCumple >= -2 && c.diasParaCumple <= 15);
+
+      console.log(`✅ ${cumpleañosFiltrados.length} cumpleaños próximos encontrados y ordenados`);
+      return cumpleañosFiltrados;
     } catch (error) {
       console.error('❌ Error obteniendo próximos cumpleaños:', error);
       throw error;

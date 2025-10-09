@@ -27,7 +27,7 @@ const ProductModal = ({
     celular: {
       informacion: [
         { key: 'serial', label: 'Serial' },
-        { key: 'fecha_ingreso', label: 'Fecha Ingreso' },
+        { key: 'ingreso', label: 'Fecha Ingreso' },
         { key: 'marca', label: 'Marca' },
         { key: 'capacidad', label: 'Capacidad' },
         { key: 'color', label: 'Color' },
@@ -36,9 +36,8 @@ const ProductModal = ({
       estado: [
         { key: 'estado', label: 'Estado General' },
         { key: 'bateria', label: 'Batería' },
-        { key: 'ciclos', label: 'Ciclos' },
-        { key: 'garantia_update', label: 'Garantía Update' },
-        { key: 'garantia_oficial', label: 'Garantía Oficial' }
+        { key: 'ciclos', label: 'Ciclos', opcional: true },
+        { key: 'garantia', label: 'Garantía', opcional: true }
       ]
     },
     notebook: {
@@ -62,20 +61,12 @@ const ProductModal = ({
     },
     otro: {
       informacion: [
-        { key: 'serial', label: 'Serial' },
-        { key: 'ingreso', label: 'Fecha Ingreso' },
-        { key: 'marca', label: 'Marca' },
         { key: 'categoria', label: 'Categoría' },
-        { key: 'subcategoria', label: 'Subcategoría' },
-        { key: 'descripcion', label: 'Descripción', opcional: true }
+        { key: 'ingreso', label: 'Fecha Ingreso' },
+        { key: 'condicion', label: 'Condición' },
+        { key: 'garantia', label: 'Garantía', opcional: true }
       ],
-      estado: [
-        { key: 'estado', label: 'Estado' },
-        { key: 'funcionalidad', label: 'Funcionalidad' },
-        { key: 'accesorios', label: 'Accesorios', opcional: true },
-        { key: 'garantia_update', label: 'Garantía Update' },
-        { key: 'fallas', label: 'Fallas', opcional: true }
-      ]
+      estado: []
     }
   };
 
@@ -100,9 +91,34 @@ const ProductModal = ({
   // Renderizar campo de información
   const renderField = (campo, valor) => {
     if (!valor && campo.opcional) return null;
+
+    let displayValue = valor || 'N/A';
+
+    // Poner en mayúscula la condición
+    if (campo.key === 'condicion') {
+      displayValue = (valor || 'N/A').toUpperCase();
+    }
+
+    // Formatear fechas
+    if (campo.key === 'ingreso') {
+      try {
+        // Asegurar que la fecha se interprete correctamente en la zona horaria local
+        const date = new Date(valor + 'T00:00:00');
+        if (!isNaN(date)) {
+          displayValue = date.toLocaleDateString('es-AR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+        }
+      } catch (e) {
+        console.error("Error al formatear la fecha:", valor, e);
+      }
+    }
+
     return (
       <div key={campo.key}>
-        <strong>{campo.label}:</strong> {valor || 'N/A'}
+        <strong>{campo.label}:</strong> {displayValue}
       </div>
     );
   };
@@ -131,20 +147,25 @@ const ProductModal = ({
               </span>
             </div>
 
-            {/* Ubicación */}
-            <div className='text-center bg-slate-700 p-3 rounded'>
-              <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">UBICACIÓN</h3>
-              <span className="font-semibold text-white">
-                {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')
-                  .replace('_', ' ').toUpperCase()}
-              </span>
-            </div>
+            {/* Ubicación (Oculto para 'otro') */}
+            {tipoProducto !== 'otro' && (
+              <div className='text-center bg-slate-700 p-3 rounded'>
+                <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">UBICACIÓN</h3>
+                <span className="font-semibold text-white">
+                  {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')
+                    .replace('_', ' ').toUpperCase()}
+                </span>
+              </div>
+            )}
 
             {/* Cantidad */}
             <div className='text-center bg-slate-700 p-3 rounded'>
               <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">CANTIDAD</h3>
               <span className="font-semibold text-white">
-                {(producto.cantidad || '1') + ' unidades'}
+                {tipoProducto === 'otro'
+                  ? `${(producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0)} unidades`
+                  : `${(producto.cantidad || '1')} unidades`
+                }
               </span>
             </div>
 
@@ -184,23 +205,76 @@ const ProductModal = ({
                 Información
               </h3>
               <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                {camposConfig.informacion?.map(campo => 
-                  renderField(campo, producto[campo.key])
-                )}
+                {camposConfig.informacion?.map(campo => {
+                  // Para celulares nuevos, no mostrar fallas
+                  if (
+                    tipoProducto === 'celular' &&
+                    producto.condicion?.toLowerCase() === 'nuevo' &&
+                    campo.key === 'fallas'
+                  ) {
+                    return null;
+                  }
+                  return renderField(campo, producto[campo.key]);
+                })}
               </div>
             </div>
 
-            {/* Columna Estado */}
-            <div className="space-y-4">
-              <h3 className="text-lg text-center font-semibold text-white bg-slate-800 px-3 py-2 rounded">
-                Estado
-              </h3>
-              <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                {camposConfig.estado?.map(campo => 
-                  renderField(campo, producto[campo.key])
-                )}
+            {/* Columna Estado / Stock */}
+            {tipoProducto === 'otro' ? (
+              <div className="space-y-4">
+                <h3 className="text-lg text-center font-semibold text-white bg-slate-800 px-3 py-2 rounded">
+                  Stock
+                </h3>
+                <div className="bg-slate-50 p-4 rounded border border-slate-200 space-y-2">
+                  <div>
+                    <strong>Cantidad La Plata:</strong> {producto.cantidad_la_plata || 0}
+                  </div>
+                  <div>
+                    <strong>Cantidad Mitre:</strong> {producto.cantidad_mitre || 0}
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-lg text-center font-semibold text-white bg-slate-800 px-3 py-2 rounded">
+                  Estado
+                </h3>
+                <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                  {camposConfig.estado?.map(campo => {
+                    const isNew = producto.condicion?.toLowerCase() === 'nuevo';
+
+                    // Lógica para Notebooks
+                    if (tipoProducto === 'notebook') {
+                      if (isNew && (campo.key === 'bateria' || campo.key === 'fallas')) {
+                        return null;
+                      }
+                      if (campo.key === 'placa_video') {
+                        const placa = producto.placa_video;
+                        const vram = producto.vram;
+                        let displayValue = '';
+                        if (placa && vram) {
+                          displayValue = `${placa} - ${vram}`;
+                        } else if (placa) {
+                          displayValue = placa;
+                        }
+                        if (!displayValue) return null;
+                        return renderField(campo, displayValue);
+                      }
+                    }
+
+                    // Lógica para Celulares
+                    if (tipoProducto === 'celular') {
+                      const fieldsToHideWhenNew = ['estado', 'bateria', 'ciclos', 'garantia'];
+                      if (isNew && fieldsToHideWhenNew.includes(campo.key)) {
+                        return null;
+                      }
+                    }
+
+                    return renderField(campo, producto[campo.key]);
+                  })}
+                </div>
+              </div>
+            )}
 
           </div>
 

@@ -201,16 +201,20 @@ export const ventasService = {
           copyCompleto = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
         }
 
-        // Validar que el tipo sea válido antes de insertar
-        const tipoValido = ['computadora', 'celular', 'otro'].includes(item.tipo) ? item.tipo : 'otro';
-        
-        if (item.tipo !== tipoValido) {
-          console.warn(`⚠️ Tipo de producto corregido: "${item.tipo}" → "${tipoValido}"`);
+        // Determinar tipo_producto: si es "otro" y tiene categoría, usar la categoría
+        let tipoProducto;
+        if (item.tipo === 'otro' && item.categoria) {
+          // Para productos "otros", usar la categoría específica para análisis detallado
+          tipoProducto = item.categoria;
+          console.log(`📊 Usando categoría específica para análisis: "${tipoProducto}"`);
+        } else {
+          // Para computadoras y celulares, mantener el tipo original
+          tipoProducto = ['computadora', 'celular', 'otro'].includes(item.tipo) ? item.tipo : 'otro';
         }
 
         return {
           transaccion_id: transaccion.id,
-          tipo_producto: tipoValido,
+          tipo_producto: tipoProducto, // Ahora puede ser: computadora, celular, o una categoría específica
           producto_id: item.producto.id,
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
           copy: copyCompleto,
@@ -291,19 +295,36 @@ export const ventasService = {
     const totalIngresos = data.reduce((sum, txn) => sum + (parseFloat(txn.monto_pago_1 || 0) + parseFloat(txn.monto_pago_2 || 0)), 0)
     const totalCostos = data.reduce((sum, txn) => sum + parseFloat(txn.total_costo || 0), 0)
     const totalGanancias = data.reduce((sum, txn) => sum + parseFloat(txn.margen_total || 0), 0)
-    
-    // Obtener estadísticas por tipo de producto
+
+    // Obtener estadísticas por tipo de producto (ahora incluye categorías específicas)
     const { data: itemsData, error: itemsError } = await supabase
       .from('venta_items')
-      .select('tipo_producto, cantidad')
-    
+      .select('tipo_producto, cantidad, precio_total')
+
     if (itemsError) throw itemsError
-    
+
     const ventasComputadoras = itemsData.filter(item => item.tipo_producto === 'computadora').length
     const ventasCelulares = itemsData.filter(item => item.tipo_producto === 'celular').length
-    const ventasOtros = itemsData.filter(item => item.tipo_producto === 'otro')
-      .reduce((sum, item) => sum + item.cantidad, 0)
-    
+
+    // Para "otros", agrupar por categoría específica
+    const ventasPorCategoria = {};
+    let totalVentasOtros = 0;
+
+    itemsData.forEach(item => {
+      if (item.tipo_producto !== 'computadora' && item.tipo_producto !== 'celular') {
+        const categoria = item.tipo_producto || 'otros';
+        if (!ventasPorCategoria[categoria]) {
+          ventasPorCategoria[categoria] = {
+            cantidad: 0,
+            total: 0
+          };
+        }
+        ventasPorCategoria[categoria].cantidad += item.cantidad;
+        ventasPorCategoria[categoria].total += parseFloat(item.precio_total || 0);
+        totalVentasOtros += item.cantidad;
+      }
+    });
+
     return {
       totalVentas: totalTransacciones,
       totalIngresos,
@@ -311,7 +332,8 @@ export const ventasService = {
       totalGanancias,
       ventasComputadoras,
       ventasCelulares,
-      ventasOtros
+      ventasOtros: totalVentasOtros,
+      ventasPorCategoria // Detalle de ventas por categoría específica
     }
   }
 };

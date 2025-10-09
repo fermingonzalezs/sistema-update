@@ -193,59 +193,56 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
               </div>
             ) : fotos.length > 0 ? (
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-4 gap-4">
                 {fotos.map((foto) => (
                   <div
                     key={foto.id}
-                    className="relative group border-2 border-slate-200 rounded-lg overflow-hidden bg-slate-50 hover:border-emerald-500 transition-colors"
+                    onClick={() => setVistaPrevia(foto)}
+                    className="relative group border-2 border-slate-200 rounded-lg overflow-hidden bg-white hover:border-emerald-500 hover:shadow-lg transition-all cursor-pointer"
                   >
-                    {/* Thumbnail o ícono PDF */}
-                    <div className="aspect-square bg-slate-100 relative flex items-center justify-center">
-                      {esPDF(foto.url_foto) ? (
-                        <div className="flex flex-col items-center text-slate-500">
-                          <FileText className="w-16 h-16 mb-2" />
-                          <span className="text-sm font-medium">PDF</span>
-                        </div>
-                      ) : (
-                        <img
-                          src={foto.url_foto}
-                          alt={foto.descripcion || `Foto ${foto.orden}`}
-                          className="w-full h-full object-cover cursor-pointer"
-                          onClick={() => setVistaPrevia(foto)}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = '<div class="flex items-center justify-center w-full h-full text-slate-400">Error cargando imagen</div>';
-                          }}
-                        />
+                    {/* Ícono de archivo (sin preview) */}
+                    <div className="h-32 bg-gradient-to-br from-slate-50 to-slate-100 relative flex items-center justify-center p-4">
+                      <div className="flex flex-col items-center text-slate-600 group-hover:text-emerald-600 transition-colors">
+                        {esPDF(foto.url_foto) ? (
+                          <>
+                            <div className="text-4xl mb-1">📄</div>
+                            <span className="text-xs font-medium">PDF</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-4xl mb-1">📎</div>
+                            <span className="text-xs font-medium">Imagen</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Información del archivo */}
+                    <div className="p-3 bg-white border-t border-slate-200">
+                      <p className="text-xs text-slate-600 truncate font-medium" title={foto.nombre_archivo}>
+                        {foto.nombre_archivo}
+                      </p>
+                      {foto.descripcion && (
+                        <p className="text-xs text-slate-500 truncate mt-1" title={foto.descripcion}>
+                          {foto.descripcion}
+                        </p>
                       )}
+                      <p className="text-xs text-slate-400 mt-1">
+                        {formatearTamaño(foto.tamaño_archivo)}
+                      </p>
                     </div>
 
-                    {/* Overlay con acciones */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 flex space-x-2">
-                        <button
-                          onClick={() => setVistaPrevia(foto)}
-                          className="p-2 bg-white text-slate-700 rounded-lg hover:bg-slate-100"
-                          title="Ver"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => eliminarFoto(foto.id)}
-                          className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Descripción */}
-                    {foto.descripcion && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent text-white text-xs p-3 truncate">
-                        {foto.descripcion}
-                      </div>
-                    )}
+                    {/* Botón de eliminar */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        eliminarFoto(foto.id);
+                      }}
+                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-700 transition-all"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
 
                     {/* Número de orden */}
                     <div className="absolute top-2 left-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">
@@ -256,7 +253,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
               </div>
             ) : (
               <div className="text-center py-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50">
-                <Image className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                <div className="text-6xl mb-4">📎</div>
                 <p className="text-slate-600 font-medium mb-1">No hay archivos adjuntos</p>
                 <p className="text-sm text-slate-500 mb-4">Adjunta facturas, recibos o documentos relacionados</p>
                 <button

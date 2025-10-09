@@ -275,12 +275,16 @@ const RegistrarVentaSection = () => {
   const agregarProductoStock = (producto) => {
     // Determinar el tipo según la categoría actual
     let tipoProducto = 'otro';
+    let categoria = null; // Nueva propiedad para categorías específicas
+
     if (categoriaSeleccionada === 'notebooks') {
       tipoProducto = 'computadora';
     } else if (categoriaSeleccionada === 'celulares') {
       tipoProducto = 'celular';
     } else if (categoriaSeleccionada === 'otros') {
       tipoProducto = 'otro';
+      // Para productos "otros", capturar la categoría específica del producto
+      categoria = producto.categoria || 'otros';
     }
 
     const itemExistente = itemsVenta.find(item => item.id === producto.id && item.tipo === tipoProducto);
@@ -295,6 +299,7 @@ const RegistrarVentaSection = () => {
       setItemsVenta(prev => [...prev, {
         ...producto,
         tipo: tipoProducto,
+        categoria: categoria, // Agregar categoría específica
         cantidad: 1,
         total: producto.precio || 0,
         precio_unitario: producto.precio || 0, // Asegurar que nunca sea null
@@ -338,6 +343,7 @@ const RegistrarVentaSection = () => {
         stock: nuevoProducto.cantidad_la_plata + nuevoProducto.cantidad_mitre,
         condicion: nuevoProducto.condicion,
         tipo: 'otro', // CORREGIDO: Debe ser singular para que coincida con useVentas
+        categoria: nuevoProducto.categoria || 'otros', // Agregar categoría específica
         cantidad: 1,
         total: nuevoProducto.precio_venta_usd || 0,
         precio_unitario: nuevoProducto.precio_venta_usd || 0, // CRÍTICO: Agregar precio_unitario
