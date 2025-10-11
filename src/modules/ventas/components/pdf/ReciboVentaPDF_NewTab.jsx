@@ -3,6 +3,7 @@ import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/re
 import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
 import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../../../../shared/utils/documentTypeUtils';
+import { generarCopyParaPDF } from '../../../../shared/utils/pdfCopyUtils';
 
 // Registrar la fuente ANTES de los estilos
 Font.register({
@@ -607,45 +608,15 @@ export const convertirVentaARecibo = (transaccion) => {
       email: transaccion.cliente_email || ''
     },
     items: (transaccion.venta_items || []).map(item => {
-      // Extraer información básica del copy
-      const copy = item.copy || 'Producto sin especificar';
-
-      // Intentar extraer modelo y condición del copy
-      let modelo = copy;
-      let condicion = '';
-
-      // Buscar patrones comunes para extraer condición
-      const condicionPatterns = [
-        /- (nuevo|usado|refurbished|reacondicionado)/i,
-        /\((nuevo|usado|refurbished|reacondicionado)\)/i,
-        /(nuevo|usado|refurbished|reacondicionado)$/i
-      ];
-
-      for (const pattern of condicionPatterns) {
-        const match = copy.match(pattern);
-        if (match) {
-          condicion = match[1].toLowerCase();
-          // Normalizar condición
-          if (condicion === 'reacondicionado') condicion = 'refurbished';
-          modelo = copy.replace(pattern, '').trim();
-          break;
-        }
-      }
-
-      // Si no se encontró condición, asumir "usado"
-      if (!condicion) {
-        condicion = 'usado';
-      }
-
-      // Construir descripción simplificada
-      const descripcionSimple = `${modelo} - ${condicion}`;
+      // Generar copy simplificado para PDF usando función compartida
+      const descripcion = generarCopyParaPDF(item);
 
       return {
-        description: descripcionSimple,
+        description: descripcion,
         quantity: item.cantidad || 1,
         unitPrice: item.precio_unitario || 0,
         amount: item.precio_total || 0,
-        serial: item.serial_producto || null
+        serial: null // Serial ya está en la descripción
       };
     }),
     discount: transaccion.descuento || 0,

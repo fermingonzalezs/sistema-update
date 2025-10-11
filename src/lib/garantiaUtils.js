@@ -40,22 +40,31 @@ export const calcularGarantiaProducto = async (serialProducto, copy = '', tipoPr
         // ⚠️ FUENTE: Fallback con copy
         console.warn(`⚠️ [GARANTIA UTILS] No se encontró en inventario: ${serialProducto}`);
         console.log(`📝 [GARANTIA UTILS] Usando copy como fallback: "${copy}"`);
-        
+
         const copyLower = copy?.toLowerCase() || '';
         let condicionFromCopy = 'usado'; // Por defecto
-        
-        // Buscar condición en el copy
-        if (copyLower.includes('- nuevo') || copyLower.endsWith('nuevo')) {
+
+        // Buscar condición en el copy con patrones más amplios
+        // Buscar "nuevo" en cualquier parte del copy
+        if (copyLower.includes('nuevo') || copyLower.includes('nueva')) {
           condicionFromCopy = 'nuevo';
-        } else if (copyLower.includes('- usado') || copyLower.endsWith('usado')) {
+        }
+        // Solo marcar como usado si explícitamente dice "usado"
+        else if (copyLower.includes('usado') || copyLower.includes('usada')) {
           condicionFromCopy = 'usado';
-        } else if (copyLower.includes('- reparacion') || copyLower.includes('reparación')) {
+        }
+        // Buscar refurbished
+        else if (copyLower.includes('refurbished') || copyLower.includes('reacondicionado')) {
+          condicionFromCopy = 'nuevo'; // Refurbished se trata como nuevo para garantía
+        }
+        // Buscar en reparación
+        else if (copyLower.includes('reparacion') || copyLower.includes('reparación')) {
           condicionFromCopy = 'reparacion';
         }
-        
+
         console.log(`🔍 [GARANTIA UTILS] Condición extraída del copy: "${condicionFromCopy}"`);
         fuente = 'copy';
-        
+
         // Asignar garantía según condición extraída
         if (condicionFromCopy === 'nuevo') {
           diasGarantia = 180;

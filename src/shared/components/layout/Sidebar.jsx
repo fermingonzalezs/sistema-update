@@ -282,16 +282,7 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       {/* Header fijo - NO scrolleable */}
       <div className={`${isCollapsed ? "p-2" : "p-8"} ${isCollapsed ? "pb-2" : "pb-4"} border-b border-slate-200 bg-slate-800 relative z-10`}>
         <div className="w-full">
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-            {/* Título UPDATE TECH solo cuando está expandido */}
-            {!isCollapsed && (
-              <div className="flex-1 text-center">
-                <h2 className="text-2xl font-bold leading-tight mb-2 text-white">
-                  UPDATE TECH
-                </h2>
-              </div>
-            )}
-            
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
             {/* Botón de colapso integrado */}
             {onToggleCollapse && (
               <button

@@ -110,12 +110,47 @@ const conciliacionCajaService = {
 
   async guardarConciliacion(conciliacionData) {
     console.log('💾 Guardando conciliación de caja...');
+
+    // Obtener fecha y hora actual exacta en hora de Argentina
+    const ahora = new Date();
+    // Convertir a zona horaria de Argentina
+    const ahoraArgentina = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+    // Formatear manualmente a formato ISO pero con hora local Argentina
+    const year = ahoraArgentina.getFullYear();
+    const month = String(ahoraArgentina.getMonth() + 1).padStart(2, '0');
+    const day = String(ahoraArgentina.getDate()).padStart(2, '0');
+    const hours = String(ahoraArgentina.getHours()).padStart(2, '0');
+    const minutes = String(ahoraArgentina.getMinutes()).padStart(2, '0');
+    const seconds = String(ahoraArgentina.getSeconds()).padStart(2, '0');
+    const fechaHoraExacta = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+    // Preparar datos de inserción
+    const datosInsercion = {
+      cuenta_caja_id: conciliacionData.cuentaId,
+      fecha_conciliacion: fechaHoraExacta, // Fecha y hora exacta
+      saldo_contable: conciliacionData.saldoContable,
+      saldo_fisico: conciliacionData.saldoFisico,
+      diferencia: conciliacionData.diferencia,
+      observaciones: conciliacionData.observaciones,
+      usuario_concilio: conciliacionData.usuario || 'admin',
+      estado: conciliacionData.diferencia === 0 ? 'conciliado' : 'con_diferencia'
+    };
+
+    // Si es cuenta ARS, agregar monto_ars y cotizacion_aplicada
+    if (conciliacionData.esMonedaARS && conciliacionData.montoFisicoARS) {
+      datosInsercion.monto_fisico_ars = conciliacionData.montoFisicoARS;
+      datosInsercion.monto_fisico_usd = conciliacionData.saldoFisico;
+      datosInsercion.cotizacion_aplicada = conciliacionData.cotizacion;
+    }
+
     // Guardar solo la conciliación
     const { data, error } = await supabase
       .from('conciliaciones_caja')
-      .insert([{        cuenta_caja_id: conciliacionData.cuentaId,        fecha_conciliacion: conciliacionData.fecha,        saldo_contable: conciliacionData.saldoContable,        saldo_fisico: conciliacionData.saldoFisico,        diferencia: conciliacionData.diferencia,        observaciones: conciliacionData.observaciones,        usuario_concilio: conciliacionData.usuario || 'admin',        estado: conciliacionData.diferencia === 0 ? 'conciliado' : 'con_diferencia'      }])      .select();
+      .insert([datosInsercion])
+      .select();
+
     if (error) throw error;
-    
+
     console.log('✅ Conciliación guardada. Asiento de ajuste debe crearse manualmente si es necesario.');
     return data[0];
   },
@@ -407,7 +442,10 @@ const ConciliacionCajaSection = () => {
         saldoContable: saldoContable.saldoContable,
         saldoFisico: saldoFisico,
         diferencia: diferencia,
-        observaciones: observacionesCompletas
+        observaciones: observacionesCompletas,
+        esMonedaARS: esMonedaARS,
+        montoFisicoARS: parseFloat(montoFisicoARS) || null,
+        cotizacion: parseFloat(cotizacionManual) || null
       };
       await guardarConciliacion(conciliacionData);
       
@@ -438,11 +476,24 @@ const ConciliacionCajaSection = () => {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { 
-      day: '2-digit', 
-      month: '2-digit', 
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      timeZone: 'America/Argentina/Buenos_Aires' 
+      timeZone: 'America/Argentina/Buenos_Aires'
+    });
+  };
+
+  const formatearFechaHora = (fechaHora) => {
+    const fecha = new Date(fechaHora);
+    return fecha.toLocaleString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'America/Argentina/Buenos_Aires'
     });
   };
 
@@ -836,24 +887,24 @@ const ConciliacionCajaSection = () => {
               {mostrarHistorial && (
                 <div className="p-4">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm table-fixed">
                       <thead className="bg-slate-50">
                         <tr>
-                          <th className="text-left py-2 px-3 font-semibold text-slate-600">Fecha</th>
-                          <th className="text-right py-2 px-3 font-semibold text-slate-600">S. Contable</th>
-                          <th className="text-right py-2 px-3 font-semibold text-slate-600">S. Físico</th>
-                          <th className="text-right py-2 px-3 font-semibold text-slate-600">Diferencia</th>
-                          <th className="text-center py-2 px-3 font-semibold text-slate-600">Estado</th>
+                          <th className="w-1/5 text-center py-2 px-3 font-semibold text-slate-600">Fecha y Hora</th>
+                          <th className="w-1/5 text-center py-2 px-3 font-semibold text-slate-600">Saldo Contable</th>
+                          <th className="w-1/5 text-center py-2 px-3 font-semibold text-slate-600">Saldo Físico</th>
+                          <th className="w-1/5 text-center py-2 px-3 font-semibold text-slate-600">Diferencia</th>
+                          <th className="w-1/5 text-center py-2 px-3 font-semibold text-slate-600">Estado</th>
                         </tr>
                       </thead>
                       <tbody>
                         {conciliacionesAnteriores.map((conc, index) => (
                           <tr key={index} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                            <td className="py-2 px-3 text-slate-800">{formatearFecha(conc.fecha_conciliacion)}</td>
-                            <td className="text-right py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_contable)}</td>
-                            <td className="text-right py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_fisico)}</td>
-                            <td className={`text-right py-2 px-3 font-bold ${
-                              conc.diferencia === 0 ? 'text-emerald-600' : 
+                            <td className="py-2 px-3 text-slate-800 text-xs text-center">{formatearFechaHora(conc.fecha_conciliacion)}</td>
+                            <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_contable)}</td>
+                            <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_fisico)}</td>
+                            <td className={`text-center py-2 px-3 font-bold ${
+                              conc.diferencia === 0 ? 'text-emerald-600' :
                               conc.diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
                             }`}>
                               {conc.diferencia > 0 ? '+' : ''}{formatearMoneda(conc.diferencia)}

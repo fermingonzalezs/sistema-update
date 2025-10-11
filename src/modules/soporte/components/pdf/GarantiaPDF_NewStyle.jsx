@@ -3,6 +3,7 @@ import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/re
 import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
 import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
 import { calcularGarantiaProducto, diasATexto } from '../../../../lib/garantiaUtils';
+import { generarCopyParaPDF } from '../../../../shared/utils/pdfCopyUtils';
 
 // Registrar la fuente
 Font.register({
@@ -523,6 +524,9 @@ export const convertirProductoAGarantia = async (producto, cliente = {}, datosVe
     plazoGarantia = await obtenerGarantiaDiasProducto(producto) || '365';
   }
 
+  // Generar descripción simplificada usando función compartida
+  const descripcionProducto = generarCopyParaPDF(producto);
+
   return {
     numeroGarantia: `GT-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
     numeroVenta: datosVenta.numeroTransaccion || 'N/A',
@@ -543,8 +547,8 @@ export const convertirProductoAGarantia = async (producto, cliente = {}, datosVe
     // total: producto.precio_venta_usd || producto.precio_venta || 0,
 
     // Información del producto individual
-    producto: producto.modelo || producto.descripcion_producto || 'Producto sin especificar',
-    numeroSerie: producto.serial || producto.numero_serie || '',
+    producto: descripcionProducto,
+    numeroSerie: '', // Serial ya está en la descripción
     plazoGarantia: plazoGarantia.toString()
   };
 };

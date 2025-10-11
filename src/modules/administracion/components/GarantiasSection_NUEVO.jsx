@@ -79,10 +79,12 @@ const GarantiasSection = () => {
 
   const manejarAbrirGarantia = async (garantia) => {
     setDescargando(garantia.id);
-    
+
     try {
       const producto = {
-        modelo: garantia.modelo_producto,
+        copy: garantia.copy_completo || garantia.modelo_producto, // Copy completo para procesamiento
+        tipo_producto: garantia.tipo_producto, // Tipo para saber cómo formatear
+        serial_producto: garantia.serial_producto, // Serial para incluir en descripción
         numero_serie: garantia.serial_producto,
         precio_venta_usd: garantia.precio_total,
         garantia_update: garantia.plazo_garantia,

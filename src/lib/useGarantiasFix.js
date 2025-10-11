@@ -149,6 +149,7 @@ export const useGarantias = () => {
                 metodo_pago: transaccion.metodo_pago,
                 // Datos del producto
                 modelo_producto: getProductModel(item.copy),
+                copy_completo: item.copy, // Guardar el copy completo con condición incluida
                 serial_producto: item.serial_producto,
                 tipo_producto: item.tipo_producto,
                 cantidad: item.cantidad,
