@@ -39,7 +39,12 @@ export const CATEGORIA_MAPPING = {
 
   // procesadores y motherboards → COMPONENTES
   'procesadores': CATEGORIAS_OTROS.COMPONENTES,
-  'motherboards': CATEGORIAS_OTROS.COMPONENTES
+  'motherboards': CATEGORIAS_OTROS.COMPONENTES,
+
+  // fundas y templados
+  'fundas': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS,
+  'templados': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS,
+  'fundas/templados': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS
 };
 
 // Función para normalizar categoría

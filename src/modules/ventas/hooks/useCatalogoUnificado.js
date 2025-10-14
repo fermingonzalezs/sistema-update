@@ -167,25 +167,8 @@ export const useCatalogoUnificado = () => {
     console.log('🔍 Usando categorías estándar:', categoriasUnicas);
     console.log('📦 Productos otros:', otros);
 
-    // Añadir categoría "Otros" que contenga todos los productos de `otros`
-    base['otros'] = {
-      id: 'otros',
-      label: 'Otros',
-      icon: '📦',
-      data: otros,
-      loading: loadingOtros,
-      error: errorOtros,
-      fetch: fetchOtros,
-      delete: deleteOtro,
-      update: updateOtro,
-      filtrosDisponibles: ['marca', 'condicion', 'precio', 'categoria'],
-      camposOrdenamiento: [
-        { value: 'nombre_producto', label: 'Nombre' },
-        { value: 'marca', label: 'Marca' },
-        { value: 'precio_venta_usd', label: 'Precio' },
-        { value: 'condicion', label: 'Condición' }
-      ]
-    };
+    // La categoría genérica "Otros" que contenía todos los productos ha sido eliminada para evitar duplicados.
+    // Las categorías específicas (Accesorios, Monitores, etc.) se generan dinámicamente a continuación.
 
     categoriasUnicas.forEach(categoria => {
       if (categoria) {
