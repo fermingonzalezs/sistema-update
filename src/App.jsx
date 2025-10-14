@@ -256,6 +256,7 @@ const AppContent = () => {
 
  // ➕ Handler para agregar al carrito
  const handleAddToCart = (producto, tipo, cantidad = 1) => {
+   console.log(producto);
    // Validaciones específicas por tipo
    if (tipo === 'computadora' || tipo === 'celular') {
      // Para computadoras y celulares, solo se puede agregar 1

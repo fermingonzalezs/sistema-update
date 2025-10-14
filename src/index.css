@@ -10,13 +10,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Permitir selección de texto pero mantener cursor default */
+/* NO permitir cursor de texto por defecto - solo en inputs */
 * {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-  cursor: default; /* Mantener cursor default (sin el palito |) */
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+  cursor: default !important;
 }
 
 /* Permitir selección y cursor de texto solo en campos editables */

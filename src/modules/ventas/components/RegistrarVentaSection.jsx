@@ -200,7 +200,8 @@ const RegistrarVentaSection = () => {
     })) || [],
     otros: otrosLocal?.map(item => ({
       ...item,
-      precio: item.precio_venta_usd,
+      precio: parseFloat(item.precio_venta_usd) || 0,
+      precio_venta_usd: parseFloat(item.precio_venta_usd) || 0,
       stock: (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0),
       descripcion: item.descripcion || item.nombre_producto
     })) || []
@@ -296,13 +297,29 @@ const RegistrarVentaSection = () => {
           : item
       ));
     } else {
+      // Determinar el precio correcto según el tipo de producto
+      const precioUnitario = producto.precio_venta_usd || producto.precio || 0;
+
+      console.log('🛒 Agregando producto al carrito:', {
+        id: producto.id,
+        descripcion: producto.descripcion || producto.modelo,
+        tipo: tipoProducto,
+        categoria: categoria,
+        precio_venta_usd: producto.precio_venta_usd,
+        precio: producto.precio,
+        precioUnitario: precioUnitario,
+        productoCompleto: producto
+      });
+
       setItemsVenta(prev => [...prev, {
-        ...producto,
+        id: producto.id,
         tipo: tipoProducto,
         categoria: categoria, // Agregar categoría específica
         cantidad: 1,
-        total: producto.precio || 0,
-        precio_unitario: producto.precio || 0, // Asegurar que nunca sea null
+        total: precioUnitario,
+        precio_unitario: precioUnitario, // CRÍTICO: Usar precio_venta_usd para otros productos
+        descripcion: producto.descripcion || producto.modelo || producto.nombre_producto,
+        serial: producto.serial,
         producto: producto // Datos completos del producto para la venta
       }]);
     }
@@ -383,7 +400,7 @@ const RegistrarVentaSection = () => {
 
     setItemsVenta(prev => prev.map(item =>
       item.id === itemId && item.tipo === tipo
-        ? { ...item, cantidad: nuevaCantidad, total: nuevaCantidad * item.precio }
+        ? { ...item, cantidad: nuevaCantidad, total: nuevaCantidad * item.precio_unitario }
         : item
     ));
   };
@@ -412,15 +429,30 @@ const RegistrarVentaSection = () => {
     });
 
     // Preparar datos para CarritoWidget - formato compatible
-    const carritoFormateado = itemsVenta.map(item => ({
-      ...item,
-      // Asegurar compatibilidad con CarritoWidget
-      precio_unitario: item.precio_unitario || item.precio || 0,
-      precio_original: item.precio || 0,
-      // Agregar información del cliente seleccionado para cada item
-      cliente_seleccionado: clienteSeleccionado
-    }));
+    const carritoFormateado = itemsVenta.map(item => {
+      const precioFinal = item.precio_unitario || item.precio_venta_usd || item.precio || 0;
 
+      console.log('💰 Formateando item para CarritoWidget:', {
+        id: item.id,
+        descripcion: item.descripcion,
+        precio_unitario_original: item.precio_unitario,
+        precio_venta_usd: item.precio_venta_usd,
+        precio: item.precio,
+        precioFinal: precioFinal,
+        itemCompleto: item
+      });
+
+      return {
+        ...item,
+        // Asegurar compatibilidad con CarritoWidget
+        precio_unitario: precioFinal,
+        precio_original: precioFinal,
+        // Agregar información del cliente seleccionado para cada item
+        cliente_seleccionado: clienteSeleccionado
+      };
+    });
+
+    console.log('🎯 Carrito formateado completo:', carritoFormateado);
     setCarritoParaPago(carritoFormateado);
   };
 
@@ -812,7 +844,7 @@ const RegistrarVentaSection = () => {
                     <div className="flex-1">
                       <div className="font-medium text-slate-800 text-sm">{item.descripcion}</div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {item.serial} • ${item.precio} c/u
+                        {item.serial} • ${item.precio_unitario} c/u
                         {item.tipo === 'custom' && <span className="ml-2 bg-slate-600 text-white px-1 py-0.5 rounded text-xs">CUSTOM</span>}
                       </div>
                     </div>

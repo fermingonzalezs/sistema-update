@@ -128,7 +128,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
 
   const calcularTotal = () => {
-    return carrito.reduce((total, item) => total + (item.precio_unitario * item.cantidad), 0);
+    const total = carrito.reduce((total, item) => {
+      const precio = parseFloat(item.precio_unitario) || 0;
+      const cantidad = parseInt(item.cantidad) || 0;
+      return total + (precio * cantidad);
+    }, 0);
+
+    console.log('💵 Total calculado:', total, 'Carrito:', carrito);
+    return total;
   };
 
   const calcularCantidadTotal = () => {

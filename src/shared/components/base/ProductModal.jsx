@@ -26,7 +26,6 @@ const ProductModal = ({
   const configCampos = {
     celular: {
       informacion: [
-        { key: 'serial', label: 'Serial' },
         { key: 'ingreso', label: 'Fecha Ingreso' },
         { key: 'marca', label: 'Marca' },
         { key: 'capacidad', label: 'Capacidad' },
@@ -36,13 +35,11 @@ const ProductModal = ({
       estado: [
         { key: 'estado', label: 'Estado General' },
         { key: 'bateria', label: 'Batería' },
-        { key: 'ciclos', label: 'Ciclos', opcional: true },
-        { key: 'garantia', label: 'Garantía', opcional: true }
+        { key: 'ciclos', label: 'Ciclos', opcional: true }
       ]
     },
     notebook: {
       informacion: [
-        { key: 'serial', label: 'Serial' },
         { key: 'ingreso', label: 'Fecha Ingreso' },
         { key: 'marca', label: 'Marca' },
         { key: 'procesador', label: 'Procesador' },
@@ -132,11 +129,11 @@ const ProductModal = ({
   const precioVenta = producto.precio_venta_usd || 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded overflow-hidden flex w-300 max-h-[80vh]">
-        
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ cursor: 'default' }}>
+      <div className="bg-white rounded overflow-hidden flex w-300 max-h-[80vh]" style={{ userSelect: 'none', cursor: 'default' }}>
+
         {/* Panel izquierdo - Información clave */}
-        <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800">
+        <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800" style={{ userSelect: 'none', cursor: 'default' }}>
           <div className="space-y-8">
             
             {/* Condición */}
@@ -146,6 +143,16 @@ const ProductModal = ({
                 {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
               </span>
             </div>
+
+            {/* Serial - Solo para notebooks y celulares */}
+            {(tipoProducto === 'notebook' || tipoProducto === 'celular') && producto.serial && (
+              <div className='text-center bg-slate-700 p-3 rounded'>
+                <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">SERIAL</h3>
+                <span className="font-semibold text-white text-sm break-all">
+                  {producto.serial}
+                </span>
+              </div>
+            )}
 
             {/* Ubicación (Oculto para 'otro') */}
             {tipoProducto !== 'otro' && (
@@ -158,16 +165,15 @@ const ProductModal = ({
               </div>
             )}
 
-            {/* Cantidad */}
-            <div className='text-center bg-slate-700 p-3 rounded'>
-              <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">CANTIDAD</h3>
-              <span className="font-semibold text-white">
-                {tipoProducto === 'otro'
-                  ? `${(producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0)} unidades`
-                  : `${(producto.cantidad || '1')} unidades`
-                }
-              </span>
-            </div>
+            {/* Cantidad - Solo para 'otro' */}
+            {tipoProducto === 'otro' && (
+              <div className='text-center bg-slate-700 p-3 rounded'>
+                <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">CANTIDAD</h3>
+                <span className="font-semibold text-white">
+                  {`${(producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0)} unidades`}
+                </span>
+              </div>
+            )}
 
             {/* Garantía (si existe) */}
             {(producto.garantia_update || producto.garantia_oficial || producto.garantia) && (
@@ -183,7 +189,7 @@ const ProductModal = ({
         </div>
 
         {/* Panel derecho - Detalles y precios */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-6 overflow-y-auto flex-1" style={{ userSelect: 'none', cursor: 'default' }}>
           
           {/* Header con título y botón cerrar */}
           <div className="flex items-center justify-between mb-6">

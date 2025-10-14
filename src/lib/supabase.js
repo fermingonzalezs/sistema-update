@@ -77,7 +77,7 @@ export function useCarrito() {
         producto: producto, // ✅ Pasar producto completo con precio_costo_total (notebooks) o precio_compra_usd (celulares/otros)
         tipo: tipoValido, // 'computadora', 'celular', 'otro' validado
         cantidad,
-        precio_unitario: producto.precio_venta_usd || producto.precio_venta || 0
+        precio_unitario: parseFloat(producto.precio_venta_usd || producto.precio_venta) || 0
       }
       setCarrito(prev => [...prev, nuevoItem])
     }

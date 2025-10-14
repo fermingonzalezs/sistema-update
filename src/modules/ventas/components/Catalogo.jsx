@@ -154,9 +154,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         categoria = producto.categoria || categoriaActiva;
       }
 
-      onAddToCart(producto, tipo, categoria);
-    }
-  };
+          onAddToCart(producto, tipo, 1);
+        }  };
 
   // Funciones para el modal de edición
   const openEditModal = (producto) => {

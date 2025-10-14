@@ -341,7 +341,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
   const [formData, setFormData] = useState({
     monto: '',
     concepto: '',
-    observaciones: ''
+    observaciones: '',
+    fecha_operacion: obtenerFechaLocal()
+
   });
 
   // Métodos de pago disponibles (igual que en CarritoWidget)
@@ -479,7 +481,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
         cotizacion_usada: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cotizacionDolar,
         concepto: formData.concepto || config.conceptoPlaceholder,
         observaciones: formData.observaciones,
-        fecha: obtenerFechaLocal(),
+        fecha: formData.fecha_operacion,
         tipo: tipo,
         created_by: 'Usuario' // TODO: Obtener del contexto de usuario
       };
@@ -690,6 +692,26 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
               placeholder="Observaciones adicionales..."
             />
           </div>
+
+          {/* Selector de Fecha*/}
+             9 <div>
+      <label className="block text-sm font-medium 
+      text-slate-700 mb-2">
+       Fecha del Movimiento *
+     </label>
+      <input
+        type="date"
+        value={formData.fecha_operacion}
+        onChange={(e) => setFormData(prev => ({
+      ...prev, fecha_operacion: e.target.value }))}
+        className="w-full px-4 py-3 border 
+      border-slate-200 rounded focus:ring-2 
+      focus:ring-emerald-500 focus:border-emerald-500"
+        required
+        disabled={loading}
+      />
+   21 </div>
+
 
           {/* Botones */}
           <div className="flex space-x-4 pt-4">

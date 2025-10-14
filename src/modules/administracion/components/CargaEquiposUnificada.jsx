@@ -98,7 +98,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
     // Estado
     sucursal: UBICACIONES.LA_PLATA,
-    condicion: CONDICIONES.USADO,
+    condicion: CONDICIONES.NUEVO,
     estado: ESTADOS.A,
 
     // Especificaciones principales
@@ -173,7 +173,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         envios_repuestos: '0',
         precio_venta_usd: '',
         sucursal: UBICACIONES.LA_PLATA,
-        condicion: CONDICIONES.USADO,
+        condicion: CONDICIONES.NUEVO,
         estado: ESTADOS.A,
         procesador: '',
         slots: '2',
@@ -831,7 +831,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios según tabla celulares
     serial: '',
-    condicion: CONDICIONES.USADO,
+    condicion: CONDICIONES.NUEVO,
 
     // Campos opcionales
     modelo: '',
@@ -889,7 +889,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
       // Reset form
       setFormData({
         serial: '',
-        condicion: CONDICIONES.USADO,
+        condicion: CONDICIONES.NUEVO,
         modelo: '',
         marca: '',
         sucursal: UBICACIONES.LA_PLATA,

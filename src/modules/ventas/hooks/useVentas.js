@@ -119,6 +119,8 @@ export const ventasService = {
 
     const margenTotal = montoCobrado - totalCosto
 
+    let transaccionCreada = null; // Para hacer rollback si falla algo
+
     try {
       // Crear la transacción principal con soporte para doble método de pago
       const transaccionData = {
@@ -150,6 +152,10 @@ export const ventasService = {
         .single()
 
       if (errorTransaccion) throw errorTransaccion
+
+      // Guardar referencia para rollback si es necesario
+      transaccionCreada = transaccion;
+      console.log('✅ Transacción creada, ID:', transaccion.id)
 
       // Crear los items de la venta usando el carrito ajustado
       const ventaItems = carritoAjustado.map(item => {
@@ -201,20 +207,31 @@ export const ventasService = {
           copyCompleto = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
         }
 
-        // Determinar tipo_producto: si es "otro" y tiene categoría, usar la categoría
-        let tipoProducto;
-        if (item.tipo === 'otro' && item.categoria) {
-          // Para productos "otros", usar la categoría específica para análisis detallado
-          tipoProducto = item.categoria;
-          console.log(`📊 Usando categoría específica para análisis: "${tipoProducto}"`);
-        } else {
-          // Para computadoras y celulares, mantener el tipo original
-          tipoProducto = ['computadora', 'celular', 'otro'].includes(item.tipo) ? item.tipo : 'otro';
+        // Determinar tipo_producto: usar categoría específica en minúsculas para productos "otros"
+        // - 'computadora' para notebooks
+        // - 'celular' para celulares
+        // - 'perifericos', 'monitores', 'componentes', 'accesorios', 'fundas_templados' para productos otros
+        let tipoProducto = 'otro'; // Default
+
+        if (item.tipo === 'computadora') {
+          tipoProducto = 'computadora';
+        } else if (item.tipo === 'celular') {
+          tipoProducto = 'celular';
+        } else if (item.tipo === 'otro' && item.categoria) {
+          // CRÍTICO: Para productos "otros", usar la categoría específica en lowercase
+          tipoProducto = item.categoria.toLowerCase();
         }
+
+        console.log(`📊 Guardando item en BD:`, {
+          item_tipo: item.tipo,
+          item_categoria: item.categoria,
+          tipo_producto_final: tipoProducto,
+          producto: item.producto?.modelo || item.producto?.nombre_producto
+        });
 
         return {
           transaccion_id: transaccion.id,
-          tipo_producto: tipoProducto, // Ahora puede ser: computadora, celular, o una categoría específica
+          tipo_producto: tipoProducto, // Ahora incluye categorías específicas en minúsculas
           producto_id: item.producto.id,
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
           copy: copyCompleto,
@@ -241,6 +258,23 @@ export const ventasService = {
       }
     } catch (error) {
       console.error('❌ Error creando transacción:', error)
+
+      // 🔄 ROLLBACK: Si ya se creó la transacción pero falló algo después, eliminarla
+      if (transaccionCreada?.id) {
+        console.warn('⚠️ Haciendo rollback: eliminando transacción ID', transaccionCreada.id)
+        try {
+          await supabase
+            .from('transacciones')
+            .delete()
+            .eq('id', transaccionCreada.id)
+          console.log('✅ Rollback completado: transacción eliminada')
+        } catch (rollbackError) {
+          console.error('❌ Error en rollback:', rollbackError)
+          // Agregar información del rollback al error original
+          error.message = `${error.message} (ADVERTENCIA: No se pudo hacer rollback de la transacción ${transaccionCreada.id})`
+        }
+      }
+
       throw error
     }
   },
@@ -306,13 +340,14 @@ export const ventasService = {
     const ventasComputadoras = itemsData.filter(item => item.tipo_producto === 'computadora').length
     const ventasCelulares = itemsData.filter(item => item.tipo_producto === 'celular').length
 
-    // Para "otros", agrupar por categoría específica
+    // Para "otros", agrupar por categoría específica basándose en tipo_producto
     const ventasPorCategoria = {};
     let totalVentasOtros = 0;
 
     itemsData.forEach(item => {
+      // Considerar como "otro" todo lo que no sea computadora o celular
       if (item.tipo_producto !== 'computadora' && item.tipo_producto !== 'celular') {
-        const categoria = item.tipo_producto || 'otros';
+        const categoria = item.tipo_producto || 'otros_sin_categoria';
         if (!ventasPorCategoria[categoria]) {
           ventasPorCategoria[categoria] = {
             cantidad: 0,
@@ -386,71 +421,115 @@ export function useVentas() {
         });
       });
 
-      // Crear la transacción con todos los items
+      // Crear la transacción con todos los items (ya tiene rollback interno)
       const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito)
-      
-      // ✅ PROCESAR CUENTA CORRIENTE si aplica
-      let montoCuentaCorriente = 0
-      
-      // Calcular cuánto corresponde a cuenta corriente (solo el monto específico de cada método)
-      if (datosCliente.metodo_pago_1 === 'cuenta_corriente') {
-        montoCuentaCorriente += datosCliente.monto_pago_1 || 0
-      }
-      if (datosCliente.metodo_pago_2 === 'cuenta_corriente') {
-        montoCuentaCorriente += datosCliente.monto_pago_2 || 0
-      }
-      
-      // Registrar movimiento solo si hay monto en cuenta corriente
-      if (montoCuentaCorriente > 0 && datosCliente.cliente_id) {
-        await ventasService.registrarMovimientoCuentaCorriente({
-          cliente_id: datosCliente.cliente_id,
-          transaccion_id: nuevaTransaccion.id,
-          numero_transaccion: nuevaTransaccion.numero_transaccion,
-          monto: montoCuentaCorriente,
-          concepto: `Venta productos - ${nuevaTransaccion.numero_transaccion}`,
-          observaciones: datosCliente.observaciones || 'Venta a cuenta corriente'
-        })
-        console.log(`✅ Movimiento de cuenta corriente registrado: $${montoCuentaCorriente}`)
-      }
-      
-      // Actualizar inventario según el tipo de cada item
-      for (const item of carrito) {
-        console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
 
-        if (item.tipo === 'otro') {
-          // Para productos "otros", reducir cantidad en la sucursal correspondiente
-          console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
-          const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
+      // Guardar IDs para posible rollback
+      let cuentaCorrienteCreada = null;
 
-          // ✅ NOTIFICAR SI EL PRODUCTO FUE ELIMINADO AUTOMÁTICAMENTE
-          if (resultado.eliminado) {
-            console.log(`🗑️ PRODUCTO ELIMINADO AUTOMÁTICAMENTE: ${item.producto.nombre_producto || item.producto.id} - ${resultado.motivo}`)
-          }
-        } else {
-          // Para computadoras y celulares, eliminar directamente del inventario
-          console.log(`🗑️ Eliminando ${item.tipo} ID ${item.producto.id} del inventario permanentemente`)
+      try {
+        // ✅ PROCESAR CUENTA CORRIENTE si aplica
+        let montoCuentaCorriente = 0
 
-          // Determinar la tabla correcta
-          const tabla = item.tipo === 'computadora' ? 'inventario' : 'celulares'
-
-          // Eliminar directamente del inventario
-          const { error } = await supabase
-            .from(tabla)
-            .delete()
-            .eq('id', item.producto.id)
-
-          if (error) {
-            console.error(`❌ Error eliminando ${item.tipo} del inventario:`, error)
-            throw error
-          }
-
-          console.log(`✅ ${item.tipo} eliminado permanentemente de la tabla ${tabla}`)
+        // Calcular cuánto corresponde a cuenta corriente (solo el monto específico de cada método)
+        if (datosCliente.metodo_pago_1 === 'cuenta_corriente') {
+          montoCuentaCorriente += datosCliente.monto_pago_1 || 0
         }
+        if (datosCliente.metodo_pago_2 === 'cuenta_corriente') {
+          montoCuentaCorriente += datosCliente.monto_pago_2 || 0
+        }
+
+        // Registrar movimiento solo si hay monto en cuenta corriente
+        if (montoCuentaCorriente > 0 && datosCliente.cliente_id) {
+          cuentaCorrienteCreada = await ventasService.registrarMovimientoCuentaCorriente({
+            cliente_id: datosCliente.cliente_id,
+            transaccion_id: nuevaTransaccion.id,
+            numero_transaccion: nuevaTransaccion.numero_transaccion,
+            monto: montoCuentaCorriente,
+            concepto: `Venta productos - ${nuevaTransaccion.numero_transaccion}`,
+            observaciones: datosCliente.observaciones || 'Venta a cuenta corriente'
+          })
+          console.log(`✅ Movimiento de cuenta corriente registrado: $${montoCuentaCorriente}`)
+        }
+
+        // Actualizar inventario según el tipo de cada item
+        for (const item of carrito) {
+          console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
+
+          if (item.tipo === 'otro') {
+            // Para productos "otros", reducir cantidad en la sucursal correspondiente
+            console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
+            const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
+
+            // ✅ NOTIFICAR SI EL PRODUCTO FUE ELIMINADO AUTOMÁTICAMENTE
+            if (resultado.eliminado) {
+              console.log(`🗑️ PRODUCTO ELIMINADO AUTOMÁTICAMENTE: ${item.producto.nombre_producto || item.producto.id} - ${resultado.motivo}`)
+            }
+          } else {
+            // Para computadoras y celulares, eliminar directamente del inventario
+            console.log(`🗑️ Eliminando ${item.tipo} ID ${item.producto.id} del inventario permanentemente`)
+
+            // Determinar la tabla correcta
+            const tabla = item.tipo === 'computadora' ? 'inventario' : 'celulares'
+
+            // Eliminar directamente del inventario
+            const { error } = await supabase
+              .from(tabla)
+              .delete()
+              .eq('id', item.producto.id)
+
+            if (error) {
+              console.error(`❌ Error eliminando ${item.tipo} del inventario:`, error)
+              throw error
+            }
+
+            console.log(`✅ ${item.tipo} eliminado permanentemente de la tabla ${tabla}`)
+          }
+        }
+
+        setVentas(prev => [nuevaTransaccion, ...prev])
+        console.log('✅ Transacción procesada exitosamente:', nuevaTransaccion.numero_transaccion)
+        return nuevaTransaccion
+
+      } catch (inventarioError) {
+        console.error('❌ Error procesando inventario o cuenta corriente:', inventarioError)
+
+        // 🔄 ROLLBACK: Eliminar cuenta corriente si se creó
+        if (cuentaCorrienteCreada?.id) {
+          console.warn('⚠️ Haciendo rollback de cuenta corriente ID', cuentaCorrienteCreada.id)
+          try {
+            await supabase
+              .from('cuentas_corrientes')
+              .delete()
+              .eq('id', cuentaCorrienteCreada.id)
+            console.log('✅ Rollback de cuenta corriente completado')
+          } catch (rollbackError) {
+            console.error('❌ Error en rollback de cuenta corriente:', rollbackError)
+          }
+        }
+
+        // 🔄 ROLLBACK: Eliminar venta_items y transacción
+        console.warn('⚠️ Haciendo rollback completo de transacción ID', nuevaTransaccion.id)
+        try {
+          // Primero eliminar venta_items (por foreign key)
+          await supabase
+            .from('venta_items')
+            .delete()
+            .eq('transaccion_id', nuevaTransaccion.id)
+
+          // Luego eliminar transacción
+          await supabase
+            .from('transacciones')
+            .delete()
+            .eq('id', nuevaTransaccion.id)
+
+          console.log('✅ Rollback completo: transacción y venta_items eliminados')
+        } catch (rollbackError) {
+          console.error('❌ Error en rollback completo:', rollbackError)
+        }
+
+        throw inventarioError
       }
-      
-      setVentas(prev => [nuevaTransaccion, ...prev])
-      console.log('✅ Transacción procesada exitosamente:', nuevaTransaccion.numero_transaccion)
-      return nuevaTransaccion
     } catch (err) {
       setError(err.message)
       throw err

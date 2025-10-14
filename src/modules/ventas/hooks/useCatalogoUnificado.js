@@ -167,6 +167,26 @@ export const useCatalogoUnificado = () => {
     console.log('🔍 Usando categorías estándar:', categoriasUnicas);
     console.log('📦 Productos otros:', otros);
 
+    // Añadir categoría "Otros" que contenga todos los productos de `otros`
+    base['otros'] = {
+      id: 'otros',
+      label: 'Otros',
+      icon: '📦',
+      data: otros,
+      loading: loadingOtros,
+      error: errorOtros,
+      fetch: fetchOtros,
+      delete: deleteOtro,
+      update: updateOtro,
+      filtrosDisponibles: ['marca', 'condicion', 'precio', 'categoria'],
+      camposOrdenamiento: [
+        { value: 'nombre_producto', label: 'Nombre' },
+        { value: 'marca', label: 'Marca' },
+        { value: 'precio_venta_usd', label: 'Precio' },
+        { value: 'condicion', label: 'Condición' }
+      ]
+    };
+
     categoriasUnicas.forEach(categoria => {
       if (categoria) {
         const categoriaNormalizada = categoria.toLowerCase().replace(/\s+/g, '-');

@@ -742,12 +742,15 @@ const ConciliacionCajaSection = () => {
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
                             <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={montoFisicoARS}
-                              onChange={(e) => setMontoFisicoARS(e.target.value)}
-                              placeholder="0.00"
+                              type="text"
+                              value={montoFisicoARS ? Number(montoFisicoARS).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : ''}
+                              onChange={(e) => {
+                                const valor = e.target.value.replace(/\./g, '');
+                                if (!isNaN(valor) || valor === '') {
+                                  setMontoFisicoARS(valor);
+                                }
+                              }}
+                              placeholder="0"
                               className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded text-xl font-semibold text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             />
                           </div>
@@ -755,43 +758,28 @@ const ConciliacionCajaSection = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Cotización USD/ARS
+                            Cotización USD/ARS {cotizacionActual && (
+                              <span className="font-normal text-xs text-slate-500">
+                                (actual: ${Number(cotizacionActual.valor || cotizacionActual.promedio).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })})
+                              </span>
+                            )}
                           </label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
                             <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={cotizacionManual}
-                              onChange={(e) => setCotizacionManual(e.target.value)}
-                              placeholder="1000.00"
+                              type="text"
+                              value={cotizacionManual ? Number(cotizacionManual).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : ''}
+                              onChange={(e) => {
+                                const valor = e.target.value.replace(/\./g, '');
+                                if (!isNaN(valor) || valor === '') {
+                                  setCotizacionManual(valor);
+                                }
+                              }}
+                              placeholder="1000"
                               className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded text-lg font-medium text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             />
                           </div>
-                          {cotizacionActual && (
-                            <div className="mt-2 text-xs text-slate-600 text-center">
-                              Cotización actual: ${cotizacionActual.valor || cotizacionActual.promedio}
-                              <button
-                                onClick={() => setCotizacionManual(cotizacionActual.valor || cotizacionActual.promedio)}
-                                className="ml-2 text-emerald-600 hover:text-emerald-700 underline"
-                              >
-                                usar actual
-                              </button>
-                            </div>
-                          )}
                         </div>
-
-                        {/* Mostrar conversión en tiempo real */}
-                        {montoFisicoARS && cotizacionManual && (
-                          <div className="bg-emerald-50 border border-emerald-200 rounded p-3">
-                            <div className="flex items-center justify-center space-x-2 text-sm">
-                              <span className="font-medium text-slate-700">${montoFisicoARS} ARS</span>
-                              <ArrowRightLeft size={16} className="text-emerald-600" />
-                              <span className="font-bold text-emerald-800">${saldoFisico.toFixed(4)} USD</span>
-                            </div>
-                          </div>
-                        )}
                       </>
                     ) : (
                       /* Campos para cuentas en dólares */
@@ -802,12 +790,15 @@ const ConciliacionCajaSection = () => {
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
                           <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={montoFisico}
-                            onChange={(e) => setMontoFisico(e.target.value)}
-                            placeholder="0.00"
+                            type="text"
+                            value={montoFisico ? Number(montoFisico).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                            onChange={(e) => {
+                              const valor = e.target.value.replace(/\./g, '').replace(',', '.');
+                              if (!isNaN(valor) || valor === '') {
+                                setMontoFisico(valor);
+                              }
+                            }}
+                            placeholder="0,00"
                             className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded text-xl font-semibold text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                           />
                         </div>

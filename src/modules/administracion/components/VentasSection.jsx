@@ -71,6 +71,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     switch (tipo) {
       case 'computadora': return <Monitor className="w-4 h-4 text-slate-600" />;
       case 'celular': return <Smartphone className="w-4 h-4 text-slate-600" />;
+      case 'perifericos': return <Box className="w-4 h-4 text-slate-600" />;
+      case 'monitores': return <Monitor className="w-4 h-4 text-slate-600" />;
+      case 'componentes': return <Box className="w-4 h-4 text-slate-600" />;
+      case 'accesorios': return <Box className="w-4 h-4 text-slate-600" />;
+      case 'fundas_templados': return <Box className="w-4 h-4 text-slate-600" />;
       case 'otro': return <Box className="w-4 h-4 text-slate-600" />;
       default: return <Box className="w-4 h-4 text-slate-600" />;
     }
@@ -241,6 +246,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                 <option value="todos">Todos los productos</option>
                 <option value="computadora">Computadoras</option>
                 <option value="celular">Celulares</option>
+                <option value="perifericos">Periféricos</option>
+                <option value="monitores">Monitores</option>
+                <option value="componentes">Componentes</option>
+                <option value="accesorios">Accesorios</option>
+                <option value="fundas_templados">Fundas y Templados</option>
                 <option value="otro">Otros</option>
               </select>
             </div>

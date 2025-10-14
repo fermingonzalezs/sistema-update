@@ -4,7 +4,11 @@
       "Bash(psql:*)",
       "mcp__supabase__list_tables",
       "Bash(npx supabase db dump:*)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration",
+      "Bash(cat:*)",
+      "mcp__supabase__get_logs",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -358,10 +358,14 @@ const generateNotebookCopy = (comp, config) => {
       partes.push(idioma.charAt(0).toUpperCase() + idioma.slice(1).toLowerCase());
     }
 
-    // 14. FALLAS
+    // 14. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (comp.fallas || comp.problemas || comp.defectos) {
-      const fallas = comp.fallas || comp.problemas || comp.defectos;
-      partes.push(`Fallas: ${fallas.charAt(0).toUpperCase() + fallas.slice(1).toLowerCase()}`);
+      const notas = comp.fallas || comp.problemas || comp.defectos;
+      // Verificar que no esté vacío o sea "ninguna"
+      const notasLimpio = notas.trim().toLowerCase();
+      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
+        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+      }
     }
 
     // 15. OBSERVACIONES
@@ -460,10 +464,14 @@ const generateCelularCopy = (cel, config) => {
   
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {
-    // 6. FALLAS
+    // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (cel.fallas || cel.problemas || cel.defectos) {
-      const fallas = cel.fallas || cel.problemas || cel.defectos;
-      partes.push(`Fallas: ${fallas.charAt(0).toUpperCase() + fallas.slice(1).toLowerCase()}`);
+      const notas = cel.fallas || cel.problemas || cel.defectos;
+      // Verificar que no esté vacío o sea "ninguna"
+      const notasLimpio = notas.trim().toLowerCase();
+      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
+        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+      }
     }
     
     // 7. OBSERVACIONES
@@ -587,10 +595,14 @@ const generateOtroCopy = (otro, config) => {
       partes.push(estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase());
     }
     
-    // 6. FALLAS
+    // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (otro.fallas || otro.problemas || otro.defectos) {
-      const fallas = otro.fallas || otro.problemas || otro.defectos;
-      partes.push(`Fallas: ${fallas.charAt(0).toUpperCase() + fallas.slice(1).toLowerCase()}`);
+      const notas = otro.fallas || otro.problemas || otro.defectos;
+      // Verificar que no esté vacío o sea "ninguna"
+      const notasLimpio = notas.trim().toLowerCase();
+      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
+        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+      }
     }
     
     // 7. OBSERVACIONES

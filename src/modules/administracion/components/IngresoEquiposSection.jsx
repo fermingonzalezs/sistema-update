@@ -55,7 +55,6 @@ const IngresoEquiposSection = () => {
             estado: 'completado',
             referencia_inventario_id: resultado.id || null
           });
-          alert('Equipo agregado al inventario exitosamente');
           setMostrarFormulario(false);
         }
       } else {
