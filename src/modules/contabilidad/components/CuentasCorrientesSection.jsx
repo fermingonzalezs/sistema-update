@@ -76,9 +76,9 @@ const CuentasCorrientesSection = () => {
     }
   };
 
-  const handleRegistrarPago = async (clienteId, monto, concepto, observaciones) => {
+  const handleRegistrarPago = async (clienteId, monto, concepto, observaciones, fechaOperacion) => {
     try {
-      await registrarPagoRecibido(clienteId, monto, concepto, observaciones);
+      await registrarPagoRecibido(clienteId, monto, concepto, observaciones, fechaOperacion);
       await loadData(); // Recargar estadísticas
       await cargarTodosMovimientos(); // Recargar movimientos
       alert('✅ Pago registrado exitosamente');
@@ -487,13 +487,14 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
       };
 
       console.log('Movimiento a registrar:', movimientoData);
-      
+
       if (tipo === 'cobro') {
         await handleRegistrarPago(
           clienteId,
           montoEnUSD, // Usar monto convertido a USD
           formData.concepto || 'Pago recibido',
-          formData.observaciones
+          formData.observaciones,
+          formData.fecha_operacion
         );
       } else if (tipo === 'agregar_deuda') {
         // Implementar agregar deuda
@@ -501,7 +502,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
           clienteId,
           montoEnUSD,
           formData.concepto || 'Deuda agregada',
-          formData.observaciones
+          formData.observaciones,
+          formData.fecha_operacion
         );
       } else if (tipo === 'pago_realizado') {
         // Update paga a un proveedor o tercero
@@ -509,7 +511,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
           clienteId,
           montoEnUSD,
           formData.concepto || 'Pago realizado por Update',
-          formData.observaciones
+          formData.observaciones,
+          formData.fecha_operacion
         );
       } else if (tipo === 'tomar_deuda') {
         // Update toma deuda con un proveedor
@@ -517,7 +520,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
           clienteId,
           montoEnUSD,
           formData.concepto || 'Deuda contraída por Update',
-          formData.observaciones
+          formData.observaciones,
+          formData.fecha_operacion
         );
       } else {
         alert(`✅ ${config.titulo} registrado exitosamente (funcionalidad no implementada)`);
@@ -693,24 +697,20 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
             />
           </div>
 
-          {/* Selector de Fecha*/}
-             9 <div>
-      <label className="block text-sm font-medium 
-      text-slate-700 mb-2">
-       Fecha del Movimiento *
-     </label>
-      <input
-        type="date"
-        value={formData.fecha_operacion}
-        onChange={(e) => setFormData(prev => ({
-      ...prev, fecha_operacion: e.target.value }))}
-        className="w-full px-4 py-3 border 
-      border-slate-200 rounded focus:ring-2 
-      focus:ring-emerald-500 focus:border-emerald-500"
-        required
-        disabled={loading}
-      />
-   21 </div>
+          {/* Selector de Fecha */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Fecha del Movimiento *
+            </label>
+            <input
+              type="date"
+              value={formData.fecha_operacion}
+              onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
+              className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+              disabled={loading}
+            />
+          </div>
 
 
           {/* Botones */}
@@ -893,7 +893,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                             <h4 className="font-medium text-slate-800 text-sm">
                               {cliente.nombre} {cliente.apellido}
                             </h4>
-                            <div className={`px-2 py-0.5 rounded text-xs font-medium ${saldoInfo.bgColor} ${saldoInfo.color}`}>
+                            <div className={`px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${saldoInfo.bgColor} ${saldoInfo.color}`}>
                               {saldoInfo.texto}: {formatearMonto(saldoInfo.valor, 'USD')}
                             </div>
                           </div>
@@ -1000,13 +1000,12 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`font-semibold ${
+                          <span className={`font-semibold whitespace-nowrap ${
                             movimiento.tipo_movimiento === 'debe'
                               ? 'text-slate-800'
                               : 'text-slate-600'
                           }`}>
-                            {movimiento.tipo_movimiento === 'debe' ? '+' : '-'}
-                            {formatearMonto(movimiento.monto, 'USD')}
+                            {movimiento.tipo_movimiento === 'debe' ? '+' : '-'}{formatearMonto(movimiento.monto, 'USD')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-slate-600">

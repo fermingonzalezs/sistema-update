@@ -120,7 +120,7 @@ export const cuentasCorrientesService = {
   },
 
   // Registrar pago recibido de un cliente
-  async registrarPagoRecibido(clienteId, monto, concepto, observaciones = null) {
+  async registrarPagoRecibido(clienteId, monto, concepto, observaciones = null, fechaOperacion = null) {
     console.log('💰 Registrando pago recibido:', { clienteId, monto, concepto });
 
     const { data, error } = await supabase
@@ -131,7 +131,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'pago_recibido',
         concepto: concepto || 'Pago recibido',
         monto: monto,
-        fecha_operacion: obtenerFechaLocal(),
+        fecha_operacion: fechaOperacion || obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
@@ -150,7 +150,7 @@ export const cuentasCorrientesService = {
   },
 
   // Registrar nueva deuda (alguien nos debe)
-  async registrarNuevaDeuda(clienteId, monto, concepto, observaciones = null) {
+  async registrarNuevaDeuda(clienteId, monto, concepto, observaciones = null, fechaOperacion = null) {
     console.log('📈 Registrando nueva deuda:', { clienteId, monto, concepto });
 
     const { data, error } = await supabase
@@ -161,7 +161,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'cargo_manual',
         concepto: concepto || 'Deuda agregada',
         monto: monto,
-        fecha_operacion: obtenerFechaLocal(),
+        fecha_operacion: fechaOperacion || obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
@@ -180,19 +180,19 @@ export const cuentasCorrientesService = {
   },
 
   // Registrar pago realizado por Update
-  async registrarPagoRealizado(clienteId, monto, concepto, observaciones = null) {
+  async registrarPagoRealizado(clienteId, monto, concepto, observaciones = null, fechaOperacion = null) {
     console.log('💸 Registrando pago realizado por Update:', { clienteId, monto, concepto });
 
     const { data, error } = await supabase
       .from('cuentas_corrientes')
       .insert([{
         cliente_id: clienteId,
-        tipo_movimiento: 'haber', // Update paga (reduce deuda que Update tiene)
-        tipo_operacion: 'pago_recibido', // Update realiza un pago
+        tipo_movimiento: 'debe', // Update paga (reduce deuda negativa que Update tiene)
+        tipo_operacion: 'pago_recibido', // Usar tipo_operacion válido
         concepto: concepto || 'Pago realizado por Update',
         monto: monto,
-        fecha_operacion: obtenerFechaLocal(),
-        estado: 'pagado',
+        fecha_operacion: fechaOperacion || obtenerFechaLocal(),
+        estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
         created_by: 'Usuario'
@@ -210,7 +210,7 @@ export const cuentasCorrientesService = {
   },
 
   // Registrar deuda que Update toma
-  async registrarDeudaUpdate(clienteId, monto, concepto, observaciones = null) {
+  async registrarDeudaUpdate(clienteId, monto, concepto, observaciones = null, fechaOperacion = null) {
     console.log('📈 Registrando deuda que Update toma:', { clienteId, monto, concepto });
 
     const { data, error } = await supabase
@@ -221,7 +221,7 @@ export const cuentasCorrientesService = {
         tipo_operacion: 'cargo_manual', // Deuda contraída
         concepto: concepto || 'Deuda contraída por Update',
         monto: monto,
-        fecha_operacion: obtenerFechaLocal(),
+        fecha_operacion: fechaOperacion || obtenerFechaLocal(),
         estado: 'pendiente',
         comprobante: null,
         observaciones: observaciones,
@@ -366,10 +366,10 @@ export function useCuentasCorrientes() {
     }
   }, []);
 
-  const registrarPagoRecibido = useCallback(async (clienteId, monto, concepto, observaciones) => {
+  const registrarPagoRecibido = useCallback(async (clienteId, monto, concepto, observaciones, fechaOperacion) => {
     try {
       setError(null);
-      const pago = await cuentasCorrientesService.registrarPagoRecibido(clienteId, monto, concepto, observaciones);
+      const pago = await cuentasCorrientesService.registrarPagoRecibido(clienteId, monto, concepto, observaciones, fechaOperacion);
       // Refrescar saldos después del pago
       await fetchSaldos();
       return pago;
@@ -379,10 +379,10 @@ export function useCuentasCorrientes() {
     }
   }, [fetchSaldos]);
 
-  const registrarNuevaDeuda = useCallback(async (clienteId, monto, concepto, observaciones) => {
+  const registrarNuevaDeuda = useCallback(async (clienteId, monto, concepto, observaciones, fechaOperacion) => {
     try {
       setError(null);
-      const deuda = await cuentasCorrientesService.registrarNuevaDeuda(clienteId, monto, concepto, observaciones);
+      const deuda = await cuentasCorrientesService.registrarNuevaDeuda(clienteId, monto, concepto, observaciones, fechaOperacion);
       // Refrescar saldos después de agregar deuda
       await fetchSaldos();
       return deuda;
@@ -392,10 +392,10 @@ export function useCuentasCorrientes() {
     }
   }, [fetchSaldos]);
 
-  const registrarPagoRealizado = useCallback(async (clienteId, monto, concepto, observaciones) => {
+  const registrarPagoRealizado = useCallback(async (clienteId, monto, concepto, observaciones, fechaOperacion) => {
     try {
       setError(null);
-      const pago = await cuentasCorrientesService.registrarPagoRealizado(clienteId, monto, concepto, observaciones);
+      const pago = await cuentasCorrientesService.registrarPagoRealizado(clienteId, monto, concepto, observaciones, fechaOperacion);
       // Refrescar saldos después del pago
       await fetchSaldos();
       return pago;
@@ -405,10 +405,10 @@ export function useCuentasCorrientes() {
     }
   }, [fetchSaldos]);
 
-  const registrarDeudaUpdate = useCallback(async (clienteId, monto, concepto, observaciones) => {
+  const registrarDeudaUpdate = useCallback(async (clienteId, monto, concepto, observaciones, fechaOperacion) => {
     try {
       setError(null);
-      const deuda = await cuentasCorrientesService.registrarDeudaUpdate(clienteId, monto, concepto, observaciones);
+      const deuda = await cuentasCorrientesService.registrarDeudaUpdate(clienteId, monto, concepto, observaciones, fechaOperacion);
       // Refrescar saldos después de agregar deuda de Update
       await fetchSaldos();
       return deuda;
