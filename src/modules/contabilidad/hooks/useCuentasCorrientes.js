@@ -192,7 +192,7 @@ export const cuentasCorrientesService = {
         concepto: concepto || 'Pago realizado por Update',
         monto: monto,
         fecha_operacion: obtenerFechaLocal(),
-        estado: 'completado',
+        estado: 'pagado',
         comprobante: null,
         observaciones: observaciones,
         created_by: 'Usuario'
