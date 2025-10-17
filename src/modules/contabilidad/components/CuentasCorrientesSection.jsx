@@ -25,7 +25,7 @@ import { cotizacionService } from '../../../shared/services/cotizacionService';
 
 const CuentasCorrientesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filtroSaldo, setFiltroSaldo] = useState('acreedores'); // 'deudores', 'acreedores'
+  const [filtroSaldo, setFiltroSaldo] = useState('todos'); // 'todos', 'deudores', 'acreedores'
   const [estadisticas, setEstadisticas] = useState(null);
   const [showNuevoMovimiento, setShowNuevoMovimiento] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState(null); // 'cobro', 'pago', 'ajustar_deuda', 'tomar_deuda'
@@ -96,14 +96,14 @@ const CuentasCorrientesSection = () => {
     const valor = parseFloat(saldo || 0);
     if (valor > 0) {
       return {
-        texto: 'Debe',
+        texto: 'Debe:',
         valor: valor,
         color: 'text-slate-800',
         bgColor: 'bg-slate-100'
       };
     } else if (valor < 0) {
       return {
-        texto: 'A favor',
+        texto: 'Debemos:',
         valor: Math.abs(valor),
         color: 'text-slate-600',
         bgColor: 'bg-slate-200'
@@ -127,10 +127,14 @@ const CuentasCorrientesSection = () => {
 
   // Filtrar clientes
   const clientesFiltrados = saldos.filter(cliente => {
-    const matchSearch = searchTerm === '' || 
+    const matchSearch = searchTerm === '' ||
       `${cliente.nombre} ${cliente.apellido}`.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const saldo = parseFloat(cliente.saldo_total || 0);
+
+    // Excluir siempre cuentas saldadas (saldo = 0)
+    if (saldo === 0) return false;
+
     let matchFiltro = true;
 
     switch (filtroSaldo) {
@@ -140,11 +144,14 @@ const CuentasCorrientesSection = () => {
       case 'deudores':
         matchFiltro = saldo < 0; // Les debemos (saldo negativo) - somos deudores con ellos
         break;
+      case 'todos':
+        matchFiltro = true; // Mostrar todos (excepto saldados)
+        break;
       default:
-        matchFiltro = true; // Mostrar todos
+        matchFiltro = true;
         break;
     }
-    
+
     return matchSearch && matchFiltro;
   });
 
@@ -158,6 +165,79 @@ const CuentasCorrientesSection = () => {
   const movimientosFiltrados = clienteSeleccionadoFiltro
     ? todosMovimientos.filter(mov => mov.cliente_id === clienteSeleccionadoFiltro.cliente_id)
     : todosMovimientos;
+
+  // Calcular saldo acumulado por cada movimiento usando el saldo del cliente desde la DB
+  const movimientosConSaldo = React.useMemo(() => {
+    // Crear un mapa de saldos totales por cliente desde la DB
+    const saldosPorCliente = {};
+    saldos.forEach(cliente => {
+      saldosPorCliente[cliente.cliente_id] = parseFloat(cliente.saldo_total);
+    });
+
+    // Agrupar movimientos por cliente
+    const movimientosPorCliente = {};
+    movimientosFiltrados.forEach(mov => {
+      const clienteKey = mov.cliente_id;
+      if (!movimientosPorCliente[clienteKey]) {
+        movimientosPorCliente[clienteKey] = [];
+      }
+      movimientosPorCliente[clienteKey].push(mov);
+    });
+
+    // Para cada cliente, ordenar y calcular saldos hacia atrás desde el saldo final
+    const resultado = [];
+    Object.keys(movimientosPorCliente).forEach(clienteId => {
+      const clienteIdNum = parseInt(clienteId);
+
+      // Obtener saldo total del cliente desde la DB
+      const saldoFinal = saldosPorCliente[clienteIdNum] || 0;
+
+      // Ordenar de más antiguo a más reciente por fecha y luego por ID
+      const movsCliente = movimientosPorCliente[clienteId]
+        .sort((a, b) => {
+          const fechaA = new Date(a.fecha_operacion);
+          const fechaB = new Date(b.fecha_operacion);
+          if (fechaA.getTime() !== fechaB.getTime()) {
+            return fechaA - fechaB;
+          }
+          return a.id - b.id;
+        });
+
+      // Calcular saldos hacia atrás desde el último movimiento
+      // El último movimiento tiene el saldo final del cliente
+      let saldoActual = saldoFinal;
+
+      // Primero calcular el saldo de cada movimiento hacia atrás
+      const saldosPorMovimiento = [];
+      for (let i = movsCliente.length - 1; i >= 0; i--) {
+        const mov = movsCliente[i];
+        saldosPorMovimiento.unshift(saldoActual); // Guardar saldo después del movimiento
+
+        // Restar este movimiento para obtener el saldo anterior
+        if (mov.tipo_movimiento === 'debe') {
+          saldoActual -= parseFloat(mov.monto);
+        } else {
+          saldoActual += parseFloat(mov.monto);
+        }
+      }
+
+      // Agregar saldo calculado a cada movimiento
+      const movsConSaldo = movsCliente.map((mov, index) => ({
+        ...mov,
+        saldo_acumulado: saldosPorMovimiento[index]
+      }));
+
+      resultado.push(...movsConSaldo);
+    });
+
+    // Ordenar todos los movimientos por created_at (más reciente primero)
+    return resultado.sort((a, b) => {
+      if (a.created_at && b.created_at) {
+        return new Date(b.created_at) - new Date(a.created_at);
+      }
+      return b.id - a.id;
+    });
+  }, [movimientosFiltrados, saldos]);
 
   // Funciones para editar y eliminar movimientos
   const handleEditarMovimiento = (movimiento) => {
@@ -835,6 +915,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                 onChange={(e) => setFiltroSaldo(e.target.value)}
                 className="w-full p-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
+                <option value="todos">Todos</option>
                 <option value="acreedores">Acreedores (nos deben)</option>
                 <option value="deudores">Deudores (les debemos)</option>
               </select>
@@ -955,61 +1036,43 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                   </p>
                 </div>
               ) : (
-                <table className="w-full">
+                <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cliente</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Concepto</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tipo</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Cliente</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Fecha</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Concepto</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Débito</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Crédito</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Saldo</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {movimientosFiltrados.map((movimiento, index) => (
+                    {movimientosConSaldo.map((movimiento, index) => (
                       <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          <div>
-                            <div className="font-medium">{movimiento.nombre_cliente} {movimiento.apellido_cliente}</div>
-                            {movimiento.observaciones && (
-                              <div className="text-xs text-slate-500 mt-1">{movimiento.observaciones}</div>
-                            )}
-                          </div>
+                        <td className="px-4 py-3 text-center text-sm">
+                          <div className="font-medium text-slate-800">{movimiento.nombre_cliente} {movimiento.apellido_cliente}</div>
+                          {movimiento.observaciones && (
+                            <div className="text-xs text-slate-500 mt-1">{movimiento.observaciones}</div>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
+                        <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
+                          {formatFecha(movimiento.fecha_operacion)}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm text-slate-800">
                           {movimiento.concepto}
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                            movimiento.tipo_movimiento === 'debe'
-                              ? 'bg-slate-100 text-slate-800'
-                              : 'bg-slate-200 text-slate-600'
-                          }`}>
-                            {movimiento.tipo_movimiento === 'debe' ? (
-                              <>
-                                <TrendingUp className="w-3 h-3 mr-1" />
-                                Debe
-                              </>
-                            ) : (
-                              <>
-                                <TrendingDown className="w-3 h-3 mr-1" />
-                                Haber
-                              </>
-                            )}
-                          </div>
+                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
+                          {movimiento.tipo_movimiento === 'debe' ? formatearMonto(movimiento.monto, 'USD') : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap">
+                          {movimiento.tipo_movimiento === 'haber' ? formatearMonto(movimiento.monto, 'USD') : '-'}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`font-semibold whitespace-nowrap ${
-                            movimiento.tipo_movimiento === 'debe'
-                              ? 'text-slate-800'
-                              : 'text-slate-600'
-                          }`}>
-                            {movimiento.tipo_movimiento === 'debe' ? '+' : '-'}{formatearMonto(movimiento.monto, 'USD')}
+                          <span className="font-semibold text-slate-800 whitespace-nowrap">
+                            {movimiento.saldo_acumulado > 0 ? '+' : movimiento.saldo_acumulado < 0 ? '-' : ''}{formatearMonto(Math.abs(movimiento.saldo_acumulado), 'USD')}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-600">
-                          {formatFecha(movimiento.fecha_operacion)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex justify-center space-x-2">
