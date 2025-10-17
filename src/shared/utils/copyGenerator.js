@@ -338,7 +338,16 @@ const generateNotebookCopy = (comp, config) => {
       partes.push(estado);
     }
   }
-  
+
+  // 8. COLOR - SIEMPRE (antes del precio, tanto en simple como completo)
+  if (comp.color) {
+    if (config.style === 'completo') {
+      partes.push(comp.color.charAt(0).toUpperCase() + comp.color.slice(1).toLowerCase());
+    } else {
+      partes.push(comp.color.toUpperCase());
+    }
+  }
+
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
   if (config.style === 'completo') {
     // 11. SISTEMA OPERATIVO

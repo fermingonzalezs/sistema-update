@@ -85,7 +85,7 @@ const libroMayorService = {
 
     const asientoIds = asientos.map(a => a.id);
 
-    // Obtener movimientos de la cuenta específica
+    // Obtener movimientos de la cuenta específica ordenados por ID de asiento descendente
     let movimientosQuery = supabase
       .from('movimientos_contables')
       .select(`
@@ -96,7 +96,7 @@ const libroMayorService = {
       `)
       .eq('cuenta_id', cuentaId)
       .in('asiento_id', asientoIds)
-      .order('asientos_contables(fecha)', { ascending: true });
+      .order('asiento_id', { ascending: false });
 
     const { data: movimientos, error: errorMovimientos } = await movimientosQuery;
     if (errorMovimientos) throw errorMovimientos;
@@ -127,19 +127,27 @@ const libroMayorService = {
       }
     }
 
-    // Calcular saldos acumulados
-    let saldoAcumulado = saldoInicial;
+    // Calcular saldos acumulados (como vienen en orden descendente, calculamos desde el final)
+    // Primero necesitamos calcular el saldo final
+    const saldoFinalCalculado = movimientos.reduce((acc, mov) => {
+      return acc + parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0);
+    }, saldoInicial);
+
+    // Ahora calculamos hacia atrás desde el saldo final
+    let saldoAcumulado = saldoFinalCalculado;
     const movimientosConSaldo = movimientos.map(mov => {
       const debe = parseFloat(mov.debe || 0);
       const haber = parseFloat(mov.haber || 0);
-      
-      // CORRECCIÓN: En contabilidad, Debe aumenta saldo y Haber lo disminuye
-      saldoAcumulado += debe - haber;
-      
+
+      const saldoActual = saldoAcumulado;
+
+      // Para el siguiente (que es anterior en el tiempo), restamos este movimiento
+      saldoAcumulado = saldoAcumulado - debe + haber;
+
       return {
         ...mov,
-        saldoAnterior: saldoAcumulado - debe + haber,
-        saldoActual: saldoAcumulado
+        saldoAnterior: saldoAcumulado,
+        saldoActual: saldoActual
       };
     });
 
@@ -147,7 +155,7 @@ const libroMayorService = {
       cuenta,
       saldoInicial,
       movimientos: movimientosConSaldo,
-      saldoFinal: saldoAcumulado,
+      saldoFinal: saldoFinalCalculado,
       totalDebe: movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0),
       totalHaber: movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0)
     };
@@ -341,6 +349,18 @@ const LibroMayorSection = () => {
     const formatter = new Intl.NumberFormat('es-AR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
+    });
+
+    const simbolo = moneda === 'USD' ? 'U$' : '$';
+    return `${simbolo}${formatter.format(numero)}`;
+  };
+
+  const formatearMonedaSinDecimales = (valor, moneda = 'USD') => {
+    // Formatear sin decimales para las tarjetas
+    const numero = Math.round(parseFloat(valor || 0));
+    const formatter = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
 
     const simbolo = moneda === 'USD' ? 'U$' : '$';
@@ -564,28 +584,28 @@ const LibroMayorSection = () => {
               <div className="bg-slate-50 p-4 border-b border-slate-200">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                  
+
 
                   <Tarjeta
                     icon={FileText}
                     titulo={'Total debitado'}
-                    valor={formatearMoneda(estadisticas.totalDebe)}
+                    valor={formatearMonedaSinDecimales(estadisticas.totalDebe)}
                   />
 
                   <Tarjeta
                     icon={FileText}
                     titulo={'Total acreditado'}
-                    valor={formatearMoneda(estadisticas.totalHaber)}
+                    valor={formatearMonedaSinDecimales(estadisticas.totalHaber)}
                   />
 
-                  <Tarjeta  
+                  <Tarjeta
                     icon={TrendingUp}
                     titulo={`Saldo actual ${estadisticas.saldoActual >= 0 ? '(Deudor)' : '(Acreedor)'}`}
-                    valor={formatearMoneda(Math.abs(estadisticas.saldoActual))}
+                    valor={formatearMonedaSinDecimales(Math.abs(estadisticas.saldoActual))}
                     className={estadisticas.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}
                   />
 
-                  
+
                   <Tarjeta
                     icon={Calendar}
                     titulo={'Movimientos últimos 30 días'}
@@ -606,56 +626,56 @@ const LibroMayorSection = () => {
             {/* Tabla del libro mayor */}
             {libroMayor && (
               <div className="p-6">
-                <div className="mb-4 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-slate-800">
-                    Libro Mayor - {libroMayor.movimientos.length} movimientos
-                  </h3>
-                  {filtros.fechaDesde && (
-                    <div className="text-sm text-slate-600">
-                      Saldo inicial: 
-                      <span className={`font-medium ${libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {formatearMoneda(Math.abs(libroMayor.saldoInicial))}
+                <div className="mb-4 flex justify-end items-center">
+                  <div className="text-sm text-slate-600">
+                    {libroMayor.movimientos.length} movimientos
+                    {filtros.fechaDesde && (
+                      <span className="ml-4">
+                        | Saldo inicial:
+                        <span className={`font-medium ml-1 ${libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {formatearMoneda(Math.abs(libroMayor.saldoInicial))}
+                        </span>
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full border border-slate-200 rounded">
-                    <thead className="bg-slate-50">
+                  <table className="w-full">
+                    <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="text-left py-3 px-4 font-medium text-slate-700">Fecha</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-700">Asiento</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-700">Descripción</th>
-                        <th className="text-right py-3 px-4 font-medium text-slate-700">Debe</th>
-                        <th className="text-right py-3 px-4 font-medium text-slate-700">Haber</th>
-                        <th className="text-right py-3 px-4 font-medium text-slate-700">Saldo</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Asiento</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Descripción</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Debe</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Haber</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Saldo</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-200">
                       {/* Fila de saldo inicial si hay filtro de fecha */}
                       {filtros.fechaDesde && (
-                        <tr className="bg-slate-100 border-b border-slate-200">
-                          <td className="py-3 px-4 text-sm text-slate-600">-</td>
-                          <td className="py-3 px-4 text-sm text-slate-600">-</td>
+                        <tr className="bg-slate-100">
+                          <td className="py-3 px-4 text-sm text-slate-600 text-center">-</td>
+                          <td className="py-3 px-4 text-sm text-slate-600 text-center">-</td>
                           <td className="py-3 px-4 text-sm font-medium text-slate-700">SALDO INICIAL</td>
-                          <td className="py-3 px-4"></td>
-                          <td className="py-3 px-4"></td>
-                          <td className="text-right py-3 px-4 font-bold">
+                          <td className="py-3 px-4 text-center"></td>
+                          <td className="py-3 px-4 text-center"></td>
+                          <td className="text-center py-3 px-4 font-bold">
                             <span className={libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}>
                               {formatearMoneda(Math.abs(libroMayor.saldoInicial))}
                             </span>
                           </td>
                         </tr>
                       )}
-                      
+
                       {movimientosPaginados.map((mov, index) => (
-                        <tr key={index} className="border-b border-slate-200 hover:bg-slate-50">
-                          <td className="py-3 px-4 text-sm text-slate-600">
+                        <tr key={index} className={`hover:bg-slate-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                          <td className="py-3 px-4 text-sm text-slate-600 text-center">
                             {formatearFecha(mov.asientos_contables.fecha)}
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm font-mono text-slate-800 bg-emerald-100 px-2 py-1 rounded">
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-sm font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
                               N° {mov.asientos_contables.numero}
                             </span>
                           </td>
@@ -664,9 +684,9 @@ const LibroMayorSection = () => {
                               {mov.asientos_contables.descripcion}
                             </div>
                           </td>
-                          <td className="text-right py-3 px-4 font-medium">
+                          <td className="text-center py-3 px-4 font-medium">
                             {mov.debe > 0 ? (
-                              <div className="flex flex-col items-end">
+                              <div className="flex flex-col items-center">
                                 <span className="text-slate-800">{formatearMoneda(mov.debe, 'USD')}</span>
                                 {mov.debe_ars && (
                                   <span className="text-xs text-gray-500 mt-1">
@@ -674,11 +694,11 @@ const LibroMayorSection = () => {
                                   </span>
                                 )}
                               </div>
-                            ) : ''}
+                            ) : '-'}
                           </td>
-                          <td className="text-right py-3 px-4 font-medium">
+                          <td className="text-center py-3 px-4 font-medium">
                             {mov.haber > 0 ? (
-                              <div className="flex flex-col items-end">
+                              <div className="flex flex-col items-center">
                                 <span className="text-slate-600">{formatearMoneda(mov.haber, 'USD')}</span>
                                 {mov.haber_ars && (
                                   <span className="text-xs text-gray-500 mt-1">
@@ -686,9 +706,9 @@ const LibroMayorSection = () => {
                                   </span>
                                 )}
                               </div>
-                            ) : ''}
+                            ) : '-'}
                           </td>
-                          <td className="text-right py-3 px-4 font-bold">
+                          <td className="text-center py-3 px-4 font-bold">
                             <span className={mov.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}>
                               {formatearMoneda(Math.abs(mov.saldoActual))}
                             </span>
@@ -696,19 +716,17 @@ const LibroMayorSection = () => {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-slate-50">
+                    <tfoot className="bg-slate-800 text-white">
                       <tr className="font-bold">
-                        <td colSpan="3" className="py-3 px-4 text-slate-700">TOTALES DEL PERÍODO</td>
-                        <td className="text-right py-3 px-4 text-slate-800">
+                        <td colSpan="3" className="py-3 px-4 text-sm font-semibold">TOTALES DEL PERÍODO</td>
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
                           {formatearMoneda(libroMayor.totalDebe)}
                         </td>
-                        <td className="text-right py-3 px-4 text-slate-600">
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
                           {formatearMoneda(libroMayor.totalHaber)}
                         </td>
-                        <td className="text-right py-3 px-4 font-bold">
-                          <span className={libroMayor.saldoFinal >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                            {formatearMoneda(Math.abs(libroMayor.saldoFinal))}
-                          </span>
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
+                          {formatearMoneda(Math.abs(libroMayor.saldoFinal))}
                         </td>
                       </tr>
                     </tfoot>

@@ -45,7 +45,8 @@ const ProductModal = ({
         { key: 'procesador', label: 'Procesador' },
         { key: 'ram', label: 'RAM' },
         { key: 'ssd', label: 'SSD' },
-        { key: 'hdd', label: 'HDD', opcional: true }
+        { key: 'hdd', label: 'HDD', opcional: true },
+        { key: 'color', label: 'Color', opcional: true }
       ],
       estado: [
         { key: 'so', label: 'Sistema Operativo' },

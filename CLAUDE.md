@@ -469,6 +469,21 @@ TODAS las tablas deben seguir ESTRICTAMENTE este estilo sin excepción:
 - Headers: `text-xs font-medium uppercase tracking-wider`
 - Contenido: `text-sm` con colores apropiados (text-slate-800, text-slate-600, etc.)
 
+**Botones desplegables de tablas (Historial, etc.)**:
+Los botones que despliegan tablas también deben usar el mismo estilo slate:
+```jsx
+<button
+  onClick={toggleFunction}
+  className="w-full p-4 bg-slate-800 text-white flex justify-center items-center hover:bg-slate-700 transition-colors"
+>
+  <h5 className="font-semibold flex items-center">
+    <IconComponent size={18} className="mr-2" />
+    TEXTO EN MAYÚSCULAS ({count})
+    <ChevronRight className={`w-5 h-5 transition-transform ml-2 ${isOpen ? 'rotate-90' : ''}`} />
+  </h5>
+</button>
+```
+
 Este estilo se basa en BalanceSumasYSaldosSection.jsx y debe aplicarse consistentemente.
 
 #### Headers de Sección ESTÁNDAR OBLIGATORIO:
