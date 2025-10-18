@@ -49,6 +49,18 @@ const ListadoTotalSection = () => {
     condicion: ''
   });
 
+  //Definicion de emojis para otros productos
+  const EMOJI_CATEGORIAS_OTROS = {
+    'ACCESORIOS': '🔌',    // Ej. Cargadores, cables
+    'PERIFERICOS': '🖱️',   // Ej. Mouse, teclado, auriculares
+    'FUNDAS_TEMPLADOS': '🛡️', // Ej. Fundas y protectores
+    'MONITORES': '🖥️',      // Ej. Monitores
+    'COMPONENTES': '⚙️',    // Ej. Placas de video, RAM, discos
+    'TABLETS': '📖',
+    'OTROS': '📦'          // Emoji por defecto
+  };
+
+
   // Unificar todos los productos en un solo array
   const todosLosProductos = useMemo(() => {
     const productos = [];
@@ -61,7 +73,7 @@ const ListadoTotalSection = () => {
         productos.push({
           id: `notebook-${comp.id}`,
           categoria: 'NOTEBOOKS',
-          info: `💻 ${comp.marca} ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.disco}`,
+          info: `💻 ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.ssd}, ${comp.pantalla}, ${comp.placa_video}, ${comp.color}`,
           stock: 1,
           precioCompraUSD: comp.precio_compra_usd || 0,
           precioUSD: comp.precio_venta_usd || 0,
@@ -70,14 +82,33 @@ const ListadoTotalSection = () => {
       }
     });
 
-    // Agregar celulares
+   // Agregar celulares
     celulares.forEach(cel => {
       const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
       if (!condicionesExcluidas.includes(cel.condicion)) {
+        
+        let infoAdicional = '';
+
+        if(cel.condicion === 'usado' || cel.condicion === 'refurbished'){
+          // Usando cel.estado para la condición estética
+          const estetica = cel.estado ? `${cel.estado}` : ''; 
+          
+          // CORRECCIÓN 1: Usar comillas invertidas (`) para template literal
+          const bateria = cel.bateria ? `🔋${cel.bateria}` : '';
+
+          const partesAdicionales = [estetica, bateria].filter(p => p !== '');
+          if(partesAdicionales.length > 0){
+            // CORRECCIÓN 1: Usar comillas invertidas (`) para template literal
+            infoAdicional = ` ${partesAdicionales.join(' ')}`;
+          }
+        } // CORRECCIÓN 3: Aquí faltaba la llave de cierre del if
+        
+        // CORRECCIÓN 3: Quitar el paréntesis de cierre erróneo en la línea de id
         productos.push({
           id: `celular-${cel.id}`,
           categoria: 'CELULARES',
-          info: `📱 ${cel.marca} ${cel.modelo} ${cel.capacidad} ${cel.color || ''}`,
+          // CORRECCIÓN 2: Concatenar infoAdicional al final
+          info: `📱 ${cel.modelo} ${cel.capacidad} ${cel.color || ''} ${infoAdicional}`,
           stock: 1,
           precioCompraUSD: cel.precio_compra_usd || 0,
           precioUSD: cel.precio_venta_usd || 0,
@@ -92,16 +123,19 @@ const ListadoTotalSection = () => {
       if (!condicionesExcluidas.includes(otro.condicion)) {
         const stockTotal = (otro.cantidad_la_plata || 0) + (otro.cantidad_mitre || 0);
         if (stockTotal > 0) {
+
+          
+
           // Construir info limpia sin undefined
           let info = otro.nombre_producto || '';
           if (otro.marca && otro.marca !== 'undefined' && otro.marca !== undefined) {
             info = `${otro.marca} ${info}`;
           }
+          const emoji = EMOJI_CATEGORIAS_OTROS[otro.categoria] || EMOJI_CATEGORIAS_OTROS['OTROS'];
 
           productos.push({
-            id: `otro-${otro.id}`,
             categoria: otro.categoria || 'OTROS',
-            info: info.trim(),
+            info: `${emoji} ${info.trim()}`,
             stock: stockTotal,
             precioCompraUSD: otro.precio_compra_usd || 0,
             precioUSD: otro.precio_venta_usd || 0,
@@ -114,6 +148,9 @@ const ListadoTotalSection = () => {
     return productos;
   }, [computers, celulares, otros]);
 
+
+
+
   // Configuración de colores por categoría
   const coloresCategorias = {
     'NOTEBOOKS': 'bg-blue-100 text-blue-700',
@@ -122,7 +159,8 @@ const ListadoTotalSection = () => {
     'PERIFERICOS': 'bg-orange-100 text-orange-700',
     'ACCESORIOS': 'bg-cyan-100 text-cyan-700',
     'COMPONENTES': 'bg-red-100 text-red-700',
-    'FUNDAS_TEMPLADOS': 'bg-pink-100 text-pink-700'
+    'FUNDAS_TEMPLADOS': 'bg-pink-100 text-pink-700',
+    'TABLETS': 'bg-yellow-100 text-yellow-700'
   };
 
   // Configuración de colores por condición
@@ -140,7 +178,8 @@ const ListadoTotalSection = () => {
     'PERIFERICOS': 'PERIFÉRICOS',
     'ACCESORIOS': 'ACCESORIOS',
     'COMPONENTES': 'COMPONENTES',
-    'FUNDAS_TEMPLADOS': 'FUNDAS/TEMPLADOS'
+    'FUNDAS_TEMPLADOS': 'FUNDAS/TEMPLADOS',
+    'TABLETS': 'TABLETS'
   };
 
   // Labels de condiciones
@@ -256,7 +295,8 @@ const ListadoTotalSection = () => {
     'PERIFERICOS': '#f97316',
     'ACCESORIOS': '#06b6d4',
     'COMPONENTES': '#ef4444',
-    'FUNDAS_TEMPLADOS': '#ec4899'
+    'FUNDAS_TEMPLADOS': '#ec4899',
+    'TABLETS': '#eab308'
   };
 
   const COLORES_CONDICIONES = {
@@ -460,6 +500,7 @@ const ListadoTotalSection = () => {
               <option value="ACCESORIOS">Accesorios</option>
               <option value="COMPONENTES">Componentes</option>
               <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
+              <option value="TABLETS">Tablets</option>
             </select>
           </div>
 
