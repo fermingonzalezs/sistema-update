@@ -16,6 +16,7 @@ import {
   Catalogo,
   RegistrarVentaSection
 } from './modules/ventas/components';
+import ListadoTotalSection from './modules/ventas/components/ListadoTotalSection';
 import {
   ReparacionesMain,
   RepuestosSection,
@@ -495,7 +496,10 @@ const AppContent = () => {
        <Catalogo onAddToCart={handleAddToCart} onNavigate={handleSectionChange} />
      )}
 
-
+     {/* 📦 LISTADO TOTAL */}
+     {activeSection === 'listado-total' && (
+       <ListadoTotalSection />
+     )}
 
      {activeSection === 'reparaciones' && (
        <ReparacionesMain />

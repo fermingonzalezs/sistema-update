@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft, TrendingUp, X } from 'lucide-react';
+import { DollarSign, Calculator, AlertTriangle, CheckCircle, Save, RefreshCw, Plus, Minus, Eye, FileText, Calendar, ChevronRight, History, ArrowRightLeft, TrendingUp, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
@@ -493,15 +493,32 @@ const ConciliacionCajaSection = () => {
     <div className="p-0">
       {/* Header */}
       <div className="bg-white rounded border border-slate-200">
-        <div className="p-5 bg-slate-800 text-white">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <Calculator className="w-6 h-6" />
               <div>
-                <p className="text-slate-300 mt-1">Seleccione una cuenta de caja y bancos para realizar una conciliación.</p>
+                <h2 className="text-2xl font-semibold">Conciliación de Caja</h2>
+                <p className="text-slate-300 mt-1">
+                  {cuentaSeleccionada
+                    ? `${cuentaSeleccionada.codigo} - ${cuentaSeleccionada.nombre} • Conciliación al ${formatearFecha(fechaConciliacion)}`
+                    : 'Seleccione una cuenta de caja y bancos para realizar una conciliación.'
+                  }
+                </p>
               </div>
             </div>
-            
+            {cuentaSeleccionada && (
+              <button
+                onClick={() => {
+                  setCuentaSeleccionada(null);
+                  setSaldoContable(null);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors text-sm font-medium"
+              >
+                <ArrowLeft size={18} />
+                Volver
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -599,28 +616,7 @@ const ConciliacionCajaSection = () => {
       
       {/* Vista de conciliación */}
       {cuentaSeleccionada && (
-        <div>
-          {/* Información de la cuenta */}
-          <div className="bg-white p-4 rounded border border-slate-200 mb-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-800">
-                  {cuentaSeleccionada.codigo} - {cuentaSeleccionada.nombre}
-                </h3>
-                <p className="text-sm text-slate-600">Conciliación al {formatearFecha(fechaConciliacion)}</p>
-              </div>
-              <button
-                onClick={() => {
-                  setCuentaSeleccionada(null);
-                  setSaldoContable(null);
-                }}
-                className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 p-2 rounded transition-colors"
-              >
-                <RefreshCw size={20} />
-              </button>
-            </div>
-          </div>
-          
+        <div className="mt-6">
           {loading && (
             <LoadingSpinner text="Cargando datos de la cuenta..." size="medium" />
           )}

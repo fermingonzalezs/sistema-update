@@ -175,12 +175,13 @@ const libroDiarioService = {
         if (mov.cotizacion && mov.cotizacion > 0) {
           movimientoBasico.cotizacion = mov.cotizacion;
 
-          // Guardar el monto original en ARS que ingresó el usuario
-          if (mov.debe > 0 && mov.monto_original_ars) {
-            movimientoBasico.debe_ars = mov.monto_original_ars;
+          // Guardar el monto original en ARS
+          // Si existe monto_original_ars usarlo, sino calcularlo desde USD
+          if (mov.debe > 0) {
+            movimientoBasico.debe_ars = mov.monto_original_ars || (debeUSD * mov.cotizacion);
           }
-          if (mov.haber > 0 && mov.monto_original_ars) {
-            movimientoBasico.haber_ars = mov.monto_original_ars;
+          if (mov.haber > 0) {
+            movimientoBasico.haber_ars = mov.monto_original_ars || (haberUSD * mov.cotizacion);
           }
         } else if (cuentaInfo?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
           // Si no tiene cotización individual pero la cuenta requiere cotización,
@@ -188,11 +189,12 @@ const libroDiarioService = {
           movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
 
           // Guardar el monto original en ARS
-          if (mov.debe > 0 && mov.monto_original_ars) {
-            movimientoBasico.debe_ars = mov.monto_original_ars;
+          // Si existe monto_original_ars usarlo, sino calcularlo desde USD
+          if (mov.debe > 0) {
+            movimientoBasico.debe_ars = mov.monto_original_ars || (debeUSD * asientoData.cotizacionPromedio);
           }
-          if (mov.haber > 0 && mov.monto_original_ars) {
-            movimientoBasico.haber_ars = mov.monto_original_ars;
+          if (mov.haber > 0) {
+            movimientoBasico.haber_ars = mov.monto_original_ars || (haberUSD * asientoData.cotizacionPromedio);
           }
         }
 

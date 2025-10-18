@@ -44,7 +44,7 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       color: 'from-green-500 to-green-600',
       level: 'ventas',
       items: [
-       
+
         {
           id: 'registrar-venta',
           label: 'Registrar Venta',
@@ -56,6 +56,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Catálogo',
           icon: List,
           description: 'Listado total de productos'
+        },
+        {
+          id: 'listado-total',
+          label: 'Listado Total',
+          icon: Package,
+          description: 'Vista unificada de inventario'
         },
         {
           id: 'copys',
