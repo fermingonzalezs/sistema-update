@@ -8,7 +8,12 @@
       "mcp__supabase__apply_migration",
       "Bash(cat:*)",
       "mcp__supabase__get_logs",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm install xlsx)",
+      "Bash(npm uninstall xlsx)",
+      "Bash(npm install xlsx-js-style)",
+      "Bash(npm install)",
+      "Bash(pkill -f \"vite\")"
     ],
     "deny": [],
     "ask": []

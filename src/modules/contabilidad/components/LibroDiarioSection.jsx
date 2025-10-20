@@ -640,10 +640,10 @@ const LibroDiarioSection = () => {
     const totalHaberRedondeado = Math.round(totalHaber * 100) / 100;
     const diferencia = Math.round((totalDebeRedondeado - totalHaberRedondeado) * 100) / 100;
 
-    return { 
-      totalDebe: totalDebeRedondeado, 
-      totalHaber: totalHaberRedondeado, 
-      diferencia, 
+    return {
+      totalDebe: totalDebeRedondeado,
+      totalHaber: totalHaberRedondeado,
+      diferencia,
       balanceado: Math.abs(diferencia) < 0.01,
       movimientosConvertidos: formData.movimientos.map(mov => {
         let montoUSD = parseFloat(mov.monto || 0);
@@ -660,8 +660,9 @@ const LibroDiarioSection = () => {
           haber: mov.tipo === 'haber' ? Math.round(montoUSD * 100) / 100 : 0
         };
 
-        // Agregar monto original ARS si la cuenta lo requiere
+        // Agregar cotización y monto original ARS si la cuenta lo requiere
         if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+          resultado.cotizacion = cotizacion;
           resultado.monto_original_ars = montoOriginalARS;
         }
 

@@ -43,7 +43,8 @@ const RegistrarVentaSection = () => {
     condicion: 'usado',
     precioCompra: '',
     precioVenta: '',
-    cantidad: 1
+    cantidad: 1,
+    sucursal: 'mitre' // Por defecto mitre
   });
 
   // Estados de carga
@@ -346,7 +347,8 @@ const RegistrarVentaSection = () => {
         condicion: productoCustom.condicion,
         precio_compra: parseFloat(productoCustom.precioCompra),
         precio_venta: parseFloat(productoCustom.precioVenta),
-        cantidad: parseInt(productoCustom.cantidad)
+        cantidad: parseInt(productoCustom.cantidad),
+        sucursal: productoCustom.sucursal // Agregar sucursal
       });
 
       console.log('✅ Producto custom creado:', nuevoProducto);
@@ -379,7 +381,8 @@ const RegistrarVentaSection = () => {
         condicion: 'usado',
         precioCompra: '',
         precioVenta: '',
-        cantidad: 1
+        cantidad: 1,
+        sucursal: 'mitre' // Mantener sucursal por defecto
       });
 
       alert('✅ Producto creado y agregado al carrito exitosamente');
@@ -657,8 +660,8 @@ const RegistrarVentaSection = () => {
                       </div>
                     </div>
 
-                    {/* Segunda fila: Condición - Cantidad */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Segunda fila: Condición - Cantidad - Sucursal */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
                           Condición *
@@ -689,6 +692,20 @@ const RegistrarVentaSection = () => {
                           placeholder="1"
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Sucursal *
+                        </label>
+                        <select
+                          value={productoCustom.sucursal}
+                          onChange={(e) => setProductoCustom(prev => ({ ...prev, sucursal: e.target.value }))}
+                          className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                          required
+                        >
+                          <option value="mitre">MITRE</option>
+                          <option value="la_plata">LA PLATA</option>
+                        </select>
                       </div>
                     </div>
 

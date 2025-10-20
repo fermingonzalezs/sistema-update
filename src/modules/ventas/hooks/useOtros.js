@@ -325,6 +325,10 @@ export const otrosService = {
       throw new Error(`Condición inválida: ${datosCustom.condicion}`);
     }
 
+    // Determinar sucursal (por defecto la_plata si no se especifica)
+    const sucursal = datosCustom.sucursal || 'la_plata';
+    const cantidadProducto = parseInt(datosCustom.cantidad);
+
     // Preparar datos para inserción
     const productoData = {
       nombre_producto: datosCustom.serial.trim(),
@@ -333,8 +337,8 @@ export const otrosService = {
       condicion: condicionNormalizada,
       precio_compra_usd: parseFloat(datosCustom.precio_compra),
       precio_venta_usd: parseFloat(datosCustom.precio_venta),
-      cantidad_la_plata: parseInt(datosCustom.cantidad), // Fijo en La Plata según especificación
-      cantidad_mitre: 0,
+      cantidad_la_plata: sucursal === 'la_plata' ? cantidadProducto : 0,
+      cantidad_mitre: sucursal === 'mitre' ? cantidadProducto : 0,
       garantia: '30 días', // Fijo según especificación
       observaciones: datosCustom.observaciones || 'Producto custom creado para venta'
     };

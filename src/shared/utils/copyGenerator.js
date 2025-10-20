@@ -320,13 +320,13 @@ const generateNotebookCopy = (comp, config) => {
     let bateriaInfo = '';
     if (comp.porcentaje_de_bateria || comp.bateria) {
       const bateria = comp.porcentaje_de_bateria || comp.bateria;
-      const bateriaLimpio = String(bateria).replace(/%/g, '');
-      bateriaInfo = `🔋 ${bateriaLimpio}%`;
+      const bateriaLimpio = String(bateria).replace(/%/g, '').trim();
+      bateriaInfo = `🔋${bateriaLimpio}%`;
     }
     if (comp.duracion_bateria && comp.duracion_bateria > 0) {
       const duracion = comp.duracion_bateria;
-      const duracionLimpio = String(duracion).replace(/H/gi, '');
-      bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `🔋 ${duracionLimpio}H`;
+      const duracionLimpio = String(duracion).replace(/H/gi, '').trim();
+      bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `🔋${duracionLimpio}H`;
     }
     if (bateriaInfo) {
       partes.push(bateriaInfo);
@@ -345,6 +345,16 @@ const generateNotebookCopy = (comp, config) => {
       partes.push(comp.color.charAt(0).toUpperCase() + comp.color.slice(1).toLowerCase());
     } else {
       partes.push(comp.color.toUpperCase());
+    }
+  }
+
+  // 9. IDIOMA TECLADO - SIEMPRE (después del color, antes del precio)
+  if (comp.idioma || comp.idioma_teclado) {
+    const idioma = comp.idioma || comp.idioma_teclado;
+    if (config.style === 'completo') {
+      partes.push(idioma.charAt(0).toUpperCase() + idioma.slice(1).toLowerCase());
+    } else {
+      partes.push(idioma.toUpperCase());
     }
   }
 
@@ -445,18 +455,18 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
-  // 4. BATERÍA Y ESTADO - SOLO para USADOS/REFURBISHED (antes del precio)
+  // 4. BATERÍA Y ESTADO - SOLO para USADOS/REFURBISH (antes del precio)
   if (!esNuevo) {
     // Batería con emoji 🔋
     let bateriaInfo = '';
     if (cel.bateria || cel.porcentaje_de_bateria) {
       const bateria = cel.bateria || cel.porcentaje_de_bateria;
-      const bateriaLimpio = String(bateria).replace(/%/g, '');
-      bateriaInfo = `🔋 ${bateriaLimpio}%`;
+      const bateriaLimpio = String(bateria).replace(/%/g, '').trim();
+      bateriaInfo = `🔋${bateriaLimpio}%`;
     }
     if (cel.ciclos_bateria && cel.ciclos_bateria > 0) {
       const ciclos = cel.ciclos_bateria;
-      bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `🔋 ${ciclos} ciclos`;
+      bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `🔋${ciclos} ciclos`;
     }
     if (bateriaInfo) {
       partes.push(bateriaInfo);

@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Package, DollarSign, TrendingUp } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
 import { useInventario } from '../hooks/useInventario';
 import { useCelulares } from '../hooks/useCelulares';
 import { useOtros } from '../hooks/useOtros';
+import * as XLSX from 'xlsx-js-style';
 
 // Cotización mock (en producción vendría de una API)
 const COTIZACION_MOCK = 1200;
@@ -33,6 +34,22 @@ const ListadoTotalSection = () => {
     fetchOtros
   } = useOtros();
 
+  // Estado de carga y error general
+  const loading = loadingNotebooks || loadingCelulares || loadingOtros;
+  const error = errorNotebooks || errorCelulares || errorOtros;
+
+  // Estados
+  const [filtros, setFiltros] = useState({
+    busqueda: '',
+    categoria: '',
+    condicion: '',
+    ordenamiento: 'categoria-asc' // Default: categoría ascendente
+  });
+
+  // Estado para el menú desplegable de exportar
+  const [mostrarMenuExportar, setMostrarMenuExportar] = useState(false);
+  const menuExportarRef = useRef(null);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     fetchComputers();
@@ -40,17 +57,27 @@ const ListadoTotalSection = () => {
     fetchOtros();
   }, []);
 
-  // Estado de carga y error general
-  const loading = loadingNotebooks || loadingCelulares || loadingOtros;
-  const error = errorNotebooks || errorCelulares || errorOtros;
-  const [filtros, setFiltros] = useState({
-    busqueda: '',
-    categoria: '',
-    condicion: ''
-  });
+  // Cerrar menú de exportar al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuExportarRef.current && !menuExportarRef.current.contains(event.target)) {
+        setMostrarMenuExportar(false);
+      }
+    };
 
-  //Definicion de emojis para otros productos
-  const EMOJI_CATEGORIAS_OTROS = {
+    if (mostrarMenuExportar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mostrarMenuExportar]);
+
+  //Definicion de emojis para categorías
+  const EMOJI_CATEGORIAS = {
+    'NOTEBOOKS': '💻',
+    'CELULARES': '📱',
     'ACCESORIOS': '🔌',    // Ej. Cargadores, cables
     'PERIFERICOS': '🖱️',   // Ej. Mouse, teclado, auriculares
     'FUNDAS_TEMPLADOS': '🛡️', // Ej. Fundas y protectores
@@ -131,7 +158,7 @@ const ListadoTotalSection = () => {
           if (otro.marca && otro.marca !== 'undefined' && otro.marca !== undefined) {
             info = `${otro.marca} ${info}`;
           }
-          const emoji = EMOJI_CATEGORIAS_OTROS[otro.categoria] || EMOJI_CATEGORIAS_OTROS['OTROS'];
+          const emoji = EMOJI_CATEGORIAS[otro.categoria] || EMOJI_CATEGORIAS['OTROS'];
 
           productos.push({
             categoria: otro.categoria || 'OTROS',
@@ -211,12 +238,32 @@ const ListadoTotalSection = () => {
       resultado = resultado.filter(p => p.condicion === filtros.condicion);
     }
 
-    // Ordenar por categoría alfabético, luego por precio
+    // Aplicar ordenamiento
     resultado.sort((a, b) => {
-      if (a.categoria !== b.categoria) {
-        return a.categoria.localeCompare(b.categoria);
+      switch (filtros.ordenamiento) {
+        case 'precio-asc':
+          return a.precioUSD - b.precioUSD;
+        case 'precio-desc':
+          return b.precioUSD - a.precioUSD;
+        case 'condicion-asc':
+          return a.condicion.localeCompare(b.condicion);
+        case 'condicion-desc':
+          return b.condicion.localeCompare(a.condicion);
+        case 'categoria-asc':
+          return a.categoria.localeCompare(b.categoria);
+        case 'categoria-desc':
+          return b.categoria.localeCompare(a.categoria);
+        case 'nombre-asc':
+          return a.info.localeCompare(b.info);
+        case 'nombre-desc':
+          return b.info.localeCompare(a.info);
+        default:
+          // Por defecto: categoría ascendente, luego precio
+          if (a.categoria !== b.categoria) {
+            return a.categoria.localeCompare(b.categoria);
+          }
+          return a.precioUSD - b.precioUSD;
       }
-      return a.precioUSD - b.precioUSD;
     });
 
     return resultado;
@@ -226,12 +273,14 @@ const ListadoTotalSection = () => {
   const estadisticas = useMemo(() => {
     const totalProductos = productosFiltrados.length;
     const totalStock = productosFiltrados.reduce((sum, p) => sum + p.stock, 0);
-    const valorTotalUSD = productosFiltrados.reduce((sum, p) => sum + (p.precioUSD * p.stock), 0);
+    const valorTotalCompraUSD = productosFiltrados.reduce((sum, p) => sum + (p.precioCompraUSD * p.stock), 0);
+    const valorTotalVentaUSD = productosFiltrados.reduce((sum, p) => sum + (p.precioUSD * p.stock), 0);
 
     return {
       totalProductos,
       totalStock,
-      valorTotalUSD
+      valorTotalCompraUSD,
+      valorTotalVentaUSD
     };
   }, [productosFiltrados]);
 
@@ -305,6 +354,162 @@ const ListadoTotalSection = () => {
     'refurbished': '#3b82f6'
   };
 
+  // Función para exportar a Excel
+  const exportarExcel = () => {
+    try {
+      // Agrupar productos por categoría
+      const productosPorCategoria = {};
+      productosFiltrados.forEach(producto => {
+        if (!productosPorCategoria[producto.categoria]) {
+          productosPorCategoria[producto.categoria] = [];
+        }
+        productosPorCategoria[producto.categoria].push(producto);
+      });
+
+      // Preparar datos para Excel con categorías como separadores
+      const datosExcel = [];
+      let numeroFila = 1;
+
+      // Obtener categorías ordenadas
+      const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
+
+      categoriasOrdenadas.forEach(categoria => {
+        // Agregar fila separadora de categoría
+        datosExcel.push({
+          '#': '',
+          'Producto': `═══ ${labelsCategorias[categoria]} ═══`,
+          'Stock': '',
+          'Valor Venta USD': '',
+          'Condición': ''
+        });
+
+        // Agregar productos de esta categoría
+        productosPorCategoria[categoria].forEach(producto => {
+          const valorVenta = Math.round(producto.precioUSD * producto.stock);
+          datosExcel.push({
+            '#': numeroFila++,
+            'Producto': producto.info.replace(/[📱💻🔌🖱️🛡️🖥️⚙️📖📦]/g, '').trim(), // Remover emojis
+            'Stock': producto.stock,
+            'Valor Venta USD': `U$${valorVenta}`, // Formato U$xxx
+            'Condición': labelsCondiciones[producto.condicion]
+          });
+        });
+
+        // Agregar fila vacía entre categorías
+        datosExcel.push({
+          '#': '',
+          'Producto': '',
+          'Stock': '',
+          'Valor Venta USD': '',
+          'Condición': ''
+        });
+      });
+
+      // Crear libro de trabajo
+      const ws = XLSX.utils.json_to_sheet(datosExcel);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Listado Stock');
+
+      // Ajustar ancho de columnas
+      ws['!cols'] = [
+        { wch: 5 },   // #
+        { wch: 70 },  // Producto
+        { wch: 10 },  // Stock
+        { wch: 18 },  // Valor Venta USD
+        { wch: 15 }   // Condición
+      ];
+
+      // Aplicar alineación centrada a TODAS las celdas
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellAddress]) continue;
+
+          // Centrar todo el contenido
+          ws[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center'
+            }
+          };
+        }
+      }
+
+      // Generar nombre de archivo con fecha
+      const fecha = new Date().toLocaleDateString('es-AR').replace(/\//g, '-');
+      const nombreArchivo = `Listado_Stock_Total_${fecha}.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, nombreArchivo);
+
+      setMostrarMenuExportar(false);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+      alert('Error al exportar a Excel');
+    }
+  };
+
+  // Función para exportar a PDF (placeholder)
+  const exportarPDF = () => {
+    alert('Exportación a PDF - Por implementar');
+    setMostrarMenuExportar(false);
+  };
+
+  // Función para exportar a mensaje (WhatsApp)
+  const exportarMensaje = () => {
+    try {
+      // Agrupar productos por categoría
+      const productosPorCategoria = {};
+      productosFiltrados.forEach(producto => {
+        if (!productosPorCategoria[producto.categoria]) {
+          productosPorCategoria[producto.categoria] = [];
+        }
+        productosPorCategoria[producto.categoria].push(producto);
+      });
+
+      // Construir mensaje
+      let mensaje = '*UPDATE TECH*\n_Tu store tecnológico de confianza_\n\n';
+
+      // Obtener categorías ordenadas
+      const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
+
+      categoriasOrdenadas.forEach((categoria, index) => {
+        // Agregar categoría con emoji en negrita y subrayada
+        const emoji = EMOJI_CATEGORIAS[categoria] || '📦';
+        mensaje += `*_${emoji} ${labelsCategorias[categoria]}_*\n`;
+
+        // Agregar productos de esta categoría
+        productosPorCategoria[categoria].forEach((producto) => {
+          const nombreProducto = producto.info.replace(/[📱💻🔌🖱️🛡️🖥️⚙️📖📦]/g, '').trim();
+          const condicion = labelsCondiciones[producto.condicion];
+          const valorVenta = Math.round(producto.precioUSD * producto.stock);
+
+          // Formato: • PRODUCTO - CONDICION - PRECIO (con viñeta)
+          mensaje += `• ${nombreProducto} - ${condicion} - U$${valorVenta}\n`;
+        });
+
+        // Agregar línea vacía entre categorías (excepto la última)
+        if (index < categoriasOrdenadas.length - 1) {
+          mensaje += '\n';
+        }
+      });
+
+      // Copiar al portapapeles
+      navigator.clipboard.writeText(mensaje).then(() => {
+        alert('✅ Mensaje copiado al portapapeles!\n\nPuedes pegarlo directamente en WhatsApp.');
+      }).catch(() => {
+        // Si falla el portapapeles, mostrar en un prompt para copiar manualmente
+        prompt('Copia este texto para WhatsApp:', mensaje);
+      });
+
+      setMostrarMenuExportar(false);
+    } catch (error) {
+      console.error('Error al exportar mensaje:', error);
+      alert('Error al exportar mensaje');
+    }
+  };
+
   // Mostrar loading
   if (loading) {
     return (
@@ -347,9 +552,50 @@ const ListadoTotalSection = () => {
     <div className="p-0">
       {/* Header */}
       <div className="bg-slate-800 p-4 text-white rounded border border-slate-200 mb-4">
-        <div className="flex items-center space-x-3">
-          <Package className="w-5 h-5" />
-          <h2 className="text-xl font-semibold">Listado Stock Total</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Package className="w-5 h-5" />
+            <h2 className="text-xl font-semibold">Listado Stock Total</h2>
+          </div>
+
+          {/* Botón Exportar con menú desplegable */}
+          <div className="relative" ref={menuExportarRef}>
+            <button
+              onClick={() => setMostrarMenuExportar(!mostrarMenuExportar)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Exportar
+              <ChevronDown className={`w-4 h-4 transition-transform ${mostrarMenuExportar ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Menú desplegable */}
+            {mostrarMenuExportar && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded border border-slate-200 shadow-lg z-10">
+                <button
+                  onClick={exportarExcel}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Exportar a Sheet
+                </button>
+                <button
+                  onClick={exportarPDF}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200"
+                >
+                  <Download className="w-4 h-4" />
+                  Exportar a PDF
+                </button>
+                <button
+                  onClick={exportarMensaje}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200"
+                >
+                  <Download className="w-4 h-4" />
+                  Exportar a Mensaje
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -365,12 +611,12 @@ const ListadoTotalSection = () => {
             <p className="text-xl font-bold">{estadisticas.totalStock} unidades</p>
           </div>
           <div>
-            <p className="text-sm text-slate-300">Valor Total USD</p>
-            <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalUSD, 'USD')}</p>
+            <p className="text-sm text-slate-300">Valor Total Compra USD</p>
+            <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalCompraUSD, 'USD')}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-300">Valor Total ARS</p>
-            <p className="text-xl font-bold">${Math.round(estadisticas.valorTotalUSD * COTIZACION_MOCK).toLocaleString('es-AR')}</p>
+            <p className="text-sm text-slate-300">Valor Total Venta USD</p>
+            <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalVentaUSD, 'USD')}</p>
           </div>
         </div>
       </div>
@@ -464,7 +710,7 @@ const ListadoTotalSection = () => {
 
       {/* Filtros */}
       <div className="mt-4 bg-gray-50 p-4 border border-slate-200 rounded">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Búsqueda */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -520,6 +766,27 @@ const ListadoTotalSection = () => {
               <option value="refurbished">Refurbish</option>
             </select>
           </div>
+
+          {/* Ordenamiento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ordenar por
+            </label>
+            <select
+              value={filtros.ordenamiento}
+              onChange={(e) => setFiltros(prev => ({ ...prev, ordenamiento: e.target.value }))}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="categoria-asc">Categoría (A-Z)</option>
+              <option value="categoria-desc">Categoría (Z-A)</option>
+              <option value="nombre-asc">Nombre (A-Z)</option>
+              <option value="nombre-desc">Nombre (Z-A)</option>
+              <option value="precio-asc">Precio (menor a mayor)</option>
+              <option value="precio-desc">Precio (mayor a menor)</option>
+              <option value="condicion-asc">Condición (A-Z)</option>
+              <option value="condicion-desc">Condición (Z-A)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -539,13 +806,10 @@ const ListadoTotalSection = () => {
                   Stock
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Compra USD
+                  Valor Compra USD
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Precio USD
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Precio ARS
+                  Valor Venta USD
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Condición
@@ -581,19 +845,14 @@ const ListadoTotalSection = () => {
                     </span>
                   </td>
 
-                  {/* Compra USD */}
+                  {/* Valor Compra USD (Total) */}
                   <td className="px-4 py-2 text-center text-sm text-slate-600">
-                    {formatearMonto(producto.precioCompraUSD, 'USD')}
+                    {formatearMonto(producto.precioCompraUSD * producto.stock, 'USD')}
                   </td>
 
-                  {/* Precio USD */}
+                  {/* Valor Venta USD (Total) */}
                   <td className="px-4 py-2 text-center text-sm font-semibold text-slate-800">
-                    {formatearMonto(producto.precioUSD, 'USD')}
-                  </td>
-
-                  {/* Precio ARS */}
-                  <td className="px-4 py-2 text-center text-sm text-slate-600">
-                    ${Math.round(producto.precioUSD * COTIZACION_MOCK).toLocaleString('es-AR')}
+                    {formatearMonto(producto.precioUSD * producto.stock, 'USD')}
                   </td>
 
                   {/* Condición */}
