@@ -456,14 +456,47 @@ const useDashboardReportes = () => {
 // Componente principal
 const DashboardReportesSection = () => {
   const { ventasData, inventarioData, loading, error, cargarDatos } = useDashboardReportes();
-  
+
+  // Colores por categoría
+  const COLORES_CATEGORIAS = {
+    'Notebooks': '#3b82f6',      // Azul
+    'iPhones': '#10b981',         // Verde
+    'Celulares': '#f59e0b',       // Naranja
+    'Otros': '#8b5cf6'            // Púrpura
+  };
+
+  // Colores para sucursales
+  const COLORES_SUCURSALES = {
+    'Mitre': '#ef4444',          // Rojo
+    'La Plata': '#10b981',       // Verde
+    'Default': '#64748b'         // Gris
+  };
+
+  // Colores para vendedores (array cíclico)
+  const COLORES_VENDEDORES = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+  // Función para obtener color por categoría
+  const getColorPorCategoria = (categoria) => {
+    return COLORES_CATEGORIAS[categoria] || '#64748b'; // Gris por defecto
+  };
+
+  // Función para obtener color por sucursal
+  const getColorPorSucursal = (sucursal) => {
+    return COLORES_SUCURSALES[sucursal] || COLORES_SUCURSALES['Default'];
+  };
+
+  // Función para obtener color por índice (para vendedores)
+  const getColorPorIndice = (index) => {
+    return COLORES_VENDEDORES[index % COLORES_VENDEDORES.length];
+  };
+
   // Filtros de fecha (últimos 30 días por defecto)
   const [fechaInicio, setFechaInicio] = useState(() => {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() - 30);
     return fecha.toISOString().split('T')[0];
   });
-  
+
   const [fechaFin, setFechaFin] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
@@ -601,52 +634,60 @@ const DashboardReportesSection = () => {
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Valor de Venta Bruta por Categoría */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Valor de Venta Bruta por Categoría</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Valor de Venta Bruta por Categoría</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" />
                       <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="ventas" fill="#10b981" />
+                      <Bar dataKey="ventas">
+                        {ventasData?.ventasPorCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Valor de Venta Bruta por Sucursal */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Valor de Venta Bruta por Sucursal</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Valor de Venta Bruta por Sucursal</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="sucursal" />
                       <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="ventas" fill="#1e293b" />
+                      <Bar dataKey="ventas">
+                        {ventasData?.ventasPorSucursal.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorSucursal(entry.sucursal)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por categoría (notebooks, iphones, otros) */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Categoría</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Categoría</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
                       <Pie
                         data={ventasData?.ventasPorCategoria}
-                        cx="50%"
+                        cx="45%"
                         cy="50%"
                         labelLine={false}
                         label={({ categoria, ventas }) => categoria + ': ' + formatearMonto(ventas, 'USD')}
@@ -655,24 +696,30 @@ const DashboardReportesSection = () => {
                         dataKey="ventas"
                       >
                         {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#64748b', '#94a3b8'][index % 4]} />
+                          <Cell key={'cell-' + index} fill={getColorPorCategoria(entry.categoria)} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
+                      <Legend
+                        layout="vertical"
+                        align="right"
+                        verticalAlign="middle"
+                        wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por procedencia del cliente */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Procedencia del Cliente</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Procedencia del Cliente</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
                       <Pie
                         data={ventasData?.ventasPorProcedencia.slice(0, 6)}
-                        cx="50%"
+                        cx="45%"
                         cy="50%"
                         labelLine={false}
                         label={({ procedencia, ventas }) => procedencia + ': ' + ventas.toFixed(0)}
@@ -681,112 +728,134 @@ const DashboardReportesSection = () => {
                         dataKey="ventas"
                       >
                         {ventasData?.ventasPorProcedencia.slice(0, 6).map((entry, index) => (
-                          <Cell key={'cell-' + index} fill={['#10b981', '#1e293b', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0'][index % 6]} />
+                          <Cell key={'cell-' + index} fill={getColorPorIndice(index)} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
+                      <Legend
+                        layout="vertical"
+                        align="right"
+                        verticalAlign="middle"
+                        wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por sucursal */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Sucursal</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Sucursal</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="sucursal" />
                       <YAxis tickFormatter={(value) => String(value)} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas" fill="#10b981" />
+                      <Bar dataKey="ventas">
+                        {ventasData?.ventasPorSucursal.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorSucursal(entry.sucursal)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por vendedor */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Vendedor</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Vendedor</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorVendedor}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="vendedor" angle={-45} textAnchor="end" height={80} />
                       <YAxis tickFormatter={(value) => String(value)} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas" fill="#10b981" />
+                      <Bar dataKey="ventas">
+                        {ventasData?.ventasPorVendedor.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorIndice(index)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ganancia por categoría */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ganancia por Categoría</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ganancia por Categoría</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" />
                       <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ganancia']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="ganancia" fill="#1e293b" />
+                      <Bar dataKey="ganancia">
+                        {ventasData?.ventasPorCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Margen por categoría */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Margen por Categoría</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Margen por Categoría</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" />
                       <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [`${value.toFixed(1)}%`, 'Margen']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="margen" fill="#10b981" />
+                      <Bar dataKey="margen">
+                        {ventasData?.ventasPorCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por día */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Día</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <LineChart data={ventasData?.ventasPorDia}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="fecha" />
                       <YAxis tickFormatter={(value) => String(value)} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey="ventas" stroke="#10b981" strokeWidth={2} />
+                      <Line type="monotone" dataKey="ventas" stroke="#3b82f6" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Ventas por día de la semana */}
-              <div className="bg-white border border-slate-200 rounded p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas por Día de la Semana</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Día de la Semana</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorDiaSemana}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="dia" />
                       <YAxis tickFormatter={(value) => String(value)} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas" fill="#1e293b" />
+                      <Bar dataKey="ventas" fill="#8b5cf6" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

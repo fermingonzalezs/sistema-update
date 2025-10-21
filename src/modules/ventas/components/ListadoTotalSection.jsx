@@ -469,7 +469,7 @@ const ListadoTotalSection = () => {
       });
 
       // Construir mensaje
-      let mensaje = '*UPDATE TECH*\n_Tu store tecnológico de confianza_\n\n';
+      let mensaje = '*LISTADO STOCK - UPDATE TECH*\n_Tu store tecnológico de confianza_\n\n';
 
       // Obtener categorías ordenadas
       const categoriasOrdenadas = Object.keys(productosPorCategoria).sort();
