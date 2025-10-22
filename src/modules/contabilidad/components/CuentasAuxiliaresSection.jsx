@@ -34,6 +34,7 @@ const CuentasAuxiliaresSection = () => {
     error,
     getCuentaById,
     createCuenta,
+    deleteCuenta,
     addItem
   } = useCuentasAuxiliares();
 
@@ -128,6 +129,32 @@ const CuentasAuxiliaresSection = () => {
       setSelectedCuenta(cuentaCompleta);
     } catch (error) {
       console.error('Error obteniendo detalles de cuenta:', error);
+    }
+  };
+
+  const handleEliminarCuenta = async (cuenta) => {
+    const confirmacion = window.confirm(
+      `¿Está seguro que desea eliminar la cuenta auxiliar "${cuenta.nombre || cuenta.cuenta?.nombre}"?\n\n` +
+      `Esta acción eliminará:\n` +
+      `- La cuenta auxiliar\n` +
+      `- Todos sus movimientos (${cuenta.items_count || 0} movimientos)\n\n` +
+      `Esta acción NO se puede deshacer.`
+    );
+
+    if (!confirmacion) return;
+
+    try {
+      await deleteCuenta(cuenta.id);
+
+      // Si la cuenta eliminada estaba seleccionada, deseleccionarla
+      if (selectedCuenta && selectedCuenta.id === cuenta.id) {
+        setSelectedCuenta(null);
+      }
+
+      alert('✅ Cuenta auxiliar eliminada exitosamente');
+    } catch (error) {
+      console.error('Error eliminando cuenta:', error);
+      alert('❌ Error al eliminar la cuenta: ' + error.message);
     }
   };
 
@@ -314,25 +341,43 @@ const CuentasAuxiliaresSection = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <span className="font-medium text-slate-800">
-                          {Math.abs(cuenta.diferencia || 0) < 0.01 ? 'Balanceado' : formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}
+                        <span className={`font-medium ${
+                          Math.abs(cuenta.diferencia || 0) < 0.01
+                            ? 'text-emerald-600'
+                            : cuenta.diferencia < 0
+                              ? 'text-emerald-600'
+                              : 'text-red-600'
+                        }`}>
+                          {Math.abs(cuenta.diferencia || 0) < 0.01
+                            ? 'Balanceado'
+                            : `${cuenta.diferencia < 0 ? '+' : '-'} ${formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}`
+                          }
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-700 text-center">
                         {cuenta.items_count || 0} movimientos
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <button
-                          onClick={() => handleVerDetalles(cuenta)}
-                          className={`transition-colors ${
-                            selectedCuenta && selectedCuenta.id === cuenta.id
-                              ? 'text-emerald-800 bg-emerald-100 p-1 rounded'
-                              : 'text-emerald-600 hover:text-emerald-800'
-                          }`}
-                          title={selectedCuenta && selectedCuenta.id === cuenta.id ? 'Ocultar movimientos' : 'Ver movimientos'}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleVerDetalles(cuenta)}
+                            className={`transition-colors ${
+                              selectedCuenta && selectedCuenta.id === cuenta.id
+                                ? 'text-emerald-800 bg-emerald-100 p-1 rounded'
+                                : 'text-emerald-600 hover:text-emerald-800'
+                            }`}
+                            title={selectedCuenta && selectedCuenta.id === cuenta.id ? 'Ocultar movimientos' : 'Ver movimientos'}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEliminarCuenta(cuenta)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            title="Eliminar cuenta y todos sus movimientos"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

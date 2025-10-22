@@ -1254,6 +1254,9 @@ const FormularioOtro = ({ onAdd, loading }) => {
     descripcion: '',
     categoria: '',
 
+    // Condición del producto
+    condicion: CONDICIONES.NUEVO,
+
     // Precios
     precio_compra_usd: '',
     precio_venta_usd: '',
@@ -1327,6 +1330,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         nombre_producto: '',
         descripcion: '',
         categoria: '',
+        condicion: CONDICIONES.NUEVO,
         precio_compra_usd: '',
         precio_venta_usd: '',
         cantidad_la_plata: 0,
@@ -1392,6 +1396,26 @@ const FormularioOtro = ({ onAdd, loading }) => {
                   <option value="">Seleccionar...</option>
                   {opcionesCategorias.map(cat => (
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Condición *
+                  <span className="text-xs text-slate-500 ml-1">(Estado funcional)</span>
+                </label>
+                <select
+                  name="condicion"
+                  value={formData.condicion}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                >
+                  {CONDICIONES_ARRAY.map(condicion => (
+                    <option key={condicion} value={condicion}>
+                      {CONDICIONES_LABELS[condicion]}
+                    </option>
                   ))}
                 </select>
               </div>

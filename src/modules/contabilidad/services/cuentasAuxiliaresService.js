@@ -237,21 +237,35 @@ export const cuentasAuxiliaresService = {
     }
   },
 
-  // 🗑️ Eliminar cuenta auxiliar (soft delete)
+  // 🗑️ Eliminar cuenta auxiliar y todos sus asientos
   async delete(id) {
     try {
       console.log(`🗑️ Eliminando cuenta auxiliar ID: ${id}`);
 
+      // Primero eliminar todos los asientos auxiliares de esta cuenta
+      const { error: asientosError } = await supabase
+        .from('asientos_auxiliares')
+        .delete()
+        .eq('cuenta_auxiliar_id', id);
+
+      if (asientosError) {
+        console.error('❌ Error eliminando asientos auxiliares:', asientosError);
+        throw asientosError;
+      }
+
+      console.log('✅ Asientos auxiliares eliminados');
+
+      // Luego eliminar la cuenta auxiliar
       const { data, error } = await supabase
         .from('cuentas_auxiliares')
-        .update({ activo: false })
+        .delete()
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
 
-      console.log('✅ Cuenta auxiliar eliminada (marcada como inactiva)');
+      console.log('✅ Cuenta auxiliar eliminada completamente');
       return data;
     } catch (error) {
       console.error('❌ Error eliminando cuenta auxiliar:', error);

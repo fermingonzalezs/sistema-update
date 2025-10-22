@@ -362,7 +362,7 @@ const ComprasSection = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className="bg-slate-700 text-white px-6 py-3 rounded-lg hover:bg-slate-800 flex items-center gap-2 font-medium transition-colors"
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               {mostrarFormulario ? 'Ocultar Formulario' : 'Nueva Compra'}
