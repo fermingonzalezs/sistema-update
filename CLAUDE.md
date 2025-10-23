@@ -296,7 +296,7 @@ All product data across categories (notebooks, smartphones, accessories) follows
 #### UBICACION (Location/Branch) - 3 Standard Values
 - **la_plata**: LA PLATA branch
 - **mitre**: MITRE branch
-- **rsn_idm_fixcenter**: RSN/IDM/FIXCENTER branch
+- **servicio_tecnico**: SERVICIO TÉCNICO branch
 
 ### Implementation Details
 
@@ -316,7 +316,7 @@ import {
 #### Database Migration
 - **Applied**: `normalize_product_fields_step1` - Normalizes existing data across all product tables
 - **Tables affected**: `inventario`, `celulares`, `otros`, `repuestos`
-- **Legacy mapping**: Handles old formats like 'reparación' → 'reparacion', 'reacondicionado' → 'refurbished'
+- **Legacy mapping**: Handles old formats like 'reparación' → 'reparacion', 'reacondicionado' → 'refurbished', 'rsn_idm_fixcenter' → 'servicio_tecnico'
 
 #### Form Integration
 - **Product input forms**: Use standardized dropdowns with normalized values

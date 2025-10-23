@@ -372,7 +372,7 @@ export function useInventario() {
     clearError,
     customQuery
   } = useSupabaseEntity('inventario', {
-    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso',
+    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, categoria, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso',
     // Configuración específica para inventario
     defaultFilters: {},
     defaultOrderBy: 'created_at',

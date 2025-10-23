@@ -49,7 +49,7 @@ const recuentoStockService = {
         if (item.tipo === 'otro') {
           const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
                                  sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
-                                 0; // RSN/IDM/FIXCENTER no maneja productos "otros" por cantidad
+                                 0; // SERVICIO TÉCNICO no maneja productos "otros" por cantidad
           return stockSucursal > 0; // Solo mostrar productos con stock físico en la sucursal
         }
         return true; // Mantener notebooks y celulares ya filtrados

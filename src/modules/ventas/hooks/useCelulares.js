@@ -39,7 +39,7 @@ export function useCelulares() {
     setError,
     clearError
   } = useSupabaseEntity('celulares', {
-    defaultSelect: 'id, created_at, serial, modelo, marca, color, condicion, sucursal, precio_compra_usd, precio_venta_usd, capacidad, estado, bateria, ciclos, garantia, fallas, ingreso',
+    defaultSelect: 'id, created_at, serial, modelo, marca, categoria, color, condicion, sucursal, precio_compra_usd, precio_venta_usd, capacidad, estado, bateria, ciclos, garantia, fallas, ingreso',
     // Configuración específica para celulares
     defaultFilters: {},
     defaultOrderBy: 'created_at',

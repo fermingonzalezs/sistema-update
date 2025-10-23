@@ -60,6 +60,8 @@ const ProductModal = ({
     otro: {
       informacion: [
         { key: 'categoria', label: 'Categoría' },
+        { key: 'marca', label: 'Marca', opcional: true },
+        { key: 'descripcion', label: 'Descripción', opcional: true },
         { key: 'ingreso', label: 'Fecha Ingreso' },
         { key: 'condicion', label: 'Condición' },
         { key: 'garantia', label: 'Garantía', opcional: true }
@@ -112,6 +114,11 @@ const ProductModal = ({
       } catch (e) {
         console.error("Error al formatear la fecha:", valor, e);
       }
+    }
+
+    // Para productos tipo "otro", mostrar todo en mayúsculas
+    if (tipoProducto === 'otro' && typeof displayValue === 'string' && campo.key !== 'ingreso') {
+      displayValue = displayValue.toUpperCase();
     }
 
     return (
@@ -194,7 +201,9 @@ const ProductModal = ({
           
           {/* Header con título y botón cerrar */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-slate-800">{nombreProducto}</h2>
+            <h2 className={`text-2xl font-semibold text-slate-800 ${tipoProducto === 'otro' ? 'uppercase' : ''}`}>
+              {nombreProducto}
+            </h2>
             <button
               onClick={onClose}
               className="text-slate-500 hover:text-slate-800 transition-colors"

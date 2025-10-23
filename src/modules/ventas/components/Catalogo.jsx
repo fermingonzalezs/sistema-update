@@ -21,6 +21,12 @@ import {
   UBICACIONES,
   UBICACIONES_ARRAY,
   UBICACIONES_LABELS,
+  CATEGORIAS_NOTEBOOKS_ARRAY,
+  CATEGORIAS_NOTEBOOKS_LABELS,
+  CATEGORIAS_CELULARES_ARRAY,
+  CATEGORIAS_CELULARES_LABELS,
+  getCategoriaNotebookLabel,
+  getCategoriaCelularLabel,
   getCondicionLabel,
   getEstadoLabel,
   getUbicacionLabel,
@@ -110,9 +116,9 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       
       let infoBase;
       
-      if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
+      if (categoriaActiva.startsWith('otros-')) {
         // Para otros productos: usar la función del generador
-        infoBase = generateCopy(producto, { 
+        infoBase = generateCopy(producto, {
           tipo: 'otro_simple',
           includePrice: false // No incluir precio aquí porque lo agregaremos al final
         });
@@ -145,7 +151,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
       if (categoriaActiva === 'celulares') {
         tipo = 'celular';
-      } else if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
+      } else if (categoriaActiva.startsWith('otros-')) {
         tipo = 'otro';
         // Para productos "otros", usar la categoría del producto para análisis detallado
         categoria = producto.categoria || 'otros';
@@ -192,10 +198,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         modelo: producto.modelo || '',
         serial: producto.serial || '',
         marca: producto.marca || '',
+        categoria: producto.categoria || '',
         color: producto.color || '',
         condicion: producto.condicion || '',
         sucursal: normalizarSucursal(producto.sucursal),
-        
+
         // Precios y costos
         precio_costo_usd: producto.precio_costo_usd || '',
         precio_costo_total: (parseFloat(producto.precio_costo_usd) || 0) + (parseFloat(producto.envios_repuestos) || 0),
@@ -237,10 +244,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         modelo: producto.modelo || '',
         serial: producto.serial || '',
         marca: producto.marca || '',
+        categoria: producto.categoria || '',
         color: producto.color || '',
         condicion: producto.condicion || '',
         sucursal: normalizarSucursal(producto.sucursal),
-        
+
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
         precio_venta_usd: producto.precio_venta_usd || '',
@@ -260,15 +268,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         // Campos básicos
         nombre_producto: producto.nombre_producto || '',
         categoria: producto.categoria || '',
+        marca: producto.marca || '',
         descripcion: producto.descripcion || '',
         cantidad_la_plata: producto.cantidad_la_plata || 0,
         cantidad_mitre: producto.cantidad_mitre || 0,
         condicion: producto.condicion || 'nuevo',
-        
+
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
         precio_venta_usd: producto.precio_venta_usd || '',
-        
+
         // Estado y garantía
         garantia: producto.garantia || '',
         observaciones: producto.observaciones || ''
@@ -366,10 +375,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           modelo: editForm.modelo,
           serial: editForm.serial,
           marca: editForm.marca,
+          categoria: editForm.categoria,
           color: editForm.color,
           condicion: normalizeCondicion(editForm.condicion),
           sucursal: normalizeUbicacion(editForm.sucursal),
-          
+
           // Precios y costos
           precio_costo_usd: editForm.precio_costo_usd ? parseFloat(editForm.precio_costo_usd) : null,
           precio_costo_total: editForm.precio_costo_total ? parseFloat(editForm.precio_costo_total) : null,
@@ -413,10 +423,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           modelo: editForm.modelo,
           serial: editForm.serial,
           marca: editForm.marca,
+          categoria: editForm.categoria,
           color: editForm.color,
           condicion: normalizeCondicion(editForm.condicion),
           sucursal: normalizeUbicacion(editForm.sucursal),
-          
+
           // Precios
           precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
@@ -438,15 +449,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           // Campos básicos
           nombre_producto: editForm.nombre_producto,
           categoria: editForm.categoria,
+          marca: editForm.marca,
           descripcion: editForm.descripcion,
           cantidad_la_plata: editForm.cantidad_la_plata ? parseInt(editForm.cantidad_la_plata) : 0,
           cantidad_mitre: editForm.cantidad_mitre ? parseInt(editForm.cantidad_mitre) : 0,
           condicion: normalizeCondicion(editForm.condicion),
-          
+
           // Precios
           precio_compra_usd: editForm.precio_compra_usd ? parseFloat(editForm.precio_compra_usd) : null,
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
-          
+
           // Estado y garantía
           garantia: editForm.garantia,
           observaciones: editForm.observaciones
@@ -541,6 +553,22 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   placeholder="Ej: Lenovo, HP, Dell"
                   required
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                <select
+                  value={editForm.categoria}
+                  onChange={(e) => handleEditFormChange('categoria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                >
+                  <option value="">Seleccionar...</option>
+                  {CATEGORIAS_NOTEBOOKS_ARRAY.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {CATEGORIAS_NOTEBOOKS_LABELS[categoria]}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
@@ -935,6 +963,22 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                <select
+                  value={editForm.categoria}
+                  onChange={(e) => handleEditFormChange('categoria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                >
+                  <option value="">Seleccionar...</option>
+                  {CATEGORIAS_CELULARES_ARRAY.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {CATEGORIAS_CELULARES_LABELS[categoria]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
                 <input
                   type="text"
@@ -1135,6 +1179,16 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   )}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                <input
+                  type="text"
+                  value={editForm.marca || ''}
+                  onChange={(e) => handleEditFormChange('marca', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Logitech, Samsung, HP..."
+                />
+              </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
                 <textarea
@@ -1300,6 +1354,149 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           ))}
         </div>
 
+        {/* Subcategorías de Notebooks */}
+        {categoriaActiva === 'notebooks' && (
+          <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => actualizarFiltro('categoria', '')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  !filtros.categoria
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>📦</span>
+                <span>Todos</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', 'macbook')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === 'macbook'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>🍎</span>
+                <span>Macbook</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', 'windows')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === 'windows'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>🪟</span>
+                <span>Windows</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', '2-en-1')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === '2-en-1'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>🔄</span>
+                <span>2-en-1</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', 'gaming')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === 'gaming'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>🎮</span>
+                <span>Gaming</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Subcategorías de Celulares */}
+        {categoriaActiva === 'celulares' && (
+          <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => actualizarFiltro('categoria', '')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  !filtros.categoria
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>📦</span>
+                <span>Todos</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', 'iphone')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === 'iphone'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>📱</span>
+                <span>iPhone</span>
+              </button>
+              <button
+                onClick={() => actualizarFiltro('categoria', 'android')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  filtros.categoria === 'android'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>🤖</span>
+                <span>Android</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Subcategorías de Otros productos */}
+        {categoriaActiva === 'otros' && (
+          <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => actualizarFiltro('categoria', '')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  !filtros.categoria
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                <span>📦</span>
+                <span>Todos</span>
+              </button>
+              {CATEGORIAS_OTROS_ARRAY.map(categoria => (
+                <button
+                  key={categoria}
+                  onClick={() => actualizarFiltro('categoria', categoria)}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                    filtros.categoria === categoria
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-700 text-white hover:bg-slate-600'
+                  }`}
+                >
+                  <span>
+                    {categoria === 'ACCESORIOS' ? '🔧' :
+                     categoria === 'MONITORES' ? '🖥️' :
+                     categoria === 'PERIFERICOS' ? '⌨️' :
+                     categoria === 'COMPONENTES' ? '⚡' :
+                     categoria === 'FUNDAS_TEMPLADOS' ? '📱' : '📦'}
+                  </span>
+                  <span>{getCategoriaLabel(categoria)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filtros en una sola fila */}
         <div className="border-t border-slate-600 pt-3">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -1402,23 +1599,6 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             </select>
           </div>
 
-          {/* Categoría para "otros" */}
-          {categoriaActiva === 'otros' && (
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Categoría</label>
-              <select
-                value={filtros.categoria}
-                onChange={(e) => actualizarFiltro('categoria', e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {valoresUnicos.categorias?.map(categoria => (
-                  <option key={categoria} value={categoria}>{getCategoriaLabel(categoria)}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
           </div>
         </div>
       </div>
@@ -1476,8 +1656,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 {console.log('🔍 DEBUG - categoriaActiva:', categoriaActiva, 'producto:', producto.id)}
                 {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
                   <div>
-                    <div className="text-sm  truncate">
-                      <span className="">
+                    <div className="text-sm truncate uppercase">
+                      <span>
                         {/* DEBUG: Mostrar todos los campos posibles */}
                         {console.log('🔍 DEBUG - Producto otros:', producto)}
                         {producto.nombre_producto || producto.modelo || producto.descripcion || 'SIN NOMBRE'}

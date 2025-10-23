@@ -19,7 +19,8 @@ export const useCatalogoUnificado = () => {
     sucursal: '',
     precioMax: '',
     precioMin: '',
-    busqueda: ''
+    busqueda: '',
+    categoria: ''
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -82,11 +83,13 @@ export const useCatalogoUnificado = () => {
         update: updateComputer,
         filtrosDisponibles: ['marca', 'condicion', 'sucursal', 'precio'],
         camposOrdenamiento: [
-          { value: 'modelo', label: 'Modelo' },
+          { value: 'modelo-asc', label: 'Nombre (A-Z)' },
+          { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
+          { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
           { value: 'marca', label: 'Marca' },
-          { value: 'precio_venta_usd', label: 'Precio' },
           { value: 'condicion', label: 'Condición' },
-          { value: 'fecha_ingreso', label: 'Fecha Ingreso' }
+          { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
+          { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
         ]
       },
       celulares: {
@@ -101,110 +104,41 @@ export const useCatalogoUnificado = () => {
         update: updateCelular,
         filtrosDisponibles: ['marca', 'condicion', 'ubicacion', 'precio'],
         camposOrdenamiento: [
-          { value: 'modelo', label: 'Modelo' },
+          { value: 'modelo-asc', label: 'Nombre (A-Z)' },
+          { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
+          { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
           { value: 'marca', label: 'Marca' },
-          { value: 'precio_venta_usd', label: 'Precio' },
           { value: 'condicion', label: 'Condición' },
-          { value: 'fecha_ingreso', label: 'Fecha Ingreso' }
+          { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
+          { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
         ]
       }
     };
 
-    // Generar categorías dinámicamente desde productos
-    const categoriasProductos = getCategorias();
-    
-    const iconosPorCategoria = {
-      'desktop': '🖥️',
-      'tablets': '📱',
-      'gpu': '🎮',
-      'apple': '🍎',
-      'componentes': '⚡',
-      'audio': '🔊',
-      'teclados': '⌨️',
-      'mouse': '🖱️',
-      'monitores': '🖥️',
-      'perifericos': '⌨️',
-      'cables': '🔌',
-      'almacenamiento': '💾',
-      'refrigeracion': '❄️',
-      'fuentes': '🔋',
-      'motherboards': '🔌',
-      'procesadores': '⚡',
-      'memorias': '🧠',
-      'tarjetas-graficas': '🎮'
+    // Agregar categoría "Otros productos" que incluye todos los productos de "otros"
+    // Esta será la única categoría principal para "otros", las subcategorías se manejan con filtros
+    base['otros'] = {
+      id: 'otros',
+      label: 'Otros productos',
+      icon: '📦',
+      data: otros, // Todos los productos de "otros"
+      loading: loadingOtros,
+      error: errorOtros,
+      fetch: fetchOtros,
+      delete: deleteOtro,
+      update: updateOtro,
+      filtrosDisponibles: ['marca', 'condicion', 'precio'],
+      camposOrdenamiento: [
+        { value: 'nombre_producto-asc', label: 'Nombre (A-Z)' },
+        { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
+        { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
+        { value: 'marca', label: 'Marca' },
+        { value: 'condicion', label: 'Condición' },
+        { value: 'categoria', label: 'Categoría' },
+        { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
+        { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
+      ]
     };
-
-    // Agregar categorías reales desde productos
-    categoriasProductos.forEach(categoria => {
-      if (categoria) {
-        const categoriaNormalizada = categoria.toLowerCase().replace(/\s+/g, '-');
-        const datosCategoria = getProductosPorCategoria(categoria);
-        
-        base[categoriaNormalizada] = {
-          id: categoriaNormalizada,
-          label: categoria.charAt(0).toUpperCase() + categoria.slice(1),
-          icon: iconosPorCategoria[categoriaNormalizada] || '📦',
-          data: datosCategoria,
-          loading: loadingProductos,
-          error: errorProductos,
-          fetch: fetchProductos,
-          delete: deleteProductoUnificado,
-          update: updateProductoUnificado,
-          filtrosDisponibles: ['marca', 'condicion', 'precio'],
-          camposOrdenamiento: [
-            { value: 'nombre', label: 'Nombre' },
-            { value: 'marca', label: 'Marca' },
-            { value: 'precio_venta_usd', label: 'Precio' },
-            { value: 'condicion', label: 'Condición' },
-            { value: 'created_at', label: 'Fecha' }
-          ]
-        };
-      }
-    });
-
-    // Usar las nuevas categorías estándar en lugar de dinámicas
-    const categoriasUnicas = CATEGORIAS_OTROS_ARRAY;
-    console.log('🔍 Usando categorías estándar:', categoriasUnicas);
-    console.log('📦 Productos otros:', otros);
-
-    // La categoría genérica "Otros" que contenía todos los productos ha sido eliminada para evitar duplicados.
-    // Las categorías específicas (Accesorios, Monitores, etc.) se generan dinámicamente a continuación.
-
-    categoriasUnicas.forEach(categoria => {
-      if (categoria) {
-        const categoriaNormalizada = categoria.toLowerCase().replace(/\s+/g, '-');
-        const datosCategoria = otros.filter(item => item.categoria === categoria);
-        
-        // Iconos por las nuevas categorías estándar
-        const iconos = {
-          'ACCESORIOS': '🔧',
-          'MONITORES': '🖥️',
-          'PERIFERICOS': '⌨️',
-          'COMPONENTES': '⚡',
-          'FUNDAS_TEMPLADOS': '📱'
-        };
-        
-        base[`otros-${categoriaNormalizada}`] = {
-          id: `otros-${categoriaNormalizada}`,
-          label: getCategoriaLabel(categoria),
-          icon: iconos[categoria] || '🔧',
-          data: datosCategoria,
-          loading: loadingOtros,
-          error: errorOtros,
-          fetch: fetchOtros,
-          delete: deleteOtro,
-          update: updateOtro,
-          categoriaFiltro: categoria,
-          filtrosDisponibles: ['marca', 'condicion', 'precio'],
-          camposOrdenamiento: [
-            { value: 'nombre_producto', label: 'Nombre' },
-            { value: 'marca', label: 'Marca' },
-            { value: 'precio_venta_usd', label: 'Precio' },
-            { value: 'condicion', label: 'Condición' }
-          ]
-        };
-      }
-    });
 
     console.log('🏷️ Categorías finales generadas:', Object.keys(base));
     return base;
@@ -303,13 +237,24 @@ export const useCatalogoUnificado = () => {
       );
     }
 
-    // Para "otros", filtrar por categoría
-    if (categoriaActiva === 'otros' && filtrosUnificados.categoria) {
-      filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
+    // Filtrar por categoría
+    if (filtrosUnificados.categoria) {
+      // Para notebooks: filtrar por categoría de notebook
+      if (categoriaActiva === 'notebooks') {
+        filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
+      }
+      // Para celulares: filtrar por categoría de celular
+      if (categoriaActiva === 'celulares') {
+        filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
+      }
+      // Para "otros": filtrar por categoría de otros
+      if (categoriaActiva === 'otros') {
+        filtered = filtered.filter(item => item.categoria === filtrosUnificados.categoria);
+      }
     }
 
     // Para productos "otros", aplicar filtro básico de stock positivo
-    if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
+    if (categoriaActiva === 'otros') {
       filtered = filtered.filter(item => {
         // Mostrar solo productos "otros" que tienen stock en alguna sucursal
         if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
@@ -342,6 +287,12 @@ export const useCatalogoUnificado = () => {
         if (ordenamiento.campo === 'precio_venta_usd') {
           valorA = parseFloat(valorA) || 0;
           valorB = parseFloat(valorB) || 0;
+        }
+
+        // Manejar fechas (ingreso, created_at)
+        if (ordenamiento.campo === 'ingreso' || ordenamiento.campo === 'created_at') {
+          valorA = valorA ? new Date(valorA).getTime() : 0;
+          valorB = valorB ? new Date(valorB).getTime() : 0;
         }
 
         // Manejar strings
@@ -395,8 +346,22 @@ export const useCatalogoUnificado = () => {
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
 
-  const actualizarOrdenamiento = (campo, direccion = 'asc') => {
-    setOrdenamiento({ campo, direccion });
+  const actualizarOrdenamiento = (campoCompleto, direccion = 'asc') => {
+    // Si el campo viene con sufijo -asc o -desc, extraerlo
+    let campo = campoCompleto;
+    let dir = direccion;
+
+    if (typeof campoCompleto === 'string') {
+      if (campoCompleto.endsWith('-asc')) {
+        campo = campoCompleto.replace('-asc', '');
+        dir = 'asc';
+      } else if (campoCompleto.endsWith('-desc')) {
+        campo = campoCompleto.replace('-desc', '');
+        dir = 'desc';
+      }
+    }
+
+    setOrdenamiento({ campo, direccion: dir });
   };
 
   // Funciones de acción

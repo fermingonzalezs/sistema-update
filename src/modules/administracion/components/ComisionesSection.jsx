@@ -102,7 +102,8 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
       // Usar margen_total de la transacción para calcular comisión
       const margenTotal = parseFloat(venta.margen_total || 0);
-      const comisionVenta = margenTotal * (porcentajeFijo / 100);
+      // Si hay pérdida (margen negativo o cero), la comisión es 0
+      const comisionVenta = margenTotal > 0 ? margenTotal * (porcentajeFijo / 100) : 0;
       const ventaTotal = parseFloat(venta.monto_pago_1 || 0) + parseFloat(venta.monto_pago_2 || 0);
       
       // Calcular unidades totales de la venta
@@ -135,7 +136,8 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           
           // Distribución proporcional de comisión basada en valor del item
           const proporcionItem = ventaTotal > 0 ? ventaItem / ventaTotal : 0;
-          const comisionItem = comisionVenta * proporcionItem;
+          // Si el margen del item es negativo o cero, la comisión del item es 0
+          const comisionItem = margenItem > 0 ? comisionVenta * proporcionItem : 0;
           
           // Extraer condición del copy si es posible
           const extraerCondicion = (copy) => {

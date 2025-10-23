@@ -9,7 +9,13 @@ import {
   ESTADOS_LABELS,
   UBICACIONES,
   UBICACIONES_ARRAY,
-  UBICACIONES_LABELS
+  UBICACIONES_LABELS,
+  CATEGORIAS_NOTEBOOKS,
+  CATEGORIAS_NOTEBOOKS_ARRAY,
+  CATEGORIAS_NOTEBOOKS_LABELS,
+  CATEGORIAS_CELULARES,
+  CATEGORIAS_CELULARES_ARRAY,
+  CATEGORIAS_CELULARES_LABELS
 } from '../../../shared/constants/productConstants';
 import {
   CATEGORIAS_OTROS,
@@ -90,6 +96,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     serial: '',
     modelo: '',
     marca: '',
+    categoria: CATEGORIAS_NOTEBOOKS.WINDOWS, // Categoría por defecto
 
     // Precios
     precio_costo_usd: '',
@@ -99,7 +106,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     // Estado
     sucursal: UBICACIONES.LA_PLATA,
     condicion: CONDICIONES.NUEVO,
-    estado: ESTADOS.A,
+    estado: null, // null por defecto cuando es nuevo
 
     // Especificaciones principales
     procesador: '',
@@ -143,6 +150,11 @@ const FormularioNotebook = ({ onAdd, loading }) => {
       [name]: value
     };
 
+    // Si se cambia la condición a 'nuevo', establecer estado como null
+    if (name === 'condicion' && value === CONDICIONES.NUEVO) {
+      updatedData.estado = null;
+    }
+
     // La disponibilidad ahora se maneja por eliminación directa tras venta
     // No es necesario actualizar el campo 'disponible'
 
@@ -159,7 +171,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     setIsSubmitting(true);
     try {
       const dataToSubmit = {
-        ...formData
+        ...formData,
+        // Si condicion es 'nuevo', asegurar que estado sea null
+        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado
       };
 
       await onAdd(dataToSubmit);
@@ -169,12 +183,13 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         serial: '',
         modelo: '',
         marca: '',
+        categoria: CATEGORIAS_NOTEBOOKS.WINDOWS,
         precio_costo_usd: '',
         envios_repuestos: '0',
         precio_venta_usd: '',
         sucursal: UBICACIONES.LA_PLATA,
         condicion: CONDICIONES.NUEVO,
-        estado: ESTADOS.A,
+        estado: null, // null por defecto cuando es nuevo
         procesador: '',
         slots: '2',
         tipo_ram: 'DDR4',
@@ -278,6 +293,26 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Categoría *
+                  <span className="text-xs text-slate-500 ml-1">(Tipo de notebook)</span>
+                </label>
+                <select
+                  name="categoria"
+                  value={formData.categoria}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                >
+                  {CATEGORIAS_NOTEBOOKS_ARRAY.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {CATEGORIAS_NOTEBOOKS_LABELS[categoria]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fecha de Ingreso *
                   <span className="text-xs text-slate-500 ml-1">(Ingreso)</span>
                 </label>
@@ -329,24 +364,28 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Estado de Calidad
-                  <span className="text-xs text-slate-500 ml-1">(Grado)</span>
-                </label>
-                <select
-                  name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  {ESTADOS_ARRAY.map(estado => (
-                    <option key={estado} value={estado}>
-                      {ESTADOS_LABELS[estado]}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Solo mostrar Estado Estético si NO es nuevo */}
+              {formData.condicion !== CONDICIONES.NUEVO && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Estado Estético
+                    <span className="text-xs text-slate-500 ml-1">(Grado)</span>
+                  </label>
+                  <select
+                    name="estado"
+                    value={formData.estado || ''}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {ESTADOS_ARRAY.map(estado => (
+                      <option key={estado} value={estado}>
+                        {ESTADOS_LABELS[estado]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -836,12 +875,13 @@ const FormularioCelular = ({ onAdd, loading }) => {
     // Campos opcionales
     modelo: '',
     marca: '',
+    categoria: CATEGORIAS_CELULARES.ANDROID, // Categoría por defecto
     sucursal: UBICACIONES.LA_PLATA,
     precio_compra_usd: '',
     precio_venta_usd: '',
     capacidad: '',
     color: '',
-    estado: ESTADOS.A,
+    estado: null, // null por defecto cuando es nuevo
     bateria: '', // Solo porcentaje, ej: "85%"
     ciclos: '', // Integer opcional
     garantia: '3 meses',
@@ -860,6 +900,11 @@ const FormularioCelular = ({ onAdd, loading }) => {
       [name]: value
     };
 
+    // Si se cambia la condición a 'nuevo', establecer estado como null
+    if (name === 'condicion' && value === CONDICIONES.NUEVO) {
+      updatedData.estado = null;
+    }
+
     // La disponibilidad ahora se maneja por eliminación directa tras venta
     // No es necesario actualizar el campo 'disponible'
 
@@ -877,6 +922,8 @@ const FormularioCelular = ({ onAdd, loading }) => {
     try {
       const dataToSubmit = {
         ...formData,
+        // Si condicion es 'nuevo', asegurar que estado sea null
+        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
         // Convertir ciclos a integer si tiene valor
         ciclos: formData.ciclos ? parseInt(formData.ciclos) : null,
         // Convertir precios a numeric
@@ -892,12 +939,13 @@ const FormularioCelular = ({ onAdd, loading }) => {
         condicion: CONDICIONES.NUEVO,
         modelo: '',
         marca: '',
+        categoria: CATEGORIAS_CELULARES.ANDROID,
         sucursal: UBICACIONES.LA_PLATA,
         precio_compra_usd: '',
         precio_venta_usd: '',
         capacidad: '',
         color: '',
-        estado: ESTADOS.A,
+        estado: null, // null por defecto cuando es nuevo
         bateria: '',
         ciclos: '',
         garantia: '3 meses',
@@ -984,6 +1032,26 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Categoría *
+                  <span className="text-xs text-slate-500 ml-1">(Tipo de celular)</span>
+                </label>
+                <select
+                  name="categoria"
+                  value={formData.categoria}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                >
+                  {CATEGORIAS_CELULARES_ARRAY.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {CATEGORIAS_CELULARES_LABELS[categoria]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fecha de Ingreso *
                   <span className="text-xs text-slate-500 ml-1">(Ingreso)</span>
                 </label>
@@ -1035,24 +1103,28 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Estado de Calidad
-                  <span className="text-xs text-slate-500 ml-1">(Grado)</span>
-                </label>
-                <select
-                  name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  {ESTADOS_ARRAY.map(estado => (
-                    <option key={estado} value={estado}>
-                      {ESTADOS_LABELS[estado]}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Solo mostrar Estado Estético si NO es nuevo */}
+              {formData.condicion !== CONDICIONES.NUEVO && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Estado Estético
+                    <span className="text-xs text-slate-500 ml-1">(Grado)</span>
+                  </label>
+                  <select
+                    name="estado"
+                    value={formData.estado || ''}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {ESTADOS_ARRAY.map(estado => (
+                      <option key={estado} value={estado}>
+                        {ESTADOS_LABELS[estado]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1253,6 +1325,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
     nombre_producto: '',
     descripcion: '',
     categoria: '',
+    marca: '',
 
     // Condición del producto
     condicion: CONDICIONES.NUEVO,
@@ -1330,6 +1403,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         nombre_producto: '',
         descripcion: '',
         categoria: '',
+        marca: '',
         condicion: CONDICIONES.NUEVO,
         precio_compra_usd: '',
         precio_venta_usd: '',
@@ -1398,6 +1472,21 @@ const FormularioOtro = ({ onAdd, loading }) => {
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Marca
+                  <span className="text-xs text-slate-500 ml-1">(Opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="marca"
+                  value={formData.marca}
+                  onChange={handleChange}
+                  placeholder="Ej: Logitech, Samsung, HP..."
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
               </div>
 
               <div>

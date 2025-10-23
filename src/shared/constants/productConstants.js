@@ -71,7 +71,7 @@ export const ESTADOS_COLORES = {
 export const UBICACIONES = {
   LA_PLATA: 'la_plata',
   MITRE: 'mitre',
-  RSN_IDM_FIXCENTER: 'rsn_idm_fixcenter'
+  SERVICIO_TECNICO: 'servicio_tecnico'
 };
 
 export const UBICACIONES_ARRAY = Object.values(UBICACIONES);
@@ -79,7 +79,37 @@ export const UBICACIONES_ARRAY = Object.values(UBICACIONES);
 export const UBICACIONES_LABELS = {
   [UBICACIONES.LA_PLATA]: 'LA PLATA',
   [UBICACIONES.MITRE]: 'MITRE',
-  [UBICACIONES.RSN_IDM_FIXCENTER]: 'RSN/IDM/FIXCENTER'
+  [UBICACIONES.SERVICIO_TECNICO]: 'SERVICIO TÉCNICO'
+};
+
+// ===== CATEGORÍAS NOTEBOOKS =====
+export const CATEGORIAS_NOTEBOOKS = {
+  MACBOOK: 'macbook',
+  WINDOWS: 'windows',
+  DOS_EN_UNO: '2-en-1',
+  GAMING: 'gaming'
+};
+
+export const CATEGORIAS_NOTEBOOKS_ARRAY = Object.values(CATEGORIAS_NOTEBOOKS);
+
+export const CATEGORIAS_NOTEBOOKS_LABELS = {
+  [CATEGORIAS_NOTEBOOKS.MACBOOK]: 'Macbook',
+  [CATEGORIAS_NOTEBOOKS.WINDOWS]: 'Windows',
+  [CATEGORIAS_NOTEBOOKS.DOS_EN_UNO]: '2-en-1',
+  [CATEGORIAS_NOTEBOOKS.GAMING]: 'Gaming'
+};
+
+// ===== CATEGORÍAS CELULARES =====
+export const CATEGORIAS_CELULARES = {
+  IPHONE: 'iphone',
+  ANDROID: 'android'
+};
+
+export const CATEGORIAS_CELULARES_ARRAY = Object.values(CATEGORIAS_CELULARES);
+
+export const CATEGORIAS_CELULARES_LABELS = {
+  [CATEGORIAS_CELULARES.IPHONE]: 'iPhone',
+  [CATEGORIAS_CELULARES.ANDROID]: 'Android'
 };
 
 // ===== FUNCIONES HELPER =====
@@ -198,12 +228,55 @@ export const normalizeUbicacion = (ubicacion) => {
   const legacyMap = {
     'la plata': UBICACIONES.LA_PLATA,
     'mitre': UBICACIONES.MITRE,
-    'rsn/idm/fixcenter': UBICACIONES.RSN_IDM_FIXCENTER,
+    // Mapeo legacy: rsn_idm_fixcenter → servicio_tecnico
+    'rsn/idm/fixcenter': UBICACIONES.SERVICIO_TECNICO,
+    'rsn_idm_fixcenter': UBICACIONES.SERVICIO_TECNICO,
+    'servicio tecnico': UBICACIONES.SERVICIO_TECNICO,
+    'servicio técnico': UBICACIONES.SERVICIO_TECNICO,
+    // Valores normalizados
     'la_plata': UBICACIONES.LA_PLATA,
-    'rsn_idm_fixcenter': UBICACIONES.RSN_IDM_FIXCENTER
+    'servicio_tecnico': UBICACIONES.SERVICIO_TECNICO
   };
 
   return legacyMap[normalized] || normalized;
+};
+
+/**
+ * Obtiene el label de una categoría de notebook
+ * @param {string} categoria - Valor de categoría
+ * @returns {string} Label legible
+ */
+export const getCategoriaNotebookLabel = (categoria) => {
+  if (!categoria) return '';
+  return CATEGORIAS_NOTEBOOKS_LABELS[categoria] || categoria.toUpperCase();
+};
+
+/**
+ * Valida si una categoría de notebook es válida
+ * @param {string} categoria - Valor a validar
+ * @returns {boolean} True si es válida
+ */
+export const isValidCategoriaNotebook = (categoria) => {
+  return CATEGORIAS_NOTEBOOKS_ARRAY.includes(categoria);
+};
+
+/**
+ * Obtiene el label de una categoría de celular
+ * @param {string} categoria - Valor de categoría
+ * @returns {string} Label legible
+ */
+export const getCategoriaCelularLabel = (categoria) => {
+  if (!categoria) return '';
+  return CATEGORIAS_CELULARES_LABELS[categoria] || categoria.toUpperCase();
+};
+
+/**
+ * Valida si una categoría de celular es válida
+ * @param {string} categoria - Valor a validar
+ * @returns {boolean} True si es válida
+ */
+export const isValidCategoriaCelular = (categoria) => {
+  return CATEGORIAS_CELULARES_ARRAY.includes(categoria);
 };
 
 /**

@@ -1305,15 +1305,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') 
-                ? 'Confirmar Venta a Cuenta Corriente' 
+              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                ? 'Confirmar Venta a Cuenta Corriente'
                 : 'Confirmar Venta'
               }
             </h3>
             <p className="text-slate-800 mb-4">
-              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') 
-                ? `¿Confirmar venta a CUENTA CORRIENTE por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
-                : `¿Confirmar venta por $${calcularTotal().toFixed(2)} para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
+              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                ? `¿Confirmar venta a CUENTA CORRIENTE para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
+                : `¿Confirmar venta para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
               }
             </p>
             <div className="flex space-x-4">
