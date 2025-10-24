@@ -175,26 +175,24 @@ const libroDiarioService = {
         if (mov.cotizacion && mov.cotizacion > 0) {
           movimientoBasico.cotizacion = mov.cotizacion;
 
-          // Guardar el monto original en ARS
-          // Si existe monto_original_ars usarlo, sino calcularlo desde USD
-          if (debeUSD > 0) {
-            movimientoBasico.debe_ars = mov.monto_original_ars || (debeUSD * mov.cotizacion);
+          // Pasar directamente los montos ARS sin recalcular
+          if (mov.debe_ars) {
+            movimientoBasico.debe_ars = mov.debe_ars;
           }
-          if (haberUSD > 0) {
-            movimientoBasico.haber_ars = mov.monto_original_ars || (haberUSD * mov.cotizacion);
+          if (mov.haber_ars) {
+            movimientoBasico.haber_ars = mov.haber_ars;
           }
         } else if (cuentaInfo?.requiere_cotizacion && asientoData.cotizacionPromedio > 0) {
           // Si no tiene cotización individual pero la cuenta requiere cotización,
           // usar cotización promedio del asiento
           movimientoBasico.cotizacion = asientoData.cotizacionPromedio;
 
-          // Guardar el monto original en ARS
-          // Si existe monto_original_ars usarlo, sino calcularlo desde USD
-          if (debeUSD > 0) {
-            movimientoBasico.debe_ars = mov.monto_original_ars || (debeUSD * asientoData.cotizacionPromedio);
+          // Pasar directamente los montos ARS sin recalcular
+          if (mov.debe_ars) {
+            movimientoBasico.debe_ars = mov.debe_ars;
           }
-          if (haberUSD > 0) {
-            movimientoBasico.haber_ars = mov.monto_original_ars || (haberUSD * asientoData.cotizacionPromedio);
+          if (mov.haber_ars) {
+            movimientoBasico.haber_ars = mov.haber_ars;
           }
         }
 
@@ -660,10 +658,15 @@ const LibroDiarioSection = () => {
           haber: mov.tipo === 'haber' ? Math.round(montoUSD * 100) / 100 : 0
         };
 
-        // Agregar cotización y monto original ARS si la cuenta lo requiere
+        // Agregar cotización y montos ARS si la cuenta lo requiere
         if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
           resultado.cotizacion = cotizacion;
-          resultado.monto_original_ars = montoOriginalARS;
+          // Guardar directamente el monto en ARS según el tipo (debe o haber)
+          if (mov.tipo === 'debe') {
+            resultado.debe_ars = montoOriginalARS;
+          } else if (mov.tipo === 'haber') {
+            resultado.haber_ars = montoOriginalARS;
+          }
         }
 
         return resultado;
@@ -869,17 +872,14 @@ const LibroDiarioSection = () => {
             cotizacion: mov.cuenta?.requiere_cotizacion ? parseFloat(formData.cotizacion_usd) : null
           };
 
-          // Si la cuenta requiere cotización, guardar montos originales en ARS
+          // Si la cuenta requiere cotización, pasar directamente los montos ARS
           if (mov.cuenta?.requiere_cotizacion && parseFloat(formData.cotizacion_usd) > 0) {
-            const montoOriginal = formData.movimientos.find(m => m.cuenta_id === mov.cuenta_id);
-            if (montoOriginal) {
-              const montoARS = parseFloat(montoOriginal.monto || 0);
-              // Guardar en campos debe_ars/haber_ars según corresponda
-              if (mov.tipo === 'debe' && mov.debe > 0) {
-                movimientoEdicion.debe_ars = montoARS;
-              } else if (mov.tipo === 'haber' && mov.haber > 0) {
-                movimientoEdicion.haber_ars = montoARS;
-              }
+            // Pasar directamente sin recalcular
+            if (mov.debe_ars) {
+              movimientoEdicion.debe_ars = mov.debe_ars;
+            }
+            if (mov.haber_ars) {
+              movimientoEdicion.haber_ars = mov.haber_ars;
             }
           }
 

@@ -102,7 +102,7 @@ const ListadoTotalSection = () => {
           categoria: 'NOTEBOOKS',
           info: `💻 ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.ssd}, ${comp.pantalla}, ${comp.placa_video}, ${comp.color}`,
           stock: 1,
-          precioCompraUSD: comp.precio_compra_usd || 0,
+          precioCompraUSD: comp.precio_costo_total || comp.precio_costo_usd || 0,
           precioUSD: comp.precio_venta_usd || 0,
           condicion: comp.condicion
         });
@@ -137,7 +137,7 @@ const ListadoTotalSection = () => {
           // CORRECCIÓN 2: Concatenar infoAdicional al final
           info: `📱 ${cel.modelo} ${cel.capacidad} ${cel.color || ''} ${infoAdicional}`,
           stock: 1,
-          precioCompraUSD: cel.precio_compra_usd || 0,
+          precioCompraUSD: cel.costo_total_usd || cel.precio_compra_usd || 0,
           precioUSD: cel.precio_venta_usd || 0,
           condicion: cel.condicion
         });

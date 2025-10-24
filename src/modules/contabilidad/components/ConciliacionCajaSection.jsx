@@ -552,7 +552,7 @@ const ConciliacionCajaSection = () => {
                 cuentasCajaConSaldos
                   .filter(c => c.moneda_original === 'ARS' || c.requiere_cotizacion)
                   .reduce((sum, c) => sum + (c.saldoActual || 0), 0),
-                'USD'
+                'ARS'
               )}
               className="text-emerald-600"
             />

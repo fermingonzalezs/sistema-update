@@ -251,8 +251,10 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
         // Precios
         precio_compra_usd: producto.precio_compra_usd || '',
+        costos_adicionales: producto.costos_adicionales || 0,
+        costo_total_usd: producto.costo_total_usd || 0,
         precio_venta_usd: producto.precio_venta_usd || '',
-        
+
         // Especificaciones técnicas
         capacidad: producto.capacidad || '',
         estado: producto.estado || '',
@@ -503,6 +505,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         const precioCosto = parseFloat(newForm.precio_costo_usd) || 0;
         const enviosRepuestos = parseFloat(newForm.envios_repuestos) || 0;
         newForm.precio_costo_total = precioCosto + enviosRepuestos;
+      }
+
+      // Calcular automáticamente costo_total_usd para celulares
+      if (modalEdit.tipo === 'celular' && (field === 'precio_compra_usd' || field === 'costos_adicionales')) {
+        const precioCompra = parseFloat(newForm.precio_compra_usd) || 0;
+        const costosAdicionales = parseFloat(newForm.costos_adicionales) || 0;
+        newForm.costo_total_usd = precioCompra + costosAdicionales;
       }
 
       return newForm;
@@ -1040,6 +1049,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales (Envíos/Repuestos)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.costos_adicionales || '0'}
+                  onChange={(e) => handleEditFormChange('costos_adicionales', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
                 <input
                   type="number"
@@ -1051,6 +1071,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   required
                 />
               </div>
+              {editForm.costo_total_usd && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD (Calculado)</label>
+                  <input
+                    type="text"
+                    value={`$${parseFloat(editForm.costo_total_usd || 0).toFixed(2)}`}
+                    disabled
+                    className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-100 text-slate-600 cursor-not-allowed"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

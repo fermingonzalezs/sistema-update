@@ -39,27 +39,31 @@ export function useCelulares() {
     setError,
     clearError
   } = useSupabaseEntity('celulares', {
-    defaultSelect: 'id, created_at, serial, modelo, marca, categoria, color, condicion, sucursal, precio_compra_usd, precio_venta_usd, capacidad, estado, bateria, ciclos, garantia, fallas, ingreso',
+    defaultSelect: 'id, created_at, serial, modelo, marca, categoria, color, condicion, sucursal, precio_compra_usd, costos_adicionales, costo_total_usd, precio_venta_usd, capacidad, estado, bateria, ciclos, garantia, fallas, ingreso',
     // Configuración específica para celulares
     defaultFilters: {},
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',
-    
+
     // Transformaciones específicas para celulares
     transformOnCreate: (data) => ({
       ...data,
       // Asegurar tipos correctos
       precio_compra_usd: parseFloat(data.precio_compra_usd) || 0,
+      costos_adicionales: parseFloat(data.costos_adicionales) || 0,
       precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
       ciclos: parseInt(data.ciclos) || 0
+      // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
-    
+
     transformOnUpdate: (data) => ({
       ...data,
       // Validaciones específicas en updates
       precio_compra_usd: data.precio_compra_usd ? parseFloat(data.precio_compra_usd) : undefined,
+      costos_adicionales: data.costos_adicionales !== undefined ? parseFloat(data.costos_adicionales) || 0 : undefined,
       precio_venta_usd: data.precio_venta_usd ? parseFloat(data.precio_venta_usd) : undefined,
       ciclos: data.ciclos ? parseInt(data.ciclos) : undefined
+      // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
     
     // Callbacks específicos

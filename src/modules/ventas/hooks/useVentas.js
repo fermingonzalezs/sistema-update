@@ -73,8 +73,8 @@ export const ventasService = {
         // Para computadoras, priorizar precio_costo_total, fallback a precio_costo_usd
         costo = item.producto.precio_costo_total || item.producto.precio_costo_usd || 0
       } else {
-        // Para celulares y otros productos, usar precio_compra_usd
-        costo = item.producto.precio_compra_usd || 0
+        // Para celulares y otros productos, usar costo_total_usd (que incluye costos adicionales)
+        costo = item.producto.costo_total_usd || item.producto.precio_compra_usd || 0
       }
       return sum + (costo * item.cantidad)
     }, 0)
@@ -172,8 +172,8 @@ export const ventasService = {
           // Para computadoras, priorizar precio_costo_total, fallback a precio_costo_usd
           precioCosto = item.producto.precio_costo_total || item.producto.precio_costo_usd || 0
         } else {
-          // Para celulares y otros productos, usar precio_compra_usd
-          precioCosto = item.producto.precio_compra_usd || 0
+          // Para celulares y otros productos, usar costo_total_usd (que incluye costos adicionales)
+          precioCosto = item.producto.costo_total_usd || item.producto.precio_compra_usd || 0
         }
 
         const precioUnitarioSeguro = item.precio_unitario || 0

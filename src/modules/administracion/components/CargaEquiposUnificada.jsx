@@ -878,6 +878,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
     categoria: CATEGORIAS_CELULARES.ANDROID, // Categoría por defecto
     sucursal: UBICACIONES.LA_PLATA,
     precio_compra_usd: '',
+    costos_adicionales: '0',
     precio_venta_usd: '',
     capacidad: '',
     color: '',
@@ -942,6 +943,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
         categoria: CATEGORIAS_CELULARES.ANDROID,
         sucursal: UBICACIONES.LA_PLATA,
         precio_compra_usd: '',
+        costos_adicionales: '0',
         precio_venta_usd: '',
         capacidad: '',
         color: '',
@@ -1152,6 +1154,25 @@ const FormularioCelular = ({ onAdd, loading }) => {
                     placeholder="0.00"
                     className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costos Adicionales
+                  <span className="text-xs text-slate-500 ml-1">(Envíos/Repuestos USD)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    name="costos_adicionales"
+                    value={formData.costos_adicionales}
+                    onChange={handleChange}
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
               </div>
