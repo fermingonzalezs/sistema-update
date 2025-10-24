@@ -282,9 +282,8 @@ const generateNotebookCopy = (comp, config) => {
   // 5. PANTALLA Y RESOLUCIÓN JUNTAS
   let pantallaResolucion = '';
   if (comp.pantalla) {
-    // Limpiar comillas del valor si ya las tiene
-    const pantallaLimpia = String(comp.pantalla).replace(/"/g, '');
-    pantallaResolucion = `${pantallaLimpia}"`;
+    // Mostrar el texto exactamente como se cargó, sin agregar comillas
+    pantallaResolucion = String(comp.pantalla);
   }
   if (comp.resolucion || comp.hz || comp.frecuencia) {
     let resolucionCompleta = '';
@@ -306,10 +305,14 @@ const generateNotebookCopy = (comp, config) => {
   // 6. GPU VRAM (AL FINAL, después de pantalla)
   if (comp.placa_video || comp.placa_de_video || comp.gpu) {
     let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
-    if (comp.vram && comp.vram > 0) {
+    // Verificar si vram existe y no está vacío
+    if (comp.vram && comp.vram !== '' && comp.vram !== 'N/A' && comp.vram !== null) {
       // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-      const vramLimpio = String(comp.vram).replace(/GB/gi, '');
-      gpu += ` ${vramLimpio}GB`;
+      const vramLimpio = String(comp.vram).replace(/GB/gi, '').trim();
+      // Solo agregar si vramLimpio no está vacío y es un número válido
+      if (vramLimpio && !isNaN(parseFloat(vramLimpio))) {
+        gpu += ` ${vramLimpio}GB`;
+      }
     }
     partes.push(gpu.toUpperCase());
   }

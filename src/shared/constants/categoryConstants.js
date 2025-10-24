@@ -1,13 +1,27 @@
 // Constantes para categorías de productos "otros"
 
-// Categorías normalizadas - 5 únicas permitidas
+// Categorías normalizadas
 export const CATEGORIAS_OTROS = {
   ACCESORIOS: 'ACCESORIOS',
   MONITORES: 'MONITORES',
-  PERIFERICOS: 'PERIFERICOS',
   COMPONENTES: 'COMPONENTES',
   FUNDAS_TEMPLADOS: 'FUNDAS_TEMPLADOS',
-  TABLETS: 'TABLETS'
+  TABLETS: 'TABLETS',
+  APPLE: 'APPLE',
+  MOUSE_TECLADOS: 'MOUSE_TECLADOS',
+  AUDIO: 'AUDIO',
+  ALMACENAMIENTO: 'ALMACENAMIENTO',
+  CAMARAS: 'CAMARAS',
+  CONSOLAS: 'CONSOLAS',
+  GAMING: 'GAMING',
+  DRONES: 'DRONES',
+  WATCHES: 'WATCHES',
+  PLACAS_VIDEO: 'PLACAS_VIDEO',
+  STREAMING: 'STREAMING',
+  REDES: 'REDES',
+  BAGS_CASES: 'BAGS_CASES',
+  CABLES_CARGADORES: 'CABLES_CARGADORES',
+  REPUESTOS: 'REPUESTOS'
 };
 
 export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
@@ -16,36 +30,26 @@ export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
 export const CATEGORIAS_OTROS_LABELS = {
   ACCESORIOS: 'Accesorios',
   MONITORES: 'Monitores',
-  PERIFERICOS: 'Periféricos',
   COMPONENTES: 'Componentes',
   FUNDAS_TEMPLADOS: 'Fundas/Templados',
-  TABLETS: 'Tablets'
+  TABLETS: 'Tablets',
+  APPLE: 'Apple',
+  MOUSE_TECLADOS: 'Mouse/Teclados',
+  AUDIO: 'Audio',
+  ALMACENAMIENTO: 'Almacenamiento',
+  CAMARAS: 'Cámaras',
+  CONSOLAS: 'Consolas',
+  GAMING: 'Gaming',
+  DRONES: 'Drones',
+  WATCHES: 'Watches',
+  PLACAS_VIDEO: 'Placas de Video',
+  STREAMING: 'Streaming',
+  REDES: 'Redes',
+  BAGS_CASES: 'Bags/Cases',
+  CABLES_CARGADORES: 'Cables/Cargadores',
+  REPUESTOS: 'Repuestos'
 };
 
-// Mapeo de categorías legacy a nuevas categorías
-export const CATEGORIA_MAPPING = {
-  // gadgets, audio, apple y otros → ACCESORIOS
-  'gadgets': CATEGORIAS_OTROS.ACCESORIOS,
-  'audio': CATEGORIAS_OTROS.ACCESORIOS,
-  'apple': CATEGORIAS_OTROS.ACCESORIOS,
-  'otros': CATEGORIAS_OTROS.ACCESORIOS,
-
-  // monitores se mantiene
-  'monitores': CATEGORIAS_OTROS.MONITORES,
-
-  // teclados y mouse → PERIFERICOS
-  'teclados': CATEGORIAS_OTROS.PERIFERICOS,
-  'mouse': CATEGORIAS_OTROS.PERIFERICOS,
-
-  // procesadores y motherboards → COMPONENTES
-  'procesadores': CATEGORIAS_OTROS.COMPONENTES,
-  'motherboards': CATEGORIAS_OTROS.COMPONENTES,
-
-  // fundas y templados
-  'fundas': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS,
-  'templados': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS,
-  'fundas/templados': CATEGORIAS_OTROS.FUNDAS_TEMPLADOS
-};
 
 // Función para normalizar categoría
 export const normalizeCategoria = (categoria) => {

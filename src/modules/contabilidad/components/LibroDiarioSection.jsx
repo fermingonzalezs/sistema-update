@@ -783,22 +783,29 @@ const LibroDiarioSection = () => {
         movimientos: datosPreparados.movimientos.map(mov => {
           const montoUSD = mov.debe > 0 ? mov.debe : mov.haber;
           const cotizacion = asiento.cotizacion_promedio || 0;
-          
-          // Si la cuenta requiere cotización y hay cotización, convertir USD a ARS para mostrar en el formulario
+
+          // Si la cuenta requiere cotización y hay cotización, usar el monto ARS original si existe
           let montoMostrar = montoUSD;
           if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
-            console.log(`🔍 DEBUG conversión para mostrar - ${mov.cuenta?.nombre}: ${montoUSD} USD × ${cotizacion} = ${montoUSD * cotizacion} ARS`);
-            montoMostrar = Math.round((montoUSD * cotizacion) * 100) / 100; // Redondear para evitar errores de precisión
-            console.log(`🔍 DEBUG después de redondear: ${montoMostrar} ARS`);
+            // Usar el monto ARS original si existe, sino calcularlo
+            if (mov.debe_ars || mov.haber_ars) {
+              montoMostrar = mov.debe_ars || mov.haber_ars;
+              console.log(`🔍 DEBUG usando monto ARS original - ${mov.cuenta?.nombre}: ${montoMostrar} ARS`);
+            } else {
+              montoMostrar = Math.round((montoUSD * cotizacion) * 100) / 100;
+              console.log(`🔍 DEBUG calculando monto ARS - ${mov.cuenta?.nombre}: ${montoUSD} USD × ${cotizacion} = ${montoMostrar} ARS`);
+            }
           }
-          
+
           return {
             cuenta_id: mov.cuenta_id,
             cuenta: mov.cuenta,
             monto: montoMostrar,
             tipo: mov.debe > 0 ? 'debe' : 'haber',
             debe: mov.debe,
-            haber: mov.haber
+            haber: mov.haber,
+            debe_ars: mov.debe_ars || null,
+            haber_ars: mov.haber_ars || null
           };
         })
       });
@@ -860,34 +867,67 @@ const LibroDiarioSection = () => {
       }
 
       // Preparar datos para edición
+      console.log('🔍 DEBUG guardarEdicion - formData.movimientos:', formData.movimientos);
+      console.log('🔍 DEBUG guardarEdicion - cotizacion_usd:', formData.cotizacion_usd);
+
       const datosEdicion = {
         fecha: formData.fecha,
         descripcion: formData.descripcion,
         notas: formData.notas,
-        movimientos: totales.movimientosConvertidos.map(mov => {
+        movimientos: formData.movimientos.map(mov => {
+          const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
+          const montoIngresado = parseFloat(mov.monto || 0);
+          let montoUSD = montoIngresado;
+          let montoARS = montoIngresado;
+
+          console.log(`🔍 DEBUG - Procesando movimiento: ${mov.cuenta?.nombre}`);
+          console.log(`   - requiere_cotizacion: ${mov.cuenta?.requiere_cotizacion}`);
+          console.log(`   - cotizacion: ${cotizacion}`);
+          console.log(`   - montoIngresado: ${montoIngresado}`);
+          console.log(`   - tipo: ${mov.tipo}`);
+
+          // Convertir si es cuenta ARS
+          if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+            montoUSD = montoIngresado / cotizacion;
+            montoARS = montoIngresado; // El monto ingresado ya está en ARS
+            console.log(`   - montoUSD calculado: ${montoUSD}`);
+            console.log(`   - montoARS: ${montoARS}`);
+          }
+
+          // Aplicar el mismo redondeo que calcularTotales()
+          montoUSD = Math.round(montoUSD * 100) / 100;
+
           const movimientoEdicion = {
             cuenta_id: mov.cuenta_id,
-            debe: mov.debe,
-            haber: mov.haber,
-            cotizacion: mov.cuenta?.requiere_cotizacion ? parseFloat(formData.cotizacion_usd) : null
+            debe: mov.tipo === 'debe' ? montoUSD : 0,
+            haber: mov.tipo === 'haber' ? montoUSD : 0,
+            cotizacion: mov.cuenta?.requiere_cotizacion ? cotizacion : null
           };
 
-          // Si la cuenta requiere cotización, pasar directamente los montos ARS
-          if (mov.cuenta?.requiere_cotizacion && parseFloat(formData.cotizacion_usd) > 0) {
-            // Pasar directamente sin recalcular
-            if (mov.debe_ars) {
-              movimientoEdicion.debe_ars = mov.debe_ars;
-            }
-            if (mov.haber_ars) {
-              movimientoEdicion.haber_ars = mov.haber_ars;
+          // Si la cuenta requiere cotización, guardar el monto en ARS
+          if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
+            const montoARSFinal = montoARS;
+
+            if (mov.tipo === 'debe') {
+              movimientoEdicion.debe_ars = montoARSFinal;
+              console.log(`   ✅ Guardando debe_ars: ${montoARSFinal}`);
+            } else if (mov.tipo === 'haber') {
+              movimientoEdicion.haber_ars = montoARSFinal;
+              console.log(`   ✅ Guardando haber_ars: ${montoARSFinal}`);
             }
           }
 
+          console.log(`   - movimientoEdicion final:`, movimientoEdicion);
           return movimientoEdicion;
         })
       };
-      
+
+      console.log('📤 DEBUG guardarEdicion - datosEdicion completa:', datosEdicion);
+      console.log('📤 DEBUG guardarEdicion - JSON stringified:', JSON.stringify(datosEdicion, null, 2));
+
       const resultado = await editarAsiento(asientoEditando.id, datosEdicion, 'admin'); // Por ahora usar admin
+
+      console.log('📥 DEBUG resultado de editarAsiento:', resultado);
       
       setShowModal(false);
       setModoEdicion(false);

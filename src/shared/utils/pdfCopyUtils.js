@@ -1,8 +1,8 @@
 /**
  * Utilidades para generar copys simplificados para PDFs (recibos y garantías)
- * Formatos:
- * - Notebooks: SERIAL - MODELO - MEMORIA - ALMACENAMIENTO
- * - Celulares: SERIAL - MODELO - COLOR - ALMACENAMIENTO
+ * Formatos (SIN SERIAL, el serial va en campo separado):
+ * - Notebooks: MODELO - MEMORIA - ALMACENAMIENTO
+ * - Celulares: MODELO - COLOR - ALMACENAMIENTO
  * - Otros: PRODUCTO - CONDICION
  */
 
@@ -99,22 +99,26 @@ const normalizarCondicion = (condicion) => {
  * @returns {string} Copy simplificado según tipo de producto
  */
 export const generarCopyParaPDF = (item) => {
+  console.log('📄 [pdfCopyUtils] Generando copy para PDF. Item recibido:', item);
+
   const tipoProducto = detectarTipoProducto(item);
   const serial = item.serial_producto || item.numero_serie || '';
   const datos = extraerDatosDeCopy(item.copy || '');
 
+  console.log('📄 [pdfCopyUtils] Tipo producto:', tipoProducto);
+  console.log('📄 [pdfCopyUtils] Serial encontrado:', serial);
+  console.log('📄 [pdfCopyUtils] Datos extraídos del copy:', datos);
+
   const partes = [];
 
   if (tipoProducto === 'computadora') {
-    // NOTEBOOKS: SERIAL - MODELO - MEMORIA - ALMACENAMIENTO
-    if (serial) partes.push(serial);
+    // NOTEBOOKS: MODELO - MEMORIA - ALMACENAMIENTO (SIN SERIAL)
     if (datos.modelo) partes.push(datos.modelo.toUpperCase());
     if (datos.memoria) partes.push(datos.memoria.toUpperCase());
     if (datos.almacenamiento) partes.push(datos.almacenamiento.toUpperCase());
 
   } else if (tipoProducto === 'celular') {
-    // CELULARES: SERIAL - MODELO - COLOR - ALMACENAMIENTO
-    if (serial) partes.push(serial);
+    // CELULARES: MODELO - COLOR - ALMACENAMIENTO (SIN SERIAL)
     if (datos.modelo) partes.push(datos.modelo.toUpperCase());
     if (datos.color) partes.push(datos.color.toUpperCase());
     if (datos.almacenamiento) partes.push(datos.almacenamiento.toUpperCase());
@@ -126,7 +130,10 @@ export const generarCopyParaPDF = (item) => {
     partes.push(condicion);
   }
 
-  return partes.filter(p => p).join(' - ') || item.copy || 'Producto sin especificar';
+  const resultado = partes.filter(p => p).join(' - ') || item.copy || 'Producto sin especificar';
+  console.log('📄 [pdfCopyUtils] Copy generado:', resultado);
+
+  return resultado;
 };
 
 export default generarCopyParaPDF;

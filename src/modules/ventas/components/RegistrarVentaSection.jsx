@@ -204,7 +204,8 @@ const RegistrarVentaSection = () => {
       precio: parseFloat(item.precio_venta_usd) || 0,
       precio_venta_usd: parseFloat(item.precio_venta_usd) || 0,
       stock: (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0),
-      descripcion: item.descripcion || item.nombre_producto
+      descripcion: item.descripcion || item.nombre_producto,
+      categoria: item.categoria // Asegurar que la categoría esté disponible
     })) || []
   };
 
@@ -214,6 +215,12 @@ const RegistrarVentaSection = () => {
       notebooks: productosStock.notebooks?.length || 0,
       celulares: productosStock.celulares?.length || 0,
       otros: productosStock.otros?.length || 0,
+      otros_con_categoria: productosStock.otros?.filter(p => p.categoria).length || 0,
+      ejemplos_otros: productosStock.otros?.slice(0, 3).map(p => ({
+        id: p.id,
+        nombre: p.nombre_producto,
+        categoria: p.categoria
+      })),
       inventarioLocalLength: inventarioLocal?.length || 0,
       celularesLocalLength: celularesLocal?.length || 0,
       otrosLocalLength: otrosLocal?.length || 0,
@@ -285,8 +292,8 @@ const RegistrarVentaSection = () => {
       tipoProducto = 'celular';
     } else if (categoriaSeleccionada === 'otros') {
       tipoProducto = 'otro';
-      // Para productos "otros", capturar la categoría específica del producto
-      categoria = producto.categoria || 'otros';
+      // Para productos "otros", capturar la categoría específica del producto normalizada en MAYÚSCULAS
+      categoria = producto.categoria ? producto.categoria.toUpperCase() : 'ACCESORIOS';
     }
 
     const itemExistente = itemsVenta.find(item => item.id === producto.id && item.tipo === tipoProducto);
@@ -306,11 +313,22 @@ const RegistrarVentaSection = () => {
         descripcion: producto.descripcion || producto.modelo,
         tipo: tipoProducto,
         categoria: categoria,
+        categoria_producto_original: producto.categoria,
+        categoriaSeleccionada: categoriaSeleccionada,
         precio_venta_usd: producto.precio_venta_usd,
         precio: producto.precio,
-        precioUnitario: precioUnitario,
-        productoCompleto: producto
+        precioUnitario: precioUnitario
       });
+
+      // ALERTA SI LA CATEGORÍA ES NULL/UNDEFINED
+      if (tipoProducto === 'otro' && !categoria) {
+        console.error('⚠️ PROBLEMA: Producto "otro" sin categoría!', {
+          producto_id: producto.id,
+          producto_nombre: producto.nombre_producto || producto.descripcion,
+          producto_categoria_bd: producto.categoria,
+          categoria_final: categoria
+        });
+      }
 
       setItemsVenta(prev => [...prev, {
         id: producto.id,
@@ -362,7 +380,7 @@ const RegistrarVentaSection = () => {
         stock: nuevoProducto.cantidad_la_plata + nuevoProducto.cantidad_mitre,
         condicion: nuevoProducto.condicion,
         tipo: 'otro', // CORREGIDO: Debe ser singular para que coincida con useVentas
-        categoria: nuevoProducto.categoria || 'otros', // Agregar categoría específica
+        categoria: nuevoProducto.categoria ? nuevoProducto.categoria.toUpperCase() : 'ACCESORIOS', // Categoría normalizada en MAYÚSCULAS
         cantidad: 1,
         total: nuevoProducto.precio_venta_usd || 0,
         precio_unitario: nuevoProducto.precio_venta_usd || 0, // CRÍTICO: Agregar precio_unitario

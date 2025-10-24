@@ -256,8 +256,8 @@ const AppContent = () => {
  };
 
  // ➕ Handler para agregar al carrito
- const handleAddToCart = (producto, tipo, cantidad = 1) => {
-   console.log(producto);
+ const handleAddToCart = (producto, tipo, cantidad = 1, categoria = null) => {
+   console.log('🛒 handleAddToCart llamado:', { producto: producto.nombre_producto || producto.modelo, tipo, cantidad, categoria });
    // Validaciones específicas por tipo
    if (tipo === 'computadora' || tipo === 'celular') {
      // Para computadoras y celulares, solo se puede agregar 1
@@ -309,7 +309,7 @@ const AppContent = () => {
      }
    }
 
-   agregarAlCarrito(producto, tipo, cantidad);
+   agregarAlCarrito(producto, tipo, cantidad, categoria);
    alert('✅ Producto agregado al carrito');
  };
 

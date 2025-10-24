@@ -527,6 +527,9 @@ export const convertirProductoAGarantia = async (producto, cliente = {}, datosVe
   // Generar descripción simplificada usando función compartida
   const descripcionProducto = generarCopyParaPDF(producto);
 
+  // Extraer el serial del producto
+  const serialProducto = producto.serial_producto || producto.numero_serie || producto.serial || '';
+
   return {
     numeroGarantia: `GT-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`,
     numeroVenta: datosVenta.numeroTransaccion || 'N/A',
@@ -548,7 +551,7 @@ export const convertirProductoAGarantia = async (producto, cliente = {}, datosVe
 
     // Información del producto individual
     producto: descripcionProducto,
-    numeroSerie: '', // Serial ya está en la descripción
+    numeroSerie: serialProducto, // Serial separado para mostrar en el campo correspondiente
     plazoGarantia: plazoGarantia.toString()
   };
 };

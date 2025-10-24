@@ -30,7 +30,7 @@ const ProductModal = ({
         { key: 'marca', label: 'Marca' },
         { key: 'capacidad', label: 'Capacidad' },
         { key: 'color', label: 'Color' },
-        { key: 'fallas', label: 'Fallas', opcional: true }
+        { key: 'fallas', label: 'Notas', opcional: true }
       ],
       estado: [
         { key: 'estado', label: 'Estado General' },
@@ -43,10 +43,11 @@ const ProductModal = ({
         { key: 'ingreso', label: 'Fecha Ingreso' },
         { key: 'marca', label: 'Marca' },
         { key: 'procesador', label: 'Procesador' },
-        { key: 'ram', label: 'RAM' },
+        { key: 'ram', label: 'Memoria', custom: true }, // Renderizado personalizado
         { key: 'ssd', label: 'SSD' },
         { key: 'hdd', label: 'HDD', opcional: true },
-        { key: 'color', label: 'Color', opcional: true }
+        { key: 'color', label: 'Color', opcional: true },
+        { key: 'idioma_teclado', label: 'Teclado', opcional: true }
       ],
       estado: [
         { key: 'so', label: 'Sistema Operativo' },
@@ -54,7 +55,7 @@ const ProductModal = ({
         { key: 'resolucion', label: 'Resolución' },
         { key: 'placa_video', label: 'Placa de Video' },
         { key: 'bateria', label: 'Batería' },
-        { key: 'fallas', label: 'Fallas' }
+        { key: 'fallas', label: 'Notas' }
       ]
     },
     otro: {
@@ -93,6 +94,27 @@ const ProductModal = ({
     if (!valor && campo.opcional) return null;
 
     let displayValue = valor || 'N/A';
+
+    // Renderizado personalizado para memoria (RAM + tipo_ram + slots)
+    if (campo.key === 'ram' && campo.custom && tipoProducto === 'notebook') {
+      const ram = producto.ram || 'N/A';
+      const tipoRam = producto.tipo_ram;
+      const slots = producto.slots;
+
+      let memoriaCompleta = ram;
+      if (tipoRam) {
+        memoriaCompleta += ` ${tipoRam}`;
+      }
+      if (slots) {
+        memoriaCompleta += ` (Slots: ${slots})`;
+      }
+
+      return (
+        <div key={campo.key}>
+          <strong>{campo.label}:</strong> {memoriaCompleta}
+        </div>
+      );
+    }
 
     // Poner en mayúscula la condición
     if (campo.key === 'condicion') {
@@ -225,7 +247,7 @@ const ProductModal = ({
               </h3>
               <div className="bg-slate-50 p-4 rounded border border-slate-200">
                 {camposConfig.informacion?.map(campo => {
-                  // Para celulares nuevos, no mostrar fallas
+                  // Para celulares nuevos, no mostrar notas
                   if (
                     tipoProducto === 'celular' &&
                     producto.condicion?.toLowerCase() === 'nuevo' &&

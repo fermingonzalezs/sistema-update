@@ -20,7 +20,8 @@ export const useCatalogoUnificado = () => {
     precioMax: '',
     precioMin: '',
     busqueda: '',
-    categoria: ''
+    categoria: '',
+    subcategoria: '' // Para filtrar subcategorías en Apple
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -86,8 +87,8 @@ export const useCatalogoUnificado = () => {
           { value: 'modelo-asc', label: 'Nombre (A-Z)' },
           { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
           { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
-          { value: 'marca', label: 'Marca' },
-          { value: 'condicion', label: 'Condición' },
+          { value: 'marca-asc', label: 'Marca' },
+          { value: 'condicion-asc', label: 'Condición' },
           { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
           { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
         ]
@@ -107,19 +108,19 @@ export const useCatalogoUnificado = () => {
           { value: 'modelo-asc', label: 'Nombre (A-Z)' },
           { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
           { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
-          { value: 'marca', label: 'Marca' },
-          { value: 'condicion', label: 'Condición' },
+          { value: 'marca-asc', label: 'Marca' },
+          { value: 'condicion-asc', label: 'Condición' },
           { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
           { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
         ]
       }
     };
 
-    // Agregar categoría "Otros productos" que incluye todos los productos de "otros"
+    // Agregar categoría "Otros" que incluye todos los productos de "otros"
     // Esta será la única categoría principal para "otros", las subcategorías se manejan con filtros
     base['otros'] = {
       id: 'otros',
-      label: 'Otros productos',
+      label: 'Otros',
       icon: '📦',
       data: otros, // Todos los productos de "otros"
       loading: loadingOtros,
@@ -132,15 +133,105 @@ export const useCatalogoUnificado = () => {
         { value: 'nombre_producto-asc', label: 'Nombre (A-Z)' },
         { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
         { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
-        { value: 'marca', label: 'Marca' },
-        { value: 'condicion', label: 'Condición' },
-        { value: 'categoria', label: 'Categoría' },
+        { value: 'marca-asc', label: 'Marca' },
+        { value: 'condicion-asc', label: 'Condición' },
+        { value: 'categoria-asc', label: 'Categoría' },
         { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
         { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
       ]
     };
 
+    // Agregar categoría "Apple" que combina productos Apple de todas las tablas
+    const appleNotebooks = computers.filter(item => item.marca?.toUpperCase() === 'APPLE');
+    const appleCelulares = celulares.filter(item => item.marca?.toUpperCase() === 'APPLE');
+
+    // Para productos Apple en "otros", detectar si son realmente Macbooks o iPhones mal clasificados
+    const appleOtrosReales = [];
+    const appleOtrosMacbooks = [];
+    const appleOtrosiPhones = [];
+
+    otros.filter(item => item.marca?.toUpperCase() === 'APPLE').forEach(item => {
+      const nombreProducto = (item.nombre_producto || '').toUpperCase();
+
+      if (nombreProducto.includes('MACBOOK') || nombreProducto.includes('MAC BOOK') ||
+          nombreProducto.includes('IMAC') || nombreProducto.includes('MAC MINI') ||
+          nombreProducto.includes('MAC PRO') || nombreProducto.includes('MAC STUDIO')) {
+        // Es un Macbook/Mac mal clasificado
+        appleOtrosMacbooks.push(item);
+      } else if (nombreProducto.includes('IPHONE') || nombreProducto.includes('I PHONE')) {
+        // Es un iPhone mal clasificado
+        appleOtrosiPhones.push(item);
+      } else {
+        // Es realmente un accesorio Apple
+        appleOtrosReales.push(item);
+      }
+    });
+
+    // Combinar todos los productos Apple con un campo adicional para identificar su origen
+    // Reclasificar automáticamente los productos mal clasificados
+    const appleProducts = [
+      // Notebooks de la tabla correcta
+      ...appleNotebooks.map(item => ({ ...item, _tipoProducto: 'notebooks', _tablaOrigen: 'inventario' })),
+      // Macbooks mal clasificados en "otros" -> reclasificar como notebooks
+      ...appleOtrosMacbooks.map(item => ({ ...item, _tipoProducto: 'notebooks', _tablaOrigen: 'otros_reclasificado' })),
+      // Celulares de la tabla correcta
+      ...appleCelulares.map(item => ({ ...item, _tipoProducto: 'celulares', _tablaOrigen: 'celulares' })),
+      // iPhones mal clasificados en "otros" -> reclasificar como celulares
+      ...appleOtrosiPhones.map(item => ({ ...item, _tipoProducto: 'celulares', _tablaOrigen: 'otros_reclasificado' })),
+      // Accesorios Apple reales
+      ...appleOtrosReales.map(item => ({ ...item, _tipoProducto: 'otros', _tablaOrigen: 'otros' }))
+    ];
+
+    // Log de productos Apple para debugging
+    console.log('🍎 Productos Apple detectados:');
+    console.log('  - Macbooks (tabla inventario):', appleNotebooks.length, appleNotebooks.map(p => p.modelo || p.nombre_producto));
+    console.log('  - Macbooks reclasificados (estaban en otros):', appleOtrosMacbooks.length, appleOtrosMacbooks.map(p => p.nombre_producto));
+    console.log('  - iPhones (tabla celulares):', appleCelulares.length, appleCelulares.map(p => p.modelo || p.nombre_producto));
+    console.log('  - iPhones reclasificados (estaban en otros):', appleOtrosiPhones.length, appleOtrosiPhones.map(p => p.nombre_producto));
+    console.log('  - Accesorios Apple (tabla otros):', appleOtrosReales.length, appleOtrosReales.map(p => p.nombre_producto));
+
+    base['apple'] = {
+      id: 'apple',
+      label: 'Apple',
+      icon: '🍎',
+      data: appleProducts,
+      loading: loadingNotebooks || loadingCelulares || loadingOtros,
+      error: errorNotebooks || errorCelulares || errorOtros,
+      fetch: () => {
+        fetchComputers();
+        fetchCelulares();
+        fetchOtros();
+      },
+      delete: async (id, tipoProducto) => {
+        // Determinar qué función delete usar según el tipo de producto
+        if (tipoProducto === 'notebooks') return deleteComputer(id);
+        if (tipoProducto === 'celulares') return deleteCelular(id);
+        if (tipoProducto === 'otros') return deleteOtro(id);
+      },
+      update: async (id, datos, tipoProducto) => {
+        // Determinar qué función update usar según el tipo de producto
+        if (tipoProducto === 'notebooks') return updateComputer(id, datos);
+        if (tipoProducto === 'celulares') return updateCelular(id, datos);
+        if (tipoProducto === 'otros') return updateOtro(id, datos);
+      },
+      filtrosDisponibles: ['subcategoria', 'condicion', 'precio'],
+      camposOrdenamiento: [
+        { value: 'modelo-asc', label: 'Nombre (A-Z)' },
+        { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
+        { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
+        { value: 'condicion-asc', label: 'Condición' },
+        { value: 'ingreso-desc', label: 'Fecha de ingreso (más reciente)' },
+        { value: 'ingreso-asc', label: 'Fecha de ingreso (más antigua)' }
+      ],
+      subcategorias: [
+        { value: 'notebooks', label: 'Macbooks' },
+        { value: 'celulares', label: 'iPhones' },
+        { value: 'otros', label: 'Otros' }
+      ]
+    };
+
     console.log('🏷️ Categorías finales generadas:', Object.keys(base));
+    console.log('🍎 Total productos Apple:', appleProducts.length);
     return base;
   }, [computers, celulares, otros, productos, loadingNotebooks, loadingCelulares, loadingOtros, loadingProductos, errorNotebooks, errorCelulares, errorOtros, errorProductos, getCategorias, getProductosPorCategoria]);
 
@@ -194,6 +285,10 @@ export const useCatalogoUnificado = () => {
 
   // Aplicar filtros y ordenamiento
   const datosFilteredAndSorted = useMemo(() => {
+    console.log('🔍 Iniciando filtrado. Categoría activa:', categoriaActiva);
+    console.log('🔍 Filtros actuales:', filtrosUnificados);
+    console.log('🔍 Datos originales:', datosActuales.length);
+
     let filtered = [...datosActuales];
 
     // Aplicar filtros
@@ -235,6 +330,19 @@ export const useCatalogoUnificado = () => {
       filtered = filtered.filter(item => 
         parseFloat(item.precio_venta_usd) <= parseFloat(filtrosUnificados.precioMax)
       );
+    }
+
+    // Filtrar por subcategoría (específico para Apple)
+    if (categoriaActiva === 'apple' && filtrosUnificados.subcategoria) {
+      console.log('🔍 Aplicando filtro de subcategoría Apple:', filtrosUnificados.subcategoria);
+      filtered = filtered.filter(item => {
+        const cumpleFiltro = item._tipoProducto === filtrosUnificados.subcategoria;
+        if (!cumpleFiltro) {
+          console.log(`❌ Producto filtrado: ${item.id}, _tipoProducto: ${item._tipoProducto}`);
+        }
+        return cumpleFiltro;
+      });
+      console.log(`✅ Productos después de filtro Apple: ${filtered.length}`);
     }
 
     // Filtrar por categoría
@@ -312,18 +420,41 @@ export const useCatalogoUnificado = () => {
 
   // Funciones de control
   const cambiarCategoria = (nuevaCategoria) => {
+    console.log('🔄 Cambiando categoría de', categoriaActiva, 'a', nuevaCategoria);
+    console.log('🧹 Limpiando filtros, subcategoria actual:', filtrosUnificados.subcategoria);
+
     setCategoriaActiva(nuevaCategoria);
-    // Limpiar filtros al cambiar categoría
-    setFiltrosUnificados({
-      marca: '',
-      condicion: '',
-      sucursal: '',
-      precioMax: '',
-      precioMin: '',
-      categoria: '',
-      busqueda: ''
-    });
+
+    // Si cambiamos a Apple, activar automáticamente Macbooks
+    if (nuevaCategoria === 'apple') {
+      setFiltrosUnificados({
+        marca: '',
+        condicion: '',
+        sucursal: '',
+        precioMax: '',
+        precioMin: '',
+        categoria: '',
+        busqueda: '',
+        subcategoria: 'notebooks' // Activar Macbooks por defecto
+      });
+      console.log('🍎 Apple seleccionado - Activando Macbooks por defecto');
+    } else {
+      // Para otras categorías, limpiar todos los filtros
+      setFiltrosUnificados({
+        marca: '',
+        condicion: '',
+        sucursal: '',
+        precioMax: '',
+        precioMin: '',
+        categoria: '',
+        busqueda: '',
+        subcategoria: ''
+      });
+    }
+
     setOrdenamiento({ campo: '', direccion: 'asc' });
+
+    console.log('✅ Filtros configurados');
   };
 
   const actualizarFiltro = (campo, valor) => {
@@ -341,7 +472,8 @@ export const useCatalogoUnificado = () => {
       precioMax: '',
       precioMin: '',
       categoria: '',
-      busqueda: ''
+      busqueda: '',
+      subcategoria: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
@@ -365,17 +497,27 @@ export const useCatalogoUnificado = () => {
   };
 
   // Funciones de acción
-  const eliminarProducto = async (id) => {
+  const eliminarProducto = async (id, tipoProducto = null) => {
     const deleteFunction = categoriaConfig?.delete;
     if (deleteFunction) {
-      await deleteFunction(id);
+      // Para Apple, pasar el tipoProducto
+      if (categoriaActiva === 'apple' && tipoProducto) {
+        await deleteFunction(id, tipoProducto);
+      } else {
+        await deleteFunction(id);
+      }
     }
   };
 
-  const actualizarProducto = async (id, datos) => {
+  const actualizarProducto = async (id, datos, tipoProducto = null) => {
     const updateFunction = categoriaConfig?.update;
     if (updateFunction) {
-      await updateFunction(id, datos);
+      // Para Apple, pasar el tipoProducto
+      if (categoriaActiva === 'apple' && tipoProducto) {
+        await updateFunction(id, datos, tipoProducto);
+      } else {
+        await updateFunction(id, datos);
+      }
     }
   };
 

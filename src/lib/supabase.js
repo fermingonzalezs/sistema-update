@@ -50,13 +50,22 @@ export { cuentasCorrientesService, useCuentasCorrientes } from '../modules/conta
 export function useCarrito() {
   const [carrito, setCarrito] = useState([])
 
-  const agregarAlCarrito = (producto, tipo, cantidad = 1) => {
+  const agregarAlCarrito = (producto, tipo, cantidad = 1, categoria = null) => {
     // Validar que el tipo sea válido
     const tiposValidos = ['computadora', 'celular', 'otro'];
     const tipoValido = tiposValidos.includes(tipo) ? tipo : 'otro';
-    
+
     if (tipo !== tipoValido) {
       console.warn(`⚠️ Tipo corregido en carrito: "${tipo}" → "${tipoValido}"`);
+    }
+
+    // Para productos "otro", usar la categoría proporcionada o la del producto
+    let categoriaFinal = null;
+    if (tipoValido === 'otro') {
+      categoriaFinal = categoria || producto.categoria || 'ACCESORIOS';
+      // Normalizar a MAYÚSCULAS
+      categoriaFinal = categoriaFinal.toUpperCase();
+      console.log(`📦 Producto "otro" agregado al carrito con categoría: ${categoriaFinal}`);
     }
 
     const itemExistente = carrito.find(
@@ -76,9 +85,11 @@ export function useCarrito() {
         id: `${tipoValido}-${producto.id}`,
         producto: producto, // ✅ Pasar producto completo con precio_costo_total (notebooks) o precio_compra_usd (celulares/otros)
         tipo: tipoValido, // 'computadora', 'celular', 'otro' validado
+        categoria: categoriaFinal, // ✅ Agregar categoría específica para productos "otro"
         cantidad,
         precio_unitario: parseFloat(producto.precio_venta_usd || producto.precio_venta) || 0
       }
+      console.log('🛒 Nuevo item agregado al carrito:', nuevoItem);
       setCarrito(prev => [...prev, nuevoItem])
     }
   }

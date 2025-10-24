@@ -78,6 +78,29 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [editForm, setEditForm] = useState({});
   const [categoriasOtros, setCategoriasOtros] = useState([]);
 
+  // Función para contar productos por subcategoría
+  const contarPorSubcategoria = (subcategoria) => {
+    if (!datos) return 0;
+
+    if (categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') {
+      // Para notebooks y celulares, contar por el campo 'categoria'
+      if (!subcategoria) {
+        // "Todos" - contar todos los productos de esta categoría principal
+        return datos.length;
+      }
+      return datos.filter(p => p.categoria?.toLowerCase() === subcategoria.toLowerCase()).length;
+    } else if (categoriaActiva === 'otros') {
+      // Para otros productos, contar por el campo 'categoria' normalizado
+      if (!subcategoria) {
+        // "Todos" - contar todos los productos otros
+        return datos.length;
+      }
+      return datos.filter(p => p.categoria?.toUpperCase() === subcategoria.toUpperCase()).length;
+    }
+
+    return 0;
+  };
+
   // Cargar cotización y categorías
   useEffect(() => {
     const cargarCotizacion = async () => {
@@ -110,13 +133,26 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
   const generateCopyWithPrice = (producto, usePesos = false) => {
     try {
-      const precio = usePesos 
+      const precio = usePesos
         ? `${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}`
         : formatearMonto(producto.precio_venta_usd, 'USD');
-      
+
       let infoBase;
-      
-      if (categoriaActiva.startsWith('otros-')) {
+
+      // Para categoría Apple, determinar el tipo según _tipoProducto
+      if (categoriaActiva === 'apple') {
+        let tipoSimple = 'notebook_simple';
+        if (producto._tipoProducto === 'celulares') {
+          tipoSimple = 'celular_simple';
+        } else if (producto._tipoProducto === 'otros') {
+          tipoSimple = 'otro_simple';
+        }
+
+        infoBase = generateCopy(producto, {
+          tipo: tipoSimple,
+          includePrice: false
+        });
+      } else if (categoriaActiva.startsWith('otros-')) {
         // Para otros productos: usar la función del generador
         infoBase = generateCopy(producto, {
           tipo: 'otro_simple',
@@ -128,13 +164,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         if (categoriaActiva === 'celulares') {
           tipoSimple = 'celular_simple';
         }
-        
-        infoBase = generateCopy(producto, { 
+
+        infoBase = generateCopy(producto, {
           tipo: tipoSimple,
           includePrice: false // No incluir precio aquí porque lo agregaremos al final
         });
       }
-      
+
       // Agregar precio al final (el estado ya está incluido en infoBase si es necesario)
       return `${infoBase} - Precio: ${precio}`;
     } catch (error) {
@@ -149,24 +185,43 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       let tipo = 'computadora'; // default
       let categoria = null; // Nueva propiedad para categorías específicas de "otros"
 
-      if (categoriaActiva === 'celulares') {
+      // Para categoría Apple, determinar tipo según _tipoProducto
+      if (categoriaActiva === 'apple') {
+        if (producto._tipoProducto === 'notebooks') {
+          tipo = 'computadora';
+        } else if (producto._tipoProducto === 'celulares') {
+          tipo = 'celular';
+        } else if (producto._tipoProducto === 'otros') {
+          tipo = 'otro';
+          categoria = producto.categoria || 'APPLE';
+        }
+      } else if (categoriaActiva === 'celulares') {
         tipo = 'celular';
-      } else if (categoriaActiva.startsWith('otros-')) {
+      } else if (categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-')) {
         tipo = 'otro';
         // Para productos "otros", usar la categoría del producto para análisis detallado
-        categoria = producto.categoria || 'otros';
-      } else if (['desktop', 'tablets', 'gpu', 'apple', 'componentes', 'audio'].includes(categoriaActiva)) {
+        categoria = producto.categoria || 'ACCESORIOS'; // Default a ACCESORIOS si no hay categoría
+      } else if (['desktop', 'tablets', 'gpu', 'componentes', 'audio'].includes(categoriaActiva)) {
         tipo = 'otro';
-        categoria = producto.categoria || categoriaActiva;
+        categoria = producto.categoria || categoriaActiva.toUpperCase();
       }
 
-          onAddToCart(producto, tipo, 1);
-        }  };
+      // Pasar la categoría junto con el producto al carrito
+      onAddToCart(producto, tipo, 1, categoria);
+    }
+  };
 
   // Funciones para el modal de edición
   const openEditModal = (producto) => {
-    const tipo = categoriaActiva === 'celulares' ? 'celular' :
-                 categoriaActiva === 'notebooks' ? 'notebook' : 'otros';
+    // Para Apple, determinar tipo según _tipoProducto del producto
+    let tipo = 'notebook'; // default
+    if (categoriaActiva === 'apple') {
+      tipo = producto._tipoProducto === 'celulares' ? 'celular' :
+             producto._tipoProducto === 'notebooks' ? 'notebook' : 'otros';
+    } else {
+      tipo = categoriaActiva === 'celulares' ? 'celular' :
+             categoriaActiva === 'notebooks' ? 'notebook' : 'otros';
+    }
     
     // Función para normalizar sucursal a valores válidos para la base de datos
     const normalizarSucursal = (sucursal) => {
@@ -319,7 +374,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       console.log('🗑️ Eliminando producto:', modalEdit.producto.id);
 
       // Usar la función del hook para eliminar
-      await eliminarProducto(modalEdit.producto.id);
+      // Para Apple, pasar el _tipoProducto
+      await eliminarProducto(modalEdit.producto.id, modalEdit.producto._tipoProducto);
 
       console.log('✅ Producto eliminado exitosamente');
 
@@ -470,7 +526,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       console.log('🔄 Actualizando producto:', modalEdit.producto.id, datosActualizados);
 
       // Actualizar usando la función del hook
-      await actualizarProducto(modalEdit.producto.id, datosActualizados);
+      // Para Apple, pasar el _tipoProducto
+      await actualizarProducto(modalEdit.producto.id, datosActualizados, modalEdit.producto._tipoProducto);
 
       console.log('✅ Producto actualizado exitosamente');
       
@@ -1391,7 +1448,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro('categoria', '')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   !filtros.categoria
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1399,10 +1456,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>📦</span>
                 <span>Todos</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  !filtros.categoria
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', 'macbook')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === 'macbook'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1410,10 +1474,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>🍎</span>
                 <span>Macbook</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === 'macbook'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('macbook')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', 'windows')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === 'windows'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1421,10 +1492,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>🪟</span>
                 <span>Windows</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === 'windows'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('windows')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', '2-en-1')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === '2-en-1'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1432,10 +1510,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>🔄</span>
                 <span>2-en-1</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === '2-en-1'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('2-en-1')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', 'gaming')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === 'gaming'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1443,6 +1528,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>🎮</span>
                 <span>Gaming</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === 'gaming'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('gaming')}
+                </span>
               </button>
             </div>
           </div>
@@ -1454,7 +1546,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro('categoria', '')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   !filtros.categoria
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1462,10 +1554,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>📦</span>
                 <span>Todos</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  !filtros.categoria
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', 'iphone')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === 'iphone'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1473,10 +1572,17 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>📱</span>
                 <span>iPhone</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === 'iphone'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('iphone')}
+                </span>
               </button>
               <button
                 onClick={() => actualizarFiltro('categoria', 'android')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   filtros.categoria === 'android'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1484,6 +1590,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>🤖</span>
                 <span>Android</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  filtros.categoria === 'android'
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('android')}
+                </span>
               </button>
             </div>
           </div>
@@ -1495,7 +1608,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro('categoria', '')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                   !filtros.categoria
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1503,12 +1616,19 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               >
                 <span>📦</span>
                 <span>Todos</span>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  !filtros.categoria
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'bg-slate-300 text-slate-800'
+                }`}>
+                  {contarPorSubcategoria('')}
+                </span>
               </button>
               {CATEGORIAS_OTROS_ARRAY.map(categoria => (
                 <button
                   key={categoria}
                   onClick={() => actualizarFiltro('categoria', categoria)}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
                     filtros.categoria === categoria
                       ? 'bg-emerald-600 text-white'
                       : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -1517,13 +1637,73 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   <span>
                     {categoria === 'ACCESORIOS' ? '🔧' :
                      categoria === 'MONITORES' ? '🖥️' :
-                     categoria === 'PERIFERICOS' ? '⌨️' :
                      categoria === 'COMPONENTES' ? '⚡' :
-                     categoria === 'FUNDAS_TEMPLADOS' ? '📱' : '📦'}
+                     categoria === 'FUNDAS_TEMPLADOS' ? '🛡️' :
+                     categoria === 'TABLETS' ? '📱' :
+                     categoria === 'APPLE' ? '🍎' :
+                     categoria === 'MOUSE_TECLADOS' ? '⌨️' :
+                     categoria === 'AUDIO' ? '🎧' :
+                     categoria === 'ALMACENAMIENTO' ? '💾' :
+                     categoria === 'CAMARAS' ? '📷' :
+                     categoria === 'CONSOLAS' ? '🎮' :
+                     categoria === 'GAMING' ? '🎯' :
+                     categoria === 'DRONES' ? '🚁' :
+                     categoria === 'WATCHES' ? '⌚' :
+                     categoria === 'PLACAS_VIDEO' ? '🎨' :
+                     categoria === 'STREAMING' ? '📡' :
+                     categoria === 'REDES' ? '🌐' :
+                     categoria === 'BAGS_CASES' ? '💼' :
+                     categoria === 'CABLES_CARGADORES' ? '🔌' :
+                     categoria === 'REPUESTOS' ? '🔩' :
+                     '📦'}
                   </span>
                   <span>{getCategoriaLabel(categoria)}</span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    filtros.categoria === categoria
+                      ? 'bg-slate-200 text-slate-800'
+                      : 'bg-slate-300 text-slate-800'
+                  }`}>
+                    {contarPorSubcategoria(categoria)}
+                  </span>
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Subcategorías de Apple */}
+        {categoriaActiva === 'apple' && categoriaConfig?.subcategorias && (
+          <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
+            <div className="flex flex-wrap gap-2">
+              {categoriaConfig.subcategorias.map(subcat => {
+                // Contar productos del tipo correcto en los datos originales (antes de filtrar)
+                const count = categoriaConfig.data.filter(p => p._tipoProducto === subcat.value).length;
+                return (
+                  <button
+                    key={subcat.value}
+                    onClick={() => actualizarFiltro('subcategoria', subcat.value)}
+                    className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
+                      filtros.subcategoria === subcat.value
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-700 text-white hover:bg-slate-600'
+                    }`}
+                  >
+                    <span>
+                      {subcat.value === 'notebooks' ? '💻' :
+                       subcat.value === 'celulares' ? '📱' :
+                       subcat.value === 'otros' ? '📦' : ''}
+                    </span>
+                    <span>{subcat.label}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      filtros.subcategoria === subcat.value
+                        ? 'bg-slate-200 text-slate-800'
+                        : 'bg-slate-300 text-slate-800'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1551,7 +1731,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           <div>
             <label className="block text-xs font-medium text-slate-200 mb-1">Ordenar</label>
             <select
-              value={ordenamiento.campo}
+              value={ordenamiento.campo ? `${ordenamiento.campo}-${ordenamiento.direccion}` : ''}
               onChange={(e) => actualizarOrdenamiento(e.target.value)}
               className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
@@ -1654,26 +1834,35 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
         <div className="overflow-x-auto w-full">
           <div className="space-y-1 inline-block min-w-full">
           {/* Header */}
-          {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
-            // Header para otros productos - mostrar stock por sucursal
-            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-              <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
-            </div>
-          ) : (
-            // Header para notebooks y celulares - mostrar serial
-            <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-              <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Serial</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
-              <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
-              <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
-            </div>
-          )}
+          {(() => {
+            // Para Apple, determinar header según subcategoría seleccionada
+            const esOtros = categoriaActiva === 'otros' ||
+                           categoriaActiva.startsWith('otros-') ||
+                           (categoriaActiva === 'apple' && filtros.subcategoria === 'otros');
+
+            if (esOtros) {
+              return (
+                <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
+                  <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Mitre</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">La Plata</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
+                  <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
+                </div>
+              );
+            } else {
+              return (
+                <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
+                  <div className="col-span-6 text-sm font-bold text-white uppercase">Información del Producto</div>
+                  <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Serial</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Precio</div>
+                  <div className="col-span-1 text-center text-sm font-bold text-white uppercase">Estado</div>
+                  <div className="col-span-2 text-center text-sm font-bold text-white uppercase">Acciones</div>
+                </div>
+              );
+            }
+          })()}
           
           {/* Productos */}
           {datos.map((producto) => (
@@ -1684,29 +1873,48 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             >
               {/* Información del producto */}
               <div className="col-span-6">
-                {console.log('🔍 DEBUG - categoriaActiva:', categoriaActiva, 'producto:', producto.id)}
-                {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
-                  <div>
-                    <div className="text-sm truncate uppercase">
-                      <span>
-                        {/* DEBUG: Mostrar todos los campos posibles */}
-                        {console.log('🔍 DEBUG - Producto otros:', producto)}
-                        {producto.nombre_producto || producto.modelo || producto.descripcion || 'SIN NOMBRE'}
-                      </span>
-                      {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm font-medium truncate">
-                    {generateCopy(producto, {
-                      tipo: categoriaActiva === 'notebooks' ? 'notebook_completo' : 'celular_completo'
-                    })}
-                    {producto.stock > 0 && <span className="ml-1 text-emerald-600 text-sm">Stock: {producto.stock}</span>}
-                  </div>
-                )}
+                {(() => {
+                  // Determinar si este producto específico es de tipo "otros"
+                  const esOtros = categoriaActiva === 'otros' ||
+                                 categoriaActiva.startsWith('otros-') ||
+                                 (categoriaActiva === 'apple' && producto._tipoProducto === 'otros');
+
+                  if (esOtros) {
+                    return (
+                      <div>
+                        <div className="text-sm truncate uppercase">
+                          <span>{producto.nombre_producto || 'SIN NOMBRE'}</span>
+                          {producto.descripcion && <span className="text-slate-500"> - {producto.descripcion}</span>}
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
+                    let tipoProducto = 'notebook_completo';
+                    if (categoriaActiva === 'celulares') {
+                      tipoProducto = 'celular_completo';
+                    } else if (categoriaActiva === 'apple' && producto._tipoProducto === 'celulares') {
+                      tipoProducto = 'celular_completo';
+                    }
+
+                    return (
+                      <div className="text-sm font-medium truncate">
+                        {generateCopy(producto, { tipo: tipoProducto })}
+                        {producto.stock > 0 && <span className="ml-1 text-emerald-600 text-sm">Stock: {producto.stock}</span>}
+                      </div>
+                    );
+                  }
+                })()}
               </div>
-              
-              {categoriaActiva === 'otros' || categoriaActiva.startsWith('otros-') ? (
+
+              {(() => {
+                // Determinar si este producto específico es de tipo "otros"
+                const esOtros = categoriaActiva === 'otros' ||
+                               categoriaActiva.startsWith('otros-') ||
+                               (categoriaActiva === 'apple' && producto._tipoProducto === 'otros');
+
+                if (esOtros) {
+                  return (
                 // Columnas para otros productos - mostrar stock por sucursal
                 <>
                   {/* Stock Mitre */}
@@ -1815,105 +2023,109 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     </button>
                   </div>
                 </>
-              ) : (
-                <>
-                  {/* Serial para notebooks y celulares */}
-                  <div className="col-span-2 text-center">
-                    <div className="text-sm text-slate-700">
-                      {producto.serial || producto.imei || 'N/A'}
-                    </div>
-                  </div>
+                  );
+                } else {
+                  // Columnas para notebooks y celulares (incluyendo Apple notebooks y celulares)
+                  return (
+                    <>
+                      {/* Serial para notebooks y celulares */}
+                      <div className="col-span-2 text-center">
+                        <div className="text-sm text-slate-700">
+                          {producto.serial || producto.imei || 'N/A'}
+                        </div>
+                      </div>
 
-                  {/* Precio */}
-                  <div className="col-span-1 text-center">
-                    <div className="text-lg font-bold text-slate-800">
-                      {formatearMonto(producto.precio_venta_usd, 'USD')}
-                    </div>
-                    <div className="text-sm text-slate-500">
-                      ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
-                    </div>
-                  </div>
+                      {/* Precio */}
+                      <div className="col-span-1 text-center">
+                        <div className="text-lg font-bold text-slate-800">
+                          {formatearMonto(producto.precio_venta_usd, 'USD')}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          ${Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString('es-AR')}
+                        </div>
+                      </div>
 
-                  {/* Estado - Solo condición */}
-                  <div className="col-span-1 text-center flex justify-center items-center px-2">
-                    <span
-                      className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${
-                        (() => {
-                          const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
-                          if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
-                          if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
-                          if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
-                          if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
-                          if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
-                          if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
-                          if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
-                          if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
-                          if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
-                          if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
-                          if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
-                          if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
-                          return 'bg-slate-100 text-slate-700';
-                        })()
-                      }`}
-                      title={(() => {
-                        const condicion = producto.condicion || producto.estado || 'N/A';
-                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
-                        return condicion.toUpperCase();
-                      })()}
-                    >
-                      {(() => {
-                        const condicion = producto.condicion || producto.estado || 'N/A';
-                        if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
-                        return condicion.toUpperCase();
-                      })()}
-                    </span>
-                  </div>
+                      {/* Estado - Solo condición */}
+                      <div className="col-span-1 text-center flex justify-center items-center px-2">
+                        <span
+                          className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${
+                            (() => {
+                              const condicion = (producto.condicion || producto.estado || '').toLowerCase().trim();
+                              if (condicion === 'nuevo') return 'bg-emerald-100 text-emerald-700';
+                              if (condicion === 'excelente') return 'bg-emerald-100 text-emerald-700';
+                              if (condicion === 'refurbished' || condicion === 'reacondicionado') return 'bg-blue-100 text-blue-700';
+                              if (condicion === 'muy bueno') return 'bg-blue-100 text-blue-700';
+                              if (condicion === 'usado') return 'bg-yellow-100 text-yellow-700';
+                              if (condicion === 'bueno') return 'bg-yellow-100 text-yellow-700';
+                              if (condicion === 'regular') return 'bg-orange-100 text-orange-700';
+                              if (condicion === 'reparacion' || condicion === 'reparación') return 'bg-red-100 text-red-700';
+                              if (condicion === 'reservado') return 'bg-purple-100 text-purple-700';
+                              if (condicion === 'prestado') return 'bg-cyan-100 text-cyan-700';
+                              if (condicion === 'sin_reparacion' || condicion === 'sin reparación') return 'bg-gray-100 text-gray-700';
+                              if (condicion === 'uso_oficina' || condicion === 'uso oficina') return 'bg-orange-100 text-orange-700';
+                              return 'bg-slate-100 text-slate-700';
+                            })()
+                          }`}
+                          title={(() => {
+                            const condicion = producto.condicion || producto.estado || 'N/A';
+                            if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                            return condicion.toUpperCase();
+                          })()}
+                        >
+                          {(() => {
+                            const condicion = producto.condicion || producto.estado || 'N/A';
+                            if (condicion.toLowerCase() === 'uso_oficina') return 'USO OFICINA';
+                            return condicion.toUpperCase();
+                          })()}
+                        </span>
+                      </div>
 
-
-                  {/* Acciones */}
-                  <div className="col-span-2 flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          const copyText = generateCopyWithPrice(producto, false);
-                          await navigator.clipboard.writeText(copyText);
-                          console.log('✅ Copiado USD:', copyText);
-                        } catch (error) {
-                          console.error('❌ Error copiando USD:', error);
-                          const textArea = document.createElement('textarea');
-                          textArea.value = generateCopyWithPrice(producto, false);
-                          document.body.appendChild(textArea);
-                          textArea.select();
-                          document.execCommand('copy');
-                          document.body.removeChild(textArea);
-                        }
-                      }}
-                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center "
-                      title="Copiar información USD"
-                      style={{fontSize: '12px'}}
-                    >
-                      COPY
-                    </button>
-                    <button
-                      onClick={() => handleAddToCart(producto)}
-                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center "
-                      title="Agregar al carrito"
-                      style={{fontSize: '12px'}}
-                    >
-                      VENTA
-                    </button>
-                    <button
-                      onClick={() => openEditModal(producto)}
-                      className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center "
-                      title="Editar producto"
-                      style={{fontSize: '12px'}}
-                    >
-                      EDITAR
-                    </button>
-                  </div>
-                </>
-              )}
+                      {/* Acciones */}
+                      <div className="col-span-2 flex justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const copyText = generateCopyWithPrice(producto, false);
+                              await navigator.clipboard.writeText(copyText);
+                              console.log('✅ Copiado USD:', copyText);
+                            } catch (error) {
+                              console.error('❌ Error copiando USD:', error);
+                              const textArea = document.createElement('textarea');
+                              textArea.value = generateCopyWithPrice(producto, false);
+                              document.body.appendChild(textArea);
+                              textArea.select();
+                              document.execCommand('copy');
+                              document.body.removeChild(textArea);
+                            }
+                          }}
+                          className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center "
+                          title="Copiar información USD"
+                          style={{fontSize: '12px'}}
+                        >
+                          COPY
+                        </button>
+                        <button
+                          onClick={() => handleAddToCart(producto)}
+                          className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center "
+                          title="Agregar al carrito"
+                          style={{fontSize: '12px'}}
+                        >
+                          VENTA
+                        </button>
+                        <button
+                          onClick={() => openEditModal(producto)}
+                          className="w-18 h-9 text-white text-[8px] leading-3 rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center "
+                          title="Editar producto"
+                          style={{fontSize: '12px'}}
+                        >
+                          EDITAR
+                        </button>
+                      </div>
+                    </>
+                  );
+                }
+              })()}
             </div>
           ))}
           

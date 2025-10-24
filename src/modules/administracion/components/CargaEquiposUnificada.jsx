@@ -110,7 +110,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
     // Especificaciones principales
     procesador: '',
-    slots: '2',
+    slots: '',
     tipo_ram: 'DDR4',
     ram: '',
     ssd: '',
@@ -173,7 +173,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
       const dataToSubmit = {
         ...formData,
         // Si condicion es 'nuevo', asegurar que estado sea null
-        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado
+        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
+        // Si slots está vacío, convertir a null
+        slots: formData.slots === '' ? null : formData.slots
       };
 
       await onAdd(dataToSubmit);
@@ -191,7 +193,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         condicion: CONDICIONES.NUEVO,
         estado: null, // null por defecto cuando es nuevo
         procesador: '',
-        slots: '2',
+        slots: '',
         tipo_ram: 'DDR4',
         ram: '',
         ssd: '',
@@ -247,7 +249,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Número de Serie *
-                  <span className="text-xs text-slate-500 ml-1">(Serial)</span>
                 </label>
                 <input
                   type="text"
@@ -263,7 +264,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Modelo *
-                  <span className="text-xs text-slate-500 ml-1">(Modelo)</span>
                 </label>
                 <input
                   type="text"
@@ -279,7 +279,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
-                  <span className="text-xs text-slate-500 ml-1">(Marca)</span>
                 </label>
                 <input
                   type="text"
@@ -294,7 +293,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Categoría *
-                  <span className="text-xs text-slate-500 ml-1">(Tipo de notebook)</span>
                 </label>
                 <select
                   name="categoria"
@@ -314,7 +312,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fecha de Ingreso *
-                  <span className="text-xs text-slate-500 ml-1">(Ingreso)</span>
                 </label>
                 <input
                   type="date"
@@ -329,7 +326,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Condición
-                  <span className="text-xs text-slate-500 ml-1">(Estado físico)</span>
                 </label>
                 <select
                   name="condicion"
@@ -348,7 +344,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Sucursal
-                  <span className="text-xs text-slate-500 ml-1">(Ubicación)</span>
                 </label>
                 <select
                   name="sucursal"
@@ -369,7 +364,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Estado Estético
-                    <span className="text-xs text-slate-500 ml-1">(Grado)</span>
                   </label>
                   <select
                     name="estado"
@@ -401,7 +395,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio de Costo *
-                  <span className="text-xs text-slate-500 ml-1">(USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -421,7 +414,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Gastos Adicionales
-                  <span className="text-xs text-slate-500 ml-1">(Envíos/Repuestos USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -440,7 +432,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio de Venta *
-                  <span className="text-xs text-slate-500 ml-1">(USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -470,7 +461,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Procesador
-                  <span className="text-xs text-slate-500 ml-1">(CPU)</span>
                 </label>
                 <input
                   type="text"
@@ -485,7 +475,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Memoria RAM
-                  <span className="text-xs text-slate-500 ml-1">(GB)</span>
                 </label>
                 <input
                   type="text"
@@ -500,25 +489,21 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Slots RAM
-                  <span className="text-xs text-slate-500 ml-1">(Número)</span>
                 </label>
-                <select
+                <input
+                  type="number"
                   name="slots"
                   value={formData.slots}
                   onChange={handleChange}
+                  placeholder="Ej: 2"
+                  min="1"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="1">1 Slot</option>
-                  <option value="2">2 Slots</option>
-                  <option value="3">3 Slots</option>
-                  <option value="4">4 Slots</option>
-                </select>
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Tipo de RAM
-                  <span className="text-xs text-slate-500 ml-1">(Generación)</span>
                 </label>
                 <select
                   name="tipo_ram"
@@ -535,7 +520,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   SSD
-                  <span className="text-xs text-slate-500 ml-1">(Almacenamiento sólido)</span>
                 </label>
                 <input
                   type="text"
@@ -550,7 +534,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   HDD
-                  <span className="text-xs text-slate-500 ml-1">(Disco duro mecánico)</span>
                 </label>
                 <input
                   type="text"
@@ -565,7 +548,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Sistema Operativo
-                  <span className="text-xs text-slate-500 ml-1">(SO)</span>
                 </label>
                 <select
                   name="so"
@@ -584,7 +566,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Placa de Video
-                  <span className="text-xs text-slate-500 ml-1">(GPU)</span>
                 </label>
                 <input
                   type="text"
@@ -599,7 +580,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   VRAM
-                  <span className="text-xs text-slate-500 ml-1">(Memoria de video)</span>
                 </label>
                 <input
                   type="text"
@@ -624,7 +604,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Tamaño de Pantalla
-                  <span className="text-xs text-slate-500 ml-1">(Pulgadas)</span>
                 </label>
                 <input
                   type="text"
@@ -639,7 +618,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Resolución
-                  <span className="text-xs text-slate-500 ml-1">(Calidad)</span>
                 </label>
                 <input
                   type="text"
@@ -654,7 +632,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Refresh Rate
-                  <span className="text-xs text-slate-500 ml-1">(Hz)</span>
                 </label>
                 <input
                   type="text"
@@ -693,7 +670,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Teclado Retroiluminado
-                  <span className="text-xs text-slate-500 ml-1">(Backlight)</span>
                 </label>
                 <select
                   name="teclado_retro"
@@ -709,7 +685,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Idioma del Teclado
-                  <span className="text-xs text-slate-500 ml-1">(Layout)</span>
                 </label>
                 <select
                   name="idioma_teclado"
@@ -717,8 +692,8 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   onChange={handleChange}
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
-                  <option value="Español">Español (QWERTY)</option>
-                  <option value="Inglés">Inglés (US)</option>
+                  <option value="Español">Español</option>
+                  <option value="Inglés">Inglés</option>
                   <option value="Internacional">Internacional</option>
                 </select>
               </div>
@@ -726,7 +701,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Color
-                  <span className="text-xs text-slate-500 ml-1">(Exterior)</span>
                 </label>
                 <input
                   type="text"
@@ -742,42 +716,45 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
           {/* Sección: Batería */}
           <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
-              Información de Batería
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Solo mostrar Información de Batería si NO es nuevo */}
+            {formData.condicion !== CONDICIONES.NUEVO && (
+              <>
+                <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
+                  Información de Batería
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tipo de Batería
-                  <span className="text-xs text-slate-500 ml-1">(Especificaciones)</span>
-                </label>
-                <input
-                  type="text"
-                  name="bateria"
-                  value={formData.bateria}
-                  onChange={handleChange}
-                  placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Tipo de Batería
+                    </label>
+                    <input
+                      type="text"
+                      name="bateria"
+                      value={formData.bateria}
+                      onChange={handleChange}
+                      placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Duración de Batería
-                  <span className="text-xs text-slate-500 ml-1">(Horas aprox.)</span>
-                </label>
-                <input
-                  type="text"
-                  name="duracion"
-                  value={formData.duracion}
-                  onChange={handleChange}
-                  placeholder="Ej: 6-8 horas, 10 horas"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Duración de Batería
+                    </label>
+                    <input
+                      type="text"
+                      name="duracion"
+                      value={formData.duracion}
+                      onChange={handleChange}
+                      placeholder="Ej: 6-8 horas, 10 horas"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Sección: Garantía y Estado Técnico */}
@@ -791,7 +768,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Garantía Update
-                  <span className="text-xs text-slate-500 ml-1">(Tiempo)</span>
                 </label>
                 <select
                   name="garantia_update"
@@ -810,7 +786,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Garantía Oficial
-                  <span className="text-xs text-slate-500 ml-1">(Fabricante)</span>
                 </label>
                 <input
                   type="text"
@@ -825,7 +800,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fallas o Observaciones
-                  <span className="text-xs text-slate-500 ml-1">(Problemas conocidos)</span>
                 </label>
                 <textarea
                   name="fallas"
@@ -988,7 +962,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Número de Serie *
-                  <span className="text-xs text-slate-500 ml-1">(Serial)</span>
                 </label>
                 <input
                   type="text"
@@ -1004,7 +977,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Modelo *
-                  <span className="text-xs text-slate-500 ml-1">(Modelo)</span>
                 </label>
                 <input
                   type="text"
@@ -1020,7 +992,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
-                  <span className="text-xs text-slate-500 ml-1">(Marca)</span>
                 </label>
                 <input
                   type="text"
@@ -1035,7 +1006,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Categoría *
-                  <span className="text-xs text-slate-500 ml-1">(Tipo de celular)</span>
                 </label>
                 <select
                   name="categoria"
@@ -1055,7 +1025,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fecha de Ingreso *
-                  <span className="text-xs text-slate-500 ml-1">(Ingreso)</span>
                 </label>
                 <input
                   type="date"
@@ -1070,7 +1039,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Condición
-                  <span className="text-xs text-slate-500 ml-1">(Estado físico)</span>
                 </label>
                 <select
                   name="condicion"
@@ -1089,7 +1057,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Sucursal
-                  <span className="text-xs text-slate-500 ml-1">(Ubicación)</span>
                 </label>
                 <select
                   name="sucursal"
@@ -1110,7 +1077,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Estado Estético
-                    <span className="text-xs text-slate-500 ml-1">(Grado)</span>
                   </label>
                   <select
                     name="estado"
@@ -1141,7 +1107,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio de Compra *
-                  <span className="text-xs text-slate-500 ml-1">(USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -1161,7 +1126,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Costos Adicionales
-                  <span className="text-xs text-slate-500 ml-1">(Envíos/Repuestos USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -1180,7 +1144,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio de Venta *
-                  <span className="text-xs text-slate-500 ml-1">(USD)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
@@ -1210,7 +1173,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Capacidad de Almacenamiento
-                  <span className="text-xs text-slate-500 ml-1">(GB/TB)</span>
                 </label>
                 <input
                   type="text"
@@ -1225,7 +1187,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Color
-                  <span className="text-xs text-slate-500 ml-1">(Color del dispositivo)</span>
                 </label>
                 <input
                   type="text"
@@ -1237,35 +1198,38 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Estado de Batería
-                  <span className="text-xs text-slate-500 ml-1">(% de salud)</span>
-                </label>
-                <input
-                  type="text"
-                  name="bateria"
-                  value={formData.bateria}
-                  onChange={handleChange}
-                  placeholder="Ej: 85%, 92%"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
+              {/* Solo mostrar campos de batería si NO es nuevo */}
+              {formData.condicion !== CONDICIONES.NUEVO && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Estado de Batería
+                    </label>
+                    <input
+                      type="text"
+                      name="bateria"
+                      value={formData.bateria}
+                      onChange={handleChange}
+                      placeholder="Ej: 85%, 92%"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Ciclos de Batería
-                  <span className="text-xs text-slate-500 ml-1">(Número de ciclos)</span>
-                </label>
-                <input
-                  type="number"
-                  name="ciclos"
-                  value={formData.ciclos}
-                  onChange={handleChange}
-                  placeholder="Ej: 150, 300"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Ciclos de Batería
+                    </label>
+                    <input
+                      type="number"
+                      name="ciclos"
+                      value={formData.ciclos}
+                      onChange={handleChange}
+                      placeholder="Ej: 150, 300"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -1280,7 +1244,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Garantía Update
-                  <span className="text-xs text-slate-500 ml-1">(Tiempo de garantía)</span>
                 </label>
                 <select
                   name="garantia"
@@ -1299,7 +1262,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Fallas o Observaciones
-                  <span className="text-xs text-slate-500 ml-1">(Problemas conocidos)</span>
                 </label>
                 <textarea
                   name="fallas"
@@ -1498,7 +1460,6 @@ const FormularioOtro = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
-                  <span className="text-xs text-slate-500 ml-1">(Opcional)</span>
                 </label>
                 <input
                   type="text"
@@ -1513,7 +1474,6 @@ const FormularioOtro = ({ onAdd, loading }) => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Condición *
-                  <span className="text-xs text-slate-500 ml-1">(Estado funcional)</span>
                 </label>
                 <select
                   name="condicion"
@@ -1547,7 +1507,6 @@ const FormularioOtro = ({ onAdd, loading }) => {
               <div className="md:col-span-2 lg:col-span-3">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Serial/Descripción
-                  <span className="text-xs text-slate-500 ml-1">(Opcional)</span>
                 </label>
                 <textarea
                   name="descripcion"
@@ -1609,7 +1568,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Precio de Compra * (USD)
+                  Precio de Compra USD *
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-500">$</span>
@@ -1628,7 +1587,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Precio de Venta * (USD)
+                  Precio de Venta USD *
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-500">$</span>

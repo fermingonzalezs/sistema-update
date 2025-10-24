@@ -27,15 +27,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [mensajes, setMensajes] = useState({
     computadora: {
       inicial: '🔥 NOTEBOOKS DISPONIBLES 🔥',
-      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 3 meses\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
+      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 3 meses\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n Solo atendemos con cita previa.\n\n⚠️ AVISO IMPORTANTE\n No aceptamos billetes manchados, escritos, rotos, con sellos, cambio, ni cara chica.\n'
     },
     celular: {
       inicial: '📱 CELULARES DISPONIBLES 📱',
-      final: '✅ EQUIPOS ORIGINALES DE APPLE\n 100% Nuevos\n Sellados en caja\n Garantía oficial de Apple\n La garantía se gestiona directamente con Apple sin excepción\n\n🛡️ GARANTÍAS\n Productos nuevos: garantía oficial.\n Productos usados o reacondicionados: 1 mes\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
+      final: '🛡️ GARANTÍAS\n Productos nuevos: garantía oficial (se gestiona con Apple) \n Productos usados o reacondicionados: 1 mes\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n Solo atendemos con cita previa.\n\n⚠️ AVISO IMPORTANTE\n No aceptamos billetes manchados, escritos, rotos, con sellos, cambio, ni cara chica.\n'
     },
     otro: {
       inicial: '📦 ACCESORIOS Y MÁS 📦',
-      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 3 meses\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n SOLO ATENDEMOS CON CITA PREVIA\n\n⚠️ AVISO IMPORTANTE\n NO ACEPTAMOS BILLETES MANCHADOS, ESCRITOS, ROTOS, CON SELLOS, CAMBIO, NI CARA CHICA\n'
+      final: '🛡️ GARANTÍAS\n Productos nuevos: 6 meses\n Productos usados o reacondicionados: 1 mes\n\n💳 MÉTODOS DE PAGO\n Efectivo (pesos o dólares)\n Transferencia (+5%)\n Tarjeta de crédito (+40% en hasta 3 cuotas)\n Criptomonedas (USDT 0%)\n\n🏢 OFICINAS\n Tenemos dos  sucursales con seguridad privada: \nLa Plata centro y Microcentro (CABA)\n Solo atendemos con cita previa.\n\n⚠️ AVISO IMPORTANTE\n No aceptamos billetes manchados, escritos, rotos, con sellos, cambio, ni cara chica.\n'
     }
   });
 

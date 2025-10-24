@@ -207,10 +207,10 @@ export const ventasService = {
           copyCompleto = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
         }
 
-        // Determinar tipo_producto: usar categoría específica en minúsculas para productos "otros"
+        // Determinar tipo_producto: usar categoría específica para productos "otros"
         // - 'computadora' para notebooks
         // - 'celular' para celulares
-        // - 'perifericos', 'monitores', 'componentes', 'accesorios', 'fundas_templados' para productos otros
+        // - Categorías normalizadas (MAYÚSCULAS) para productos otros: 'AUDIO', 'MONITORES', 'COMPONENTES', etc.
         let tipoProducto = 'otro'; // Default
 
         if (item.tipo === 'computadora') {
@@ -218,8 +218,8 @@ export const ventasService = {
         } else if (item.tipo === 'celular') {
           tipoProducto = 'celular';
         } else if (item.tipo === 'otro' && item.categoria) {
-          // CRÍTICO: Para productos "otros", usar la categoría específica en lowercase
-          tipoProducto = item.categoria.toLowerCase();
+          // CRÍTICO: Para productos "otros", usar la categoría específica normalizada (MAYÚSCULAS)
+          tipoProducto = item.categoria.toUpperCase();
         }
 
         console.log(`📊 Guardando item en BD:`, {
@@ -231,7 +231,7 @@ export const ventasService = {
 
         return {
           transaccion_id: transaccion.id,
-          tipo_producto: tipoProducto, // Ahora incluye categorías específicas en minúsculas
+          tipo_producto: tipoProducto, // Ahora incluye categorías específicas normalizadas (MAYÚSCULAS)
           producto_id: item.producto.id,
           serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
           copy: copyCompleto,

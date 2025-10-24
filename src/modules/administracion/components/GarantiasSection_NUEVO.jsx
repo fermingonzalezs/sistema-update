@@ -81,8 +81,10 @@ const GarantiasSection = () => {
     setDescargando(garantia.id);
 
     try {
+      console.log('📄 Datos de garantía originales:', garantia);
+
       const producto = {
-        copy: garantia.copy_completo || garantia.modelo_producto, // Copy completo para procesamiento
+        copy: garantia.copy_completo || garantia.modelo_producto || '', // Copy completo para procesamiento
         tipo_producto: garantia.tipo_producto, // Tipo para saber cómo formatear
         serial_producto: garantia.serial_producto, // Serial para incluir en descripción
         numero_serie: garantia.serial_producto,
@@ -90,6 +92,8 @@ const GarantiasSection = () => {
         garantia_update: garantia.plazo_garantia,
         plazo_garantia_dias: garantia.plazo_garantia // Asegurar que se pase el plazo
       };
+
+      console.log('📄 Objeto producto para PDF:', producto);
 
       const cliente = {
         nombre: garantia.cliente_nombre,
