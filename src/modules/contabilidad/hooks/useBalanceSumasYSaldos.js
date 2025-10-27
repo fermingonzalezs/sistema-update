@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { calcularSaldoCuenta, clasificarSaldo } from '../utils/saldosUtils';
 
 // Servicio para Balance de Sumas y Saldos
 export const balanceSumasYSaldosService = {
@@ -106,18 +107,19 @@ export const balanceSumasYSaldosService = {
             saldosIniciales[cuenta.id].haber += parseFloat(mov.haber || 0);
           });
 
-          // Calcular saldos iniciales según naturaleza de la cuenta
+          // Calcular saldos iniciales usando función utilitaria centralizada
           Object.keys(saldosIniciales).forEach(cuentaId => {
             const movimiento = movimientosAnteriores.find(m => m.plan_cuentas?.id === parseInt(cuentaId));
             if (movimiento && movimiento.plan_cuentas) {
               const cuenta = movimiento.plan_cuentas;
               const saldoInicial = saldosIniciales[cuentaId];
-              
-              if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
-                saldoInicial.saldo = saldoInicial.debe - saldoInicial.haber;
-              } else {
-                saldoInicial.saldo = saldoInicial.haber - saldoInicial.debe;
-              }
+
+              // Usar función utilitaria para calcular saldo
+              saldoInicial.saldo = calcularSaldoCuenta(
+                saldoInicial.debe,
+                saldoInicial.haber,
+                cuenta.tipo
+              );
             }
           });
           }
@@ -182,34 +184,27 @@ export const balanceSumasYSaldosService = {
         resumenGeneral.totalHaber += haber;
       });
 
-      // Calcular saldos finales y clasificar cuentas
+      // Calcular saldos finales y clasificar cuentas usando función utilitaria
       Object.values(balance).forEach(item => {
         const cuenta = item.cuenta;
-        
-        // Calcular saldo final según naturaleza de la cuenta
-        if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
-          item.saldoFinal = item.debeFinal - item.haberFinal;
-        } else {
-          item.saldoFinal = item.haberFinal - item.debeFinal;
-        }
 
-        // Clasificar como deudor o acreedor basado en el saldo final
-        if (item.saldoFinal > 0) {
-          if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
-            item.esDeudor = true;
-            resumenGeneral.totalSaldosDeudores += Math.abs(item.saldoFinal);
-          } else {
-            item.esAcreedor = true;
-            resumenGeneral.totalSaldosAcreedores += Math.abs(item.saldoFinal);
-          }
-        } else if (item.saldoFinal < 0) {
-          if (cuenta.tipo === 'activo' || cuenta.tipo === 'resultado negativo') {
-            item.esAcreedor = true;
-            resumenGeneral.totalSaldosAcreedores += Math.abs(item.saldoFinal);
-          } else {
-            item.esDeudor = true;
-            resumenGeneral.totalSaldosDeudores += Math.abs(item.saldoFinal);
-          }
+        // Usar función utilitaria para calcular saldo final
+        item.saldoFinal = calcularSaldoCuenta(
+          item.debeFinal,
+          item.haberFinal,
+          cuenta.tipo
+        );
+
+        // Clasificar como deudor o acreedor usando función utilitaria
+        const clasificacion = clasificarSaldo(item.saldoFinal, cuenta.tipo);
+        item.esDeudor = clasificacion.esDeudor;
+        item.esAcreedor = clasificacion.esAcreedor;
+
+        // Acumular totales
+        if (item.esDeudor) {
+          resumenGeneral.totalSaldosDeudores += Math.abs(item.saldoFinal);
+        } else if (item.esAcreedor) {
+          resumenGeneral.totalSaldosAcreedores += Math.abs(item.saldoFinal);
         }
 
         resumenGeneral.totalDebeInicial += item.debeInicial;

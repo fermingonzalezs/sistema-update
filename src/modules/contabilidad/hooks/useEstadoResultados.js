@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { calcularSaldoCuenta } from '../utils/saldosUtils';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -67,37 +68,51 @@ export const estadoResultadosService = {
         gastos: {}
       };
 
+      // Agrupar movimientos por cuenta y acumular debe/haber
+      const cuentasAgrupadas = {};
+
       movimientos.forEach(mov => {
         const cuenta = mov.plan_cuentas;
-        if (!cuenta || !cuenta.codigo) return;
+        if (!cuenta || !cuenta.tipo) return;
 
-        const debe = parseFloat(mov.debe || 0);
-        const haber = parseFloat(mov.haber || 0);
-        let monto = 0;
+        if (!cuentasAgrupadas[cuenta.id]) {
+          cuentasAgrupadas[cuenta.id] = {
+            cuenta,
+            debe: 0,
+            haber: 0
+          };
+        }
 
-        if (cuenta.codigo.startsWith('4')) { // INGRESOS
-          // Los ingresos aumentan con el haber y disminuyen con el debe
-          monto = haber - debe;
+        cuentasAgrupadas[cuenta.id].debe += parseFloat(mov.debe || 0);
+        cuentasAgrupadas[cuenta.id].haber += parseFloat(mov.haber || 0);
+      });
+
+      // Calcular montos usando función utilitaria centralizada
+      Object.values(cuentasAgrupadas).forEach(item => {
+        const { cuenta, debe, haber } = item;
+
+        // Usar función utilitaria para calcular monto según tipo de cuenta
+        const monto = calcularSaldoCuenta(debe, haber, cuenta.tipo);
+
+        // Clasificar por tipo de cuenta
+        if (cuenta.tipo === 'resultado positivo') { // INGRESOS
           if (!resultado.ingresos[cuenta.id]) {
             resultado.ingresos[cuenta.id] = { cuenta, monto: 0 };
           }
-          resultado.ingresos[cuenta.id].monto += monto;
-        } else if (cuenta.codigo.startsWith('5')) { // COSTOS
-          // Los costos aumentan con el debe y disminuyen con el haber
-          // Guardamos como positivo para mostrarlo
-          monto = debe - haber;
-          if (!resultado.costos[cuenta.id]) {
-            resultado.costos[cuenta.id] = { cuenta, monto: 0 };
+          resultado.ingresos[cuenta.id].monto = monto;
+        } else if (cuenta.tipo === 'resultado negativo') { // COSTOS Y GASTOS
+          // Determinar si es costo o gasto por código
+          if (cuenta.codigo.startsWith('5')) {
+            if (!resultado.costos[cuenta.id]) {
+              resultado.costos[cuenta.id] = { cuenta, monto: 0 };
+            }
+            resultado.costos[cuenta.id].monto = monto;
+          } else if (cuenta.codigo.startsWith('6')) {
+            if (!resultado.gastos[cuenta.id]) {
+              resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
+            }
+            resultado.gastos[cuenta.id].monto = monto;
           }
-          resultado.costos[cuenta.id].monto += monto;
-        } else if (cuenta.codigo.startsWith('6')) { // GASTOS
-          // Los gastos aumentan con el debe y disminuyen con el haber
-          // Guardamos como positivo para mostrarlo
-          monto = debe - haber;
-          if (!resultado.gastos[cuenta.id]) {
-            resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
-          }
-          resultado.gastos[cuenta.id].monto += monto;
         }
       });
 

@@ -5,6 +5,7 @@ import { formatearMonto, formatearMontoCompleto } from '../../../shared/utils/fo
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { descargarLibroMayorPDF } from './pdf/LibroMayorPDF';
+import { calcularSaldoCuenta } from '../utils/saldosUtils';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -15,7 +16,7 @@ const libroMayorService = {
     const { data: cuentasConMovimientos, error: errorCuentas } = await supabase
       .from('plan_cuentas')
       .select(`
-        id, codigo, nombre, moneda_original
+        id, codigo, nombre, moneda_original, tipo
       `)
       .eq('activa', true)
       .order('codigo');
@@ -58,10 +59,10 @@ const libroMayorService = {
   async getLibroMayorCuenta(cuentaId, fechaDesde = null, fechaHasta = null) {
     console.log('📖 Obteniendo libro mayor para cuenta:', cuentaId);
 
-    // Primero obtener información de la cuenta
+    // Primero obtener información de la cuenta (incluir tipo para cálculo de saldos)
     const { data: cuenta, error: errorCuenta } = await supabase
       .from('plan_cuentas')
-      .select('*, moneda_original')
+      .select('*, moneda_original, tipo')
       .eq('id', cuentaId)
       .single();
 
@@ -119,19 +120,24 @@ const libroMayorService = {
           .in('asiento_id', asientoIdsAnteriores);
 
         if (movimientosAnteriores) {
-          saldoInicial = movimientosAnteriores.reduce((acc, mov) => {
-            // CORRECCIÓN: Debe aumenta saldo, Haber lo disminuye
-            return acc + parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0);
-          }, 0);
+          // Calcular totales de debe y haber
+          const totalDebeAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
+          const totalHaberAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
+
+          // Usar función utilitaria para calcular saldo inicial
+          saldoInicial = calcularSaldoCuenta(totalDebeAnterior, totalHaberAnterior, cuenta.tipo);
         }
       }
     }
 
     // Calcular saldos acumulados (como vienen en orden descendente, calculamos desde el final)
-    // Primero necesitamos calcular el saldo final
-    const saldoFinalCalculado = movimientos.reduce((acc, mov) => {
-      return acc + parseFloat(mov.debe || 0) - parseFloat(mov.haber || 0);
-    }, saldoInicial);
+    // Primero calcular el saldo final usando función utilitaria
+    const totalDebe = movimientos.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
+    const totalHaber = movimientos.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
+
+    // Calcular saldo de los movimientos del período
+    const saldoMovimientos = calcularSaldoCuenta(totalDebe, totalHaber, cuenta.tipo);
+    const saldoFinalCalculado = saldoInicial + saldoMovimientos;
 
     // Ahora calculamos hacia atrás desde el saldo final
     let saldoAcumulado = saldoFinalCalculado;
@@ -141,8 +147,10 @@ const libroMayorService = {
 
       const saldoActual = saldoAcumulado;
 
-      // Para el siguiente (que es anterior en el tiempo), restamos este movimiento
-      saldoAcumulado = saldoAcumulado - debe + haber;
+      // Para el siguiente (que es anterior en el tiempo), restamos/sumamos según naturaleza
+      // Calculamos el delta del movimiento según la naturaleza de la cuenta
+      const deltaMovimiento = calcularSaldoCuenta(debe, haber, cuenta.tipo);
+      saldoAcumulado = saldoAcumulado - deltaMovimiento;
 
       return {
         ...mov,
@@ -174,11 +182,19 @@ const libroMayorService = {
 
     if (error) throw error;
 
+    // Obtener tipo de cuenta para cálculo correcto
+    const { data: cuentaInfo } = await supabase
+      .from('plan_cuentas')
+      .select('tipo')
+      .eq('id', cuentaId)
+      .single();
+
     const totalMovimientos = movimientos.length;
     const totalDebe = movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0);
     const totalHaber = movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0);
-    // CORRECCIÓN: Debe aumenta saldo, Haber lo disminuye
-    const saldoActual = totalDebe - totalHaber;
+
+    // Usar función utilitaria para calcular saldo actual
+    const saldoActual = calcularSaldoCuenta(totalDebe, totalHaber, cuentaInfo?.tipo || 'activo');
 
     // Calcular actividad por mes
     const ahora = new Date();
@@ -373,32 +389,50 @@ const LibroMayorSection = () => {
     });
   };
 
-  const getTipoColor = (codigo) => {
-    const primerDigito = codigo.charAt(0);
-    switch (primerDigito) {
-      case '1': return 'text-white bg-slate-600 border-slate-300';
-      case '2': return 'text-white bg-slate-600 border-slate-300';
-      case '3': return 'text-white bg-slate-600 border-slate-300';
-      case '4': return 'text-white bg-slate-600 border-slate-300';
-      case '5': return 'text-white bg-slate-600 border-slate-300';
-      default: return 'text-slate-600 bg-slate-600 border-slate-300';
+  // Color de etiquetas (siempre gris)
+  const getTipoColor = () => {
+    return 'text-white bg-slate-600 border-slate-300';
+  };
+
+  // Color de saldos según tipo de cuenta
+  const getSaldoColor = (tipo) => {
+    switch (tipo) {
+      case 'activo':
+      case 'resultado positivo':
+        return 'text-emerald-600';
+      case 'pasivo':
+      case 'resultado negativo':
+        return 'text-red-600';
+      case 'patrimonio':
+        return 'text-blue-600';
+      default:
+        return 'text-slate-800';
     }
   };
 
-  const getTipoTexto = (codigo) => {
-    const primerDigito = codigo.charAt(0);
-    switch (primerDigito) {
-      case '1': return 'ACTIVO';
-      case '2': return 'PASIVO';
-      case '3': return 'PATRIMONIO';
-      case '4': return 'INGRESO';
-      case '5': return 'GASTO';
-      default: return 'OTRO';
+  const getTipoTexto = (tipo) => {
+    switch (tipo) {
+      case 'activo':
+        return 'ACTIVO';
+      case 'pasivo':
+        return 'PASIVO';
+      case 'patrimonio':
+        return 'PATRIMONIO';
+      case 'resultado positivo':
+        return 'RESULTADO POSITIVO';
+      case 'resultado negativo':
+        return 'RESULTADO NEGATIVO';
+      default:
+        return 'OTRO';
     }
   };
 
-  // Filtrar cuentas por búsqueda
+  // Filtrar cuentas por búsqueda y excluir cuentas con saldo 0
   const cuentasFiltradas = cuentasConSaldos.filter(cuenta => {
+    // Excluir cuentas con saldo 0 (considerando margen de error de 0.01)
+    if (Math.abs(cuenta.saldoActual || 0) < 0.01) return false;
+
+    // Filtrar por búsqueda
     if (!busquedaCuenta) return true;
     const termino = busquedaCuenta.toLowerCase();
     return (
@@ -484,8 +518,8 @@ const LibroMayorSection = () => {
                           <code className="text-sm text-slate-800 font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200">
                             {cuenta.codigo}
                           </code>
-                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getTipoColor(cuenta.codigo)}`}>
-                            {getTipoTexto(cuenta.codigo)}
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getTipoColor()}`}>
+                            {getTipoTexto(cuenta.tipo)}
                           </span>
                         </div>
                         <div className="font-medium text-slate-800">{cuenta.nombre}</div>
@@ -495,7 +529,7 @@ const LibroMayorSection = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-slate-500 mb-1">Saldo actual</div>
-                            <div className={`font-semibold text-sm ${(cuenta.saldoActual || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <div className={`font-semibold text-sm ${getSaldoColor(cuenta.tipo)}`}>
                               {loadingSaldos ? (
                                 <span className="text-slate-400">Cargando...</span>
                               ) : (
@@ -709,7 +743,7 @@ const LibroMayorSection = () => {
                             ) : '-'}
                           </td>
                           <td className="text-center py-3 px-4 font-bold">
-                            <span className={mov.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                            <span className={getSaldoColor(cuenta.tipo)}>
                               {formatearMoneda(Math.abs(mov.saldoActual))}
                             </span>
                           </td>

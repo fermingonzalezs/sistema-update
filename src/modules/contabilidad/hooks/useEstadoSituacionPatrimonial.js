@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { calcularSaldoCuenta } from '../utils/saldosUtils';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -71,7 +72,8 @@ const agruparPorNivel3 = async (cuentas) => {
       }
       
       grupos[codigoNivel3].cuentas.push(cuenta);
-      grupos[codigoNivel3].saldoTotal += Math.abs(cuenta.saldo);
+      // Sumar el saldo directamente (ya viene con el signo correcto de calcularSaldoCuenta)
+      grupos[codigoNivel3].saldoTotal += cuenta.saldo;
     }
   });
 
@@ -89,7 +91,8 @@ export const estadoSituacionPatrimonialService = {
     try {
       const fecha = fechaCorte || obtenerFechaLocal();
 
-      // Primero obtener asientos hasta la fecha de corte
+      // Obtener TODOS los movimientos hasta la fecha de corte
+      // Primero obtenemos los asientos, luego los movimientos en lotes para evitar el límite
       const { data: asientos, error: errorAsientos } = await supabase
         .from('asientos_contables')
         .select('id')
@@ -111,21 +114,65 @@ export const estadoSituacionPatrimonialService = {
       }
 
       const asientoIds = asientos.map(a => a.id);
+      console.log(`📊 Total de asientos hasta ${fecha}:`, asientos.length);
 
-      // Obtener movimientos de esos asientos
-      const { data: movimientos, error } = await supabase
-        .from('movimientos_contables')
-        .select(`
-          *,
-          plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria),
-          asientos_contables (fecha)
-        `)
-        .in('asiento_id', asientoIds);
+      // Obtener movimientos en lotes para evitar límite de 1000
+      const BATCH_SIZE = 200; // Reducir tamaño de lote
+      let todosLosMovimientos = [];
+      let batchCount = 0;
 
-      if (error) throw error;
+      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
+        const batch = asientoIds.slice(i, i + BATCH_SIZE);
+        batchCount++;
+
+        const { data: movimientosBatch, error: errorBatch } = await supabase
+          .from('movimientos_contables')
+          .select(`
+            *,
+            plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria)
+          `)
+          .in('asiento_id', batch);
+
+        if (errorBatch) throw errorBatch;
+
+        console.log(`📦 Lote ${batchCount}: ${movimientosBatch.length} movimientos (asientos ${i+1}-${Math.min(i+BATCH_SIZE, asientoIds.length)})`);
+        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+      }
+
+      const movimientos = todosLosMovimientos;
+      console.log(`📊 TOTAL de movimientos procesados en ${batchCount} lotes:`, movimientos.length);
+
+      if (!movimientos || movimientos.length === 0) {
+        console.log('ℹ️ No hay movimientos hasta la fecha de corte');
+        return {
+          activos: [],
+          pasivos: [],
+          patrimonio: [],
+          totalActivos: 0,
+          totalPasivos: 0,
+          totalPatrimonio: 0,
+          fechaCorte: fecha
+        };
+      }
+
+      console.log(`📊 Total de movimientos obtenidos hasta ${fecha}:`, movimientos.length);
 
       // Agrupar por cuenta y calcular saldos
       const saldosPorCuenta = {};
+
+      // DEBUG: Contar movimientos de la cuenta 6
+      const movimientosCuenta6 = movimientos.filter(m => m.plan_cuentas?.id === 6);
+      console.log('🔍 DEBUG - Movimientos de Caja LP Dólares (ID 6):', {
+        totalMovimientos: movimientosCuenta6.length,
+        debeTotal: movimientosCuenta6.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0),
+        haberTotal: movimientosCuenta6.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0),
+        primeros5: movimientosCuenta6.slice(0, 5).map(m => ({
+          id: m.id,
+          asiento_id: m.asiento_id,
+          debe: m.debe,
+          haber: m.haber
+        }))
+      });
 
       movimientos.forEach(mov => {
         const cuenta = mov.plan_cuentas;
@@ -155,19 +202,15 @@ export const estadoSituacionPatrimonialService = {
 
       Object.values(saldosPorCuenta).forEach(item => {
         const { cuenta } = item;
-        let saldo = 0;
-        
+
         // Validar tipo de cuenta
-        if (!cuenta.tipo || !['activo', 'pasivo', 'patrimonio'].includes(cuenta.tipo)) {
+        if (!cuenta.tipo || !['activo', 'pasivo', 'patrimonio', 'resultado positivo', 'resultado negativo'].includes(cuenta.tipo)) {
           console.warn(`⚠️ Cuenta con tipo inválido: ${cuenta.nombre} (${cuenta.tipo})`);
           return;
         }
-        
-        if (cuenta.tipo === 'activo') {
-          saldo = item.debe - item.haber;
-        } else if (cuenta.tipo === 'pasivo' || cuenta.tipo === 'patrimonio') {
-          saldo = item.haber - item.debe;
-        }
+
+        // Usar función utilitaria centralizada para calcular saldo
+        const saldo = calcularSaldoCuenta(item.debe, item.haber, cuenta.tipo);
         item.saldo = saldo;
 
         // Solo incluir cuentas con saldo significativo
@@ -178,19 +221,49 @@ export const estadoSituacionPatrimonialService = {
         }
       });
 
-      // Ordenar cuentas individuales por código 
+      // Ordenar cuentas individuales por código
       const activosOrdenados = ordenarCuentasPorCodigo(balance.activos);
       const pasivosOrdenados = ordenarCuentasPorCodigo(balance.pasivos);
       const patrimonioOrdenado = ordenarCuentasPorCodigo(balance.patrimonio);
+
+      // DEBUG: Verificar Caja La Plata Dólares (cuenta ID 6)
+      const cajaLPDolares = activosOrdenados.find(a => a.cuenta.id === 6);
+      if (cajaLPDolares) {
+        console.log('🔍 DEBUG - Caja La Plata Dólares (ID 6):', {
+          codigo: cajaLPDolares.cuenta.codigo,
+          nombre: cajaLPDolares.cuenta.nombre,
+          debe: cajaLPDolares.debe,
+          haber: cajaLPDolares.haber,
+          saldo: cajaLPDolares.saldo
+        });
+      }
 
       // Agrupar ACTIVOS y PASIVOS por nivel 3 (patrimonio mantiene estructura individual)
       const activosAgrupados = await agruparPorNivel3(activosOrdenados);
       const pasivosAgrupados = await agruparPorNivel3(pasivosOrdenados);
 
-      // Calcular totales correctamente (suma directa de saldos)
-      const totalActivos = activosOrdenados.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
-      const totalPasivos = pasivosOrdenados.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
-      const totalPatrimonio = patrimonioOrdenado.reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+      // DEBUG: Verificar grupo 1.1.01 (Disponibilidades)
+      const grupoDisponibilidades = activosAgrupados.find(g => g.codigoNivel3 === '1.1.01');
+      if (grupoDisponibilidades) {
+        console.log('🔍 DEBUG - Grupo 1.1.01 (Disponibilidades):', {
+          codigoNivel3: grupoDisponibilidades.codigoNivel3,
+          nombre: grupoDisponibilidades.nombre,
+          saldoTotal: grupoDisponibilidades.saldoTotal,
+          cantidadCuentas: grupoDisponibilidades.cuentas.length,
+          cuentas: grupoDisponibilidades.cuentas.map(c => ({
+            id: c.cuenta.id,
+            codigo: c.cuenta.codigo,
+            nombre: c.cuenta.nombre,
+            saldo: c.saldo
+          }))
+        });
+      }
+
+      // Calcular totales correctamente (suma directa de saldos sin Math.abs)
+      // Los saldos ya vienen con el signo correcto gracias a calcularSaldoCuenta()
+      const totalActivos = activosOrdenados.reduce((sum, item) => sum + item.saldo, 0);
+      const totalPasivos = pasivosOrdenados.reduce((sum, item) => sum + item.saldo, 0);
+      const totalPatrimonio = patrimonioOrdenado.reduce((sum, item) => sum + item.saldo, 0);
 
       console.log('✅ Balance General calculado:', {
         activosGrupos: activosAgrupados.length,
@@ -232,13 +305,14 @@ export const estadoSituacionPatrimonialService = {
       const balance = await this.getBalanceGeneral(fechaCorte);
       
       // Calcular ratios financieros básicos
+      // Los saldos ya vienen con signo correcto, no usar Math.abs()
       const activosCorrientes = balance.activos
         .filter(item => this.esActivoCorriente(item.cuenta))
-        .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
-        
+        .reduce((sum, item) => sum + item.saldo, 0);
+
       const pasivosCorrientes = balance.pasivos
         .filter(item => this.esPasivoCorriente(item.cuenta))
-        .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+        .reduce((sum, item) => sum + item.saldo, 0);
 
       const ratios = {
         liquidezCorriente: pasivosCorrientes > 0 
