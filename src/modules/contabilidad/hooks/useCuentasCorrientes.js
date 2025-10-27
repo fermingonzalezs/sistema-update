@@ -60,8 +60,8 @@ export const cuentasCorrientesService = {
         ultimo_movimiento: ultimoMovimiento
       };
     })
-    // Filtrar solo clientes que tienen movimientos o saldo diferente de 0
-    .filter(cliente => cliente.total_movimientos > 0 || parseFloat(cliente.saldo_total) !== 0)
+    // Filtrar solo clientes que tienen movimientos
+    .filter(cliente => cliente.total_movimientos > 0)
     // Ordenar por saldo total descendente
     .sort((a, b) => parseFloat(b.saldo_total) - parseFloat(a.saldo_total));
 

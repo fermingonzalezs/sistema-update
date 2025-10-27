@@ -132,8 +132,6 @@ const CuentasCorrientesSection = () => {
 
     const saldo = parseFloat(cliente.saldo_total || 0);
 
-    // Excluir siempre cuentas saldadas (saldo = 0)
-    if (saldo === 0) return false;
 
     let matchFiltro = true;
 
@@ -145,7 +143,7 @@ const CuentasCorrientesSection = () => {
         matchFiltro = saldo < 0; // Les debemos (saldo negativo) - somos deudores con ellos
         break;
       case 'todos':
-        matchFiltro = true; // Mostrar todos (excepto saldados)
+        matchFiltro = true; // Mostrar todos
         break;
       default:
         matchFiltro = true;

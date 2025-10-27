@@ -743,7 +743,7 @@ const LibroMayorSection = () => {
                             ) : '-'}
                           </td>
                           <td className="text-center py-3 px-4 font-bold">
-                            <span className={getSaldoColor(cuenta.tipo)}>
+                            <span className={getSaldoColor(libroMayor.cuenta.tipo)}>
                               {formatearMoneda(Math.abs(mov.saldoActual))}
                             </span>
                           </td>

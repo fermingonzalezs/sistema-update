@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { estadoSituacionPatrimonialService } from './useEstadoSituacionPatrimonial';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { supabase } from '../../../lib/supabase';
+import { calcularTotalCategoria, calcularDebitos } from '../utils/saldosUtils';
 
 // Función para identificar si una cuenta es inventario/mercadería
 const esInventario = (cuenta) => {
@@ -99,8 +101,209 @@ const determinarIndicadorCapitalTrabajo = (valor) => {
   }
 };
 
+// Función para determinar el indicador de sobrecompra
+// Ratio = Compras / CMV
+// > 1.0 = Sobrecompra (compraste más de lo que vendiste)
+// 0.9-1.0 = Alineado
+// < 0.9 = Saludable (compraste menos de lo que vendiste)
+const determinarIndicadorSobrecompra = (ratio) => {
+  if (ratio < 0.9) {
+    return {
+      estado: 'verde',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Saludable'
+    };
+  } else if (ratio >= 0.9 && ratio <= 1.0) {
+    return {
+      estado: 'amarillo',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Alineado'
+    };
+  } else {
+    return {
+      estado: 'rojo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Sobrecompra'
+    };
+  }
+};
+
+// Mapeo de categorías para ratios por tipo de producto
+const CATEGORIAS_RATIO = [
+  {
+    nombre: "Notebooks Nuevas",
+    codigoBienes: "1.1.04.01.01",
+    codigoCMV: "5.0.1"
+  },
+  {
+    nombre: "Notebooks Usadas",
+    codigoBienes: "1.1.04.01.02",
+    codigoCMV: "5.0.2"
+  },
+  {
+    nombre: "Celulares Nuevos",
+    codigoBienes: "1.1.04.01.03",
+    codigoCMV: "5.0.3"
+  },
+  {
+    nombre: "Celulares Usados",
+    codigoBienes: "1.1.04.01.04",
+    codigoCMV: "5.0.4"
+  },
+  {
+    nombre: "Otros",
+    codigoBienes: "1.1.04.01.06",
+    codigoCMV: "5.0.6"
+  }
+];
+
 // Servicio para calcular ratios financieros
 export const ratiosFinancierosService = {
+  async calcularRatioSobrecompra(fechaCorte = null) {
+    console.log('📊 Calculando ratio de sobrecompra...', { fechaCorte });
+
+    try {
+      const fecha = fechaCorte || obtenerFechaLocal();
+
+      // Calcular primer y último día del mes actual
+      const fechaActual = new Date(fecha);
+      const primerDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+      const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+
+      const fechaInicioStr = primerDiaMes.toISOString().split('T')[0];
+      const fechaFinStr = ultimoDiaMes.toISOString().split('T')[0];
+
+      console.log('📅 RATIOS - Mes calendario actual:', {
+        desde: fechaInicioStr,
+        hasta: fechaFinStr,
+        mes: fechaActual.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
+      });
+
+      // Obtener asientos del mes
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_contables')
+        .select('id')
+        .gte('fecha', fechaInicioStr)
+        .lte('fecha', fechaFinStr);
+
+      if (errorAsientos) throw errorAsientos;
+
+      if (!asientos || asientos.length === 0) {
+        return {
+          cmv: 0,
+          compras: 0,
+          ratio: 0,
+          indicador: determinarIndicadorSobrecompra(0),
+          fechaInicio: fechaInicioStr,
+          fechaFin: fecha
+        };
+      }
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos en lotes para evitar límite de 1000 registros
+      const BATCH_SIZE = 200;
+      let todosLosMovimientos = [];
+      let batchCount = 0;
+
+      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
+        const batch = asientoIds.slice(i, i + BATCH_SIZE);
+        batchCount++;
+
+        const { data: movimientosBatch, error: errorBatch } = await supabase
+          .from('movimientos_contables')
+          .select(`
+            *,
+            plan_cuentas (id, codigo, nombre, tipo, categoria)
+          `)
+          .in('asiento_id', batch);
+
+        if (errorBatch) throw errorBatch;
+
+        console.log(`📦 RATIOS Lote ${batchCount}: ${movimientosBatch.length} movimientos (asientos ${i+1}-${Math.min(i+BATCH_SIZE, asientoIds.length)})`);
+        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+      }
+
+      const movimientos = todosLosMovimientos;
+      console.log(`📊 RATIOS TOTAL de movimientos procesados en ${batchCount} lotes:`, movimientos.length);
+
+      console.log('🔍 DEBUG RATIOS - Total movimientos obtenidos:', movimientos.length);
+      console.log('🔍 DEBUG RATIOS - Asientos del período:', asientos.length);
+
+      // Calcular ratios por categoría (solo débitos)
+      const categorias = CATEGORIAS_RATIO.map(cat => {
+        // Sumar SOLO los débitos de cada cuenta específica
+        const debitosCompras = calcularDebitos(
+          movimientos,
+          (mov) => mov.plan_cuentas?.codigo === cat.codigoBienes
+        );
+
+        const debitosCMV = calcularDebitos(
+          movimientos,
+          (mov) => mov.plan_cuentas?.codigo === cat.codigoCMV
+        );
+
+        // Ratio = Compras / CMV (invertido)
+        const ratio = debitosCMV > 0
+          ? debitosCompras / debitosCMV
+          : 0;
+
+        console.log(`📊 Categoría ${cat.nombre}:`, {
+          cuenta_bienes: cat.codigoBienes,
+          cuenta_cmv: cat.codigoCMV,
+          compras: debitosCompras.toFixed(2),
+          cmv: debitosCMV.toFixed(2),
+          ratio: ratio.toFixed(2)
+        });
+
+        return {
+          nombre: cat.nombre,
+          codigoBienes: cat.codigoBienes,
+          codigoCMV: cat.codigoCMV,
+          compras: debitosCompras,
+          cmv: debitosCMV,
+          ratio,
+          indicador: determinarIndicadorSobrecompra(ratio)
+        };
+      });
+
+      // Calcular totales generales (suma de todas las categorías)
+      const comprasTotal = categorias.reduce((sum, cat) => sum + cat.compras, 0);
+      const cmvTotal = categorias.reduce((sum, cat) => sum + cat.cmv, 0);
+      // Ratio General = Compras / CMV (invertido)
+      const ratioGeneral = cmvTotal > 0 ? comprasTotal / cmvTotal : 0;
+
+      console.log('📊 TOTALES GENERALES:', {
+        compras: comprasTotal.toFixed(2),
+        cmv: cmvTotal.toFixed(2),
+        ratio: ratioGeneral.toFixed(2),
+        periodo: `${fechaInicioStr} al ${fechaFinStr}`
+      });
+
+      return {
+        // Totales generales
+        compras: comprasTotal,
+        cmv: cmvTotal,
+        ratio: ratioGeneral,
+        indicador: determinarIndicadorSobrecompra(ratioGeneral),
+
+        // Desglose por categorías
+        categorias,
+
+        // Metadata
+        fechaInicio: fechaInicioStr,
+        fechaFin: fechaFinStr
+      };
+
+    } catch (error) {
+      console.error('❌ Error calculando ratio de sobrecompra:', error);
+      throw error;
+    }
+  },
+
   async calcularRatiosLiquidez(fechaCorte = null) {
     console.log('📊 Calculando ratios de liquidez...', { fechaCorte });
 
@@ -129,24 +332,24 @@ export const ratiosFinancierosService = {
         };
       }
 
-      // Calcular activo corriente
+      // Calcular activo corriente desde cuentas detalladas
       const activoCorriente = balance.activosDetalle
         .filter(item => estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta))
-        .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+        .reduce((sum, item) => sum + item.saldo, 0);
 
       console.log('💰 Activo Corriente:', activoCorriente);
 
-      // Calcular pasivo corriente
+      // Calcular pasivo corriente desde cuentas detalladas
       const pasivoCorriente = balance.pasivosDetalle
         .filter(item => estadoSituacionPatrimonialService.esPasivoCorriente(item.cuenta))
-        .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+        .reduce((sum, item) => sum + item.saldo, 0);
 
       console.log('💳 Pasivo Corriente:', pasivoCorriente);
 
-      // Calcular inventario (dentro de activos corrientes)
+      // Calcular inventario desde cuentas detalladas (más preciso para este caso)
       const inventario = balance.activosDetalle
         .filter(item => estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta) && esInventario(item.cuenta))
-        .reduce((sum, item) => sum + Math.abs(item.saldo), 0);
+        .reduce((sum, item) => sum + item.saldo, 0);
 
       console.log('📦 Inventario:', inventario);
 
@@ -199,6 +402,7 @@ export const ratiosFinancierosService = {
 // Hook personalizado para Ratios Financieros
 export function useRatiosFinancieros() {
   const [ratios, setRatios] = useState(null);
+  const [ratioSobrecompra, setRatioSobrecompra] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -207,8 +411,14 @@ export function useRatiosFinancieros() {
     setError(null);
 
     try {
-      const data = await ratiosFinancierosService.calcularRatiosLiquidez(fechaCorte);
-      setRatios(data);
+      // Calcular ambos ratios en paralelo
+      const [liquidez, sobrecompra] = await Promise.all([
+        ratiosFinancierosService.calcularRatiosLiquidez(fechaCorte),
+        ratiosFinancierosService.calcularRatioSobrecompra(fechaCorte)
+      ]);
+
+      setRatios(liquidez);
+      setRatioSobrecompra(sobrecompra);
       console.log('✅ Ratios financieros calculados exitosamente');
     } catch (err) {
       console.error('Error en useRatiosFinancieros:', err);
@@ -226,6 +436,7 @@ export function useRatiosFinancieros() {
 
   return {
     ratios,
+    ratioSobrecompra,
     loading,
     error,
     refetch: calcularRatios

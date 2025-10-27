@@ -533,16 +533,51 @@ const generateCelularCopy = (cel, config) => {
 };
 
 /**
+ * Obtener emoji según categoría del producto
+ */
+const getCategoriaEmoji = (categoria) => {
+  if (!categoria) return '📦';
+
+  const categoriaUpper = categoria.toUpperCase();
+
+  const emojiMap = {
+    'ACCESORIOS': '🔧',
+    'MONITORES': '🖥️',
+    'COMPONENTES': '⚡',
+    'FUNDAS_TEMPLADOS': '🛡️',
+    'TABLETS': '📱',
+    'APPLE': '🍎',
+    'MOUSE_TECLADOS': '⌨️',
+    'AUDIO': '🎧',
+    'ALMACENAMIENTO': '💾',
+    'CAMARAS': '📷',
+    'CONSOLAS': '🎮',
+    'GAMING': '🎯',
+    'DRONES': '🚁',
+    'WATCHES': '⌚',
+    'PLACAS_VIDEO': '🎨',
+    'STREAMING': '📡',
+    'REDES': '🌐',
+    'BAGS_CASES': '💼',
+    'CABLES_CARGADORES': '🔌',
+    'REPUESTOS': '🔩'
+  };
+
+  return emojiMap[categoriaUpper] || '📦';
+};
+
+/**
  * Generar copy para otros productos
- * SIMPLE: 📦 MODELO - DESCRIPCION - PRECIO
+ * SIMPLE: [EMOJI CATEGORÍA] NOMBRE_PRODUCTO - PRECIO
  * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - ESTADO - FALLAS - OBSERVACIONES
  */
 const generateOtroCopy = (otro, config) => {
   const partes = [];
-  
-  // Emoji solo en versión simple
+
+  // Emoji solo en versión simple - usar emoji según categoría
   if (config.includeEmojis) {
-    partes.push('📦');
+    const emoji = getCategoriaEmoji(otro.categoria);
+    partes.push(emoji);
   }
   
   // CODIGO al principio (solo en versión completa)
@@ -551,51 +586,28 @@ const generateOtroCopy = (otro, config) => {
     partes.push(codigo);
   }
   
-  // 1. MODELO (usar nombre_producto como modelo principal)
-  let modelo = '';
+  // 1. NOMBRE DEL PRODUCTO
+  let nombreProducto = '';
   if (otro.nombre_producto) {
-    modelo = otro.nombre_producto;
+    nombreProducto = otro.nombre_producto;
   } else if (otro.marca && (otro.modelo || otro.modelo_otro)) {
     const modeloProducto = otro.modelo || otro.modelo_otro;
-    modelo = `${otro.marca} ${modeloProducto}`;
+    nombreProducto = `${otro.marca} ${modeloProducto}`;
   } else if (otro.modelo || otro.modelo_otro) {
-    modelo = otro.modelo || otro.modelo_otro;
+    nombreProducto = otro.modelo || otro.modelo_otro;
   } else if (otro.marca) {
-    modelo = otro.marca;
+    nombreProducto = otro.marca;
   } else {
-    modelo = otro.descripcion || 'Producto sin nombre';
+    nombreProducto = otro.descripcion || 'Producto sin nombre';
   }
-  partes.push(modelo.toUpperCase());
-  
-  // 2. DESCRIPCION (solo si es diferente del modelo)
-  let descripcion = '';
-  if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
-    descripcion = otro.descripcion;
-  } else if (!otro.descripcion && !otro.nombre_producto) {
-    descripcion = 'Sin descripción';
-  }
-  // Si descripcion está vacía o es igual al nombre_producto, no agregamos descripción duplicada
-  
-  // Para versión simple: agregar especificaciones y color a la descripción
-  if (config.style === 'simple') {
-    // Agregar especificaciones si las hay
-    if (otro.especificaciones_otro) {
-      descripcion += descripcion ? ` - ${otro.especificaciones_otro}` : otro.especificaciones_otro;
-    }
-    
-    // Agregar color si lo hay
-    if (otro.color) {
-      descripcion += descripcion ? ` - ${otro.color}` : otro.color;
-    }
-    
-    // Solo agregar descripción si no está vacía
-    if (descripcion) {
-      partes.push(descripcion.toUpperCase());
-    }
-  } else {
-    // Para versión completa: descripción con formato normal (solo si no está vacía)
-    if (descripcion) {
-      partes.push(descripcion.charAt(0).toUpperCase() + descripcion.slice(1).toLowerCase());
+  partes.push(nombreProducto.toUpperCase());
+
+  // Para versión SIMPLE: solo EMOJI - NOMBRE - PRECIO (sin descripción, sin especificaciones)
+  // Para versión COMPLETA: agregar campos adicionales
+  if (config.style === 'completo') {
+    // 2. DESCRIPCION (solo si es diferente del nombre)
+    if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
+      partes.push(otro.descripcion.charAt(0).toUpperCase() + otro.descripcion.slice(1).toLowerCase());
     }
   }
   

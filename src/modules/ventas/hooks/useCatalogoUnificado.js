@@ -633,7 +633,9 @@ export const useCatalogoUnificado = () => {
     actualizarProducto,
 
     // Estadísticas
-    totalProductos: datosActuales.length,
+    // Para "otros", usar datosSinFiltroSubcategoria que ya aplica el filtro de stock
+    // Para otras categorías, usar datosActuales
+    totalProductos: categoriaActiva === 'otros' ? calcularDatosSinFiltroSubcategoria.length : datosActuales.length,
     productosFiltrados: datosFilteredAndSorted.length,
     tieneProductos: datosActuales.length > 0,
     hayFiltrosActivos: Object.values(filtrosUnificados).some(valor => valor) || ordenamiento.campo

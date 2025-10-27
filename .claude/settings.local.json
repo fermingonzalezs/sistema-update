@@ -13,7 +13,8 @@
       "Bash(npm uninstall xlsx)",
       "Bash(npm install xlsx-js-style)",
       "Bash(npm install)",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

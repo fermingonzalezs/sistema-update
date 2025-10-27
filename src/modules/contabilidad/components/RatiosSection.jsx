@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, RefreshCw, DollarSign, DropletIcon, Wallet } from 'lucide-react';
+import { TrendingUp, RefreshCw, DollarSign, DropletIcon, Wallet, ShoppingCart } from 'lucide-react';
 import {
   RadialBarChart,
   RadialBar,
@@ -16,62 +16,105 @@ import { useRatiosFinancieros } from '../hooks/useRatiosFinancieros';
 import { formatearMonto } from '../../../shared/utils/formatters';
 
 // ===============================
-// 🟢 Componente Gauge con aguja fija y alineada
+// 🟢 Componente Gauge radial con marcas de rangos
 // ===============================
-const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, interpretacion }) => {
-  // Zonas de color (según el rango)
-  const zonaRoja = Math.min(1.0 / maxValue * 100, 100);
-  const zonaAmarilla = Math.min((1.5 - 1.0) / maxValue * 100, 100);
-  const zonaVerde = 100 - zonaRoja - zonaAmarilla;
-
-  // Calcular ángulo de la aguja (180° → 0°)
+const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, rangos, activoCorriente, pasivoCorriente, inventario }) => {
+  // Calcular porcentaje para el valor actual
   const valorLimitado = Math.max(0, Math.min(valor, maxValue));
-  const anguloAguja = 180 - (valorLimitado / maxValue * 180);
+  const porcentaje = (valorLimitado / maxValue) * 100;
 
-  // Datos para las zonas de color
-  const zonasData = [
-    { name: 'Riesgo', value: zonaRoja, fill: '#ef4444' },
-    { name: 'Aceptable', value: zonaAmarilla, fill: '#f59e0b' },
-    { name: 'Saludable', value: zonaVerde, fill: '#10b981' }
+  // Datos para el gauge: fondo gris + valor actual con color
+  const gaugeData = [
+    {
+      name: 'Valor',
+      value: porcentaje,
+      fill: indicador.color
+    }
   ];
 
-  // Definir centro común (coincide entre el gráfico y la aguja)
-  const centroX = '50%';
-  const centroY = '65%';
+  // Calcular posiciones angulares para las marcas de rangos
+  const calcularAngulo = (valor) => {
+    const porcentaje = (valor / maxValue) * 100;
+    return 90 - (porcentaje * 3.6); // 90° inicio, -3.6° por cada 1%
+  };
+
+  // Determinar qué fórmula mostrar basado en el título
+  const esLiquidezCorriente = titulo.toLowerCase().includes('liquidez corriente');
+  const esPruebaAcida = titulo.toLowerCase().includes('prueba');
 
   return (
-    <div className="bg-white border border-slate-200 rounded p-2">
+    <div className="bg-white border border-slate-200 rounded p-4">
       {/* Título */}
-      <div className="border-b border-slate-200 py-2 mb-1">
-        <div className="flex items-center justify-center space-x-2">
-          {Icon && <Icon className="w-4 h-4 text-slate-700" />}
-          <h3 className="text-xs font-semibold text-slate-800 uppercase text-center">
+      <div className="border-b border-slate-200 pb-3 mb-4">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          {Icon && <Icon className="w-5 h-5 text-slate-700" />}
+          <h3 className="text-sm font-semibold text-slate-800 uppercase text-center">
             {titulo}
           </h3>
         </div>
+
+        {/* Fórmula y valores */}
+        {activoCorriente !== undefined && pasivoCorriente !== undefined && (
+          <div className="text-center space-y-1">
+            {esLiquidezCorriente && (
+              <>
+                <div className="text-xs text-slate-600 font-medium">
+                  Activo Corriente / Pasivo Corriente
+                </div>
+                <div className="text-xs text-slate-700">
+                  {Math.round(activoCorriente).toLocaleString('es-AR')} / {Math.round(pasivoCorriente).toLocaleString('es-AR')}
+                </div>
+              </>
+            )}
+            {esPruebaAcida && inventario !== undefined && (
+              <>
+                <div className="text-xs text-slate-600 font-medium">
+                  (Activo Corriente - Inventario) / Pasivo Corriente
+                </div>
+                <div className="text-xs text-slate-700">
+                  ({Math.round(activoCorriente).toLocaleString('es-AR')} - {Math.round(inventario).toLocaleString('es-AR')}) / {Math.round(pasivoCorriente).toLocaleString('es-AR')}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Gauge visual */}
-      <div className="flex flex-col items-center relative">
-        <div style={{ width: '100%', height: 140, position: 'relative' }}>
-          {/* Fondo del gauge */}
+      <div className="flex flex-col items-center">
+        <div style={{ width: '100%', height: 200, position: 'relative' }}>
+          {/* Indicador de estado - esquina superior izquierda */}
+          <div
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
+          >
+            <span className="text-sm">{indicador.emoji}</span>
+            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+              {indicador.texto}
+            </span>
+          </div>
+
           <ResponsiveContainer width="100%" height="100%">
             <RadialBarChart
-              cx={centroX}
-              cy={centroY}
-              innerRadius="60%"
-              outerRadius="90%"
-              barSize={15}
-              data={zonasData}
-              startAngle={180}
-              endAngle={0}
+              cx="50%"
+              cy="50%"
+              innerRadius="70%"
+              outerRadius="100%"
+              barSize={25}
+              data={gaugeData}
+              startAngle={90}
+              endAngle={-270}
             >
               <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-              <RadialBar dataKey="value" cornerRadius={0} />
+              <RadialBar
+                dataKey="value"
+                cornerRadius={10}
+                background={{ fill: '#e2e8f0' }}
+              />
             </RadialBarChart>
           </ResponsiveContainer>
 
-          {/* Aguja SVG superpuesta */}
+          {/* Marcas de separación de rangos */}
           <svg
             style={{
               position: 'absolute',
@@ -82,128 +125,374 @@ const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, in
               pointerEvents: 'none'
             }}
           >
-            <circle cx={centroX} cy={centroY} r="6" fill="#1e293b" />
-            <line
-              x1={centroX}
-              y1={centroY}
-              x2="50%"
-              y2="20%"
-              stroke="#1e293b"
-              strokeWidth="3"
-              strokeLinecap="round"
-              transform={`rotate(${anguloAguja}, 50%, 65%)`}
-              style={{
-                transformOrigin: '50% 65%',
-                transition: 'transform 0.5s ease-out'
-              }}
-            />
+            {rangos.slice(0, -1).map((rango, idx) => {
+              const angulo = calcularAngulo(rango.max);
+              const rad = (angulo * Math.PI) / 180;
+              const cx = 50; // porcentaje
+              const cy = 50;
+              const innerR = 70; // porcentaje del innerRadius
+              const outerR = 100; // porcentaje del outerRadius
+
+              return (
+                <line
+                  key={idx}
+                  x1={`${cx + Math.cos(rad) * innerR}%`}
+                  y1={`${cy - Math.sin(rad) * innerR}%`}
+                  x2={`${cx + Math.cos(rad) * outerR}%`}
+                  y2={`${cy - Math.sin(rad) * outerR}%`}
+                  stroke="#64748b"
+                  strokeWidth="2"
+                  strokeDasharray="4 2"
+                />
+              );
+            })}
           </svg>
-        </div>
 
-        {/* Valor */}
-        <div className="text-3xl font-bold text-slate-900 text-center -mt-4 mb-1">
-          {typeof valor === 'number' && !isNaN(valor) ? valor.toFixed(2) : '0.00'}
-        </div>
-
-        {/* Fórmula */}
-        <div className="text-xs text-slate-500 text-center mb-1">{formula}</div>
-
-        {/* Escala */}
-        <div className="flex justify-between w-full text-xs text-slate-500 px-2 mb-1">
-          <span>0</span>
-          <span>1.0</span>
-          <span>1.5</span>
-          <span>{maxValue.toFixed(1)}</span>
-        </div>
-
-        {/* Indicador */}
-        <div
-          className="flex items-center justify-center space-x-2 px-3 py-1.5 rounded mb-2"
-          style={{ backgroundColor: `${indicador.color}20` }}
-        >
-          <span className="text-base">{indicador.emoji}</span>
-          <span className="text-sm font-semibold" style={{ color: indicador.color }}>
-            {indicador.texto}
-          </span>
-        </div>
-
-        {/* Interpretación */}
-        {interpretacion && (
-          <div className="w-full px-2 py-2 bg-slate-50 border-t border-slate-200">
-            <div className="space-y-1 text-xs text-slate-600">
-              {interpretacion.map((item, index) => (
-                <div key={index}>{item}</div>
-              ))}
+          {/* Valor en el centro */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center'
+            }}
+          >
+            <div className="text-4xl font-bold text-slate-900">
+              {typeof valor === 'number' && !isNaN(valor) ? valor.toFixed(2) : '0.00'}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              de {maxValue.toFixed(1)}
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Interpretación resumida */}
+        <div className="w-full px-2 py-2 bg-slate-50 rounded border border-slate-200">
+          <div className="text-xs text-slate-700 flex items-center justify-center gap-2 flex-wrap">
+            {rangos.map((rango, idx) => (
+              <span key={idx} className="flex items-center gap-1 whitespace-nowrap">
+                <span>{rango.emoji}</span>
+                <span className="font-medium text-[10px]">{rango.label}</span>
+                <span className="text-slate-500 text-[10px]">({rango.min.toFixed(1)}-{rango.max.toFixed(1)})</span>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 // ===============================
-// 🟢 Barra horizontal (Capital de trabajo)
+// 🟢 Gauge para Capital de Trabajo (radial circular)
 // ===============================
-const GaugeCardCapitalTrabajo = ({ titulo, valor, formula, indicador, icon: Icon }) => {
-  const maxValue = Math.max(20000, Math.abs(valor) * 1.5);
-  const minValue = -10000;
+const GaugeCardCapitalTrabajo = ({ titulo, valor, formula, indicador, icon: Icon, rangos, activoCorriente, pasivoCorriente }) => {
+  // Normalizar valor a rango 0-100% para el gauge
+  // Rango: -10000 a 20000 (total 30000)
+  const minValor = -10000;
+  const maxValor = 20000;
+  const rangoTotal = maxValor - minValor;
 
-  const barData = [
+  // Convertir valor real a porcentaje (0-100)
+  const valorNormalizado = Math.max(minValor, Math.min(valor, maxValor));
+  const porcentaje = ((valorNormalizado - minValor) / rangoTotal) * 100;
+
+  // Datos para el gauge
+  const gaugeData = [
     {
       name: 'Capital',
-      value: valor,
+      value: porcentaje,
       fill: indicador.color
     }
   ];
 
+  // Calcular posiciones angulares para las marcas (-10K=0%, 0K=33.33%, 5K=50%, 20K=100%)
+  const calcularAngulo = (valorReal) => {
+    const porc = ((valorReal - minValor) / rangoTotal) * 100;
+    return 90 - (porc * 3.6);
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded p-2">
-      <div className="border-b border-slate-200 py-2 mb-1">
-        <div className="flex items-center justify-center space-x-2">
-          {Icon && <Icon className="w-4 h-4 text-slate-700" />}
-          <h3 className="text-xs font-semibold text-slate-800 uppercase text-center">
+    <div className="bg-white border border-slate-200 rounded p-4">
+      {/* Título */}
+      <div className="border-b border-slate-200 pb-3 mb-4">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          {Icon && <Icon className="w-5 h-5 text-slate-700" />}
+          <h3 className="text-sm font-semibold text-slate-800 uppercase text-center">
             {titulo}
           </h3>
         </div>
+
+        {/* Fórmula y valores */}
+        {activoCorriente !== undefined && pasivoCorriente !== undefined && (
+          <div className="text-center space-y-1">
+            <div className="text-xs text-slate-600 font-medium">
+              Activo Corriente - Pasivo Corriente
+            </div>
+            <div className="text-xs text-slate-700">
+              {Math.round(activoCorriente).toLocaleString('es-AR')} - {Math.round(pasivoCorriente).toLocaleString('es-AR')}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="text-xs text-slate-500 text-center mt-2">{formula}</div>
+      {/* Gauge visual */}
+      <div className="flex flex-col items-center">
+        <div style={{ width: '100%', height: 200, position: 'relative' }}>
+          {/* Indicador de estado - esquina superior izquierda */}
+          <div
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
+          >
+            <span className="text-sm">{indicador.emoji}</span>
+            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+              {indicador.texto}
+            </span>
+          </div>
 
-      <div className="text-3xl font-bold text-slate-900 text-center my-3">
-        {formatearMonto(valor, 'USD')}
+          <ResponsiveContainer width="100%" height="100%">
+            <RadialBarChart
+              cx="50%"
+              cy="50%"
+              innerRadius="70%"
+              outerRadius="100%"
+              barSize={25}
+              data={gaugeData}
+              startAngle={90}
+              endAngle={-270}
+            >
+              <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+              <RadialBar
+                dataKey="value"
+                cornerRadius={10}
+                background={{ fill: '#e2e8f0' }}
+              />
+            </RadialBarChart>
+          </ResponsiveContainer>
+
+          {/* Marcas de separación de rangos */}
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none'
+            }}
+          >
+            {/* Marca en 0 y en 5000 */}
+            {[0, 5000].map((valorMarca, idx) => {
+              const angulo = calcularAngulo(valorMarca);
+              const rad = (angulo * Math.PI) / 180;
+              const cx = 50;
+              const cy = 50;
+              const innerR = 70;
+              const outerR = 100;
+
+              return (
+                <line
+                  key={idx}
+                  x1={`${cx + Math.cos(rad) * innerR}%`}
+                  y1={`${cy - Math.sin(rad) * innerR}%`}
+                  x2={`${cx + Math.cos(rad) * outerR}%`}
+                  y2={`${cy - Math.sin(rad) * outerR}%`}
+                  stroke="#64748b"
+                  strokeWidth="2"
+                  strokeDasharray="4 2"
+                />
+              );
+            })}
+          </svg>
+
+          {/* Valor en el centro - TEXTO REDUCIDO */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center'
+            }}
+          >
+            <div className="text-2xl font-bold text-slate-900">
+              {formatearMonto(valor, 'USD')}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              -$10K a $20K
+            </div>
+          </div>
+        </div>
+
+        {/* Interpretación resumida */}
+        <div className="w-full px-2 py-2 bg-slate-50 rounded border border-slate-200">
+          <div className="text-xs text-slate-700 flex items-center justify-center gap-2 flex-wrap">
+            {rangos.map((rango, idx) => (
+              <span key={idx} className="flex items-center gap-1 whitespace-nowrap">
+                <span>{rango.emoji}</span>
+                <span className="font-medium text-[10px]">{rango.label}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
+    </div>
+  );
+};
 
-      <div className="px-2">
-        <ResponsiveContainer width="100%" height={60}>
-          <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-            <XAxis type="number" domain={[minValue, maxValue]} hide />
-            <YAxis type="category" dataKey="name" hide />
-            <ReferenceLine x={0} stroke="#94a3b8" strokeWidth={2} strokeDasharray="3 3" />
-            <ReferenceLine x={5000} stroke="#94a3b8" strokeWidth={1} strokeDasharray="3 3" />
-            <Bar dataKey="value" radius={[4, 4, 4, 4]}>
-              {barData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={indicador.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+// ===============================
+// 🟢 Gauge para Ratio de Sobrecompra
+// ===============================
+const GaugeCardSobrecompra = ({ titulo, cmv, compras, ratio, indicador, icon: Icon }) => {
+  // Calcular porcentaje para el gauge (0 a 2.0 como 100%)
+  const maxValue = 2.0;
+  const valorLimitado = Math.max(0, Math.min(ratio, maxValue));
+  const porcentaje = (valorLimitado / maxValue) * 100;
 
-        <div className="flex justify-between text-xs text-slate-500 mt-1">
-          <span>🔴 Negativo</span>
-          <span>🟡 0-5K</span>
-          <span>🟢 &gt;5K</span>
+  const gaugeData = [
+    {
+      name: 'Ratio',
+      value: porcentaje,
+      fill: indicador.color
+    }
+  ];
+
+  // Calcular posiciones angulares para las marcas (1.0 y 1.1)
+  const calcularAngulo = (valor) => {
+    const porc = (valor / maxValue) * 100;
+    return 90 - (porc * 3.6);
+  };
+
+  return (
+    <div className="bg-white border border-slate-200 rounded p-4">
+      {/* Título */}
+      <div className="border-b border-slate-200 pb-3 mb-4">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          {Icon && <Icon className="w-5 h-5 text-slate-700" />}
+          <h3 className="text-sm font-semibold text-slate-800 uppercase text-center">
+            {titulo}
+          </h3>
+        </div>
+
+        {/* Fórmula y valores */}
+        <div className="text-center space-y-1">
+          <div className="text-xs text-slate-600 font-medium">
+            Compras / CMV
+          </div>
+          <div className="text-xs text-slate-700">
+            {Math.round(compras).toLocaleString('es-AR')} / {Math.round(cmv).toLocaleString('es-AR')}
+          </div>
         </div>
       </div>
 
-      <div
-        className="flex items-center justify-center space-x-2 px-3 py-1.5 rounded mt-2"
-        style={{ backgroundColor: `${indicador.color}20` }}
-      >
-        <span className="text-base">{indicador.emoji}</span>
-        <span className="text-sm font-semibold" style={{ color: indicador.color }}>
-          {indicador.texto}
-        </span>
+      {/* Gauge visual */}
+      <div className="flex flex-col items-center">
+        <div style={{ width: '100%', height: 200, position: 'relative' }}>
+          {/* Indicador de estado - esquina superior izquierda */}
+          <div
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
+          >
+            <span className="text-sm">{indicador.emoji}</span>
+            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+              {indicador.texto}
+            </span>
+          </div>
+
+          <ResponsiveContainer width="100%" height="100%">
+            <RadialBarChart
+              cx="50%"
+              cy="50%"
+              innerRadius="70%"
+              outerRadius="100%"
+              barSize={25}
+              data={gaugeData}
+              startAngle={90}
+              endAngle={-270}
+            >
+              <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+              <RadialBar
+                dataKey="value"
+                cornerRadius={10}
+                background={{ fill: '#e2e8f0' }}
+              />
+            </RadialBarChart>
+          </ResponsiveContainer>
+
+          {/* Marcas de separación de rangos */}
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none'
+            }}
+          >
+            {[0.9, 1.0].map((valorMarca, idx) => {
+              const angulo = calcularAngulo(valorMarca);
+              const rad = (angulo * Math.PI) / 180;
+              const cx = 50;
+              const cy = 50;
+              const innerR = 70;
+              const outerR = 100;
+
+              return (
+                <line
+                  key={idx}
+                  x1={`${cx + Math.cos(rad) * innerR}%`}
+                  y1={`${cy - Math.sin(rad) * innerR}%`}
+                  x2={`${cx + Math.cos(rad) * outerR}%`}
+                  y2={`${cy - Math.sin(rad) * outerR}%`}
+                  stroke="#64748b"
+                  strokeWidth="2"
+                  strokeDasharray="4 2"
+                />
+              );
+            })}
+          </svg>
+
+          {/* Valor en el centro */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center'
+            }}
+          >
+            <div className="text-4xl font-bold text-slate-900">
+              {typeof ratio === 'number' && !isNaN(ratio) ? ratio.toFixed(2) : '0.00'}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              de {maxValue.toFixed(1)}
+            </div>
+          </div>
+        </div>
+
+        {/* Interpretación resumida */}
+        <div className="w-full px-2 py-2 bg-slate-50 rounded border border-slate-200">
+          <div className="text-xs text-slate-700 flex items-center justify-center gap-2 flex-wrap">
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span>🟢</span>
+              <span className="font-medium text-[10px]">Saludable</span>
+              <span className="text-slate-500 text-[10px]">(&lt;0.9)</span>
+            </span>
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span>🟡</span>
+              <span className="font-medium text-[10px]">Alineado</span>
+              <span className="text-slate-500 text-[10px]">(0.9-1.0)</span>
+            </span>
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span>🔴</span>
+              <span className="font-medium text-[10px]">Sobrecompra</span>
+              <span className="text-slate-500 text-[10px]">(&gt;1.0)</span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -213,7 +502,7 @@ const GaugeCardCapitalTrabajo = ({ titulo, valor, formula, indicador, icon: Icon
 // 🟢 Componente principal
 // ===============================
 const RatiosSection = () => {
-  const { ratios, loading, error, refetch } = useRatiosFinancieros();
+  const { ratios, ratioSobrecompra, loading, error, refetch } = useRatiosFinancieros();
 
   if (loading) {
     return (
@@ -289,8 +578,9 @@ const RatiosSection = () => {
           </div>
         </div>
 
-        {/* Gráficos */}
+        {/* Gráficos de Liquidez */}
         <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Ratios de Liquidez</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <GaugeCard
               titulo="Liquidez Corriente"
@@ -299,6 +589,13 @@ const RatiosSection = () => {
               indicador={ratios.indicadores.liquidezCorriente}
               maxValue={3.0}
               icon={DropletIcon}
+              activoCorriente={ratios.activoCorriente}
+              pasivoCorriente={ratios.pasivoCorriente}
+              rangos={[
+                { min: 0, max: 1.0, label: 'Riesgo', color: '#ef4444', emoji: '🔴', descripcion: 'Dificultad para cubrir deudas' },
+                { min: 1.0, max: 1.5, label: 'Aceptable', color: '#f59e0b', emoji: '🟡', descripcion: 'Capacidad ajustada' },
+                { min: 1.5, max: 3.0, label: 'Saludable', color: '#10b981', emoji: '🟢', descripcion: 'Buena capacidad de pago' }
+              ]}
             />
 
             <GaugeCard
@@ -308,6 +605,14 @@ const RatiosSection = () => {
               indicador={ratios.indicadores.pruebaAcida}
               maxValue={2.0}
               icon={DollarSign}
+              activoCorriente={ratios.activoCorriente}
+              pasivoCorriente={ratios.pasivoCorriente}
+              inventario={ratios.inventario}
+              rangos={[
+                { min: 0, max: 0.8, label: 'Débil', color: '#ef4444', emoji: '🔴', descripcion: 'Depende del inventario' },
+                { min: 0.8, max: 1.0, label: 'Justo', color: '#f59e0b', emoji: '🟡', descripcion: 'Capacidad limitada' },
+                { min: 1.0, max: 2.0, label: 'Sólido', color: '#10b981', emoji: '🟢', descripcion: 'Pago sin vender stock' }
+              ]}
             />
 
             <GaugeCardCapitalTrabajo
@@ -316,40 +621,105 @@ const RatiosSection = () => {
               formula="Activo Corriente - Pasivo Corriente"
               indicador={ratios.indicadores.capitalTrabajoNeto}
               icon={Wallet}
+              activoCorriente={ratios.activoCorriente}
+              pasivoCorriente={ratios.pasivoCorriente}
+              rangos={[
+                { emoji: '🔴', label: 'Negativo', descripcion: 'Pasivos > Activos' },
+                { emoji: '🟡', label: '$0-5K', descripcion: 'Margen reducido' },
+                { emoji: '🟢', label: '>$5K', descripcion: 'Buen respaldo' }
+              ]}
             />
           </div>
+        </div>
 
-          {/* Leyenda */}
-          <div className="mt-6 p-4 bg-white border border-slate-200 rounded">
-            <h4 className="text-sm font-semibold text-slate-800 mb-3">Interpretación de Ratios</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600">
-              <div>
-                <div className="font-medium text-slate-800 mb-1">Liquidez Corriente</div>
-                <div className="space-y-1">
-                  <div>🔴 &lt;1.0: Riesgo - Dificultad para cubrir deudas</div>
-                  <div>🟡 1.0-1.5: Aceptable - Capacidad ajustada</div>
-                  <div>🟢 &gt;1.5: Saludable - Buena capacidad de pago</div>
-                </div>
+        {/* Ratio de Sobrecompra */}
+        {ratioSobrecompra && (
+          <div className="p-6 pt-0">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Ratio de Sobrecompra (Mes)</h3>
+
+            {/* Layout: Gauge a la izquierda, Tabla a la derecha */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Gauge General */}
+              <div className="lg:col-span-1">
+                <GaugeCardSobrecompra
+                  titulo="Ratio General"
+                  cmv={ratioSobrecompra.cmv}
+                  compras={ratioSobrecompra.compras}
+                  ratio={ratioSobrecompra.ratio}
+                  indicador={ratioSobrecompra.indicador}
+                  icon={ShoppingCart}
+                />
               </div>
-              <div>
-                <div className="font-medium text-slate-800 mb-1">Prueba Ácida</div>
-                <div className="space-y-1">
-                  <div>🔴 &lt;0.8: Débil - Depende del inventario</div>
-                  <div>🟡 0.8-1.0: Justo - Capacidad limitada</div>
-                  <div>🟢 &gt;1.0: Sólido - Pago sin vender stock</div>
+
+              {/* Tabla de Desglose por Categoría */}
+              {ratioSobrecompra.categorias && ratioSobrecompra.categorias.length > 0 && (
+                <div className="lg:col-span-2 flex items-stretch">
+                  <div className="bg-white border border-slate-200 rounded w-full flex flex-col">
+                    <table className="w-full table-fixed">
+                      <thead className="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                          <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-700 w-1/5">Categoría</th>
+                          <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-700 w-1/5">Compras</th>
+                          <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-700 w-1/5">CMV</th>
+                          <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-700 w-1/5">Ratio</th>
+                          <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-700 w-1/5">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 bg-white">
+                        {ratioSobrecompra.categorias.map((cat) => (
+                          <tr key={cat.nombre} className="bg-white">
+                            <td className="px-3 py-4 text-sm font-medium text-slate-800 text-center">
+                              {cat.nombre}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-slate-800 text-center">
+                              {formatearMonto(cat.compras, 'USD')}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-slate-800 text-center">
+                              {formatearMonto(cat.cmv, 'USD')}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-center font-bold text-slate-900">
+                              {cat.ratio.toFixed(2)}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-center">
+                              <span className="inline-flex items-center">
+                                <span className="mr-1">{cat.indicador.emoji}</span>
+                                <span style={{color: cat.indicador.color}} className="font-medium">
+                                  {cat.indicador.texto}
+                                </span>
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+                        <tr>
+                          <td className="px-3 py-3 text-sm font-bold text-center text-slate-800">TOTAL GENERAL</td>
+                          <td className="px-3 py-3 text-sm font-bold text-center text-slate-800">
+                            {formatearMonto(ratioSobrecompra.compras, 'USD')}
+                          </td>
+                          <td className="px-3 py-3 text-sm font-bold text-center text-slate-800">
+                            {formatearMonto(ratioSobrecompra.cmv, 'USD')}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-center font-bold text-slate-800">
+                            {ratioSobrecompra.ratio.toFixed(2)}
+                          </td>
+                          <td className="px-3 py-3 text-sm text-center">
+                            <span className="inline-flex items-center">
+                              <span className="mr-1">{ratioSobrecompra.indicador.emoji}</span>
+                              <span style={{color: ratioSobrecompra.indicador.color}} className="font-bold">
+                                {ratioSobrecompra.indicador.texto}
+                              </span>
+                            </span>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="font-medium text-slate-800 mb-1">Capital de Trabajo</div>
-                <div className="space-y-1">
-                  <div>🔴 Negativo: Riesgo - Pasivos &gt; Activos</div>
-                  <div>🟡 $0-5000: Frágil - Margen reducido</div>
-                  <div>🟢 &gt;$5000: Positivo - Buen respaldo</div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

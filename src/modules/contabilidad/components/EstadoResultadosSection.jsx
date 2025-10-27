@@ -27,10 +27,17 @@ const EstadoResultadosSection = () => {
 
   const [filtros, setFiltros] = useState({
     fechaDesde: (() => {
+      // Primer día del mes actual
       const ahora = new Date();
-      return `${ahora.getFullYear()}-01-01`; // Inicio del año
+      const primerDiaMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+      return primerDiaMes.toISOString().split('T')[0];
     })(),
-    fechaHasta: obtenerFechaLocal() // Hoy
+    fechaHasta: (() => {
+      // Último día del mes actual
+      const ahora = new Date();
+      const ultimoDiaMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0);
+      return ultimoDiaMes.toISOString().split('T')[0];
+    })()
   });
 
   useEffect(() => {

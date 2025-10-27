@@ -61,6 +61,24 @@ export const estadoResultadosService = {
 
       if (error) throw error;
 
+      console.log('🔍 DEBUG ESTADO RESULTADOS - Total movimientos obtenidos:', movimientos.length);
+      console.log('🔍 DEBUG ESTADO RESULTADOS - Asientos del período:', asientos.length);
+
+      // DEBUG: Ver movimientos CMV
+      const movimientosCMV = movimientos.filter(m => m.plan_cuentas?.codigo?.startsWith('5.0'));
+      console.log('🔍 DEBUG ESTADO RESULTADOS - Movimientos CMV (5.0.xx):', {
+        cantidad: movimientosCMV.length,
+        porCuenta: movimientosCMV.reduce((acc, m) => {
+          const key = `${m.plan_cuentas.codigo} - ${m.plan_cuentas.nombre}`;
+          if (!acc[key]) {
+            acc[key] = { debe: 0, haber: 0, tipo: m.plan_cuentas.tipo };
+          }
+          acc[key].debe += parseFloat(m.debe || 0);
+          acc[key].haber += parseFloat(m.haber || 0);
+          return acc;
+        }, {})
+      });
+
       // Agrupar por tipo de cuenta
       const resultado = {
         ingresos: {},

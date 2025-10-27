@@ -635,6 +635,69 @@ export const useModuleName = () => {
 - **Transaction Validation**: Ensure all accounting entries maintain double-entry bookkeeping principles
 - **Error Handling**: Provide clear, user-friendly error messages for business rule violations
 
+### Accounting Calculations - MANDATORY CENTRALIZED FUNCTIONS
+
+**CRITICAL**: All accounting calculations MUST use the centralized functions in `/src/modules/contabilidad/utils/saldosUtils.js`. Do NOT create new calculation logic in individual components or hooks.
+
+#### Core Functions (Always Use These):
+
+1. **`calcularSaldoCuenta(debe, haber, tipoCuenta)`**
+   - Calculates account balance according to accounting nature
+   - **Debit accounts** (Assets, Expenses): `debe - haber`
+   - **Credit accounts** (Liabilities, Equity, Revenue): `haber - debe`
+   - Returns signed number (positive = normal balance, negative = abnormal balance)
+
+2. **`calcularTotalCategoria(movimientos, filtroCuentas)`** ⭐ USE THIS FOR ALL TOTALS
+   - Calculates total for a category of accounts from movements
+   - Handles account nature automatically using `calcularSaldoCuenta`
+   - **MUST be used** in: Ratios, Estado de Resultados, Balance, Analysis, etc.
+
+   ```javascript
+   // Example: Calculate CMV (Cost of Goods Sold) - Category 5.0
+   const cmv = calcularTotalCategoria(movimientos, '5.0');
+
+   // Example: Calculate Purchases (Inventory) - Category 1.1.04
+   const compras = calcularTotalCategoria(movimientos, '1.1.04');
+
+   // Example: Custom filter function
+   const gastos = calcularTotalCategoria(movimientos, (mov) =>
+     mov.plan_cuentas?.codigo?.startsWith('6.1')
+   );
+   ```
+
+#### Account Types and Their Nature:
+- **Activo** (Asset): Debit nature → `debe - haber`
+- **Pasivo** (Liability): Credit nature → `haber - debe`
+- **Patrimonio** (Equity): Credit nature → `haber - debe`
+- **Resultado Positivo** (Revenue/Income): Credit nature → `haber - debe`
+- **Resultado Negativo** (Expenses/Costs): Debit nature → `debe - haber`
+
+#### Usage Rules:
+1. **Never** calculate totals manually with `reduce` and `debe - haber`
+2. **Always** use `calcularTotalCategoria` for category totals
+3. **Always** use `calcularSaldoCuenta` for individual account balances
+4. **Check** the account type (tipoCuenta) from `plan_cuentas` table
+5. **Import** from: `import { calcularTotalCategoria, calcularSaldoCuenta } from '../utils/saldosUtils'`
+
+#### Common Mistakes to Avoid:
+❌ **WRONG**:
+```javascript
+const cmv = movimientos
+  .filter(m => m.plan_cuentas?.codigo?.startsWith('5.0'))
+  .reduce((sum, m) => sum + parseFloat(m.debe || 0) - parseFloat(m.haber || 0), 0);
+```
+
+✅ **CORRECT**:
+```javascript
+const cmv = calcularTotalCategoria(movimientos, '5.0');
+```
+
+#### Why This Matters:
+- **CMV** (5.0.xx) is "resultado negativo" (debit nature): balance = debe - haber
+- **Compras** (1.1.04.xx) is "activo" (debit nature): balance = debe - haber
+- **Ventas** (4.0.xx) is "resultado positivo" (credit nature): balance = haber - debe
+- Manual calculations often miss the account nature, leading to incorrect totals
+
 ### Testing Approach
 - Use React Testing Library for component tests
 - Test custom hooks with @testing-library/react-hooks

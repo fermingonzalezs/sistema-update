@@ -133,3 +133,102 @@ export const formatearSaldoParaReporte = (saldo, opciones = {}) => {
 
   return saldo;
 };
+
+/**
+ * Calcula el total de una categoría de cuentas a partir de movimientos contables
+ *
+ * IMPORTANTE: Esta es la función CENTRALIZADA para todos los cálculos de totales.
+ * Debe usarse en TODOS los módulos (Ratios, Estado de Resultados, Análisis, etc.)
+ *
+ * @param {Array} movimientos - Array de movimientos contables con plan_cuentas incluido
+ * @param {string|Function} filtroCuentas - Código que debe iniciar la cuenta (ej: '5.0') o función de filtro
+ * @returns {number} Total calculado según la naturaleza de las cuentas
+ *
+ * @example
+ * // CMV (Costo de Mercadería Vendida) - Categoría 5.0
+ * const cmv = calcularTotalCategoria(movimientos, '5.0');
+ *
+ * @example
+ * // Compras (Bienes de Cambio) - Categoría 1.1.04
+ * const compras = calcularTotalCategoria(movimientos, '1.1.04');
+ *
+ * @example
+ * // Filtro personalizado
+ * const total = calcularTotalCategoria(movimientos, (mov) =>
+ *   mov.plan_cuentas?.codigo?.startsWith('6.1')
+ * );
+ */
+export const calcularTotalCategoria = (movimientos, filtroCuentas) => {
+  // Agrupar movimientos por cuenta
+  const cuentasAgrupadas = {};
+
+  // Determinar función de filtro
+  const filtrar = typeof filtroCuentas === 'function'
+    ? filtroCuentas
+    : (mov) => mov.plan_cuentas?.codigo?.startsWith(filtroCuentas);
+
+  movimientos.filter(filtrar).forEach(mov => {
+    const cuenta = mov.plan_cuentas;
+    if (!cuenta || !cuenta.tipo) return;
+
+    if (!cuentasAgrupadas[cuenta.id]) {
+      cuentasAgrupadas[cuenta.id] = {
+        cuenta,
+        debe: 0,
+        haber: 0
+      };
+    }
+
+    cuentasAgrupadas[cuenta.id].debe += parseFloat(mov.debe || 0);
+    cuentasAgrupadas[cuenta.id].haber += parseFloat(mov.haber || 0);
+  });
+
+  // Calcular total usando la función estandarizada
+  let total = 0;
+  Object.values(cuentasAgrupadas).forEach(item => {
+    const saldo = calcularSaldoCuenta(item.debe, item.haber, item.cuenta.tipo);
+    total += saldo;
+  });
+
+  return total;
+};
+
+/**
+ * Calcula solo los DÉBITOS de una categoría de cuentas
+ *
+ * Esta función es útil para calcular ratios de sobrecompra donde necesitamos:
+ * - Compras (débitos de Bienes de Cambio 1.1.04.xx)
+ * - CMV (débitos de CMV 5.0.xx)
+ *
+ * A diferencia de calcularTotalCategoria que calcula el saldo neto (debe - haber),
+ * esta función suma ÚNICAMENTE los débitos sin restar el haber.
+ *
+ * @param {Array} movimientos - Array de movimientos contables con plan_cuentas incluido
+ * @param {string|Function} filtroCuentas - Código exacto de cuenta o función de filtro
+ * @returns {number} Total de débitos
+ *
+ * @example
+ * // Débitos de Notebooks Nuevas (código exacto)
+ * const comprasNotebooks = calcularDebitos(movimientos, '1.1.04.01.01');
+ *
+ * @example
+ * // Débitos con función de filtro personalizada
+ * const cmvTotal = calcularDebitos(movimientos, (mov) =>
+ *   mov.plan_cuentas?.codigo?.startsWith('5.0')
+ * );
+ */
+export const calcularDebitos = (movimientos, filtroCuentas) => {
+  // Determinar función de filtro
+  const filtrar = typeof filtroCuentas === 'function'
+    ? filtroCuentas
+    : (mov) => mov.plan_cuentas?.codigo === filtroCuentas; // Igualdad exacta
+
+  // Sumar solo los débitos de los movimientos que cumplen el filtro
+  let totalDebitos = 0;
+
+  movimientos.filter(filtrar).forEach(mov => {
+    totalDebitos += parseFloat(mov.debe || 0);
+  });
+
+  return totalDebitos;
+};
