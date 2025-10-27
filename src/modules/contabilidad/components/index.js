@@ -1,3 +1,4 @@
+export { default as RatiosSection } from './RatiosSection';
 export { default as PlanCuentasSection } from './PlanCuentasSection';
 export { default as LibroDiarioSection } from './LibroDiarioSection';
 export { default as LibroMayorSection } from './LibroMayorSection';

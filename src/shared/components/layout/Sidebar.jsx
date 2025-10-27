@@ -133,6 +133,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       level: 'contabilidad',
       items: [
         {
+          id: 'ratios',
+          label: 'Ratios Financieros',
+          icon: TrendingUp,
+          description: 'Indicadores de liquidez'
+        },
+        {
           id: 'plan-cuentas',
           label: 'Plan de Cuentas',
           icon: BookOpen,

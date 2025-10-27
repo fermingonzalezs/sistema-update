@@ -538,33 +538,100 @@ export const useCatalogoUnificado = () => {
   //   }
   // }, [categoriaActiva]);
 
+  // Función para calcular datos filtrados SIN aplicar filtro de subcategoría/categoría
+  // Esto permite contar correctamente los productos por subcategoría considerando
+  // los otros filtros activos (marca, condición, ubicación, precio, búsqueda)
+  const calcularDatosSinFiltroSubcategoria = useMemo(() => {
+    let filtered = [...datosActuales];
+
+    // Aplicar TODOS los filtros EXCEPTO subcategoria y categoria
+    if (filtrosUnificados.marca) {
+      filtered = filtered.filter(item => item.marca === filtrosUnificados.marca);
+    }
+
+    if (filtrosUnificados.condicion) {
+      filtered = filtered.filter(item => item.condicion === filtrosUnificados.condicion);
+    }
+
+    if (filtrosUnificados.estado) {
+      filtered = filtered.filter(item => item.estado === filtrosUnificados.estado);
+    }
+
+    if (filtrosUnificados.sucursal) {
+      filtered = filtered.filter(item => {
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          return true;
+        }
+        const sucursalItem = item.ubicacion || item.sucursal || '';
+        return sucursalItem === filtrosUnificados.sucursal;
+      });
+    }
+
+    if (filtrosUnificados.precioMin) {
+      filtered = filtered.filter(item =>
+        parseFloat(item.precio_venta_usd) >= parseFloat(filtrosUnificados.precioMin)
+      );
+    }
+
+    if (filtrosUnificados.precioMax) {
+      filtered = filtered.filter(item =>
+        parseFloat(item.precio_venta_usd) <= parseFloat(filtrosUnificados.precioMax)
+      );
+    }
+
+    // Para productos "otros", aplicar filtro básico de stock positivo
+    if (categoriaActiva === 'otros') {
+      filtered = filtered.filter(item => {
+        if (item.cantidad_la_plata !== undefined || item.cantidad_mitre !== undefined) {
+          return (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0) > 0;
+        }
+        return true;
+      });
+    }
+
+    if (filtrosUnificados.busqueda) {
+      const busquedaLower = filtrosUnificados.busqueda.toLowerCase();
+      filtered = filtered.filter(item => {
+        const serial = (item.serial || item.imei || '').toLowerCase();
+        const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
+        const marca = (item.marca || '').toLowerCase();
+        return serial.includes(busquedaLower) ||
+               modelo.includes(busquedaLower) ||
+               marca.includes(busquedaLower);
+      });
+    }
+
+    return filtered;
+  }, [datosActuales, filtrosUnificados, categoriaActiva]);
+
   return {
     // Estado actual
     categoriaActiva,
     categoriaConfig,
     categorias,
-    
+
     // Datos
     datos: datosFilteredAndSorted,
     datosOriginales: datosActuales,
+    datosSinFiltroSubcategoria: calcularDatosSinFiltroSubcategoria,
     loading,
     error,
-    
+
     // Filtros y ordenamiento
     filtros: filtrosUnificados,
     ordenamiento,
     valoresUnicos,
-    
+
     // Funciones de control
     cambiarCategoria,
     actualizarFiltro,
     limpiarFiltros,
     actualizarOrdenamiento,
-    
+
     // Funciones de acción
     eliminarProducto,
     actualizarProducto,
-    
+
     // Estadísticas
     totalProductos: datosActuales.length,
     productosFiltrados: datosFilteredAndSorted.length,

@@ -32,6 +32,7 @@ import {
   IngresoEquiposSection
 } from './modules/administracion/components';
 import {
+  RatiosSection,
   PlanCuentasSection,
   LibroDiarioSection,
   LibroMayorSection,
@@ -388,6 +389,7 @@ const AppContent = () => {
          count: computers.length + celulares.length + otros.length,
          type: 'productos totales'
        };
+     case 'ratios':
      case 'plan-cuentas':
      case 'libro-diario':
        return {
@@ -541,6 +543,10 @@ const AppContent = () => {
      )}
 
      {/* 📊 SECCIONES DE CONTABILIDAD */}
+     {activeSection === 'ratios' && (
+       <RatiosSection />
+     )}
+
      {activeSection === 'plan-cuentas' && (
        <PlanCuentasSection />
      )}

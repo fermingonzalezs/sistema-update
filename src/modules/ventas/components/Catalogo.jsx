@@ -53,6 +53,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     categoriaConfig,
     categorias,
     datos,
+    datosSinFiltroSubcategoria,
     loading,
     error,
     filtros,
@@ -79,23 +80,32 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [categoriasOtros, setCategoriasOtros] = useState([]);
 
   // Función para contar productos por subcategoría
+  // Usa datosSinFiltroSubcategoria que tiene todos los filtros aplicados
+  // EXCEPTO el filtro de subcategoría/categoría, permitiendo contar correctamente
   const contarPorSubcategoria = (subcategoria) => {
-    if (!datos) return 0;
+    if (!datosSinFiltroSubcategoria) return 0;
 
     if (categoriaActiva === 'notebooks' || categoriaActiva === 'celulares') {
       // Para notebooks y celulares, contar por el campo 'categoria'
       if (!subcategoria) {
         // "Todos" - contar todos los productos de esta categoría principal
-        return datos.length;
+        return datosSinFiltroSubcategoria.length;
       }
-      return datos.filter(p => p.categoria?.toLowerCase() === subcategoria.toLowerCase()).length;
+      return datosSinFiltroSubcategoria.filter(p => p.categoria?.toLowerCase() === subcategoria.toLowerCase()).length;
     } else if (categoriaActiva === 'otros') {
       // Para otros productos, contar por el campo 'categoria' normalizado
       if (!subcategoria) {
         // "Todos" - contar todos los productos otros
-        return datos.length;
+        return datosSinFiltroSubcategoria.length;
       }
-      return datos.filter(p => p.categoria?.toUpperCase() === subcategoria.toUpperCase()).length;
+      return datosSinFiltroSubcategoria.filter(p => p.categoria?.toUpperCase() === subcategoria.toUpperCase()).length;
+    } else if (categoriaActiva === 'apple') {
+      // Para Apple, contar por el campo '_tipoProducto'
+      if (!subcategoria) {
+        // "Todos" - contar todos los productos Apple
+        return datosSinFiltroSubcategoria.length;
+      }
+      return datosSinFiltroSubcategoria.filter(p => p._tipoProducto === subcategoria).length;
     }
 
     return 0;
@@ -1676,8 +1686,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
           <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
             <div className="flex flex-wrap gap-2">
               {categoriaConfig.subcategorias.map(subcat => {
-                // Contar productos del tipo correcto en los datos originales (antes de filtrar)
-                const count = categoriaConfig.data.filter(p => p._tipoProducto === subcat.value).length;
+                // Usar la función unificada de conteo que considera filtros activos
+                const count = contarPorSubcategoria(subcat.value);
                 return (
                   <button
                     key={subcat.value}
