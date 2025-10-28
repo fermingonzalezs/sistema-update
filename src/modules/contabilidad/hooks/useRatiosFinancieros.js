@@ -131,6 +131,156 @@ const determinarIndicadorSobrecompra = (ratio) => {
   }
 };
 
+// ===============================
+// 🟢 Funciones de indicadores para Ratios de Rentabilidad
+// ===============================
+
+// Función para determinar el indicador de Margen Bruto
+// <10% = Bajo | 10-20% = Normal | >20% = Fuerte
+const determinarIndicadorMargenBruto = (porcentaje) => {
+  if (porcentaje < 10) {
+    return {
+      estado: 'bajo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Bajo'
+    };
+  } else if (porcentaje >= 10 && porcentaje <= 20) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'fuerte',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Fuerte'
+    };
+  }
+};
+
+// Función para determinar el indicador de Margen Operativo (EBIT)
+// <5% = Bajo | 5-10% = Medio | >10% = Alto
+const determinarIndicadorMargenOperativo = (porcentaje) => {
+  if (porcentaje < 5) {
+    return {
+      estado: 'bajo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Bajo'
+    };
+  } else if (porcentaje >= 5 && porcentaje <= 10) {
+    return {
+      estado: 'medio',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Medio'
+    };
+  } else {
+    return {
+      estado: 'alto',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Alto'
+    };
+  }
+};
+
+// Función para determinar el indicador de Margen Neto
+// <3% = Bajo | 3-8% = Bueno | >8% = Excelente
+const determinarIndicadorMargenNeto = (porcentaje) => {
+  if (porcentaje < 3) {
+    return {
+      estado: 'bajo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Bajo'
+    };
+  } else if (porcentaje >= 3 && porcentaje <= 8) {
+    return {
+      estado: 'bueno',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Bueno'
+    };
+  } else {
+    return {
+      estado: 'excelente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Excelente'
+    };
+  }
+};
+
+// Función para determinar el indicador de ROA
+// <3% = Ineficiente | 3-6% = Normal | >6% = Sano
+const determinarIndicadorROA = (porcentaje) => {
+  if (porcentaje < 3) {
+    return {
+      estado: 'ineficiente',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Ineficiente'
+    };
+  } else if (porcentaje >= 3 && porcentaje <= 6) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'sano',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Sano'
+    };
+  }
+};
+
+// Función para determinar el indicador de ROE
+// <10% = Bajo | 10-20% = Adecuado | >20% = Excelente
+// Caso especial: Patrimonio negativo
+const determinarIndicadorROE = (porcentaje, patrimonioNeto) => {
+  // Si el patrimonio es negativo, situación crítica
+  if (patrimonioNeto <= 0) {
+    return {
+      estado: 'critico',
+      color: '#991b1b',
+      emoji: '⛔',
+      texto: 'Patrimonio Negativo'
+    };
+  }
+
+  if (porcentaje < 10) {
+    return {
+      estado: 'bajo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Bajo'
+    };
+  } else if (porcentaje >= 10 && porcentaje <= 20) {
+    return {
+      estado: 'adecuado',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Adecuado'
+    };
+  } else {
+    return {
+      estado: 'excelente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Excelente'
+    };
+  }
+};
+
 // Mapeo de categorías para ratios por tipo de producto
 const CATEGORIAS_RATIO = [
   {
@@ -162,27 +312,33 @@ const CATEGORIAS_RATIO = [
 
 // Servicio para calcular ratios financieros
 export const ratiosFinancierosService = {
-  async calcularRatioSobrecompra(fechaCorte = null) {
-    console.log('📊 Calculando ratio de sobrecompra...', { fechaCorte });
+  async calcularRatioSobrecompra(fechaDesde = null, fechaHasta = null) {
+    console.log('📊 Calculando ratio de sobrecompra...', { fechaDesde, fechaHasta });
 
     try {
-      const fecha = fechaCorte || obtenerFechaLocal();
+      let fechaInicioStr, fechaFinStr;
 
-      // Calcular primer y último día del mes actual
-      const fechaActual = new Date(fecha);
-      const primerDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
-      const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+      if (fechaDesde && fechaHasta) {
+        // Si se proporcionan ambas fechas, usar el rango específico
+        fechaInicioStr = fechaDesde;
+        fechaFinStr = fechaHasta;
+      } else {
+        // Si no, calcular el mes actual (comportamiento legacy)
+        const fecha = fechaHasta || fechaDesde || obtenerFechaLocal();
+        const fechaActual = new Date(fecha);
+        const primerDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+        const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
 
-      const fechaInicioStr = primerDiaMes.toISOString().split('T')[0];
-      const fechaFinStr = ultimoDiaMes.toISOString().split('T')[0];
+        fechaInicioStr = primerDiaMes.toISOString().split('T')[0];
+        fechaFinStr = ultimoDiaMes.toISOString().split('T')[0];
+      }
 
-      console.log('📅 RATIOS - Mes calendario actual:', {
+      console.log('📅 RATIOS - Período de análisis:', {
         desde: fechaInicioStr,
-        hasta: fechaFinStr,
-        mes: fechaActual.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
+        hasta: fechaFinStr
       });
 
-      // Obtener asientos del mes
+      // Obtener asientos del período
       const { data: asientos, error: errorAsientos } = await supabase
         .from('asientos_contables')
         .select('id')
@@ -396,6 +552,209 @@ export const ratiosFinancierosService = {
       console.error('❌ Error calculando ratios de liquidez:', error);
       throw error;
     }
+  },
+
+  async calcularRatiosRentabilidad(fechaDesde, fechaHasta) {
+    console.log('📊 Calculando ratios de rentabilidad...', { fechaDesde, fechaHasta });
+
+    try {
+      const fechaInicio = fechaDesde || obtenerFechaLocal();
+      const fechaFin = fechaHasta || obtenerFechaLocal();
+
+      // Calcular días y meses del período
+      const fechaInicioDate = new Date(fechaInicio);
+      const fechaFinDate = new Date(fechaFin);
+      const dias = (fechaFinDate - fechaInicioDate) / (1000 * 60 * 60 * 24);
+      const meses = dias / 30.44; // Promedio días por mes
+      const factorAnualizacion = 12 / meses;
+
+      console.log('📅 Período de análisis:', {
+        desde: fechaInicio,
+        hasta: fechaFin,
+        dias: dias.toFixed(0),
+        meses: meses.toFixed(1),
+        factorAnualizacion: factorAnualizacion.toFixed(2)
+      });
+
+      // Obtener asientos del período
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_contables')
+        .select('id')
+        .gte('fecha', fechaInicio)
+        .lte('fecha', fechaFin);
+
+      if (errorAsientos) throw errorAsientos;
+
+      if (!asientos || asientos.length === 0) {
+        console.log('ℹ️ No hay asientos en el período de rentabilidad');
+        return {
+          ventas: 0,
+          cmv: 0,
+          gastosOperativos: 0,
+          ebit: 0,
+          resultadoNeto: 0,
+          resultadoNetoAnualizado: 0,
+          activoTotal: 0,
+          patrimonioNeto: 0,
+          margenBruto: { valor: 0, indicador: determinarIndicadorMargenBruto(0) },
+          margenOperativo: { valor: 0, indicador: determinarIndicadorMargenOperativo(0) },
+          margenNeto: { valor: 0, indicador: determinarIndicadorMargenNeto(0) },
+          roa: { valorPeriodo: 0, valorAnualizado: 0, indicador: determinarIndicadorROA(0), mesesPeriodo: meses, factorAnualizacion },
+          roe: { valorPeriodo: 0, valorAnualizado: 0, indicador: determinarIndicadorROE(0, 0), mesesPeriodo: meses, factorAnualizacion },
+          fechaDesde: fechaInicio,
+          fechaHasta: fechaFin
+        };
+      }
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos en lotes
+      const BATCH_SIZE = 200;
+      let todosLosMovimientos = [];
+
+      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
+        const batch = asientoIds.slice(i, i + BATCH_SIZE);
+
+        const { data: movimientosBatch, error: errorBatch } = await supabase
+          .from('movimientos_contables')
+          .select(`
+            *,
+            plan_cuentas (id, codigo, nombre, tipo, categoria)
+          `)
+          .in('asiento_id', batch);
+
+        if (errorBatch) throw errorBatch;
+        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+      }
+
+      const movimientos = todosLosMovimientos;
+      console.log(`📊 RENTABILIDAD - Total movimientos procesados:`, movimientos.length);
+
+      // Calcular componentes principales usando función centralizada
+      const ventas = calcularTotalCategoria(movimientos, '4.1'); // Ventas
+      const cmv = Math.abs(calcularTotalCategoria(movimientos, '5.0')); // CMV (valor absoluto)
+      const gastosOperativos = Math.abs(calcularTotalCategoria(movimientos, '5.1')); // Gastos operativos (5.1.xx)
+
+      // Calcular EBIT (Earnings Before Interest and Taxes)
+      const ebit = ventas - cmv - gastosOperativos;
+
+      // Calcular Resultado Neto (simplificado: EBIT sin ajustar por intereses e impuestos)
+      // En tu caso, el resultado neto es el EBIT ya que no tienes cuentas de intereses/impuestos separadas
+      const resultadoNeto = ebit;
+      const resultadoNetoAnualizado = resultadoNeto * factorAnualizacion;
+
+      console.log('💰 Componentes de rentabilidad:', {
+        ventas: ventas.toFixed(2),
+        cmv: cmv.toFixed(2),
+        gastosOperativos: gastosOperativos.toFixed(2),
+        ebit: ebit.toFixed(2),
+        resultadoNeto: resultadoNeto.toFixed(2),
+        resultadoNetoAnualizado: resultadoNetoAnualizado.toFixed(2)
+      });
+
+      // Obtener Balance General al inicio y fin del período para calcular promedio
+      const [balanceInicio, balanceFin] = await Promise.all([
+        estadoSituacionPatrimonialService.getBalanceGeneral(fechaInicio),
+        estadoSituacionPatrimonialService.getBalanceGeneral(fechaFin)
+      ]);
+
+      // Calcular promedios (es la práctica contable estándar internacional)
+      const activoTotal = (balanceInicio.totalActivos + balanceFin.totalActivos) / 2;
+      const patrimonioNeto = (balanceInicio.totalPatrimonio + balanceFin.totalPatrimonio) / 2;
+
+      console.log('📊 Balance promedio del período:', {
+        activoInicio: balanceInicio.totalActivos.toFixed(2),
+        activoFin: balanceFin.totalActivos.toFixed(2),
+        activoPromedio: activoTotal.toFixed(2),
+        patrimonioInicio: balanceInicio.totalPatrimonio.toFixed(2),
+        patrimonioFin: balanceFin.totalPatrimonio.toFixed(2),
+        patrimonioPromedio: patrimonioNeto.toFixed(2)
+      });
+
+      // ===============================
+      // Calcular Ratios de Rentabilidad
+      // ===============================
+
+      // 1. Margen Bruto = (Ventas - CMV) / Ventas × 100
+      const margenBrutoPorcentaje = ventas > 0 ? ((ventas - cmv) / ventas) * 100 : 0;
+      const margenBruto = {
+        valor: margenBrutoPorcentaje,
+        indicador: determinarIndicadorMargenBruto(margenBrutoPorcentaje)
+      };
+
+      // 2. Margen Operativo (EBIT) = EBIT / Ventas × 100
+      const margenOperativoPorcentaje = ventas > 0 ? (ebit / ventas) * 100 : 0;
+      const margenOperativo = {
+        valor: margenOperativoPorcentaje,
+        indicador: determinarIndicadorMargenOperativo(margenOperativoPorcentaje)
+      };
+
+      // 3. Margen Neto = Resultado Neto / Ventas × 100
+      const margenNetoPorcentaje = ventas > 0 ? (resultadoNeto / ventas) * 100 : 0;
+      const margenNeto = {
+        valor: margenNetoPorcentaje,
+        indicador: determinarIndicadorMargenNeto(margenNetoPorcentaje)
+      };
+
+      // 4. ROA = Resultado Neto / Activo Total × 100
+      const roaPeriodoPorcentaje = activoTotal > 0 ? (resultadoNeto / activoTotal) * 100 : 0;
+      const roaAnualizadoPorcentaje = activoTotal > 0 ? (resultadoNetoAnualizado / activoTotal) * 100 : 0;
+      const roa = {
+        valorPeriodo: roaPeriodoPorcentaje,
+        valorAnualizado: roaAnualizadoPorcentaje,
+        indicador: determinarIndicadorROA(roaAnualizadoPorcentaje),
+        mesesPeriodo: meses,
+        factorAnualizacion
+      };
+
+      // 5. ROE = Resultado Neto / Patrimonio Neto × 100
+      const roePeriodoPorcentaje = patrimonioNeto > 0 ? (resultadoNeto / patrimonioNeto) * 100 : 0;
+      const roeAnualizadoPorcentaje = patrimonioNeto > 0 ? (resultadoNetoAnualizado / patrimonioNeto) * 100 : 0;
+      const roe = {
+        valorPeriodo: roePeriodoPorcentaje,
+        valorAnualizado: roeAnualizadoPorcentaje,
+        indicador: determinarIndicadorROE(roeAnualizadoPorcentaje, patrimonioNeto),
+        mesesPeriodo: meses,
+        factorAnualizacion
+      };
+
+      console.log('📈 Ratios de rentabilidad calculados:', {
+        margenBruto: margenBrutoPorcentaje.toFixed(2) + '%',
+        margenOperativo: margenOperativoPorcentaje.toFixed(2) + '%',
+        margenNeto: margenNetoPorcentaje.toFixed(2) + '%',
+        roaPeriodo: roaPeriodoPorcentaje.toFixed(2) + '%',
+        roaAnualizado: roaAnualizadoPorcentaje.toFixed(2) + '%',
+        roePeriodo: roePeriodoPorcentaje.toFixed(2) + '%',
+        roeAnualizado: roeAnualizadoPorcentaje.toFixed(2) + '%'
+      });
+
+      return {
+        // Valores base
+        ventas,
+        cmv,
+        gastosOperativos,
+        ebit,
+        resultadoNeto,
+        resultadoNetoAnualizado,
+        activoTotal,
+        patrimonioNeto,
+        // Ratios calculados
+        margenBruto,
+        margenOperativo,
+        margenNeto,
+        roa,
+        roe,
+        // Metadata
+        mesesPeriodo: meses,
+        factorAnualizacion,
+        fechaDesde: fechaInicio,
+        fechaHasta: fechaFin
+      };
+
+    } catch (error) {
+      console.error('❌ Error calculando ratios de rentabilidad:', error);
+      throw error;
+    }
   }
 };
 
@@ -403,7 +762,9 @@ export const ratiosFinancierosService = {
 export function useRatiosFinancieros() {
   const [ratios, setRatios] = useState(null);
   const [ratioSobrecompra, setRatioSobrecompra] = useState(null);
+  const [ratiosRentabilidad, setRatiosRentabilidad] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingRentabilidad, setLoadingRentabilidad] = useState(false);
   const [error, setError] = useState(null);
 
   const calcularRatios = async (fechaCorte = null) => {
@@ -428,17 +789,50 @@ export function useRatiosFinancieros() {
     }
   };
 
+  // Función para calcular ratios de rentabilidad con período personalizado
+  const calcularRentabilidad = async (fechaDesde, fechaHasta) => {
+    setLoadingRentabilidad(true);
+    setError(null);
+
+    try {
+      const rentabilidad = await ratiosFinancierosService.calcularRatiosRentabilidad(fechaDesde, fechaHasta);
+      setRatiosRentabilidad(rentabilidad);
+      console.log('✅ Ratios de rentabilidad calculados exitosamente');
+    } catch (err) {
+      console.error('Error calculando ratios de rentabilidad:', err);
+      setError(err.message || 'Error calculando ratios de rentabilidad');
+    } finally {
+      setLoadingRentabilidad(false);
+    }
+  };
+
   // Calcular automáticamente al montar (fecha actual)
   useEffect(() => {
     console.log('🚀 Iniciando cálculo de ratios financieros...');
     calcularRatios();
   }, []);
 
+  // Función para recalcular ratio de sobrecompra con período específico
+  const calcularSobrecompra = async (fechaDesde, fechaHasta) => {
+    try {
+      console.log('📊 Calculando ratio de sobrecompra para período:', { fechaDesde, fechaHasta });
+      const sobrecompra = await ratiosFinancierosService.calcularRatioSobrecompra(fechaDesde, fechaHasta);
+      setRatioSobrecompra(sobrecompra);
+    } catch (err) {
+      console.error('Error calculando ratio de sobrecompra:', err);
+      setError(err.message);
+    }
+  };
+
   return {
     ratios,
     ratioSobrecompra,
+    ratiosRentabilidad,
     loading,
+    loadingRentabilidad,
     error,
-    refetch: calcularRatios
+    refetch: calcularRatios,
+    calcularRentabilidad,
+    calcularSobrecompra
   };
 }

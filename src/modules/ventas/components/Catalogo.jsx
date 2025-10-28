@@ -2157,13 +2157,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                 Búsqueda
               </label>
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-300 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Serial..."
                   value={filtros.busqueda || ""}
                   onChange={(e) => actualizarFiltro("busqueda", e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full pl-8 pr-2 py-[0.5rem] border-0 rounded text-sm bg-slate-600 text-white placeholder-slate-400 focus:ring-0 focus:bg-slate-500 h-[38px]"
                 />
               </div>
             </div>
@@ -2180,7 +2180,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                     : ""
                 }
                 onChange={(e) => actualizarOrdenamiento(e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
               >
                 <option value="">Sin ordenar</option>
                 {categoriaConfig?.camposOrdenamiento?.map((campo) => (
@@ -2199,7 +2199,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <select
                 value={filtros.marca}
                 onChange={(e) => actualizarFiltro("marca", e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
               >
                 <option value="">Todas</option>
                 {valoresUnicos.marcas?.map((marca) => (
@@ -2218,7 +2218,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <select
                 value={filtros.condicion}
                 onChange={(e) => actualizarFiltro("condicion", e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
               >
                 <option value="">Todas</option>
                 {valoresUnicos.condiciones?.map((condicion) => (
@@ -2229,6 +2229,27 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               </select>
             </div>
 
+            {/* Almacenamiento - Solo para celulares */}
+            {categoriaActiva === 'celulares' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Almacenamiento
+                </label>
+                <select
+                  value={filtros.almacenamiento}
+                  onChange={(e) => actualizarFiltro("almacenamiento", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.almacenamientos?.map((capacidad) => (
+                    <option key={capacidad} value={capacidad}>
+                      {capacidad}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Estado */}
             <div>
               <label className="block text-xs font-medium text-slate-200 mb-1">
@@ -2237,7 +2258,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <select
                 value={filtros.estado}
                 onChange={(e) => actualizarFiltro("estado", e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
               >
                 <option value="">Todos</option>
                 {valoresUnicos.estados?.map((estado) => (
@@ -2256,7 +2277,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               <select
                 value={filtros.sucursal}
                 onChange={(e) => actualizarFiltro("sucursal", e.target.value)}
-                className="w-full p-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
               >
                 <option value="">Todas</option>
                 {UBICACIONES_ARRAY.map((ubicacion) => (

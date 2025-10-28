@@ -21,7 +21,8 @@ export const useCatalogoUnificado = () => {
     precioMin: '',
     busqueda: '',
     categoria: '',
-    subcategoria: '' // Para filtrar subcategorías en Apple
+    subcategoria: '', // Para filtrar subcategorías en Apple
+    almacenamiento: ''
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -272,6 +273,9 @@ export const useCatalogoUnificado = () => {
     const precioMin = Math.min(...datosActuales.map(item => parseFloat(item.precio_venta_usd) || 0));
     const precioMax = Math.max(...datosActuales.map(item => parseFloat(item.precio_venta_usd) || 0));
 
+    const almacenamientos = categoriaActiva === 'celulares' ? [...new Set(datosActuales.map(item => item.capacidad).filter(Boolean))]:[];
+    
+
     return {
       marcas: marcas.sort(),
       condiciones: condiciones.sort(),
@@ -279,7 +283,8 @@ export const useCatalogoUnificado = () => {
       sucursales: sucursales.sort(),
       categorias: categorias.sort(),
       precioMin,
-      precioMax
+      precioMax,
+      almacenamientos: almacenamientos.sort()
     };
   }, [datosActuales, categoriaActiva]);
 
@@ -312,14 +317,16 @@ export const useCatalogoUnificado = () => {
           // El filtro de ubicación ahora solo organiza visualmente, no filtra por stock
           return true; // Mostrar todos los productos "otros" independientemente del stock
         }
-        
-        // Para notebooks y celulares que usan ubicacion/sucursal
-        const sucursalItem = item.ubicacion || item.sucursal || '';
-        const sucursalFiltro = filtrosUnificados.sucursal;
-        return sucursalItem === sucursalFiltro;
-      });
-    }
-
+    
+            const sucursalItem = item.ubicacion || item.sucursal || '';
+            const sucursalFiltro = filtrosUnificados.sucursal;
+            return sucursalItem === sucursalFiltro;
+          });
+        }
+    
+        if(categoriaActiva === 'celulares' && filtrosUnificados.almacenamiento){
+          filtered = filtered.filter(item => item.capacidad === filtrosUnificados.almacenamiento);
+        }
     if (filtrosUnificados.precioMin) {
       filtered = filtered.filter(item => 
         parseFloat(item.precio_venta_usd) >= parseFloat(filtrosUnificados.precioMin)
@@ -473,7 +480,8 @@ export const useCatalogoUnificado = () => {
       precioMin: '',
       categoria: '',
       busqueda: '',
-      subcategoria: ''
+      subcategoria: '',
+      almacenamiento: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
