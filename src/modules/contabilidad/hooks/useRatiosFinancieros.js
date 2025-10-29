@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { estadoSituacionPatrimonialService } from './useEstadoSituacionPatrimonial';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { supabase } from '../../../lib/supabase';
-import { calcularTotalCategoria, calcularDebitos } from '../utils/saldosUtils';
+import { calcularTotalCategoria, calcularDebitos, calcularSaldoCuenta } from '../utils/saldosUtils';
 
 // Función para identificar si una cuenta es inventario/mercadería
 const esInventario = (cuenta) => {
@@ -127,6 +127,118 @@ const determinarIndicadorSobrecompra = (ratio) => {
       color: '#ef4444',
       emoji: '🔴',
       texto: 'Sobrecompra'
+    };
+  }
+};
+
+// ===============================
+// 🟢 Funciones de indicadores para Ratios de Endeudamiento
+// ===============================
+
+// Función para determinar el indicador de Endeudamiento Total
+// >0.7 = Riesgo | 0.5-0.7 = Controlable | <0.5 = Sólido
+const determinarIndicadorEndeudamientoTotal = (ratio) => {
+  if (ratio > 0.7) {
+    return {
+      estado: 'riesgo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Riesgo'
+    };
+  } else if (ratio >= 0.5 && ratio <= 0.7) {
+    return {
+      estado: 'controlable',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Controlable'
+    };
+  } else {
+    return {
+      estado: 'solido',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Sólido'
+    };
+  }
+};
+
+// Función para determinar el indicador de Apalancamiento Financiero
+// >3 = Excesivo | 2-3 = Moderado | <2 = Sano
+const determinarIndicadorApalancamiento = (ratio) => {
+  if (ratio > 3) {
+    return {
+      estado: 'excesivo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Excesivo'
+    };
+  } else if (ratio >= 2 && ratio <= 3) {
+    return {
+      estado: 'moderado',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Moderado'
+    };
+  } else {
+    return {
+      estado: 'sano',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Sano'
+    };
+  }
+};
+
+// Función para determinar el indicador de Cobertura de Intereses
+// <2 = Riesgo | 2-4 = Aceptable | >4 = Cómodo
+const determinarIndicadorCoberturaIntereses = (ratio) => {
+  if (ratio < 2) {
+    return {
+      estado: 'riesgo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Riesgo'
+    };
+  } else if (ratio >= 2 && ratio <= 4) {
+    return {
+      estado: 'aceptable',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Aceptable'
+    };
+  } else {
+    return {
+      estado: 'comodo',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Cómodo'
+    };
+  }
+};
+
+// Función para determinar el indicador de Pasivo Corriente / Pasivo Total
+// >0.7 = Tensión | 0.5-0.7 = Controlable | <0.5 = Sano
+const determinarIndicadorPasivoCorriente = (ratio) => {
+  if (ratio > 0.7) {
+    return {
+      estado: 'tension',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Tensión'
+    };
+  } else if (ratio >= 0.5 && ratio <= 0.7) {
+    return {
+      estado: 'controlable',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Controlable'
+    };
+  } else {
+    return {
+      estado: 'sano',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Sano'
     };
   }
 };
@@ -307,6 +419,11 @@ const CATEGORIAS_RATIO = [
     nombre: "Otros",
     codigoBienes: "1.1.04.01.06",
     codigoCMV: "5.0.6"
+  },
+  {
+    nombre: "Periféricos",
+    codigoBienes: "1.1.04.01.07",
+    codigoCMV: "5.0.7"
   }
 ];
 
@@ -432,12 +549,24 @@ export const ratiosFinancierosService = {
       // Ratio General = Compras / CMV (invertido)
       const ratioGeneral = cmvTotal > 0 ? comprasTotal / cmvTotal : 0;
 
+      // ⚠️ VERIFICACIÓN: Calcular total usando startsWith para comparar
+      const comprasTotalVerificacion = calcularDebitos(
+        movimientos,
+        (mov) => mov.plan_cuentas?.codigo?.startsWith('1.1.04.01')
+      );
+
       console.log('📊 TOTALES GENERALES:', {
         compras: comprasTotal.toFixed(2),
+        comprasVerificacion: comprasTotalVerificacion.toFixed(2),
+        diferencia: (comprasTotalVerificacion - comprasTotal).toFixed(2),
         cmv: cmvTotal.toFixed(2),
         ratio: ratioGeneral.toFixed(2),
         periodo: `${fechaInicioStr} al ${fechaFinStr}`
       });
+
+      if (comprasTotalVerificacion !== comprasTotal) {
+        console.warn('⚠️ ADVERTENCIA: Hay cuentas 1.1.04.01.xx que no están en CATEGORIAS_RATIO');
+      }
 
       return {
         // Totales generales
@@ -526,6 +655,34 @@ export const ratiosFinancierosService = {
         capitalTrabajoNeto: capitalTrabajoNeto.toFixed(2)
       });
 
+      // Calcular totales del balance
+      const activoTotal = balance.totalActivos;
+      const pasivoTotal = balance.totalPasivos;
+      const patrimonioNeto = balance.totalPatrimonio;
+
+      // ===============================
+      // Calcular Ratios de Endeudamiento
+      // ===============================
+
+      // 1. Endeudamiento Total = Pasivo Total / Activo Total
+      const endeudamientoTotal = activoTotal > 0 ? pasivoTotal / activoTotal : 0;
+
+      // 2. Apalancamiento Financiero = Activo Total / Patrimonio Neto
+      const apalancamientoFinanciero = patrimonioNeto > 0 ? activoTotal / patrimonioNeto : 0;
+
+      // 3. Cobertura de Intereses = EBIT / Gastos Financieros
+      // NOTA: Por ahora asumimos gastos financieros = 0, lo calcularemos desde rentabilidad si hay
+      const coberturaIntereses = 0; // Se actualizará desde rentabilidad si hay gastos financieros
+
+      // 4. Pasivo Corriente / Pasivo Total
+      const proporcionPasivoCorriente = pasivoTotal > 0 ? pasivoCorriente / pasivoTotal : 0;
+
+      console.log('📊 Ratios de endeudamiento calculados:', {
+        endeudamientoTotal: endeudamientoTotal.toFixed(2),
+        apalancamientoFinanciero: apalancamientoFinanciero.toFixed(2),
+        proporcionPasivoCorriente: proporcionPasivoCorriente.toFixed(2)
+      });
+
       // Determinar indicadores de salud
       const indicadores = {
         liquidezCorriente: determinarIndicadorLiquidez(liquidezCorriente),
@@ -533,17 +690,34 @@ export const ratiosFinancierosService = {
         capitalTrabajoNeto: determinarIndicadorCapitalTrabajo(capitalTrabajoNeto)
       };
 
+      // Indicadores de endeudamiento
+      const indicadoresEndeudamiento = {
+        endeudamientoTotal: determinarIndicadorEndeudamientoTotal(endeudamientoTotal),
+        apalancamientoFinanciero: determinarIndicadorApalancamiento(apalancamientoFinanciero),
+        coberturaIntereses: determinarIndicadorCoberturaIntereses(coberturaIntereses),
+        proporcionPasivoCorriente: determinarIndicadorPasivoCorriente(proporcionPasivoCorriente)
+      };
+
       return {
         // Valores base
         activoCorriente,
         pasivoCorriente,
         inventario,
-        // Ratios calculados
+        activoTotal,
+        pasivoTotal,
+        patrimonioNeto,
+        // Ratios de liquidez
         liquidezCorriente,
         pruebaAcida,
         capitalTrabajoNeto,
+        // Ratios de endeudamiento
+        endeudamientoTotal,
+        apalancamientoFinanciero,
+        coberturaIntereses,
+        proporcionPasivoCorriente,
         // Indicadores de salud
         indicadores,
+        indicadoresEndeudamiento,
         // Metadata
         fechaCalculo: fecha
       };
@@ -630,10 +804,17 @@ export const ratiosFinancierosService = {
       const movimientos = todosLosMovimientos;
       console.log(`📊 RENTABILIDAD - Total movimientos procesados:`, movimientos.length);
 
-      // Calcular componentes principales usando función centralizada
-      const ventas = calcularTotalCategoria(movimientos, '4.1'); // Ventas
-      const cmv = Math.abs(calcularTotalCategoria(movimientos, '5.0')); // CMV (valor absoluto)
-      const gastosOperativos = Math.abs(calcularTotalCategoria(movimientos, '5.1')); // Gastos operativos (5.1.xx)
+      // Calcular componentes principales usando débitos/créditos según naturaleza contable
+      // VENTAS (4.1): Se acreditan (haber) cuando se genera ingreso
+      const ventas = movimientos
+        .filter(mov => mov.plan_cuentas?.codigo?.startsWith('4.1'))
+        .reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
+
+      // CMV (5.0): Se debita (debe) cuando se registra el costo
+      const cmv = calcularDebitos(movimientos, (mov) => mov.plan_cuentas?.codigo?.startsWith('5.0'));
+
+      // GASTOS OPERATIVOS (5.1): Se debitan (debe) cuando se registran gastos
+      const gastosOperativos = calcularDebitos(movimientos, (mov) => mov.plan_cuentas?.codigo?.startsWith('5.1'));
 
       // Calcular EBIT (Earnings Before Interest and Taxes)
       const ebit = ventas - cmv - gastosOperativos;
@@ -643,10 +824,10 @@ export const ratiosFinancierosService = {
       const resultadoNeto = ebit;
       const resultadoNetoAnualizado = resultadoNeto * factorAnualizacion;
 
-      console.log('💰 Componentes de rentabilidad:', {
-        ventas: ventas.toFixed(2),
-        cmv: cmv.toFixed(2),
-        gastosOperativos: gastosOperativos.toFixed(2),
+      console.log('💰 Componentes de rentabilidad (usando débitos/créditos correctos):', {
+        ventas: ventas.toFixed(2) + ' (HABER)',
+        cmv: cmv.toFixed(2) + ' (DEBE)',
+        gastosOperativos: gastosOperativos.toFixed(2) + ' (DEBE)',
         ebit: ebit.toFixed(2),
         resultadoNeto: resultadoNeto.toFixed(2),
         resultadoNetoAnualizado: resultadoNetoAnualizado.toFixed(2)
@@ -663,12 +844,26 @@ export const ratiosFinancierosService = {
       const patrimonioNeto = (balanceInicio.totalPatrimonio + balanceFin.totalPatrimonio) / 2;
 
       console.log('📊 Balance promedio del período:', {
+        fechaInicio: fechaInicio,
+        fechaFin: fechaFin,
         activoInicio: balanceInicio.totalActivos.toFixed(2),
         activoFin: balanceFin.totalActivos.toFixed(2),
         activoPromedio: activoTotal.toFixed(2),
         patrimonioInicio: balanceInicio.totalPatrimonio.toFixed(2),
         patrimonioFin: balanceFin.totalPatrimonio.toFixed(2),
         patrimonioPromedio: patrimonioNeto.toFixed(2)
+      });
+
+      console.log('🔍 DESGLOSE Balance Inicio:', {
+        activoCorriente: balanceInicio.totalActivoCorriente?.toFixed(2) || 'N/A',
+        activoNoCorriente: balanceInicio.totalActivoNoCorriente?.toFixed(2) || 'N/A',
+        totalActivos: balanceInicio.totalActivos.toFixed(2)
+      });
+
+      console.log('🔍 DESGLOSE Balance Fin:', {
+        activoCorriente: balanceFin.totalActivoCorriente?.toFixed(2) || 'N/A',
+        activoNoCorriente: balanceFin.totalActivoNoCorriente?.toFixed(2) || 'N/A',
+        totalActivos: balanceFin.totalActivos.toFixed(2)
       });
 
       // ===============================
@@ -763,6 +958,7 @@ export function useRatiosFinancieros() {
   const [ratios, setRatios] = useState(null);
   const [ratioSobrecompra, setRatioSobrecompra] = useState(null);
   const [ratiosRentabilidad, setRatiosRentabilidad] = useState(null);
+  const [datosDebug, setDatosDebug] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingRentabilidad, setLoadingRentabilidad] = useState(false);
   const [error, setError] = useState(null);
@@ -810,6 +1006,21 @@ export function useRatiosFinancieros() {
   useEffect(() => {
     console.log('🚀 Iniciando cálculo de ratios financieros...');
     calcularRatios();
+
+    // Generar datos de debug para el período inicial (mes actual completo)
+    const hoy = new Date();
+    const fechaHasta = hoy.getFullYear() + '-' +
+                       String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(hoy.getDate()).padStart(2, '0');
+
+    // Primer día del mes actual (meses=1 significa "este mes", así que (1-1)=0)
+    const fechaDesdeDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const fechaDesde = fechaDesdeDate.getFullYear() + '-' +
+                       String(fechaDesdeDate.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(fechaDesdeDate.getDate()).padStart(2, '0');
+
+    console.log(`📅 Debug inicial: ${fechaDesde} al ${fechaHasta}`);
+    generarDatosDebug(fechaDesde, fechaHasta);
   }, []);
 
   // Función para recalcular ratio de sobrecompra con período específico
@@ -824,15 +1035,136 @@ export function useRatiosFinancieros() {
     }
   };
 
+  // Función para generar datos de debug
+  const generarDatosDebug = async (fechaDesde, fechaHasta) => {
+    try {
+      console.log('🔍 Generando datos de debug...', { fechaDesde, fechaHasta });
+
+      // Obtener asientos del período
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_contables')
+        .select('id')
+        .gte('fecha', fechaDesde)
+        .lte('fecha', fechaHasta);
+
+      if (errorAsientos) throw errorAsientos;
+      if (!asientos || asientos.length === 0) return null;
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos
+      const BATCH_SIZE = 200;
+      let todosLosMovimientos = [];
+
+      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
+        const batch = asientoIds.slice(i, i + BATCH_SIZE);
+        const { data: movimientosBatch, error: errorBatch } = await supabase
+          .from('movimientos_contables')
+          .select(`
+            *,
+            plan_cuentas (id, codigo, nombre, tipo, categoria)
+          `)
+          .in('asiento_id', batch);
+
+        if (errorBatch) throw errorBatch;
+        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+      }
+
+      // Obtener balance para activo/pasivo corriente e inventario
+      const balance = await estadoSituacionPatrimonialService.getBalanceGeneral(fechaHasta);
+
+      // Función auxiliar para agrupar movimientos por cuenta
+      const agruparPorCuenta = (movimientos, filtro) => {
+        const cuentasMap = {};
+        const filtrar = typeof filtro === 'function' ? filtro : (mov) => mov.plan_cuentas?.codigo?.startsWith(filtro);
+
+        movimientos.filter(filtrar).forEach(mov => {
+          const cuenta = mov.plan_cuentas;
+          if (!cuenta) return;
+
+          if (!cuentasMap[cuenta.id]) {
+            cuentasMap[cuenta.id] = {
+              codigo: cuenta.codigo,
+              nombre: cuenta.nombre,
+              tipo: cuenta.tipo,
+              debe: 0,
+              haber: 0,
+              saldo: 0
+            };
+          }
+
+          cuentasMap[cuenta.id].debe += parseFloat(mov.debe || 0);
+          cuentasMap[cuenta.id].haber += parseFloat(mov.haber || 0);
+        });
+
+        // Calcular saldos usando la función centralizada
+        const cuentas = Object.values(cuentasMap).map(cuenta => ({
+          ...cuenta,
+          saldo: calcularSaldoCuenta(cuenta.debe, cuenta.haber, cuenta.tipo)
+        }));
+
+        const totalDebitos = cuentas.reduce((sum, c) => sum + c.debe, 0);
+        const totalCreditos = cuentas.reduce((sum, c) => sum + c.haber, 0);
+        const saldo = cuentas.reduce((sum, c) => sum + c.saldo, 0);
+
+        return { cuentas, totalDebitos, totalCreditos, saldo };
+      };
+
+      // Función auxiliar para balance
+      const agruparPorBalance = (cuentasDetalle) => {
+        const cuentas = cuentasDetalle.map(item => ({
+          codigo: item.cuenta.codigo,
+          nombre: item.cuenta.nombre,
+          tipo: item.cuenta.tipo,
+          debe: item.debe,
+          haber: item.haber,
+          saldo: item.saldo
+        }));
+
+        const totalDebitos = cuentas.reduce((sum, c) => sum + c.debe, 0);
+        const totalCreditos = cuentas.reduce((sum, c) => sum + c.haber, 0);
+        const saldo = cuentas.reduce((sum, c) => sum + c.saldo, 0);
+
+        return { cuentas, totalDebitos, totalCreditos, saldo };
+      };
+
+      // Generar datos para cada categoría
+      const debug = {
+        activo_corriente: agruparPorBalance(
+          balance.activosDetalle.filter(item => estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta))
+        ),
+        pasivo_corriente: agruparPorBalance(
+          balance.pasivosDetalle.filter(item => estadoSituacionPatrimonialService.esPasivoCorriente(item.cuenta))
+        ),
+        inventario: agruparPorBalance(
+          balance.activosDetalle.filter(item =>
+            estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta) && esInventario(item.cuenta)
+          )
+        ),
+        ventas: agruparPorCuenta(todosLosMovimientos, '4.1'),
+        cmv: agruparPorCuenta(todosLosMovimientos, '5.0'),
+        gastos_operativos: agruparPorCuenta(todosLosMovimientos, '5.1'),
+        compras: agruparPorCuenta(todosLosMovimientos, '1.1.04.01') // Solo 1.1.04.01.x (Bienes de Cambio - Mercaderías)
+      };
+
+      setDatosDebug(debug);
+      console.log('✅ Datos de debug generados:', debug);
+    } catch (err) {
+      console.error('❌ Error generando datos de debug:', err);
+    }
+  };
+
   return {
     ratios,
     ratioSobrecompra,
     ratiosRentabilidad,
+    datosDebug,
     loading,
     loadingRentabilidad,
     error,
     refetch: calcularRatios,
     calcularRentabilidad,
-    calcularSobrecompra
+    calcularSobrecompra,
+    generarDatosDebug
   };
 }

@@ -22,7 +22,9 @@ export const useCatalogoUnificado = () => {
     busqueda: '',
     categoria: '',
     subcategoria: '', // Para filtrar subcategorías en Apple
-    almacenamiento: ''
+    almacenamiento: '',
+    pantalla: '', // Para filtrar por tamaño de pantalla en notebooks
+    idioma_teclado: '' // Para filtrar por idioma de teclado en notebooks
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -83,7 +85,7 @@ export const useCatalogoUnificado = () => {
         fetch: fetchComputers,
         delete: deleteComputer,
         update: updateComputer,
-        filtrosDisponibles: ['marca', 'condicion', 'sucursal', 'precio'],
+        filtrosDisponibles: ['marca', 'condicion', 'estado', 'sucursal', 'pantalla', 'idioma_teclado', 'precio'],
         camposOrdenamiento: [
           { value: 'modelo-asc', label: 'Nombre (A-Z)' },
           { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
@@ -106,7 +108,12 @@ export const useCatalogoUnificado = () => {
         update: updateCelular,
         filtrosDisponibles: ['marca', 'condicion', 'ubicacion', 'precio'],
         camposOrdenamiento: [
-          { value: 'modelo-asc', label: 'Nombre (A-Z)' },
+          { value: 'modelo-asc', label: 'Modelo (A-Z)' },
+          { value: 'modelo-desc', label: 'Modelo (Z-A)' },
+          { value: 'color-asc', label: 'Color (A-Z)' },
+          { value: 'color-desc', label: 'Color (Z-A)' },
+          { value: 'almacenamiento-asc', label: 'Almacenamiento (menor a mayor)' },
+          { value: 'almacenamiento-desc', label: 'Almacenamiento (mayor a menor)' },
           { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
           { value: 'precio_venta_usd-desc', label: 'Precio mayor a menor' },
           { value: 'marca-asc', label: 'Marca' },
@@ -274,7 +281,10 @@ export const useCatalogoUnificado = () => {
     const precioMax = Math.max(...datosActuales.map(item => parseFloat(item.precio_venta_usd) || 0));
 
     const almacenamientos = categoriaActiva === 'celulares' ? [...new Set(datosActuales.map(item => item.capacidad).filter(Boolean))]:[];
-    
+
+    // Para notebooks, extraer tamaños de pantalla e idiomas de teclado
+    const pantallas = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.pantalla).filter(Boolean))]:[];
+    const idiomasTeclado = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.idioma_teclado).filter(Boolean))]:[];
 
     return {
       marcas: marcas.sort(),
@@ -284,7 +294,9 @@ export const useCatalogoUnificado = () => {
       categorias: categorias.sort(),
       precioMin,
       precioMax,
-      almacenamientos: almacenamientos.sort()
+      almacenamientos: almacenamientos.sort(),
+      pantallas: pantallas.sort(),
+      idiomasTeclado: idiomasTeclado.sort()
     };
   }, [datosActuales, categoriaActiva]);
 
@@ -327,6 +339,17 @@ export const useCatalogoUnificado = () => {
         if(categoriaActiva === 'celulares' && filtrosUnificados.almacenamiento){
           filtered = filtered.filter(item => item.capacidad === filtrosUnificados.almacenamiento);
         }
+
+    // Filtrar por pantalla (notebooks)
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
+      filtered = filtered.filter(item => item.pantalla === filtrosUnificados.pantalla);
+    }
+
+    // Filtrar por idioma de teclado (notebooks)
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){
+      filtered = filtered.filter(item => item.idioma_teclado === filtrosUnificados.idioma_teclado);
+    }
+
     if (filtrosUnificados.precioMin) {
       filtered = filtered.filter(item => 
         parseFloat(item.precio_venta_usd) >= parseFloat(filtrosUnificados.precioMin)
@@ -395,17 +418,37 @@ export const useCatalogoUnificado = () => {
     // Aplicar ordenamiento
     if (ordenamiento.campo) {
       filtered.sort((a, b) => {
-        let valorA = a[ordenamiento.campo];
-        let valorB = b[ordenamiento.campo];
+        // Mapear 'almacenamiento' a 'capacidad' para celulares
+        const campoReal = ordenamiento.campo === 'almacenamiento' ? 'capacidad' : ordenamiento.campo;
+
+        let valorA = a[campoReal];
+        let valorB = b[campoReal];
 
         // Manejar precios como números
-        if (ordenamiento.campo === 'precio_venta_usd') {
+        if (campoReal === 'precio_venta_usd') {
           valorA = parseFloat(valorA) || 0;
           valorB = parseFloat(valorB) || 0;
         }
 
+        // Manejar almacenamiento/capacidad como números (extraer GB)
+        if (campoReal === 'capacidad' || campoReal === 'almacenamiento') {
+          // Extraer número de GB/TB de strings como "128GB", "256 GB", "1TB"
+          const extraerNumeroAlmacenamiento = (str) => {
+            if (!str) return 0;
+            const match = str.toString().match(/(\d+)\s*(GB|TB|gb|tb)/i);
+            if (!match) return 0;
+            const numero = parseInt(match[1]);
+            const unidad = match[2].toUpperCase();
+            // Convertir TB a GB para comparación consistente
+            return unidad === 'TB' ? numero * 1024 : numero;
+          };
+
+          valorA = extraerNumeroAlmacenamiento(valorA);
+          valorB = extraerNumeroAlmacenamiento(valorB);
+        }
+
         // Manejar fechas (ingreso, created_at)
-        if (ordenamiento.campo === 'ingreso' || ordenamiento.campo === 'created_at') {
+        if (campoReal === 'ingreso' || campoReal === 'created_at') {
           valorA = valorA ? new Date(valorA).getTime() : 0;
           valorB = valorB ? new Date(valorB).getTime() : 0;
         }
@@ -413,7 +456,7 @@ export const useCatalogoUnificado = () => {
         // Manejar strings
         if (typeof valorA === 'string') {
           valorA = valorA.toLowerCase();
-          valorB = valorB.toLowerCase();
+          valorB = (valorB || '').toLowerCase();
         }
 
         if (valorA < valorB) return ordenamiento.direccion === 'asc' ? -1 : 1;
@@ -442,7 +485,10 @@ export const useCatalogoUnificado = () => {
         precioMin: '',
         categoria: '',
         busqueda: '',
-        subcategoria: 'notebooks' // Activar Macbooks por defecto
+        subcategoria: 'notebooks', // Activar Macbooks por defecto
+        almacenamiento: '',
+        pantalla: '',
+        idioma_teclado: ''
       });
       console.log('🍎 Apple seleccionado - Activando Macbooks por defecto');
     } else {
@@ -455,7 +501,10 @@ export const useCatalogoUnificado = () => {
         precioMin: '',
         categoria: '',
         busqueda: '',
-        subcategoria: ''
+        subcategoria: '',
+        almacenamiento: '',
+        pantalla: '',
+        idioma_teclado: ''
       });
     }
 
@@ -481,7 +530,9 @@ export const useCatalogoUnificado = () => {
       categoria: '',
       busqueda: '',
       subcategoria: '',
-      almacenamiento: ''
+      almacenamiento: '',
+      pantalla: '',
+      idioma_teclado: ''
     });
     setOrdenamiento({ campo: '', direccion: 'asc' });
   };
@@ -585,6 +636,15 @@ export const useCatalogoUnificado = () => {
       filtered = filtered.filter(item =>
         parseFloat(item.precio_venta_usd) <= parseFloat(filtrosUnificados.precioMax)
       );
+    }
+
+    // Filtros específicos de notebooks
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
+      filtered = filtered.filter(item => item.pantalla === filtrosUnificados.pantalla);
+    }
+
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){
+      filtered = filtered.filter(item => item.idioma_teclado === filtrosUnificados.idioma_teclado);
     }
 
     // Para productos "otros", aplicar filtro básico de stock positivo

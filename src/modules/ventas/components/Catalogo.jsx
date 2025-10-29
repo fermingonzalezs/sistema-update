@@ -1685,10 +1685,11 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="nuevo">NUEVO</option>
-                  <option value="usado">USADO</option>
-                  <option value="reacondicionado">REACONDICIONADO</option>
-                  <option value="defectuoso">DEFECTUOSO</option>
+                  {CONDICIONES_ARRAY.map((condicion) => (
+                    <option key={condicion} value={condicion}>
+                      {CONDICIONES_LABELS[condicion]}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -2244,6 +2245,48 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   {valoresUnicos.almacenamientos?.map((capacidad) => (
                     <option key={capacidad} value={capacidad}>
                       {capacidad}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Pantalla - Solo para notebooks */}
+            {categoriaActiva === 'notebooks' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Pantalla
+                </label>
+                <select
+                  value={filtros.pantalla}
+                  onChange={(e) => actualizarFiltro("pantalla", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.pantallas?.map((pantalla) => (
+                    <option key={pantalla} value={pantalla}>
+                      {pantalla}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Teclado - Solo para notebooks */}
+            {categoriaActiva === 'notebooks' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Teclado
+                </label>
+                <select
+                  value={filtros.idioma_teclado}
+                  onChange={(e) => actualizarFiltro("idioma_teclado", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.idiomasTeclado?.map((idioma) => (
+                    <option key={idioma} value={idioma}>
+                      {idioma}
                     </option>
                   ))}
                 </select>

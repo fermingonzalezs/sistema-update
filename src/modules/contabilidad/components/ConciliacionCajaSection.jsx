@@ -90,6 +90,8 @@ const conciliacionCajaService = {
 
   async getUltimosMovimientosCaja(cuentaId, limite = 10) {
     console.log('📋 Obteniendo últimos movimientos de caja...');
+
+    // Primero obtenemos los movimientos con sus asientos
     const { data, error } = await supabase
       .from('movimientos_contables')
       .select(`
@@ -102,10 +104,21 @@ const conciliacionCajaService = {
         )
       `)
       .eq('cuenta_id', cuentaId)
-      .order('id', { ascending: false })
-      .limit(limite);
+      .limit(limite * 3); // Obtenemos más movimientos para luego ordenar y limitar
+
     if (error) throw error;
-    return data;
+
+    // Ordenar por fecha del asiento (más reciente primero) en JavaScript
+    const movimientosOrdenados = data
+      .filter(mov => mov.asientos_contables) // Filtrar movimientos sin asiento
+      .sort((a, b) => {
+        const fechaA = new Date(a.asientos_contables.fecha);
+        const fechaB = new Date(b.asientos_contables.fecha);
+        return fechaB - fechaA; // Orden descendente (más reciente primero)
+      })
+      .slice(0, limite); // Tomar solo el límite solicitado
+
+    return movimientosOrdenados;
   },
 
   // Función mantenida para uso manual futuro, pero no se llama automáticamente

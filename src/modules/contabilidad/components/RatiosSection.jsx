@@ -659,7 +659,7 @@ const GaugeCardRentabilidad = ({
               textAlign: 'center'
             }}
           >
-            <div className="text-4xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-slate-900">
               {typeof valorAnualizado === 'number' && !isNaN(valorAnualizado) ? valorAnualizado.toFixed(2) : '0.00'}%
             </div>
             <div className="text-xs text-slate-500 mt-1">
@@ -701,22 +701,37 @@ const GaugeCardRentabilidad = ({
 // 🟢 Componente principal
 // ===============================
 const RatiosSection = () => {
-  const { ratios, ratioSobrecompra, ratiosRentabilidad, loading, loadingRentabilidad, error, refetch, calcularRentabilidad, calcularSobrecompra } = useRatiosFinancieros();
+  const { ratios, ratioSobrecompra, ratiosRentabilidad, loading, loadingRentabilidad, error, refetch, calcularRentabilidad, calcularSobrecompra, datosDebug, generarDatosDebug } = useRatiosFinancieros();
 
   // Estado para período global
   const [periodoGlobal, setPeriodoGlobal] = useState(1); // Meses (1, 3, 6, 12)
   const [inicializado, setInicializado] = useState(false);
 
-  // Calcular fechas basadas en el período seleccionado
-  const calcularFechas = (meses) => {
-    const fechaHasta = new Date();
-    const fechaDesde = new Date();
-    fechaDesde.setMonth(fechaDesde.getMonth() - meses);
+  // Estado para tabla de debugging
+  const [categoriaDebug, setCategoriaDebug] = useState('ventas');
 
-    return {
-      fechaDesde: fechaDesde.toISOString().split('T')[0],
-      fechaHasta: fechaHasta.toISOString().split('T')[0]
-    };
+  // Calcular fechas basadas en el período seleccionado (meses calendario completos)
+  const calcularFechas = (meses) => {
+    const hoy = new Date();
+
+    // Formatear fecha hasta (hoy) en formato YYYY-MM-DD local
+    const fechaHasta = hoy.getFullYear() + '-' +
+                       String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(hoy.getDate()).padStart(2, '0');
+
+    // Calcular fecha desde: primer día del mes hace X meses
+    // Por ejemplo, si estamos en octubre (mes 9, índice 9) y meses=1:
+    // - Restamos 1 mes -> septiembre (mes 8, índice 8)
+    // - Pero queremos DESDE octubre, así que restamos (meses - 1)
+    const fechaDesdeDate = new Date(hoy.getFullYear(), hoy.getMonth() - (meses - 1), 1);
+
+    const fechaDesde = fechaDesdeDate.getFullYear() + '-' +
+                       String(fechaDesdeDate.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(fechaDesdeDate.getDate()).padStart(2, '0');
+
+    console.log(`📅 Período de ${meses} mes(es): ${fechaDesde} al ${fechaHasta}`);
+
+    return { fechaDesde, fechaHasta };
   };
 
   // Efecto para cargar datos iniciales y cuando cambia el período
@@ -725,6 +740,7 @@ const RatiosSection = () => {
       const { fechaDesde, fechaHasta } = calcularFechas(periodoGlobal);
       calcularRentabilidad(fechaDesde, fechaHasta);
       calcularSobrecompra(fechaDesde, fechaHasta);
+      generarDatosDebug(fechaDesde, fechaHasta);
       setInicializado(true);
     }
   }, [inicializado]);
@@ -735,6 +751,7 @@ const RatiosSection = () => {
     const { fechaDesde, fechaHasta } = calcularFechas(nuevosMeses);
     calcularRentabilidad(fechaDesde, fechaHasta);
     calcularSobrecompra(fechaDesde, fechaHasta);
+    generarDatosDebug(fechaDesde, fechaHasta);
   };
 
   // Manejador de refrescar - recalcula TODO con el período actual
@@ -743,6 +760,7 @@ const RatiosSection = () => {
     const { fechaDesde, fechaHasta } = calcularFechas(periodoGlobal);
     calcularRentabilidad(fechaDesde, fechaHasta);
     calcularSobrecompra(fechaDesde, fechaHasta);
+    generarDatosDebug(fechaDesde, fechaHasta);
   };
 
   if (loading) {
@@ -960,6 +978,46 @@ const RatiosSection = () => {
           </div>
         </div>
 
+        {/* Gráficos de Endeudamiento */}
+        <div className="p-6 pt-0">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase bg-slate-50 py-3 rounded">Ratios de Endeudamiento</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GaugeCard
+              titulo="Endeudamiento Total"
+              valor={ratios.endeudamientoTotal}
+              indicador={ratios.indicadoresEndeudamiento.endeudamientoTotal}
+              maxValue={1.0}
+              icon={PieChart}
+              valoresFormula={{
+                formulaTexto: 'Pasivo Total / Activo Total',
+                valoresTexto: `${formatearMonto(ratios.pasivoTotal, 'USD')} / ${formatearMonto(ratios.activoTotal, 'USD')}`
+              }}
+              rangos={[
+                { min: 0, max: 0.5, label: 'Sólido', color: '#10b981', emoji: '🟢' },
+                { min: 0.5, max: 0.7, label: 'Controlable', color: '#f59e0b', emoji: '🟡' },
+                { min: 0.7, max: 1.0, label: 'Riesgo', color: '#ef4444', emoji: '🔴' }
+              ]}
+            />
+
+            <GaugeCard
+              titulo="Apalancamiento Financiero"
+              valor={ratios.apalancamientoFinanciero}
+              indicador={ratios.indicadoresEndeudamiento.apalancamientoFinanciero}
+              maxValue={5.0}
+              icon={BarChart3}
+              valoresFormula={{
+                formulaTexto: 'Activo Total / Patrimonio Neto',
+                valoresTexto: `${formatearMonto(ratios.activoTotal, 'USD')} / ${formatearMonto(ratios.patrimonioNeto, 'USD')}`
+              }}
+              rangos={[
+                { min: 0, max: 2.0, label: 'Sano', color: '#10b981', emoji: '🟢' },
+                { min: 2.0, max: 3.0, label: 'Moderado', color: '#f59e0b', emoji: '🟡' },
+                { min: 3.0, max: 5.0, label: 'Excesivo', color: '#ef4444', emoji: '🔴' }
+              ]}
+            />
+          </div>
+        </div>
+
         {/* Ratio de Sobrecompra */}
         {ratioSobrecompra && (
           <div className="p-6 pt-0">
@@ -1056,6 +1114,119 @@ const RatiosSection = () => {
           ratiosRentabilidad={ratiosRentabilidad}
           loadingRentabilidad={loadingRentabilidad}
         />
+
+        {/* ===============================
+            🟢 TABLA DE DEBUGGING - Verificación de Filtros
+            =============================== */}
+        {console.log('🔍 datosDebug en componente:', datosDebug)}
+        {datosDebug && (
+          <div className="p-6 pt-0">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase bg-red-50 py-3 rounded border border-red-200">
+              🔍 Tabla de Debugging - Verificación de Filtros
+            </h3>
+
+            {/* Selector de categoría */}
+            <div className="mb-4 p-4 bg-gray-50 rounded border border-slate-200">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Seleccionar Categoría para Analizar:
+              </label>
+              <select
+                value={categoriaDebug}
+                onChange={(e) => setCategoriaDebug(e.target.value)}
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              >
+                <option value="activo_corriente">Activo Corriente</option>
+                <option value="pasivo_corriente">Pasivo Corriente</option>
+                <option value="inventario">Inventario</option>
+                <option value="ventas">Ventas (4.1.xx)</option>
+                <option value="cmv">CMV (5.0.xx)</option>
+                <option value="gastos_operativos">Gastos Operativos (5.1.xx)</option>
+                <option value="compras">Compras - Mercaderías (1.1.04.01.xx)</option>
+              </select>
+            </div>
+
+            {/* Tabla de desglose */}
+            {datosDebug[categoriaDebug] && (
+              <div className="bg-white border border-slate-200 rounded overflow-hidden">
+                {/* Resumen */}
+                <div className="p-4 bg-emerald-50 border-b border-emerald-200">
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <span className="block text-xs text-slate-600 font-medium mb-1">Total Débitos</span>
+                      <span className="text-lg font-bold text-slate-900">
+                        {formatearMonto(datosDebug[categoriaDebug].totalDebitos, 'USD')}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-slate-600 font-medium mb-1">Total Créditos</span>
+                      <span className="text-lg font-bold text-slate-900">
+                        {formatearMonto(datosDebug[categoriaDebug].totalCreditos, 'USD')}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-slate-600 font-medium mb-1">Saldo (Debe - Haber)</span>
+                      <span className="text-lg font-bold text-emerald-700">
+                        {formatearMonto(datosDebug[categoriaDebug].saldo, 'USD')}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-slate-600 font-medium mb-1">Cuentas Incluidas</span>
+                      <span className="text-lg font-bold text-slate-900">
+                        {datosDebug[categoriaDebug].cuentas.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabla de cuentas */}
+                <table className="w-full">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre Cuenta</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tipo</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Débitos</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Créditos</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {datosDebug[categoriaDebug].cuentas.map((cuenta, index) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{cuenta.codigo}</td>
+                        <td className="px-4 py-3 text-sm text-slate-800">{cuenta.nombre}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600">{cuenta.tipo}</td>
+                        <td className="px-4 py-3 text-sm text-right text-slate-900">
+                          {formatearMonto(cuenta.debe, 'USD')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right text-slate-900">
+                          {formatearMonto(cuenta.haber, 'USD')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right font-semibold text-emerald-700">
+                          {formatearMonto(cuenta.saldo, 'USD')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-slate-800 text-white">
+                    <tr>
+                      <td colSpan="3" className="px-4 py-3 text-sm font-bold">TOTALES</td>
+                      <td className="px-4 py-3 text-sm text-right font-bold">
+                        {formatearMonto(datosDebug[categoriaDebug].totalDebitos, 'USD')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-bold">
+                        {formatearMonto(datosDebug[categoriaDebug].totalCreditos, 'USD')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-bold text-emerald-400">
+                        {formatearMonto(datosDebug[categoriaDebug].saldo, 'USD')}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
