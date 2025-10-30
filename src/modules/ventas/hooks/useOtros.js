@@ -91,8 +91,13 @@ export const otrosService = {
         precio_venta_usd: parseFloat(producto.precio_venta_usd) || 0,
 
         // Cantidades por sucursal - usar ubicaciones normalizadas
-        cantidad_la_plata: parseInt(producto.cantidad_la_plata) || (sucursalNormalizada === UBICACIONES.LA_PLATA ? parseInt(producto.cantidad) || 1 : 0),
-        cantidad_mitre: parseInt(producto.cantidad_mitre) || (sucursalNormalizada === UBICACIONES.MITRE ? parseInt(producto.cantidad) || 1 : 0),
+        // Usar ?? para permitir 0 como valor válido, solo usar fallback si es undefined/null
+        cantidad_la_plata: producto.cantidad_la_plata !== undefined && producto.cantidad_la_plata !== null
+          ? parseInt(producto.cantidad_la_plata) || 0
+          : (sucursalNormalizada === UBICACIONES.LA_PLATA ? parseInt(producto.cantidad) || 1 : 0),
+        cantidad_mitre: producto.cantidad_mitre !== undefined && producto.cantidad_mitre !== null
+          ? parseInt(producto.cantidad_mitre) || 0
+          : (sucursalNormalizada === UBICACIONES.MITRE ? parseInt(producto.cantidad) || 1 : 0),
 
         // Información adicional
         garantia: producto.garantia || '',

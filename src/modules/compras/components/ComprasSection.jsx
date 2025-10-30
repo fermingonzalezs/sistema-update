@@ -490,7 +490,10 @@ const ComprasSection = () => {
                     min="0"
                     step="0.01"
                     value={reciboData.costosAdicionales}
-                    onChange={(e) => setReciboData(prev => ({ ...prev, costosAdicionales: parseFloat(e.target.value) || 0 }))}
+                    onChange={(e) => setReciboData(prev => ({
+                      ...prev,
+                      costosAdicionales: e.target.value === '' ? '' : parseFloat(e.target.value) || 0
+                    }))}
                     className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     placeholder="Envío, impuestos, etc."
                   />

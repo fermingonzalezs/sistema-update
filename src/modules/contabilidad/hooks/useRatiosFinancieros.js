@@ -23,6 +23,18 @@ const esInventario = (cuenta) => {
   return esCodigoMercaderia || esPorNombre;
 };
 
+// Función para identificar si una cuenta es Cuentas por Cobrar
+const esCuentaPorCobrar = (cuenta) => {
+  const codigo = cuenta.codigo || '';
+  return codigo.startsWith('1.1.02');
+};
+
+// Función para identificar si una cuenta es Cuentas por Pagar
+const esCuentaPorPagar = (cuenta) => {
+  const codigo = cuenta.codigo || '';
+  return codigo.startsWith('2.1');
+};
+
 // Función para determinar el indicador de liquidez corriente
 const determinarIndicadorLiquidez = (ratio) => {
   if (ratio < 1.0) {
@@ -389,6 +401,192 @@ const determinarIndicadorROE = (porcentaje, patrimonioNeto) => {
       color: '#10b981',
       emoji: '🟢',
       texto: 'Excelente'
+    };
+  }
+};
+
+// ===============================
+// 🟢 Funciones de indicadores para Ratios de Eficiencia
+// ===============================
+
+// Rotación de Inventario: <4 = 🔴 Exceso stock | 4–8 = 🟡 Normal | >8 = 🟢 Excelente
+const determinarIndicadorRotacionInventario = (ratio) => {
+  if (ratio < 4) {
+    return {
+      estado: 'exceso',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Exceso Stock'
+    };
+  } else if (ratio >= 4 && ratio <= 8) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'excelente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Excelente'
+    };
+  }
+};
+
+// Días de Inventario: >75 = 🔴 Lento | 45–75 = 🟡 Moderado | <45 = 🟢 Eficiente
+const determinarIndicadorDiasInventario = (dias) => {
+  if (dias > 75) {
+    return {
+      estado: 'lento',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Lento'
+    };
+  } else if (dias >= 45 && dias <= 75) {
+    return {
+      estado: 'moderado',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Moderado'
+    };
+  } else {
+    return {
+      estado: 'eficiente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Eficiente'
+    };
+  }
+};
+
+// Rotación CxC: <4 = 🔴 Lento | 4–8 = 🟡 Regular | >8 = 🟢 Rápido
+const determinarIndicadorRotacionCxC = (ratio) => {
+  if (ratio < 4) {
+    return {
+      estado: 'lento',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Lento'
+    };
+  } else if (ratio >= 4 && ratio <= 8) {
+    return {
+      estado: 'regular',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Regular'
+    };
+  } else {
+    return {
+      estado: 'rapido',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Rápido'
+    };
+  }
+};
+
+// Días de Cobro: >60 = 🔴 Riesgo | 45–60 = 🟡 Normal | <45 = 🟢 Eficiente
+const determinarIndicadorDiasCobro = (dias) => {
+  if (dias > 60) {
+    return {
+      estado: 'riesgo',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Riesgo'
+    };
+  } else if (dias >= 45 && dias <= 60) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'eficiente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Eficiente'
+    };
+  }
+};
+
+// Rotación CxP: >12 = 🔴 Muy rápido | 6–12 = 🟡 Equilibrado | <6 = 🟢 Aprovecha crédito
+const determinarIndicadorRotacionCxP = (ratio) => {
+  if (ratio > 12) {
+    return {
+      estado: 'muy_rapido',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Muy Rápido'
+    };
+  } else if (ratio >= 6 && ratio <= 12) {
+    return {
+      estado: 'equilibrado',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Equilibrado'
+    };
+  } else {
+    return {
+      estado: 'aprovecha',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Aprovecha Crédito'
+    };
+  }
+};
+
+// Días de Pago: <15 = 🔴 Estrés | 15–30 = 🟡 Normal | >30 = 🟢 Óptimo
+const determinarIndicadorDiasPago = (dias) => {
+  if (dias < 15) {
+    return {
+      estado: 'estres',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Estrés'
+    };
+  } else if (dias >= 15 && dias <= 30) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'optimo',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Óptimo'
+    };
+  }
+};
+
+// Ciclo de Caja: >60 = 🔴 Tenso | 45–60 = 🟡 Controlable | <45 = 🟢 Eficiente
+const determinarIndicadorCicloCaja = (dias) => {
+  if (dias > 60) {
+    return {
+      estado: 'tenso',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Tenso'
+    };
+  } else if (dias >= 45 && dias <= 60) {
+    return {
+      estado: 'controlable',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Controlable'
+    };
+  } else {
+    return {
+      estado: 'eficiente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Eficiente'
     };
   }
 };
@@ -950,6 +1148,280 @@ export const ratiosFinancierosService = {
       console.error('❌ Error calculando ratios de rentabilidad:', error);
       throw error;
     }
+  },
+
+  async calcularRatiosEficiencia(fechaDesde, fechaHasta) {
+    console.log('📊 Calculando ratios de eficiencia operacional...', { fechaDesde, fechaHasta });
+
+    try {
+      const fechaInicio = fechaDesde || obtenerFechaLocal();
+      const fechaFin = fechaHasta || obtenerFechaLocal();
+
+      console.log('📅 Período de análisis:', {
+        desde: fechaInicio,
+        hasta: fechaFin
+      });
+
+      // Obtener asientos del período
+      const { data: asientos, error: errorAsientos } = await supabase
+        .from('asientos_contables')
+        .select('id')
+        .gte('fecha', fechaInicio)
+        .lte('fecha', fechaFin);
+
+      if (errorAsientos) throw errorAsientos;
+
+      if (!asientos || asientos.length === 0) {
+        console.log('ℹ️ No hay asientos en el período de eficiencia');
+        return {
+          ventas: 0,
+          cmv: 0,
+          compras: 0,
+          inventarioPromedio: 0,
+          cxcPromedio: 0,
+          cxpPromedio: 0,
+          rotacionInventario: { valor: 0, indicador: determinarIndicadorRotacionInventario(0) },
+          diasInventario: { valor: 0, indicador: determinarIndicadorDiasInventario(0) },
+          rotacionCxC: { valor: 0, indicador: determinarIndicadorRotacionCxC(0) },
+          diasCobro: { valor: 0, indicador: determinarIndicadorDiasCobro(0) },
+          rotacionCxP: { valor: 0, indicador: determinarIndicadorRotacionCxP(0) },
+          diasPago: { valor: 0, indicador: determinarIndicadorDiasPago(0) },
+          cicloCaja: { valor: 0, indicador: determinarIndicadorCicloCaja(0) },
+          fechaDesde: fechaInicio,
+          fechaHasta: fechaFin
+        };
+      }
+
+      const asientoIds = asientos.map(a => a.id);
+
+      // Obtener movimientos en lotes
+      const BATCH_SIZE = 200;
+      let todosLosMovimientos = [];
+
+      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
+        const batch = asientoIds.slice(i, i + BATCH_SIZE);
+
+        const { data: movimientosBatch, error: errorBatch } = await supabase
+          .from('movimientos_contables')
+          .select(`
+            *,
+            plan_cuentas (id, codigo, nombre, tipo, categoria)
+          `)
+          .in('asiento_id', batch);
+
+        if (errorBatch) throw errorBatch;
+        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+      }
+
+      const movimientos = todosLosMovimientos;
+      console.log(`📊 EFICIENCIA - Total movimientos procesados:`, movimientos.length);
+
+      // ===============================
+      // Calcular componentes principales (REUTILIZAR lógica de rentabilidad)
+      // ===============================
+
+      // VENTAS (4.1): Se acreditan (haber) cuando se genera ingreso
+      const ventas = movimientos
+        .filter(mov => mov.plan_cuentas?.codigo?.startsWith('4.1'))
+        .reduce((sum, mov) => sum + parseFloat(mov.haber || 0), 0);
+
+      // CMV (5.0): Se debita (debe) cuando se registra el costo
+      const cmv = calcularDebitos(movimientos, (mov) => mov.plan_cuentas?.codigo?.startsWith('5.0'));
+
+      // COMPRAS (1.1.04.01): Se debita (debe) cuando se registran compras de mercadería
+      const compras = calcularDebitos(movimientos, (mov) => mov.plan_cuentas?.codigo?.startsWith('1.1.04.01'));
+
+      console.log('💰 Componentes de eficiencia:', {
+        ventas: ventas.toFixed(2) + ' (HABER)',
+        cmv: cmv.toFixed(2) + ' (DEBE)',
+        compras: compras.toFixed(2) + ' (DEBE)'
+      });
+
+      // ===============================
+      // Obtener Balances de inicio y fin del período
+      // ===============================
+
+      const [balanceInicio, balanceFin] = await Promise.all([
+        estadoSituacionPatrimonialService.getBalanceGeneral(fechaInicio),
+        estadoSituacionPatrimonialService.getBalanceGeneral(fechaFin)
+      ]);
+
+      // Validar que el balance de fin tenga datos (es el más importante)
+      if (!balanceFin || !balanceFin.activosDetalle || !balanceFin.pasivosDetalle) {
+        console.warn('⚠️ Balance de fin sin datos, retornando valores en cero');
+        return {
+          ventas: 0,
+          cmv: 0,
+          compras: 0,
+          inventarioPromedio: 0,
+          cxcPromedio: 0,
+          cxpPromedio: 0,
+          rotacionInventario: { valor: 0, indicador: determinarIndicadorRotacionInventario(0) },
+          diasInventario: { valor: 0, indicador: determinarIndicadorDiasInventario(0) },
+          rotacionCxC: { valor: 0, indicador: determinarIndicadorRotacionCxC(0) },
+          diasCobro: { valor: 0, indicador: determinarIndicadorDiasCobro(0) },
+          rotacionCxP: { valor: 0, indicador: determinarIndicadorRotacionCxP(0) },
+          diasPago: { valor: 0, indicador: determinarIndicadorDiasPago(0) },
+          cicloCaja: { valor: 0, indicador: determinarIndicadorCicloCaja(0) },
+          fechaDesde: fechaInicio,
+          fechaHasta: fechaFin
+        };
+      }
+
+      // Si el balance de inicio no tiene datos, usar el balance de fin para ambos
+      // (no calculamos promedio, usamos el balance actual)
+      let balanceInicioFinal = balanceInicio;
+      if (!balanceInicio || !balanceInicio.activosDetalle || !balanceInicio.pasivosDetalle) {
+        console.warn('⚠️ Balance de inicio sin datos, usando balance de fin para cálculos');
+        balanceInicioFinal = balanceFin;
+      }
+
+      // ===============================
+      // Calcular promedios de cuentas de balance
+      // ===============================
+
+      // Inventario Promedio (1.1.04.xx)
+      const inventarioInicio = (balanceInicioFinal.activosDetalle || [])
+        .filter(item => estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta) && esInventario(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const inventarioFin = (balanceFin.activosDetalle || [])
+        .filter(item => estadoSituacionPatrimonialService.esActivoCorriente(item.cuenta) && esInventario(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const inventarioPromedio = (inventarioInicio + inventarioFin) / 2;
+
+      // Cuentas por Cobrar Promedio (1.1.02.xx)
+      const cxcInicio = (balanceInicioFinal.activosDetalle || [])
+        .filter(item => esCuentaPorCobrar(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const cxcFin = (balanceFin.activosDetalle || [])
+        .filter(item => esCuentaPorCobrar(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const cxcPromedio = (cxcInicio + cxcFin) / 2;
+
+      // Cuentas por Pagar Promedio (2.1.xx)
+      const cxpInicio = (balanceInicioFinal.pasivosDetalle || [])
+        .filter(item => esCuentaPorPagar(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const cxpFin = (balanceFin.pasivosDetalle || [])
+        .filter(item => esCuentaPorPagar(item.cuenta))
+        .reduce((sum, item) => sum + item.saldo, 0);
+
+      const cxpPromedio = (cxpInicio + cxpFin) / 2;
+
+      const usoBalanceFin = balanceInicioFinal === balanceFin;
+      console.log('📊 Promedios de balance:', {
+        usoBalanceFin: usoBalanceFin ? 'SÍ (no había datos de inicio)' : 'NO (cálculo normal)',
+        inventarioInicio: inventarioInicio.toFixed(2),
+        inventarioFin: inventarioFin.toFixed(2),
+        inventarioPromedio: inventarioPromedio.toFixed(2),
+        cxcInicio: cxcInicio.toFixed(2),
+        cxcFin: cxcFin.toFixed(2),
+        cxcPromedio: cxcPromedio.toFixed(2),
+        cxpInicio: cxpInicio.toFixed(2),
+        cxpFin: cxpFin.toFixed(2),
+        cxpPromedio: cxpPromedio.toFixed(2)
+      });
+
+      // ===============================
+      // Calcular Ratios de Eficiencia
+      // ===============================
+
+      // 1. Rotación de Inventario = CMV / Inventario Promedio
+      const rotacionInventarioValor = inventarioPromedio > 0 ? cmv / inventarioPromedio : 0;
+      const rotacionInventario = {
+        valor: rotacionInventarioValor,
+        indicador: determinarIndicadorRotacionInventario(rotacionInventarioValor)
+      };
+
+      // 2. Días de Inventario = 365 / Rotación de Inventario
+      const diasInventarioValor = rotacionInventarioValor > 0 ? 365 / rotacionInventarioValor : 0;
+      const diasInventario = {
+        valor: diasInventarioValor,
+        indicador: determinarIndicadorDiasInventario(diasInventarioValor)
+      };
+
+      // 3. Rotación de Cuentas por Cobrar = Ventas / CxC Promedio
+      const rotacionCxCValor = cxcPromedio > 0 ? ventas / cxcPromedio : 0;
+      const rotacionCxC = {
+        valor: rotacionCxCValor,
+        indicador: determinarIndicadorRotacionCxC(rotacionCxCValor)
+      };
+
+      // 4. Días de Cobro = 365 / Rotación CxC
+      const diasCobroValor = rotacionCxCValor > 0 ? 365 / rotacionCxCValor : 0;
+      const diasCobro = {
+        valor: diasCobroValor,
+        indicador: determinarIndicadorDiasCobro(diasCobroValor)
+      };
+
+      // 5. Rotación de Cuentas por Pagar = Compras / CxP Promedio
+      const rotacionCxPValor = cxpPromedio > 0 ? compras / cxpPromedio : 0;
+      const rotacionCxP = {
+        valor: rotacionCxPValor,
+        indicador: determinarIndicadorRotacionCxP(rotacionCxPValor)
+      };
+
+      // 6. Días de Pago = 365 / Rotación CxP
+      const diasPagoValor = rotacionCxPValor > 0 ? 365 / rotacionCxPValor : 0;
+      const diasPago = {
+        valor: diasPagoValor,
+        indicador: determinarIndicadorDiasPago(diasPagoValor)
+      };
+
+      // 7. Ciclo de Conversión de Efectivo = Días Inventario + Días Cobro - Días Pago
+      const cicloCajaValor = diasInventarioValor + diasCobroValor - diasPagoValor;
+      const cicloCaja = {
+        valor: cicloCajaValor,
+        indicador: determinarIndicadorCicloCaja(cicloCajaValor)
+      };
+
+      console.log('📈 Ratios de eficiencia calculados:', {
+        rotacionInventario: rotacionInventarioValor.toFixed(2),
+        diasInventario: diasInventarioValor.toFixed(0),
+        rotacionCxC: rotacionCxCValor.toFixed(2),
+        diasCobro: diasCobroValor.toFixed(0),
+        rotacionCxP: rotacionCxPValor.toFixed(2),
+        diasPago: diasPagoValor.toFixed(0),
+        cicloCaja: cicloCajaValor.toFixed(0)
+      });
+
+      return {
+        // Valores base
+        ventas,
+        cmv,
+        compras,
+        inventarioPromedio,
+        cxcPromedio,
+        cxpPromedio,
+        // Componentes de balance
+        inventarioInicio,
+        inventarioFin,
+        cxcInicio,
+        cxcFin,
+        cxpInicio,
+        cxpFin,
+        // Ratios calculados
+        rotacionInventario,
+        diasInventario,
+        rotacionCxC,
+        diasCobro,
+        rotacionCxP,
+        diasPago,
+        cicloCaja,
+        // Metadata
+        fechaDesde: fechaInicio,
+        fechaHasta: fechaFin
+      };
+
+    } catch (error) {
+      console.error('❌ Error calculando ratios de eficiencia:', error);
+      throw error;
+    }
   }
 };
 
@@ -958,9 +1430,10 @@ export function useRatiosFinancieros() {
   const [ratios, setRatios] = useState(null);
   const [ratioSobrecompra, setRatioSobrecompra] = useState(null);
   const [ratiosRentabilidad, setRatiosRentabilidad] = useState(null);
+  const [ratiosEficiencia, setRatiosEficiencia] = useState(null);
   const [datosDebug, setDatosDebug] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadingRentabilidad, setLoadingRentabilidad] = useState(false);
+  const [loadingPeriodo, setLoadingPeriodo] = useState(false);
   const [error, setError] = useState(null);
 
   const calcularRatios = async (fechaCorte = null) => {
@@ -985,54 +1458,78 @@ export function useRatiosFinancieros() {
     }
   };
 
-  // Función para calcular ratios de rentabilidad con período personalizado
-  const calcularRentabilidad = async (fechaDesde, fechaHasta) => {
-    setLoadingRentabilidad(true);
+  // Función unificada para calcular TODOS los ratios de período en paralelo
+  const calcularRatiosPeriodo = async (fechaDesde, fechaHasta) => {
+    console.log('🚀 Calculando TODOS los ratios de período en paralelo:', { fechaDesde, fechaHasta });
+    setLoadingPeriodo(true);
     setError(null);
 
     try {
-      const rentabilidad = await ratiosFinancierosService.calcularRatiosRentabilidad(fechaDesde, fechaHasta);
+      // Calcular todos los ratios en paralelo con Promise.all
+      const [rentabilidad, eficiencia, sobrecompra] = await Promise.all([
+        ratiosFinancierosService.calcularRatiosRentabilidad(fechaDesde, fechaHasta),
+        ratiosFinancierosService.calcularRatiosEficiencia(fechaDesde, fechaHasta),
+        ratiosFinancierosService.calcularRatioSobrecompra(fechaDesde, fechaHasta)
+      ]);
+
+      // Actualizar todos los estados juntos
       setRatiosRentabilidad(rentabilidad);
-      console.log('✅ Ratios de rentabilidad calculados exitosamente');
+      setRatiosEficiencia(eficiencia);
+      setRatioSobrecompra(sobrecompra);
+
+      console.log('✅ Todos los ratios de período calculados exitosamente');
     } catch (err) {
-      console.error('Error calculando ratios de rentabilidad:', err);
-      setError(err.message || 'Error calculando ratios de rentabilidad');
+      console.error('❌ Error calculando ratios de período:', err);
+      setError(err.message || 'Error calculando ratios de período');
     } finally {
-      setLoadingRentabilidad(false);
+      setLoadingPeriodo(false);
     }
+  };
+
+  // Funciones individuales (deprecated - mantener para compatibilidad pero usar calcularRatiosPeriodo)
+  const calcularRentabilidad = async (fechaDesde, fechaHasta) => {
+    await calcularRatiosPeriodo(fechaDesde, fechaHasta);
+  };
+
+  const calcularEficiencia = async (fechaDesde, fechaHasta) => {
+    await calcularRatiosPeriodo(fechaDesde, fechaHasta);
   };
 
   // Calcular automáticamente al montar (fecha actual)
   useEffect(() => {
     console.log('🚀 Iniciando cálculo de ratios financieros...');
-    calcularRatios();
 
-    // Generar datos de debug para el período inicial (mes actual completo)
-    const hoy = new Date();
-    const fechaHasta = hoy.getFullYear() + '-' +
-                       String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
-                       String(hoy.getDate()).padStart(2, '0');
+    const inicializar = async () => {
+      // Calcular liquidez primero
+      await calcularRatios();
 
-    // Primer día del mes actual (meses=1 significa "este mes", así que (1-1)=0)
-    const fechaDesdeDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    const fechaDesde = fechaDesdeDate.getFullYear() + '-' +
-                       String(fechaDesdeDate.getMonth() + 1).padStart(2, '0') + '-' +
-                       String(fechaDesdeDate.getDate()).padStart(2, '0');
+      // Generar datos de debug para el período inicial (mes actual completo)
+      const hoy = new Date();
+      const fechaHasta = hoy.getFullYear() + '-' +
+                         String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+                         String(hoy.getDate()).padStart(2, '0');
 
-    console.log(`📅 Debug inicial: ${fechaDesde} al ${fechaHasta}`);
-    generarDatosDebug(fechaDesde, fechaHasta);
+      // Primer día del mes actual
+      const fechaDesdeDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const fechaDesde = fechaDesdeDate.getFullYear() + '-' +
+                         String(fechaDesdeDate.getMonth() + 1).padStart(2, '0') + '-' +
+                         String(fechaDesdeDate.getDate()).padStart(2, '0');
+
+      console.log(`📅 Calculando ratios de período inicial: ${fechaDesde} al ${fechaHasta}`);
+
+      // Calcular ratios de período y debug en paralelo
+      await Promise.all([
+        calcularRatiosPeriodo(fechaDesde, fechaHasta),
+        generarDatosDebug(fechaDesde, fechaHasta)
+      ]);
+    };
+
+    inicializar();
   }, []);
 
-  // Función para recalcular ratio de sobrecompra con período específico
+  // Función para recalcular ratio de sobrecompra con período específico (deprecated)
   const calcularSobrecompra = async (fechaDesde, fechaHasta) => {
-    try {
-      console.log('📊 Calculando ratio de sobrecompra para período:', { fechaDesde, fechaHasta });
-      const sobrecompra = await ratiosFinancierosService.calcularRatioSobrecompra(fechaDesde, fechaHasta);
-      setRatioSobrecompra(sobrecompra);
-    } catch (err) {
-      console.error('Error calculando ratio de sobrecompra:', err);
-      setError(err.message);
-    }
+    await calcularRatiosPeriodo(fechaDesde, fechaHasta);
   };
 
   // Función para generar datos de debug
@@ -1158,12 +1655,15 @@ export function useRatiosFinancieros() {
     ratios,
     ratioSobrecompra,
     ratiosRentabilidad,
+    ratiosEficiencia,
     datosDebug,
     loading,
-    loadingRentabilidad,
+    loadingPeriodo,
     error,
     refetch: calcularRatios,
+    calcularRatiosPeriodo,
     calcularRentabilidad,
+    calcularEficiencia,
     calcularSobrecompra,
     generarDatosDebug
   };

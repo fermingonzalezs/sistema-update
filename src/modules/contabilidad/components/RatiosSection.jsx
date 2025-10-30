@@ -18,7 +18,7 @@ import { formatearMonto } from '../../../shared/utils/formatters';
 // ===============================
 // 🟢 Componente Gauge radial con marcas de rangos
 // ===============================
-const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, rangos, activoCorriente, pasivoCorriente, inventario, valoresFormula }) => {
+const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, rangos, activoCorriente, pasivoCorriente, inventario, valoresFormula, decimales = 2, tamanoValor = 'text-4xl' }) => {
   // Calcular porcentaje para el valor actual
   const valorLimitado = Math.max(0, Math.min(valor, maxValue));
   const porcentaje = (valorLimitado / maxValue) * 100;
@@ -97,11 +97,11 @@ const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, ra
         <div style={{ width: '100%', height: 200, position: 'relative' }}>
           {/* Indicador de estado - esquina superior izquierda */}
           <div
-            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded mb-2"
             style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
           >
-            <span className="text-sm">{indicador.emoji}</span>
-            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+            <span className="text-xs">{indicador.emoji}</span>
+            <span className="text-[11px] font-semibold" style={{ color: indicador.color }}>
               {indicador.texto}
             </span>
           </div>
@@ -170,8 +170,8 @@ const GaugeCard = ({ titulo, valor, formula, indicador, maxValue, icon: Icon, ra
               textAlign: 'center'
             }}
           >
-            <div className="text-4xl font-bold text-slate-900">
-              {typeof valor === 'number' && !isNaN(valor) ? valor.toFixed(2) : '0.00'}
+            <div className={`${tamanoValor} font-bold text-slate-900`}>
+              {typeof valor === 'number' && !isNaN(valor) ? valor.toFixed(decimales) : '0.00'}
             </div>
             <div className="text-xs text-slate-500 mt-1">
               de {maxValue.toFixed(1)}
@@ -266,11 +266,11 @@ const GaugeCardCapitalTrabajo = ({ titulo, valor, formula, indicador, icon: Icon
         <div style={{ width: '100%', height: 200, position: 'relative' }}>
           {/* Indicador de estado - esquina superior izquierda */}
           <div
-            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded mb-2"
             style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
           >
-            <span className="text-sm">{indicador.emoji}</span>
-            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+            <span className="text-xs">{indicador.emoji}</span>
+            <span className="text-[11px] font-semibold" style={{ color: indicador.color }}>
               {indicador.texto}
             </span>
           </div>
@@ -415,11 +415,11 @@ const GaugeCardSobrecompra = ({ titulo, cmv, compras, ratio, indicador, icon: Ic
         <div style={{ width: '100%', height: 200, position: 'relative' }}>
           {/* Indicador de estado - esquina superior izquierda */}
           <div
-            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded mb-2"
             style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
           >
-            <span className="text-sm">{indicador.emoji}</span>
-            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+            <span className="text-xs">{indicador.emoji}</span>
+            <span className="text-[11px] font-semibold" style={{ color: indicador.color }}>
               {indicador.texto}
             </span>
           </div>
@@ -586,11 +586,11 @@ const GaugeCardRentabilidad = ({
         <div style={{ width: '100%', height: 200, position: 'relative' }}>
           {/* Indicador de estado - esquina superior izquierda */}
           <div
-            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded"
+            className="absolute top-0 left-0 flex items-center space-x-1 px-2 py-1 rounded mb-2"
             style={{ backgroundColor: `${indicador.color}20`, zIndex: 10 }}
           >
-            <span className="text-sm">{indicador.emoji}</span>
-            <span className="text-xs font-semibold" style={{ color: indicador.color }}>
+            <span className="text-xs">{indicador.emoji}</span>
+            <span className="text-[11px] font-semibold" style={{ color: indicador.color }}>
               {indicador.texto}
             </span>
           </div>
@@ -701,7 +701,7 @@ const GaugeCardRentabilidad = ({
 // 🟢 Componente principal
 // ===============================
 const RatiosSection = () => {
-  const { ratios, ratioSobrecompra, ratiosRentabilidad, loading, loadingRentabilidad, error, refetch, calcularRentabilidad, calcularSobrecompra, datosDebug, generarDatosDebug } = useRatiosFinancieros();
+  const { ratios, ratioSobrecompra, ratiosRentabilidad, ratiosEficiencia, loading, loadingPeriodo, error, refetch, calcularRatiosPeriodo, datosDebug, generarDatosDebug } = useRatiosFinancieros();
 
   // Estado para período global
   const [periodoGlobal, setPeriodoGlobal] = useState(1); // Meses (1, 3, 6, 12)
@@ -734,33 +734,37 @@ const RatiosSection = () => {
     return { fechaDesde, fechaHasta };
   };
 
-  // Efecto para cargar datos iniciales y cuando cambia el período
+  // Efecto para cargar datos iniciales - ahora se maneja en el hook
   useEffect(() => {
     if (!inicializado) {
-      const { fechaDesde, fechaHasta } = calcularFechas(periodoGlobal);
-      calcularRentabilidad(fechaDesde, fechaHasta);
-      calcularSobrecompra(fechaDesde, fechaHasta);
-      generarDatosDebug(fechaDesde, fechaHasta);
       setInicializado(true);
     }
   }, [inicializado]);
 
-  // Manejador de cambio de período
-  const handleCambioPeriodo = (nuevosMeses) => {
+  // Manejador de cambio de período - ahora con loading unificado
+  const handleCambioPeriodo = async (nuevosMeses) => {
+    console.log('🔄 CAMBIO DE PERÍODO - Nuevo período:', nuevosMeses);
     setPeriodoGlobal(nuevosMeses);
     const { fechaDesde, fechaHasta } = calcularFechas(nuevosMeses);
-    calcularRentabilidad(fechaDesde, fechaHasta);
-    calcularSobrecompra(fechaDesde, fechaHasta);
-    generarDatosDebug(fechaDesde, fechaHasta);
+    console.log('🔄 CAMBIO DE PERÍODO - Fechas calculadas:', { fechaDesde, fechaHasta });
+
+    // Calcular todos los ratios y debug en paralelo con un solo loading
+    await Promise.all([
+      calcularRatiosPeriodo(fechaDesde, fechaHasta),
+      generarDatosDebug(fechaDesde, fechaHasta)
+    ]);
   };
 
   // Manejador de refrescar - recalcula TODO con el período actual
-  const handleRefrescar = () => {
-    refetch(); // Recalcula liquidez (balance actual)
+  const handleRefrescar = async () => {
     const { fechaDesde, fechaHasta } = calcularFechas(periodoGlobal);
-    calcularRentabilidad(fechaDesde, fechaHasta);
-    calcularSobrecompra(fechaDesde, fechaHasta);
-    generarDatosDebug(fechaDesde, fechaHasta);
+
+    // Refrescar liquidez y ratios de período en paralelo
+    await Promise.all([
+      refetch(),
+      calcularRatiosPeriodo(fechaDesde, fechaHasta),
+      generarDatosDebug(fechaDesde, fechaHasta)
+    ]);
   };
 
   if (loading) {
@@ -1112,7 +1116,15 @@ const RatiosSection = () => {
             =============================== */}
         <RatiosRentabilidadSection
           ratiosRentabilidad={ratiosRentabilidad}
-          loadingRentabilidad={loadingRentabilidad}
+          loadingPeriodo={loadingPeriodo}
+        />
+
+        {/* ===============================
+            🟢 Ratios de Eficiencia Operacional
+            =============================== */}
+        <RatiosEficienciaSection
+          ratiosEficiencia={ratiosEficiencia}
+          loadingPeriodo={loadingPeriodo}
         />
 
         {/* ===============================
@@ -1235,22 +1247,20 @@ const RatiosSection = () => {
 // ===============================
 // 🟢 Sección de Ratios de Rentabilidad
 // ===============================
-const RatiosRentabilidadSection = ({ ratiosRentabilidad, loadingRentabilidad }) => {
-  // Loading State
-  if (loadingRentabilidad) {
+const RatiosRentabilidadSection = ({ ratiosRentabilidad, loadingPeriodo }) => {
+  if (loadingPeriodo) {
     return (
       <div className="p-6 pt-0">
-        <div className="p-8 text-center">
-          <div className="inline-flex items-center space-x-2 text-slate-600">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
-            <span className="text-lg">Calculando ratios de rentabilidad...</span>
+        <div className="bg-white border border-slate-200 rounded p-12 flex items-center justify-center">
+          <div className="flex items-center space-x-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <span className="text-slate-600 text-lg">Calculando ratios...</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // Contenido
   if (!ratiosRentabilidad) return null;
 
   return (
@@ -1355,6 +1365,198 @@ const RatiosRentabilidadSection = ({ ratiosRentabilidad, loadingRentabilidad }) 
                   ]}
                 />
               </div>
+    </div>
+  );
+};
+
+// ===============================
+// 🟢 Sección de Ratios de Eficiencia Operacional
+// ===============================
+const RatiosEficienciaSection = ({ ratiosEficiencia, loadingPeriodo }) => {
+  if (loadingPeriodo) {
+    return (
+      <div className="p-6 pt-0">
+        <div className="bg-white border border-slate-200 rounded p-12 flex items-center justify-center">
+          <div className="flex items-center space-x-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <span className="text-slate-600 text-lg">Calculando ratios...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ratiosEficiencia) return null;
+
+  return (
+    <div className="p-6 pt-0">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase bg-slate-50 py-3 rounded">Ratios de Eficiencia Operacional</h3>
+
+      <h4 className="text-base font-semibold text-slate-700 mb-3 mt-6 text-center uppercase bg-slate-50 py-2 rounded">Gestión de Inventario</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <GaugeCard
+          titulo="Rotación de Inventario"
+          valor={ratiosEficiencia.rotacionInventario.valor}
+          indicador={ratiosEficiencia.rotacionInventario.indicador}
+          maxValue={12}
+          icon={Activity}
+          rangos={[
+            { min: 0, max: 4, label: 'Exceso Stock', color: '#ef4444', emoji: '🔴' },
+            { min: 4, max: 8, label: 'Normal', color: '#f59e0b', emoji: '🟡' },
+            { min: 8, max: 12, label: 'Excelente', color: '#10b981', emoji: '🟢' }
+          ]}
+          valoresFormula={{
+            formulaTexto: 'CMV / Inventario Promedio',
+            valoresTexto: `${formatearMonto(ratiosEficiencia.cmv, 'USD')} / ${formatearMonto(ratiosEficiencia.inventarioPromedio, 'USD')}`
+          }}
+        />
+        <GaugeCard
+          titulo="Días Promedio de Inventario"
+          valor={ratiosEficiencia.diasInventario.valor}
+          indicador={ratiosEficiencia.diasInventario.indicador}
+          maxValue={100}
+          icon={Activity}
+          rangos={[
+            { min: 0, max: 45, label: 'Eficiente', color: '#10b981', emoji: '🟢' },
+            { min: 45, max: 75, label: 'Moderado', color: '#f59e0b', emoji: '🟡' },
+            { min: 75, max: 100, label: 'Lento', color: '#ef4444', emoji: '🔴' }
+          ]}
+          valoresFormula={{
+            formulaTexto: '365 / Rotación de Inventario',
+            valoresTexto: `365 / ${ratiosEficiencia.rotacionInventario.valor.toFixed(2)} = ${ratiosEficiencia.diasInventario.valor.toFixed(1)} días`
+          }}
+          decimales={1}
+          tamanoValor="text-3xl"
+        />
+      </div>
+
+      <h4 className="text-base font-semibold text-slate-700 mb-3 mt-6 text-center uppercase bg-slate-50 py-2 rounded">Gestión de Cobros y Pagos</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <GaugeCard
+          titulo="Rotación CxC"
+          valor={ratiosEficiencia.rotacionCxC.valor}
+          indicador={ratiosEficiencia.rotacionCxC.indicador}
+          maxValue={12}
+          icon={TrendingUp}
+          rangos={[
+            { min: 0, max: 4, label: 'Lento', color: '#ef4444', emoji: '🔴' },
+            { min: 4, max: 8, label: 'Regular', color: '#f59e0b', emoji: '🟡' },
+            { min: 8, max: 12, label: 'Rápido', color: '#10b981', emoji: '🟢' }
+          ]}
+          valoresFormula={{
+            formulaTexto: 'Ventas / CxC Promedio',
+            valoresTexto: `${formatearMonto(ratiosEficiencia.ventas, 'USD')} / ${formatearMonto(ratiosEficiencia.cxcPromedio, 'USD')}`
+          }}
+          decimales={1}
+          tamanoValor="text-2xl"
+        />
+        <GaugeCard
+          titulo="Días de Cobro"
+          valor={ratiosEficiencia.diasCobro.valor}
+          indicador={ratiosEficiencia.diasCobro.indicador}
+          maxValue={90}
+          icon={TrendingDown}
+          rangos={[
+            { min: 0, max: 45, label: 'Eficiente', color: '#10b981', emoji: '🟢' },
+            { min: 45, max: 60, label: 'Normal', color: '#f59e0b', emoji: '🟡' },
+            { min: 60, max: 90, label: 'Riesgo', color: '#ef4444', emoji: '🔴' }
+          ]}
+          valoresFormula={{
+            formulaTexto: '365 / Rotación CxC',
+            valoresTexto: `365 / ${ratiosEficiencia.rotacionCxC.valor.toFixed(1)} = ${ratiosEficiencia.diasCobro.valor.toFixed(0)} días`
+          }}
+          decimales={1}
+          tamanoValor="text-2xl"
+        />
+        <GaugeCard
+          titulo="Rotación CxP"
+          valor={ratiosEficiencia.rotacionCxP.valor}
+          indicador={ratiosEficiencia.rotacionCxP.indicador}
+          maxValue={15}
+          icon={DollarSign}
+          rangos={[
+            { min: 0, max: 6, label: 'Aprovecha Crédito', color: '#10b981', emoji: '🟢' },
+            { min: 6, max: 12, label: 'Equilibrado', color: '#f59e0b', emoji: '🟡' },
+            { min: 12, max: 15, label: 'Muy Rápido', color: '#ef4444', emoji: '🔴' }
+          ]}
+          valoresFormula={{
+            formulaTexto: 'Compras / CxP Promedio',
+            valoresTexto: `${formatearMonto(ratiosEficiencia.compras, 'USD')} / ${formatearMonto(ratiosEficiencia.cxpPromedio, 'USD')}`
+          }}
+          decimales={1}
+          tamanoValor="text-2xl"
+        />
+        <GaugeCard
+          titulo="Días de Pago"
+          valor={ratiosEficiencia.diasPago.valor}
+          indicador={ratiosEficiencia.diasPago.indicador}
+          maxValue={60}
+          icon={Wallet}
+          rangos={[
+            { min: 0, max: 15, label: 'Estrés', color: '#ef4444', emoji: '🔴' },
+            { min: 15, max: 30, label: 'Normal', color: '#f59e0b', emoji: '🟡' },
+            { min: 30, max: 60, label: 'Óptimo', color: '#10b981', emoji: '🟢' }
+          ]}
+          valoresFormula={{
+            formulaTexto: '365 / Rotación CxP',
+            valoresTexto: `365 / ${ratiosEficiencia.rotacionCxP.valor.toFixed(1)} = ${ratiosEficiencia.diasPago.valor.toFixed(0)} días`
+          }}
+          decimales={1}
+          tamanoValor="text-2xl"
+        />
+      </div>
+
+      <h4 className="text-base font-semibold text-slate-700 mb-3 mt-6 text-center uppercase bg-slate-50 py-2 rounded">Ciclo de Conversión de Efectivo</h4>
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white border border-slate-200 rounded p-6">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <Activity className="w-6 h-6 text-slate-700" />
+            <h3 className="text-lg font-semibold text-slate-800 uppercase text-center">
+              Ciclo de Caja
+            </h3>
+          </div>
+
+          <div className="text-center mb-6">
+            <div className="text-xs text-slate-600 font-medium mb-1">
+              Días Inventario + Días Cobro - Días Pago
+            </div>
+            <div className="text-xs text-slate-700">
+              {ratiosEficiencia.diasInventario.valor.toFixed(0)} + {ratiosEficiencia.diasCobro.valor.toFixed(0)} - {ratiosEficiencia.diasPago.valor.toFixed(0)} = <span className="font-bold">{ratiosEficiencia.cicloCaja.valor.toFixed(0)} días</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center mb-4">
+            <div
+              className="px-6 py-3 rounded-lg inline-flex items-baseline space-x-2"
+              style={{ backgroundColor: `${ratiosEficiencia.cicloCaja.indicador.color}20` }}
+            >
+              <span className="text-3xl">{ratiosEficiencia.cicloCaja.indicador.emoji}</span>
+              <span className="text-4xl font-bold" style={{ color: ratiosEficiencia.cicloCaja.indicador.color }}>
+                {ratiosEficiencia.cicloCaja.valor.toFixed(0)}
+              </span>
+              <span className="text-2xl text-slate-600">días</span>
+              <span className="text-2xl font-semibold" style={{ color: ratiosEficiencia.cicloCaja.indicador.color }}>
+                - {ratiosEficiencia.cicloCaja.indicador.texto}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 text-xs">
+            <span className="flex items-center gap-1">
+              <span>🟢</span>
+              <span className="font-medium">Eficiente (0-45)</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span>🟡</span>
+              <span className="font-medium">Controlable (45-60)</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span>🔴</span>
+              <span className="font-medium">Tenso (>60)</span>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

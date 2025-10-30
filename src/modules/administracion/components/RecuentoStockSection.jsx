@@ -74,7 +74,7 @@ const recuentoStockService = {
         diferencias_encontradas: recuentoData.diferencias,
         observaciones: recuentoData.observaciones,
         usuario_recuento: recuentoData.usuario || 'admin',
-        estado: recuentoData.diferencias.length > 0 ? 'con_diferencias' : 'sin_diferencias'
+        estado: JSON.parse(recuentoData.diferencias).length > 0 ? 'con_diferencias' : 'sin_diferencias'
       }])
       .select();
 
@@ -313,10 +313,6 @@ const RecuentoStockSection = () => {
       const producto = inventario.find(p => p.id === parseInt(productoId));
       if (!producto) return;
 
-      // Verificar que el producto pertenece al filtro actual (solo verificar tipo: computadora, celular, otro)
-      if (tipoFiltro !== 'todos') {
-        if (producto.tipo !== tipoFiltro) return; // No pertenece al tipo seleccionado
-      }
       let stockSistema;
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
