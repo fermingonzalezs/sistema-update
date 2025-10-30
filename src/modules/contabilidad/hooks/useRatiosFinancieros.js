@@ -591,6 +591,32 @@ const determinarIndicadorCicloCaja = (dias) => {
   }
 };
 
+// Rotación de Capital: <1 = 🔴 Ineficiente | 1–2 = 🟡 Normal | >2 = 🟢 Eficiente
+const determinarIndicadorRotacionCapital = (ratio) => {
+  if (ratio < 1) {
+    return {
+      estado: 'ineficiente',
+      color: '#ef4444',
+      emoji: '🔴',
+      texto: 'Ineficiente'
+    };
+  } else if (ratio >= 1 && ratio <= 2) {
+    return {
+      estado: 'normal',
+      color: '#f59e0b',
+      emoji: '🟡',
+      texto: 'Normal'
+    };
+  } else {
+    return {
+      estado: 'eficiente',
+      color: '#10b981',
+      emoji: '🟢',
+      texto: 'Eficiente'
+    };
+  }
+};
+
 // Mapeo de categorías para ratios por tipo de producto
 const CATEGORIAS_RATIO = [
   {
@@ -1180,6 +1206,7 @@ export const ratiosFinancierosService = {
           inventarioPromedio: 0,
           cxcPromedio: 0,
           cxpPromedio: 0,
+          activoTotalPromedio: 0,
           rotacionInventario: { valor: 0, indicador: determinarIndicadorRotacionInventario(0) },
           diasInventario: { valor: 0, indicador: determinarIndicadorDiasInventario(0) },
           rotacionCxC: { valor: 0, indicador: determinarIndicadorRotacionCxC(0) },
@@ -1187,6 +1214,7 @@ export const ratiosFinancierosService = {
           rotacionCxP: { valor: 0, indicador: determinarIndicadorRotacionCxP(0) },
           diasPago: { valor: 0, indicador: determinarIndicadorDiasPago(0) },
           cicloCaja: { valor: 0, indicador: determinarIndicadorCicloCaja(0) },
+          rotacionCapital: { valor: 0, indicador: determinarIndicadorRotacionCapital(0) },
           fechaDesde: fechaInicio,
           fechaHasta: fechaFin
         };
@@ -1256,6 +1284,7 @@ export const ratiosFinancierosService = {
           inventarioPromedio: 0,
           cxcPromedio: 0,
           cxpPromedio: 0,
+          activoTotalPromedio: 0,
           rotacionInventario: { valor: 0, indicador: determinarIndicadorRotacionInventario(0) },
           diasInventario: { valor: 0, indicador: determinarIndicadorDiasInventario(0) },
           rotacionCxC: { valor: 0, indicador: determinarIndicadorRotacionCxC(0) },
@@ -1263,6 +1292,7 @@ export const ratiosFinancierosService = {
           rotacionCxP: { valor: 0, indicador: determinarIndicadorRotacionCxP(0) },
           diasPago: { valor: 0, indicador: determinarIndicadorDiasPago(0) },
           cicloCaja: { valor: 0, indicador: determinarIndicadorCicloCaja(0) },
+          rotacionCapital: { valor: 0, indicador: determinarIndicadorRotacionCapital(0) },
           fechaDesde: fechaInicio,
           fechaHasta: fechaFin
         };
@@ -1380,6 +1410,14 @@ export const ratiosFinancierosService = {
         indicador: determinarIndicadorCicloCaja(cicloCajaValor)
       };
 
+      // 8. Rotación de Capital = Ventas / Activo Total Promedio
+      const activoTotalPromedio = (balanceInicioFinal.totalActivos + balanceFin.totalActivos) / 2;
+      const rotacionCapitalValor = activoTotalPromedio > 0 ? ventas / activoTotalPromedio : 0;
+      const rotacionCapital = {
+        valor: rotacionCapitalValor,
+        indicador: determinarIndicadorRotacionCapital(rotacionCapitalValor)
+      };
+
       console.log('📈 Ratios de eficiencia calculados:', {
         rotacionInventario: rotacionInventarioValor.toFixed(2),
         diasInventario: diasInventarioValor.toFixed(0),
@@ -1387,7 +1425,9 @@ export const ratiosFinancierosService = {
         diasCobro: diasCobroValor.toFixed(0),
         rotacionCxP: rotacionCxPValor.toFixed(2),
         diasPago: diasPagoValor.toFixed(0),
-        cicloCaja: cicloCajaValor.toFixed(0)
+        cicloCaja: cicloCajaValor.toFixed(0),
+        rotacionCapital: rotacionCapitalValor.toFixed(2),
+        activoTotalPromedio: activoTotalPromedio.toFixed(2)
       });
 
       return {
@@ -1398,6 +1438,7 @@ export const ratiosFinancierosService = {
         inventarioPromedio,
         cxcPromedio,
         cxpPromedio,
+        activoTotalPromedio,
         // Componentes de balance
         inventarioInicio,
         inventarioFin,
@@ -1413,6 +1454,7 @@ export const ratiosFinancierosService = {
         rotacionCxP,
         diasPago,
         cicloCaja,
+        rotacionCapital,
         // Metadata
         fechaDesde: fechaInicio,
         fechaHasta: fechaFin

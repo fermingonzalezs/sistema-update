@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus, ChevronDown, ChevronRight, CheckCircle, Truck } from 'lucide-react';
 import { useCompras } from '../hooks/useCompras';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
@@ -11,6 +11,12 @@ const ComprasSection = () => {
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
   const [recibosExpandidos, setRecibosExpandidos] = useState({});
 
+  // Estados para edición
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [reciboEnEdicionId, setReciboEnEdicionId] = useState(null);
+  const [itemEnEdicion, setItemEnEdicion] = useState(null); // ID del item siendo editado
+  const [datosItemEdicion, setDatosItemEdicion] = useState({}); // Datos temporales durante edición
+
   // Estados del recibo (header)
   const [reciboData, setReciboData] = useState({
     proveedor: '',
@@ -19,7 +25,8 @@ const ComprasSection = () => {
     descripcion: '',
     moneda: 'USD',
     cotizacion: 1000,
-    costosAdicionales: 0
+    costosAdicionales: 0,
+    estado: 'ingresado' // 'en_camino' o 'ingresado'
   });
 
   // Estados de los items
@@ -61,7 +68,8 @@ const ComprasSection = () => {
       descripcion: '',
       moneda: 'USD',
       cotizacion: cotizacionDolar,
-      costosAdicionales: 0
+      costosAdicionales: 0,
+      estado: 'ingresado'
     });
     setItems([]);
     setNuevoItem({
@@ -72,6 +80,47 @@ const ComprasSection = () => {
       agregarSeparado: false
     });
     setMostrarFormulario(false);
+    setModoEdicion(false);
+    setReciboEnEdicionId(null);
+    // Cancelar edición de items si hay alguna en curso
+    setItemEnEdicion(null);
+    setDatosItemEdicion({});
+  };
+
+  // Función para cargar un recibo en el formulario para editarlo
+  const cargarReciboParaEditar = (recibo) => {
+    // Calcular costos adicionales totales
+    const totalCostosAdicionales = recibo.items.reduce((sum, item) => sum + (parseFloat(item.costo_adicional) || 0), 0);
+
+    // Cargar datos del recibo
+    setReciboData({
+      proveedor: recibo.proveedor,
+      metodoPago: recibo.caja_pago,
+      fecha: recibo.fecha,
+      descripcion: recibo.descripcion || '',
+      moneda: recibo.moneda,
+      cotizacion: recibo.cotizacion || cotizacionDolar,
+      costosAdicionales: totalCostosAdicionales,
+      estado: recibo.estado || 'ingresado' // Cargar estado o default
+    });
+
+    // Cargar items (sin los costos adicionales prorrateados, ya que se recalcularán)
+    const itemsCargados = recibo.items.map(item => ({
+      id: item.id, // Mantener el ID original para poder actualizar
+      serial: item.serial || '',
+      descripcion: item.item,
+      cantidad: item.cantidad,
+      precioUnitario: parseFloat(item.monto),
+      total: parseFloat(item.monto) * item.cantidad
+    }));
+
+    setItems(itemsCargados);
+    setModoEdicion(true);
+    setReciboEnEdicionId(recibo.recibo_id);
+    setMostrarFormulario(true);
+
+    // Scroll al formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Funciones para manejar items
@@ -133,12 +182,52 @@ const ComprasSection = () => {
     setItems(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const editarItem = (itemId, nuevosDatos) => {
+  // Iniciar edición de un item
+  const iniciarEdicionItem = (item) => {
+    setItemEnEdicion(item.id);
+    setDatosItemEdicion({
+      serial: item.serial || '',
+      descripcion: item.descripcion,
+      cantidad: item.cantidad,
+      precioUnitario: item.precioUnitario
+    });
+  };
+
+  // Cancelar edición de item
+  const cancelarEdicionItem = () => {
+    setItemEnEdicion(null);
+    setDatosItemEdicion({});
+  };
+
+  // Guardar edición de item
+  const guardarEdicionItem = () => {
+    if (!datosItemEdicion.descripcion || !datosItemEdicion.descripcion.trim()) {
+      alert('La descripción es requerida');
+      return;
+    }
+    if (!datosItemEdicion.cantidad || parseInt(datosItemEdicion.cantidad) <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+    if (!datosItemEdicion.precioUnitario || parseFloat(datosItemEdicion.precioUnitario) <= 0) {
+      alert('El precio unitario debe ser mayor a 0');
+      return;
+    }
+
     setItems(prev => prev.map(item =>
-      item.id === itemId
-        ? { ...item, ...nuevosDatos, total: nuevosDatos.cantidad * nuevosDatos.precioUnitario }
+      item.id === itemEnEdicion
+        ? {
+            ...item,
+            serial: datosItemEdicion.serial,
+            descripcion: datosItemEdicion.descripcion,
+            cantidad: parseInt(datosItemEdicion.cantidad),
+            precioUnitario: parseFloat(datosItemEdicion.precioUnitario),
+            total: parseInt(datosItemEdicion.cantidad) * parseFloat(datosItemEdicion.precioUnitario)
+          }
         : item
     ));
+
+    cancelarEdicionItem();
   };
 
   // Calcular total del recibo
@@ -193,38 +282,69 @@ const ComprasSection = () => {
         return;
       }
 
-      // Obtener el último recibo_id y sumar 1
-      const { data: ultimaCompra, error: errorMax } = await supabase
-        .from('compras')
-        .select('recibo_id')
-        .order('recibo_id', { ascending: false })
-        .limit(1)
-        .single();
+      if (modoEdicion) {
+        // MODO EDICIÓN: Eliminar items viejos y crear nuevos
+        await deleteReciboCompleto(reciboEnEdicionId);
 
-      const reciboId = (ultimaCompra?.recibo_id || 0) + 1;
+        // Crear un registro por cada item con costos adicionales prorrateados
+        const comprasAGuardar = itemsConCostosAdicionales.map(item => ({
+          recibo_id: reciboEnEdicionId, // Usar el mismo recibo_id
+          item: item.descripcion,
+          cantidad: item.cantidad,
+          serial: item.serial || null,
+          moneda: reciboData.moneda,
+          cotizacion: reciboData.moneda === 'ARS' ? parseFloat(reciboData.cotizacion) : null,
+          monto: parseFloat(item.precioUnitario),
+          costo_adicional: item.costoAdicionalProrrateado,
+          proveedor: reciboData.proveedor,
+          caja_pago: reciboData.metodoPago,
+          descripcion: reciboData.descripcion || null,
+          fecha: reciboData.fecha,
+          estado: reciboData.estado
+        }));
 
-      // Crear un registro por cada item con costos adicionales prorrateados
-      const comprasAGuardar = itemsConCostosAdicionales.map(item => ({
-        recibo_id: reciboId,
-        item: item.descripcion,
-        cantidad: item.cantidad,
-        serial: item.serial || null,
-        moneda: reciboData.moneda,
-        cotizacion: reciboData.moneda === 'ARS' ? parseFloat(reciboData.cotizacion) : null,
-        monto: parseFloat(item.precioUnitario),
-        costo_adicional: item.costoAdicionalProrrateado,
-        proveedor: reciboData.proveedor,
-        caja_pago: reciboData.metodoPago,
-        descripcion: reciboData.descripcion || null,
-        fecha: reciboData.fecha
-      }));
+        // Guardar cada compra
+        for (const compra of comprasAGuardar) {
+          await createCompra(compra);
+        }
 
-      // Guardar cada compra
-      for (const compra of comprasAGuardar) {
-        await createCompra(compra);
+        alert(`✅ Recibo actualizado exitosamente (${comprasAGuardar.length} items)`);
+      } else {
+        // MODO CREACIÓN: Obtener el último recibo_id y sumar 1
+        const { data: ultimaCompra, error: errorMax } = await supabase
+          .from('compras')
+          .select('recibo_id')
+          .order('recibo_id', { ascending: false })
+          .limit(1)
+          .single();
+
+        const reciboId = (ultimaCompra?.recibo_id || 0) + 1;
+
+        // Crear un registro por cada item con costos adicionales prorrateados
+        const comprasAGuardar = itemsConCostosAdicionales.map(item => ({
+          recibo_id: reciboId,
+          item: item.descripcion,
+          cantidad: item.cantidad,
+          serial: item.serial || null,
+          moneda: reciboData.moneda,
+          cotizacion: reciboData.moneda === 'ARS' ? parseFloat(reciboData.cotizacion) : null,
+          monto: parseFloat(item.precioUnitario),
+          costo_adicional: item.costoAdicionalProrrateado,
+          proveedor: reciboData.proveedor,
+          caja_pago: reciboData.metodoPago,
+          descripcion: reciboData.descripcion || null,
+          fecha: reciboData.fecha,
+          estado: reciboData.estado
+        }));
+
+        // Guardar cada compra
+        for (const compra of comprasAGuardar) {
+          await createCompra(compra);
+        }
+
+        alert(`✅ Compra guardada exitosamente (${comprasAGuardar.length} items)`);
       }
 
-      alert(`✅ Compra guardada exitosamente (${comprasAGuardar.length} items)`);
       limpiarFormulario();
     } catch (error) {
       console.error('Error al guardar el recibo:', error);
@@ -268,6 +388,7 @@ const ComprasSection = () => {
         moneda: compra.moneda,
         cotizacion: compra.cotizacion,
         descripcion: compra.descripcion,
+        estado: compra.estado || 'ingresado', // Agregar estado
         items: []
       };
     }
@@ -276,7 +397,8 @@ const ComprasSection = () => {
       item: compra.item,
       cantidad: compra.cantidad,
       serial: compra.serial,
-      monto: compra.monto
+      monto: compra.monto,
+      costo_adicional: compra.costo_adicional
     });
     return acc;
   }, {});
@@ -309,6 +431,31 @@ const ComprasSection = () => {
       ...prev,
       [reciboId]: !prev[reciboId]
     }));
+  };
+
+  // Función para marcar recibo como ingresado
+  const handleMarcarComoIngresado = async (recibo, e) => {
+    e.stopPropagation(); // Evitar que se expanda/colapse el recibo
+
+    const confirmar = window.confirm(
+      `¿Está seguro de marcar el recibo #${recibo.recibo_id} como INGRESADO?\n\n` +
+      `Proveedor: ${recibo.proveedor}\n` +
+      `Items: ${recibo.items.length}\n` +
+      `Total: ${formatearMonto(calcularTotalRecibo(recibo.items), recibo.moneda)}`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      // Actualizar todos los items del recibo
+      for (const item of recibo.items) {
+        await updateCompra(item.id, { estado: 'ingresado' });
+      }
+      alert(`✅ Recibo #${recibo.recibo_id} marcado como ingresado`);
+    } catch (error) {
+      console.error('Error actualizando estado:', error);
+      alert(`❌ Error al actualizar el estado: ${error.message}`);
+    }
   };
 
   // Función para eliminar recibo completo
@@ -383,9 +530,23 @@ const ComprasSection = () => {
           {/* HEADER DEL RECIBO */}
           <div className="bg-white border border-slate-200 rounded">
             <div className="p-4 bg-slate-800 text-white">
-              <div className="flex items-center space-x-3">
-                <FileText className="w-6 h-6" />
-                <h3 className="text-lg font-semibold">Nueva Compra</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <FileText className="w-6 h-6" />
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {modoEdicion ? `Editar Recibo #${reciboEnEdicionId}` : 'Nueva Compra'}
+                    </h3>
+                    {modoEdicion && (
+                      <p className="text-xs text-slate-300 mt-1">Modificando recibo existente</p>
+                    )}
+                  </div>
+                </div>
+                {modoEdicion && (
+                  <div className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium">
+                    MODO EDICIÓN
+                  </div>
+                )}
               </div>
             </div>
 
@@ -439,6 +600,22 @@ const ComprasSection = () => {
                     className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                   />
+                </div>
+
+                {/* Estado */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Estado *
+                  </label>
+                  <select
+                    value={reciboData.estado}
+                    onChange={(e) => setReciboData(prev => ({ ...prev, estado: e.target.value }))}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  >
+                    <option value="ingresado">✅ Ingresado</option>
+                    <option value="en_camino">📦 En Camino</option>
+                  </select>
                 </div>
 
                 {/* Moneda */}
@@ -635,45 +812,136 @@ const ComprasSection = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {itemsConCostosAdicionales.map((item, index) => (
-                      <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {item.serial || 'N/A'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-800">
-                          {item.descripcion}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-800">
-                          {item.cantidad}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-800">
-                          ${item.precioUnitario} {reciboData.moneda}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-800">
-                          ${item.total} {reciboData.moneda}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-emerald-600">
-                          {item.costoAdicionalProrrateado > 0 ? `+$${item.costoAdicionalProrrateado.toFixed(2)}` : '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
-                          ${(item.total + item.costoAdicionalProrrateado).toFixed(2)} {reciboData.moneda}
-                          {reciboData.moneda === 'ARS' && (
-                            <div className="text-xs text-slate-500">
-                              USD ${convertirAUSD(item.total + item.costoAdicionalProrrateado)}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => eliminarItem(item.id)}
-                            className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
-                            title="Eliminar item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {itemsConCostosAdicionales.map((item, index) => {
+                      const estaEditando = itemEnEdicion === item.id;
+
+                      return (
+                        <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          {/* Serial */}
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {estaEditando ? (
+                              <input
+                                type="text"
+                                value={datosItemEdicion.serial}
+                                onChange={(e) => setDatosItemEdicion(prev => ({ ...prev, serial: e.target.value }))}
+                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                placeholder="Serial"
+                              />
+                            ) : (
+                              item.serial || 'N/A'
+                            )}
+                          </td>
+
+                          {/* Descripción */}
+                          <td className="px-4 py-3 text-sm text-slate-800">
+                            {estaEditando ? (
+                              <input
+                                type="text"
+                                value={datosItemEdicion.descripcion}
+                                onChange={(e) => setDatosItemEdicion(prev => ({ ...prev, descripcion: e.target.value }))}
+                                className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                placeholder="Descripción"
+                              />
+                            ) : (
+                              item.descripcion
+                            )}
+                          </td>
+
+                          {/* Cantidad */}
+                          <td className="px-4 py-3 text-center text-sm text-slate-800">
+                            {estaEditando ? (
+                              <input
+                                type="number"
+                                min="1"
+                                value={datosItemEdicion.cantidad}
+                                onChange={(e) => setDatosItemEdicion(prev => ({ ...prev, cantidad: e.target.value }))}
+                                className="w-20 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              item.cantidad
+                            )}
+                          </td>
+
+                          {/* Precio Unitario */}
+                          <td className="px-4 py-3 text-center text-sm text-slate-800">
+                            {estaEditando ? (
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={datosItemEdicion.precioUnitario}
+                                onChange={(e) => setDatosItemEdicion(prev => ({ ...prev, precioUnitario: e.target.value }))}
+                                className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              `$${item.precioUnitario} ${reciboData.moneda}`
+                            )}
+                          </td>
+
+                          {/* Subtotal */}
+                          <td className="px-4 py-3 text-center text-sm text-slate-800">
+                            ${estaEditando
+                              ? (parseFloat(datosItemEdicion.cantidad || 0) * parseFloat(datosItemEdicion.precioUnitario || 0)).toFixed(2)
+                              : item.total
+                            } {reciboData.moneda}
+                          </td>
+
+                          {/* Costo Adicional */}
+                          <td className="px-4 py-3 text-center text-sm text-emerald-600">
+                            {item.costoAdicionalProrrateado > 0 ? `+$${item.costoAdicionalProrrateado.toFixed(2)}` : '-'}
+                          </td>
+
+                          {/* Total Final */}
+                          <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                            ${(item.total + item.costoAdicionalProrrateado).toFixed(2)} {reciboData.moneda}
+                            {reciboData.moneda === 'ARS' && (
+                              <div className="text-xs text-slate-500">
+                                USD ${convertirAUSD(item.total + item.costoAdicionalProrrateado)}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Acciones */}
+                          <td className="px-4 py-3 text-center">
+                            {estaEditando ? (
+                              <div className="flex items-center justify-center space-x-1">
+                                <button
+                                  onClick={guardarEdicionItem}
+                                  className="text-emerald-600 hover:text-emerald-800 p-1 rounded transition-colors"
+                                  title="Guardar cambios"
+                                >
+                                  <Save className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={cancelarEdicionItem}
+                                  className="text-slate-600 hover:text-slate-800 p-1 rounded transition-colors"
+                                  title="Cancelar edición"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center space-x-1">
+                                <button
+                                  onClick={() => iniciarEdicionItem(item)}
+                                  className="text-emerald-600 hover:text-emerald-800 p-1 rounded transition-colors"
+                                  title="Editar item"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => eliminarItem(item.id)}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
+                                  title="Eliminar item"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   {/* Footer con total */}
                   <tfoot className="bg-slate-800 text-white">
@@ -724,10 +992,10 @@ const ComprasSection = () => {
               type="button"
               onClick={handleGuardarRecibo}
               disabled={items.length === 0}
-              className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
+              className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
             >
               <Save className="w-4 h-4" />
-              <span>Guardar Recibo</span>
+              <span>{modoEdicion ? 'Actualizar Recibo' : 'Guardar Recibo'}</span>
             </button>
           </div>
         </div>
@@ -863,17 +1131,55 @@ const ComprasSection = () => {
                             </div>
                           )}
                         </div>
+
+                        {/* Estado */}
+                        <div className="min-w-[100px] text-center">
+                          <div className="text-xs text-slate-500 mb-1">Estado</div>
+                          {recibo.estado === 'ingresado' ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                              <CheckCircle size={12} className="mr-1" />
+                              Ingresado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                              <Truck size={12} className="mr-1" />
+                              En Camino
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Botón eliminar recibo */}
-                    <button
-                      onClick={(e) => handleEliminarRecibo(recibo, e)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Eliminar recibo completo"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {/* Botones de acción */}
+                    <div className="flex items-center space-x-1.5 ml-6">
+                      {/* Solo mostrar botón de check si está en camino */}
+                      {recibo.estado === 'en_camino' && (
+                        <button
+                          onClick={(e) => handleMarcarComoIngresado(recibo, e)}
+                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                          title="Marcar como ingresado"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cargarReciboParaEditar(recibo);
+                        }}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Editar recibo"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => handleEliminarRecibo(recibo, e)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Eliminar recibo completo"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Detalle de items - expandible */}

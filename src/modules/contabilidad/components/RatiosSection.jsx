@@ -1506,8 +1506,9 @@ const RatiosEficienciaSection = ({ ratiosEficiencia, loadingPeriodo }) => {
         />
       </div>
 
-      <h4 className="text-base font-semibold text-slate-700 mb-3 mt-6 text-center uppercase bg-slate-50 py-2 rounded">Ciclo de Conversión de Efectivo</h4>
-      <div className="grid grid-cols-1 gap-6">
+      <h4 className="text-base font-semibold text-slate-700 mb-3 mt-6 text-center uppercase bg-slate-50 py-2 rounded">Ciclo de Conversión de Efectivo y Rotación de Capital</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Ciclo de Conversión de Efectivo */}
         <div className="bg-white border border-slate-200 rounded p-6">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Activity className="w-6 h-6 text-slate-700" />
@@ -1556,6 +1557,27 @@ const RatiosEficienciaSection = ({ ratiosEficiencia, loadingPeriodo }) => {
             </span>
           </div>
         </div>
+
+        {/* Rotación de Capital */}
+        <GaugeCard
+          titulo="Rotación de Capital"
+          valor={ratiosEficiencia.rotacionCapital.valor}
+          formula="Ventas / Activo Total Promedio"
+          indicador={ratiosEficiencia.rotacionCapital.indicador}
+          maxValue={4}
+          icon={TrendingUp}
+          rangos={[
+            { min: 0, max: 1, emoji: '🔴', label: 'Ineficiente' },
+            { min: 1, max: 2, emoji: '🟡', label: 'Normal' },
+            { min: 2, max: 4, emoji: '🟢', label: 'Eficiente' }
+          ]}
+          valoresFormula={{
+            formulaTexto: 'Ventas / Activo Total Promedio',
+            valoresTexto: `${Math.round(ratiosEficiencia.ventas).toLocaleString('es-AR')} / ${Math.round(ratiosEficiencia.activoTotalPromedio).toLocaleString('es-AR')} = ${ratiosEficiencia.rotacionCapital.valor.toFixed(2)} veces`
+          }}
+          decimales={2}
+          tamanoValor="text-3xl"
+        />
       </div>
     </div>
   );
