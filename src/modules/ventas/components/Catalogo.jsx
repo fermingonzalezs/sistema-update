@@ -228,6 +228,71 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     }
   };
 
+  const generateMarketplaceCopy = (producto, tipoProducto) => {
+    try {
+      // Texto base del marketplace (siempre el mismo)
+      const textoBase = `• Si está publicada, está DISPONIBLE.
+• No tomamos permutas.
+• Aceptamos pagos en pesos (conversión dólar blue), dólares o cripto.
+• Transferencia +5%, tarjeta de crédito +40%.
+• Oficinas en La Plata (12 y 44) y CABA (Esmeralda y Mitre).
+
+`;
+
+      // Determinar nombre/modelo del producto
+      let nombreProducto = '';
+      if (tipoProducto === 'notebook' || categoriaActiva === 'notebooks') {
+        nombreProducto = `💻 ${producto.marca || ''} ${producto.modelo || ''}`.trim();
+      } else if (tipoProducto === 'celular' || categoriaActiva === 'celulares') {
+        nombreProducto = `📱 ${producto.marca || ''} ${producto.modelo || ''}`.trim();
+      } else {
+        nombreProducto = `${producto.nombre_producto || producto.descripcion || 'Producto'}`;
+      }
+
+      // Construir especificaciones según tipo de producto
+      let especificaciones = '';
+
+      if (tipoProducto === 'notebook' || categoriaActiva === 'notebooks') {
+        especificaciones = `
+Procesador: ${producto.procesador || 'N/A'}
+Memoria RAM: ${producto.ram || 'N/A'}${producto.tipo_ram ? ' ' + producto.tipo_ram : ''}
+SSD: ${producto.ssd || 'N/A'}${producto.hdd ? '\nHDD: ' + producto.hdd : ''}
+Pantalla: ${producto.pantalla || 'N/A'}${producto.resolucion ? ' ' + producto.resolucion : ''}
+Placa de video: ${producto.placa_video || 'N/A'}${producto.vram ? ' ' + producto.vram : ''}
+Batería: ${producto.bateria || 'N/A'}
+Color: ${producto.color || 'N/A'}
+Teclado: ${producto.idioma_teclado || 'N/A'}
+Condición: ${(producto.condicion || 'N/A').toUpperCase()}
+Garantía: ${producto.garantia_update || producto.garantia_oficial || producto.garantia || '3 meses'}`;
+      } else if (tipoProducto === 'celular' || categoriaActiva === 'celulares') {
+        especificaciones = `
+Capacidad: ${producto.capacidad || 'N/A'}
+Color: ${producto.color || 'N/A'}
+Estado: ${producto.estado || 'N/A'}
+Batería: ${producto.bateria || 'N/A'}
+${producto.ciclos ? 'Ciclos: ' + producto.ciclos : ''}
+Condición: ${(producto.condicion || 'N/A').toUpperCase()}
+Garantía: ${producto.garantia_update || producto.garantia_oficial || producto.garantia || '3 meses'}`;
+      } else {
+        // Para "otros"
+        especificaciones = `
+${producto.descripcion ? 'Descripción: ' + producto.descripcion : ''}
+${producto.marca ? 'Marca: ' + producto.marca : ''}
+Condición: ${(producto.condicion || 'N/A').toUpperCase()}
+${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
+      }
+
+      // Precio
+      const precioUSD = producto.precio_venta_usd || 0;
+      const precio = `\nPrecio: U$D ${precioUSD}`;
+
+      return textoBase + nombreProducto + especificaciones + precio;
+    } catch (error) {
+      console.error('Error generando copy de marketplace:', error);
+      return 'Error al generar texto para marketplace';
+    }
+  };
+
   const handleAddToCart = (producto) => {
     if (onAddToCart) {
       // Determinar el tipo según la categoría activa
@@ -2251,7 +2316,49 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
               </div>
             )}
 
-            {/* Pantalla - Solo para notebooks */}
+            {/* RAM - Solo para notebooks */}
+            {categoriaActiva === 'notebooks' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  RAM
+                </label>
+                <select
+                  value={filtros.ram}
+                  onChange={(e) => actualizarFiltro("ram", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todas</option>
+                  {valoresUnicos.rams?.map((ram) => (
+                    <option key={ram} value={ram}>
+                      {ram} GB
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Almacenamiento - Para notebooks */}
+            {categoriaActiva === 'notebooks' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Almacenamiento
+                </label>
+                <select
+                  value={filtros.almacenamiento}
+                  onChange={(e) => actualizarFiltro("almacenamiento", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.almacenamientos?.map((almacenamiento) => (
+                    <option key={almacenamiento} value={almacenamiento}>
+                      {almacenamiento}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Pantalla con rangos - Solo para notebooks */}
             {categoriaActiva === 'notebooks' && (
               <div>
                 <label className="block text-xs font-medium text-slate-200 mb-1">
@@ -2263,9 +2370,13 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
                   className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
                 >
                   <option value="">Todos</option>
-                  {valoresUnicos.pantallas?.map((pantalla) => (
-                    <option key={pantalla} value={pantalla}>
-                      {pantalla}
+                  {valoresUnicos.rangosPantalla?.map((rango) => (
+                    <option key={rango} value={rango}>
+                      {rango === '<13' && 'Menos de 13"'}
+                      {rango === '13-14' && '13" - 14"'}
+                      {rango === '14-15' && '14" - 15"'}
+                      {rango === '15-16' && '15" - 16"'}
+                      {rango === '>16' && 'Más de 16"'}
                     </option>
                   ))}
                 </select>
@@ -2853,6 +2964,41 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
             ? "notebook"
             : "otro"
         }
+        onCopyUSD={async (producto, tipoProducto) => {
+          try {
+            const copyText = generateCopyWithPrice(producto, false);
+            await navigator.clipboard.writeText(copyText);
+            console.log("✅ Copiado USD:", copyText);
+          } catch (error) {
+            console.error("Error copiando USD:", error);
+          }
+        }}
+        onCopyPesos={async (producto, tipoProducto) => {
+          try {
+            const copyText = generateCopyWithPrice(producto, true);
+            await navigator.clipboard.writeText(copyText);
+            console.log("✅ Copiado ARS:", copyText);
+          } catch (error) {
+            console.error("Error copiando ARS:", error);
+          }
+        }}
+        onCopyMarketplace={async (producto, tipoProducto) => {
+          try {
+            const copyText = generateMarketplaceCopy(producto, tipoProducto);
+            await navigator.clipboard.writeText(copyText);
+            console.log("✅ Copiado Marketplace:", copyText);
+          } catch (error) {
+            console.error("Error copiando Marketplace:", error);
+          }
+        }}
+        onVender={(producto) => {
+          handleAddToCart(producto);
+          setModalDetalle({ open: false, producto: null });
+        }}
+        onEditar={(producto) => {
+          openEditModal(producto);
+          setModalDetalle({ open: false, producto: null });
+        }}
       />
 
       {/* Modal de edición */}

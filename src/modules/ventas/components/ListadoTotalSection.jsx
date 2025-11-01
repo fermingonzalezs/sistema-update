@@ -78,13 +78,26 @@ const ListadoTotalSection = () => {
   const EMOJI_CATEGORIAS = {
     'NOTEBOOKS': '💻',
     'CELULARES': '📱',
-    'ACCESORIOS': '🔌',    // Ej. Cargadores, cables
-    'PERIFERICOS': '🖱️',   // Ej. Mouse, teclado, auriculares
-    'FUNDAS_TEMPLADOS': '🛡️', // Ej. Fundas y protectores
-    'MONITORES': '🖥️',      // Ej. Monitores
-    'COMPONENTES': '⚙️',    // Ej. Placas de video, RAM, discos
+    'ACCESORIOS': '🔌',
+    'MONITORES': '🖥️',
+    'COMPONENTES': '⚙️',
+    'FUNDAS_TEMPLADOS': '🛡️',
     'TABLETS': '📖',
-    'OTROS': '📦'          // Emoji por defecto
+    'MOUSE_TECLADOS': '⌨️',
+    'AUDIO': '🎧',
+    'ALMACENAMIENTO': '💾',
+    'CAMARAS': '📷',
+    'CONSOLAS': '🎮',
+    'GAMING': '🎯',
+    'DRONES': '🚁',
+    'WATCHES': '⌚',
+    'PLACAS_VIDEO': '🎨',
+    'STREAMING': '📹',
+    'REDES': '🌐',
+    'BAGS_CASES': '💼',
+    'CABLES_CARGADORES': '🔌',
+    'REPUESTOS': '🔧',
+    'OTROS': '📦'
   };
 
 
@@ -183,11 +196,24 @@ const ListadoTotalSection = () => {
     'NOTEBOOKS': 'bg-blue-100 text-blue-700',
     'CELULARES': 'bg-green-100 text-green-700',
     'MONITORES': 'bg-purple-100 text-purple-700',
-    'PERIFERICOS': 'bg-orange-100 text-orange-700',
     'ACCESORIOS': 'bg-cyan-100 text-cyan-700',
     'COMPONENTES': 'bg-red-100 text-red-700',
     'FUNDAS_TEMPLADOS': 'bg-pink-100 text-pink-700',
-    'TABLETS': 'bg-yellow-100 text-yellow-700'
+    'TABLETS': 'bg-yellow-100 text-yellow-700',
+    'MOUSE_TECLADOS': 'bg-orange-100 text-orange-700',
+    'AUDIO': 'bg-indigo-100 text-indigo-700',
+    'ALMACENAMIENTO': 'bg-teal-100 text-teal-700',
+    'CAMARAS': 'bg-rose-100 text-rose-700',
+    'CONSOLAS': 'bg-violet-100 text-violet-700',
+    'GAMING': 'bg-fuchsia-100 text-fuchsia-700',
+    'DRONES': 'bg-sky-100 text-sky-700',
+    'WATCHES': 'bg-amber-100 text-amber-700',
+    'PLACAS_VIDEO': 'bg-lime-100 text-lime-700',
+    'STREAMING': 'bg-emerald-100 text-emerald-700',
+    'REDES': 'bg-blue-100 text-blue-700',
+    'BAGS_CASES': 'bg-slate-100 text-slate-700',
+    'CABLES_CARGADORES': 'bg-cyan-100 text-cyan-700',
+    'REPUESTOS': 'bg-gray-100 text-gray-700'
   };
 
   // Configuración de colores por condición
@@ -197,16 +223,56 @@ const ListadoTotalSection = () => {
     'refurbished': 'bg-blue-100 text-blue-700'
   };
 
-  // Labels de categorías
+  // Labels de categorías - versión corta para gráficos
   const labelsCategorias = {
-    'NOTEBOOKS': 'NOTEBOOKS',
-    'CELULARES': 'CELULARES',
-    'MONITORES': 'MONITORES',
-    'PERIFERICOS': 'PERIFÉRICOS',
-    'ACCESORIOS': 'ACCESORIOS',
-    'COMPONENTES': 'COMPONENTES',
-    'FUNDAS_TEMPLADOS': 'FUNDAS/TEMPLADOS',
-    'TABLETS': 'TABLETS'
+    'NOTEBOOKS': 'Note',
+    'CELULARES': 'Cel',
+    'MONITORES': 'Mon',
+    'ACCESORIOS': 'Acc',
+    'COMPONENTES': 'Comp',
+    'FUNDAS_TEMPLADOS': 'Fund',
+    'TABLETS': 'Tab',
+    'MOUSE_TECLADOS': 'M/T',
+    'AUDIO': 'Aud',
+    'ALMACENAMIENTO': 'Alm',
+    'CAMARAS': 'Cam',
+    'CONSOLAS': 'Con',
+    'GAMING': 'Gam',
+    'DRONES': 'Dro',
+    'WATCHES': 'Wat',
+    'PLACAS_VIDEO': 'GPU',
+    'STREAMING': 'Str',
+    'REDES': 'Red',
+    'BAGS_CASES': 'Bag',
+    'CABLES_CARGADORES': 'Cab',
+    'REPUESTOS': 'Rep',
+    'OTROS': 'Otr'
+  };
+
+  // Labels de categorías - versión completa para tabla
+  const labelsCategoriaTabla = {
+    'NOTEBOOKS': 'Notebooks',
+    'CELULARES': 'Celulares',
+    'MONITORES': 'Monitores',
+    'ACCESORIOS': 'Accesorios',
+    'COMPONENTES': 'Componentes',
+    'FUNDAS_TEMPLADOS': 'Fundas/Templados',
+    'TABLETS': 'Tablets',
+    'MOUSE_TECLADOS': 'Mouse/Teclados',
+    'AUDIO': 'Audio',
+    'ALMACENAMIENTO': 'Almacenamiento',
+    'CAMARAS': 'Cámaras',
+    'CONSOLAS': 'Consolas',
+    'GAMING': 'Gaming',
+    'DRONES': 'Drones',
+    'WATCHES': 'Watches',
+    'PLACAS_VIDEO': 'Placas de Video',
+    'STREAMING': 'Streaming',
+    'REDES': 'Redes',
+    'BAGS_CASES': 'Bags/Cases',
+    'CABLES_CARGADORES': 'Cables/Cargadores',
+    'REPUESTOS': 'Repuestos',
+    'OTROS': 'Otros'
   };
 
   // Labels de condiciones
@@ -230,7 +296,12 @@ const ListadoTotalSection = () => {
 
     // Filtro de categoría
     if (filtros.categoria) {
-      resultado = resultado.filter(p => p.categoria === filtros.categoria);
+      if (filtros.categoria === 'OTROS_TOTAL') {
+        // Mostrar todos los productos que NO sean notebooks ni celulares
+        resultado = resultado.filter(p => p.categoria !== 'NOTEBOOKS' && p.categoria !== 'CELULARES');
+      } else {
+        resultado = resultado.filter(p => p.categoria === filtros.categoria);
+      }
     }
 
     // Filtro de condición
@@ -338,14 +409,27 @@ const ListadoTotalSection = () => {
 
   // Colores para los gráficos (coinciden con las categorías)
   const COLORES_GRAFICOS = {
-    'NOTEBOOKS': '#3b82f6',
-    'CELULARES': '#10b981',
-    'MONITORES': '#a855f7',
-    'PERIFERICOS': '#f97316',
-    'ACCESORIOS': '#06b6d4',
-    'COMPONENTES': '#ef4444',
-    'FUNDAS_TEMPLADOS': '#ec4899',
-    'TABLETS': '#eab308'
+    'NOTEBOOKS': '#3b82f6',        // blue-500
+    'CELULARES': '#10b981',        // green-500
+    'MONITORES': '#a855f7',        // purple-500
+    'ACCESORIOS': '#06b6d4',       // cyan-500
+    'COMPONENTES': '#ef4444',      // red-500
+    'FUNDAS_TEMPLADOS': '#ec4899', // pink-500
+    'TABLETS': '#eab308',          // yellow-500
+    'MOUSE_TECLADOS': '#f97316',   // orange-500
+    'AUDIO': '#6366f1',            // indigo-500
+    'ALMACENAMIENTO': '#14b8a6',   // teal-500
+    'CAMARAS': '#f43f5e',          // rose-500
+    'CONSOLAS': '#8b5cf6',         // violet-500
+    'GAMING': '#d946ef',           // fuchsia-500
+    'DRONES': '#0ea5e9',           // sky-500
+    'WATCHES': '#f59e0b',          // amber-500
+    'PLACAS_VIDEO': '#84cc16',     // lime-500
+    'STREAMING': '#059669',        // emerald-600
+    'REDES': '#2563eb',            // blue-600
+    'BAGS_CASES': '#64748b',       // slate-500
+    'CABLES_CARGADORES': '#0891b2', // cyan-600
+    'REPUESTOS': '#6b7280'         // gray-500
   };
 
   const COLORES_CONDICIONES = {
@@ -377,7 +461,7 @@ const ListadoTotalSection = () => {
         // Agregar fila separadora de categoría
         datosExcel.push({
           '#': '',
-          'Producto': `═══ ${labelsCategorias[categoria]} ═══`,
+          'Producto': `═══ ${labelsCategoriaTabla[categoria]} ═══`,
           'Stock': '',
           'Valor Venta USD': '',
           'Condición': ''
@@ -477,7 +561,7 @@ const ListadoTotalSection = () => {
       categoriasOrdenadas.forEach((categoria, index) => {
         // Agregar categoría con emoji en negrita y subrayada
         const emoji = EMOJI_CATEGORIAS[categoria] || '📦';
-        mensaje += `*_${emoji} ${labelsCategorias[categoria]}_*\n`;
+        mensaje += `*_${emoji} ${labelsCategoriaTabla[categoria]}_*\n`;
 
         // Agregar productos de esta categoría
         productosPorCategoria[categoria].forEach((producto) => {
@@ -741,12 +825,28 @@ const ListadoTotalSection = () => {
               <option value="">Todas las categorías</option>
               <option value="NOTEBOOKS">Notebooks</option>
               <option value="CELULARES">Celulares</option>
+              <option value="OTROS_TOTAL">Otros productos total</option>
+              <option disabled>───────────────</option>
               <option value="MONITORES">Monitores</option>
-              <option value="PERIFERICOS">Periféricos</option>
               <option value="ACCESORIOS">Accesorios</option>
               <option value="COMPONENTES">Componentes</option>
               <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
               <option value="TABLETS">Tablets</option>
+              <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
+              <option value="AUDIO">Audio</option>
+              <option value="ALMACENAMIENTO">Almacenamiento</option>
+              <option value="CAMARAS">Cámaras</option>
+              <option value="CONSOLAS">Consolas</option>
+              <option value="GAMING">Gaming</option>
+              <option value="DRONES">Drones</option>
+              <option value="WATCHES">Watches</option>
+              <option value="PLACAS_VIDEO">Placas de Video</option>
+              <option value="STREAMING">Streaming</option>
+              <option value="REDES">Redes</option>
+              <option value="BAGS_CASES">Bags/Cases</option>
+              <option value="CABLES_CARGADORES">Cables/Cargadores</option>
+              <option value="REPUESTOS">Repuestos</option>
+              <option value="OTROS">Otros</option>
             </select>
           </div>
 
@@ -763,7 +863,7 @@ const ListadoTotalSection = () => {
               <option value="">Todas las condiciones</option>
               <option value="nuevo">Nuevo</option>
               <option value="usado">Usado</option>
-              <option value="refurbished">Refurbish</option>
+              <option value="refurbished">Refurbished</option>
             </select>
           </div>
 
@@ -830,7 +930,7 @@ const ListadoTotalSection = () => {
                   {/* Categoría */}
                   <td className="px-4 py-2 text-center">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCategorias[producto.categoria]}`}>
-                      {labelsCategorias[producto.categoria]}
+                      {labelsCategoriaTabla[producto.categoria]}
                     </span>
                   </td>
 

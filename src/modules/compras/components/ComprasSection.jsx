@@ -433,12 +433,15 @@ const ComprasSection = () => {
     }));
   };
 
-  // Función para marcar recibo como ingresado
-  const handleMarcarComoIngresado = async (recibo, e) => {
+  // Función para cambiar el estado de un recibo
+  const handleCambiarEstado = async (recibo, nuevoEstado, e) => {
     e.stopPropagation(); // Evitar que se expanda/colapse el recibo
 
+    const estadoTexto = nuevoEstado === 'ingresado' ? 'INGRESADO' : 'EN CAMINO';
+    const emoji = nuevoEstado === 'ingresado' ? '✅' : '📦';
+
     const confirmar = window.confirm(
-      `¿Está seguro de marcar el recibo #${recibo.recibo_id} como INGRESADO?\n\n` +
+      `¿Está seguro de marcar el recibo #${recibo.recibo_id} como ${estadoTexto}?\n\n` +
       `Proveedor: ${recibo.proveedor}\n` +
       `Items: ${recibo.items.length}\n` +
       `Total: ${formatearMonto(calcularTotalRecibo(recibo.items), recibo.moneda)}`
@@ -449,9 +452,9 @@ const ComprasSection = () => {
     try {
       // Actualizar todos los items del recibo
       for (const item of recibo.items) {
-        await updateCompra(item.id, { estado: 'ingresado' });
+        await updateCompra(item.id, { estado: nuevoEstado });
       }
-      alert(`✅ Recibo #${recibo.recibo_id} marcado como ingresado`);
+      alert(`${emoji} Recibo #${recibo.recibo_id} marcado como ${estadoTexto.toLowerCase()}`);
     } catch (error) {
       console.error('Error actualizando estado:', error);
       alert(`❌ Error al actualizar el estado: ${error.message}`);
@@ -946,23 +949,7 @@ const ComprasSection = () => {
                   {/* Footer con total */}
                   <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">SUBTOTAL ITEMS</td>
-                      <td className="px-4 py-3 text-center text-sm font-bold">
-                        ${totalRecibo.toFixed(2)} {reciboData.moneda}
-                      </td>
-                      <td colSpan="3"></td>
-                    </tr>
-                    {totalCostosAdicionales > 0 && (
-                      <tr>
-                        <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">COSTOS ADICIONALES</td>
-                        <td className="px-4 py-3 text-center text-sm font-bold text-emerald-300">
-                          +${totalCostosAdicionales.toFixed(2)} {reciboData.moneda}
-                        </td>
-                        <td colSpan="3"></td>
-                      </tr>
-                    )}
-                    <tr className="border-t-2 border-slate-600">
-                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">GRAN TOTAL</td>
+                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">TOTAL</td>
                       <td colSpan="4" className="px-4 py-3 text-center text-lg font-bold">
                         ${granTotal.toFixed(2)} {reciboData.moneda}
                         {reciboData.moneda === 'ARS' && (
@@ -1152,14 +1139,22 @@ const ComprasSection = () => {
 
                     {/* Botones de acción */}
                     <div className="flex items-center space-x-1.5 ml-6">
-                      {/* Solo mostrar botón de check si está en camino */}
-                      {recibo.estado === 'en_camino' && (
+                      {/* Botón para cambiar estado */}
+                      {recibo.estado === 'en_camino' ? (
                         <button
-                          onClick={(e) => handleMarcarComoIngresado(recibo, e)}
+                          onClick={(e) => handleCambiarEstado(recibo, 'ingresado', e)}
                           className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                           title="Marcar como ingresado"
                         >
                           <CheckCircle size={16} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => handleCambiarEstado(recibo, 'en_camino', e)}
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                          title="Marcar como en camino"
+                        >
+                          <Truck size={16} />
                         </button>
                       )}
                       <button
@@ -1252,29 +1247,12 @@ const ComprasSection = () => {
                             const totalCostosAdic = recibo.items.reduce((sum, item) => sum + (item.costo_adicional || 0), 0);
                             const granTotalRecibo = subtotalItems + totalCostosAdic;
                             return (
-                              <>
-                                <tr>
-                                  <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">SUBTOTAL ITEMS</td>
-                                  <td className="px-4 py-2 text-sm font-bold text-right">
-                                    {formatearMonto(subtotalItems, recibo.moneda)}
-                                  </td>
-                                  <td colSpan="2"></td>
-                                </tr>
-                                {totalCostosAdic > 0 && (
-                                  <tr>
-                                    <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">COSTOS ADICIONALES</td>
-                                    <td colSpan="3" className="px-4 py-2 text-sm font-bold text-emerald-300 text-right">
-                                      +{formatearMonto(totalCostosAdic, recibo.moneda)}
-                                    </td>
-                                  </tr>
-                                )}
-                                <tr className="border-t-2 border-slate-600">
-                                  <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">GRAN TOTAL</td>
-                                  <td colSpan="3" className="px-4 py-2 text-sm font-bold text-right">
-                                    {formatearMonto(granTotalRecibo, recibo.moneda)}
-                                  </td>
-                                </tr>
-                              </>
+                              <tr>
+                                <td colSpan="4" className="px-4 py-2 text-sm font-semibold text-right">TOTAL</td>
+                                <td colSpan="3" className="px-4 py-2 text-sm font-bold text-right">
+                                  {formatearMonto(granTotalRecibo, recibo.moneda)}
+                                </td>
+                              </tr>
                             );
                           })()}
                         </tfoot>

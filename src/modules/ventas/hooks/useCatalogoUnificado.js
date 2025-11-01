@@ -23,8 +23,9 @@ export const useCatalogoUnificado = () => {
     categoria: '',
     subcategoria: '', // Para filtrar subcategorías en Apple
     almacenamiento: '',
-    pantalla: '', // Para filtrar por tamaño de pantalla en notebooks
-    idioma_teclado: '' // Para filtrar por idioma de teclado en notebooks
+    pantalla: '', // Para filtrar por tamaño/rango de pantalla en notebooks
+    idioma_teclado: '', // Para filtrar por idioma de teclado en notebooks
+    ram: '' // Para filtrar por RAM en notebooks
   });
   const [ordenamiento, setOrdenamiento] = useState({
     campo: '',
@@ -280,10 +281,35 @@ export const useCatalogoUnificado = () => {
     const precioMin = Math.min(...datosActuales.map(item => parseFloat(item.precio_venta_usd) || 0));
     const precioMax = Math.max(...datosActuales.map(item => parseFloat(item.precio_venta_usd) || 0));
 
-    const almacenamientos = categoriaActiva === 'celulares' ? [...new Set(datosActuales.map(item => item.capacidad).filter(Boolean))]:[];
+    // Almacenamiento: para celulares es 'capacidad', para notebooks es 'ssd'
+    const almacenamientos = categoriaActiva === 'celulares'
+      ? [...new Set(datosActuales.map(item => item.capacidad).filter(Boolean))]
+      : categoriaActiva === 'notebooks'
+      ? [...new Set(datosActuales.map(item => item.ssd).filter(v => v && !v.includes('x')))].sort((a, b) => {
+          // Ordenar numéricamente (ya sin GB)
+          const numA = parseInt(a) || 0;
+          const numB = parseInt(b) || 0;
+          return numA - numB;
+        })
+      : [];
 
-    // Para notebooks, extraer tamaños de pantalla e idiomas de teclado
-    const pantallas = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.pantalla).filter(Boolean))]:[];
+    // Para notebooks: rangos de pantalla predefinidos
+    const rangosPantalla = ['<13', '13-14', '14-15', '15-16', '>16'];
+
+    // Para notebooks: RAM y idiomas de teclado
+    const rams = categoriaActiva === 'notebooks'
+      ? [...new Set(datosActuales.map(item => {
+          // Normalizar valores de RAM: "8GB" -> "8", "16 GB" -> "16", etc.
+          const ram = item.ram ? item.ram.toString().trim() : '';
+          const match = ram.match(/^(\d+)\s*(GB)?$/i);
+          return match ? match[1] : null;
+        }).filter(Boolean))].sort((a, b) => {
+          // Ordenar numéricamente
+          const numA = parseInt(a) || 0;
+          const numB = parseInt(b) || 0;
+          return numA - numB;
+        })
+      : [];
     const idiomasTeclado = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.idioma_teclado).filter(Boolean))]:[];
 
     return {
@@ -294,8 +320,9 @@ export const useCatalogoUnificado = () => {
       categorias: categorias.sort(),
       precioMin,
       precioMax,
-      almacenamientos: almacenamientos.sort(),
-      pantallas: pantallas.sort(),
+      almacenamientos,
+      rangosPantalla, // Rangos predefinidos para notebooks
+      rams, // RAM para notebooks
       idiomasTeclado: idiomasTeclado.sort()
     };
   }, [datosActuales, categoriaActiva]);
@@ -336,14 +363,41 @@ export const useCatalogoUnificado = () => {
           });
         }
     
+        // Filtrar por almacenamiento
         if(categoriaActiva === 'celulares' && filtrosUnificados.almacenamiento){
           filtered = filtered.filter(item => item.capacidad === filtrosUnificados.almacenamiento);
         }
 
-    // Filtrar por pantalla (notebooks)
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
-      filtered = filtered.filter(item => item.pantalla === filtrosUnificados.pantalla);
-    }
+        if(categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento){
+          filtered = filtered.filter(item => item.ssd === filtrosUnificados.almacenamiento);
+        }
+
+        // Filtrar por RAM (notebooks)
+        if(categoriaActiva === 'notebooks' && filtrosUnificados.ram){
+          filtered = filtered.filter(item => {
+            // Normalizar el valor de RAM del producto para comparación
+            const ramProducto = item.ram ? item.ram.toString().trim() : '';
+            const matchProducto = ramProducto.match(/^(\d+)\s*(GB)?$/i);
+            const ramNormalizado = matchProducto ? matchProducto[1] : '';
+            return ramNormalizado === filtrosUnificados.ram;
+          });
+        }
+
+        // Filtrar por pantalla con rangos (notebooks)
+        if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
+          filtered = filtered.filter(item => {
+            const pantalla = item.pantalla ? parseFloat(item.pantalla) : 0;
+            const rango = filtrosUnificados.pantalla;
+
+            if (rango === '<13') return pantalla < 13;
+            if (rango === '13-14') return pantalla >= 13 && pantalla < 14;
+            if (rango === '14-15') return pantalla >= 14 && pantalla < 15;
+            if (rango === '15-16') return pantalla >= 15 && pantalla <= 16;
+            if (rango === '>16') return pantalla > 16;
+
+            return true;
+          });
+        }
 
     // Filtrar por idioma de teclado (notebooks)
     if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){
@@ -639,8 +693,36 @@ export const useCatalogoUnificado = () => {
     }
 
     // Filtros específicos de notebooks
+    // Almacenamiento para notebooks
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento){
+      filtered = filtered.filter(item => item.ssd === filtrosUnificados.almacenamiento);
+    }
+
+    // RAM para notebooks
+    if(categoriaActiva === 'notebooks' && filtrosUnificados.ram){
+      filtered = filtered.filter(item => {
+        // Normalizar el valor de RAM del producto para comparación
+        const ramProducto = item.ram ? item.ram.toString().trim() : '';
+        const matchProducto = ramProducto.match(/^(\d+)\s*(GB)?$/i);
+        const ramNormalizado = matchProducto ? matchProducto[1] : '';
+        return ramNormalizado === filtrosUnificados.ram;
+      });
+    }
+
+    // Pantalla con rangos para notebooks
     if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
-      filtered = filtered.filter(item => item.pantalla === filtrosUnificados.pantalla);
+      filtered = filtered.filter(item => {
+        const pantalla = item.pantalla ? parseFloat(item.pantalla) : 0;
+        const rango = filtrosUnificados.pantalla;
+
+        if (rango === '<13') return pantalla < 13;
+        if (rango === '13-14') return pantalla >= 13 && pantalla < 14;
+        if (rango === '14-15') return pantalla >= 14 && pantalla < 15;
+        if (rango === '15-16') return pantalla >= 15 && pantalla <= 16;
+        if (rango === '>16') return pantalla > 16;
+
+        return true;
+      });
     }
 
     if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){

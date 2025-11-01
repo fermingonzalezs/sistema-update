@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Camera } from 'lucide-react';
+import { X } from 'lucide-react';
 import { formatearMonto } from '../../utils/formatters';
 
 /**
@@ -11,14 +11,19 @@ import { formatearMonto } from '../../utils/formatters';
  * - Bordes: rounded (4px únicamente)
  * - Espaciado: sistema de 8px
  */
-const ProductModal = ({ 
-  producto, 
-  isOpen, 
-  onClose, 
+const ProductModal = ({
+  producto,
+  isOpen,
+  onClose,
   cotizacionDolar,
   tipoProducto = 'general', // 'celular', 'notebook', 'otro'
   campos = {}, // Configuración de campos a mostrar por tipo
-  onVerFotos = null // Callback para ver fotos del producto
+  onVerFotos = null, // Callback para ver fotos del producto
+  onCopyUSD = null, // Callback para copiar info en USD
+  onCopyPesos = null, // Callback para copiar info en Pesos
+  onVender = null, // Callback para agregar al carrito
+  onEditar = null, // Callback para editar producto
+  onCopyMarketplace = null // Callback para copiar texto de marketplace
 }) => {
   if (!isOpen || !producto) return null;
 
@@ -162,11 +167,13 @@ const ProductModal = ({
   const precioVenta = producto.precio_venta_usd || 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ cursor: 'default' }}>
-      <div className="bg-white rounded overflow-hidden flex w-300 max-h-[80vh]" style={{ userSelect: 'none', cursor: 'default' }}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4" style={{ cursor: 'default' }}>
+      <div className="bg-white rounded overflow-hidden flex flex-col w-300 max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
 
-        {/* Panel izquierdo - Información clave */}
-        <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800" style={{ userSelect: 'none', cursor: 'default' }}>
+        {/* Contenido principal con paneles */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Panel izquierdo - Información clave */}
+          <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800" style={{ userSelect: 'none', cursor: 'default' }}>
           <div className="space-y-8">
             
             {/* Condición */}
@@ -218,6 +225,99 @@ const ProductModal = ({
               </div>
             )}
 
+          </div>
+
+          {/* Botones de acción - Estilo tabla */}
+          <div className="mt-6 flex flex-col gap-2">
+            <div className="flex justify-center gap-0.5">
+              {/* Botón 1: Copiar USD */}
+              {onCopyUSD && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyUSD(producto, tipoProducto);
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                  title="Copiar información USD"
+                >
+                  U$
+                </button>
+              )}
+
+              {/* Botón 2: Copiar Pesos */}
+              {onCopyPesos && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyPesos(producto, tipoProducto);
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                  title="Copiar información ARS"
+                >
+                  $
+                </button>
+              )}
+            </div>
+
+            <div className="flex justify-center gap-0.5">
+              {/* Botón 3: Copy Marketplace */}
+              {onCopyMarketplace && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyMarketplace(producto, tipoProducto);
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                  title="Copiar texto Marketplace"
+                >
+                  M
+                </button>
+              )}
+
+              {/* Botón 4: Ver Fotos */}
+              {producto.fotos && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(producto.fotos, '_blank');
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                  title="Ver fotos"
+                >
+                  📷
+                </button>
+              )}
+            </div>
+
+            <div className="flex justify-center gap-0.5">
+              {/* Botón 5: Vender */}
+              {onVender && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onVender(producto);
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
+                  title="Agregar al carrito"
+                >
+                  V
+                </button>
+              )}
+
+              {/* Botón 6: Editar */}
+              {onEditar && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditar(producto);
+                  }}
+                  className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                  title="Editar producto"
+                >
+                  E
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -374,18 +474,7 @@ const ProductModal = ({
             </div>
           </div>
 
-          {/* Botón Ver Fotos - Esquina inferior izquierda */}
-          {onVerFotos && (
-            <div className="flex justify-start mt-6">
-              <button
-                onClick={() => onVerFotos(producto, tipoProducto)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors flex items-center space-x-2"
-              >
-                <Camera className="w-5 h-5" />
-                <span>Ver Fotos</span>
-              </button>
-            </div>
-          )}
+        </div>
         </div>
       </div>
     </div>

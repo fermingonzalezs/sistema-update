@@ -431,7 +431,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
     { id: 'transferencia', nombre: '🏦 Transferencia' },
     { id: 'criptomonedas', nombre: '₿ Criptomonedas' },
     { id: 'tarjeta_credito', nombre: '💳 Tarjeta de Crédito' },
-    { id: 'cuenta_corriente', nombre: '🏷️ Cuenta Corriente' }
+    { id: 'cuenta_corriente', nombre: '🏷️ Cuenta Corriente' },
+    { id: 'mercaderia', nombre: '📦 Pagar con Mercadería' }
   ];
 
   const tipoConfig = {

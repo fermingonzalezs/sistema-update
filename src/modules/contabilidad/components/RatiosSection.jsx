@@ -1553,7 +1553,7 @@ const RatiosEficienciaSection = ({ ratiosEficiencia, loadingPeriodo }) => {
             </span>
             <span className="flex items-center gap-1">
               <span>🔴</span>
-              <span className="font-medium">Tenso (>60)</span>
+              <span className="font-medium">Tenso (+60)</span>
             </span>
           </div>
         </div>

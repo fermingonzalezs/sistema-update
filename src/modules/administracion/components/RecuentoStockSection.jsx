@@ -8,23 +8,28 @@ const recuentoStockService = {
   async getInventarioCompleto(sucursal = null) {
     console.log('📦 Obteniendo inventario completo para sucursal:', sucursal || 'todas');
 
+    // Helper para ordenar por nombre/modelo
+    const sortByName = (a, b) => {
+      const nameA = a.modelo || a.nombre_producto || a.descripcion || '';
+      const nameB = b.modelo || b.nombre_producto || b.descripcion || '';
+      return nameA.localeCompare(nameB);
+    };
+
     let computadoras, celulares, otros;
 
     if (sucursal) {
-      // Normalizar sucursal: convertir a minúsculas y reemplazar espacios/barras
       const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
-      console.log('🔄 Sucursal normalizada:', sucursalNormalizada);
 
+      console.log('🔍 Buscando productos para sucursal normalizada:', sucursalNormalizada);
+
+      // ⭐ IMPORTANTE: Filtrar notebooks y celulares por columna 'sucursal'
+      // Los productos "otros" no tienen columna sucursal, se filtran después
       [computadoras, celulares, otros] = await Promise.all([
-        // Obtener todos los productos de la sucursal (sin filtro disponible para inventario)
-        supabase.from('inventario').select('*')
-          .eq('sucursal', sucursalNormalizada),
-        supabase.from('celulares').select('*')
-          .eq('sucursal', sucursalNormalizada),
-        supabase.from('otros').select('*')
+        supabase.from('inventario').select('*').eq('sucursal', sucursalNormalizada),
+        supabase.from('celulares').select('*').eq('sucursal', sucursalNormalizada),
+        supabase.from('otros').select('*') // Todos los productos "otros" - se filtran por stock después
       ]);
     } else {
-      // Obtener todos los productos
       [computadoras, celulares, otros] = await Promise.all([
         supabase.from('inventario').select('*'),
         supabase.from('celulares').select('*'),
@@ -36,27 +41,47 @@ const recuentoStockService = {
     if (celulares.error) throw celulares.error;
     if (otros.error) throw otros.error;
 
+    console.log('📊 Productos obtenidos de BD - Notebooks:', computadoras.data.length, 'Celulares:', celulares.data.length, 'Otros:', otros.data.length);
+
+    // Ordenar cada categoría alfabéticamente
+    computadoras.data.sort(sortByName);
+    celulares.data.sort(sortByName);
+    otros.data.sort(sortByName);
+
     let inventario = [
       ...computadoras.data.map(item => ({ ...item, tipo: 'computadora' })),
       ...celulares.data.map(item => ({ ...item, tipo: 'celular' })),
       ...otros.data.map(item => ({ ...item, tipo: 'otro' }))
     ];
 
-    // Si hay sucursal seleccionada, filtrar productos "otros" por stock en esa sucursal
+    // ⭐ FILTRADO CRÍTICO: Si hay sucursal seleccionada, filtrar estrictamente
     if (sucursal) {
       const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+
       inventario = inventario.filter(item => {
+        // Para productos "otros": filtrar por stock en la sucursal
         if (item.tipo === 'otro') {
           const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
                                  sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
-                                 0; // SERVICIO TÉCNICO no maneja productos "otros" por cantidad
-          return stockSucursal > 0; // Solo mostrar productos con stock físico en la sucursal
+                                 0;
+          return stockSucursal > 0;
         }
-        return true; // Mantener notebooks y celulares ya filtrados
+
+        // Para notebooks y celulares: verificar que tengan la sucursal correcta
+        // (ya vienen filtrados de la DB, pero doble verificación por seguridad)
+        if (item.sucursal) {
+          const sucursalItem = item.sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+          return sucursalItem === sucursalNormalizada;
+        }
+
+        // Si no tiene campo sucursal, no incluir (para evitar productos huérfanos)
+        console.warn('⚠️ Producto sin sucursal encontrado:', item.tipo, item.id);
+        return false;
       });
     }
 
-    console.log(`✅ ${inventario.length} productos obtenidos`);
+    console.log(`✅ ${inventario.length} productos filtrados para recuento - Notebooks: ${inventario.filter(i => i.tipo === 'computadora').length}, Celulares: ${inventario.filter(i => i.tipo === 'celular').length}, Otros: ${inventario.filter(i => i.tipo === 'otro').length}`);
+
     return inventario;
   },
 
@@ -220,7 +245,7 @@ function useRecuentoStock() {
 }
 
 // Componente principal
-const RecuentoStockSection = () => {
+export const RecuentoStockSection = () => {
   const {
     inventario,
     recuentosAnteriores,
@@ -292,49 +317,99 @@ const RecuentoStockSection = () => {
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
                        sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
+                       0; // SERVICIO TÉCNICO no maneja productos "otros"
       } else {
         stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
       }
-      const stockReal = stockContado[producto.id] || 0;
+      const stockReal = stockContado[`${producto.tipo}-${producto.id}`] || 0;
       return cumpleTipo && cumpleFiltro && (stockReal !== stockSistema);
     }
 
     return cumpleTipo && cumpleFiltro;
   });
 
-  const calcularDiferencias = () => {
+  const validarRecuentoCompleto = () => {
+    // Validar que TODOS los productos del inventario tienen un valor ingresado
+    const productosSinContar = inventario.filter(producto => {
+      const claveProducto = `${producto.tipo}-${producto.id}`;
+      return stockContado[claveProducto] === undefined;
+    });
+
+    if (productosSinContar.length > 0) {
+      // Agrupar por tipo para mensaje detallado
+      const porTipo = productosSinContar.reduce((acc, prod) => {
+        acc[prod.tipo] = (acc[prod.tipo] || 0) + 1;
+        return acc;
+      }, {});
+
+      const mensajeDetalle = Object.entries(porTipo)
+        .map(([tipo, cantidad]) => {
+          const nombre = tipo === 'computadora' ? 'Notebooks' :
+                        tipo === 'celular' ? 'Celulares' : 'Otros';
+          return `• ${nombre}: ${cantidad}`;
+        })
+        .join('\n');
+
+      return {
+        valido: false,
+        mensaje: `⚠️ RECUENTO INCOMPLETO\n\nDebe contar TODOS los productos de la sucursal antes de finalizar.\n\nProductos faltantes: ${productosSinContar.length}\n\n${mensajeDetalle}\n\nTip: Puede usar el filtro de categoría para facilitar el conteo, pero debe completar todas las categorías.`
+      };
+    }
+
+    return { valido: true };
+  };
+
+  const calcularDiferencias = (inventarioAProcesar) => {
+    if (!inventarioAProcesar) return { diferencias: [], productosContados: [] };
     const diferencias = [];
     const productosContados = [];
     const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
 
-    // Solo iterar sobre los productos que fueron contados Y que pertenecen al filtro actual
-    Object.keys(stockContado).forEach(productoId => {
-      const producto = inventario.find(p => p.id === parseInt(productoId));
-      if (!producto) return;
+    console.log('📊 Calculando diferencias para', inventarioAProcesar.length, 'productos de sucursal:', sucursalSeleccionada);
+    console.log('📦 Desglose inventario a procesar:', {
+      notebooks: inventarioAProcesar.filter(p => p.tipo === 'computadora').length,
+      celulares: inventarioAProcesar.filter(p => p.tipo === 'celular').length,
+      otros: inventarioAProcesar.filter(p => p.tipo === 'otro').length
+    });
+
+    // ⭐ IMPORTANTE: Solo procesar productos que REALMENTE están en el inventario de la sucursal
+    for (const producto of inventarioAProcesar) {
+      // Verificación de seguridad: asegurar que el producto pertenece a la sucursal
+      if (producto.tipo !== 'otro') {
+        const sucursalProducto = producto.sucursal?.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+        if (sucursalProducto !== sucursalNormalizada) {
+          console.warn('⚠️ Producto con sucursal incorrecta detectado y omitido:', producto.tipo, producto.id, 'Sucursal producto:', sucursalProducto, 'Sucursal esperada:', sucursalNormalizada);
+          continue; // Saltar este producto
+        }
+      }
 
       let stockSistema;
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
                        sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
+                       0;
       } else {
-        stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
+        stockSistema = 1;
       }
-      const stockReal = stockContado[productoId];
 
+      // Obtener el stock real contado - debe existir porque ya validamos que todos estén contados
+      const claveProducto = `${producto.tipo}-${producto.id}`;
+      const stockReal = stockContado[claveProducto] !== undefined ? parseInt(stockContado[claveProducto]) : 0;
+
+      // ⭐ IMPORTANTE: Guardar TODOS los productos de la sucursal con su stock real y sistema
+      // Esto crea una "foto" completa del inventario en el día del recuento
       productosContados.push({
         id: producto.id,
         tipo: producto.tipo,
         descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
         serial: producto.serial || `${producto.tipo}-${producto.id}`,
         stockSistema,
-        stockReal,
+        stockReal: stockReal,
         sucursal: sucursalSeleccionada
       });
 
+      // Solo agregar a diferencias si hay discrepancia
       if (stockReal !== stockSistema) {
-        // JSON: nombre, serial (si es faltante), diferencia cantidad y diferencia USD (usando precio de COSTO)
         const diferenciaQuantity = stockReal - stockSistema;
         const precioCosto = producto.precio_costo_usd || producto.precio_compra_usd || 0;
         const diferenciaUSD = diferenciaQuantity * precioCosto;
@@ -345,14 +420,20 @@ const RecuentoStockSection = () => {
           diferencia_usd: diferenciaUSD
         };
 
-        // Agregar serial solo cuando es faltante (diferencia negativa)
         if (diferenciaQuantity < 0) {
           diferencia.serial = producto.serial || `${producto.tipo}-${producto.id}`;
         }
-
         diferencias.push(diferencia);
       }
+    }
+
+    console.log('✅ Productos contados a guardar:', productosContados.length);
+    console.log('📦 Desglose productos contados:', {
+      notebooks: productosContados.filter(p => p.tipo === 'computadora').length,
+      celulares: productosContados.filter(p => p.tipo === 'celular').length,
+      otros: productosContados.filter(p => p.tipo === 'otro').length
     });
+    console.log('⚠️ Diferencias encontradas:', diferencias.length);
 
     return { diferencias, productosContados };
   };
@@ -363,10 +444,35 @@ const RecuentoStockSection = () => {
       return;
     }
 
-    const { diferencias, productosContados } = calcularDiferencias();
+    // ⭐ VALIDACIÓN DE COMPLETITUD - Debe contar TODOS los productos
+    const validacion = validarRecuentoCompleto();
+    if (!validacion.valido) {
+      alert(validacion.mensaje);
+      return;
+    }
 
-    console.log('📊 Diferencias calculadas:', diferencias);
-    console.log('📦 Productos contados:', productosContados);
+    console.log('📋 INICIANDO FINALIZACIÓN DE RECUENTO');
+    console.log('📦 Total productos en inventario:', inventario.length);
+    console.log('🔢 Total productos contados en estado:', Object.keys(stockContado).length);
+
+    // ⭐ IMPORTANTE: Calcular diferencias usando el inventario COMPLETO (sin filtros)
+    const { diferencias, productosContados } = calcularDiferencias(inventario);
+
+    console.log('📊 Diferencias calculadas:', diferencias.length);
+    console.log('📦 Productos a guardar en JSON:', productosContados.length);
+    console.log('🔍 Desglose por tipo:', {
+      notebooks: productosContados.filter(p => p.tipo === 'computadora').length,
+      celulares: productosContados.filter(p => p.tipo === 'celular').length,
+      otros: productosContados.filter(p => p.tipo === 'otro').length
+    });
+
+    // Validación final: asegurar que productosContados == inventario
+    if (productosContados.length !== inventario.length) {
+      console.error('❌ ERROR: Mismatch entre inventario y productos contados');
+      console.error('Inventario:', inventario.length, 'Contados:', productosContados.length);
+      alert(`❌ Error interno: El número de productos contados (${productosContados.length}) no coincide con el inventario (${inventario.length}). Por favor contacte a soporte.`);
+      return;
+    }
 
     if (productosContados.length === 0) {
       alert('No se han contado productos. Debe contar al menos un producto.');
@@ -395,7 +501,21 @@ const RecuentoStockSection = () => {
         observaciones
       };
 
+      console.log('💾 Guardando recuento con datos:', {
+        fecha: recuentoData.fecha,
+        sucursal: recuentoData.sucursal,
+        tipo: recuentoData.tipo,
+        productos: productosContados.length,
+        diferencias: diferencias.length
+      });
+
+      // Log detallado del JSON que se va a guardar
+      console.log('📄 JSON productos_contados (primeros 5):', JSON.parse(recuentoData.productosContados).slice(0, 5));
+      console.log('📄 JSON diferencias (primeros 5):', JSON.parse(recuentoData.diferencias).slice(0, 5));
+
       await guardarRecuento(recuentoData);
+
+      console.log('✅ Recuento guardado exitosamente en la base de datos');
 
       if (diferencias.length === 0) {
         alert('✅ Recuento finalizado sin diferencias. Reporte guardado correctamente.');
@@ -413,6 +533,7 @@ const RecuentoStockSection = () => {
       setMostrarSoloDiferencias(false);
 
     } catch (err) {
+      console.error('❌ Error al guardar recuento:', err);
       alert('❌ Error: ' + err.message);
     }
   };
@@ -458,7 +579,7 @@ const RecuentoStockSection = () => {
     }
   };
 
-  const { diferencias, productosContados } = calcularDiferencias();
+  const { diferencias, productosContados } = calcularDiferencias(inventario);
 
   if (loading) {
     return <LoadingSpinner text="Cargando inventario..." size="medium" />;
@@ -507,34 +628,90 @@ const RecuentoStockSection = () => {
       {/* Estado del recuento */}
       {recuentoIniciado && (
         <div className="bg-slate-100 border-b border-slate-200 p-4 mb-6 rounded">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalSeleccionada}</span>
-              </div>
-              <div className="text-sm text-slate-700">
-                Productos contados: {productosContados.length} / {inventario.length}
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              {diferencias.length > 0 && (
+          <div className="space-y-3">
+            {/* Línea 1: Estado general */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <AlertTriangle size={16} className="text-slate-600" />
-                  <span className="text-sm text-slate-600 font-medium">
-                    {diferencias.length} diferencias encontradas
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium text-slate-800">Recuento en proceso - Sucursal {sucursalSeleccionada}</span>
+                </div>
+                <div className="text-sm text-slate-700">
+                  <span className="font-semibold">
+                    {Object.keys(stockContado).length} / {inventario.length}
+                  </span> productos contados
+                  <span className="ml-2 text-slate-500">
+                    ({Math.round((Object.keys(stockContado).length / inventario.length) * 100)}%)
                   </span>
                 </div>
-              )}
-              <label className="flex items-center space-x-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={mostrarSoloDiferencias}
-                  onChange={(e) => setMostrarSoloDiferencias(e.target.checked)}
-                  className="rounded border-slate-300"
-                />
-                <span>Solo diferencias</span>
-              </label>
+              </div>
+              <div className="flex items-center space-x-4">
+                {diferencias.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle size={16} className="text-slate-600" />
+                    <span className="text-sm text-slate-600 font-medium">
+                      {diferencias.length} diferencias encontradas
+                    </span>
+                  </div>
+                )}
+                <label className="flex items-center space-x-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={mostrarSoloDiferencias}
+                    onChange={(e) => setMostrarSoloDiferencias(e.target.checked)}
+                    className="rounded border-slate-300"
+                  />
+                  <span>Solo diferencias</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Línea 2: Progreso por categoría */}
+            <div className="flex items-center space-x-6 text-sm">
+              {/* Notebooks */}
+              {(() => {
+                const notebooks = inventario.filter(p => p.tipo === 'computadora');
+                const notebooksContados = notebooks.filter(p => stockContado[`${p.tipo}-${p.id}`] !== undefined).length;
+                return notebooks.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Monitor size={16} className="text-slate-600" />
+                    <span className={notebooksContados === notebooks.length ? 'text-emerald-600 font-medium' : 'text-slate-700'}>
+                      Notebooks: {notebooksContados}/{notebooks.length}
+                    </span>
+                    {notebooksContados === notebooks.length && <CheckCircle size={14} className="text-emerald-600" />}
+                  </div>
+                );
+              })()}
+
+              {/* Celulares */}
+              {(() => {
+                const celulares = inventario.filter(p => p.tipo === 'celular');
+                const celularesContados = celulares.filter(p => stockContado[`${p.tipo}-${p.id}`] !== undefined).length;
+                return celulares.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Smartphone size={16} className="text-slate-600" />
+                    <span className={celularesContados === celulares.length ? 'text-emerald-600 font-medium' : 'text-slate-700'}>
+                      Celulares: {celularesContados}/{celulares.length}
+                    </span>
+                    {celularesContados === celulares.length && <CheckCircle size={14} className="text-emerald-600" />}
+                  </div>
+                );
+              })()}
+
+              {/* Otros */}
+              {(() => {
+                const otros = inventario.filter(p => p.tipo === 'otro');
+                const otrosContados = otros.filter(p => stockContado[`${p.tipo}-${p.id}`] !== undefined).length;
+                return otros.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Box size={16} className="text-slate-600" />
+                    <span className={otrosContados === otros.length ? 'text-emerald-600 font-medium' : 'text-slate-700'}>
+                      Otros: {otrosContados}/{otros.length}
+                    </span>
+                    {otrosContados === otros.length && <CheckCircle size={14} className="text-emerald-600" />}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -555,7 +732,7 @@ const RecuentoStockSection = () => {
               <option value="">Seleccionar sucursal...</option>
               <option value="LA PLATA">LA PLATA</option>
               <option value="MITRE">MITRE</option>
-              <option value="RSN/IDM/FIXCENTER">RSN/IDM/FIXCENTER</option>
+              <option value="SERVICIO TECNICO">SERVICIO TECNICO</option>
             </select>
             {recuentoIniciado && (
               <p className="text-xs text-slate-500 mt-1">No se puede cambiar durante el recuento</p>
@@ -588,6 +765,12 @@ const RecuentoStockSection = () => {
               <option value="celular">Celulares</option>
               <option value="otro">Otros</option>
             </select>
+            {recuentoIniciado && tipoFiltro !== 'todos' && (
+              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                <AlertTriangle size={12} />
+                Filtro visual - Debe completar TODAS las categorías
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Estado del recuento</label>
@@ -643,11 +826,11 @@ const RecuentoStockSection = () => {
                   if (producto.tipo === 'otro') {
                     stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
                        sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0; // RSN/IDM/FIXCENTER no maneja productos "otros"
+                       0; // SERVICIO TÉCNICO no maneja productos "otros"
                   } else {
                     stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
                   }
-                  const stockReal = stockContado[producto.id];
+                  const stockReal = stockContado[`${producto.tipo}-${producto.id}`];
                   const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
                   const contado = stockReal !== undefined;
 
@@ -695,7 +878,7 @@ const RecuentoStockSection = () => {
                             min="0"
                             max={producto.tipo === 'otro' ? "999" : "1"}
                             value={stockReal || ''}
-                            onChange={(e) => actualizarStockContado(producto.id, e.target.value)}
+                            onChange={(e) => actualizarStockContado(`${producto.tipo}-${producto.id}`, e.target.value)}
                             className="w-20 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             placeholder="0"
                           />
@@ -818,101 +1001,145 @@ const RecuentoStockSection = () => {
                           </td>
                           <td className="py-3 px-4 text-sm text-slate-800">{recuento.usuario_recuento}</td>
                           <td className="text-center py-3 px-4">
-                            {diferencias.length > 0 && (
-                              <button
-                                onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
-                                className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1 mx-auto"
-                              >
-                                {recuentoExpandido === index ? (
-                                  <>
-                                    <ChevronUp size={14} />
-                                    Ocultar
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDown size={14} />
-                                    Ver detalles
-                                  </>
-                                )}
-                              </button>
-                            )}
+                            <button
+                              onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
+                              className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1 mx-auto"
+                            >
+                              {recuentoExpandido === index ? (
+                                <>
+                                  <ChevronUp size={14} />
+                                  Ocultar
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown size={14} />
+                                  Ver detalle
+                                </>
+                              )}
+                            </button>
                           </td>
                         </tr>
 
-                        {/* Tabla expandible con detalles de diferencias */}
-                        {recuentoExpandido === index && diferencias.length > 0 && (
+                        {/* Tabla expandible con detalle de recuento */}
+                        {recuentoExpandido === index && (
                           <tr>
                             <td colSpan="8" className="py-4 px-4 bg-slate-100">
-                              <div className="max-w-4xl mx-auto">
+                              <div className="max-w-6xl mx-auto">
                                 <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                                  Detalle de Diferencias - {formatearFecha(recuento.fecha_recuento)}
+                                  Detalle de Recuento - {formatearFecha(recuento.fecha_recuento)} - {recuento.sucursal}
                                 </h4>
 
                                 {/* Resumen */}
-                                <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div className="grid grid-cols-4 gap-4 mb-4">
                                   <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Faltantes</div>
-                                    <div className="text-lg font-semibold text-red-600">{totalFaltantes}</div>
+                                    <div className="text-xs text-slate-500 mb-1">Total Productos</div>
+                                    <div className="text-lg font-semibold text-slate-800">{productos.length}</div>
                                   </div>
                                   <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Sobrantes</div>
-                                    <div className="text-lg font-semibold text-emerald-600">{totalSobrantes}</div>
+                                    <div className="text-xs text-slate-500 mb-1">Notebooks</div>
+                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'computadora').length}</div>
                                   </div>
                                   <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Impacto Total USD</div>
-                                    <div className={`text-lg font-semibold ${impactoUSD < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                      ${Math.abs(impactoUSD).toFixed(2)}
-                                    </div>
+                                    <div className="text-xs text-slate-500 mb-1">Celulares</div>
+                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'celular').length}</div>
+                                  </div>
+                                  <div className="bg-white border border-slate-200 rounded p-3">
+                                    <div className="text-xs text-slate-500 mb-1">Otros</div>
+                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'otro').length}</div>
                                   </div>
                                 </div>
 
-                                {/* Tabla de diferencias */}
+                                {/* Resumen de diferencias (si hay) */}
+                                {diferencias.length > 0 && (
+                                  <div className="grid grid-cols-3 gap-4 mb-4">
+                                    <div className="bg-white border border-slate-200 rounded p-3">
+                                      <div className="text-xs text-slate-500 mb-1">Faltantes</div>
+                                      <div className="text-lg font-semibold text-red-600">{totalFaltantes}</div>
+                                    </div>
+                                    <div className="bg-white border border-slate-200 rounded p-3">
+                                      <div className="text-xs text-slate-500 mb-1">Sobrantes</div>
+                                      <div className="text-lg font-semibold text-emerald-600">{totalSobrantes}</div>
+                                    </div>
+                                    <div className="bg-white border border-slate-200 rounded p-3">
+                                      <div className="text-xs text-slate-500 mb-1">Impacto Total USD</div>
+                                      <div className={`text-lg font-semibold ${impactoUSD < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        ${Math.abs(impactoUSD).toFixed(2)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Tabla de todos los productos */}
                                 <div className="bg-white border border-slate-200 rounded overflow-hidden">
                                   <table className="w-full">
                                     <thead className="bg-slate-800 text-white">
                                       <tr>
                                         <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Producto</th>
+                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Tipo</th>
                                         <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Serial</th>
-                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia Cantidad</th>
-                                        <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia USD</th>
+                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Stock Sistema</th>
+                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Stock Real</th>
+                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia</th>
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-200">
-                                      {diferencias.map((diff, diffIndex) => (
-                                        <tr key={diffIndex} className={diffIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                          <td className="py-2 px-3 text-sm text-slate-800">{diff.nombre}</td>
-                                          <td className="py-2 px-3 text-sm text-slate-600">
-                                            {diff.serial ? (
-                                              <span className="font-mono">{diff.serial}</span>
-                                            ) : (
-                                              <span className="text-slate-400">-</span>
-                                            )}
-                                          </td>
-                                          <td className="text-center py-2 px-3">
-                                            <span className={`text-sm font-medium ${
-                                              diff.diferencia_cantidad < 0 ? 'text-red-600' : 'text-emerald-600'
-                                            }`}>
-                                              {diff.diferencia_cantidad > 0 ? '+' : ''}{diff.diferencia_cantidad}
-                                            </span>
-                                          </td>
-                                          <td className="text-right py-2 px-3">
-                                            <span className={`text-sm font-medium ${
-                                              diff.diferencia_usd < 0 ? 'text-red-600' : 'text-emerald-600'
-                                            }`}>
-                                              ${Math.abs(diff.diferencia_usd || 0).toFixed(2)}
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      ))}
+                                      {productos
+                                        .sort((a, b) => {
+                                          // Orden: computadora (1), celular (2), otro (3)
+                                          const ordenTipo = { computadora: 1, celular: 2, otro: 3 };
+                                          return (ordenTipo[a.tipo] || 999) - (ordenTipo[b.tipo] || 999);
+                                        })
+                                        .map((prod, prodIndex) => {
+                                          const diferencia = prod.stockReal - prod.stockSistema;
+                                          return (
+                                            <tr key={prodIndex} className={prodIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                              <td className="py-2 px-3 text-sm text-slate-800">{prod.descripcion}</td>
+                                              <td className="text-center py-2 px-3">
+                                                <span className={`px-2 py-1 rounded text-xs ${
+                                                  prod.tipo === 'computadora' ? 'bg-blue-100 text-blue-800' :
+                                                  prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
+                                                  'bg-slate-100 text-slate-800'
+                                                }`}>
+                                                  {prod.tipo === 'computadora' ? 'Notebook' :
+                                                   prod.tipo === 'celular' ? 'Celular' : 'Otro'}
+                                                </span>
+                                              </td>
+                                              <td className="py-2 px-3 text-sm text-slate-600">
+                                                <span className="font-mono text-xs">{prod.serial}</span>
+                                              </td>
+                                              <td className="text-center py-2 px-3 text-sm font-medium text-slate-700">
+                                                {prod.stockSistema}
+                                              </td>
+                                              <td className="text-center py-2 px-3 text-sm font-medium text-slate-700">
+                                                {prod.stockReal}
+                                              </td>
+                                              <td className="text-center py-2 px-3">
+                                                {diferencia === 0 ? (
+                                                  <span className="text-emerald-600 font-medium text-sm">✓</span>
+                                                ) : (
+                                                  <span className={`text-sm font-medium ${
+                                                    diferencia < 0 ? 'text-red-600' : 'text-blue-600'
+                                                  }`}>
+                                                    {diferencia > 0 ? '+' : ''}{diferencia}
+                                                  </span>
+                                                )}
+                                              </td>
+                                            </tr>
+                                          );
+                                        })
+                                      }
                                     </tbody>
                                     <tfoot className="bg-slate-800 text-white">
                                       <tr>
-                                        <td colSpan="2" className="py-2 px-3 text-sm font-semibold">TOTAL</td>
+                                        <td colSpan="3" className="py-2 px-3 text-sm font-semibold">TOTAL PRODUCTOS</td>
                                         <td className="text-center py-2 px-3 text-sm font-semibold">
-                                          {diferencias.reduce((sum, d) => sum + d.diferencia_cantidad, 0)}
+                                          {productos.reduce((sum, p) => sum + p.stockSistema, 0)}
                                         </td>
-                                        <td className="text-right py-2 px-3 text-sm font-semibold">
-                                          ${impactoUSD.toFixed(2)}
+                                        <td className="text-center py-2 px-3 text-sm font-semibold">
+                                          {productos.reduce((sum, p) => sum + p.stockReal, 0)}
+                                        </td>
+                                        <td className="text-center py-2 px-3 text-sm font-semibold">
+                                          {productos.reduce((sum, p) => sum + (p.stockReal - p.stockSistema), 0)}
                                         </td>
                                       </tr>
                                     </tfoot>
@@ -990,4 +1217,4 @@ const RecuentoStockSection = () => {
   );
 };
 
-export default RecuentoStockSection;
+
