@@ -223,30 +223,30 @@ const ListadoTotalSection = () => {
     'refurbished': 'bg-blue-100 text-blue-700'
   };
 
-  // Labels de categorías - versión corta para gráficos
+  // Labels de categorías - versión corta para gráficos (máx 7 caracteres)
   const labelsCategorias = {
-    'NOTEBOOKS': 'Note',
-    'CELULARES': 'Cel',
-    'MONITORES': 'Mon',
-    'ACCESORIOS': 'Acc',
-    'COMPONENTES': 'Comp',
-    'FUNDAS_TEMPLADOS': 'Fund',
-    'TABLETS': 'Tab',
-    'MOUSE_TECLADOS': 'M/T',
-    'AUDIO': 'Aud',
-    'ALMACENAMIENTO': 'Alm',
-    'CAMARAS': 'Cam',
-    'CONSOLAS': 'Con',
-    'GAMING': 'Gam',
-    'DRONES': 'Dro',
-    'WATCHES': 'Wat',
+    'NOTEBOOKS': 'Notebks',
+    'CELULARES': 'Celular',
+    'MONITORES': 'Monitor',
+    'ACCESORIOS': 'Acceso',
+    'COMPONENTES': 'Compone',
+    'FUNDAS_TEMPLADOS': 'Fundas',
+    'TABLETS': 'Tablets',
+    'MOUSE_TECLADOS': 'Mouse/T',
+    'AUDIO': 'Audio',
+    'ALMACENAMIENTO': 'Almacen',
+    'CAMARAS': 'Cámaras',
+    'CONSOLAS': 'Console',
+    'GAMING': 'Gaming',
+    'DRONES': 'Drones',
+    'WATCHES': 'Watches',
     'PLACAS_VIDEO': 'GPU',
-    'STREAMING': 'Str',
-    'REDES': 'Red',
-    'BAGS_CASES': 'Bag',
-    'CABLES_CARGADORES': 'Cab',
-    'REPUESTOS': 'Rep',
-    'OTROS': 'Otr'
+    'STREAMING': 'Stream',
+    'REDES': 'Redes',
+    'BAGS_CASES': 'Bags',
+    'CABLES_CARGADORES': 'Cables',
+    'REPUESTOS': 'Repuest',
+    'OTROS': 'Otros'
   };
 
   // Labels de categorías - versión completa para tabla
@@ -429,7 +429,8 @@ const ListadoTotalSection = () => {
     'REDES': '#2563eb',            // blue-600
     'BAGS_CASES': '#64748b',       // slate-500
     'CABLES_CARGADORES': '#0891b2', // cyan-600
-    'REPUESTOS': '#6b7280'         // gray-500
+    'REPUESTOS': '#6b7280',        // gray-500
+    'OTROS': '#9ca3af'             // gray-400
   };
 
   const COLORES_CONDICIONES = {
@@ -714,9 +715,9 @@ const ListadoTotalSection = () => {
             <PieChart>
               <Pie
                 data={datosGraficoStock}
-                cx="45%"
+                cx="35%"
                 cy="50%"
-                outerRadius={85}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -729,7 +730,13 @@ const ListadoTotalSection = () => {
                 layout="vertical"
                 align="right"
                 verticalAlign="middle"
-                wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                wrapperStyle={{
+                  fontSize: '9px',
+                  lineHeight: '14px',
+                  width: '180px',
+                  columnCount: 2,
+                  columnGap: '8px'
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -742,9 +749,9 @@ const ListadoTotalSection = () => {
             <PieChart>
               <Pie
                 data={datosGraficoPrecio}
-                cx="45%"
+                cx="35%"
                 cy="50%"
-                outerRadius={85}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -757,7 +764,13 @@ const ListadoTotalSection = () => {
                 layout="vertical"
                 align="right"
                 verticalAlign="middle"
-                wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                wrapperStyle={{
+                  fontSize: '9px',
+                  lineHeight: '14px',
+                  width: '180px',
+                  columnCount: 2,
+                  columnGap: '8px'
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -770,7 +783,7 @@ const ListadoTotalSection = () => {
             <PieChart>
               <Pie
                 data={datosGraficoCondicion}
-                cx="45%"
+                cx="40%"
                 cy="50%"
                 outerRadius={85}
                 fill="#8884d8"
@@ -785,7 +798,7 @@ const ListadoTotalSection = () => {
                 layout="vertical"
                 align="right"
                 verticalAlign="middle"
-                wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                wrapperStyle={{ fontSize: '11px', lineHeight: '18px' }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -827,26 +840,26 @@ const ListadoTotalSection = () => {
               <option value="CELULARES">Celulares</option>
               <option value="OTROS_TOTAL">Otros productos total</option>
               <option disabled>───────────────</option>
-              <option value="MONITORES">Monitores</option>
               <option value="ACCESORIOS">Accesorios</option>
-              <option value="COMPONENTES">Componentes</option>
-              <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
-              <option value="TABLETS">Tablets</option>
-              <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
-              <option value="AUDIO">Audio</option>
               <option value="ALMACENAMIENTO">Almacenamiento</option>
-              <option value="CAMARAS">Cámaras</option>
-              <option value="CONSOLAS">Consolas</option>
-              <option value="GAMING">Gaming</option>
-              <option value="DRONES">Drones</option>
-              <option value="WATCHES">Watches</option>
-              <option value="PLACAS_VIDEO">Placas de Video</option>
-              <option value="STREAMING">Streaming</option>
-              <option value="REDES">Redes</option>
+              <option value="AUDIO">Audio</option>
               <option value="BAGS_CASES">Bags/Cases</option>
               <option value="CABLES_CARGADORES">Cables/Cargadores</option>
-              <option value="REPUESTOS">Repuestos</option>
+              <option value="CAMARAS">Cámaras</option>
+              <option value="COMPONENTES">Componentes</option>
+              <option value="CONSOLAS">Consolas</option>
+              <option value="DRONES">Drones</option>
+              <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
+              <option value="GAMING">Gaming</option>
+              <option value="MONITORES">Monitores</option>
+              <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
               <option value="OTROS">Otros</option>
+              <option value="PLACAS_VIDEO">Placas de Video</option>
+              <option value="REDES">Redes</option>
+              <option value="REPUESTOS">Repuestos</option>
+              <option value="STREAMING">Streaming</option>
+              <option value="TABLETS">Tablets</option>
+              <option value="WATCHES">Watches</option>
             </select>
           </div>
 

@@ -435,6 +435,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         garantia_update: producto.garantia_update || "",
         garantia_oficial: producto.garantia_oficial || "",
         fallas: producto.fallas || "",
+        fotos: producto.fotos || "",
       });
     } else if (tipo === "celular") {
       setEditForm({
@@ -462,6 +463,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         // Estado y garantía
         garantia: producto.garantia || "",
         fallas: producto.fallas || "",
+        fotos: producto.fotos || "",
       });
     } else {
       setEditForm({
@@ -481,6 +483,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         // Estado y garantía
         garantia: producto.garantia || "",
         observaciones: producto.observaciones || "",
+        fotos: producto.fotos || "",
       });
     }
 
@@ -625,6 +628,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           garantia_update: editForm.garantia_update,
           garantia_oficial: editForm.garantia_oficial,
           fallas: editForm.fallas,
+          fotos: editForm.fotos,
         };
       } else if (modalEdit.tipo === "celular") {
         datosActualizados = {
@@ -653,6 +657,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           // Estado y garantía
           garantia: editForm.garantia,
           fallas: editForm.fallas,
+          fotos: editForm.fotos,
         };
       } else {
         // Productos "otros"
@@ -680,6 +685,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           // Estado y garantía
           garantia: editForm.garantia,
           observaciones: editForm.observaciones,
+          fotos: editForm.fotos,
         };
       }
 
@@ -1291,6 +1297,27 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
           </div>
 
+          {/* Link de Fotos */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+              Link de Fotos
+            </h3>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos
+              </label>
+              <input
+                type="url"
+                value={editForm.fotos}
+                onChange={(e) =>
+                  handleEditFormChange("fotos", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
           {/* Vista previa del precio en pesos */}
           {editForm.precio_venta_usd && (
             <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
@@ -1612,7 +1639,26 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
           </div>
 
-          {/* Vista previa del precio en pesos */}
+          {/* Link de Fotos */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+              Link de Fotos
+            </h3>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos
+              </label>
+              <input
+                type="url"
+                value={editForm.fotos}
+                onChange={(e) =>
+                  handleEditFormChange("fotos", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
           {editForm.precio_venta_usd && (
             <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
               <p className="text-sm text-slate-600">
@@ -1811,6 +1857,27 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Link de Fotos */}
+          <div className="bg-slate-50 p-4 rounded border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+              Link de Fotos
+            </h3>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos
+              </label>
+              <input
+                type="url"
+                value={editForm.fotos}
+                onChange={(e) =>
+                  handleEditFormChange("fotos", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="https://..."
+              />
             </div>
           </div>
 

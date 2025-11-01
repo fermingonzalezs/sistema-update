@@ -1198,8 +1198,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           onChange={handleInputChange}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                         >
-                          <option value="la_plata">🏢 La Plata</option>
-                          <option value="mitre">🏢 Mitre</option>
+                          <option value="la_plata">La Plata </option>
+                          <option value="mitre">Mitre </option>
                         </select>
                       </div>
                     </div>

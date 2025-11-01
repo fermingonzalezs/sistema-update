@@ -92,6 +92,7 @@ const conciliacionCajaService = {
     console.log('📋 Obteniendo últimos movimientos de caja...');
 
     // Primero obtenemos los movimientos con sus asientos
+    // Ordenamos por ID descendente para obtener los más recientes primero
     const { data, error } = await supabase
       .from('movimientos_contables')
       .select(`
@@ -104,6 +105,7 @@ const conciliacionCajaService = {
         )
       `)
       .eq('cuenta_id', cuentaId)
+      .order('id', { ascending: false }) // Ordenar por ID descendente (más recientes primero)
       .limit(limite * 3); // Obtenemos más movimientos para luego ordenar y limitar
 
     if (error) throw error;
