@@ -226,99 +226,6 @@ const ProductModal = ({
             )}
 
           </div>
-
-          {/* Botones de acción - Estilo tabla */}
-          <div className="mt-6 flex flex-col gap-2">
-            <div className="flex justify-center gap-0.5">
-              {/* Botón 1: Copiar USD */}
-              {onCopyUSD && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopyUSD(producto, tipoProducto);
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                  title="Copiar información USD"
-                >
-                  U$
-                </button>
-              )}
-
-              {/* Botón 2: Copiar Pesos */}
-              {onCopyPesos && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopyPesos(producto, tipoProducto);
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                  title="Copiar información ARS"
-                >
-                  $
-                </button>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-0.5">
-              {/* Botón 3: Copy Marketplace */}
-              {onCopyMarketplace && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopyMarketplace(producto, tipoProducto);
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                  title="Copiar texto Marketplace"
-                >
-                  M
-                </button>
-              )}
-
-              {/* Botón 4: Ver Fotos */}
-              {producto.fotos && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(producto.fotos, '_blank');
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                  title="Ver fotos"
-                >
-                  📷
-                </button>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-0.5">
-              {/* Botón 5: Vender */}
-              {onVender && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onVender(producto);
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
-                  title="Agregar al carrito"
-                >
-                  V
-                </button>
-              )}
-
-              {/* Botón 6: Editar */}
-              {onEditar && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditar(producto);
-                  }}
-                  className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                  title="Editar producto"
-                >
-                  E
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Panel derecho - Detalles y precios */}
@@ -420,12 +327,12 @@ const ProductModal = ({
           </div>
 
           {/* Sección de precios */}
-          <div className="space-y-4 text-center">
+          <div className="space-y-4 text-center mb-6">
             <h3 className="text-lg font-semibold text-white bg-emerald-600 px-3 py-2 rounded">
               PRECIOS
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
+
               {/* Tarjeta Compra */}
               <div className="rounded bg-slate-800 py-4">
                 <div className="rounded-full bg-slate-700 text-center p-1 m-3">
@@ -472,6 +379,79 @@ const ProductModal = ({
               </div>
 
             </div>
+          </div>
+
+          {/* Botones de acción - Una fila distribuida equitativamente */}
+          <div className="grid grid-cols-5 gap-3">
+              {/* Botón 1: Copy pesos */}
+              {onCopyPesos && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyPesos(producto, tipoProducto);
+                  }}
+                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  title="Copiar información en pesos"
+                >
+                  Copy pesos
+                </button>
+              )}
+
+              {/* Botón 2: Copy dólares */}
+              {onCopyUSD && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyUSD(producto, tipoProducto);
+                  }}
+                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  title="Copiar información en USD"
+                >
+                  Copy dólares
+                </button>
+              )}
+
+              {/* Botón 3: Copy mplace */}
+              {onCopyMarketplace && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCopyMarketplace(producto, tipoProducto);
+                  }}
+                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                  title="Copiar texto Marketplace"
+                >
+                  Copy mplace
+                </button>
+              )}
+
+              {/* Botón 4: Vender */}
+              {onVender && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onVender(producto);
+                  }}
+                  className="px-3 py-2 text-white text-xs font-medium rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                  title="Agregar al carrito"
+                >
+                  Vender
+                </button>
+              )}
+
+              {/* Botón 5: Editar */}
+              {onEditar && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditar(producto);
+                  }}
+                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-800 hover:bg-slate-700 transition-colors"
+                  title="Editar producto"
+                >
+                  Editar
+                </button>
+              )}
           </div>
 
         </div>

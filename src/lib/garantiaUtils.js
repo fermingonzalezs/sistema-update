@@ -1,7 +1,15 @@
 import { supabase } from './supabase';
 
 /**
- * Función unificada para calcular la garantía de un producto
+ * ⚠️ DEPRECATED: Esta función está deprecada desde la implementación de garantías en BD
+ *
+ * Antes: Calculaba garantía leyendo del inventario o extrayendo del copy
+ * Ahora: Las garantías se guardan en venta_items.garantia en la BD durante la venta
+ *
+ * Mantener solo para compatibilidad con código legado si es necesario.
+ * Para nuevas implementaciones, usar directamente garantia_texto de venta_items.
+ *
+ * @deprecated - Use venta_items.garantia field instead
  * @param {string} serialProducto - Serial del producto a consultar
  * @param {string} copy - Copy del producto como fallback (opcional)
  * @param {string} tipoProducto - Tipo: 'computadora', 'celular', 'otro'
@@ -106,12 +114,14 @@ export const calcularGarantiaProducto = async (serialProducto, copy = '', tipoPr
 };
 
 /**
- * Parsea el texto de garantía del inventario y convierte a días
+ * Parsea el texto de garantía y convierte a días
+ * Soporta formatos: "6 meses", "1 año", "3 meses", etc.
+ *
  * @param {string} garantiaTexto - Texto como "6 meses", "1 año", etc.
- * @param {string} condicion - Condición: 'nuevo', 'usado', 'reparacion'
+ * @param {string} condicion - [OPTIONAL] Condición: 'nuevo', 'usado', 'reparacion' (para ajuste automático)
  * @returns {{dias: number, texto: string}}
  */
-const parsearGarantia = (garantiaTexto, condicion) => {
+export const parsearGarantia = (garantiaTexto, condicion) => {
   const garantiaLower = garantiaTexto.toLowerCase().trim();
   let dias = 90;
   let textoFinal = garantiaTexto;

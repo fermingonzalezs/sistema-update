@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown } from 'lucide-react';
+import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown, Pencil, Check, X } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
@@ -17,21 +17,27 @@ const ListadoTotalSection = () => {
     computers,
     loading: loadingNotebooks,
     error: errorNotebooks,
-    fetchComputers
+    fetchComputers,
+    updateComputer,
+    setComputers
   } = useInventario();
 
   const {
     celulares,
     loading: loadingCelulares,
     error: errorCelulares,
-    fetchCelulares
+    fetchCelulares,
+    updateCelular,
+    setCelulares
   } = useCelulares();
 
   const {
     otros,
     loading: loadingOtros,
     error: errorOtros,
-    fetchOtros
+    fetchOtros,
+    updateOtro,
+    setOtros
   } = useOtros();
 
   // Estado de carga y error general
@@ -49,6 +55,19 @@ const ListadoTotalSection = () => {
   // Estado para el menú desplegable de exportar
   const [mostrarMenuExportar, setMostrarMenuExportar] = useState(false);
   const menuExportarRef = useRef(null);
+
+  // Estados para edición inline
+  const [filaEditando, setFilaEditando] = useState(null);
+  const [valoresEdicion, setValoresEdicion] = useState({
+    precioCompra: 0,
+    envioRepuestos: 0,
+    precioVenta: 0
+  });
+
+  // Estados para edición masiva
+  const [modoEdicionMasiva, setModoEdicionMasiva] = useState(false);
+  const [cambiosMasivos, setCambiosMasivos] = useState(new Map());
+  const [guardandoMasivo, setGuardandoMasivo] = useState(false);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -101,6 +120,26 @@ const ListadoTotalSection = () => {
   };
 
 
+  // Funciones helper para cálculos
+  const calcularDiasEnStock = (fechaIngreso) => {
+    if (!fechaIngreso) return null;
+    const hoy = new Date();
+    const ingreso = new Date(fechaIngreso);
+    return Math.floor((hoy - ingreso) / (1000 * 60 * 60 * 24));
+  };
+
+  const getColorDias = (dias) => {
+    if (dias === null || dias === undefined) return 'bg-gray-100 text-gray-700';
+    if (dias <= 30) return 'bg-green-100 text-green-700';
+    if (dias <= 60) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+  };
+
+  const calcularMargen = (precioVenta, costoTotal) => {
+    if (!costoTotal || costoTotal === 0) return 0;
+    return ((precioVenta - costoTotal) / costoTotal) * 100;
+  };
+
   // Unificar todos los productos en un solo array
   const todosLosProductos = useMemo(() => {
     const productos = [];
@@ -110,12 +149,30 @@ const ListadoTotalSection = () => {
       // Solo agregar productos que NO estén en condiciones excluidas
       const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
       if (!condicionesExcluidas.includes(comp.condicion)) {
+        const precioCompraTotal = comp.precio_costo_total || comp.precio_costo_usd || 0;
+        const diasEnStock = calcularDiasEnStock(comp.ingreso);
+        const margen = calcularMargen(comp.precio_venta_usd || 0, precioCompraTotal);
+
         productos.push({
           id: `notebook-${comp.id}`,
+          idOriginal: comp.id,
+          tabla: 'inventario',
           categoria: 'NOTEBOOKS',
           info: `💻 ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.ssd}, ${comp.pantalla}, ${comp.placa_video}, ${comp.color}`,
           stock: 1,
-          precioCompraUSD: comp.precio_costo_total || comp.precio_costo_usd || 0,
+
+          // Nuevos campos detallados
+          precioCompra: comp.precio_costo_usd || 0,
+          envioRepuestos: comp.envios_repuestos || 0,
+          precioCompraTotal: precioCompraTotal,
+          precioVenta: comp.precio_venta_usd || 0,
+          serial: comp.serial || '',
+          fechaIngreso: comp.ingreso,
+          diasEnStock: diasEnStock,
+          margen: margen,
+
+          // Mantener campos legacy para compatibilidad
+          precioCompraUSD: precioCompraTotal,
           precioUSD: comp.precio_venta_usd || 0,
           condicion: comp.condicion
         });
@@ -126,31 +183,45 @@ const ListadoTotalSection = () => {
     celulares.forEach(cel => {
       const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
       if (!condicionesExcluidas.includes(cel.condicion)) {
-        
+
         let infoAdicional = '';
 
         if(cel.condicion === 'usado' || cel.condicion === 'refurbished'){
           // Usando cel.estado para la condición estética
-          const estetica = cel.estado ? `${cel.estado}` : ''; 
-          
-          // CORRECCIÓN 1: Usar comillas invertidas (`) para template literal
+          const estetica = cel.estado ? `${cel.estado}` : '';
+
           const bateria = cel.bateria ? `🔋${cel.bateria}` : '';
 
           const partesAdicionales = [estetica, bateria].filter(p => p !== '');
           if(partesAdicionales.length > 0){
-            // CORRECCIÓN 1: Usar comillas invertidas (`) para template literal
             infoAdicional = ` ${partesAdicionales.join(' ')}`;
           }
-        } // CORRECCIÓN 3: Aquí faltaba la llave de cierre del if
-        
-        // CORRECCIÓN 3: Quitar el paréntesis de cierre erróneo en la línea de id
+        }
+
+        const precioCompraTotal = cel.costo_total_usd || cel.precio_compra_usd || 0;
+        const diasEnStock = calcularDiasEnStock(cel.ingreso);
+        const margen = calcularMargen(cel.precio_venta_usd || 0, precioCompraTotal);
+
         productos.push({
           id: `celular-${cel.id}`,
+          idOriginal: cel.id,
+          tabla: 'celulares',
           categoria: 'CELULARES',
-          // CORRECCIÓN 2: Concatenar infoAdicional al final
           info: `📱 ${cel.modelo} ${cel.capacidad} ${cel.color || ''} ${infoAdicional}`,
           stock: 1,
-          precioCompraUSD: cel.costo_total_usd || cel.precio_compra_usd || 0,
+
+          // Nuevos campos detallados
+          precioCompra: cel.precio_compra_usd || 0,
+          envioRepuestos: cel.costos_adicionales || 0,
+          precioCompraTotal: precioCompraTotal,
+          precioVenta: cel.precio_venta_usd || 0,
+          serial: cel.serial || '',
+          fechaIngreso: cel.ingreso,
+          diasEnStock: diasEnStock,
+          margen: margen,
+
+          // Mantener campos legacy para compatibilidad
+          precioCompraUSD: precioCompraTotal,
           precioUSD: cel.precio_venta_usd || 0,
           condicion: cel.condicion
         });
@@ -164,20 +235,34 @@ const ListadoTotalSection = () => {
         const stockTotal = (otro.cantidad_la_plata || 0) + (otro.cantidad_mitre || 0);
         if (stockTotal > 0) {
 
-          
-
-          // Construir info limpia sin undefined
-          let info = otro.nombre_producto || '';
-          if (otro.marca && otro.marca !== 'undefined' && otro.marca !== undefined) {
-            info = `${otro.marca} ${info}`;
-          }
+          // Construir info solo con el nombre del producto (sin marca)
+          const info = otro.nombre_producto || '';
           const emoji = EMOJI_CATEGORIAS[otro.categoria] || EMOJI_CATEGORIAS['OTROS'];
 
+          const precioCompraTotal = otro.precio_compra_usd || 0;
+          const diasEnStock = calcularDiasEnStock(otro.ingreso);
+          const margen = calcularMargen(otro.precio_venta_usd || 0, precioCompraTotal);
+
           productos.push({
+            id: `otro-${otro.id}`,
+            idOriginal: otro.id,
+            tabla: 'otros',
             categoria: otro.categoria || 'OTROS',
             info: `${emoji} ${info.trim()}`,
             stock: stockTotal,
-            precioCompraUSD: otro.precio_compra_usd || 0,
+
+            // Nuevos campos detallados - otros NO tienen desglose
+            precioCompra: null, // No mostrar
+            envioRepuestos: null, // No mostrar
+            precioCompraTotal: precioCompraTotal,
+            precioVenta: otro.precio_venta_usd || 0,
+            serial: null, // No tienen serial
+            fechaIngreso: otro.ingreso,
+            diasEnStock: diasEnStock,
+            margen: margen,
+
+            // Mantener campos legacy para compatibilidad
+            precioCompraUSD: precioCompraTotal,
             precioUSD: otro.precio_venta_usd || 0,
             condicion: otro.condicion
           });
@@ -463,19 +548,16 @@ const ListadoTotalSection = () => {
           '#': '',
           'Producto': `═══ ${labelsCategoriaTabla[categoria]} ═══`,
           'Stock': '',
-          'Valor Venta USD': '',
-          'Condición': ''
+          'Precio Venta USD': ''
         });
 
         // Agregar productos de esta categoría
         productosPorCategoria[categoria].forEach(producto => {
-          const valorVenta = Math.round(producto.precioUSD * producto.stock);
           datosExcel.push({
             '#': numeroFila++,
-            'Producto': producto.info.replace(/[📱💻🔌🖱️🛡️🖥️⚙️📖📦]/g, '').trim(), // Remover emojis
+            'Producto': producto.info.replace(/[📱💻🔌🖱️🛡️🖥️⚙️📖📦]/g, '').trim(),
             'Stock': producto.stock,
-            'Valor Venta USD': `U$${valorVenta}`, // Formato U$xxx
-            'Condición': labelsCondiciones[producto.condicion]
+            'Precio Venta USD': `U$${producto.precioVenta.toFixed(0)}`
           });
         });
 
@@ -484,8 +566,7 @@ const ListadoTotalSection = () => {
           '#': '',
           'Producto': '',
           'Stock': '',
-          'Valor Venta USD': '',
-          'Condición': ''
+          'Precio Venta USD': ''
         });
       });
 
@@ -499,8 +580,7 @@ const ListadoTotalSection = () => {
         { wch: 5 },   // #
         { wch: 70 },  // Producto
         { wch: 10 },  // Stock
-        { wch: 18 },  // Valor Venta USD
-        { wch: 15 }   // Condición
+        { wch: 18 }   // Precio Venta USD
       ];
 
       // Aplicar alineación centrada a TODAS las celdas
@@ -534,12 +614,6 @@ const ListadoTotalSection = () => {
     }
   };
 
-  // Función para exportar a PDF (placeholder)
-  const exportarPDF = () => {
-    alert('Exportación a PDF - Por implementar');
-    setMostrarMenuExportar(false);
-  };
-
   // Función para exportar a mensaje (WhatsApp)
   const exportarMensaje = () => {
     try {
@@ -566,11 +640,11 @@ const ListadoTotalSection = () => {
         // Agregar productos de esta categoría
         productosPorCategoria[categoria].forEach((producto) => {
           const nombreProducto = producto.info.replace(/[📱💻🔌🖱️🛡️🖥️⚙️📖📦]/g, '').trim();
-          const condicion = labelsCondiciones[producto.condicion];
-          const valorVenta = Math.round(producto.precioUSD * producto.stock);
+          const precioVenta = Math.round(producto.precioVenta);
+          const stock = producto.stock;
 
-          // Formato: • PRODUCTO - CONDICION - PRECIO (con viñeta)
-          mensaje += `• ${nombreProducto} - ${condicion} - U$${valorVenta}\n`;
+          // Formato: • PRODUCTO - Stock: X - U$PRECIO
+          mensaje += `• ${nombreProducto} - Stock: ${stock} - U$${precioVenta}\n`;
         });
 
         // Agregar línea vacía entre categorías (excepto la última)
@@ -591,6 +665,145 @@ const ListadoTotalSection = () => {
     } catch (error) {
       console.error('Error al exportar mensaje:', error);
       alert('Error al exportar mensaje');
+    }
+  };
+
+  // Funciones para edición inline
+  const iniciarEdicionFila = (producto) => {
+    setFilaEditando(producto.id);
+    setValoresEdicion({
+      precioCompra: producto.precioCompra || 0,
+      envioRepuestos: producto.envioRepuestos || 0,
+      precioVenta: producto.precioVenta || 0
+    });
+  };
+
+  const cancelarEdicionFila = () => {
+    setFilaEditando(null);
+    setValoresEdicion({ precioCompra: 0, envioRepuestos: 0, precioVenta: 0 });
+  };
+
+  const guardarEdicionFila = async (producto) => {
+    try {
+      const { tabla, idOriginal } = producto;
+      let productoActualizado;
+
+      if (tabla === 'inventario') {
+        productoActualizado = await updateComputer(idOriginal, {
+          precio_costo_usd: parseFloat(valoresEdicion.precioCompra) || 0,
+          envios_repuestos: parseFloat(valoresEdicion.envioRepuestos) || 0,
+          precio_venta_usd: parseFloat(valoresEdicion.precioVenta) || 0
+        });
+        // Actualizar solo este item en el estado local
+        setComputers(prev => prev.map(comp =>
+          comp.id === idOriginal ? productoActualizado : comp
+        ));
+      } else if (tabla === 'celulares') {
+        productoActualizado = await updateCelular(idOriginal, {
+          precio_compra_usd: parseFloat(valoresEdicion.precioCompra) || 0,
+          costos_adicionales: parseFloat(valoresEdicion.envioRepuestos) || 0,
+          precio_venta_usd: parseFloat(valoresEdicion.precioVenta) || 0
+        });
+        // Actualizar solo este item en el estado local
+        setCelulares(prev => prev.map(cel =>
+          cel.id === idOriginal ? productoActualizado : cel
+        ));
+      } else if (tabla === 'otros') {
+        productoActualizado = await updateOtro(idOriginal, {
+          precio_compra_usd: parseFloat(valoresEdicion.precioCompra) || 0,
+          precio_venta_usd: parseFloat(valoresEdicion.precioVenta) || 0
+        });
+        // Actualizar solo este item en el estado local
+        setOtros(prev => prev.map(otro =>
+          otro.id === idOriginal ? productoActualizado : otro
+        ));
+      }
+
+      // Limpiar estado
+      cancelarEdicionFila();
+      alert('✅ Producto actualizado correctamente');
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      alert('❌ Error al actualizar: ' + error.message);
+    }
+  };
+
+  // Funciones para edición masiva
+  const toggleEdicionMasiva = () => {
+    if (modoEdicionMasiva) {
+      // Si está activado, preguntar si quiere descartar cambios
+      if (cambiosMasivos.size > 0) {
+        if (window.confirm('¿Descartar cambios pendientes?')) {
+          setCambiosMasivos(new Map());
+          setModoEdicionMasiva(false);
+        }
+      } else {
+        setModoEdicionMasiva(false);
+      }
+    } else {
+      setModoEdicionMasiva(true);
+    }
+  };
+
+  const actualizarCambioMasivo = (productoId, nuevoPrecio) => {
+    const nuevosCambios = new Map(cambiosMasivos);
+    if (nuevoPrecio && parseFloat(nuevoPrecio) > 0) {
+      nuevosCambios.set(productoId, parseFloat(nuevoPrecio));
+    } else {
+      nuevosCambios.delete(productoId);
+    }
+    setCambiosMasivos(nuevosCambios);
+  };
+
+  const guardarEdicionesMasivas = async () => {
+    if (cambiosMasivos.size === 0) {
+      alert('No hay cambios para guardar');
+      return;
+    }
+
+    if (!window.confirm(`¿Guardar ${cambiosMasivos.size} cambios de precio?`)) {
+      return;
+    }
+
+    setGuardandoMasivo(true);
+
+    try {
+      const cambiosArray = Array.from(cambiosMasivos.entries());
+      let exitosos = 0;
+      let fallidos = 0;
+
+      for (const [productoId, nuevoPrecio] of cambiosArray) {
+        const producto = productosFiltrados.find(p => p.id === productoId);
+        if (!producto) continue;
+
+        try {
+          if (producto.tabla === 'inventario') {
+            await updateComputer(producto.idOriginal, { precio_venta_usd: nuevoPrecio });
+          } else if (producto.tabla === 'celulares') {
+            await updateCelular(producto.idOriginal, { precio_venta_usd: nuevoPrecio });
+          } else if (producto.tabla === 'otros') {
+            await updateOtro(producto.idOriginal, { precio_venta_usd: nuevoPrecio });
+          }
+          exitosos++;
+        } catch (error) {
+          console.error('Error actualizando', productoId, error);
+          fallidos++;
+        }
+      }
+
+      // Refrescar datos
+      await Promise.all([fetchComputers(), fetchCelulares(), fetchOtros()]);
+
+      // Limpiar y cerrar modo edición
+      setCambiosMasivos(new Map());
+      setModoEdicionMasiva(false);
+
+      alert(`✅ Actualización completa\n\nExitosos: ${exitosos}\nFallidos: ${fallidos}`);
+    } catch (error) {
+      console.error('Error en edición masiva:', error);
+      alert('❌ Error en la actualización masiva');
+    } finally {
+      setGuardandoMasivo(false);
     }
   };
 
@@ -642,43 +855,51 @@ const ListadoTotalSection = () => {
             <h2 className="text-xl font-semibold">Listado Stock Total</h2>
           </div>
 
-          {/* Botón Exportar con menú desplegable */}
-          <div className="relative" ref={menuExportarRef}>
+          {/* Botones de acción */}
+          <div className="flex items-center gap-3">
+            {/* Botón Edición Masiva */}
             <button
-              onClick={() => setMostrarMenuExportar(!mostrarMenuExportar)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              onClick={toggleEdicionMasiva}
+              className={`px-4 py-2 rounded flex items-center gap-2 transition-colors font-medium ${
+                modoEdicionMasiva
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
             >
-              <Download className="w-4 h-4" />
-              Exportar
-              <ChevronDown className={`w-4 h-4 transition-transform ${mostrarMenuExportar ? 'rotate-180' : ''}`} />
+              📝 {modoEdicionMasiva ? 'Salir edición' : 'Editar todos'}
             </button>
 
-            {/* Menú desplegable */}
-            {mostrarMenuExportar && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded border border-slate-200 shadow-lg z-10">
-                <button
-                  onClick={exportarExcel}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar a Sheet
-                </button>
-                <button
-                  onClick={exportarPDF}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200"
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar a PDF
-                </button>
-                <button
-                  onClick={exportarMensaje}
-                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200"
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar a Mensaje
-                </button>
-              </div>
-            )}
+            {/* Botón Exportar con menú desplegable */}
+            <div className="relative" ref={menuExportarRef}>
+              <button
+                onClick={() => setMostrarMenuExportar(!mostrarMenuExportar)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Exportar
+                <ChevronDown className={`w-4 h-4 transition-transform ${mostrarMenuExportar ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Menú desplegable */}
+              {mostrarMenuExportar && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded border border-slate-200 shadow-lg z-10">
+                  <button
+                    onClick={exportarExcel}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Sheets
+                  </button>
+                  <button
+                    onClick={exportarMensaje}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200"
+                  >
+                    <Download className="w-4 h-4" />
+                    Mensaje
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -900,69 +1121,236 @@ const ListadoTotalSection = () => {
                   Información del Producto
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Serial
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Categoría
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Condición
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Días
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Stock
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Valor Compra USD
+                  PC
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Valor Venta USD
+                  Costos
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Condición
+                  PC Total
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Margen %
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  PV
+                </th>
+                {modoEdicionMasiva && (
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-emerald-700">
+                    Nuevo Precio
+                  </th>
+                )}
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Acciones
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {productosFiltrados.map((producto, index) => (
-                <tr
-                  key={producto.id}
-                  className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
-                >
-                  {/* Información del Producto */}
-                  <td className="px-4 py-2 text-sm text-slate-800 max-w-md truncate">
-                    {producto.info}
-                  </td>
+              {productosFiltrados.map((producto, index) => {
+                const estaEditando = filaEditando === producto.id;
+                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
 
-                  {/* Categoría */}
-                  <td className="px-4 py-2 text-center">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCategorias[producto.categoria]}`}>
-                      {labelsCategoriaTabla[producto.categoria]}
-                    </span>
-                  </td>
+                return (
+                  <tr
+                    key={producto.id}
+                    className={rowClass}
+                  >
+                    {/* Información del Producto */}
+                    <td className="px-4 py-2 text-sm text-slate-800 max-w-md truncate">
+                      {producto.info}
+                    </td>
 
-                  {/* Stock */}
-                  <td className="px-4 py-2 text-center">
-                    <span className={`px-2 py-1 rounded text-sm font-medium ${
-                      producto.stock > 5 ? 'bg-green-100 text-green-700' :
-                      producto.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {producto.stock}
-                    </span>
-                  </td>
+                    {/* Número de Serie */}
+                    <td className="px-4 py-2 text-center text-xs text-slate-600">
+                      {producto.serial || '-'}
+                    </td>
 
-                  {/* Valor Compra USD (Total) */}
-                  <td className="px-4 py-2 text-center text-sm text-slate-600">
-                    {formatearMonto(producto.precioCompraUSD * producto.stock, 'USD')}
-                  </td>
+                    {/* Categoría */}
+                    <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCategorias[producto.categoria]}`}>
+                        {labelsCategoriaTabla[producto.categoria]}
+                      </span>
+                    </td>
 
-                  {/* Valor Venta USD (Total) */}
-                  <td className="px-4 py-2 text-center text-sm font-semibold text-slate-800">
-                    {formatearMonto(producto.precioUSD * producto.stock, 'USD')}
-                  </td>
+                    {/* Condición */}
+                    <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCondiciones[producto.condicion]}`}>
+                        {labelsCondiciones[producto.condicion]}
+                      </span>
+                    </td>
 
-                  {/* Condición */}
-                  <td className="px-4 py-2 text-center">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCondiciones[producto.condicion]}`}>
-                      {labelsCondiciones[producto.condicion]}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    {/* Días en Stock */}
+                    <td className="px-4 py-2 text-center">
+                      {producto.diasEnStock !== null ? (
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${getColorDias(producto.diasEnStock)}`}>
+                          {producto.diasEnStock}d
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
+                    </td>
+
+                    {/* Stock */}
+                    <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded text-sm font-medium ${
+                        producto.stock > 5 ? 'bg-green-100 text-green-700' :
+                        producto.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {producto.stock}
+                      </span>
+                    </td>
+
+                    {/* Precio Compra (PC) */}
+                    <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
+                      {estaEditando && producto.tabla !== 'otros' ? (
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={valoresEdicion.precioCompra}
+                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioCompra: e.target.value})}
+                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      ) : (
+                        producto.precioCompra !== null ? formatearMonto(producto.precioCompra, 'USD') : '-'
+                      )}
+                    </td>
+
+                    {/* Costos Extras (Envío/Repuestos) */}
+                    <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
+                      {estaEditando && producto.tabla !== 'otros' ? (
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={valoresEdicion.envioRepuestos}
+                          onChange={(e) => setValoresEdicion({...valoresEdicion, envioRepuestos: e.target.value})}
+                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      ) : (
+                        producto.envioRepuestos !== null ? formatearMonto(producto.envioRepuestos, 'USD') : '-'
+                      )}
+                    </td>
+
+                    {/* PC Total */}
+                    <td className="px-4 py-2 text-center text-sm font-medium text-slate-700">
+                      {estaEditando && producto.tabla === 'otros' ? (
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={valoresEdicion.precioCompra}
+                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioCompra: e.target.value})}
+                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        formatearMonto(producto.precioCompraTotal, 'USD')
+                      )}
+                    </td>
+
+                    {/* Margen % */}
+                    <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        producto.margen > 30 ? 'bg-green-100 text-green-700' :
+                        producto.margen > 15 ? 'bg-yellow-100 text-yellow-700' :
+                        producto.margen > 0 ? 'bg-orange-100 text-orange-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {producto.margen.toFixed(1)}%
+                      </span>
+                    </td>
+
+                    {/* PV (Precio Venta) */}
+                    <td className="px-4 py-2 text-center text-sm font-semibold text-slate-800" onClick={(e) => e.stopPropagation()}>
+                      {estaEditando ? (
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={valoresEdicion.precioVenta}
+                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioVenta: e.target.value})}
+                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      ) : (
+                        formatearMonto(producto.precioVenta, 'USD')
+                      )}
+                    </td>
+
+                    {/* Columna Nuevo Precio (Edición Masiva) */}
+                    {modoEdicionMasiva && (
+                      <td className="px-4 py-2 text-center bg-emerald-50" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder={Math.round(producto.precioVenta)}
+                          value={cambiosMasivos.get(producto.id) || ''}
+                          onChange={(e) => actualizarCambioMasivo(producto.id, e.target.value)}
+                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      </td>
+                    )}
+
+                    {/* Columna Acciones */}
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex gap-1 justify-center">
+                        {estaEditando ? (
+                          <>
+                            {/* Botones cuando está editando - todos 32x32px */}
+                            <button
+                              onClick={() => guardarEdicionFila(producto)}
+                              className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
+                              title="Guardar cambios"
+                            >
+                              G
+                            </button>
+                            <button
+                              onClick={cancelarEdicionFila}
+                              className="w-8 h-8 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
+                              title="Cancelar"
+                            >
+                              C
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* Botón E de editar cuando NO está editando - 32x32px */}
+                            <button
+                              onClick={() => iniciarEdicionFila(producto)}
+                              className={`w-8 h-8 rounded transition-colors font-bold text-sm flex items-center justify-center ${
+                                modoEdicionMasiva
+                                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                  : 'bg-slate-600 hover:bg-slate-700 text-white'
+                              }`}
+                              title="Editar producto"
+                              disabled={modoEdicionMasiva}
+                            >
+                              E
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -974,6 +1362,37 @@ const ListadoTotalSection = () => {
           </div>
         )}
       </div>
+
+      {/* Botón Guardar Cambios Masivos */}
+      {modoEdicionMasiva && cambiosMasivos.size > 0 && (
+        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-emerald-800">
+              <strong>{cambiosMasivos.size}</strong> productos con cambios pendientes
+            </div>
+            <button
+              onClick={guardarEdicionesMasivas}
+              disabled={guardandoMasivo}
+              className={`px-6 py-3 rounded flex items-center gap-2 font-medium text-white ${
+                guardandoMasivo
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
+            >
+              {guardandoMasivo ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  💾 Guardar cambios
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

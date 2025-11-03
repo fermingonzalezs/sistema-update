@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Copy, Monitor, Smartphone, Box, Search, 
   Check, FileText, Edit2, Save, X, Filter, Zap
@@ -137,122 +137,79 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     }));
   };
 
-  // Filtrar productos con filtros avanzados
-  let productosFiltrados = productosConCopy.filter(producto => {
-    // FILTRO PRINCIPAL: Solo mostrar condiciones permitidas para listas
-    const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada'];
-    const condicionProducto = (producto.condicion || '').toLowerCase();
-    
-    const cumpleCondicionPermitida = condicionesPermitidas.includes(condicionProducto);
-    
-    // Si no cumple la condición permitida, no mostrar el producto
-    if (!cumpleCondicionPermitida) {
-      return false;
-    }
+  const productosFiltradosYOrdenados = useMemo(() => {
+    let productos = productosConCopy.filter(producto => {
+      const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada'];
+      const condicionProducto = (producto.condicion || '').toLowerCase();
+      if (!condicionesPermitidas.includes(condicionProducto)) {
+        return false;
+      }
 
-    // Filtro por búsqueda - adaptado para diferentes tipos de productos
-    let searchFields = [];
-    
-    if (producto.tipo === 'otro') {
-      // Para productos "otros": usar nombre_producto (modelo), descripcion, id (serial)
-      searchFields = [
-        producto.nombre_producto,
-        producto.descripcion,
-        String(producto.id), // ID como serial
-        producto.categoria
-      ];
-    } else {
-      // Para notebooks y celulares: mantener estructura original
-      searchFields = [
-        producto.modelo,
-        producto.descripcion_producto,
-        producto.serial,
-        producto.marca
-      ];
-    }
-    
-    const cumpleBusqueda = busqueda === '' || 
-      searchFields.some(field => field && field.toLowerCase().includes(busqueda.toLowerCase()));
+      let searchFields = [];
+      if (producto.tipo === 'otro') {
+        searchFields = [producto.nombre_producto, producto.descripcion, String(producto.id), producto.categoria];
+      } else {
+        searchFields = [producto.modelo, producto.descripcion_producto, producto.serial, producto.marca];
+      }
+      const cumpleBusqueda = busqueda === '' || searchFields.some(field => field && field.toLowerCase().includes(busqueda.toLowerCase()));
 
-    if (!modoFiltros) return cumpleBusqueda;
+      if (!modoFiltros) return cumpleBusqueda;
 
-    // Filtros avanzados solo se aplican si están activos
-    const cumpleMarca = filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase());
-    const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
-    
-    // Usar normalización para condiciones
-    const condicionNormalizada = normalizarCondicion(producto.condicion);
-    const condicionFiltro = normalizarCondicion(filtros.condicion);
-    const cumpleCondicion = filtros.condicion === '' || condicionNormalizada === condicionFiltro;
-    
-    // Filtro por estado (para celulares y notebooks)
-    const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
-    
-    // Filtro por categoría (solo para productos "otros")
-    const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
-    
-    // Debug temporal para troubleshooting
-    if (filtros.marca && filtros.condicion && producto.marca) {
-      console.log('🔍 Debug Filtro:', {
-        producto: producto.modelo || producto.descripcion_producto,
-        marcaProducto: producto.marca,
-        marcaFiltro: filtros.marca,
-        condicionNormalizada,
-        condicionFiltro,
-        cumpleMarca,
-        cumpleCondicion,
-        cumpleExclusionMarca,
-        exclusion: filtroExcluirMarca
+      const cumpleMarca = filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase());
+      const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
+      
+      const condicionNormalizada = normalizarCondicion(producto.condicion);
+      const condicionFiltro = normalizarCondicion(filtros.condicion);
+      const cumpleCondicion = filtros.condicion === '' || condicionNormalizada === condicionFiltro;
+      
+      const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
+      const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
+      
+      const cumpleFiltros = 
+        cumpleMarca &&
+        cumpleExclusionMarca &&
+        cumpleCondicion &&
+        cumpleEstado &&
+        cumpleCategoria &&
+        (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
+        (tipoActivo !== 'computadora' || filtros.ramMin === '' || extractNumber(producto.ram || producto.memoria_ram) >= parseInt(filtros.ramMin)) &&
+        (filtros.almacenamientoMin === '' || extractNumber(producto.ssd || producto.capacidad) >= parseInt(filtros.almacenamientoMin)) &&
+        (filtros.pantalla === '' || (producto.pantalla && producto.pantalla.toLowerCase().includes(filtros.pantalla.toLowerCase()))) &&
+        (filtros.idioma === '' || (producto.idioma_teclado && producto.idioma_teclado.toLowerCase().includes(filtros.idioma.toLowerCase())));
+
+      return cumpleBusqueda && cumpleFiltros;
+    });
+
+    if (ordenamiento.campo) {
+      productos.sort((a, b) => {
+        let valorA = a[ordenamiento.campo];
+        let valorB = b[ordenamiento.campo];
+
+        if (ordenamiento.campo === 'precio_venta_usd') {
+          valorA = parseFloat(valorA) || 0;
+          valorB = parseFloat(valorB) || 0;
+        }
+
+        if (ordenamiento.campo === 'fecha_ingreso' || ordenamiento.campo === 'created_at') {
+          valorA = new Date(valorA || 0).getTime();
+          valorB = new Date(valorB || 0).getTime();
+        }
+
+        if (typeof valorA === 'string') {
+          valorA = valorA.toLowerCase();
+        }
+        if (typeof valorB === 'string') {
+          valorB = valorB.toLowerCase();
+        }
+
+        if (valorA < valorB) return ordenamiento.direccion === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenamiento.direccion === 'asc' ? 1 : -1;
+        return 0;
       });
     }
-    
-    const cumpleFiltros = 
-      cumpleMarca &&
-      cumpleExclusionMarca &&
-      cumpleCondicion &&
-      cumpleEstado &&
-      cumpleCategoria &&
-      // Filtro por precio
-      (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
-      // Filtro por RAM (solo para computadoras)
-      (tipoActivo !== 'computadora' || filtros.ramMin === '' || extractNumber(producto.ram || producto.memoria_ram) >= parseInt(filtros.ramMin)) &&
-      // Filtro por almacenamiento (SSD para computadoras, capacidad para celulares)
-      (filtros.almacenamientoMin === '' || extractNumber(producto.ssd || producto.capacidad) >= parseInt(filtros.almacenamientoMin)) &&
-      // Filtro por pantalla
-      (filtros.pantalla === '' || (producto.pantalla && producto.pantalla.toLowerCase().includes(filtros.pantalla.toLowerCase()))) &&
-      // Filtro por idioma
-      (filtros.idioma === '' || (producto.idioma_teclado && producto.idioma_teclado.toLowerCase().includes(filtros.idioma.toLowerCase())));
 
-    return cumpleBusqueda && cumpleFiltros;
-  });
-
-  // Aplicar ordenamiento
-  if (ordenamiento.campo) {
-    productosFiltrados = [...productosFiltrados].sort((a, b) => {
-      let valorA = a[ordenamiento.campo];
-      let valorB = b[ordenamiento.campo];
-
-      // Manejar precios
-      if (ordenamiento.campo === 'precio_venta_usd') {
-        valorA = parseFloat(valorA) || 0;
-        valorB = parseFloat(valorB) || 0;
-      }
-
-      // Manejar fechas
-      if (ordenamiento.campo === 'fecha_ingreso' || ordenamiento.campo === 'created_at') {
-        valorA = new Date(valorA || 0).getTime();
-        valorB = new Date(valorB || 0).getTime();
-      }
-
-      // Normalizar strings
-      if (typeof valorA === 'string') valorA = valorA.toLowerCase();
-      if (typeof valorB === 'string') valorB = valorB.toLowerCase();
-
-      if (valorA < valorB) return ordenamiento.direccion === 'asc' ? -1 : 1;
-      if (valorA > valorB) return ordenamiento.direccion === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }
+    return productos;
+  }, [productosConCopy, busqueda, modoFiltros, filtros, filtroExcluirMarca, ordenamiento, tipoActivo]);
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -266,16 +223,18 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   };
 
   const seleccionarTodos = () => {
-    if (seleccionados.size === productosFiltrados.length) {
+    if (seleccionados.size === productosFiltradosYOrdenados.length) {
       setSeleccionados(new Set());
     } else {
-      setSeleccionados(new Set(productosFiltrados.map(p => p.id)));
+      setSeleccionados(new Set(productosFiltradosYOrdenados.map(p => p.id)));
     }
   };
 
+
+
   // Generar lista completa con mensajes
   const generarListaCompleta = () => {
-    const productosSeleccionados = productosConCopy.filter(p => seleccionados.has(p.id));
+    const productosSeleccionados = productosFiltradosYOrdenados.filter(p => seleccionados.has(p.id));
     const copysSeleccionados = productosSeleccionados.map(p => p.copy);
     
     const lista = [
@@ -1114,18 +1073,18 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                   <Search className="w-5 h-5" />
                   <span>{tipoConfig.label} Disponibles</span>
                   <span className="bg-emerald-600 px-2 py-0.5 rounded text-xs">
-                    {productosFiltrados.length}
+                    {productosFiltradosYOrdenados.length}
                   </span>
                 </h3>
                 <button
                   onClick={seleccionarTodos}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
+seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
                       ? 'bg-slate-700 text-white hover:bg-slate-600'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
                   }`}
                 >
-                  {seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0
+                  {seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
                     ? 'Deseleccionar Todos'
                     : 'Seleccionar Todos'
                   }
@@ -1179,7 +1138,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider w-12">
                       <input
                         type="checkbox"
-                        checked={seleccionados.size === productosFiltrados.length && productosFiltrados.length > 0}
+                        checked={seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0}
                         onChange={seleccionarTodos}
                         className="rounded border-slate-300"
                       />
@@ -1191,7 +1150,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {productosFiltrados.map((producto, index) => (
+                  {productosFiltradosYOrdenados.map((producto, index) => (
                     <tr key={producto.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-emerald-50 transition-colors`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <input
@@ -1221,7 +1180,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </table>
             </div>
 
-            {productosFiltrados.length === 0 && (
+            {productosFiltradosYOrdenados.length === 0 && (
               <div className="text-center py-12 bg-white">
                 <tipoConfig.icon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>

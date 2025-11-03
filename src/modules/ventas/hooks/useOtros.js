@@ -90,6 +90,9 @@ export const otrosService = {
         precio_compra_usd: parseFloat(producto.precio_compra_usd) || 0,
         precio_venta_usd: parseFloat(producto.precio_venta_usd) || 0,
 
+        // Costos adicionales (envíos, reparaciones, etc.) - se usa para calcular costo_total_usd automáticamente
+        costos_adicionales: parseFloat(producto.costos_adicionales) || 0,
+
         // Cantidades por sucursal - usar ubicaciones normalizadas
         // Usar ?? para permitir 0 como valor válido, solo usar fallback si es undefined/null
         cantidad_la_plata: producto.cantidad_la_plata !== undefined && producto.cantidad_la_plata !== null
@@ -98,6 +101,9 @@ export const otrosService = {
         cantidad_mitre: producto.cantidad_mitre !== undefined && producto.cantidad_mitre !== null
           ? parseInt(producto.cantidad_mitre) || 0
           : (sucursalNormalizada === UBICACIONES.MITRE ? parseInt(producto.cantidad) || 1 : 0),
+
+        // Serial opcional - solo para productos únicos (cantidad = 1)
+        serial: producto.serial?.trim() || null,
 
         // Información adicional
         garantia: producto.garantia || '',
@@ -157,12 +163,21 @@ export const otrosService = {
     if (updates.precio_venta_usd !== undefined) {
       cleanUpdates.precio_venta_usd = parseFloat(updates.precio_venta_usd) || 0;
     }
+    if (updates.costos_adicionales !== undefined) {
+      cleanUpdates.costos_adicionales = parseFloat(updates.costos_adicionales) || 0;
+    }
     if (updates.cantidad_la_plata !== undefined) {
       cleanUpdates.cantidad_la_plata = parseInt(updates.cantidad_la_plata) || 0;
     }
     if (updates.cantidad_mitre !== undefined) {
       cleanUpdates.cantidad_mitre = parseInt(updates.cantidad_mitre) || 0;
     }
+    if (updates.serial !== undefined) {
+      cleanUpdates.serial = updates.serial?.trim() || null;
+    }
+
+    // ⚠️ Excluir costo_total_usd - se calcula automáticamente en BD
+    delete cleanUpdates.costo_total_usd;
 
     const { data, error } = await supabase
       .from('otros')
@@ -507,6 +522,8 @@ export function useOtros() {
     deleteOtro,
     getOtrosByCategoria,
     getEstadisticas,
-    crearProductoCustom
+    crearProductoCustom,
+    setOtros,
+    setError
   }
 }

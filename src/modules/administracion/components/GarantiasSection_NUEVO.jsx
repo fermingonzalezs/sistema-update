@@ -324,12 +324,9 @@ const GarantiasSection = () => {
                     <div className="text-sm text-slate-500 truncate">#{garantia.numero_transaccion}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm text-slate-900">{garantia.tipo_garantia || 'Update'}</div>
+                    <div className="text-sm text-slate-900">{garantia.garantia_texto || 'N/A'}</div>
                     <div className="text-sm text-slate-500">
-                      {formatearFecha(garantia.fecha_vencimiento)}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      {garantia.dias_restantes > 0 ? `${garantia.dias_restantes}d` : 'Vencida'}
+                      Vence: {formatearFecha(garantia.fecha_vencimiento)}
                     </div>
                   </td>
                   <td className="px-4 py-3">

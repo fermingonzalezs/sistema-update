@@ -24,7 +24,8 @@ export const ventasService = {
           precio_unitario,
           precio_total,
           precio_costo,
-          margen_item
+          margen_item,
+          garantia
         )
       `)
       .order('fecha_venta', { ascending: false })
@@ -229,6 +230,14 @@ export const ventasService = {
           producto: item.producto?.modelo || item.producto?.nombre_producto
         });
 
+        // Capturar garantía del producto según su tipo
+        let garantiaProducto = '3 meses'; // Default fallback
+        if (item.tipo === 'computadora' && item.producto.garantia_update) {
+          garantiaProducto = item.producto.garantia_update;
+        } else if ((item.tipo === 'celular' || item.tipo === 'otro') && item.producto.garantia) {
+          garantiaProducto = item.producto.garantia;
+        }
+
         return {
           transaccion_id: transaccion.id,
           tipo_producto: tipoProducto, // Ahora incluye categorías específicas normalizadas (MAYÚSCULAS)
@@ -239,7 +248,8 @@ export const ventasService = {
           precio_unitario: precioUnitarioSeguro, // CRÍTICO: Usar precio validado
           precio_total: precioTotal,
           precio_costo: precioCosto,
-          margen_item: margenItem
+          margen_item: margenItem,
+          garantia: garantiaProducto // Garantía capturada del producto al momento de la venta
         }
       })
 

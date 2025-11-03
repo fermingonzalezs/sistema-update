@@ -901,7 +901,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
               Precios y Costos
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio Costo USD
@@ -965,6 +965,92 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   placeholder="0.00"
                 />
               </div>
+            </div>
+
+            {/* Botones de acción - Distribuidos equitativamente en una fila */}
+            <div className="mt-6 flex flex-wrap gap-2 justify-center">
+              {/* Botón 1: Copiar Pesos */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateCopyWithPrice(editForm, true);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado ARS");
+                  } catch (error) {
+                    console.error("Error copiando ARS:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar información ARS"
+              >
+                Copy pesos
+              </button>
+
+              {/* Botón 2: Copiar USD */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateCopyWithPrice(editForm, false);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado USD");
+                  } catch (error) {
+                    console.error("Error copiando USD:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar información USD"
+              >
+                Copy dólares
+              </button>
+
+              {/* Botón 3: Copy Marketplace */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateMarketplaceCopy(editForm, modalEdit.tipo);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado Marketplace");
+                  } catch (error) {
+                    console.error("Error copiando Marketplace:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar texto Marketplace"
+              >
+                Copy mplace
+              </button>
+
+              {/* Botón 4: Vender */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart({
+                    ...editForm,
+                    id: modalEdit.producto?.id,
+                    tipo_producto: modalEdit.tipo
+                  });
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Agregar al carrito"
+              >
+                Vender
+              </button>
+
+              {/* Botón 5: Editar */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // El modal ya está abierto, solo cerramos
+                  closeEditModal();
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Editar producto"
+              >
+                Editar
+              </button>
             </div>
           </div>
 
@@ -1276,7 +1362,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fallas
+                  Observaciones
                 </label>
                 <textarea
                   value={editForm.fallas}
@@ -1445,7 +1531,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
               Precios
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Precio Compra USD
@@ -1507,6 +1593,92 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   />
                 </div>
               )}
+            </div>
+
+            {/* Botones de acción - Distribuidos equitativamente en una fila */}
+            <div className="mt-6 flex flex-wrap gap-2 justify-center">
+              {/* Botón 1: Copiar Pesos */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateCopyWithPrice(editForm, true);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado ARS");
+                  } catch (error) {
+                    console.error("Error copiando ARS:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar información ARS"
+              >
+                Copy pesos
+              </button>
+
+              {/* Botón 2: Copiar USD */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateCopyWithPrice(editForm, false);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado USD");
+                  } catch (error) {
+                    console.error("Error copiando USD:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar información USD"
+              >
+                Copy dólares
+              </button>
+
+              {/* Botón 3: Copy Marketplace */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const copyText = generateMarketplaceCopy(editForm, modalEdit.tipo);
+                    navigator.clipboard.writeText(copyText);
+                    console.log("✅ Copiado Marketplace");
+                  } catch (error) {
+                    console.error("Error copiando Marketplace:", error);
+                  }
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Copiar texto Marketplace"
+              >
+                Copy mplace
+              </button>
+
+              {/* Botón 4: Vender */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart({
+                    ...editForm,
+                    id: modalEdit.producto?.id,
+                    tipo_producto: modalEdit.tipo
+                  });
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Agregar al carrito"
+              >
+                Vender
+              </button>
+
+              {/* Botón 5: Editar */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // El modal ya está abierto, solo cerramos
+                  closeEditModal();
+                }}
+                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                title="Editar producto"
+              >
+                Editar
+              </button>
             </div>
           </div>
 
@@ -1597,7 +1769,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fallas
+                  Observaciones
                 </label>
                 <textarea
                   value={editForm.fallas}
@@ -1655,6 +1827,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="Ej: Mouse Logitech"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Serial (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={editForm.serial || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("serial", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: SN123456"
                 />
               </div>
               <div>
@@ -1793,6 +1979,33 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costos Adicionales USD
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.costos_adicionales || "0"}
+                  onChange={(e) =>
+                    handleEditFormChange("costos_adicionales", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costo Total USD (Calculado)
+                </label>
+                <input
+                  type="text"
+                  value={`$${(parseFloat(editForm.precio_compra_usd || 0) + parseFloat(editForm.costos_adicionales || 0)).toFixed(2)}`}
+                  disabled
+                  className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-100 text-slate-600 cursor-not-allowed"
+                  title="Este campo se calcula automáticamente: Precio Compra USD + Costos Adicionales"
                 />
               </div>
               <div>
@@ -2480,8 +2693,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               if (esOtros) {
                 return (
                   <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-                    <div className="col-span-6 text-start text-sm font-bold text-white uppercase">
+                    <div className="col-span-5 text-start text-sm font-bold text-white uppercase">
                       Información del Producto
+                    </div>
+                    <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
+                      Serial
                     </div>
                     <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
                       Mitre
@@ -2524,76 +2740,72 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             })()}
 
             {/* Productos */}
-            {datos.map((producto) => (
-              <div
+            {datos.map((producto) => {
+              // Determinar si este producto específico es de tipo "otros"
+              const esOtros =
+                categoriaActiva === "otros" ||
+                categoriaActiva.startsWith("otros-") ||
+                (categoriaActiva === "apple" &&
+                  producto._tipoProducto === "otros");
+
+              return (
+                <div
                 key={producto.id}
-                className={`group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2 min-w-[950px]`}
+                className="group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2 min-w-[950px]"
                 onClick={() => setModalDetalle({ open: true, producto })}
               >
                 {/* Información del producto */}
-                <div className="col-span-6 text-start">
-                  {(() => {
-                    // Determinar si este producto específico es de tipo "otros"
-                    const esOtros =
-                      categoriaActiva === "otros" ||
-                      categoriaActiva.startsWith("otros-") ||
-                      (categoriaActiva === "apple" &&
-                        producto._tipoProducto === "otros");
-
-                    if (esOtros) {
-                      return (
-                        <div>
-                          <div className="text-sm truncate uppercase">
-                            <span>
-                              {producto.nombre_producto || "SIN NOMBRE"}
-                            </span>
-                            {producto.descripcion && (
-                              <span className="text-slate-500">
-                                {" "}
-                                - {producto.descripcion}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    } else {
-                      // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
-                      let tipoProducto = "notebook_completo";
-                      if (categoriaActiva === "celulares") {
-                        tipoProducto = "celular_completo";
-                      } else if (
-                        categoriaActiva === "apple" &&
-                        producto._tipoProducto === "celulares"
-                      ) {
-                        tipoProducto = "celular_completo";
-                      }
-
-                      return (
-                        <div className="text-sm font-medium truncate">
-                          {generateCopy(producto, { tipo: tipoProducto })}
-                          {producto.stock > 0 && (
-                            <span className="ml-1 text-emerald-600 text-sm">
-                              Stock: {producto.stock}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    }
-                  })()}
+                <div className={`text-start ${esOtros ? 'col-span-5' : 'col-span-6'}`}>
+                  {esOtros ? (
+                    <div>
+                      <div className="text-sm truncate uppercase">
+                        <span>
+                          {producto.nombre_producto || "SIN NOMBRE"}
+                        </span>
+                        {producto.descripcion && (
+                          <span className="text-slate-500">
+                            {" "}
+                            - {producto.descripcion}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm font-medium truncate">
+                      {generateCopy(producto, { tipo: (() => {
+                        // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
+                        let tipoProducto = "notebook_completo";
+                        if (categoriaActiva === "celulares") {
+                          tipoProducto = "celular_completo";
+                        } else if (
+                          categoriaActiva === "apple" &&
+                          producto._tipoProducto === "celulares"
+                        ) {
+                          tipoProducto = "celular_completo";
+                        }
+                        return tipoProducto;
+                      })() })}
+                      {producto.stock > 0 && (
+                        <span className="ml-1 text-emerald-600 text-sm">
+                          Stock: {producto.stock}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {(() => {
-                  // Determinar si este producto específico es de tipo "otros"
-                  const esOtros =
-                    categoriaActiva === "otros" ||
-                    categoriaActiva.startsWith("otros-") ||
-                    (categoriaActiva === "apple" &&
-                      producto._tipoProducto === "otros");
-
                   if (esOtros) {
                     return (
                       // Columnas para otros productos - mostrar stock por sucursal
                       <>
+                        {/* Serial */}
+                        <div className="col-span-1 flex justify-center items-center px-2">
+                          <span className="text-xs font-mono text-slate-600 truncate" title={producto.serial || "Sin serial"}>
+                            {producto.serial ? producto.serial : "-"}
+                          </span>
+                        </div>
+
                         {/* Stock Mitre */}
                         <div className="col-span-1 flex justify-center">
                           <span
@@ -2940,7 +3152,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   }
                 })()}
               </div>
-            ))}
+            );
+            })}
 
             {datos.length === 0 && (
               <div className="text-center py-8 text-slate-500">

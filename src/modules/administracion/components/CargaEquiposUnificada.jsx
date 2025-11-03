@@ -799,7 +799,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fallas o Observaciones
+                  Observaciones
                 </label>
                 <textarea
                   name="fallas"
@@ -1261,7 +1261,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fallas o Observaciones
+                  Observaciones
                 </label>
                 <textarea
                   name="fallas"
@@ -1317,9 +1317,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
     precio_compra_usd: '',
     precio_venta_usd: '',
 
+    // Costos adicionales (envíos, reparaciones, etc.)
+    costos_adicionales: '0',
+
     // Cantidades por sucursal
     cantidad_la_plata: 0,
     cantidad_mitre: 0,
+
+    // Serial opcional (solo para productos únicos)
+    serial: '',
 
     // Garantía y observaciones
     garantia: '',
@@ -1369,6 +1375,18 @@ const FormularioOtro = ({ onAdd, loading }) => {
       return;
     }
 
+    // Validación: si cantidad > 1 y hay serial, advertencia
+    const cantidadTotal = (parseInt(formData.cantidad_la_plata) || 0) + (parseInt(formData.cantidad_mitre) || 0);
+    if (cantidadTotal > 1 && formData.serial?.trim()) {
+      const confirm = window.confirm(
+        `⚠️ Tienes ${cantidadTotal} unidades pero ingresaste un serial. El serial solo aplica a productos únicos.\n\n¿Deseas continuar?`
+      );
+      if (!confirm) {
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const dataToSubmit = {
@@ -1376,7 +1394,9 @@ const FormularioOtro = ({ onAdd, loading }) => {
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
         cantidad_mitre: parseInt(formData.cantidad_mitre) || 0,
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || 0,
-        precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0
+        precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0,
+        costos_adicionales: parseFloat(formData.costos_adicionales) || 0,
+        serial: formData.serial?.trim() || null
       };
 
       await onAdd(dataToSubmit);
@@ -1390,8 +1410,10 @@ const FormularioOtro = ({ onAdd, loading }) => {
         condicion: CONDICIONES.NUEVO,
         precio_compra_usd: '',
         precio_venta_usd: '',
+        costos_adicionales: '0',
         cantidad_la_plata: 0,
         cantidad_mitre: 0,
+        serial: '',
         garantia: '',
         observaciones: '',
         ingreso: new Date().toISOString().split('T')[0]
@@ -1601,6 +1623,58 @@ const FormularioOtro = ({ onAdd, loading }) => {
                     className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costos Adicionales USD
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-500">$</span>
+                  <input
+                    type="number"
+                    name="costos_adicionales"
+                    value={formData.costos_adicionales}
+                    onChange={handleChange}
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">Envíos, reparaciones u otros costos adicionales</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Serial (Opcional)
+                </label>
+                <input
+                  type="text"
+                  name="serial"
+                  value={formData.serial}
+                  onChange={handleChange}
+                  placeholder="Ej: SN123456 (solo para productos únicos)"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+                <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
+              </div>
+
+              <div className="md:col-span-2 lg:col-span-3">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Precio Total de Compra USD
+                </label>
+                <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-emerald-700">
+                        ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-emerald-600 mt-2">
+                        Cálculo: ${parseFloat(formData.precio_compra_usd) || 0} (compra) + ${parseFloat(formData.costos_adicionales) || 0} (costos) = ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

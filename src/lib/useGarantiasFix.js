@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from './supabase';
-import { calcularGarantiaProducto, generarTipoGarantia } from './garantiaUtils';
+import { generarTipoGarantia, parsearGarantia } from './garantiaUtils';
 
 export const useGarantias = () => {
   const [garantias, setGarantias] = useState([]);
@@ -36,7 +36,8 @@ export const useGarantias = () => {
             tipo_producto,
             cantidad,
             precio_total,
-            precio_unitario
+            precio_unitario,
+            garantia
           )
         `)
         .not('venta_items.serial_producto', 'is', null)
@@ -73,22 +74,17 @@ export const useGarantias = () => {
             if (item.serial_producto) {
               const fechaVenta = new Date(transaccion.fecha_venta);
               const fechaVencimiento = new Date(fechaVenta);
-              
-              // ✅ USAR FUNCIÓN UNIFICADA
-              const garantiaInfo = await calcularGarantiaProducto(
-                item.serial_producto, 
-                item.copy, 
-                item.tipo_producto
-              );
-              
-              const diasGarantia = garantiaInfo.diasGarantia;
-              const garantiaTextoOriginal = garantiaInfo.garantiaTexto;
-              
+
+              // ✅ LEER GARANTÍA DIRECTAMENTE DESDE BD
+              const garantiaTexto = item.garantia || '3 meses'; // Default a 3 meses si no existe
+              const garantiaInfo = parsearGarantia(garantiaTexto);
+              const diasGarantia = garantiaInfo.dias;
+
               fechaVencimiento.setDate(fechaVencimiento.getDate() + diasGarantia);
-              
+
               const hoy = new Date();
               const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
-              
+
               let estadoGarantia;
               if (diasRestantes > 0) {
                 estadoGarantia = 'Activa';
@@ -155,12 +151,13 @@ export const useGarantias = () => {
                 cantidad: item.cantidad,
                 precio_total: item.precio_total,
                 precio_unitario: item.precio_unitario,
-                // Datos de garantía calculados
+                // Datos de garantía (desde BD)
                 fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
                 dias_restantes: diasRestantes,
                 estado_garantia: estadoGarantia,
                 plazo_garantia: diasGarantia.toString(),
-                tipo_garantia: generarTipoGarantia(item.tipo_producto, garantiaTextoOriginal)
+                garantia_texto: garantiaTexto,
+                tipo_garantia: generarTipoGarantia(item.tipo_producto, garantiaTexto)
               });
             }
           }

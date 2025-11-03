@@ -14,7 +14,8 @@
       "Bash(npm install xlsx-js-style)",
       "Bash(npm install)",
       "Bash(pkill -f \"vite\")",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "mcp__supabase__list_migrations"
     ],
     "deny": [],
     "ask": []
@@ -23,5 +24,6 @@
   "enabledMcpjsonServers": [
     "supabase",
     "ESLint"
-  ]
+  ],
+  "spinnerTipsEnabled": false
 }
