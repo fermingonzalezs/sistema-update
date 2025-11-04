@@ -173,7 +173,7 @@ const ProductModal = ({
         {/* Contenido principal con paneles */}
         <div className="flex flex-1 overflow-hidden">
           {/* Panel izquierdo - Información clave */}
-          <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800" style={{ userSelect: 'none', cursor: 'default' }}>
+          <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800 flex flex-col" style={{ userSelect: 'none', cursor: 'default' }}>
           <div className="space-y-8">
             
             {/* Condición */}
@@ -226,6 +226,21 @@ const ProductModal = ({
             )}
 
           </div>
+
+          {/* Ver Fotos */}
+          {producto.fotos && (
+            <div className="mt-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(producto.fotos, '_blank');
+                }}
+                className="w-full px-4 py-3 text-white text-sm font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+              >
+                Fotos
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Panel derecho - Detalles y precios */}
@@ -381,77 +396,79 @@ const ProductModal = ({
             </div>
           </div>
 
-          {/* Botones de acción - Una fila distribuida equitativamente */}
-          <div className="grid grid-cols-5 gap-3">
-              {/* Botón 1: Copy pesos */}
+          {/* Botones de Acciones */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-white bg-slate-800 px-3 py-2 rounded mb-4 text-center">
+              ACCIONES
+            </h3>
+            <div className="flex gap-3 flex-wrap">
+
+              {/* Copiar Pesos */}
               {onCopyPesos && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyPesos(producto, tipoProducto);
                   }}
-                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Copiar información en pesos"
+                  className="flex-1 min-w-[120px] px-4 py-3 text-white text-sm font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                 >
                   Copy pesos
                 </button>
               )}
 
-              {/* Botón 2: Copy dólares */}
+              {/* Copiar Dólares */}
               {onCopyUSD && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyUSD(producto, tipoProducto);
                   }}
-                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Copiar información en USD"
+                  className="flex-1 min-w-[120px] px-4 py-3 text-white text-sm font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                 >
                   Copy dólares
                 </button>
               )}
 
-              {/* Botón 3: Copy mplace */}
+              {/* Copy Marketplace */}
               {onCopyMarketplace && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyMarketplace(producto, tipoProducto);
                   }}
-                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                  title="Copiar texto Marketplace"
+                  className="flex-1 min-w-[120px] px-4 py-3 text-white text-sm font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
                 >
                   Copy mplace
                 </button>
               )}
 
-              {/* Botón 4: Vender */}
+              {/* Vender */}
               {onVender && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onVender(producto);
                   }}
-                  className="px-3 py-2 text-white text-xs font-medium rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                  title="Agregar al carrito"
+                  className="flex-1 min-w-[120px] px-4 py-3 text-white text-sm font-medium rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
                 >
                   Vender
                 </button>
               )}
 
-              {/* Botón 5: Editar */}
+              {/* Editar */}
               {onEditar && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onEditar(producto);
                   }}
-                  className="px-3 py-2 text-white text-xs font-medium rounded bg-slate-800 hover:bg-slate-700 transition-colors"
-                  title="Editar producto"
+                  className="flex-1 min-w-[120px] px-4 py-3 text-white text-sm font-medium rounded bg-slate-800 hover:bg-slate-700 transition-colors"
                 >
                   Editar
                 </button>
               )}
+
+            </div>
           </div>
 
         </div>

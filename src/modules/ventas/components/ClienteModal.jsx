@@ -237,7 +237,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 <option value="">Seleccionar...</option>
                 {procedenciaOptions.map(option => (
                   <option key={option.value} value={option.value}>
-                    {option.icon} {option.label}
+                    {option.label} {option.icon}
                   </option>
                 ))}
               </select>

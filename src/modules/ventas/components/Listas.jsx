@@ -1005,7 +1005,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                   value={mensajeTemp}
                   onChange={(e) => setMensajeTemp(e.target.value)}
                   className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  rows="4"
+                  rows="15"
                 />
                 <div className="flex space-x-2">
                   <button

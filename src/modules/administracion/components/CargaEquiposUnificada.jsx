@@ -135,7 +135,11 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     // Garantía
     garantia_update: '6 meses',
     garantia_oficial: '',
+    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
     fallas: 'Ninguna',
+
+    // Fotos
+    fotos: '',
 
     // Fecha de ingreso
     ingreso: new Date().toISOString().split('T')[0]
@@ -170,12 +174,27 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
+      // Formatear garantía oficial si está seleccionada
+      let garantiaUpdate = formData.garantia_update;
+      if (formData.garantia_update === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+        const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'America/Argentina/Buenos_Aires'
+        });
+        garantiaUpdate = `Oficial - ${fechaFormateada}`;
+      }
+
       const dataToSubmit = {
         ...formData,
+        garantia_update: garantiaUpdate,
         // Si condicion es 'nuevo', asegurar que estado sea null
         estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
         // Si slots está vacío, convertir a null
-        slots: formData.slots === '' ? null : formData.slots
+        slots: formData.slots === '' ? null : formData.slots,
+        fotos: formData.fotos
       };
 
       await onAdd(dataToSubmit);
@@ -212,7 +231,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         duracion: '',
         garantia_update: '6 meses',
         garantia_oficial: '',
+        garantia_oficial_fecha: '',
         fallas: 'Ninguna',
+        fotos: '',
         ingreso: new Date().toISOString().split('T')[0]
       });
 
@@ -780,22 +801,25 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   <option value="12 meses">12 meses</option>
                   <option value="24 meses">24 meses</option>
                   <option value="Sin garantía">Sin garantía</option>
+                  <option value="Garantía oficial">Garantía oficial</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Oficial
-                </label>
-                <input
-                  type="text"
-                  name="garantia_oficial"
-                  value={formData.garantia_oficial}
-                  onChange={handleChange}
-                  placeholder="Ej: 12 meses fabricante, Vencida"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
+              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
+              {formData.garantia_update === 'Garantía oficial' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    name="garantia_oficial_fecha"
+                    value={formData.garantia_oficial_fecha}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              )}
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -810,6 +834,30 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Sección: Fotos */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+              Link de Fotos
+            </h4>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos (Opcional)
+              </label>
+              <input
+                type="url"
+                name="fotos"
+                value={formData.fotos}
+                onChange={handleChange}
+                placeholder="https://drive.google.com/... o cualquier enlace"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
+              </p>
             </div>
           </div>
 
@@ -860,7 +908,9 @@ const FormularioCelular = ({ onAdd, loading }) => {
     bateria: '', // Solo porcentaje, ej: "85%"
     ciclos: '', // Integer opcional
     garantia: '3 meses',
+    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
     fallas: 'Ninguna',
+    fotos: '',
 
     // Fecha de ingreso
     ingreso: new Date().toISOString().split('T')[0]
@@ -895,15 +945,30 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
+      // Formatear garantía oficial si está seleccionada
+      let garantia = formData.garantia;
+      if (formData.garantia === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+        const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'America/Argentina/Buenos_Aires'
+        });
+        garantia = `Oficial - ${fechaFormateada}`;
+      }
+
       const dataToSubmit = {
         ...formData,
+        garantia: garantia,
         // Si condicion es 'nuevo', asegurar que estado sea null
         estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
         // Convertir ciclos a integer si tiene valor
         ciclos: formData.ciclos ? parseInt(formData.ciclos) : null,
         // Convertir precios a numeric
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || null,
-        precio_venta_usd: parseFloat(formData.precio_venta_usd) || null
+        precio_venta_usd: parseFloat(formData.precio_venta_usd) || null,
+        fotos: formData.fotos
       };
 
       await onAdd(dataToSubmit);
@@ -925,7 +990,9 @@ const FormularioCelular = ({ onAdd, loading }) => {
         bateria: '',
         ciclos: '',
         garantia: '3 meses',
+        garantia_oficial_fecha: '',
         fallas: 'Ninguna',
+        fotos: '',
         ingreso: new Date().toISOString().split('T')[0]
       });
 
@@ -1256,10 +1323,27 @@ const FormularioCelular = ({ onAdd, loading }) => {
                   <option value="6 meses">6 meses</option>
                   <option value="12 meses">12 meses</option>
                   <option value="Sin garantía">Sin garantía</option>
+                  <option value="Garantía oficial">Garantía oficial</option>
                 </select>
               </div>
 
-              <div>
+              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
+              {formData.garantia === 'Garantía oficial' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    name="garantia_oficial_fecha"
+                    value={formData.garantia_oficial_fecha}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              )}
+
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Observaciones
                 </label>
@@ -1272,6 +1356,30 @@ const FormularioCelular = ({ onAdd, loading }) => {
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Sección: Fotos */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+              Link de Fotos
+            </h4>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos (Opcional)
+              </label>
+              <input
+                type="url"
+                name="fotos"
+                value={formData.fotos}
+                onChange={handleChange}
+                placeholder="https://drive.google.com/... o cualquier enlace"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
+              </p>
             </div>
           </div>
 
@@ -1328,8 +1436,10 @@ const FormularioOtro = ({ onAdd, loading }) => {
     serial: '',
 
     // Garantía y observaciones
-    garantia: '',
+    garantia: '3 meses',
+    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
     observaciones: '',
+    fotos: '',
 
     // Fecha de ingreso
     ingreso: new Date().toISOString().split('T')[0]
@@ -1337,11 +1447,13 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Usar constantes centralizadas en lugar de hardcodear
-  const opcionesCategorias = CATEGORIAS_OTROS_ARRAY.map(cat => ({
-    value: cat,
-    label: CATEGORIAS_OTROS_LABELS[cat]
-  }));
+  // Usar constantes centralizadas en lugar de hardcodear y ordenar alfabéticamente
+  const opcionesCategorias = CATEGORIAS_OTROS_ARRAY
+    .map(cat => ({
+      value: cat,
+      label: CATEGORIAS_OTROS_LABELS[cat]
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1389,14 +1501,29 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
+      // Formatear garantía oficial si está seleccionada
+      let garantia = formData.garantia;
+      if (formData.garantia === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+        const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
+        const fechaFormateada = fecha.toLocaleDateString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'America/Argentina/Buenos_Aires'
+        });
+        garantia = `Oficial - ${fechaFormateada}`;
+      }
+
       const dataToSubmit = {
         ...formData,
+        garantia: garantia,
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
         cantidad_mitre: parseInt(formData.cantidad_mitre) || 0,
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || 0,
         precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0,
         costos_adicionales: parseFloat(formData.costos_adicionales) || 0,
-        serial: formData.serial?.trim() || null
+        serial: formData.serial?.trim() || null,
+        fotos: formData.fotos
       };
 
       await onAdd(dataToSubmit);
@@ -1414,8 +1541,10 @@ const FormularioOtro = ({ onAdd, loading }) => {
         cantidad_la_plata: 0,
         cantidad_mitre: 0,
         serial: '',
-        garantia: '',
+        garantia: '3 meses',
+        garantia_oficial_fecha: '',
         observaciones: '',
+        fotos: '',
         ingreso: new Date().toISOString().split('T')[0]
       });
 
@@ -1677,6 +1806,89 @@ const FormularioOtro = ({ onAdd, loading }) => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Sección: Garantía */}
+          <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+              <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
+              Garantía
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Garantía Update
+                </label>
+                <select
+                  name="garantia"
+                  value={formData.garantia}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                >
+                  <option value="1 mes">1 mes</option>
+                  <option value="3 meses">3 meses</option>
+                  <option value="6 meses">6 meses</option>
+                  <option value="12 meses">12 meses</option>
+                  <option value="Sin garantía">Sin garantía</option>
+                  <option value="Garantía oficial">Garantía oficial</option>
+                </select>
+              </div>
+
+              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
+              {formData.garantia === 'Garantía oficial' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    name="garantia_oficial_fecha"
+                    value={formData.garantia_oficial_fecha}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              )}
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Observaciones
+                </label>
+                <textarea
+                  name="observaciones"
+                  value={formData.observaciones}
+                  onChange={handleChange}
+                  placeholder="Comentarios adicionales sobre el producto..."
+                  rows={2}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sección: Fotos */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+              Link de Fotos
+            </h4>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                URL de Fotos (Opcional)
+              </label>
+              <input
+                type="url"
+                name="fotos"
+                value={formData.fotos}
+                onChange={handleChange}
+                placeholder="https://drive.google.com/... o cualquier enlace"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
+              </p>
             </div>
           </div>
 

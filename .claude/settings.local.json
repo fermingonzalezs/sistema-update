@@ -15,7 +15,8 @@
       "Bash(npm install)",
       "Bash(pkill -f \"vite\")",
       "Bash(npm run dev:*)",
-      "mcp__supabase__list_migrations"
+      "mcp__supabase__list_migrations",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
