@@ -3085,11 +3085,17 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         onClose={() => setModalDetalle({ open: false, producto: null })}
         cotizacionDolar={cotizacionDolar}
         tipoProducto={
-          categoriaActiva === "celulares"
-            ? "celular"
-            : categoriaActiva === "notebooks"
-            ? "notebook"
-            : "otro"
+          categoriaActiva === "apple"
+            ? (modalDetalle.producto?._tipoProducto === "celulares"
+                ? "celular"
+                : modalDetalle.producto?._tipoProducto === "notebooks"
+                ? "notebook"
+                : "otro")
+            : (categoriaActiva === "celulares"
+                ? "celular"
+                : categoriaActiva === "notebooks"
+                ? "notebook"
+                : "otro")
         }
         onCopyUSD={async (producto, tipoProducto) => {
           try {
