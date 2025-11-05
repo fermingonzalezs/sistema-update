@@ -54,6 +54,11 @@ import {
   getCategoriaLabel,
 } from "../../../shared/constants/categoryConstants";
 
+import {
+  RESOLUCIONES_ARRAY,
+  RESOLUCIONES_LABELS
+} from "../../../shared/constants/resolutionConstants";
+
 // La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
 // Modal de detalle unificado
@@ -450,7 +455,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
         // Precios
         precio_compra_usd: producto.precio_compra_usd || "",
-        costos_adicionales: producto.costos_adicionales || 0,
+        costos_adicionales: producto.costos_adicionales || "",
         costo_total_usd: producto.costo_total_usd || 0,
         precio_venta_usd: producto.precio_venta_usd || "",
 
@@ -478,6 +483,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
         // Precios
         precio_compra_usd: producto.precio_compra_usd || "",
+        costos_adicionales: producto.costos_adicionales || "",
         precio_venta_usd: producto.precio_venta_usd || "",
 
         // Estado y garantía
@@ -631,6 +637,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           fotos: editForm.fotos,
         };
       } else if (modalEdit.tipo === "celular") {
+        const costosAdicionales = parseFloat(editForm.costos_adicionales) || 0;
+
         datosActualizados = {
           ...datosActualizados,
           // Campos básicos
@@ -646,6 +654,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           precio_compra_usd: editForm.precio_compra_usd
             ? parseFloat(editForm.precio_compra_usd)
             : null,
+          costos_adicionales: costosAdicionales,
+          // costo_total_usd se calcula automáticamente en la BD
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
 
           // Especificaciones técnicas
@@ -661,6 +671,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         };
       } else {
         // Productos "otros"
+        const costosAdicionales = parseFloat(editForm.costos_adicionales) || 0;
+
         datosActualizados = {
           ...datosActualizados,
           // Campos básicos
@@ -680,6 +692,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           precio_compra_usd: editForm.precio_compra_usd
             ? parseFloat(editForm.precio_compra_usd)
             : null,
+          costos_adicionales: costosAdicionales,
+          // costo_total_usd se calcula automáticamente en la BD
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
 
           // Estado y garantía
@@ -972,92 +986,6 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
             </div>
-
-            {/* Botones de acción - Distribuidos equitativamente en una fila */}
-            <div className="mt-6 flex flex-wrap gap-2 justify-center">
-              {/* Botón 1: Copiar Pesos */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateCopyWithPrice(editForm, true);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado ARS");
-                  } catch (error) {
-                    console.error("Error copiando ARS:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar información ARS"
-              >
-                Copy pesos
-              </button>
-
-              {/* Botón 2: Copiar USD */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateCopyWithPrice(editForm, false);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado USD");
-                  } catch (error) {
-                    console.error("Error copiando USD:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar información USD"
-              >
-                Copy dólares
-              </button>
-
-              {/* Botón 3: Copy Marketplace */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateMarketplaceCopy(editForm, modalEdit.tipo);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado Marketplace");
-                  } catch (error) {
-                    console.error("Error copiando Marketplace:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar texto Marketplace"
-              >
-                Copy mplace
-              </button>
-
-              {/* Botón 4: Vender */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart({
-                    ...editForm,
-                    id: modalEdit.producto?.id,
-                    tipo_producto: modalEdit.tipo
-                  });
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Agregar al carrito"
-              >
-                Vender
-              </button>
-
-              {/* Botón 5: Editar */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // El modal ya está abierto, solo cerramos
-                  closeEditModal();
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Editar producto"
-              >
-                Editar
-              </button>
-            </div>
           </div>
 
           {/* Especificaciones técnicas */}
@@ -1209,15 +1137,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Resolución
                 </label>
-                <input
-                  type="text"
+                <select
                   value={editForm.resolucion}
                   onChange={(e) =>
                     handleEditFormChange("resolucion", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 1920x1080"
-                />
+                >
+                  <option value="">Seleccionar resolución</option>
+                  {RESOLUCIONES_ARRAY.map(resolucion => (
+                    <option key={resolucion} value={resolucion}>
+                      {RESOLUCIONES_LABELS[resolucion]}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1581,7 +1514,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <input
                   type="number"
                   step="0.01"
-                  value={editForm.costos_adicionales || "0"}
+                  value={editForm.costos_adicionales}
                   onChange={(e) =>
                     handleEditFormChange("costos_adicionales", e.target.value)
                   }
@@ -1620,92 +1553,6 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   />
                 </div>
               )}
-            </div>
-
-            {/* Botones de acción - Distribuidos equitativamente en una fila */}
-            <div className="mt-6 flex flex-wrap gap-2 justify-center">
-              {/* Botón 1: Copiar Pesos */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateCopyWithPrice(editForm, true);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado ARS");
-                  } catch (error) {
-                    console.error("Error copiando ARS:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar información ARS"
-              >
-                Copy pesos
-              </button>
-
-              {/* Botón 2: Copiar USD */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateCopyWithPrice(editForm, false);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado USD");
-                  } catch (error) {
-                    console.error("Error copiando USD:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar información USD"
-              >
-                Copy dólares
-              </button>
-
-              {/* Botón 3: Copy Marketplace */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const copyText = generateMarketplaceCopy(editForm, modalEdit.tipo);
-                    navigator.clipboard.writeText(copyText);
-                    console.log("✅ Copiado Marketplace");
-                  } catch (error) {
-                    console.error("Error copiando Marketplace:", error);
-                  }
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Copiar texto Marketplace"
-              >
-                Copy mplace
-              </button>
-
-              {/* Botón 4: Vender */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart({
-                    ...editForm,
-                    id: modalEdit.producto?.id,
-                    tipo_producto: modalEdit.tipo
-                  });
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Agregar al carrito"
-              >
-                Vender
-              </button>
-
-              {/* Botón 5: Editar */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // El modal ya está abierto, solo cerramos
-                  closeEditModal();
-                }}
-                className="flex-1 min-w-[140px] px-4 py-2 text-white rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                title="Editar producto"
-              >
-                Editar
-              </button>
             </div>
           </div>
 
@@ -2034,7 +1881,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <input
                   type="number"
                   step="0.01"
-                  value={editForm.costos_adicionales || "0"}
+                  value={editForm.costos_adicionales}
                   onChange={(e) =>
                     handleEditFormChange("costos_adicionales", e.target.value)
                   }

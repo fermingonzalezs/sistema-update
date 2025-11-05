@@ -22,6 +22,10 @@ import {
   CATEGORIAS_OTROS_ARRAY,
   CATEGORIAS_OTROS_LABELS
 } from '../../../shared/constants/categoryConstants';
+import {
+  RESOLUCIONES_ARRAY,
+  RESOLUCIONES_LABELS
+} from '../../../shared/constants/resolutionConstants';
 
 const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
@@ -187,8 +191,10 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         garantiaUpdate = `Oficial - ${fechaFormateada}`;
       }
 
+      const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
+
       const dataToSubmit = {
-        ...formData,
+        ...dataRest,
         garantia_update: garantiaUpdate,
         // Si condicion es 'nuevo', asegurar que estado sea null
         estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
@@ -468,6 +474,19 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costo Total USD
+                </label>
+                <input
+                  type="text"
+                  value={`$${((parseFloat(formData.precio_costo_usd) || 0) + (parseFloat(formData.envios_repuestos) || 0)).toFixed(2)}`}
+                  disabled
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  title="Campo calculado automáticamente"
+                />
+              </div>
             </div>
           </div>
 
@@ -640,14 +659,19 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Resolución
                 </label>
-                <input
-                  type="text"
+                <select
                   name="resolucion"
                   value={formData.resolucion}
                   onChange={handleChange}
-                  placeholder="Ej: FHD, 2K, 4K, 1920x1080, 2560x1600"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
+                >
+                  <option value="">Seleccionar resolución</option>
+                  {RESOLUCIONES_ARRAY.map(resolucion => (
+                    <option key={resolucion} value={resolucion}>
+                      {RESOLUCIONES_LABELS[resolucion]}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -958,8 +982,10 @@ const FormularioCelular = ({ onAdd, loading }) => {
         garantia = `Oficial - ${fechaFormateada}`;
       }
 
+      const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
+
       const dataToSubmit = {
-        ...formData,
+        ...dataRest,
         garantia: garantia,
         // Si condicion es 'nuevo', asegurar que estado sea null
         estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
@@ -1225,6 +1251,19 @@ const FormularioCelular = ({ onAdd, loading }) => {
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Costo Total USD
+                </label>
+                <input
+                  type="text"
+                  value={`$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
+                  disabled
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  title="Campo calculado automáticamente"
+                />
               </div>
             </div>
           </div>
@@ -1514,8 +1553,10 @@ const FormularioOtro = ({ onAdd, loading }) => {
         garantia = `Oficial - ${fechaFormateada}`;
       }
 
+      const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
+
       const dataToSubmit = {
-        ...formData,
+        ...dataRest,
         garantia: garantia,
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
         cantidad_mitre: parseInt(formData.cantidad_mitre) || 0,
@@ -1655,6 +1696,21 @@ const FormularioOtro = ({ onAdd, loading }) => {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Serial (Opcional)
+                </label>
+                <input
+                  type="text"
+                  name="serial"
+                  value={formData.serial}
+                  onChange={handleChange}
+                  placeholder="Ej: SN123456 (solo para productos únicos)"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+                <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
+              </div>
+
               <div className="md:col-span-2 lg:col-span-3">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Serial/Descripción
@@ -1776,35 +1832,15 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Serial (Opcional)
+                  Costo Total USD
                 </label>
                 <input
                   type="text"
-                  name="serial"
-                  value={formData.serial}
-                  onChange={handleChange}
-                  placeholder="Ej: SN123456 (solo para productos únicos)"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  value={`$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
+                  disabled
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  title="Campo calculado automáticamente"
                 />
-                <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
-              </div>
-
-              <div className="md:col-span-2 lg:col-span-3">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Precio Total de Compra USD
-                </label>
-                <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-emerald-700">
-                        ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}
-                      </div>
-                      <div className="text-sm text-emerald-600 mt-2">
-                        Cálculo: ${parseFloat(formData.precio_compra_usd) || 0} (compra) + ${parseFloat(formData.costos_adicionales) || 0} (costos) = ${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

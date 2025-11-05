@@ -16,7 +16,9 @@
       "Bash(pkill -f \"vite\")",
       "Bash(npm run dev:*)",
       "mcp__supabase__list_migrations",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__supabase__search_docs",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

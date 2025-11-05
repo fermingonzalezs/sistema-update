@@ -158,12 +158,12 @@ const ProductModal = ({
   // Obtener precios según tipo de producto
   // ✅ Notebooks: usar precio_costo_total (incluye envíos/repuestos)
   // ✅ Celulares: usar costo_total_usd (incluye envíos/repuestos)
-  // ✅ Otros: usar precio_compra_usd
+  // ✅ Otros: usar costo_total_usd (incluye costos_adicionales)
   const precioCompra = tipoProducto === 'notebook'
     ? (producto.precio_costo_total || producto.precio_costo_usd || 0)
     : tipoProducto === 'celular'
       ? (producto.costo_total_usd || producto.precio_compra_usd || 0)
-      : (producto.precio_compra_usd || 0);
+      : (producto.costo_total_usd || producto.precio_compra_usd || 0);
   const precioVenta = producto.precio_venta_usd || 0;
 
   return (
@@ -398,9 +398,7 @@ const ProductModal = ({
 
           {/* Botones de Acciones */}
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-white bg-slate-800 px-3 py-2 rounded mb-4 text-center">
-              ACCIONES
-            </h3>
+           
             <div className="flex gap-3 flex-wrap">
 
               {/* Copiar Pesos */}

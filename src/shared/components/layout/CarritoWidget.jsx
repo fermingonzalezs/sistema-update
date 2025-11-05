@@ -337,7 +337,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // ✅ VALIDACIÓN: Verificar que hay cliente seleccionado
     if (!clienteSeleccionado || !clienteSeleccionado.id) {
       console.error('❌ No hay cliente seleccionado');
-      
+
       const clienteInput = document.querySelector('input[placeholder*="Buscar cliente"]');
       if (clienteInput) {
         clienteInput.focus();
@@ -346,8 +346,25 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
           clienteInput.style.border = '';
         }, 3000);
       }
-      
+
       alert('⚠️ Debe seleccionar un cliente antes de procesar la venta');
+      return;
+    }
+
+    // ✅ VALIDACIÓN: Verificar que hay vendedor seleccionado
+    if (!datosCliente.vendedor || datosCliente.vendedor.trim() === '') {
+      console.error('❌ No hay vendedor seleccionado');
+
+      const vendedorSelect = document.querySelector('select[name="vendedor"]');
+      if (vendedorSelect) {
+        vendedorSelect.focus();
+        vendedorSelect.style.border = '2px solid red';
+        setTimeout(() => {
+          vendedorSelect.style.border = '';
+        }, 3000);
+      }
+
+      alert('⚠️ Debe seleccionar un vendedor antes de procesar la venta');
       return;
     }
 
@@ -1272,7 +1289,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </button>
                         <button
                           type="submit"
-                          disabled={!clienteSeleccionado}
+                          disabled={!clienteSeleccionado || !datosCliente.vendedor}
                           className={`flex-1 py-3 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-200 disabled:cursor-not-allowed ${
                             (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
                               ? 'bg-slate-800 text-white hover:bg-slate-600'

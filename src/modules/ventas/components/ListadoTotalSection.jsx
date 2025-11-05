@@ -239,7 +239,7 @@ const ListadoTotalSection = () => {
           const info = otro.nombre_producto || '';
           const emoji = EMOJI_CATEGORIAS[otro.categoria] || EMOJI_CATEGORIAS['OTROS'];
 
-          const precioCompraTotal = otro.precio_compra_usd || 0;
+          const precioCompraTotal = otro.costo_total_usd || otro.precio_compra_usd || 0;
           const diasEnStock = calcularDiasEnStock(otro.ingreso);
           const margen = calcularMargen(otro.precio_venta_usd || 0, precioCompraTotal);
 

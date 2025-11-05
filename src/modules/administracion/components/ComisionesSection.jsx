@@ -55,7 +55,8 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
       const fechaVenta = new Date(venta.fecha_venta);
       const inicio = new Date(fechaInicio);
       const fin = new Date(fechaFin);
-      
+      fin.setHours(23, 59, 59, 999); // Incluir hasta el final del día
+
       const cumpleFecha = fechaVenta >= inicio && fechaVenta <= fin;
       
       // Filtro por vendedor
