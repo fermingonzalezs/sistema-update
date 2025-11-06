@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw, Mail, Loader } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
+import { generarGarantiaPDFBlob, generarNombreArchivoGarantia } from '../../../modules/ventas/utils/garantiaPDFService';
+import { enviarGarantiasPorEmail } from '../../../modules/ventas/utils/emailService';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,6 +45,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
+
+  // Estados para pantalla de garantías
+  const [mostrarPantallaGarantias, setMostrarPantallaGarantias] = useState(false);
+  const [enviandoGarantias, setEnviandoGarantias] = useState(false);
+  const [garantiasEnviadas, setGarantiasEnviadas] = useState(false);
+  const [mensajeGarantias, setMensajeGarantias] = useState('');
 
   // Establecer cliente inicial cuando se proporciona
   useEffect(() => {
@@ -477,6 +485,136 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }
   };
 
+  const handleEnviarGarantias = async () => {
+    // Si no hay email, saltar silenciosamente
+    if (!clienteSeleccionado?.email) {
+      console.log('⚠️ Cliente sin email, saltando envío de garantías');
+      // Limpiar directamente
+      limpiarTodoPostVenta();
+      return;
+    }
+
+    setEnviandoGarantias(true);
+    setMensajeGarantias('Preparando garantías...');
+
+    try {
+      console.log(`📧 Iniciando generación de ${carrito.length} garantía(s)...`);
+
+      // Generar PDFs de garantía para cada producto
+      const garantias = [];
+
+      for (let i = 0; i < carrito.length; i++) {
+        const item = carrito[i];
+        const producto = item.producto || item;
+
+        try {
+          // Preparar datos de la garantía
+          const datosGarantia = {
+            producto: producto.modelo || producto.nombre_producto || 'Producto sin nombre',
+            numeroSerie: item.serial || item.numero_serie || producto.serial || 'N/A',
+            cliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
+            fechaCompra: new Date().toLocaleDateString('es-AR'),
+            plazoGarantia: producto.garantia || producto.garantia_update || '3 meses'
+          };
+
+          console.log(`📄 Generando PDF ${i + 1}/${carrito.length}:`, datosGarantia);
+
+          // Generar blob del PDF
+          const pdfBlob = await generarGarantiaPDFBlob(datosGarantia);
+          const nombreArchivo = generarNombreArchivoGarantia({
+            cliente: clienteSeleccionado.nombre,
+            numeroSerie: datosGarantia.numeroSerie
+          });
+
+          garantias.push({
+            pdf: pdfBlob,
+            nombreArchivo,
+            producto: datosGarantia.producto,
+            numeroSerie: datosGarantia.numeroSerie
+          });
+
+          setMensajeGarantias(`Generados ${i + 1}/${carrito.length} PDF(s)...`);
+          console.log(`✅ PDF ${i + 1}/${carrito.length} generado correctamente`);
+        } catch (error) {
+          console.error(`❌ Error generando PDF para producto ${i + 1}:`, error);
+          throw new Error(`Error generando garantía para ${producto.modelo || 'producto'}: ${error.message}`);
+        }
+      }
+
+      console.log(`✅ Todos los PDFs generados, enviando ${garantias.length} garantía(s)...`);
+      setMensajeGarantias(`Enviando ${garantias.length} garantía(s) a ${clienteSeleccionado.email}...`);
+
+      // Enviar email con todos los PDFs
+      const resultado = await enviarGarantiasPorEmail({
+        destinatario: clienteSeleccionado.email,
+        nombreCliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
+        garantias
+      });
+
+      if (resultado.success) {
+        console.log('✅ Garantías enviadas exitosamente');
+        setGarantiasEnviadas(true);
+        setMensajeGarantias(
+          `✅ ${resultado.archivosEnviados} garantía(s) enviada(s) exitosamente a ${clienteSeleccionado.email}`
+        );
+
+        // Esperar 2 segundos antes de limpiar para que el usuario vea el mensaje
+        setTimeout(() => {
+          limpiarTodoPostVenta();
+        }, 2000);
+      } else if (resultado.skipped) {
+        console.log('⚠️ Envío saltado (sin email válido)');
+        limpiarTodoPostVenta();
+      } else {
+        throw new Error(resultado.error || 'Error desconocido al enviar garantías');
+      }
+    } catch (error) {
+      console.error('❌ Error en handleEnviarGarantias:', error);
+      setMensajeGarantias(`❌ Error: ${error.message}`);
+      setEnviandoGarantias(false);
+    }
+  };
+
+  const limpiarTodoPostVenta = () => {
+    console.log('🧹 Limpiando estado post-venta...');
+    setClienteSeleccionado(null);
+    setDatosCliente({
+      metodo_pago_1: 'efectivo_pesos',
+      metodo_pago_2: '',
+      monto_pago_1: 0,
+      monto_pago_2: 0,
+      recargo_pago_1: 0,
+      recargo_pago_2: 0,
+      observaciones: '',
+      vendedor: '',
+      sucursal: 'la_plata',
+      cotizacion_dolar: datosCliente.cotizacion_dolar
+    });
+    setMostrarFormulario(false);
+    setIsOpen(false);
+    setAperturaManual(false);
+    setCarritoAnterior([]);
+    setMostrarPantallaGarantias(false);
+    setEnviandoGarantias(false);
+    setGarantiasEnviadas(false);
+    setMensajeGarantias('');
+
+    // Limpiar inputs locales
+    setInputMontoBase1('');
+    setInputMontoBase2('');
+    setInputMontoFinal1('');
+    setInputMontoFinal2('');
+    setInputRecargo1('0');
+    setInputRecargo2('0');
+
+    // Limpiar estados de edición de precios
+    setEditandoPrecio(null);
+    setPrecioEditado('');
+    setPreciosModificados({});
+
+    console.log('🎉 Proceso completado exitosamente');
+  };
+
   const confirmarVenta = async () => {
     // ✅ PROTECCIÓN CONTRA DOBLE CLIC
     if (procesandoVenta) {
@@ -521,45 +659,20 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       console.log('✅ Venta procesada exitosamente en la BD');
 
       // ✅ MOSTRAR MENSAJE DE ÉXITO personalizado
-      const mensajeExito = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') 
+      const mensajeExito = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
         ? `✅ Venta a CUENTA CORRIENTE procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}\n\n📝 El saldo se registró en la cuenta corriente del cliente.`
         : `✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`;
 
       alert(mensajeExito);
 
-      // ✅ LIMPIAR TODO después del éxito
-      setClienteSeleccionado(null);
-      setDatosCliente({
-        metodo_pago_1: 'efectivo_pesos',
-        metodo_pago_2: '',
-        monto_pago_1: 0,
-        monto_pago_2: 0,
-        recargo_pago_1: 0,
-        recargo_pago_2: 0,
-        observaciones: '',
-        vendedor: '',
-        sucursal: 'la_plata',
-        cotizacion_dolar: datosCliente.cotizacion_dolar // Mantener la cotización
-      });
+      // ✅ MOSTRAR PANTALLA DE GARANTÍAS en lugar de limpiar inmediatamente
       setMostrarFormulario(false);
-      setIsOpen(false);
-      setAperturaManual(false);
-      setCarritoAnterior([]);
-      
-      // Limpiar inputs locales
-      setInputMontoBase1('');
-      setInputMontoBase2('');
-      setInputMontoFinal1('');
-      setInputMontoFinal2('');
-      setInputRecargo1('0');
-      setInputRecargo2('0');
+      setMostrarConfirmacion(false);
+      setMostrarPantallaGarantias(true);
+      setGarantiasEnviadas(false);
+      setMensajeGarantias('');
 
-      // Limpiar estados de edición de precios
-      setEditandoPrecio(null);
-      setPrecioEditado('');
-      setPreciosModificados({});
-
-      console.log('🎉 Proceso completado exitosamente');
+      console.log('📧 Abriendo pantalla de garantías...');
 
     } catch (err) {
       console.error('❌ Error procesando venta:', err);
@@ -1313,6 +1426,97 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   </form>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Pantalla de Garantías Post-Venta */}
+      {mostrarPantallaGarantias && (
+        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-6">
+            {/* Header */}
+            <div className="text-center border-b border-slate-200 pb-4">
+              <h3 className="text-xl font-semibold text-emerald-600 mb-2">✅ Venta Procesada</h3>
+              <p className="text-sm text-slate-600">
+                La venta ha sido registrada exitosamente
+              </p>
+            </div>
+
+            {/* Información del cliente */}
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">
+                <span className="font-semibold text-slate-800">Cliente:</span> {clienteSeleccionado?.nombre} {clienteSeleccionado?.apellido}
+              </p>
+              {clienteSeleccionado?.email ? (
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold text-slate-800">Email:</span> {clienteSeleccionado.email}
+                </p>
+              ) : (
+                <p className="text-sm text-amber-600">
+                  ⚠️ Este cliente no tiene email registrado
+                </p>
+              )}
+              <p className="text-sm text-slate-600 mt-2">
+                <span className="font-semibold text-slate-800">Productos:</span> {carrito.length}
+              </p>
+            </div>
+
+            {/* Mensaje de estado */}
+            {mensajeGarantias && (
+              <div className={`p-3 rounded-lg text-sm ${
+                garantiasEnviadas
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-blue-50 text-blue-800 border border-blue-200'
+              }`}>
+                {mensajeGarantias}
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="space-y-3">
+              {!garantiasEnviadas ? (
+                <>
+                  {clienteSeleccionado?.email && (
+                    <button
+                      onClick={handleEnviarGarantias}
+                      disabled={enviandoGarantias}
+                      className={`w-full py-3 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                        enviandoGarantias
+                          ? 'bg-slate-400 text-slate-200 cursor-not-allowed'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                      }`}
+                    >
+                      {enviandoGarantias ? (
+                        <>
+                          <Loader className="w-5 h-5 animate-spin" />
+                          <span>Enviando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-5 h-5" />
+                          <span>Enviar Garantías por Email</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={limpiarTodoPostVenta}
+                    disabled={enviandoGarantias}
+                    className="w-full bg-slate-200 text-slate-800 py-3 rounded font-semibold hover:bg-slate-300 transition-colors disabled:opacity-50"
+                  >
+                    {clienteSeleccionado?.email ? 'Saltar' : 'Cerrar'}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={limpiarTodoPostVenta}
+                  className="w-full bg-emerald-600 text-white py-3 rounded font-semibold hover:bg-emerald-700 transition-colors"
+                >
+                  Finalizar
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
