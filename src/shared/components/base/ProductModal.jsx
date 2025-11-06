@@ -35,6 +35,8 @@ const ProductModal = ({
         { key: 'marca', label: 'Marca' },
         { key: 'capacidad', label: 'Capacidad' },
         { key: 'color', label: 'Color' },
+        { key: 'sim_esim', label: 'Tipo de SIM', opcional: true },
+        { key: 'ram', label: 'Memoria RAM', opcional: true },
         { key: 'fallas', label: 'Notas', opcional: true }
       ],
       estado: [

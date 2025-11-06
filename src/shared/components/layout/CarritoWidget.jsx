@@ -5,7 +5,7 @@ import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
-import { generarGarantiaPDFBlob, generarNombreArchivoGarantia } from '../../../modules/ventas/utils/garantiaPDFService';
+import { generarGarantiaPDFBlob, generarNombreArchivoGarantia } from '../../../modules/ventas/utils/garantiaPDFService.jsx';
 import { enviarGarantiasPorEmail } from '../../../modules/ventas/utils/emailService';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
@@ -51,6 +51,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [enviandoGarantias, setEnviandoGarantias] = useState(false);
   const [garantiasEnviadas, setGarantiasEnviadas] = useState(false);
   const [mensajeGarantias, setMensajeGarantias] = useState('');
+  const [enviarGarantiaAutomatico, setEnviarGarantiaAutomatico] = useState(false);
 
   // Establecer cliente inicial cuando se proporciona
   useEffect(() => {
@@ -500,55 +501,90 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     try {
       console.log(`📧 Iniciando generación de ${carrito.length} garantía(s)...`);
 
-      // Generar PDFs de garantía para cada producto
-      const garantias = [];
+      // Preparar datos de garantías para enviar por email
+      const garantiasEmail = [];
+      const garantiasPDF = [];
 
       for (let i = 0; i < carrito.length; i++) {
         const item = carrito[i];
         const producto = item.producto || item;
 
         try {
-          // Preparar datos de la garantía
+          // Obtener nombre del producto según tipo
+          let nombreProducto = 'Producto sin nombre';
+          if (producto.modelo) {
+            nombreProducto = producto.modelo; // inventario o celulares
+          } else if (producto.nombre_producto) {
+            nombreProducto = producto.nombre_producto; // otros
+          }
+
+          // Obtener serial del producto
+          let numeroSerie = 'N/A';
+          if (producto.serial) {
+            numeroSerie = producto.serial;
+          } else if (item.serial) {
+            numeroSerie = item.serial;
+          }
+
+          // Obtener garantía según tipo de producto
+          let plazoGarantia = '3 meses';
+          if (producto.garantia) {
+            plazoGarantia = producto.garantia; // celulares y otros
+          } else if (producto.garantia_update) {
+            plazoGarantia = producto.garantia_update; // inventario (computadoras)
+          }
+
+          // Datos de la garantía para email
           const datosGarantia = {
-            producto: producto.modelo || producto.nombre_producto || 'Producto sin nombre',
-            numeroSerie: item.serial || item.numero_serie || producto.serial || 'N/A',
+            producto: nombreProducto,
+            numeroSerie: numeroSerie,
             cliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
             fechaCompra: new Date().toLocaleDateString('es-AR'),
-            plazoGarantia: producto.garantia || producto.garantia_update || '3 meses'
+            plazoGarantia: plazoGarantia
           };
 
-          console.log(`📄 Generando PDF ${i + 1}/${carrito.length}:`, datosGarantia);
+          // Agregar a lista de email
+          console.log(`📧 Producto ${i + 1}:`, {
+            producto: datosGarantia.producto,
+            numeroSerie: datosGarantia.numeroSerie,
+            plazoGarantia: datosGarantia.plazoGarantia
+          });
 
-          // Generar blob del PDF
+          garantiasEmail.push({
+            producto: datosGarantia.producto,
+            numeroSerie: datosGarantia.numeroSerie,
+            plazoGarantia: datosGarantia.plazoGarantia
+          });
+
+          // Generar PDF también (descarga local)
+          console.log(`📄 Generando PDF ${i + 1}/${carrito.length}:`, datosGarantia);
           const pdfBlob = await generarGarantiaPDFBlob(datosGarantia);
           const nombreArchivo = generarNombreArchivoGarantia({
             cliente: clienteSeleccionado.nombre,
             numeroSerie: datosGarantia.numeroSerie
           });
 
-          garantias.push({
-            pdf: pdfBlob,
-            nombreArchivo,
-            producto: datosGarantia.producto,
-            numeroSerie: datosGarantia.numeroSerie
+          garantiasPDF.push({
+            blob: pdfBlob,
+            nombreArchivo
           });
 
-          setMensajeGarantias(`Generados ${i + 1}/${carrito.length} PDF(s)...`);
-          console.log(`✅ PDF ${i + 1}/${carrito.length} generado correctamente`);
+          setMensajeGarantias(`Preparadas ${i + 1}/${carrito.length} garantía(s)...`);
+          console.log(`✅ Garantía ${i + 1}/${carrito.length} preparada`);
         } catch (error) {
-          console.error(`❌ Error generando PDF para producto ${i + 1}:`, error);
-          throw new Error(`Error generando garantía para ${producto.modelo || 'producto'}: ${error.message}`);
+          console.error(`❌ Error procesando garantía ${i + 1}:`, error);
+          throw new Error(`Error procesando garantía para ${producto.modelo || 'producto'}: ${error.message}`);
         }
       }
 
-      console.log(`✅ Todos los PDFs generados, enviando ${garantias.length} garantía(s)...`);
-      setMensajeGarantias(`Enviando ${garantias.length} garantía(s) a ${clienteSeleccionado.email}...`);
+      console.log(`✅ Todas las garantías preparadas, enviando ${garantiasEmail.length} por email...`);
+      setMensajeGarantias(`Enviando garantías a ${clienteSeleccionado.email}...`);
 
-      // Enviar email con todos los PDFs
+      // Enviar email con tabla de garantías
       const resultado = await enviarGarantiasPorEmail({
         destinatario: clienteSeleccionado.email,
         nombreCliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
-        garantias
+        garantias: garantiasEmail
       });
 
       if (resultado.success) {
@@ -598,6 +634,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     setEnviandoGarantias(false);
     setGarantiasEnviadas(false);
     setMensajeGarantias('');
+    setEnviarGarantiaAutomatico(false);
 
     // Limpiar inputs locales
     setInputMontoBase1('');
@@ -665,14 +702,28 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
       alert(mensajeExito);
 
-      // ✅ MOSTRAR PANTALLA DE GARANTÍAS en lugar de limpiar inmediatamente
+      // ✅ DECIDIR: Auto-enviar garantías o mostrar pantalla manual
       setMostrarFormulario(false);
       setMostrarConfirmacion(false);
-      setMostrarPantallaGarantias(true);
-      setGarantiasEnviadas(false);
-      setMensajeGarantias('');
 
-      console.log('📧 Abriendo pantalla de garantías...');
+      if (enviarGarantiaAutomatico && clienteSeleccionado?.email) {
+        // Auto-enviar garantías
+        console.log('📧 Auto-enviando garantías (checkbox marcado)...');
+        setMostrarPantallaGarantias(false);
+        setEnviandoGarantias(true);
+        setMensajeGarantias('Preparando garantías...');
+
+        // Usar setTimeout para ejecutar después de que se actualice el estado
+        setTimeout(() => {
+          handleEnviarGarantias();
+        }, 100);
+      } else {
+        // Mostrar pantalla de garantías para envío manual
+        console.log('📧 Mostrando pantalla de garantías...');
+        setMostrarPantallaGarantias(true);
+        setGarantiasEnviadas(false);
+        setMensajeGarantias('');
+      }
 
     } catch (err) {
       console.error('❌ Error procesando venta:', err);
@@ -1387,6 +1438,20 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
                     </div>
 
+                    {/* Checkbox: Enviar garantía por mail */}
+                    <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200 mb-6">
+                      <input
+                        type="checkbox"
+                        id="enviarGarantia"
+                        checked={enviarGarantiaAutomatico}
+                        onChange={(e) => setEnviarGarantiaAutomatico(e.target.checked)}
+                        className="w-5 h-5 text-emerald-600 border-slate-300 rounded cursor-pointer"
+                      />
+                      <label htmlFor="enviarGarantia" className="text-sm font-medium text-slate-800 cursor-pointer">
+                        📧 Enviar garantía por mail
+                      </label>
+                    </div>
+
                     {/* Botones */}
                     <div className="border-t border-slate-200 pt-6">
                       <div className="flex space-x-4">
@@ -1459,6 +1524,46 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
               <p className="text-sm text-slate-600 mt-2">
                 <span className="font-semibold text-slate-800">Productos:</span> {carrito.length}
               </p>
+            </div>
+
+            {/* Checklist de Garantías */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-semibold text-blue-900 mb-3">Enviar Garantía por Email</h4>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-5 h-5 rounded border-2 bg-emerald-100 border-emerald-500 flex items-center justify-center">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                  </div>
+                  <span className="text-sm text-slate-800 font-medium">Venta procesada</span>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    clienteSeleccionado?.email
+                      ? 'bg-emerald-100 border-emerald-500'
+                      : 'bg-slate-100 border-slate-300'
+                  }`}>
+                    {clienteSeleccionado?.email && <span className="text-emerald-600 font-bold text-sm">✓</span>}
+                  </div>
+                  <span className={`text-sm ${clienteSeleccionado?.email ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
+                    Cliente con email registrado
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    enviandoGarantias || garantiasEnviadas
+                      ? 'bg-emerald-100 border-emerald-500'
+                      : 'bg-slate-100 border-slate-300'
+                  }`}>
+                    {enviandoGarantias && <Loader className="w-3 h-3 text-emerald-600 animate-spin" />}
+                    {garantiasEnviadas && <span className="text-emerald-600 font-bold text-sm">✓</span>}
+                  </div>
+                  <span className={`text-sm ${enviandoGarantias || garantiasEnviadas ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
+                    {enviandoGarantias ? 'Enviando garantías...' : garantiasEnviadas ? 'Garantías enviadas' : 'Pendiente de envío'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Mensaje de estado */}

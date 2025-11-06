@@ -2240,7 +2240,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   }`}
                 >
                   <span>
-                    {categoria === "ACCESORIOS"
+                    {categoria === "DESKTOP"
+                      ? "💻"
+                      : categoria === "ACCESORIOS"
                       ? "🔧"
                       : categoria === "MONITORES"
                       ? "🖥️"

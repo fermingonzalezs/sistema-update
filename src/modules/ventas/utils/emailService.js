@@ -62,16 +62,26 @@ const esEmailValido = (email) => {
 };
 
 /**
+ * Genera lista de productos con garantías en formato texto
+ * @param {Array<Object>} garantias - Array de garantías
+ * @returns {string} Lista de productos
+ */
+const generarListaProductos = (garantias) => {
+  return garantias
+    .map((g, i) => `${i + 1}. ${g.producto} - ${g.numeroSerie} - ${g.plazoGarantia}`)
+    .join('\n');
+};
+
+/**
  * Envía garantías por email usando EmailJS
- * Genera un solo email con múltiples PDFs adjuntos
+ * Envía un email HTML con tabla de productos y garantías
  * @param {Object} config - Configuración del envío
  * @param {string} config.destinatario - Email del cliente
  * @param {string} config.nombreCliente - Nombre completo del cliente
  * @param {Array<Object>} config.garantias - Array de objetos con datos de garantías
- * @param {Blob} config.garantias[].pdf - Blob del PDF
- * @param {string} config.garantias[].nombreArchivo - Nombre del archivo
  * @param {string} config.garantias[].producto - Nombre del producto
  * @param {string} config.garantias[].numeroSerie - Número de serie
+ * @param {string} config.garantias[].plazoGarantia - Plazo de garantía
  * @returns {Promise<Object>} Resultado del envío {success: boolean, response?: Object, error?: string}
  */
 export const enviarGarantiasPorEmail = async (config) => {
@@ -93,7 +103,7 @@ export const enviarGarantiasPorEmail = async (config) => {
       return {
         success: false,
         error: 'Email inválido',
-        skipped: true // Flag para indicar que fue skipped silenciosamente
+        skipped: true
       };
     }
 
@@ -115,44 +125,16 @@ export const enviarGarantiasPorEmail = async (config) => {
       );
     }
 
-    // Convertir PDFs a base64 para adjuntar
-    const archivosBase64 = [];
-    const listaProductos = [];
-
-    for (let i = 0; i < garantias.length; i++) {
-      const garantia = garantias[i];
-
-      try {
-        const base64 = await blobToBase64(garantia.pdf);
-        archivosBase64.push({
-          nombre: garantia.nombreArchivo,
-          contenido: base64
-        });
-        listaProductos.push(`${i + 1}. ${garantia.producto} (${garantia.numeroSerie})`);
-        console.log(`✅ PDF ${i + 1}/${garantias.length} convertido a base64`);
-      } catch (error) {
-        console.error(`❌ Error convertiendo PDF ${i + 1}:`, error);
-        throw error;
-      }
-    }
+    // Generar lista de productos
+    const listaProductos = generarListaProductos(garantias);
 
     // Preparar parámetros del email
-    // EmailJS tiene un límite de tamaño, así que usamos una estrategia:
-    // - Enviamos los PDFs como base64 en campos separados si hay múltiples
-    // - O en un campo si hay uno solo
     const templateParams = {
       to_email: destinatario,
       to_name: nombreCliente,
-      productos_lista: listaProductos.join('\n'),
+      productos_lista: listaProductos,
       cantidad_garantias: garantias.length,
-      fecha: new Date().toLocaleDateString('es-AR'),
-      // Archivos base64 (limitado a 2 archivos por restricción de EmailJS)
-      archivo_1_nombre: archivosBase64[0]?.nombre || '',
-      archivo_1_base64: archivosBase64[0]?.contenido || '',
-      archivo_2_nombre: archivosBase64[1]?.nombre || '',
-      archivo_2_base64: archivosBase64[1]?.contenido || '',
-      archivo_3_nombre: archivosBase64[2]?.nombre || '',
-      archivo_3_base64: archivosBase64[2]?.contenido || '',
+      fecha: new Date().toLocaleDateString('es-AR')
     };
 
     console.log('🚀 Enviando email a través de EmailJS...');

@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     padding: 15,
     backgroundColor: '#F9FAFB',
-    border: 1,
+    borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   contactoTitulo: {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 9,
     color: '#6B7280',
-    borderTop: 1,
+    borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     paddingTop: 10,
   },

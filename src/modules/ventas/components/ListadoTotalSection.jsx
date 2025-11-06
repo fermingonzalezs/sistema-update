@@ -280,6 +280,7 @@ const ListadoTotalSection = () => {
   const coloresCategorias = {
     'NOTEBOOKS': 'bg-blue-100 text-blue-700',
     'CELULARES': 'bg-green-100 text-green-700',
+    'DESKTOP': 'bg-slate-100 text-slate-700',
     'MONITORES': 'bg-purple-100 text-purple-700',
     'ACCESORIOS': 'bg-cyan-100 text-cyan-700',
     'COMPONENTES': 'bg-red-100 text-red-700',
@@ -312,6 +313,7 @@ const ListadoTotalSection = () => {
   const labelsCategorias = {
     'NOTEBOOKS': 'Notebks',
     'CELULARES': 'Celular',
+    'DESKTOP': 'Desktop',
     'MONITORES': 'Monitor',
     'ACCESORIOS': 'Acceso',
     'COMPONENTES': 'Compone',
@@ -338,6 +340,7 @@ const ListadoTotalSection = () => {
   const labelsCategoriaTabla = {
     'NOTEBOOKS': 'Notebooks',
     'CELULARES': 'Celulares',
+    'DESKTOP': 'Desktop',
     'MONITORES': 'Monitores',
     'ACCESORIOS': 'Accesorios',
     'COMPONENTES': 'Componentes',

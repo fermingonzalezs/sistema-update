@@ -137,9 +137,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
     duracion: '',
 
     // Garantía
-    garantia_update: '6 meses',
+    garantia_update: '3 meses',
     garantia_oficial: '',
-    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
+    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial con vencimiento"
     fallas: 'Ninguna',
 
     // Fotos
@@ -178,9 +178,9 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
-      // Formatear garantía oficial si está seleccionada
+      // Formatear garantía oficial con vencimiento si está seleccionada
       let garantiaUpdate = formData.garantia_update;
-      if (formData.garantia_update === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+      if (formData.garantia_update === 'Garantía oficial con vencimiento' && formData.garantia_oficial_fecha) {
         const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
         const fechaFormateada = fecha.toLocaleDateString('es-AR', {
           day: '2-digit',
@@ -188,7 +188,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           year: 'numeric',
           timeZone: 'America/Argentina/Buenos_Aires'
         });
-        garantiaUpdate = `Oficial - ${fechaFormateada}`;
+        garantiaUpdate = `Garantía oficial con vencimiento (${fechaFormateada})`;
       }
 
       const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
@@ -235,7 +235,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         color: '',
         bateria: '',
         duracion: '',
-        garantia_update: '6 meses',
+        garantia_update: '3 meses',
         garantia_oficial: '',
         garantia_oficial_fecha: '',
         fallas: 'Ninguna',
@@ -265,17 +265,18 @@ const FormularioNotebook = ({ onAdd, loading }) => {
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Sección: Información Básica */}
+          {/* Sección: Información del Equipo */}
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
               <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información Básica
+              Información del Equipo
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
+              {/* SERIAL */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Número de Serie *
+                  Serial *
                 </label>
                 <input
                   type="text"
@@ -288,35 +289,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Modelo *
-                </label>
-                <input
-                  type="text"
-                  name="modelo"
-                  value={formData.modelo}
-                  onChange={handleChange}
-                  placeholder="Ej: ThinkPad X1 Carbon"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Marca
-                </label>
-                <input
-                  type="text"
-                  name="marca"
-                  value={formData.marca}
-                  onChange={handleChange}
-                  placeholder="Ej: Lenovo, HP, Dell"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
+              {/* CATEGORIA */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Categoría *
@@ -336,20 +309,22 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 </select>
               </div>
 
+              {/* MARCA */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fecha de Ingreso *
+                  Marca
                 </label>
                 <input
-                  type="date"
-                  name="ingreso"
-                  value={formData.ingreso}
+                  type="text"
+                  name="marca"
+                  value={formData.marca}
                   onChange={handleChange}
+                  placeholder="Ej: Lenovo, HP, Dell"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
                 />
               </div>
 
+              {/* CONDICION */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Condición
@@ -368,25 +343,38 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 </select>
               </div>
 
+              {/* MODELO */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Sucursal
+                  Modelo *
                 </label>
-                <select
-                  name="sucursal"
-                  value={formData.sucursal}
+                <input
+                  type="text"
+                  name="modelo"
+                  value={formData.modelo}
                   onChange={handleChange}
+                  placeholder="Ej: ThinkPad X1 Carbon"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  {UBICACIONES_ARRAY.map(ubicacion => (
-                    <option key={ubicacion} value={ubicacion}>
-                      {UBICACIONES_LABELS[ubicacion]}
-                    </option>
-                  ))}
-                </select>
+                  required
+                />
               </div>
 
-              {/* Solo mostrar Estado Estético si NO es nuevo */}
+              {/* COLOR */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Color
+                </label>
+                <input
+                  type="text"
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  placeholder="Ej: Negro, Plata, Gris"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+              </div>
+
+              {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo */}
               {formData.condicion !== CONDICIONES.NUEVO && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -408,16 +396,333 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 </div>
               )}
             </div>
+
+            {/* ESPECIFICACIONES TÉCNICAS */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h5 className="text-sm font-semibold text-slate-700 mb-4">Especificaciones Técnicas</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
+                  <input
+                    type="text"
+                    name="procesador"
+                    value={formData.procesador}
+                    onChange={handleChange}
+                    placeholder="Ej: Intel i5-12400H"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+                  <input
+                    type="text"
+                    name="ram"
+                    value={formData.ram}
+                    onChange={handleChange}
+                    placeholder="Ej: 8GB, 16GB, 32GB"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de RAM</label>
+                  <select
+                    name="tipo_ram"
+                    value={formData.tipo_ram}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="DDR3">DDR3</option>
+                    <option value="DDR4">DDR4</option>
+                    <option value="DDR5">DDR5</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Slots RAM</label>
+                  <input
+                    type="number"
+                    name="slots"
+                    value={formData.slots}
+                    onChange={handleChange}
+                    placeholder="Ej: 2"
+                    min="1"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+                  <input
+                    type="text"
+                    name="ssd"
+                    value={formData.ssd}
+                    onChange={handleChange}
+                    placeholder="Ej: 256GB, 512GB, 1TB"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+                  <input
+                    type="text"
+                    name="hdd"
+                    value={formData.hdd}
+                    onChange={handleChange}
+                    placeholder="Ej: 1TB, 2TB o vacío si no tiene"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Sistema Operativo</label>
+                  <select
+                    name="so"
+                    value={formData.so}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="WIN11">Windows 11</option>
+                    <option value="WIN10">Windows 10</option>
+                    <option value="Linux">Linux</option>
+                    <option value="macOS">macOS</option>
+                    <option value="Sin SO">Sin SO</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Placa de Video</label>
+                  <input
+                    type="text"
+                    name="placa_video"
+                    value={formData.placa_video}
+                    onChange={handleChange}
+                    placeholder="Ej: RTX 4060, Integrada"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">VRAM</label>
+                  <input
+                    type="text"
+                    name="vram"
+                    value={formData.vram}
+                    onChange={handleChange}
+                    placeholder="Ej: 4GB, 8GB, 16GB"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla</label>
+                  <input
+                    type="text"
+                    name="pantalla"
+                    value={formData.pantalla}
+                    onChange={handleChange}
+                    placeholder="Ej: 15.6 pulgadas"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
+                  <select
+                    name="resolucion"
+                    value={formData.resolucion}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Seleccionar resolución</option>
+                    {RESOLUCIONES_ARRAY.map(resolucion => (
+                      <option key={resolucion} value={resolucion}>
+                        {RESOLUCIONES_LABELS[resolucion]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Refresh Rate</label>
+                  <input
+                    type="text"
+                    name="refresh"
+                    value={formData.refresh}
+                    onChange={handleChange}
+                    placeholder="Ej: 60Hz, 120Hz"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Teclado Retroiluminado</label>
+                  <select
+                    name="teclado_retro"
+                    value={formData.teclado_retro}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="SI">Sí</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Idioma del Teclado</label>
+                  <select
+                    name="idioma_teclado"
+                    value={formData.idioma_teclado}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="Español">Español</option>
+                    <option value="Inglés">Inglés</option>
+                    <option value="Internacional">Internacional</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2 pt-6">
+                  <input
+                    type="checkbox"
+                    id="touchscreen"
+                    name="touchscreen"
+                    checked={formData.touchscreen}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                  />
+                  <label htmlFor="touchscreen" className="text-sm font-medium text-slate-700">
+                    Pantalla Táctil
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* INFORMACIÓN DE BATERÍA - Solo mostrar si NO es nuevo */}
+            {formData.condicion !== CONDICIONES.NUEVO && (
+              <div className="mt-6 pt-4 border-t border-slate-200">
+                <h5 className="text-sm font-semibold text-slate-700 mb-4">Información de Batería</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Batería</label>
+                    <input
+                      type="text"
+                      name="bateria"
+                      value={formData.bateria}
+                      onChange={handleChange}
+                      placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Duración de Batería</label>
+                    <input
+                      type="text"
+                      name="duracion"
+                      value={formData.duracion}
+                      onChange={handleChange}
+                      placeholder="Ej: 6-8 horas, 10 horas"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* GARANTÍAS Y OBSERVACIONES */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                  <select
+                    name="garantia_update"
+                    value={formData.garantia_update}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="1 mes">1 mes</option>
+                    <option value="3 meses">3 meses</option>
+                    <option value="6 meses">6 meses</option>
+                    <option value="12 meses">12 meses</option>
+                    <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+                    <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+                    <option value="Sin garantía">Sin garantía</option>
+                  </select>
+                </div>
+
+                {formData.garantia_update === 'Garantía oficial con vencimiento' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Fecha de vencimiento
+                    </label>
+                    <input
+                      type="date"
+                      name="garantia_oficial_fecha"
+                      value={formData.garantia_oficial_fecha}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                )}
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                  <textarea
+                    name="fallas"
+                    value={formData.fallas}
+                    onChange={handleChange}
+                    placeholder="Ej: Ninguna, batería agotada, tecla space pegajosa, etc."
+                    rows={3}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Resto del formulario permanece igual... */}
           {/* Sección: Información Comercial */}
           <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
             <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
               <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
               Información Comercial
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Sucursal
+                </label>
+                <select
+                  name="sucursal"
+                  value={formData.sucursal}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                >
+                  {UBICACIONES_ARRAY.map(ubicacion => (
+                    <option key={ubicacion} value={ubicacion}>
+                      {UBICACIONES_LABELS[ubicacion]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Fecha de Ingreso *
+                </label>
+                <input
+                  type="date"
+                  name="ingreso"
+                  value={formData.ingreso}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -490,377 +795,6 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             </div>
           </div>
 
-          {/* Sección: Especificaciones Técnicas */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Especificaciones Técnicas
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Procesador
-                </label>
-                <input
-                  type="text"
-                  name="procesador"
-                  value={formData.procesador}
-                  onChange={handleChange}
-                  placeholder="Ej: Intel i5-12400H, AMD Ryzen 5"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Memoria RAM
-                </label>
-                <input
-                  type="text"
-                  name="ram"
-                  value={formData.ram}
-                  onChange={handleChange}
-                  placeholder="Ej: 8GB, 16GB, 32GB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Slots RAM
-                </label>
-                <input
-                  type="number"
-                  name="slots"
-                  value={formData.slots}
-                  onChange={handleChange}
-                  placeholder="Ej: 2"
-                  min="1"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tipo de RAM
-                </label>
-                <select
-                  name="tipo_ram"
-                  value={formData.tipo_ram}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="DDR3">DDR3</option>
-                  <option value="DDR4">DDR4</option>
-                  <option value="DDR5">DDR5</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  SSD
-                </label>
-                <input
-                  type="text"
-                  name="ssd"
-                  value={formData.ssd}
-                  onChange={handleChange}
-                  placeholder="Ej: 256GB, 512GB, 1TB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  HDD
-                </label>
-                <input
-                  type="text"
-                  name="hdd"
-                  value={formData.hdd}
-                  onChange={handleChange}
-                  placeholder="Ej: 1TB, 2TB o vacío si no tiene"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Sistema Operativo
-                </label>
-                <select
-                  name="so"
-                  value={formData.so}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="WIN11">Windows 11</option>
-                  <option value="WIN10">Windows 10</option>
-                  <option value="Linux">Linux</option>
-                  <option value="macOS">macOS</option>
-                  <option value="Sin SO">Sin SO</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Placa de Video
-                </label>
-                <input
-                  type="text"
-                  name="placa_video"
-                  value={formData.placa_video}
-                  onChange={handleChange}
-                  placeholder="Ej: RTX 4060, GTX 1650, Integrada"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  VRAM
-                </label>
-                <input
-                  type="text"
-                  name="vram"
-                  value={formData.vram}
-                  onChange={handleChange}
-                  placeholder="Ej: 4GB, 8GB, 16GB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sección: Pantalla y Características */}
-          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-purple-600 rounded-full mr-3"></div>
-              Pantalla y Características
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tamaño de Pantalla
-                </label>
-                <input
-                  type="text"
-                  name="pantalla"
-                  value={formData.pantalla}
-                  onChange={handleChange}
-                  placeholder="Ej: 15.6 pulgadas, 14 pulgadas"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Resolución
-                </label>
-                <select
-                  name="resolucion"
-                  value={formData.resolucion}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="">Seleccionar resolución</option>
-                  {RESOLUCIONES_ARRAY.map(resolucion => (
-                    <option key={resolucion} value={resolucion}>
-                      {RESOLUCIONES_LABELS[resolucion]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Refresh Rate
-                </label>
-                <input
-                  type="text"
-                  name="refresh"
-                  value={formData.refresh}
-                  onChange={handleChange}
-                  placeholder="Ej: 60Hz, 120Hz, 144Hz"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2 pt-6">
-                <input
-                  type="checkbox"
-                  id="touchscreen"
-                  name="touchscreen"
-                  checked={formData.touchscreen}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
-                />
-                <label htmlFor="touchscreen" className="text-sm font-medium text-slate-700">
-                  Pantalla Táctil
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Sección: Teclado y Características Físicas */}
-          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-orange-600 rounded-full mr-3"></div>
-              Teclado y Características Físicas
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Teclado Retroiluminado
-                </label>
-                <select
-                  name="teclado_retro"
-                  value={formData.teclado_retro}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="SI">Sí</option>
-                  <option value="NO">No</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Idioma del Teclado
-                </label>
-                <select
-                  name="idioma_teclado"
-                  value={formData.idioma_teclado}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="Español">Español</option>
-                  <option value="Inglés">Inglés</option>
-                  <option value="Internacional">Internacional</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Color
-                </label>
-                <input
-                  type="text"
-                  name="color"
-                  value={formData.color}
-                  onChange={handleChange}
-                  placeholder="Ej: Negro, Plata, Gris"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sección: Batería */}
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            {/* Solo mostrar Información de Batería si NO es nuevo */}
-            {formData.condicion !== CONDICIONES.NUEVO && (
-              <>
-                <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
-                  Información de Batería
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Tipo de Batería
-                    </label>
-                    <input
-                      type="text"
-                      name="bateria"
-                      value={formData.bateria}
-                      onChange={handleChange}
-                      placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Duración de Batería
-                    </label>
-                    <input
-                      type="text"
-                      name="duracion"
-                      value={formData.duracion}
-                      onChange={handleChange}
-                      placeholder="Ej: 6-8 horas, 10 horas"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Sección: Garantía y Estado Técnico */}
-          <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
-              Garantía y Estado Técnico
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Update
-                </label>
-                <select
-                  name="garantia_update"
-                  value={formData.garantia_update}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="3 meses">3 meses</option>
-                  <option value="6 meses">6 meses</option>
-                  <option value="12 meses">12 meses</option>
-                  <option value="24 meses">24 meses</option>
-                  <option value="Sin garantía">Sin garantía</option>
-                  <option value="Garantía oficial">Garantía oficial</option>
-                </select>
-              </div>
-
-              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
-              {formData.garantia_update === 'Garantía oficial' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Fecha de vencimiento
-                  </label>
-                  <input
-                    type="date"
-                    name="garantia_oficial_fecha"
-                    value={formData.garantia_oficial_fecha}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  />
-                </div>
-              )}
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Observaciones
-                </label>
-                <textarea
-                  name="fallas"
-                  value={formData.fallas}
-                  onChange={handleChange}
-                  placeholder="Ej: Ninguna, batería agotada, tecla space pegajosa, etc."
-                  rows={3}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Sección: Fotos */}
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
@@ -916,23 +850,29 @@ const FormularioCelular = ({ onAdd, loading }) => {
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios según tabla celulares
     serial: '',
-    condicion: CONDICIONES.NUEVO,
-
-    // Campos opcionales
-    modelo: '',
-    marca: '',
     categoria: CATEGORIAS_CELULARES.ANDROID, // Categoría por defecto
+    marca: '',
+    condicion: CONDICIONES.NUEVO,
+    modelo: '',
+    capacidad: '',
+    color: '',
+    sim_esim: 'SIM', // Nueva opción SIM/ESIM
+    estado: null, // null por defecto cuando es nuevo
+
+    // Información específica del dispositivo
+    bateria: '', // Solo porcentaje, ej: "85%"
+    ciclos: '', // Integer opcional
+    ram: '', // Memoria RAM (mostrada solo si es ANDROID)
+
+    // Información comercial
     sucursal: UBICACIONES.LA_PLATA,
     precio_compra_usd: '',
     costos_adicionales: '0',
     precio_venta_usd: '',
-    capacidad: '',
-    color: '',
-    estado: null, // null por defecto cuando es nuevo
-    bateria: '', // Solo porcentaje, ej: "85%"
-    ciclos: '', // Integer opcional
+
+    // Garantía y observaciones
     garantia: '3 meses',
-    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
+    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial con vencimiento"
     fallas: 'Ninguna',
     fotos: '',
 
@@ -969,9 +909,9 @@ const FormularioCelular = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
-      // Formatear garantía oficial si está seleccionada
+      // Formatear garantía oficial con vencimiento si está seleccionada
       let garantia = formData.garantia;
-      if (formData.garantia === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+      if (formData.garantia === 'Garantía oficial con vencimiento' && formData.garantia_oficial_fecha) {
         const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
         const fechaFormateada = fecha.toLocaleDateString('es-AR', {
           day: '2-digit',
@@ -979,7 +919,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
           year: 'numeric',
           timeZone: 'America/Argentina/Buenos_Aires'
         });
-        garantia = `Oficial - ${fechaFormateada}`;
+        garantia = `Garantía oficial con vencimiento (${fechaFormateada})`;
       }
 
       const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
@@ -994,6 +934,9 @@ const FormularioCelular = ({ onAdd, loading }) => {
         // Convertir precios a numeric
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || null,
         precio_venta_usd: parseFloat(formData.precio_venta_usd) || null,
+        // Incluir RAM y SIM/eSIM si existen
+        ram: formData.ram || null,
+        sim_esim: formData.sim_esim || null,
         fotos: formData.fotos
       };
 
@@ -1002,19 +945,21 @@ const FormularioCelular = ({ onAdd, loading }) => {
       // Reset form
       setFormData({
         serial: '',
+        categoria: CATEGORIAS_CELULARES.ANDROID,
+        marca: '',
         condicion: CONDICIONES.NUEVO,
         modelo: '',
-        marca: '',
-        categoria: CATEGORIAS_CELULARES.ANDROID,
+        capacidad: '',
+        color: '',
+        sim_esim: 'SIM',
+        estado: null,
+        bateria: '',
+        ciclos: '',
+        ram: '',
         sucursal: UBICACIONES.LA_PLATA,
         precio_compra_usd: '',
         costos_adicionales: '0',
         precio_venta_usd: '',
-        capacidad: '',
-        color: '',
-        estado: null, // null por defecto cuando es nuevo
-        bateria: '',
-        ciclos: '',
         garantia: '3 meses',
         garantia_oficial_fecha: '',
         fallas: 'Ninguna',
@@ -1044,17 +989,18 @@ const FormularioCelular = ({ onAdd, loading }) => {
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Sección: Información Básica */}
+          {/* Sección: Información del Equipo */}
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
               <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información Básica
+              Información del Equipo
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
+              {/* SERIAL */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Número de Serie *
+                  Serial *
                 </label>
                 <input
                   type="text"
@@ -1067,35 +1013,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Modelo *
-                </label>
-                <input
-                  type="text"
-                  name="modelo"
-                  value={formData.modelo}
-                  onChange={handleChange}
-                  placeholder="Ej: iPhone 14 Pro"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Marca
-                </label>
-                <input
-                  type="text"
-                  name="marca"
-                  value={formData.marca}
-                  onChange={handleChange}
-                  placeholder="Ej: Apple, Samsung"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
+              {/* CATEGORIA */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Categoría *
@@ -1115,20 +1033,22 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 </select>
               </div>
 
+              {/* MARCA */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fecha de Ingreso *
+                  Marca
                 </label>
                 <input
-                  type="date"
-                  name="ingreso"
-                  value={formData.ingreso}
+                  type="text"
+                  name="marca"
+                  value={formData.marca}
                   onChange={handleChange}
+                  placeholder="Ej: Apple, Samsung"
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
                 />
               </div>
 
+              {/* CONDICION */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Condición
@@ -1146,6 +1066,216 @@ const FormularioCelular = ({ onAdd, loading }) => {
                   ))}
                 </select>
               </div>
+
+              {/* MODELO */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Modelo *
+                </label>
+                <input
+                  type="text"
+                  name="modelo"
+                  value={formData.modelo}
+                  onChange={handleChange}
+                  placeholder="Ej: iPhone 14 Pro"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                />
+              </div>
+
+              {/* ALMACENAMIENTO */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Almacenamiento
+                </label>
+                <input
+                  type="text"
+                  name="capacidad"
+                  value={formData.capacidad}
+                  onChange={handleChange}
+                  placeholder="Ej: 128GB, 256GB, 1TB"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+              </div>
+
+              {/* COLOR */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Color
+                </label>
+                <input
+                  type="text"
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  placeholder="Ej: Negro, Blanco, Azul"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                />
+              </div>
+
+              {/* SIM/ESIM */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tipo de SIM
+                </label>
+                <select
+                  name="sim_esim"
+                  value={formData.sim_esim}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                >
+                  <option value="SIM">SIM Físico</option>
+                  <option value="ESIM">eSIM</option>
+                  <option value="Dual">Dual (SIM + eSIM)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ESPECIFICACIONES - Solo mostrar campos si NO es nuevo */}
+            {(formData.condicion !== CONDICIONES.NUEVO || formData.categoria === CATEGORIAS_CELULARES.ANDROID) && (
+              <div className="mt-6 pt-4 border-t border-slate-200">
+                <h5 className="text-sm font-semibold text-slate-700 mb-4">Especificaciones</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo */}
+                  {formData.condicion !== CONDICIONES.NUEVO && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Estado Estético
+                      </label>
+                      <select
+                        name="estado"
+                        value={formData.estado || ''}
+                        onChange={handleChange}
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      >
+                        <option value="">Seleccionar...</option>
+                        {ESTADOS_ARRAY.map(estado => (
+                          <option key={estado} value={estado}>
+                            {ESTADOS_LABELS[estado]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* BATERIA - Solo mostrar si NO es nuevo */}
+                  {formData.condicion !== CONDICIONES.NUEVO && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Estado de Batería
+                      </label>
+                      <input
+                        type="text"
+                        name="bateria"
+                        value={formData.bateria}
+                        onChange={handleChange}
+                        placeholder="Ej: 85%, 92%"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      />
+                    </div>
+                  )}
+
+                  {/* CICLOS DE BATERIA - Solo mostrar si NO es nuevo */}
+                  {formData.condicion !== CONDICIONES.NUEVO && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Ciclos de Batería
+                      </label>
+                      <input
+                        type="number"
+                        name="ciclos"
+                        value={formData.ciclos}
+                        onChange={handleChange}
+                        placeholder="Ej: 150, 300"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      />
+                    </div>
+                  )}
+
+                  {/* MEMORIA RAM - Solo mostrar si es ANDROID */}
+                  {formData.categoria === CATEGORIAS_CELULARES.ANDROID && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Memoria RAM
+                      </label>
+                      <input
+                        type="text"
+                        name="ram"
+                        value={formData.ram}
+                        onChange={handleChange}
+                        placeholder="Ej: 4GB, 6GB, 8GB, 12GB"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* GARANTÍA Y OBSERVACIONES */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Garantía
+                  </label>
+                  <select
+                    name="garantia"
+                    value={formData.garantia}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="1 mes">1 mes</option>
+                    <option value="3 meses">3 meses</option>
+                    <option value="6 meses">6 meses</option>
+                    <option value="12 meses">12 meses</option>
+                    <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+                    <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+                    <option value="Sin garantía">Sin garantía</option>
+                  </select>
+                </div>
+
+                {/* Mostrar selector de fecha si se selecciona "Garantía oficial con vencimiento" */}
+                {formData.garantia === 'Garantía oficial con vencimiento' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Fecha de vencimiento
+                    </label>
+                    <input
+                      type="date"
+                      name="garantia_oficial_fecha"
+                      value={formData.garantia_oficial_fecha}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                )}
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Observaciones
+                  </label>
+                  <textarea
+                    name="fallas"
+                    value={formData.fallas}
+                    onChange={handleChange}
+                    placeholder="Ej: Ninguna, pantalla con rayones menores, etc."
+                    rows={3}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sección: Información Comercial (Precios) */}
+          <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+              <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
+              Información Comercial
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1165,37 +1295,19 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 </select>
               </div>
 
-              {/* Solo mostrar Estado Estético si NO es nuevo */}
-              {formData.condicion !== CONDICIONES.NUEVO && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Estado Estético
-                  </label>
-                  <select
-                    name="estado"
-                    value={formData.estado || ''}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {ESTADOS_ARRAY.map(estado => (
-                      <option key={estado} value={estado}>
-                        {ESTADOS_LABELS[estado]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sección: Información Comercial */}
-          <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información Comercial
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Fecha de Ingreso *
+                </label>
+                <input
+                  type="date"
+                  name="ingreso"
+                  value={formData.ingreso}
+                  onChange={handleChange}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  required
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1268,136 +1380,6 @@ const FormularioCelular = ({ onAdd, loading }) => {
             </div>
           </div>
 
-          {/* Sección: Especificaciones del Dispositivo */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Especificaciones del Dispositivo
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Capacidad de Almacenamiento
-                </label>
-                <input
-                  type="text"
-                  name="capacidad"
-                  value={formData.capacidad}
-                  onChange={handleChange}
-                  placeholder="Ej: 128GB, 256GB, 1TB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Color
-                </label>
-                <input
-                  type="text"
-                  name="color"
-                  value={formData.color}
-                  onChange={handleChange}
-                  placeholder="Ej: Negro, Blanco, Azul"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-
-              {/* Solo mostrar campos de batería si NO es nuevo */}
-              {formData.condicion !== CONDICIONES.NUEVO && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Estado de Batería
-                    </label>
-                    <input
-                      type="text"
-                      name="bateria"
-                      value={formData.bateria}
-                      onChange={handleChange}
-                      placeholder="Ej: 85%, 92%"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Ciclos de Batería
-                    </label>
-                    <input
-                      type="number"
-                      name="ciclos"
-                      value={formData.ciclos}
-                      onChange={handleChange}
-                      placeholder="Ej: 150, 300"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Sección: Garantía y Fallas */}
-          <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
-              Garantía y Estado Técnico
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Update
-                </label>
-                <select
-                  name="garantia"
-                  value={formData.garantia}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="1 mes">1 mes</option>
-                  <option value="3 meses">3 meses</option>
-                  <option value="6 meses">6 meses</option>
-                  <option value="12 meses">12 meses</option>
-                  <option value="Sin garantía">Sin garantía</option>
-                  <option value="Garantía oficial">Garantía oficial</option>
-                </select>
-              </div>
-
-              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
-              {formData.garantia === 'Garantía oficial' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Fecha de vencimiento
-                  </label>
-                  <input
-                    type="date"
-                    name="garantia_oficial_fecha"
-                    value={formData.garantia_oficial_fecha}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  />
-                </div>
-              )}
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Observaciones
-                </label>
-                <textarea
-                  name="fallas"
-                  value={formData.fallas}
-                  onChange={handleChange}
-                  placeholder="Ej: Ninguna, pantalla con rayones menores, etc."
-                  rows={3}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Sección: Fotos */}
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
@@ -1456,9 +1438,12 @@ const FormularioOtro = ({ onAdd, loading }) => {
     descripcion: '',
     categoria: '',
     marca: '',
+    modelo: '',
+    color: '',
 
     // Condición del producto
     condicion: CONDICIONES.NUEVO,
+    estado: null,
 
     // Precios
     precio_compra_usd: '',
@@ -1474,9 +1459,18 @@ const FormularioOtro = ({ onAdd, loading }) => {
     // Serial opcional (solo para productos únicos)
     serial: '',
 
+    // Especificaciones para DESKTOP
+    motherboard: '',
+    memoria: '',
+    gpu: '',
+    ssd: '',
+    hdd: '',
+    gabinete: '',
+    fuente: '',
+
     // Garantía y observaciones
     garantia: '3 meses',
-    garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial"
+    garantia_oficial_fecha: '',
     observaciones: '',
     fotos: '',
 
@@ -1485,6 +1479,9 @@ const FormularioOtro = ({ onAdd, loading }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Determinar si es Desktop
+  const isDesktop = formData.categoria === CATEGORIAS_OTROS.DESKTOP;
 
   // Usar constantes centralizadas en lugar de hardcodear y ordenar alfabéticamente
   const opcionesCategorias = CATEGORIAS_OTROS_ARRAY
@@ -1496,18 +1493,28 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+    let updatedData = {
       ...formData,
       [name]: value
-    });
+    };
+
+    setFormData(updatedData);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.nombre_producto.trim()) {
-      alert('El nombre del producto es obligatorio');
-      return;
+    // Para Desktop, validar modelo; para otros, validar nombre_producto
+    if (isDesktop) {
+      if (!formData.modelo.trim()) {
+        alert('El modelo es obligatorio');
+        return;
+      }
+    } else {
+      if (!formData.nombre_producto.trim()) {
+        alert('El nombre del producto es obligatorio');
+        return;
+      }
     }
 
     if (!formData.categoria) {
@@ -1540,9 +1547,9 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
     setIsSubmitting(true);
     try {
-      // Formatear garantía oficial si está seleccionada
+      // Formatear garantía oficial con vencimiento si está seleccionada
       let garantia = formData.garantia;
-      if (formData.garantia === 'Garantía oficial' && formData.garantia_oficial_fecha) {
+      if (formData.garantia === 'Garantía oficial con vencimiento' && formData.garantia_oficial_fecha) {
         const fecha = new Date(formData.garantia_oficial_fecha + 'T00:00:00');
         const fechaFormateada = fecha.toLocaleDateString('es-AR', {
           day: '2-digit',
@@ -1550,13 +1557,36 @@ const FormularioOtro = ({ onAdd, loading }) => {
           year: 'numeric',
           timeZone: 'America/Argentina/Buenos_Aires'
         });
-        garantia = `Oficial - ${fechaFormateada}`;
+        garantia = `Garantía oficial con vencimiento (${fechaFormateada})`;
       }
 
-      const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
+      // Si es Desktop, concatenar especificaciones en descripcion
+      let descripcion = formData.descripcion;
+      if (formData.categoria === CATEGORIAS_OTROS.DESKTOP) {
+        const specs = [
+          formData.motherboard && `Motherboard: ${formData.motherboard}`,
+          formData.memoria && `Memoria: ${formData.memoria}`,
+          formData.gpu && `GPU: ${formData.gpu}`,
+          formData.ssd && `SSD: ${formData.ssd}`,
+          formData.hdd && `HDD: ${formData.hdd}`,
+          formData.gabinete && `Gabinete: ${formData.gabinete}`,
+          formData.fuente && `Fuente: ${formData.fuente}`
+        ].filter(Boolean);
+
+        if (specs.length > 0) {
+          descripcion = specs.join(' - ');
+          if (formData.descripcion?.trim()) {
+            descripcion = `${formData.descripcion} - ${descripcion}`;
+          }
+        }
+      }
+
+      const { garantia_oficial_fecha, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, ...dataRest } = formData; // Excluir campos especiales de Desktop
 
       const dataToSubmit = {
         ...dataRest,
+        nombre_producto: isDesktop ? formData.modelo : formData.nombre_producto,
+        descripcion: descripcion,
         garantia: garantia,
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
         cantidad_mitre: parseInt(formData.cantidad_mitre) || 0,
@@ -1575,13 +1605,23 @@ const FormularioOtro = ({ onAdd, loading }) => {
         descripcion: '',
         categoria: '',
         marca: '',
+        modelo: '',
+        color: '',
         condicion: CONDICIONES.NUEVO,
+        estado: null,
         precio_compra_usd: '',
         precio_venta_usd: '',
         costos_adicionales: '0',
         cantidad_la_plata: 0,
         cantidad_mitre: 0,
         serial: '',
+        motherboard: '',
+        memoria: '',
+        gpu: '',
+        ssd: '',
+        hdd: '',
+        gabinete: '',
+        fuente: '',
         garantia: '3 meses',
         garantia_oficial_fecha: '',
         observaciones: '',
@@ -1597,71 +1637,272 @@ const FormularioOtro = ({ onAdd, loading }) => {
     }
   };
 
+  // Determinar título y descripción basado en categoría
+  const titulo = isDesktop ? 'Nuevo Desktop' : 'Nuevo Producto';
+  const descripcion = isDesktop ? 'Complete la información de la computadora de escritorio' : 'Complete la información del producto';
+
   return (
     <div className="bg-white rounded border border-slate-200 overflow-hidden">
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
         <div className="flex items-center space-x-3">
           <Box className="w-5 h-5 text-white" />
-          <h3 className="text-lg font-semibold text-white">Nuevo Producto</h3>
+          <h3 className="text-lg font-semibold text-white">{titulo}</h3>
         </div>
-        <p className="text-slate-300 text-xs mt-1">Complete la información del producto</p>
+        <p className="text-slate-300 text-xs mt-1">{descripcion}</p>
       </div>
 
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Información básica */}
-          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información del Producto
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Nombre del Producto *
-                </label>
-                <input
-                  type="text"
-                  name="nombre_producto"
-                  value={formData.nombre_producto}
-                  onChange={handleChange}
-                  placeholder="Ej: Mouse Logitech MX Master 3"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                />
-              </div>
+          {/* Información básica - DESKTOP */}
+          {isDesktop ? (
+            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
+                Información del Equipo
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Serial *</label>
+                  <input
+                    type="text"
+                    name="serial"
+                    value={formData.serial}
+                    onChange={handleChange}
+                    placeholder="Ej: SN123456"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Categoría *
-                </label>
-                <select
-                  name="categoria"
-                  value={formData.categoria}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                >
-                  <option value="">Seleccionar...</option>
-                  {opcionesCategorias.map(cat => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                  <select
+                    name="categoria"
+                    value={formData.categoria}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  >
+                    <option value="">Seleccionar...</option>
+                    {opcionesCategorias.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Marca
-                </label>
-                <input
-                  type="text"
-                  name="marca"
-                  value={formData.marca}
-                  onChange={handleChange}
-                  placeholder="Ej: Logitech, Samsung, HP..."
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                  <input
+                    type="text"
+                    name="marca"
+                    value={formData.marca}
+                    onChange={handleChange}
+                    placeholder="Ej: HP, Dell, Lenovo"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
+                  <select
+                    name="condicion"
+                    value={formData.condicion}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  >
+                    {CONDICIONES_ARRAY.map(condicion => (
+                      <option key={condicion} value={condicion}>
+                        {CONDICIONES_LABELS[condicion]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                  <input
+                    type="text"
+                    name="modelo"
+                    value={formData.modelo}
+                    onChange={handleChange}
+                    placeholder="Ej: Pavilion 15"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Motherboard</label>
+                  <input
+                    type="text"
+                    name="motherboard"
+                    value={formData.motherboard}
+                    onChange={handleChange}
+                    placeholder="Ej: ASUS ROG STRIX B550"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+                  <input
+                    type="text"
+                    name="memoria"
+                    value={formData.memoria}
+                    onChange={handleChange}
+                    placeholder="Ej: 16GB DDR4"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">GPU/Tarjeta Gráfica</label>
+                  <input
+                    type="text"
+                    name="gpu"
+                    value={formData.gpu}
+                    onChange={handleChange}
+                    placeholder="Ej: RTX 3060 Ti, Integrada"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+                  <input
+                    type="text"
+                    name="ssd"
+                    value={formData.ssd}
+                    onChange={handleChange}
+                    placeholder="Ej: 500GB NVMe"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+                  <input
+                    type="text"
+                    name="hdd"
+                    value={formData.hdd}
+                    onChange={handleChange}
+                    placeholder="Ej: 1TB, Sin HDD"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Gabinete</label>
+                  <input
+                    type="text"
+                    name="gabinete"
+                    value={formData.gabinete}
+                    onChange={handleChange}
+                    placeholder="Ej: NZXT H510 Flow"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Fuente de Poder</label>
+                  <input
+                    type="text"
+                    name="fuente"
+                    value={formData.fuente}
+                    onChange={handleChange}
+                    placeholder="Ej: 650W Modular"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
+                  <input
+                    type="date"
+                    name="ingreso"
+                    value={formData.ingreso}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+
+                {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo */}
+                {formData.condicion !== CONDICIONES.NUEVO && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
+                    <select
+                      name="estado"
+                      value={formData.estado || ''}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    >
+                      <option value="">Seleccionar...</option>
+                      {ESTADOS_ARRAY.map(estado => (
+                        <option key={estado} value={estado}>
+                          {ESTADOS_LABELS[estado]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
+            </div>
+          ) : (
+            // Formulario genérico para otros productos
+            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
+                Información del Producto
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Nombre del Producto *
+                  </label>
+                  <input
+                    type="text"
+                    name="nombre_producto"
+                    value={formData.nombre_producto}
+                    onChange={handleChange}
+                    placeholder="Ej: Mouse Logitech MX Master 3"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Categoría *
+                  </label>
+                  <select
+                    name="categoria"
+                    value={formData.categoria}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  >
+                    <option value="">Seleccionar...</option>
+                    {opcionesCategorias.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Marca
+                  </label>
+                  <input
+                    type="text"
+                    name="marca"
+                    value={formData.marca}
+                    onChange={handleChange}
+                    placeholder="Ej: Logitech, Samsung, HP..."
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1713,19 +1954,76 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
               <div className="md:col-span-2 lg:col-span-3">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Serial/Descripción
+                  Descripción del Producto
                 </label>
                 <textarea
                   name="descripcion"
                   value={formData.descripcion}
                   onChange={handleChange}
-                  placeholder="Serial del producto o descripción adicional..."
+                  placeholder="Descripción adicional del producto..."
                   rows={2}
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
             </div>
+
+            {/* GARANTÍA Y OBSERVACIONES - Subsección separada */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Garantía
+                  </label>
+                  <select
+                    name="garantia"
+                    value={formData.garantia}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="1 mes">1 mes</option>
+                    <option value="3 meses">3 meses</option>
+                    <option value="6 meses">6 meses</option>
+                    <option value="12 meses">12 meses</option>
+                    <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+                    <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+                    <option value="Sin garantía">Sin garantía</option>
+                  </select>
+                </div>
+
+                {/* Mostrar selector de fecha si se selecciona "Garantía oficial con vencimiento" */}
+                {formData.garantia === 'Garantía oficial con vencimiento' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Fecha de vencimiento
+                    </label>
+                    <input
+                      type="date"
+                      name="garantia_oficial_fecha"
+                      value={formData.garantia_oficial_fecha}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                )}
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Observaciones
+                  </label>
+                  <textarea
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    placeholder="Comentarios adicionales sobre el producto..."
+                    rows={2}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
+          )}
 
           {/* Inventario por sucursal */}
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
@@ -1840,65 +2138,6 @@ const FormularioOtro = ({ onAdd, loading }) => {
                   disabled
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
                   title="Campo calculado automáticamente"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sección: Garantía */}
-          <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
-              Garantía
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Update
-                </label>
-                <select
-                  name="garantia"
-                  value={formData.garantia}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                >
-                  <option value="1 mes">1 mes</option>
-                  <option value="3 meses">3 meses</option>
-                  <option value="6 meses">6 meses</option>
-                  <option value="12 meses">12 meses</option>
-                  <option value="Sin garantía">Sin garantía</option>
-                  <option value="Garantía oficial">Garantía oficial</option>
-                </select>
-              </div>
-
-              {/* Mostrar selector de fecha si se selecciona "Garantía oficial" */}
-              {formData.garantia === 'Garantía oficial' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Fecha de vencimiento
-                  </label>
-                  <input
-                    type="date"
-                    name="garantia_oficial_fecha"
-                    value={formData.garantia_oficial_fecha}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  />
-                </div>
-              )}
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Observaciones
-                </label>
-                <textarea
-                  name="observaciones"
-                  value={formData.observaciones}
-                  onChange={handleChange}
-                  placeholder="Comentarios adicionales sobre el producto..."
-                  rows={2}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
             </div>

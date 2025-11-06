@@ -2,6 +2,7 @@
 
 // Categorías normalizadas
 export const CATEGORIAS_OTROS = {
+  DESKTOP: 'DESKTOP',
   ACCESORIOS: 'ACCESORIOS',
   MONITORES: 'MONITORES',
   COMPONENTES: 'COMPONENTES',
@@ -27,6 +28,7 @@ export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
 
 // Labels para mostrar en la UI
 export const CATEGORIAS_OTROS_LABELS = {
+  DESKTOP: 'Desktop',
   ACCESORIOS: 'Accesorios',
   MONITORES: 'Monitores',
   COMPONENTES: 'Componentes',

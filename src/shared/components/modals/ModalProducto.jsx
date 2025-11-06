@@ -38,7 +38,7 @@ const CONFIGURACION_PRODUCTOS = {
     tabla: 'celulares',
     titulo: 'Celular/Smartphone',
     camposObligatorios: ['serial', 'condicion'],
-    camposEspecificos: ['capacidad', 'bateria', 'ciclos'],
+    camposEspecificos: ['capacidad', 'bateria', 'ciclos', 'sim_esim', 'ram'],
     mapeoPrecios: {
       precio_compra: 'precio_compra_usd',
       precio_venta: 'precio_venta_usd'
@@ -831,6 +831,31 @@ const ModalProducto = ({
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
               min="0"
               placeholder="Número de ciclos"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de SIM</label>
+            <select
+              value={formData.sim_esim || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, sim_esim: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="">Seleccionar...</option>
+              <option value="SIM">SIM Físico</option>
+              <option value="ESIM">eSIM</option>
+              <option value="Dual">Dual (SIM + eSIM)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+            <input
+              type="text"
+              value={formData.ram || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, ram: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Ej: 4GB, 6GB, 8GB"
             />
           </div>
         </div>

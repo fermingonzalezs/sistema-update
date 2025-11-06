@@ -18,7 +18,8 @@
       "mcp__supabase__list_migrations",
       "Bash(find:*)",
       "mcp__supabase__search_docs",
-      "WebSearch"
+      "WebSearch",
+      "Bash(mcp__supabase__list_migrations)"
     ],
     "deny": [],
     "ask": []
