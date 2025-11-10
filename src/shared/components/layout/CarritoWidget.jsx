@@ -629,7 +629,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     setIsOpen(false);
     setAperturaManual(false);
     setCarritoAnterior([]);
-    setMostrarPantallaGarantias(false);
     setEnviandoGarantias(false);
     setGarantiasEnviadas(false);
     setMensajeGarantias('');
