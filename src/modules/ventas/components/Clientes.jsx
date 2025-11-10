@@ -1,13 +1,13 @@
 // src/components/ClientesSection.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Phone, 
-  Mail, 
+import {
+  Users,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Phone,
+  Mail,
   Calendar,
   MapPin,
   Briefcase,
@@ -15,14 +15,20 @@ import {
 } from 'lucide-react';
 import { useClientes } from '../hooks/useClientes.js';
 import ClienteModal from './ClienteModal';
+import HistorialComprasModal from './HistorialComprasModal';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import CumpleanosProximos from './CumpleanosProximos';
+import { clienteMatchesSearch } from '../utils/stringUtils';
 
 const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [estadisticas, setEstadisticas] = useState(null);
+  const [showHistorialModal, setShowHistorialModal] = useState(false);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [historialCompras, setHistorialCompras] = useState([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
   const {
     clientes,
@@ -34,7 +40,8 @@ const Clientes = () => {
     updateCliente,
     deleteCliente,
     getEstadisticas,
-    getProximosCumpleanosConHistorial
+    getProximosCumpleanosConHistorial,
+    getHistorialCompras
   } = useClientes();
 
   useEffect(() => {
@@ -47,13 +54,10 @@ const Clientes = () => {
     setEstadisticas(stats);
   };
 
-  const handleSearch = async (term) => {
+  const handleSearch = (term) => {
     setSearchTerm(term);
-    if (term.length >= 2) {
-      await searchClientes(term);
-    } else if (term.length === 0) {
-      await fetchClientes();
-    }
+    // Búsqueda client-side con normalización de acentos, espacios y mayúsculas
+    // Usa filtrado local en lugar de backend para mejor manejo de acentos
   };
 
   const handleCreateCliente = async (clienteData) => {
@@ -86,6 +90,27 @@ const Clientes = () => {
         alert('Error al eliminar cliente: ' + error.message);
       }
     }
+  };
+
+  const handleVerHistorial = async (cliente) => {
+    try {
+      setClienteSeleccionado(cliente);
+      setCargandoHistorial(true);
+      const historial = await getHistorialCompras(cliente.id);
+      setHistorialCompras(historial);
+      setShowHistorialModal(true);
+    } catch (error) {
+      console.error('Error cargando historial:', error);
+      alert('Error al cargar el historial de compras');
+    } finally {
+      setCargandoHistorial(false);
+    }
+  };
+
+  const handleCerrarHistorial = () => {
+    setShowHistorialModal(false);
+    setClienteSeleccionado(null);
+    setHistorialCompras([]);
   };
 
   const formatProcedencia = (procedencia) => {
@@ -191,11 +216,15 @@ const Clientes = () => {
           </div>
         ) : (
           <div className="divide-y divide-slate-200">
-            {clientes.map((cliente) => {
+            {clientes.filter(cliente => clienteMatchesSearch(cliente, searchTerm)).map((cliente) => {
               const procedencia = formatProcedencia(cliente.procedencia);
               
               return (
-                <div key={cliente.id} className="p-4 hover:bg-slate-50 transition-colors">
+                <div
+                  key={cliente.id}
+                  className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => handleVerHistorial(cliente)}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
@@ -251,7 +280,8 @@ const Clientes = () => {
 
                     <div className="flex items-center space-x-2 ml-4">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingCliente(cliente);
                           setShowModal(true);
                         }}
@@ -261,7 +291,10 @@ const Clientes = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteCliente(cliente)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCliente(cliente);
+                        }}
                         className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"
                         title="Eliminar cliente"
                       >
@@ -285,6 +318,14 @@ const Clientes = () => {
         }}
         onSave={editingCliente ? handleUpdateCliente : handleCreateCliente}
         cliente={editingCliente}
+      />
+
+      {/* Modal de Historial de Compras */}
+      <HistorialComprasModal
+        isOpen={showHistorialModal}
+        onClose={handleCerrarHistorial}
+        cliente={clienteSeleccionado}
+        compras={historialCompras}
       />
     </div>
   );

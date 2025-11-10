@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Search, User, Plus, Phone, Mail, MapPin, Briefcase } from 'lucide-react';
 import { useClientes } from '../hooks/useClientes.js';
+import { clienteMatchesSearch } from '../utils/stringUtils';
 
 // ✅ MODAL CON PORTAL - Para evitar conflictos de z-index
 const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
@@ -330,33 +331,32 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
     }
   }, [clientes, searchTerm]);
 
-  // Debounce para búsqueda de clientes
+  // Debounce para búsqueda de clientes con normalización (sin acentos, espacios, mayúsculas)
   useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (searchTerm.length >= 2) {
-        setSearchLoading(true);
-        try {
-          const resultados = await searchClientes(searchTerm);
-          setFilteredClientes(resultados);
-        } finally {
-          setSearchLoading(false);
-        }
-      } else if (searchTerm.length === 0) {
+    const handler = setTimeout(() => {
+      if (searchTerm.trim().length === 0) {
         // Mostrar todos los clientes cuando no hay búsqueda
         setFilteredClientes(clientes);
         setSearchLoading(false);
-      } else {
-        // Si tiene 1 carácter, mostrar todos los clientes también
-        setFilteredClientes(clientes);
-        setSearchLoading(false);
+        return;
       }
+
+      setSearchLoading(true);
+
+      // Filtrado client-side con normalización de acentos, espacios y mayúsculas
+      const filtered = clientes.filter(cliente =>
+        clienteMatchesSearch(cliente, searchTerm)
+      );
+
+      setFilteredClientes(filtered);
+      setSearchLoading(false);
     }, 300);
 
     return () => {
       clearTimeout(handler);
       setSearchLoading(false);
     };
-  }, [searchTerm]); // ✅ REMOVIDO searchClientes y clientes de dependencias
+  }, [searchTerm, clientes]);
 
   // ✅ CERRAR DROPDOWN - Sin interferir con el modal
   useEffect(() => {

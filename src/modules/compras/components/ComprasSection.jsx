@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, ShoppingBag, DollarSign, Package, FileText, Calendar, Building2, Laptop, Minus, ChevronDown, ChevronRight, CheckCircle, Truck } from 'lucide-react';
-import { useCompras } from '../hooks/useCompras';
+import { comprasService } from '../services/comprasService';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { supabase } from '../../../lib/supabase';
 
 const ComprasSection = () => {
-  const { compras, loading, error, createCompra, updateCompra, deleteCompra, deleteReciboCompleto } = useCompras();
+  const [compras, setCompras] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [cotizacionDolar, setCotizacionDolar] = useState(1000);
   const [recibosExpandidos, setRecibosExpandidos] = useState({});
@@ -44,21 +46,77 @@ const ComprasSection = () => {
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
   const [filtroProveedor, setFiltroProveedor] = useState('');
 
-  // Cargar cotización al montar el componente
+  // Cargar cotización y compras al montar el componente
   useEffect(() => {
-    const cargarCotizacion = async () => {
+    const cargarDatos = async () => {
       try {
+        setLoading(true);
+        // Cargar cotización
         const cotizacionData = await cotizacionService.obtenerCotizacionActual();
         const valorCotizacion = cotizacionData.valor || cotizacionData.promedio || 1000;
         setCotizacionDolar(valorCotizacion);
         setReciboData(prev => ({ ...prev, cotizacion: valorCotizacion }));
+
+        // Cargar compras desde la tabla antigua (compras)
+        const { data, error: comprasError } = await supabase
+          .from('compras')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (comprasError) throw comprasError;
+        setCompras(data || []);
       } catch (error) {
-        console.error('Error cargando cotización:', error);
+        console.error('Error cargando datos:', error);
+        setError(error.message);
         setCotizacionDolar(1000);
+      } finally {
+        setLoading(false);
       }
     };
-    cargarCotizacion();
+    cargarDatos();
   }, []);
+
+  // Funciones helper para CRUD
+  const createCompra = async (compraData) => {
+    const { data, error } = await supabase
+      .from('compras')
+      .insert([compraData])
+      .select()
+      .single();
+    if (error) throw error;
+    setCompras(prev => [data, ...prev]);
+    return data;
+  };
+
+  const updateCompra = async (id, compraData) => {
+    const { data, error } = await supabase
+      .from('compras')
+      .update({ ...compraData, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    setCompras(prev => prev.map(c => c.id === id ? data : c));
+    return data;
+  };
+
+  const deleteCompra = async (id) => {
+    const { error } = await supabase
+      .from('compras')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    setCompras(prev => prev.filter(c => c.id !== id));
+  };
+
+  const deleteReciboCompleto = async (reciboId) => {
+    const { error } = await supabase
+      .from('compras')
+      .delete()
+      .eq('recibo_id', reciboId);
+    if (error) throw error;
+    setCompras(prev => prev.filter(c => c.recibo_id !== reciboId));
+  };
 
   const limpiarFormulario = () => {
     setReciboData({

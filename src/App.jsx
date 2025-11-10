@@ -44,6 +44,7 @@ import {
   CuentasAuxiliaresSection
 } from './modules/contabilidad/components';
 import ComprasSection from './modules/compras/components/ComprasSection';
+import ComprasNuevaSection from './modules/compras/components/ComprasNuevaSection';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
 import { useInventario } from './modules/ventas/hooks/useInventario';
@@ -540,6 +541,11 @@ const AppContent = () => {
      {/* 🛒 NUEVA SECCIÓN DE COMPRAS */}
      {activeSection === 'compras' && (
        <ComprasSection />
+     )}
+
+     {/* 🛒 SISTEMA NUEVO DE COMPRAS */}
+     {activeSection === 'compras-nueva' && (
+       <ComprasNuevaSection />
      )}
 
      {/* 📊 SECCIONES DE CONTABILIDAD */}

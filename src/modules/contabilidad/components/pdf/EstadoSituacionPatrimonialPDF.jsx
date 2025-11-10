@@ -251,19 +251,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 3,
   },
-  
-  balanceStatus: {
+
+  equationStatus: {
     fontSize: 9,
     fontFamily: 'Roboto',
     textAlign: 'center',
     marginTop: 8,
   },
-  
-  balanceOk: {
+
+  equationStatusOk: {
     color: '#10B981',
   },
-  
-  balanceError: {
+
+  equationStatusError: {
     color: '#DC2626',
   },
   

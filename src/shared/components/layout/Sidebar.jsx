@@ -230,6 +230,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Registro de Compras',
           icon: ShoppingBag,
           description: 'Compras de la empresa'
+        },
+        {
+          id: 'compras-nueva',
+          label: 'Sistema Nuevo',
+          icon: Package,
+          description: 'Recibos con agregación de productos'
         }
       ]
     },

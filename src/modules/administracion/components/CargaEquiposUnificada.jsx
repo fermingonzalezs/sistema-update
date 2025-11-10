@@ -27,7 +27,7 @@ import {
   RESOLUCIONES_LABELS
 } from '../../../shared/constants/resolutionConstants';
 
-const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) => {
+const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, modoCarrito = false }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
 
   const tiposEquipo = [
@@ -81,13 +81,13 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading }) 
 
       {/* Renderizar el formulario correspondiente */}
       {tipoEquipo === 'notebook' && (
-        <FormularioNotebook onAdd={onAddComputer} loading={loading} />
+        <FormularioNotebook onAdd={onAddComputer} loading={loading} modoCarrito={modoCarrito} />
       )}
       {tipoEquipo === 'celular' && (
-        <FormularioCelular onAdd={onAddCelular} loading={loading} />
+        <FormularioCelular onAdd={onAddCelular} loading={loading} modoCarrito={modoCarrito} />
       )}
       {tipoEquipo === 'otro' && (
-        <FormularioOtro onAdd={onAddOtro} loading={loading} />
+        <FormularioOtro onAdd={onAddOtro} loading={loading} modoCarrito={modoCarrito} />
       )}
     </div>
   );
@@ -2171,7 +2171,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isSubmitting || loading || !formData.nombre_producto || !formData.categoria}
+              disabled={isSubmitting || loading || !formData.categoria || (isDesktop ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())}
               className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (

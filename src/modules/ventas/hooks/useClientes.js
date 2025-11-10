@@ -287,15 +287,34 @@ export const clientesService = {
   async getHistorialCompras(clienteId) {
     try {
       console.log('🛒 Obteniendo historial de compras para cliente ID:', clienteId);
-      
+
       const { data, error } = await supabase
-        .from('ventas')
+        .from('transacciones')
         .select(`
           id,
+          numero_transaccion,
           fecha_venta,
           total_venta,
-          moneda_pago,
-          metodo_pago_1
+          total_costo,
+          margen_total,
+          metodo_pago,
+          metodo_pago_2,
+          monto_pago_1,
+          monto_pago_2,
+          vendedor,
+          sucursal,
+          venta_items (
+            id,
+            tipo_producto,
+            serial_producto,
+            copy,
+            cantidad,
+            precio_unitario,
+            precio_total,
+            precio_costo,
+            margen_item,
+            garantia
+          )
         `)
         .eq('cliente_id', clienteId)
         .order('fecha_venta', { ascending: false });
@@ -471,6 +490,16 @@ export const useClientes = () => {
     }
   }, []);
 
+  // Obtener historial de compras de un cliente
+  const getHistorialCompras = useCallback(async (clienteId) => {
+    try {
+      return await clientesService.getHistorialCompras(clienteId);
+    } catch (err) {
+      console.error('Error getting historial de compras:', err);
+      return [];
+    }
+  }, []);
+
   return {
     clientes,
     loading,
@@ -482,6 +511,7 @@ export const useClientes = () => {
     deleteCliente,
     getEstadisticas,
     getClienteById,
-    getProximosCumpleanosConHistorial
+    getProximosCumpleanosConHistorial,
+    getHistorialCompras
   };
 };

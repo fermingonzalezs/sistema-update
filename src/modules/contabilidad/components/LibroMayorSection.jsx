@@ -482,11 +482,8 @@ const LibroMayorSection = () => {
     }
   };
 
-  // Filtrar cuentas por búsqueda y excluir cuentas con saldo 0
+  // Filtrar cuentas por búsqueda (mostrar todas las cuentas con movimientos, incluyendo saldo 0)
   const cuentasFiltradas = cuentasConSaldos.filter(cuenta => {
-    // Excluir cuentas con saldo 0 (considerando margen de error de 0.01)
-    if (Math.abs(cuenta.saldoActual || 0) < 0.01) return false;
-
     // Filtrar por búsqueda
     if (!busquedaCuenta) return true;
     const termino = busquedaCuenta.toLowerCase();

@@ -97,8 +97,9 @@ const ListadoTotalSection = () => {
   const EMOJI_CATEGORIAS = {
     'NOTEBOOKS': '💻',
     'CELULARES': '📱',
+    'DESKTOP': '🖥️',
     'ACCESORIOS': '🔌',
-    'MONITORES': '🖥️',
+    'MONITORES': '📺',
     'COMPONENTES': '⚙️',
     'FUNDAS_TEMPLADOS': '🛡️',
     'TABLETS': '📖',
@@ -146,128 +147,118 @@ const ListadoTotalSection = () => {
 
     // Agregar notebooks
     computers.forEach(comp => {
-      // Solo agregar productos que NO estén en condiciones excluidas
-      const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
-      if (!condicionesExcluidas.includes(comp.condicion)) {
-        const precioCompraTotal = comp.precio_costo_total || comp.precio_costo_usd || 0;
-        const diasEnStock = calcularDiasEnStock(comp.ingreso);
-        const margen = calcularMargen(comp.precio_venta_usd || 0, precioCompraTotal);
+      // Agregar TODOS los notebooks sin filtros
+      const precioCompraTotal = comp.precio_costo_total || comp.precio_costo_usd || 0;
+      const diasEnStock = calcularDiasEnStock(comp.ingreso);
+      const margen = calcularMargen(comp.precio_venta_usd || 0, precioCompraTotal);
 
-        productos.push({
-          id: `notebook-${comp.id}`,
-          idOriginal: comp.id,
-          tabla: 'inventario',
-          categoria: 'NOTEBOOKS',
-          info: `💻 ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.ssd}, ${comp.pantalla}, ${comp.placa_video}, ${comp.color}`,
-          stock: 1,
+      productos.push({
+        id: `notebook-${comp.id}`,
+        idOriginal: comp.id,
+        tabla: 'inventario',
+        categoria: 'NOTEBOOKS',
+        info: `💻 ${comp.modelo} - ${comp.procesador}, ${comp.ram}, ${comp.ssd}, ${comp.pantalla}, ${comp.placa_video}, ${comp.color}`,
+        stock: 1,
 
-          // Nuevos campos detallados
-          precioCompra: comp.precio_costo_usd || 0,
-          envioRepuestos: comp.envios_repuestos || 0,
-          precioCompraTotal: precioCompraTotal,
-          precioVenta: comp.precio_venta_usd || 0,
-          serial: comp.serial || '',
-          fechaIngreso: comp.ingreso,
-          diasEnStock: diasEnStock,
-          margen: margen,
+        // Nuevos campos detallados
+        precioCompra: comp.precio_costo_usd || 0,
+        envioRepuestos: comp.envios_repuestos || 0,
+        precioCompraTotal: precioCompraTotal,
+        precioVenta: comp.precio_venta_usd || 0,
+        serial: comp.serial || '',
+        fechaIngreso: comp.ingreso,
+        diasEnStock: diasEnStock,
+        margen: margen,
 
-          // Mantener campos legacy para compatibilidad
-          precioCompraUSD: precioCompraTotal,
-          precioUSD: comp.precio_venta_usd || 0,
-          condicion: comp.condicion
-        });
-      }
+        // Mantener campos legacy para compatibilidad
+        precioCompraUSD: precioCompraTotal,
+        precioUSD: comp.precio_venta_usd || 0,
+        condicion: comp.condicion
+      });
     });
 
    // Agregar celulares
     celulares.forEach(cel => {
-      const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
-      if (!condicionesExcluidas.includes(cel.condicion)) {
+      // Agregar TODOS los celulares sin filtros
+      let infoAdicional = '';
 
-        let infoAdicional = '';
+      if(cel.condicion === 'usado' || cel.condicion === 'refurbished'){
+        // Usando cel.estado para la condición estética
+        const estetica = cel.estado ? `${cel.estado}` : '';
 
-        if(cel.condicion === 'usado' || cel.condicion === 'refurbished'){
-          // Usando cel.estado para la condición estética
-          const estetica = cel.estado ? `${cel.estado}` : '';
+        const bateria = cel.bateria ? `🔋${cel.bateria}` : '';
 
-          const bateria = cel.bateria ? `🔋${cel.bateria}` : '';
-
-          const partesAdicionales = [estetica, bateria].filter(p => p !== '');
-          if(partesAdicionales.length > 0){
-            infoAdicional = ` ${partesAdicionales.join(' ')}`;
-          }
+        const partesAdicionales = [estetica, bateria].filter(p => p !== '');
+        if(partesAdicionales.length > 0){
+          infoAdicional = ` ${partesAdicionales.join(' ')}`;
         }
-
-        const precioCompraTotal = cel.costo_total_usd || cel.precio_compra_usd || 0;
-        const diasEnStock = calcularDiasEnStock(cel.ingreso);
-        const margen = calcularMargen(cel.precio_venta_usd || 0, precioCompraTotal);
-
-        productos.push({
-          id: `celular-${cel.id}`,
-          idOriginal: cel.id,
-          tabla: 'celulares',
-          categoria: 'CELULARES',
-          info: `📱 ${cel.modelo} ${cel.capacidad} ${cel.color || ''} ${infoAdicional}`,
-          stock: 1,
-
-          // Nuevos campos detallados
-          precioCompra: cel.precio_compra_usd || 0,
-          envioRepuestos: cel.costos_adicionales || 0,
-          precioCompraTotal: precioCompraTotal,
-          precioVenta: cel.precio_venta_usd || 0,
-          serial: cel.serial || '',
-          fechaIngreso: cel.ingreso,
-          diasEnStock: diasEnStock,
-          margen: margen,
-
-          // Mantener campos legacy para compatibilidad
-          precioCompraUSD: precioCompraTotal,
-          precioUSD: cel.precio_venta_usd || 0,
-          condicion: cel.condicion
-        });
       }
+
+      const precioCompraTotal = cel.costo_total_usd || cel.precio_compra_usd || 0;
+      const diasEnStock = calcularDiasEnStock(cel.ingreso);
+      const margen = calcularMargen(cel.precio_venta_usd || 0, precioCompraTotal);
+
+      productos.push({
+        id: `celular-${cel.id}`,
+        idOriginal: cel.id,
+        tabla: 'celulares',
+        categoria: 'CELULARES',
+        info: `📱 ${cel.modelo} ${cel.capacidad} ${cel.color || ''} ${infoAdicional}`,
+        stock: 1,
+
+        // Nuevos campos detallados
+        precioCompra: cel.precio_compra_usd || 0,
+        envioRepuestos: cel.costos_adicionales || 0,
+        precioCompraTotal: precioCompraTotal,
+        precioVenta: cel.precio_venta_usd || 0,
+        serial: cel.serial || '',
+        fechaIngreso: cel.ingreso,
+        diasEnStock: diasEnStock,
+        margen: margen,
+
+        // Mantener campos legacy para compatibilidad
+        precioCompraUSD: precioCompraTotal,
+        precioUSD: cel.precio_venta_usd || 0,
+        condicion: cel.condicion
+      });
     });
 
     // Agregar otros productos por categoría
     otros.forEach(otro => {
-      const condicionesExcluidas = ['reparacion', 'sin_reparacion', 'prestado', 'uso_oficina', 'reservado'];
-      if (!condicionesExcluidas.includes(otro.condicion)) {
-        const stockTotal = (otro.cantidad_la_plata || 0) + (otro.cantidad_mitre || 0);
-        if (stockTotal > 0) {
+      // Agregar TODOS los otros productos sin filtros
+      const stockTotal = (otro.cantidad_la_plata || 0) + (otro.cantidad_mitre || 0);
 
-          // Construir info solo con el nombre del producto (sin marca)
-          const info = otro.nombre_producto || '';
-          const emoji = EMOJI_CATEGORIAS[otro.categoria] || EMOJI_CATEGORIAS['OTROS'];
+      // Construir info solo con el nombre del producto (sin marca)
+      const info = otro.nombre_producto || '';
+      const emoji = EMOJI_CATEGORIAS[otro.categoria] || EMOJI_CATEGORIAS['OTROS'];
 
-          const precioCompraTotal = otro.costo_total_usd || otro.precio_compra_usd || 0;
-          const diasEnStock = calcularDiasEnStock(otro.ingreso);
-          const margen = calcularMargen(otro.precio_venta_usd || 0, precioCompraTotal);
+      const precioCompraTotal = otro.costo_total_usd || otro.precio_compra_usd || 0;
+      const diasEnStock = calcularDiasEnStock(otro.ingreso);
+      const margen = calcularMargen(otro.precio_venta_usd || 0, precioCompraTotal);
 
-          productos.push({
-            id: `otro-${otro.id}`,
-            idOriginal: otro.id,
-            tabla: 'otros',
-            categoria: otro.categoria || 'OTROS',
-            info: `${emoji} ${info.trim()}`,
-            stock: stockTotal,
+      productos.push({
+        id: `otro-${otro.id}`,
+        idOriginal: otro.id,
+        tabla: 'otros',
+        categoria: otro.categoria || 'OTROS',
+        info: `${emoji} ${info.trim()}`,
+        stock: stockTotal,
 
-            // Nuevos campos detallados - otros NO tienen desglose
-            precioCompra: null, // No mostrar
-            envioRepuestos: null, // No mostrar
-            precioCompraTotal: precioCompraTotal,
-            precioVenta: otro.precio_venta_usd || 0,
-            serial: null, // No tienen serial
-            fechaIngreso: otro.ingreso,
-            diasEnStock: diasEnStock,
-            margen: margen,
+        // Nuevos campos detallados - otros NO tienen desglose
+        precioCompra: null, // No mostrar
+        envioRepuestos: null, // No mostrar
+        precioCompraTotal: precioCompraTotal,
+        precioVenta: otro.precio_venta_usd || 0,
+        serial: null, // No tienen serial
+        fechaIngreso: otro.ingreso,
+        diasEnStock: diasEnStock,
+        margen: margen,
 
-            // Mantener campos legacy para compatibilidad
-            precioCompraUSD: precioCompraTotal,
-            precioUSD: otro.precio_venta_usd || 0,
-            condicion: otro.condicion
-          });
-        }
-      }
+        // Mantener campos legacy para compatibilidad
+        precioCompraUSD: precioCompraTotal,
+        precioUSD: otro.precio_venta_usd || 0,
+        condicion: otro.condicion
+      });
     });
 
     return productos;
@@ -499,6 +490,7 @@ const ListadoTotalSection = () => {
   const COLORES_GRAFICOS = {
     'NOTEBOOKS': '#3b82f6',        // blue-500
     'CELULARES': '#10b981',        // green-500
+    'DESKTOP': '#64748b',          // slate-500
     'MONITORES': '#a855f7',        // purple-500
     'ACCESORIOS': '#06b6d4',       // cyan-500
     'COMPONENTES': '#ef4444',      // red-500
@@ -1062,6 +1054,7 @@ const ListadoTotalSection = () => {
               <option value="">Todas las categorías</option>
               <option value="NOTEBOOKS">Notebooks</option>
               <option value="CELULARES">Celulares</option>
+              <option value="DESKTOP">Desktop</option>
               <option value="OTROS_TOTAL">Otros productos total</option>
               <option disabled>───────────────</option>
               <option value="ACCESORIOS">Accesorios</option>
