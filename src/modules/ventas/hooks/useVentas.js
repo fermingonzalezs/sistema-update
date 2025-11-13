@@ -40,7 +40,7 @@ export const ventasService = {
   },
 
   // Crear nueva transacción con múltiples items
-  async createTransaction(datosCliente, carritoItems) {
+  async createTransaction(datosCliente, carritoItems, fechaVenta = null) {
     console.log('💾 Creando transacción con', carritoItems.length, 'items')
     
     // Generar número de transacción único
@@ -137,7 +137,8 @@ export const ventasService = {
         margen_total: margenTotal,
         observaciones: datosCliente.observaciones,
         vendedor: nombreVendedor,
-        sucursal: datosCliente.sucursal
+        sucursal: datosCliente.sucursal,
+        fecha_venta: fechaVenta || new Date().toISOString()
       }
 
       // Agregar segundo método de pago si existe
@@ -432,7 +433,7 @@ export function useVentas() {
       });
 
       // Crear la transacción con todos los items (ya tiene rollback interno)
-      const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito)
+      const nuevaTransaccion = await ventasService.createTransaction(datosCliente, carrito, datosCliente.fecha_venta)
 
       // Guardar IDs para posible rollback
       let cuentaCorrienteCreada = null;

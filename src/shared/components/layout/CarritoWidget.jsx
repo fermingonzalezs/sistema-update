@@ -13,6 +13,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [fechaVenta, setFechaVenta] = useState(new Date().toISOString().split('T')[0]);
   const [datosCliente, setDatosCliente] = useState({
     metodo_pago_1: 'efectivo_pesos',
     metodo_pago_2: '',
@@ -613,6 +614,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const limpiarTodoPostVenta = () => {
     console.log('🧹 Limpiando estado post-venta...');
     setClienteSeleccionado(null);
+    setFechaVenta(new Date().toISOString().split('T')[0]);
     setDatosCliente({
       metodo_pago_1: 'efectivo_pesos',
       metodo_pago_2: '',
@@ -685,7 +687,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         vendedor: datosCliente.vendedor,
         sucursal: datosCliente.sucursal,
         numeroTransaccion,
-        fecha_venta: new Date().toISOString(),
+        fecha_venta: `${fechaVenta}T${new Date().toISOString().split('T')[1]}`,
         // ✅ NUEVO: Información para cuenta corriente
         esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente',
         total: calcularTotal()
@@ -755,12 +757,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
             setIsOpen(true);
             setAperturaManual(true);
           }}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-lg shadow-lg transition-all duration-300"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded shadow-lg transition-all duration-300"
         >
           <div className="relative">
             <ShoppingCart className="w-6 h-6" />
             {calcularCantidadTotal() > 0 && (
-              <div className="absolute -top-2 -right-2 bg-slate-800 text-white text-xs rounded-lg w-5 h-5 flex items-center justify-center font-bold">
+              <div className="absolute -top-2 -right-2 bg-slate-800 text-white text-xs rounded w-5 h-5 flex items-center justify-center font-bold">
                 {calcularCantidadTotal()}
               </div>
             )}
@@ -775,21 +777,22 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
             {!mostrarFormulario ? (
               <>
                 {/* Header compacto */}
-                <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <ShoppingCart className="w-5 h-5" />
-                    <h2 className="text-lg font-semibold">
-                      Carrito de Compras ({calcularCantidadTotal()} items)
-                    </h2>
+                <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <ShoppingCart className="w-6 h-6" />
+                    <div>
+                      <h2 className="text-xl font-semibold">CARRITO DE COMPRAS</h2>
+                      <p className="text-slate-300 text-sm mt-1">{calcularCantidadTotal()} items</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => {
                       setIsOpen(false);
                       setAperturaManual(false);
                     }}
-                    className="text-white hover:text-slate-300 transition-colors"
+                    className="p-2 hover:bg-slate-700 rounded transition-colors"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
@@ -952,21 +955,21 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
 
                     {/* Footer compacto */}
-                    <div className="border-t border-slate-200 p-4 bg-white">
-                      <div className="flex items-center justify-between mb-3">
+                    <div className="bg-slate-50 p-4 border-t border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-slate-800">
-                          Total: ${calcularTotal().toFixed(2)}
+                          Total USD: ${calcularTotal().toFixed(2)}
                         </span>
                         <button
                           onClick={onLimpiar}
-                          className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                          className="text-sm text-slate-600 hover:text-slate-800 transition-colors font-medium"
                         >
                           Limpiar carrito
                         </button>
                       </div>
                       <button
                         onClick={() => setMostrarFormulario(true)}
-                        className="w-full bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
+                        className="w-full bg-emerald-600 text-white py-3 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
                       >
                         <ShoppingCart className="w-5 h-5" />
                         <span>Procesar Venta</span>
@@ -978,262 +981,254 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
             ) : (
               <>
                 {/* Formulario de venta */}
-                <div className="p-6 border-b border-slate-200">
-                  <div className="flex items-center justify-between">
+                <div className="bg-slate-800 p-6 text-white flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="w-6 h-6" />
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-800">Datos de la Venta</h3>
-                      <p className="text-sm text-slate-600 mt-1">Complete la información para procesar la venta</p>
+                      <h2 className="text-xl font-semibold">PROCESAR VENTA</h2>
+                      <p className="text-slate-300 text-sm mt-1">Complete la información para procesar</p>
                     </div>
-                    <button
-                      onClick={() => {
-                        setMostrarFormulario(false);
-                        setAperturaManual(false);
-                      }}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
                   </div>
+                  <button
+                    onClick={() => {
+                      setMostrarFormulario(false);
+                      setAperturaManual(false);
+                    }}
+                    className="p-2 hover:bg-slate-700 rounded transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
 
                 <form onSubmit={handleProcesarVenta} className="p-6 space-y-6">
                     {/* ✅ Selector de cliente */}
                     <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Cliente
-                      </h4>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2">
-                          Cliente *
-                        </label>
+                      <div className="bg-slate-800 rounded p-3 mb-4">
+                        <h4 className="text-white text-sm font-semibold uppercase text-center">
+                          Cliente
+                        </h4>
+                      </div>
                       <ClienteSelector
                         selectedCliente={clienteSeleccionado}
                         onSelectCliente={setClienteSeleccionado}
                         required={true}
                       />
-                      {clienteSeleccionado && (
-                        <div className="mt-2 p-3 bg-slate-200 rounded-lg border border-slate-200">
-                          <p className="text-sm text-slate-800">
-                            ✅ Cliente seleccionado: <strong>{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</strong>
-                          </p>
-                          {clienteSeleccionado.email && (
-                            <p className="text-xs text-slate-800">📧 {clienteSeleccionado.email}</p>
-                          )}
-                          {clienteSeleccionado.telefono && (
-                            <p className="text-xs text-slate-800">📞 {clienteSeleccionado.telefono}</p>
-                          )}
-                        </div>
-                      )}
                     </div>
 
-                    {/* Lista de productos del carrito */}
+                    {/* Productos Unificados */}
                     <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Productos en el Carrito
-                      </h4>
-                      <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {carrito.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-2 border border-slate-200 rounded bg-white">
-                            {/* Nombre del producto */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-800 truncate">
-                                {item.producto.modelo || item.producto.nombre_producto}
-                              </p>
-                            </div>
+                      <div className="bg-slate-800 rounded p-3 mb-4">
+                        <h4 className="text-white text-sm font-semibold uppercase text-center">
+                          Productos
+                        </h4>
+                      </div>
 
-                            {/* Cantidad */}
-                            <div className="flex items-center space-x-1 mx-3">
-                              <button
-                                onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
-                                className="p-1 text-slate-500 hover:text-emerald-600"
-                                type="button"
-                              >
-                                <Minus className="w-3 h-3" />
-                              </button>
-                              <span className="w-6 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
-                              <button
-                                onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
-                                className="p-1 text-slate-500 hover:text-emerald-600"
-                                disabled={item.tipo !== 'otro' && item.cantidad >= 1}
-                                type="button"
-                              >
-                                <Plus className="w-3 h-3" />
-                              </button>
-                            </div>
+                      {carrito.length === 0 ? (
+                        <div className="text-center py-8 text-slate-500">
+                          <p className="text-sm">No hay productos en el carrito</p>
+                        </div>
+                      ) : (
+                        <>
+                        <div className="border border-slate-200 rounded overflow-hidden">
+                          <table className="w-full">
+                            <thead className="bg-slate-600 text-white">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-16">Cant.</th>
+                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Precio Unit.</th>
+                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Subtotal</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-16">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                              {carrito.map((item, index) => (
+                                <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                  {/* Producto */}
+                                  <td className="px-4 py-3">
+                                    <p className="text-sm font-medium text-slate-800 truncate">
+                                      {item.producto.modelo || item.producto.nombre_producto}
+                                    </p>
+                                  </td>
 
-                            {/* Precio editable */}
-                            <div className="flex items-center space-x-2">
-                              {editandoPrecio === item.id ? (
-                                // Modo edición
-                                <div className="flex items-center space-x-1">
-                                  <input
-                                    type="number"
-                                    value={precioEditado}
-                                    onChange={(e) => setPrecioEditado(e.target.value)}
-                                    onKeyPress={(e) => {
-                                      if (e.key === 'Enter') {
-                                        confirmarEdicionPrecio(item.id);
-                                      } else if (e.key === 'Escape') {
-                                        cancelarEdicionPrecio();
-                                      }
-                                    }}
-                                    className="w-16 px-1 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                                    step="0.01"
-                                    min="0.01"
-                                    autoFocus
-                                  />
-                                  <button
-                                    onClick={() => confirmarEdicionPrecio(item.id)}
-                                    className="p-1 text-emerald-600 hover:text-emerald-700"
-                                    title="Confirmar"
-                                    type="button"
-                                  >
-                                    <Check className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={cancelarEdicionPrecio}
-                                    className="p-1 text-slate-500 hover:text-slate-700"
-                                    title="Cancelar"
-                                    type="button"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ) : (
-                                // Modo visualización
-                                <div className="flex items-center space-x-1">
-                                  <span className={`text-sm font-medium ${
-                                    preciosModificados[item.id]?.fue_modificado 
-                                      ? 'text-emerald-600' 
-                                      : 'text-slate-800'
-                                  }`}>
-                                    ${(item.precio_unitario * item.cantidad).toFixed(2)}
-                                  </span>
-                                  
-                                  {preciosModificados[item.id]?.fue_modificado && (
-                                    <span className="text-xs text-emerald-600" title="Precio modificado">✓</span>
-                                  )}
-                                  
-                                  <button
-                                    onClick={() => iniciarEdicionPrecio(item)}
-                                    className="p-1 text-slate-400 hover:text-emerald-600"
-                                    title="Editar precio"
-                                    type="button"
-                                  >
-                                    <Edit2 className="w-3 h-3" />
-                                  </button>
-                                  
-                                  {preciosModificados[item.id]?.fue_modificado && (
+                                  {/* Cantidad */}
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center justify-center space-x-1">
+                                      <button
+                                        onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
+                                        className="p-1 text-slate-500 hover:text-emerald-600"
+                                        type="button"
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </button>
+                                      <span className="w-6 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
+                                      <button
+                                        onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
+                                        className="p-1 text-slate-500 hover:text-emerald-600"
+                                        disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                        type="button"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </td>
+
+                                  {/* Precio Unitario */}
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center justify-center space-x-1">
+                                      {editandoPrecio === item.id ? (
+                                        <div className="flex items-center space-x-1">
+                                          <input
+                                            type="number"
+                                            value={precioEditado}
+                                            onChange={(e) => setPrecioEditado(e.target.value)}
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter') {
+                                                confirmarEdicionPrecio(item.id);
+                                              } else if (e.key === 'Escape') {
+                                                cancelarEdicionPrecio();
+                                              }
+                                            }}
+                                            className="w-20 px-2 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                            step="0.01"
+                                            min="0.01"
+                                            autoFocus
+                                          />
+                                          <button
+                                            onClick={() => confirmarEdicionPrecio(item.id)}
+                                            className="p-1 text-emerald-600 hover:text-emerald-700"
+                                            title="Confirmar"
+                                            type="button"
+                                          >
+                                            <Check className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            onClick={cancelarEdicionPrecio}
+                                            className="p-1 text-slate-500 hover:text-slate-700"
+                                            title="Cancelar"
+                                            type="button"
+                                          >
+                                            <X className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <button
+                                            onClick={() => iniciarEdicionPrecio(item)}
+                                            className={`text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ${
+                                              preciosModificados[item.id]?.fue_modificado
+                                                ? 'text-emerald-600'
+                                                : 'text-slate-800'
+                                            }`}
+                                            title="Click para editar"
+                                            type="button"
+                                          >
+                                            ${item.precio_unitario.toFixed(2)}
+                                          </button>
+
+                                          {preciosModificados[item.id]?.fue_modificado && (
+                                            <button
+                                              onClick={() => restaurarPrecioOriginal(item.id)}
+                                              className="p-1 text-slate-400 hover:text-slate-600"
+                                              title={`Restaurar: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                              type="button"
+                                            >
+                                              <RotateCcw className="w-3 h-3" />
+                                            </button>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  {/* Subtotal */}
+                                  <td className="px-4 py-3 text-center">
+                                    <span className="text-sm font-semibold text-slate-800">
+                                      ${(item.precio_unitario * item.cantidad).toFixed(2)}
+                                    </span>
+                                  </td>
+
+                                  {/* Acciones */}
+                                  <td className="px-4 py-3 text-center">
                                     <button
-                                      onClick={() => restaurarPrecioOriginal(item.id)}
-                                      className="p-1 text-slate-400 hover:text-slate-600"
-                                      title={`Restaurar precio original: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                      onClick={() => onRemover(item.id)}
+                                      className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                                      title="Eliminar"
                                       type="button"
                                     >
-                                      <RotateCcw className="w-3 h-3" />
+                                      <Trash2 className="w-4 h-4" />
                                     </button>
-                                  )}
-                                </div>
-                              )}
-                              
-                              {/* Eliminar */}
-                              <button
-                                onClick={() => onRemover(item.id)}
-                                className="p-1 text-slate-400 hover:text-red-600"
-                                title="Eliminar"
-                                type="button"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        
-                        {carrito.length === 0 && (
-                          <div className="text-center py-4 text-slate-500">
-                            <p className="text-sm">No hay productos en el carrito</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Resumen del carrito */}
-                      {carrito.length > 0 && (
-                        <div className="mt-3 p-2 bg-slate-50 rounded border">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-slate-600">
-                              {calcularCantidadTotal()} productos
-                            </span>
-                            <span className="text-base font-bold text-slate-800">
-                              ${calcularTotal().toFixed(2)}
-                            </span>
-                          </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
+
+                        </>
                       )}
                     </div>
 
-                    {/* Cotización del Dólar */}
+                    {/* Cotización y Pago */}
                     <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Cotización del Dólar
-                      </h4>
-                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setEditandoCotizacion(!editandoCotizacion)}
-                          className="text-emerald-600 hover:text-emerald-700"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
+                      <div className="bg-slate-800 rounded p-3 mb-4">
+                        <h4 className="text-white text-sm font-semibold uppercase text-center">
+                          Pago
+                        </h4>
                       </div>
-                      
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <p className="text-sm text-emerald-600">Total USD</p>
+
+                      {/* Resumen de Cotización */}
+                      <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-3 gap-4 mb-4">
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
                           <p className="text-lg font-bold text-slate-800">U$${calcularTotal().toFixed(2)}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-emerald-600">Cotización</p>
+
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cotización</p>
                           {editandoCotizacion ? (
                             <input
                               type="number"
                               value={datosCliente.cotizacion_dolar}
                               onChange={(e) => setDatosCliente(prev => ({...prev, cotizacion_dolar: parseFloat(e.target.value) || 0}))}
-                              className="w-full text-center text-lg font-bold border border-slate-200 rounded-lg px-2 py-1"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  setEditandoCotizacion(false);
+                                } else if (e.key === 'Escape') {
+                                  setEditandoCotizacion(false);
+                                }
+                              }}
+                              className="w-full text-center text-lg font-bold border border-emerald-500 rounded px-2 text-slate-800 focus:outline-none"
                               step="0.01"
+                              autoFocus
                             />
                           ) : (
-                            <p className="text-lg font-bold text-slate-800">${datosCliente.cotizacion_dolar}</p>
+                            <p
+                              onClick={() => setEditandoCotizacion(!editandoCotizacion)}
+                              className="text-lg font-bold text-slate-800 cursor-pointer hover:opacity-70 transition-opacity"
+                              title="Click para editar"
+                            >
+                              ${datosCliente.cotizacion_dolar}
+                            </p>
                           )}
                         </div>
-                        <div>
-                          <p className="text-sm text-emerald-600">Total ARS</p>
+
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total ARS</p>
                           <p className="text-lg font-bold text-slate-800">${calcularTotalPesos().toLocaleString('es-AR')}</p>
                         </div>
                       </div>
-                    </div>
-                    </div>
 
-                    {/* Métodos de Pago */}
-                    <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Métodos de Pago
-                      </h4>
-                      
                       {/* Primer método de pago */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
+                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                             Método de Pago 1 *
                           </label>
                           <select
                             name="metodo_pago_1"
                             value={datosCliente.metodo_pago_1}
                             onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           >
                             <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
                             <option value="dolares_billete">💸 Dólares Billete</option>
@@ -1245,15 +1240,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                         <div className="space-y-3">
                           <div>
-                            <label className="block text-sm font-medium text-slate-800 mb-2">
-                              Monto de Venta ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                            <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                              Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
                             </label>
                             <input
                               type="number"
                               value={inputMontoBase1}
                               onChange={(e) => handleMontoBaseChange(1, e.target.value)}
                               onBlur={distribuyeMontos}
-                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                               placeholder="Ingrese el monto a cobrar"
                               step="1"
                               min="0"
@@ -1266,14 +1261,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       {/* Segundo método de pago (opcional) */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2">
-                            Método de Pago 2 (Opcional)
+                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                            Método de Pago 2
                           </label>
                           <select
                             name="metodo_pago_2"
                             value={datosCliente.metodo_pago_2}
                             onChange={(e) => handleMetodoPagoChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           >
                             <option value="">Seleccionar método</option>
                             <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
@@ -1286,14 +1281,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                         <div className="space-y-3">
                           <div>
-                            <label className="block text-sm font-medium text-slate-800 mb-2">
-                              Monto de Venta ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                            <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                              Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
                             </label>
                             <input
                               type="number"
                               value={inputMontoBase2}
                               onChange={(e) => handleMontoBaseChange(2, e.target.value)}
-                              className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                              className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                               placeholder="Ingrese el monto a cobrar"
                               step="1"
                               min="0"
@@ -1303,62 +1298,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                       </div>
 
-
-                      {/* Resumen de pagos */}
-                      <div className="bg-slate-200 p-3 rounded-lg">
-                        <div className="flex justify-between text-sm">
-                          <span>Total a cobrar:</span>
-                          <span className="font-bold">{formatearMonto(
-                            // Calcular total que se va a cobrar basado en montos ingresados
-                            (esMetodoEnPesos(datosCliente.metodo_pago_1)
-                              ? (parseFloat(inputMontoBase1) || 0) / datosCliente.cotizacion_dolar
-                              : (parseFloat(inputMontoBase1) || 0)) +
-                            (datosCliente.metodo_pago_2 && (esMetodoEnPesos(datosCliente.metodo_pago_2)
-                              ? (parseFloat(inputMontoBase2) || 0) / datosCliente.cotizacion_dolar
-                              : (parseFloat(inputMontoBase2) || 0))),
-                            'USD'
-                          )}</span>
-                        </div>
-                        {/* Desglose por método */}
-                        {datosCliente.metodo_pago_1 && (
-                          <div className="mt-3 pt-2 border-t border-slate-200">
-                            <p className="text-xs text-slate-800 mb-1">Desglose por método:</p>
-                            <div className="flex justify-between text-xs">
-                              <span>{datosCliente.metodo_pago_1.replace(/_/g, ' ')}:</span>
-                              <span>{formatearMonto(
-                                parseFloat(inputMontoBase1) || 0,
-                                obtenerMonedaMetodo(datosCliente.metodo_pago_1)
-                              )}</span>
-                            </div>
-                            {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
-                              <div className="flex justify-between text-xs">
-                                <span>{datosCliente.metodo_pago_2.replace(/_/g, ' ')}:</span>
-                                <span>{formatearMonto(
-                                  parseFloat(inputMontoBase2) || 0,
-                                  obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                                )}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
                     </div>
-
+                  
                     {/* Información adicional */}
                     <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Información Adicional
-                      </h4>
+                      <div className="bg-slate-800 rounded p-3 mb-4">
+                        <h4 className="text-white text-sm font-semibold uppercase text-center">
+                          Información adicional
+                        </h4>
+                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2">Vendedor</label>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Vendedor *</label>
                         <select
                           name="vendedor"
                           value={datosCliente.vendedor}
                           onChange={handleInputChange}
                           disabled={loadingVendedores}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 disabled:bg-slate-200"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-200"
+                          required
                         >
                           <option value="">
                             {loadingVendedores ? 'Cargando vendedores...' : 'Seleccionar vendedor'}
@@ -1372,69 +1331,108 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2">Sucursal *</label>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Sucursal *</label>
                         <select
                           name="sucursal"
                           value={datosCliente.sucursal}
                           onChange={handleInputChange}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                         >
                           <option value="la_plata">La Plata </option>
                           <option value="mitre">Mitre </option>
                         </select>
                       </div>
-                    </div>
 
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-slate-800 mb-2">Observaciones</label>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Fecha de Venta *</label>
+                        <input
+                          type="date"
+                          value={fechaVenta}
+                          onChange={(e) => setFechaVenta(e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Observaciones</label>
                         <textarea
                           name="observaciones"
                           value={datosCliente.observaciones}
                           onChange={handleInputChange}
                           rows="2"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           placeholder="Observaciones adicionales..."
                         />
                       </div>
-                      </div>
+                    </div>
                     </div>
 
+                    
                     {/* Resumen */}
                     <div className="space-y-4">
-                      <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
-                        Resumen de la Venta
-                      </h4>
+                      <div className="bg-slate-800 rounded p-3 mb-4">
+                        <h4 className="text-white text-sm font-semibold uppercase text-center">
+                          Resumen de la venta
+                        </h4>
+                      </div>
                       <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                      <div className="text-sm space-y-2">
-                        {clienteSeleccionado && (
-                          <p>Cliente: <span className="font-medium">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</span></p>
-                        )}
-                        <p>Items: {calcularCantidadTotal()}</p>
-                        <p>Sucursal: <span className="font-medium">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</span></p>
-                        <p>Cotización: <span className="font-medium">${datosCliente.cotizacion_dolar}</span></p>
-                        
-                        <div className="mt-3 space-y-1">
-                          <p className="font-medium">Métodos de Pago:</p>
-                          <p className="ml-2">• {datosCliente.metodo_pago_1.replace(/_/g, ' ')}: {formatearMonto(
-                            parseFloat(inputMontoBase1) || 0,
-                            obtenerMonedaMetodo(datosCliente.metodo_pago_1)
-                          )}</p>
-                          {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
-                            <p className="ml-2">• {datosCliente.metodo_pago_2.replace(/_/g, ' ')}: {formatearMonto(
-                              parseFloat(inputMontoBase2) || 0,
-                              obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                            )}</p>
-                          )}
+                        {/* Primera fila: Cliente, Productos, Vendedor */}
+                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cliente</p>
+                            {clienteSeleccionado && (
+                              <p className="text-sm font-medium text-slate-800">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</p>
+                            )}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Productos</p>
+                            <p className="text-sm font-medium text-slate-800">{calcularCantidadTotal()}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Vendedor</p>
+                            <p className="text-sm font-medium text-slate-800">{vendedores.find(v => v.id === datosCliente.vendedor)?.nombre} {vendedores.find(v => v.id === datosCliente.vendedor)?.apellido}</p>
+                          </div>
                         </div>
-                        
-                        
-                        {/* ✅ RESUMEN especial para cuenta corriente */}
+
+                        {/* Segunda fila: Sucursal, Fecha, Total USD */}
+                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Sucursal</p>
+                            <p className="text-sm font-medium text-slate-800">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Fecha</p>
+                            <p className="text-sm font-medium text-slate-800">{new Date(fechaVenta).toLocaleDateString('es-AR')}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
+                            <p className="text-sm font-medium text-slate-800">U$${calcularTotal().toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                        {/* Métodos de Pago */}
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-2">Métodos de pago</p>
+                          <div className="space-y-1">
+                            <p className="text-sm text-slate-800">{datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                              parseFloat(inputMontoBase1) || 0,
+                              obtenerMonedaMetodo(datosCliente.metodo_pago_1)
+                            )}</p>
+                            {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
+                              <p className="text-sm text-slate-800">{datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                                parseFloat(inputMontoBase2) || 0,
+                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
+                              )}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Aviso de cuenta corriente */}
                         {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
-                          <div className="mt-2 p-2 bg-slate-800 text-white rounded-lg text-xs">
+                          <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
                             💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
                           </div>
                         )}
-                      </div>
                       </div>
                     </div>
 
@@ -1448,45 +1446,43 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         className="w-5 h-5 text-emerald-600 border-slate-300 rounded cursor-pointer"
                       />
                       <label htmlFor="enviarGarantia" className="text-sm font-medium text-slate-800 cursor-pointer">
-                        (PRUEBA) enviar garantia por mail
+                        (PRUEBA) enviar recibo por mail
                       </label>
                     </div>
 
                     {/* Botones */}
-                    <div className="border-t border-slate-200 pt-6">
-                      <div className="flex space-x-4">
+                    <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
                         <button
                           type="button"
                           onClick={() => {
                         setMostrarFormulario(false);
                         setAperturaManual(false);
                       }}
-                          className="flex-1 bg-slate-200 text-slate-800 py-3 rounded font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+                          className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
                         >
-                          Volver
+                          Cancelar
                         </button>
                         <button
                           type="submit"
                           disabled={!clienteSeleccionado || !datosCliente.vendedor}
-                          className={`flex-1 py-3 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-200 disabled:cursor-not-allowed ${
+                          className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${
                             (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                              ? 'bg-slate-800 text-white hover:bg-slate-600'
+                              ? 'bg-slate-800 text-white hover:bg-slate-700'
                               : 'bg-emerald-600 text-white hover:bg-emerald-700'
                           }`}
                         >
                           {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
                             <>
                               <CreditCard className="w-5 h-5" />
-                              <span>Procesar con Cuenta Corriente</span>
+                              <span>Procesar</span>
                             </>
                           ) : (
                             <>
                               <ShoppingCart className="w-5 h-5" />
-                              <span>Procesar Venta</span>
+                              <span>Procesar</span>
                             </>
                           )}
                         </button>
-                      </div>
                     </div>
                   </form>
               </>
@@ -1496,33 +1492,37 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       )}
       {/* Modal de confirmación */}
       {mostrarConfirmacion && (
-        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                ? 'Confirmar Venta a Cuenta Corriente'
-                : 'Confirmar Venta'
-              }
-            </h3>
-            <p className="text-slate-800 mb-4">
-              {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                ? `¿Confirmar venta a CUENTA CORRIENTE para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
-                : `¿Confirmar venta para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
-              }
-            </p>
-            <div className="flex space-x-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded max-w-md w-full">
+            <div className="bg-slate-800 p-6 text-white">
+              <h3 className="text-xl font-semibold">
+                {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                  ? 'CONFIRMAR VENTA'
+                  : 'CONFIRMAR VENTA'
+                }
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-slate-800">
+                {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                  ? `¿Confirmar venta a CUENTA CORRIENTE para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
+                  : `¿Confirmar venta para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
+                }
+              </p>
+            </div>
+            <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
               <button
                 onClick={() => setMostrarConfirmacion(false)}
-                className="flex-1 bg-slate-200 text-slate-800 py-2 rounded-lg font-semibold hover:bg-slate-300 transition-colors"
+                className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarVenta}
                 disabled={procesandoVenta}
-                className={`flex-1 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
-                  procesandoVenta 
-                    ? 'bg-slate-400 text-slate-200 cursor-not-allowed' 
+                className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                  procesandoVenta
+                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                     : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}
               >
