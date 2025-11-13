@@ -19,80 +19,110 @@ Font.register({
   ]
 });
 
+// Función para calcular estilos dinámicos basados en cantidad de movimientos
+const getStyles = (cantidadMovimientos) => {
+  // Calcular font size dinámico
+  let fontSize, paddingVertical;
+
+  if (cantidadMovimientos <= 15) {
+    fontSize = 9;
+    paddingVertical = 4;
+  } else if (cantidadMovimientos <= 30) {
+    fontSize = 8;
+    paddingVertical = 3;
+  } else if (cantidadMovimientos <= 50) {
+    fontSize = 7;
+    paddingVertical = 2;
+  } else {
+    fontSize = 6;
+    paddingVertical = 1;
+  }
+
+  return { fontSize, paddingVertical };
+};
+
 // Estilos para el PDF
-const styles = StyleSheet.create({
+const createStyles = (dinamicos) => StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 40,
+    padding: 10,
     fontFamily: 'Roboto',
     fontSize: 10,
-    lineHeight: 1.4,
+    lineHeight: 1.2,
   },
 
   // Header de la empresa
   companyHeader: {
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 20,
+    paddingBottom: 8,
   },
   companyName: {
-    fontSize: 24,
+    fontSize: 16,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginBottom: 10,
+    marginBottom: 4,
     letterSpacing: 0.3,
   },
   title: {
-    fontSize: 20,
+    fontSize: 13,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginBottom: 5,
-    letterSpacing: 1,
+    marginBottom: 3,
+    letterSpacing: 0.5,
   },
   cuentaInfo: {
-    fontSize: 16,
+    fontSize: 11,
     fontFamily: 'Roboto',
-    marginBottom: 8,
+    marginBottom: 3,
     color: '#1F2937',
   },
   dateRange: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#6B7280',
     fontFamily: 'Roboto',
   },
   estadisticasContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    padding: 15,
+    marginBottom: 8,
+    padding: 8,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderLeftWidth: 4,
-    borderLeftColor: '#1F2937',
   },
   estadisticaItem: {
     flex: 1,
     textAlign: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+    paddingHorizontal: 8,
+  },
+  estadisticaItem_last: {
+    borderRightWidth: 0,
   },
   estadisticaLabel: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#6B7280',
     marginBottom: 3,
     fontFamily: 'Roboto',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   estadisticaValue: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Roboto',
     color: '#1F2937',
+    fontWeight: 'bold',
   },
   table: {
     width: 'auto',
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    marginBottom: 30,
   },
   tableRow: {
     margin: 'auto',
@@ -114,8 +144,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomWidth: 0,
     borderRightWidth: 0,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: dinamicos.paddingVertical,
+    paddingHorizontal: 6,
   },
   tableColFirst: {
     borderLeftWidth: 0,
@@ -125,60 +155,65 @@ const styles = StyleSheet.create({
   },
   tableColDate: {
     width: '12%',
+    textAlign: 'center',
   },
   tableColAsiento: {
     width: '12%',
+    textAlign: 'center',
   },
   tableColDescripcion: {
     width: '34%',
+    textAlign: 'left',
+  },
+  tableColDescripcionHeader: {
+    width: '34%',
+    textAlign: 'center',
   },
   tableColDebe: {
     width: '14%',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   tableColHaber: {
     width: '14%',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   tableColSaldo: {
     width: '14%',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   tableCell: {
-    fontSize: 9,
+    fontSize: dinamicos.fontSize,
     color: '#374151',
     fontFamily: 'Roboto',
   },
   tableCellHeader: {
-    fontSize: 8,
+    fontSize: dinamicos.fontSize - 1,
     fontFamily: 'Roboto',
     color: '#FFFFFF',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   tableCellTotal: {
-    fontSize: 10,
+    fontSize: dinamicos.fontSize + 1,
     fontFamily: 'Roboto',
     color: '#1F2937',
   },
   tableCellSaldoInicial: {
-    fontSize: 9,
+    fontSize: dinamicos.fontSize,
     fontFamily: 'Roboto',
     color: '#6B7280',
   },
   asientoNumero: {
-    fontSize: 8,
+    fontSize: dinamicos.fontSize,
     fontFamily: 'Roboto',
-    backgroundColor: '#ECFDF5',
-    padding: 2,
-    color: '#059669',
+    color: '#374151',
   },
   montoPositivo: {
-    color: '#059669',
+    color: '#374151',
     fontWeight: 'bold',
   },
   montoNegativo: {
-    color: '#DC2626',
+    color: '#374151',
     fontWeight: 'bold',
   },
   montoNeutral: {
@@ -187,20 +222,24 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 5,
+    left: 10,
+    right: 10,
     textAlign: 'center',
-    fontSize: 8,
+    fontSize: 7,
     color: '#6B7280',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 10,
+    paddingTop: 5,
     fontFamily: 'Roboto',
   },
 });
 
 const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
+  // Calcular estilos dinámicos basados en cantidad de movimientos
+  const dinamicos = getStyles(libroMayor.movimientos?.length || 0);
+  const styles = createStyles(dinamicos);
+
   // Formatear fechas para mostrar
   const formatFecha = (fecha) => {
     if (!fecha) return '';
@@ -240,13 +279,12 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
 
   return (
     <Document>
-      <Page size="A4" style={styles.page} orientation="landscape">
+      <Page size="A4" style={styles.page} orientation="portrait">
         {/* Header */}
         <View style={styles.companyHeader}>
           <Text style={styles.companyName}>UPDATE TECH WW SRL</Text>
-          <Text style={styles.title}>LIBRO MAYOR</Text>
-          <Text style={styles.cuentaInfo}>
-            {libroMayor.cuenta.codigo} - {libroMayor.cuenta.nombre}
+          <Text style={styles.title}>
+            RESUMEN CUENTA: {libroMayor.cuenta.codigo} - {libroMayor.cuenta.nombre}
           </Text>
           {(fechaDesde || fechaHasta) && (
             <Text style={styles.dateRange}>
@@ -267,11 +305,11 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
           </View>
           <View style={styles.estadisticaItem}>
             <Text style={styles.estadisticaLabel}>Saldo Final</Text>
-            <Text style={[styles.estadisticaValue, getSaldoColor(libroMayor.saldoFinal)]}>
+            <Text style={styles.estadisticaValue}>
               {formatearMonto(Math.abs(libroMayor.saldoFinal), 'USD')}
             </Text>
           </View>
-          <View style={styles.estadisticaItem}>
+          <View style={[styles.estadisticaItem, styles.estadisticaItem_last]}>
             <Text style={styles.estadisticaLabel}>Movimientos</Text>
             <Text style={styles.estadisticaValue}>{libroMayor.movimientos.length}</Text>
           </View>
@@ -287,7 +325,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
             <View style={[styles.tableCol, styles.tableColAsiento]}>
               <Text style={styles.tableCellHeader}>Asiento</Text>
             </View>
-            <View style={[styles.tableCol, styles.tableColDescripcion]}>
+            <View style={[styles.tableCol, styles.tableColDescripcionHeader]}>
               <Text style={styles.tableCellHeader}>Descripción</Text>
             </View>
             <View style={[styles.tableCol, styles.tableColDebe]}>
