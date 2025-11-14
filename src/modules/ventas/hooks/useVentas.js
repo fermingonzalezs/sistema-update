@@ -243,7 +243,7 @@ export const ventasService = {
           transaccion_id: transaccion.id,
           tipo_producto: tipoProducto, // Ahora incluye categorías específicas normalizadas (MAYÚSCULAS)
           producto_id: item.producto.id,
-          serial_producto: item.producto.serial || `${item.tipo}-${item.producto.id}`,
+          serial_producto: item.tipo === 'otro' ? (item.producto.serial || item.producto.id) : (item.producto.serial || `${item.tipo}-${item.producto.id}`),
           copy: copyCompleto,
           cantidad: item.cantidad,
           precio_unitario: precioUnitarioSeguro, // CRÍTICO: Usar precio validado
@@ -464,6 +464,8 @@ export function useVentas() {
         }
 
         // Actualizar inventario según el tipo de cada item
+        const productosConAdvertencia = [] // Rastrear productos que se descargaron de otra sucursal
+
         for (const item of carrito) {
           console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
 
@@ -471,6 +473,17 @@ export function useVentas() {
             // Para productos "otros", reducir cantidad en la sucursal correspondiente
             console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
             const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
+
+            // ⚠️ NOTIFICAR SI EL PRODUCTO FUE DESCARGADO DE OTRA SUCURSAL
+            if (resultado.descuentoDeOtraSucursal) {
+              console.log(`⚠️ DESCUENTO DE OTRA SUCURSAL: ${item.producto.nombre_producto} - Se descargó de ${resultado.otraSucursal} porque no había stock en ${datosCliente.sucursal}`)
+              productosConAdvertencia.push({
+                producto: item.producto.nombre_producto || 'Producto sin nombre',
+                cantidad: item.cantidad,
+                sucursalSeleccionada: datosCliente.sucursal,
+                sucursalReal: resultado.otraSucursal
+              })
+            }
 
             // ✅ NOTIFICAR SI EL PRODUCTO FUE ELIMINADO AUTOMÁTICAMENTE
             if (resultado.eliminado) {
@@ -496,6 +509,12 @@ export function useVentas() {
 
             console.log(`✅ ${item.tipo} eliminado permanentemente de la tabla ${tabla}`)
           }
+        }
+
+        // ⚠️ SI HAY PRODUCTOS DE OTRA SUCURSAL, GUARDAR EN LA TRANSACCIÓN
+        if (productosConAdvertencia.length > 0) {
+          console.log(`⚠️ ${productosConAdvertencia.length} producto(s) descargado(s) de otra sucursal:`, productosConAdvertencia)
+          nuevaTransaccion.productosConAdvertencia = productosConAdvertencia
         }
 
         setVentas(prev => [nuevaTransaccion, ...prev])

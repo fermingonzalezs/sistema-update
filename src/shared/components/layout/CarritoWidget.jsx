@@ -13,7 +13,29 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [fechaVenta, setFechaVenta] = useState(new Date().toISOString().split('T')[0]);
+
+  // Función para obtener fecha local en formato YYYY-MM-DD sin problemas de zona horaria
+  const obtenerFechaLocal = () => {
+    const fecha = new Date();
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const día = String(fecha.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${día}`;
+  };
+
+  // Función para obtener fecha y hora local en formato ISO
+  const obtenerFechaHoraLocal = () => {
+    const fecha = new Date();
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const día = String(fecha.getDate()).padStart(2, '0');
+    const horas = String(fecha.getHours()).padStart(2, '0');
+    const minutos = String(fecha.getMinutes()).padStart(2, '0');
+    const segundos = String(fecha.getSeconds()).padStart(2, '0');
+    return `${año}-${mes}-${día}T${horas}:${minutos}:${segundos}`;
+  };
+
+  const [fechaVenta, setFechaVenta] = useState(obtenerFechaLocal());
   const [datosCliente, setDatosCliente] = useState({
     metodo_pago_1: 'efectivo_pesos',
     metodo_pago_2: '',
@@ -52,6 +74,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [garantiasEnviadas, setGarantiasEnviadas] = useState(false);
   const [mensajeGarantias, setMensajeGarantias] = useState('');
   const [enviarGarantiaAutomatico, setEnviarGarantiaAutomatico] = useState(false);
+
 
   // Establecer cliente inicial cuando se proporciona
   useEffect(() => {
@@ -614,7 +637,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const limpiarTodoPostVenta = () => {
     console.log('🧹 Limpiando estado post-venta...');
     setClienteSeleccionado(null);
-    setFechaVenta(new Date().toISOString().split('T')[0]);
+    setFechaVenta(obtenerFechaLocal());
     setDatosCliente({
       metodo_pago_1: 'efectivo_pesos',
       metodo_pago_2: '',
@@ -669,10 +692,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
     try {
       console.log('🚀 Iniciando procesamiento de venta...');
-      
+
       // Generar número de transacción único
       const numeroTransaccion = `VT-${Date.now()}`;
-      
+
       // ✅ DATOS COMPLETOS: Usar información del cliente seleccionado
       const datosVentaCompletos = {
         cliente_id: clienteSeleccionado.id,
@@ -687,7 +710,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         vendedor: datosCliente.vendedor,
         sucursal: datosCliente.sucursal,
         numeroTransaccion,
-        fecha_venta: `${fechaVenta}T${new Date().toISOString().split('T')[1]}`,
+        fecha_venta: obtenerFechaHoraLocal(),
         // ✅ NUEVO: Información para cuenta corriente
         esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente',
         total: calcularTotal()
@@ -697,13 +720,25 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
       // Procesar la venta en la base de datos
       console.log('💾 Enviando venta a la base de datos...');
-      await onProcesarVenta(carrito, datosVentaCompletos);
+      const transaccionResultado = await onProcesarVenta(carrito, datosVentaCompletos);
       console.log('✅ Venta procesada exitosamente en la BD');
 
       // ✅ MOSTRAR MENSAJE DE ÉXITO personalizado
-      const mensajeExito = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+      let mensajeExito = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
         ? `✅ Venta a CUENTA CORRIENTE procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}\n\n📝 El saldo se registró en la cuenta corriente del cliente.`
         : `✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`;
+
+      // ⚠️ AGREGAR ADVERTENCIA SI HAY PRODUCTOS DE OTRA SUCURSAL
+      if (transaccionResultado && transaccionResultado.productosConAdvertencia && transaccionResultado.productosConAdvertencia.length > 0) {
+        console.log('⚠️ Productos descargados de otra sucursal:', transaccionResultado.productosConAdvertencia);
+
+        let advertenciaTexto = '\n\n⚠️ NOTA: Los siguientes productos se descontaron de otra sucursal por falta de stock:\n';
+        transaccionResultado.productosConAdvertencia.forEach((prod) => {
+          advertenciaTexto += `\n• ${prod.producto}`;
+        });
+
+        mensajeExito += advertenciaTexto;
+      }
 
       alert(mensajeExito);
 
@@ -1539,6 +1574,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
           </div>
         </div>
       )}
+
     </>
   );
 };

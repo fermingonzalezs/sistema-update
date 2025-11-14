@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Eye, Search, CheckCircle, Circle, Loader } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
 import { supabase } from '../../../lib/supabase';
+import DetalleVentaModal from './DetalleVentaModal';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [filtroTipo, setFiltroTipo] = useState('todos');
@@ -12,6 +13,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
   const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
+  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
 
   const ventasFiltradas = useMemo(() => ventas.filter(transaccion => {
     if (!transaccion.venta_items?.length) return false;
@@ -73,7 +75,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           {getIconoProducto(item.tipo_producto)}
           <div className="flex-1 min-w-0">
             <div className="font-medium text-xs text-slate-800 truncate">{item.copy}</div>
-            {item.serial_producto && <div className="text-xs text-slate-500 font-mono truncate">S/N: {item.serial_producto}</div>}
+            {item.serial_producto && <div className="text-xs text-slate-500 font-mono truncate">{item.serial_producto}</div>}
           </div>
         </div>
       </div>
@@ -117,6 +119,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       setActualizandoContabilizado(prev => ({ ...prev, [transaccionId]: false }));
     }
   };
+
 
   return (
     <div className="bg-slate-50 h-full w-full flex flex-col">
@@ -164,75 +167,94 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
         </div>
       </div>
 
-      {/* Bottom section: Table */}
+      {/* Bottom section: Compact Table */}
       <div className="px-6 pb-6 flex-grow flex flex-col min-h-0">
         {loading && <p className="text-slate-600 text-center py-10">Cargando ventas...</p>}
         {error && <p className="text-red-600 text-center py-10">Error: {error}</p>}
         {!loading && !error && (
           <div className="bg-white rounded border border-slate-200 flex-grow flex flex-col overflow-hidden">
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-slate-800">
+            <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+              <p className="text-sm text-slate-700">
                 {ventasFiltradas.length > MAX_RESULTS ? `${ventasLimitadas.length} de ${ventasFiltradas.length} (mostrando ${MAX_RESULTS})` : `${ventasFiltradas.length} transacciones`}
-              </h3>
+              </p>
             </div>
             <div className="overflow-x-auto flex-grow">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-800">
+              <table className="w-full divide-y divide-slate-200">
+                <thead className="bg-slate-800 text-white sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase sticky left-0 bg-slate-800 z-10">Contab.</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Productos</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Total Unitario</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Cliente</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Total</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Costo</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase">Ganancia</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Método Pago</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Acciones</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Observaciones</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-10">Contab.</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Fecha</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase flex-1">Cliente</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-64">Productos</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Total</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Ganancia</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Vendedor</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {ventasLimitadas.map((transaccion) => (
-                    <tr key={transaccion.id} className={`hover:bg-slate-50 ${transaccion.contabilizado ? 'bg-emerald-50' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap text-center sticky left-0 bg-white z-10 ${transaccion.contabilizado ? 'bg-emerald-50' : ''} group-hover:bg-slate-50">
-                        <button onClick={() => toggleContabilizado(transaccion.id, transaccion.contabilizado)} disabled={actualizandoContabilizado[transaccion.id]} className="p-1 rounded hover:bg-slate-100 disabled:opacity-50" title={transaccion.contabilizado ? 'No contabilizado' : 'Contabilizado'}>
-                          {actualizandoContabilizado[transaccion.id] ? <Loader className="w-5 h-5 text-slate-400 animate-spin" /> : transaccion.contabilizado ? <CheckCircle className="w-5 h-5 text-emerald-600" /> : <Circle className="w-5 h-5 text-slate-400" />}
+                  {ventasLimitadas.map((transaccion, idx) => (
+                    <tr
+                      key={transaccion.id}
+                      onClick={() => setVentaSeleccionada(transaccion)}
+                      className={`hover:bg-slate-50 transition-colors cursor-pointer ${transaccion.contabilizado ? 'bg-emerald-50' : ''}`}
+                    >
+                      {/* Contabilizado */}
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleContabilizado(transaccion.id, transaccion.contabilizado);
+                          }}
+                          disabled={actualizandoContabilizado[transaccion.id]}
+                          className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                          title={transaccion.contabilizado ? 'Marcar como no contabilizado' : 'Marcar como contabilizado'}
+                        >
+                          {actualizandoContabilizado[transaccion.id] ? (
+                            <Loader className="w-4 h-4 text-slate-400 animate-spin" />
+                          ) : transaccion.contabilizado ? (
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-slate-400" />
+                          )}
                         </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{formatearFechaCompleta(transaccion.fecha_venta)}</td>
-                      <td className="px-6 py-4 text-sm text-slate-800 max-w-sm">{getProductosDetallados(transaccion.venta_items || [])}</td>
-                      <td className="px-6 py-4 text-sm text-slate-800">{getTotalesUnitarios(transaccion.venta_items || [])}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-slate-600" />
-                          <div>
-                            <div className="text-sm font-medium text-slate-800">{transaccion.cliente_nombre}</div>
-                            {transaccion.cliente_email && <div className="text-sm text-slate-500">{transaccion.cliente_email}</div>}
+
+                      {/* Fecha */}
+                      <td className="px-4 py-3 text-xs text-slate-800 whitespace-nowrap text-center">
+                        {formatearFechaCompleta(transaccion.fecha_venta)}
+                      </td>
+
+                      {/* Cliente */}
+                      <td className="px-4 py-3 text-sm text-start">
+                        <div className="flex items-center space-x-1">
+                          <User className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-slate-800 font-medium truncate">{transaccion.cliente_nombre}</p>
+                            {transaccion.cliente_email && <p className="text-xs text-slate-500 truncate">{transaccion.cliente_email}</p>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800 text-right">{formatearMonto((parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)), 'USD')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 text-right">{formatearMonto(transaccion.total_costo || 0, 'USD')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-right">
-                        <span className={transaccion.margen_total >= 0 ? 'text-emerald-600' : 'text-red-600'}>{formatearMonto(transaccion.margen_total || 0, 'USD')}</span>
+
+                      {/* Productos */}
+                      <td className="px-4 py-3 text-sm text-slate-800 max-w-xs text-start">
+                        {getProductosDetallados(transaccion.venta_items || [])}
                       </td>
-                      <td className="px-6 py-4" style={{ minWidth: '160px' }}>
-                        <div className="flex items-start space-x-2">
-                          <CreditCard className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
-                          <div className="space-y-1">{getMetodosPago(transaccion)}</div>
-                        </div>
+
+                      {/* Total */}
+                      <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                        {formatearMonto((parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)), 'USD')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{transaccion.vendedor || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button onClick={() => manejarAbrirRecibo(transaccion)} className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100" title={`Ver ${obtenerTextoBoton(transaccion.metodo_pago).toLowerCase()}`}>
-                          <Eye className="w-4 h-4" />
-                          <span className="text-xs">{obtenerTextoBoton(transaccion.metodo_pago)}</span>
-                        </button>
+
+                      {/* Ganancia */}
+                      <td className="px-4 py-3 text-center text-sm font-semibold">
+                        <span className={transaccion.margen_total >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                          {formatearMonto(transaccion.margen_total || 0, 'USD')}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-800" style={{ minWidth: '300px', maxWidth: '500px' }}>
-                        <div className="whitespace-normal break-words">{transaccion.observaciones || '-'}</div>
+
+                      {/* Vendedor */}
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
+                        {transaccion.vendedor || '-'}
                       </td>
                     </tr>
                   ))}
@@ -242,6 +264,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           </div>
         )}
       </div>
+
+      {/* Modal de detalles */}
+      {ventaSeleccionada && (
+        <DetalleVentaModal
+          transaccion={ventaSeleccionada}
+          onClose={() => setVentaSeleccionada(null)}
+        />
+      )}
     </div>
   );
 };
