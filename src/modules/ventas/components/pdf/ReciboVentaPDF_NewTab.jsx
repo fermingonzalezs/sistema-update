@@ -1,20 +1,20 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
-import RobotoRegular from '../../../../Roboto/static/Roboto-Regular.ttf'
-import RobotoBold from '../../../../Roboto/static/Roboto-Bold.ttf'
+import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer';
+import InterRegular from '../../../../../public/Inter/static/Inter_18pt-Regular.ttf'
+import InterBold from '../../../../../public/Inter/static/Inter_18pt-Bold.ttf'
 import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../../../../shared/utils/documentTypeUtils';
 import { generarCopyParaPDF } from '../../../../shared/utils/pdfCopyUtils';
 
 // Registrar la fuente ANTES de los estilos
 Font.register({
-  family: 'Roboto',
+  family: 'Inter',
   fonts: [
     {
-      src: RobotoRegular,
+      src: InterRegular,
       fontWeight: 'normal',
     },
     {
-      src: RobotoBold,
+      src: InterBold,
       fontWeight: 'bold',
     }
   ]
@@ -25,256 +25,455 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 25,
-    fontFamily: 'Roboto',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontFamily: 'Inter',
     fontSize: 8,
     lineHeight: 1.2,
+    flex: 1,
   },
-  
+
   // Header de la empresa
   companyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    alignItems: 'center',
+    marginBottom: 0,
+    paddingVertical: 7,
+    paddingHorizontal: 25,
+    backgroundColor: '#000000',
+    width: '100%',
+  },
+  companyLogosSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  companyLogos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoImage: {
+    width: 35,
+    height: 35,
+  },
+  textoImage: {
+    width: 85,
+  },
+  companyInfoHeaderSection: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    alignItems: 'flex-end',
   },
   companyInfo: {
     flex: 1,
+    textAlign: 'right',
   },
   companyName: {
-    fontSize: 15,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginBottom: 6,
+    fontSize: 12,
+    fontFamily: 'Inter',
+    color: '#FFFFFF',
+    marginBottom: 10,
     letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    textAlign: 'right',
   },
   companyDetails: {
-    fontSize: 6,
-    color: '#6B7280',
-    lineHeight: 1.2,
-    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#FFFFFF',
+    lineHeight: 1.4,
+    fontFamily: 'Inter',
+    marginBottom: 6,
+    textAlign: 'right',
   },
-  
+
   // Header del documento
+  receiptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    marginBottom: 20,
+  },
   documentTitleSection: {
     alignItems: 'flex-end',
-    backgroundColor: '#F8FAFC',
-    padding: 6,
-    borderRadius: 4,
-    borderLeftWidth: 3,
-    borderLeftColor: '#1F2937',
-    minWidth: 120,
+    justifyContent: 'flex-start',
   },
   documentTitle: {
-    fontSize: 12,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginTop: 3,
-    marginBottom: 2,
-    letterSpacing: 1,
+    fontSize: 16,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginTop: 0,
+    marginBottom: 8,
+    paddingTop: 0,
+    paddingBottom: 12,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#000000',
+    textAlign: 'right',
   },
   documentSubtitle: {
-    fontSize: 5,
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: 'Roboto',
+    fontSize: 8,
+    color: '#000000',
+    fontFamily: 'Inter',
+    marginBottom: 6,
+    marginTop: 6,
+    textAlign: 'right',
   },
   documentInfo: {
-    fontSize: 6,
-    color: '#374151',
+    fontSize: 8,
+    color: '#000000',
     textAlign: 'right',
-    lineHeight: 1.3,
-    marginTop: 3,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
+    marginBottom: 0,
   },
-  
+
+  // Cliente info lado izquierdo del header
+  clientHeaderSection: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
+  clientHeaderLabel: {
+    fontSize: 7,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 4,
+    paddingBottom: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#000000',
+  },
+  clientHeaderName: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 4,
+    marginTop: 4,
+  },
+  clientHeaderPhone: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  clientHeaderEmail: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#000000',
+  },
+
+  // Sección de información de recibo
+  receiptInfoSection: {
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+    backgroundColor: '#FFFFFF',
+  },
+
   // Información del cliente
   clientSection: {
     flexDirection: 'row',
-    marginBottom: 20,
-    gap: 25,
+    marginBottom: 30,
+    gap: 40,
+    paddingHorizontal: 25,
+    marginTop: 20,
   },
   clientColumn: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 8,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginBottom: 5,
+    fontSize: 10,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingBottom: 3,
+    letterSpacing: 0.5,
+    fontWeight: 'normal',
   },
   clientInfo: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#374151',
-    lineHeight: 1.4,
-    fontFamily: 'Roboto',
+    lineHeight: 1.6,
+    fontFamily: 'Inter',
   },
   clientName: {
-    fontSize: 8,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginBottom: 3,
+    fontSize: 10,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 4,
+    textTransform: 'uppercase',
   },
   
   // Tabla de productos
   table: {
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 4,
+    marginBottom: 25,
+    marginHorizontal: 25,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#1F2937',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 8,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#FFFFFF',
   },
   tableHeaderText: {
     color: '#FFFFFF',
-    fontSize: 6,
-    fontFamily: 'Roboto',
+    fontSize: 9,
+    fontFamily: 'Inter',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    paddingVertical: 8,
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 10,
     paddingHorizontal: 8,
-    minHeight: 30,
+    minHeight: 25,
+    marginBottom: 0.5,
   },
   tableRowLast: {
     borderBottomWidth: 0,
   },
   tableCell: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#374151',
     justifyContent: 'center',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   tableCellBold: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#1F2937',
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     justifyContent: 'center',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   tableCellDescription: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#374151',
     lineHeight: 1.3,
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   serialText: {
-    fontSize: 6,
+    fontSize: 7,
     color: '#6B7280',
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     marginTop: 2,
   },
   
   // Columnas de la tabla con mejor distribución
-  colNumber: {
-    width: '8%',
+  colItem: {
+    width: '60%',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
+  },
+  colItemContent: {
+    width: '60%',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
+  },
+  colQuantity: {
+    width: '13%',
     textAlign: 'center',
   },
-  colDescription: {
-    width: '52%',
-    textAlign: 'left',
-  },
-  colQty: {
-    width: '12%',
+  colPrice: {
+    width: '14%',
     textAlign: 'center',
   },
-  colUnitPrice: {
-    width: '14%',
-    textAlign: 'right',
+  colTotal: {
+    width: '13%',
+    textAlign: 'center',
   },
-  colAmount: {
-    width: '14%',
-    textAlign: 'right',
+  colTotalLast: {
+    width: '13%',
+    textAlign: 'center',
+    borderRightWidth: 0,
   },
   
   // Sección de totales
   totalsSection: {
     marginTop: 15,
-    alignItems: 'flex-end',
+    marginHorizontal: 25,
+    paddingHorizontal: 0,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   totalsContainer: {
-    width: '50%',
-    minWidth: 150,
+    width: '40%',
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#F3F4F6',
+  },
+  totalsHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#000000',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#FFFFFF',
+  },
+  totalsHeaderText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontFamily: 'Inter',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    flex: 1,
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   totalRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#E5E7EB',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#FFFFFF',
+    justifyContent: 'space-between',
   },
   totalLabel: {
-    fontSize: 7,
-    color: '#6B7280',
-    fontFamily: 'Roboto',
+    fontSize: 8,
+    color: '#000000',
+    fontFamily: 'Inter',
+    textTransform: 'uppercase',
+    flex: 1,
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    textAlign: 'center',
   },
   totalValue: {
-    fontSize: 7,
-    color: '#374151',
-    fontFamily: 'Roboto',
-    textAlign: 'right',
+    fontSize: 8,
+    color: '#000000',
+    fontFamily: 'Inter',
+    textAlign: 'center',
+    flex: 1,
   },
   discountRow: {
-    backgroundColor: '#FEF3F2',
+    backgroundColor: '#E5E7EB',
   },
   discountLabel: {
-    color: '#DC2626',
+    color: '#000000',
   },
   discountValue: {
-    color: '#DC2626',
+    color: '#000000',
   },
   finalTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#1F2937',
+    backgroundColor: '#000000',
     paddingVertical: 10,
-    paddingHorizontal: 8,
-    marginTop: 6,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    marginTop: 0,
   },
   finalTotalLabel: {
-    fontSize: 9,
-    color: '#FFFFFF',
-    fontFamily: 'Roboto',
-    letterSpacing: 0.3,
-  },
-  finalTotalValue: {
     fontSize: 10,
     color: '#FFFFFF',
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  finalTotalValue: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontFamily: 'Inter',
     letterSpacing: 0.3,
   },
   
   // Footer
   footer: {
     marginTop: 20,
-    paddingTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   footerText: {
-    fontSize: 6,
+    fontSize: 8,
     color: '#9CA3AF',
+    textAlign: 'left',
+    lineHeight: 1.4,
+    marginBottom: 3,
+    textTransform: 'uppercase',
+  },
+
+  // Espacio para firmar
+  signatureSection: {
+    marginTop: 80,
+    marginBottom: 30,
+    paddingHorizontal: 25,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  signatureLine: {
+    width: '40%',
+    borderTopWidth: 1,
+    borderTopColor: '#000000',
+    paddingTop: 4,
     textAlign: 'center',
-    lineHeight: 1.3,
+    fontSize: 7,
+    color: '#000000',
+    fontFamily: 'Inter',
+  },
+
+  // Mensaje de agradecimiento
+  thankYouSection: {
+    marginTop: 60,
+    marginBottom: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    textAlign: 'center',
+  },
+  thankYouText: {
+    fontSize: 12,
+    color: '#000000',
+    fontFamily: 'Inter',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Sección de información de empresa al final
+  companyInfoFooter: {
+    marginTop: 'auto',
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    textAlign: 'center',
+  },
+  companyInfoFooterText: {
+    fontSize: 7,
+    color: '#374151',
+    lineHeight: 1.4,
     marginBottom: 2,
   },
   
@@ -296,13 +495,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 12,
     backgroundColor: '#F8FAFC',
-    borderRadius: 4,
     borderLeftWidth: 3,
     borderLeftColor: '#DC2626',
   },
   pagareTitle: {
     fontSize: 8,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     color: '#DC2626',
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -313,7 +511,7 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 1.3,
     textAlign: 'justify',
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
   },
   vencimientoInfo: {
     flexDirection: 'row',
@@ -325,13 +523,15 @@ const styles = StyleSheet.create({
   },
   vencimientoLabel: {
     fontSize: 6,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     color: '#6B7280',
+    textTransform: 'uppercase',
   },
   vencimientoFecha: {
     fontSize: 7,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     color: '#DC2626',
+    textTransform: 'uppercase',
   },
   
   // Sección de información de garantía
@@ -341,7 +541,7 @@ const styles = StyleSheet.create({
   },
   warrantyTitle: {
     fontSize: 8,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     color: '#1F2937',
     marginBottom: 6,
     textAlign: 'center',
@@ -355,7 +555,7 @@ const styles = StyleSheet.create({
     fontSize: 6,
     color: '#374151',
     lineHeight: 1.3,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     marginBottom: 4,
     textAlign: 'justify',
   },
@@ -367,11 +567,10 @@ const styles = StyleSheet.create({
     padding: 6,
     borderLeftWidth: 3,
     borderLeftColor: '#DC2626',
-    borderRadius: 4,
   },
   importantTitle: {
     fontSize: 6,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     color: '#DC2626',
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -381,19 +580,11 @@ const styles = StyleSheet.create({
     fontSize: 5,
     color: '#374151',
     lineHeight: 1.3,
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     marginBottom: 3,
     textAlign: 'justify',
   },
 
-  // Metadatos del documento
-  metadata: {
-    position: 'absolute',
-    bottom: 20,
-    right: 25,
-    fontSize: 5,
-    color: '#D1D5DB',
-  },
 });
 
 // Componente del documento PDF mejorado
@@ -438,51 +629,48 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header de la empresa con info del recibo */}
+        {/* Header de la empresa con logo y info */}
         <View style={styles.companyHeader}>
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>{data.company.name}</Text>
-            <Text style={styles.companyDetails}>
-              {data.company.address}{'\n'}
-              Tel: {data.company.phone} • CUIT: {data.company.cuit}
-            </Text>
+          {/* Sección izquierda: logos en negro */}
+          <View style={styles.companyLogosSection}>
+            <Image source="/logo.png" style={styles.logoImage} />
+            <Image source="/texto.png" style={styles.textoImage} />
           </View>
-          <View style={styles.documentTitleSection}>
-            <Text style={styles.documentTitle}>{docInfo.tipo}</Text>
-            <Text style={styles.documentSubtitle}>{docInfo.subtitulo}</Text>
-            <Text style={styles.documentInfo}>
-              N° {data.invoice.number}{'\n'}
-              Fecha:    {data.invoice.date}
-            </Text>
+
+          {/* Sección derecha: info empresa en blanco */}
+          <View style={styles.companyInfoHeaderSection}>
+            <Text style={styles.companyName}>{data.company.name}</Text>
+            <Text style={styles.companyDetails}>{data.company.cuit}</Text>
+            <Text style={styles.companyDetails}>La Plata, Buenos Aires, Argentina</Text>
           </View>
         </View>
 
-        {/* Información del cliente */}
-        <View style={styles.clientSection}>
-          <View style={styles.clientColumn}>
-            <Text style={styles.sectionTitle}>Cliente</Text>
-            <Text style={styles.clientName}>{data.client.name}</Text>
-            <Text style={styles.clientInfo}>
-              {data.client.address}
-            </Text>
+        {/* Header de recibo */}
+        <View style={styles.receiptHeader}>
+          {/* Lado izquierdo: Cliente */}
+          <View style={styles.clientHeaderSection}>
+            <Text style={styles.clientHeaderLabel}>A NOMBRE DE:</Text>
+            <Text style={styles.clientHeaderName}>{data.client.name}</Text>
+            {data.client.phone && <Text style={styles.clientHeaderPhone}>{data.client.phone}</Text>}
+            {data.client.email && <Text style={styles.clientHeaderEmail}>{data.client.email}</Text>}
           </View>
-          <View style={styles.clientColumn}>
-            <Text style={styles.sectionTitle}>Contacto</Text>
-            <Text style={styles.clientInfo}>
-              {data.client.phone && `Tel: ${data.client.phone}\n`}
-              {data.client.email && `Email: ${data.client.email}`}
-            </Text>
+
+          {/* Lado derecho: RECIBO */}
+          <View style={styles.documentTitleSection}>
+            <Text style={styles.documentTitle}>RECIBO</Text>
+            <Text style={styles.documentInfo}>{data.invoice.date}</Text>
+            <Text style={styles.documentSubtitle}>{data.invoice.number}</Text>
           </View>
         </View>
+
 
         {/* Tabla de productos */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.colNumber]}>Item</Text>
-            <Text style={[styles.tableHeaderText, styles.colDescription]}>Descripción</Text>
-            <Text style={[styles.tableHeaderText, styles.colQty]}>Cant.</Text>
-            <Text style={[styles.tableHeaderText, styles.colUnitPrice]}>Precio Unit.</Text>
-            <Text style={[styles.tableHeaderText, styles.colAmount]}>Importe</Text>
+            <Text style={[styles.tableHeaderText, styles.colItem]}>Item</Text>
+            <Text style={[styles.tableHeaderText, styles.colQuantity]}>Cantidad</Text>
+            <Text style={[styles.tableHeaderText, styles.colPrice]}>Precio</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotalLast]}>Total</Text>
           </View>
           
           {data.items.map((item, index) => (
@@ -493,22 +681,19 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
                 index === data.items.length - 1 && styles.tableRowLast
               ]}
             >
-              <View style={[styles.tableCell, styles.colNumber]}>
-                <Text>{String(index + 1).padStart(2, '0')}</Text>
-              </View>
-              <View style={[styles.tableCellDescription, styles.colDescription]}>
+              <View style={[styles.tableCell, styles.colItemContent]}>
                 <Text>{item.description}</Text>
                 {item.serial && (
                   <Text style={styles.serialText}>S/N: {item.serial}</Text>
                 )}
               </View>
-              <View style={[styles.tableCell, styles.colQty]}>
+              <View style={[styles.tableCell, styles.colQuantity]}>
                 <Text>{item.quantity}</Text>
               </View>
-              <View style={[styles.tableCellBold, styles.colUnitPrice]}>
+              <View style={[styles.tableCell, styles.colPrice]}>
                 <Text>{formatearMoneda(item.unitPrice, data.moneda)}</Text>
               </View>
-              <View style={[styles.tableCellBold, styles.colAmount]}>
+              <View style={[styles.tableCell, styles.colTotalLast]}>
                 <Text>{formatearMoneda(item.amount, data.moneda)}</Text>
               </View>
             </View>
@@ -518,25 +703,13 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
         {/* Totales */}
         <View style={styles.totalsSection}>
           <View style={styles.totalsContainer}>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
-              <Text style={styles.totalValue}>
-                {formatearMoneda(calcularSubtotal(), data.moneda)}
-              </Text>
+            <View style={styles.totalsHeader}>
+              <Text style={styles.totalsHeaderText}>Total</Text>
+              <Text style={[styles.totalsHeaderText, { borderRightWidth: 0 }]}>Monto</Text>
             </View>
-            
-            {calcularDescuento() > 0 && (
-              <View style={[styles.totalRow, styles.discountRow]}>
-                <Text style={[styles.totalLabel, styles.discountLabel]}>Descuento</Text>
-                <Text style={[styles.totalValue, styles.discountValue]}>
-                  -{formatearMoneda(calcularDescuento(), data.moneda)}
-                </Text>
-              </View>
-            )}
-            
-            <View style={styles.finalTotalRow}>
-              <Text style={styles.finalTotalLabel}>TOTAL</Text>
-              <Text style={styles.finalTotalValue}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
                 {formatearMoneda(calcularTotal(), data.moneda)}
               </Text>
             </View>
@@ -559,26 +732,24 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
           </View>
         )}
 
-
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            UPDATE TECH - 221-641-9901 - LA PLATA - BUENOS AIRES - ARGENTINA{'\n'}
-            UPDATE TECH - 221-359-9837 - CABA - BUENOS AIRES - ARGENTINA
-          </Text>
-          <Text style={styles.footerText}>
-            Email: info@updatetech.com.ar • Web: www.updatetech.com.ar
-          </Text>
-          <Text style={styles.footerText}>
-            UPDATE TECH WW SRL • {fechaActual}
-          </Text>
+        {/* Espacio para firmar */}
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureLine}>
+            <Text>Firma</Text>
+          </View>
         </View>
 
-        {/* Metadatos */}
-        <Text style={styles.metadata}>
-          Doc ID: {data.invoice.number} • Página 1 de 1
-        </Text>
+        {/* Mensaje de agradecimiento */}
+        <View style={styles.thankYouSection}>
+          <Text style={styles.thankYouText}>¡GRACIAS POR TU COMPRA!</Text>
+        </View>
+
+        {/* Información de la Empresa al Final */}
+        <View style={styles.companyInfoFooter}>
+          <Text style={styles.companyInfoFooterText}>
+            {data.company.name} • {data.company.cuit} • {data.company.phone} • INFO@UPDATETECH.COM.AR • WWW.UPDATETECH.COM.AR
+          </Text>
+        </View>
       </Page>
     </Document>
   );
@@ -588,10 +759,10 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
 export const convertirVentaARecibo = (transaccion) => {
   return {
     company: {
-      name: "UPDATE TECH WW SRL",
+      name: "UPDATE TECH WW S.R.L",
       address: "Avenida 44 N° 862 1/2 Piso 4\nLa Plata, Buenos Aires, Argentina",
-      phone: "221-641-9901",
-      cuit: "30-71850553-2"
+      phone: "+54 221 359-9837",
+      cuit: "CUIT: 30-71850553-2"
     },
     invoice: {
       number: `REC-${String(transaccion.numero_transaccion).padStart(6, '0')}`,

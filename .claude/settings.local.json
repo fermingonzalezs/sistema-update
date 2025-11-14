@@ -19,7 +19,8 @@
       "Bash(find:*)",
       "mcp__supabase__search_docs",
       "WebSearch",
-      "Bash(mcp__supabase__list_migrations)"
+      "Bash(mcp__supabase__list_migrations)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
