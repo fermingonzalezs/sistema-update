@@ -46,17 +46,19 @@ export const ventasService = {
     // Generar número de transacción único
     const numeroTransaccion = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
     
-    // Obtener el nombre del vendedor si se proporcionó un ID
-    let nombreVendedor = datosCliente.vendedor || '';
-    if (datosCliente.vendedor && !isNaN(datosCliente.vendedor)) {
-      // Si vendedor es un número (ID), obtener el nombre
+    // Obtener el nombre del vendedor
+    // Priorizar vendedor_nombre si ya viene preparado desde CarritoWidget
+    let nombreVendedor = datosCliente.vendedor_nombre || datosCliente.vendedor || '';
+
+    // Si no viene el nombre, intentar obtenerlo del ID
+    if (!datosCliente.vendedor_nombre && datosCliente.vendedor && !isNaN(datosCliente.vendedor)) {
       try {
         const { data: vendedorData, error: vendedorError } = await supabase
           .from('vendedores')
           .select('nombre, apellido')
           .eq('id', datosCliente.vendedor)
           .single();
-        
+
         if (!vendedorError && vendedorData) {
           nombreVendedor = `${vendedorData.nombre} ${vendedorData.apellido}`;
         }
@@ -65,6 +67,8 @@ export const ventasService = {
         nombreVendedor = datosCliente.vendedor; // Usar el ID como fallback
       }
     }
+
+    console.log('👤 Vendedor procesado:', { id: datosCliente.vendedor, nombre: nombreVendedor });
     
     // Calcular totales
     const totalVenta = carritoItems.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0)

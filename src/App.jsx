@@ -43,8 +43,9 @@ import {
   BalanceSumasYSaldosSection,
   CuentasAuxiliaresSection
 } from './modules/contabilidad/components';
-import ComprasSection from './modules/compras/components/ComprasSection';
-import ComprasNuevaSection from './modules/compras/components/ComprasNuevaSection';
+import ComprasSection from './modules/compras/components/ComprasUnificadasSection';
+import ImportacionesComprasSection from './modules/compras/components/ImportacionesSection';
+import ProveedoresSection from './modules/compras/components/ProveedoresSection';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
 import { useInventario } from './modules/ventas/hooks/useInventario';
@@ -538,14 +539,18 @@ const AppContent = () => {
      {activeSection === 'cuentas-auxiliares' && (
        <CuentasAuxiliaresSection />
      )}
-     {/* 🛒 NUEVA SECCIÓN DE COMPRAS */}
+     {/* ✈️ NUEVA SECCIÓN DE IMPORTACIONES */}
+     {activeSection === 'importaciones-compras' && (
+       <ImportacionesComprasSection />
+     )}
+     {/* 🛒 NUEVA SECCIÓN DE COMPRAS UNIFICADAS */}
      {activeSection === 'compras' && (
        <ComprasSection />
      )}
 
-     {/* 🛒 SISTEMA NUEVO DE COMPRAS */}
-     {activeSection === 'compras-nueva' && (
-       <ComprasNuevaSection />
+     {/* 👥 NUEVA SECCIÓN DE PROVEEDORES */}
+     {activeSection === 'proveedores-compras' && (
+       <ProveedoresSection />
      )}
 
      {/* 📊 SECCIONES DE CONTABILIDAD */}

@@ -28,7 +28,8 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
-  ShoppingBag
+  ShoppingBag,
+  Plane
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
@@ -227,15 +228,21 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       items: [
         {
           id: 'compras',
-          label: 'Registro de Compras',
-          icon: ShoppingBag,
-          description: 'Compras de la empresa'
+          label: 'Compras (Unificadas)',
+          icon: ShoppingCart,
+          description: 'Registro unificado de compras'
         },
         {
-          id: 'compras-nueva',
-          label: 'Sistema Nuevo',
-          icon: Package,
-          description: 'Recibos con agregación de productos'
+          id: 'importaciones-compras',
+          label: 'Importaciones',
+          icon: Plane,
+          description: 'Gestión de importaciones'
+        },
+        {
+          id: 'proveedores-compras',
+          label: 'Proveedores',
+          icon: Users,
+          description: 'Gestión de proveedores'
         }
       ]
     },

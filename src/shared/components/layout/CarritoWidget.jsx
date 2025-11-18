@@ -697,6 +697,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       const numeroTransaccion = `VT-${Date.now()}`;
 
       // ✅ DATOS COMPLETOS: Usar información del cliente seleccionado
+      // Obtener nombre del vendedor seleccionado
+      const vendedorSeleccionado = vendedores.find(v => v.id === datosCliente.vendedor);
+      const nombreVendedor = vendedorSeleccionado
+        ? `${vendedorSeleccionado.nombre} ${vendedorSeleccionado.apellido}`
+        : '';
+
+      // Usar la fecha seleccionada por el usuario + hora actual
+      const fechaVentaCompleta = `${fechaVenta}T${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}`;
+
       const datosVentaCompletos = {
         cliente_id: clienteSeleccionado.id,
         cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
@@ -708,9 +717,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         monto_pago_2: datosCliente.monto_pago_2,
         observaciones: datosCliente.observaciones,
         vendedor: datosCliente.vendedor,
+        vendedor_nombre: nombreVendedor,
         sucursal: datosCliente.sucursal,
         numeroTransaccion,
-        fecha_venta: obtenerFechaHoraLocal(),
+        fecha_venta: fechaVentaCompleta,
         // ✅ NUEVO: Información para cuenta corriente
         esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente',
         total: calcularTotal()

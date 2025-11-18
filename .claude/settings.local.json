@@ -20,7 +20,9 @@
       "mcp__supabase__search_docs",
       "WebSearch",
       "Bash(mcp__supabase__list_migrations)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(mcp supabase list_tables:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
