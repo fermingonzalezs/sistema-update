@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, X, ShoppingBag, Package, FileText, ChevronRight, ChevronDown, AlertCircle, CheckCircle } from 'lucide-react';
-import { useCompras } from '../hooks/useComprasNuevo';
+// TODO: Hook eliminado - useCompras (useComprasNuevo) necesita ser reimplementado
 import CargaEquiposUnificada from '../../administracion/components/CargaEquiposUnificada';
 import { supabase } from '../../../lib/supabase';
 
 const ComprasNuevaSection = () => {
-  const {
-    reciboActual,
-    itemsCarrito,
-    loading,
-    error,
-    successMessage,
-    crearRecibo,
-    agregarItemAlCarrito,
-    editarItemDelCarrito,
-    eliminarItemDelCarrito,
-    procesarRecibo,
-    cancelarRecibo,
-    limpiarMensajes
-  } = useCompras();
+  // TODO: Backend de compras necesita ser reimplementado
+  const reciboActual = null;
+  const itemsCarrito = [];
+  const loading = false;
+  const error = null;
+  const successMessage = '';
+  const crearRecibo = async () => { alert('Backend de compras no implementado'); };
+  const agregarItemAlCarrito = async () => { alert('Backend de compras no implementado'); };
+  const editarItemDelCarrito = async () => { alert('Backend de compras no implementado'); };
+  const eliminarItemDelCarrito = async () => { alert('Backend de compras no implementado'); };
+  const procesarRecibo = async () => { alert('Backend de compras no implementado'); };
+  const cancelarRecibo = async () => { alert('Backend de compras no implementado'); };
+  const limpiarMensajes = () => {};
 
   const [vista, setVista] = useState('formulario'); // 'formulario' o 'carrito'
   const [mostrarAgregarProducto, setMostrarAgregarProducto] = useState(false);
@@ -67,10 +66,7 @@ const ComprasNuevaSection = () => {
     proveedor: '',
     fecha: new Date().toISOString().split('T')[0],
     descripcion: '',
-    metodoPago: '',
-    moneda: 'USD',
-    cotizacion: cotizacionDolar,
-    costosAdicionales: 0
+    metodoPago: ''
   });
 
   // Mostrar modal para agregar producto
@@ -235,61 +231,6 @@ const ComprasNuevaSection = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Moneda *
-                  </label>
-                  <select
-                    value={datosRecibo.moneda}
-                    onChange={(e) => setDatosRecibo(prev => ({
-                      ...prev,
-                      moneda: e.target.value,
-                      cotizacion: e.target.value === 'USD' ? 1 : cotizacionDolar
-                    }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    required
-                  >
-                    <option value="USD">USD</option>
-                    <option value="ARS">ARS</option>
-                  </select>
-                </div>
-
-                {datosRecibo.moneda === 'ARS' && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Cotización USD/ARS *
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={datosRecibo.cotizacion}
-                      onChange={(e) => setDatosRecibo(prev => ({ ...prev, cotizacion: parseFloat(e.target.value) }))}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      required
-                      placeholder="Ej: 1150"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Costos Adicionales ({datosRecibo.moneda})
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={datosRecibo.costosAdicionales}
-                    onChange={(e) => setDatosRecibo(prev => ({
-                      ...prev,
-                      costosAdicionales: e.target.value === '' ? '' : parseFloat(e.target.value) || 0
-                    }))}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="Envío, impuestos, etc."
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Opcional</p>
-                </div>
 
                 <div className="md:col-span-2 lg:col-span-4">
                   <label className="block text-sm font-medium text-slate-700 mb-2">

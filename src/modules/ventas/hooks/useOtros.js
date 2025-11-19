@@ -275,6 +275,14 @@ export const otrosService = {
         // ❌ LA OTRA SUCURSAL TAMPOCO TIENE STOCK
         throw new Error(`Stock insuficiente: No hay stock disponible en ${sucursal}. La otra sucursal (${otraSucursal}) también está sin stock`)
       }
+    } else {
+      // ✅ HAY STOCK SUFICIENTE EN LA SUCURSAL SELECCIONADA
+      // Actualizar la cantidad de la sucursal correspondiente
+      if (sucursal === 'la_plata') {
+        cantidadFinalLaPlata = nuevaCantidad
+      } else {
+        cantidadFinalMitre = nuevaCantidad
+      }
     }
 
     // Actualizar la cantidad

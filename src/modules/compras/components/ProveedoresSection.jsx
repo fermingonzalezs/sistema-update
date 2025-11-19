@@ -3,17 +3,10 @@ import { Globe, Home, Users, Plus, X, Phone, Mail, MapPin, Edit, Trash2, Eye, Al
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
 import { useProveedores } from '../hooks/useProveedores';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
 const ProveedoresSection = () => {
-  // Hook para proveedores
-  const {
-    proveedores,
-    loading,
-    error,
-    crearProveedor,
-    actualizarProveedor,
-    eliminarProveedor
-  } = useProveedores();
+  const { proveedores, loading, error, crearProveedor, actualizarProveedor, eliminarProveedor } = useProveedores();
 
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedProveedor, setSelectedProveedor] = useState(null);
@@ -141,6 +134,8 @@ const ProveedoresSection = () => {
       }
     }
   };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6">

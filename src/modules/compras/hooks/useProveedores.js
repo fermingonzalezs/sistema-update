@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 export const useProveedores = () => {
@@ -6,153 +6,114 @@ export const useProveedores = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Cargar proveedores de la tabla
-  const cargarProveedores = async () => {
+  // Cargar todos los proveedores
+  const fetchProveedores = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error: queryError } = await supabase
+      setError(null);
+
+      const { data, error: supabaseError } = await supabase
         .from('proveedores')
         .select('*')
         .order('nombre', { ascending: true });
 
-      if (queryError) throw queryError;
+      if (supabaseError) throw supabaseError;
+
       setProveedores(data || []);
-      setError(null);
     } catch (err) {
       console.error('Error cargando proveedores:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Cargar proveedores al montar el componente
   useEffect(() => {
-    cargarProveedores();
-  }, []);
+    fetchProveedores();
+  }, [fetchProveedores]);
 
   // Crear nuevo proveedor
-  const crearProveedor = async (datosProveedor) => {
+  const crearProveedor = useCallback(async (datosProveedor) => {
     try {
-      setLoading(true);
+      setError(null);
 
-      const proveedorData = {
-        nombre: datosProveedor.nombre,
-        email: datosProveedor.email || datosProveedor.mail || null,
-        telefono: datosProveedor.telefono || null,
-        pais: datosProveedor.pais || null,
-        direccion: datosProveedor.direccion || null,
-        barrio: datosProveedor.barrio || null,
-        notas: datosProveedor.notas || null,
-        cliente_id: datosProveedor.cliente_id || null
-      };
-
-      const { data, error: insertError } = await supabase
+      const { data, error: supabaseError } = await supabase
         .from('proveedores')
-        .insert([proveedorData])
-        .select();
+        .insert([datosProveedor])
+        .select()
+        .single();
 
-      if (insertError) throw insertError;
+      if (supabaseError) throw supabaseError;
 
-      setProveedores(prev => [data[0], ...prev]);
-      return { success: true, data: data[0] };
+      setProveedores(prev => [...prev, data]);
+
+      return { success: true, data };
     } catch (err) {
       console.error('Error creando proveedor:', err);
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      const errorMsg = err.message || 'Error al crear proveedor';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
     }
-  };
+  }, []);
 
-  // Actualizar proveedor existente
-  const actualizarProveedor = async (id, datosActualizados) => {
+  // Actualizar proveedor
+  const actualizarProveedor = useCallback(async (id, datosActualizados) => {
     try {
-      setLoading(true);
+      setError(null);
 
-      const { data, error: updateError } = await supabase
+      const { data, error: supabaseError } = await supabase
         .from('proveedores')
         .update(datosActualizados)
         .eq('id', id)
-        .select();
+        .select()
+        .single();
 
-      if (updateError) throw updateError;
+      if (supabaseError) throw supabaseError;
 
       setProveedores(prev =>
-        prev.map(prov => prov.id === id ? data[0] : prov)
+        prev.map(p => p.id === id ? data : p)
       );
 
-      return { success: true, data: data[0] };
+      return { success: true, data };
     } catch (err) {
       console.error('Error actualizando proveedor:', err);
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      const errorMsg = err.message || 'Error al actualizar proveedor';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
     }
-  };
+  }, []);
 
   // Eliminar proveedor
-  const eliminarProveedor = async (id) => {
+  const eliminarProveedor = useCallback(async (id) => {
     try {
-      setLoading(true);
+      setError(null);
 
-      const { error: deleteError } = await supabase
+      const { error: supabaseError } = await supabase
         .from('proveedores')
         .delete()
         .eq('id', id);
 
-      if (deleteError) throw deleteError;
+      if (supabaseError) throw supabaseError;
 
-      setProveedores(prev => prev.filter(prov => prov.id !== id));
+      setProveedores(prev => prev.filter(p => p.id !== id));
 
       return { success: true };
     } catch (err) {
       console.error('Error eliminando proveedor:', err);
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      const errorMsg = err.message || 'Error al eliminar proveedor';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
     }
-  };
-
-  // Obtener un proveedor por ID
-  const obtenerProveedor = async (id) => {
-    try {
-      const { data, error: queryError } = await supabase
-        .from('proveedores')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (queryError) throw queryError;
-      return { success: true, data };
-    } catch (err) {
-      console.error('Error obteniendo proveedor:', err);
-      return { success: false, error: err.message };
-    }
-  };
-
-  // Obtener proveedores por país
-  const obtenerPorPais = (pais) => {
-    return proveedores.filter(p => p.pais === pais);
-  };
-
-  // Obtener proveedores activos
-  const obtenerActivos = () => {
-    return proveedores.filter(p => p.activo);
-  };
+  }, []);
 
   return {
     proveedores,
     loading,
     error,
-    cargarProveedores,
     crearProveedor,
     actualizarProveedor,
     eliminarProveedor,
-    obtenerProveedor,
-    obtenerPorPais,
-    obtenerActivos
+    refetch: fetchProveedores
   };
 };

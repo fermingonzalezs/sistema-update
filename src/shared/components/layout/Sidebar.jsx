@@ -223,57 +223,26 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
     },
     {
       title: 'COMPRAS',
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-cyan-600 to-blue-600',
       level: 'compras',
       items: [
         {
           id: 'compras',
-          label: 'Compras (Unificadas)',
+          label: 'Compras Locales',
           icon: ShoppingCart,
-          description: 'Registro unificado de compras'
+          description: 'Registro de compras locales'
         },
         {
-          id: 'importaciones-compras',
-          label: 'Importaciones',
+          id: 'importaciones',
+          label: 'Compras Internacionales',
           icon: Plane,
-          description: 'Gestión de importaciones'
+          description: 'Gestión de compras internacionales'
         },
         {
           id: 'proveedores-compras',
           label: 'Proveedores',
           icon: Users,
           description: 'Gestión de proveedores'
-        }
-      ]
-    },
-    {
-      title: 'IMPORTACIONES',
-      color: 'from-cyan-600 to-blue-600',
-      level: 'importaciones',
-      items: [
-        {
-          id: 'cotizaciones',
-          label: 'Cotizaciones',
-          icon: FileText,
-          description: 'Cotizaciones de importaciones'
-        },
-        {
-          id: 'pendientes-compra',
-          label: 'Pendientes de Compra',
-          icon: ClipboardList,
-          description: 'Importaciones pendientes de compra'
-        },
-        {
-          id: 'en-transito',
-          label: 'En Tránsito',
-          icon: Truck,
-          description: 'Importaciones en tránsito'
-        },
-        {
-          id: 'historial-importaciones',
-          label: 'Historial',
-          icon: BarChart3,
-          description: 'Historial de importaciones finalizadas'
         }
       ]
     }

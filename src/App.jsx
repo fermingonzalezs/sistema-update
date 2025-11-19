@@ -4,13 +4,6 @@ import { AuthProvider, useAuthContext } from './context/AuthContext';
 import Login from './components/auth/Login';
 import SetupPassword from './components/auth/SetupPassword';
 import {
-  ImportacionesSection,
-  CotizacionesSection,
-  PendientesCompraSection,
-  EnTransitoSection,
-  HistorialImportacionesSection
-} from './modules/importaciones/components';
-import {
   Clientes,
   Listas,
   Catalogo,
@@ -43,8 +36,8 @@ import {
   BalanceSumasYSaldosSection,
   CuentasAuxiliaresSection
 } from './modules/contabilidad/components';
-import ComprasSection from './modules/compras/components/ComprasUnificadasSection';
-import ImportacionesComprasSection from './modules/compras/components/ImportacionesSection';
+import ComprasSection from './modules/compras/components/ComprasSection';
+import { ImportacionesSection } from './modules/importaciones/components';
 import ProveedoresSection from './modules/compras/components/ProveedoresSection';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
@@ -480,21 +473,6 @@ const AppContent = () => {
      setActiveSection={handleSectionChange}
    >
      {/* 📋 Renderizado de secciones */}
-     {activeSection === 'importaciones' && (
-       <ImportacionesSection />
-     )}
-     {activeSection === 'cotizaciones' && (
-       <CotizacionesSection />
-     )}
-     {activeSection === 'pendientes-compra' && (
-       <PendientesCompraSection />
-     )}
-     {activeSection === 'en-transito' && (
-       <EnTransitoSection />
-     )}
-     {activeSection === 'historial-importaciones' && (
-       <HistorialImportacionesSection />
-     )}
      {/* 📋 CATÁLOGO UNIFICADO */}
      {(activeSection === 'catalogo-unificado' || activeSection === 'inventario') && (
        <Catalogo onAddToCart={handleAddToCart} onNavigate={handleSectionChange} />
@@ -539,9 +517,9 @@ const AppContent = () => {
      {activeSection === 'cuentas-auxiliares' && (
        <CuentasAuxiliaresSection />
      )}
-     {/* ✈️ NUEVA SECCIÓN DE IMPORTACIONES */}
-     {activeSection === 'importaciones-compras' && (
-       <ImportacionesComprasSection />
+     {/* ✈️ SECCIÓN DE IMPORTACIONES (Integrada en Compras) */}
+     {activeSection === 'importaciones' && (
+       <ImportacionesSection />
      )}
      {/* 🛒 NUEVA SECCIÓN DE COMPRAS UNIFICADAS */}
      {activeSection === 'compras' && (

@@ -65,11 +65,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
       'dashboard-reportes': { title: 'Dashboard de Reportes', icon: BarChart3, description: 'Reportes visuales y estadísticas' },
       'garantias': { title: 'Garantías', icon: Shield, description: 'Gestión de garantías y servicios postventa' },
       'comisiones': { title: 'Comisiones', icon: Calculator, description: 'Cálculo y gestión de comisiones de ventas' },
-      'importaciones': { title: 'Importaciones', icon: Globe, description: 'Gestión de importaciones y proveedores' },
-      'cotizaciones': { title: 'Cotizaciones', icon: FileText, description: 'Cotizaciones de prodcuto por importación.' },
-      'pendientes-compra': { title: 'Pendientes de Compra', icon: List, description: 'Órdenes de compra pendientes' },
-      'en-transito': { title: 'En Tránsito', icon: Truck, description: 'Productos en tránsito desde proveedores' },
-      'historial-importaciones': { title: 'Historial de Importaciones', icon: BarChart3, description: 'Historial completo de importaciones' }
+      'importaciones': { title: 'Importaciones', icon: Globe, description: 'Sistema completo de importaciones (crear, recibir, recepcionar)' }
     };
     return sections[section] || { title: section, description: '', icon: null };
   };
