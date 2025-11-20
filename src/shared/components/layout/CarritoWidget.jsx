@@ -557,13 +557,19 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
             plazoGarantia = producto.garantia_update; // inventario (computadoras)
           }
 
-          // Datos de la garantía para email
+          // Datos de la garantía para email y PDF mejorado
           const datosGarantia = {
             producto: nombreProducto,
             numeroSerie: numeroSerie,
             cliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
             fechaCompra: new Date().toLocaleDateString('es-AR'),
-            plazoGarantia: plazoGarantia
+            plazoGarantia: plazoGarantia,
+            // Datos adicionales para el PDF mejorado
+            clienteDNI: clienteSeleccionado.documento || '',
+            clienteDireccion: clienteSeleccionado.direccion || '',
+            clienteEmail: clienteSeleccionado.email || '',
+            clienteTelefono: clienteSeleccionado.telefono || '',
+            numeroVenta: Math.floor(Math.random() * 1000000) // Número temporal, idealmente vendría de la BD
           };
 
           // Agregar a lista de email

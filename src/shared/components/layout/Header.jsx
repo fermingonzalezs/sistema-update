@@ -58,8 +58,6 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
       'estado-resultados': { title: 'Estado de Resultados', icon: TrendingUp, description: 'Estado de ganancias y pérdidas' },
       'cuentas-corrientes': { title: 'Cuentas Corrientes', icon: CreditCard, description: 'Gestión de deudas y saldos de clientes' },
       'reparaciones': { title: 'Reparaciones', icon: Wrench, description: 'Gestión de reparaciones y servicios técnicos' },
-      'repuestos': { title: 'Repuestos', icon: Wrench, description: 'Inventario de repuestos y componentes' },
-      'movimientos-repuestos': { title: 'Movimientos de Repuestos', icon: Package, description: 'Registro de movimientos de stock de repuestos' },
       'testeo-equipos': { title: 'Testeo de Equipos', icon: Monitor, description: 'Registro de pruebas y testeos técnicos' },
       'recuento-stock': { title: 'Recuento de Stock', icon: Package, description: 'Control y auditoría de inventario' },
       'dashboard-reportes': { title: 'Dashboard de Reportes', icon: BarChart3, description: 'Reportes visuales y estadísticas' },

@@ -23,17 +23,17 @@ export const otrosService = {
   // Obtener todos los productos otros disponibles
   async getAll() {
     console.log('📡 Obteniendo todos los productos otros...')
-    
+
     const { data, error } = await supabase
       .from('otros')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error obteniendo otros:', error)
       throw error
     }
-    
+
     console.log(`✅ ${data.length} productos otros obtenidos`)
     return data
   },

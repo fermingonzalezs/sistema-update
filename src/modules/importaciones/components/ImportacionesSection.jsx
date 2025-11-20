@@ -47,6 +47,8 @@ const ImportacionesSection = () => {
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroProveedor, setFiltroProveedor] = useState('todos');
+  const [filtroFechaDesde, setFiltroFechaDesde] = useState('');
+  const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
 
   useEffect(() => {
     fetchRecibos();
@@ -57,9 +59,11 @@ const ImportacionesSection = () => {
     return recibos.filter(recibo => {
       if (filtroEstado !== 'todos' && recibo.estado !== filtroEstado) return false;
       if (filtroProveedor !== 'todos' && recibo.proveedor_id !== filtroProveedor) return false;
+      if (filtroFechaDesde && recibo.fecha_compra < filtroFechaDesde) return false;
+      if (filtroFechaHasta && recibo.fecha_compra > filtroFechaHasta) return false;
       return true;
     });
-  }, [recibos, filtroEstado, filtroProveedor]);
+  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta]);
 
   // Stats
   const stats = useMemo(() => {
@@ -90,6 +94,8 @@ const ImportacionesSection = () => {
   const limpiarFiltros = () => {
     setFiltroEstado('todos');
     setFiltroProveedor('todos');
+    setFiltroFechaDesde('');
+    setFiltroFechaHasta('');
   };
 
   const getEstadoColor = (estado) => {
@@ -159,7 +165,7 @@ const ImportacionesSection = () => {
 
       {/* FILTROS */}
       <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
             <select
@@ -192,6 +198,24 @@ const ImportacionesSection = () => {
                   ) : null;
                 })}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Desde</label>
+            <input
+              type="date"
+              value={filtroFechaDesde}
+              onChange={(e) => setFiltroFechaDesde(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Hasta</label>
+            <input
+              type="date"
+              value={filtroFechaHasta}
+              onChange={(e) => setFiltroFechaHasta(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
           </div>
           <div className="flex items-end">
             <button

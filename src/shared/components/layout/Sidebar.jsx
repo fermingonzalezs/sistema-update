@@ -202,18 +202,6 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           disabled: false
         },
         {
-          id: 'repuestos',
-          label: 'Repuestos',
-          icon: Wrench,
-          description: 'Inventario de repuestos'
-        },
-        {
-          id: 'movimientos-repuestos',
-          label: 'Movimientos Repuestos',
-          icon: Package,
-          description: 'Entradas y salidas de repuestos'
-        },
-        {
           id: 'testeo-equipos',
           label: 'Testeo Equipos',
           icon: Monitor,

@@ -21,6 +21,7 @@ export const CATEGORIAS_OTROS = {
   REDES: 'REDES',
   BAGS_CASES: 'BAGS_CASES',
   CABLES_CARGADORES: 'CABLES_CARGADORES',
+  MEMORIA: 'MEMORIA',
   REPUESTOS: 'REPUESTOS'
 };
 
@@ -47,6 +48,7 @@ export const CATEGORIAS_OTROS_LABELS = {
   REDES: 'Redes',
   BAGS_CASES: 'Bags/Cases',
   CABLES_CARGADORES: 'Cables/Cargadores',
+  MEMORIA: 'Memoria',
   REPUESTOS: 'Repuestos'
 };
 

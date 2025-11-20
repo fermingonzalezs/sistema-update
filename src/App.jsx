@@ -12,8 +12,6 @@ import {
 import ListadoTotalSection from './modules/ventas/components/ListadoTotalSection';
 import {
   ReparacionesMain,
-  RepuestosSection,
-  MovimientosRepuestosSection,
   TesteoEquiposSection
 } from './modules/soporte/components';
 import {
@@ -569,15 +567,6 @@ const AppContent = () => {
      {activeSection === 'recuento-stock' && (
        <RecuentoStockSection />
      )}
-
-     {activeSection === 'repuestos' && (
-       <RepuestosSection />
-     )}
-
-     {activeSection === 'movimientos-repuestos' && (
-       <MovimientosRepuestosSection />
-     )}
-
 
      {activeSection === 'testeo-equipos' && (
        <TesteoEquiposSection />

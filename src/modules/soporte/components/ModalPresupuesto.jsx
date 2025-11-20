@@ -30,13 +30,13 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
 
   const cargarRepuestos = async () => {
     try {
-      const { data, error } = await supabase.from('repuestos').select('*').order('categoria');
+      const { data, error } = await supabase.from('otros').select('*').order('categoria');
       if (error) throw error;
-      const repuestosMapeados = data.map(r => ({ 
-        id: r.id, 
-        nombre: r.nombre_producto, 
-        categoria: r.categoria || 'S/C', 
-        precio: r.precio_venta_usd || 0, 
+      const repuestosMapeados = data.map(r => ({
+        id: r.id,
+        nombre: r.nombre_producto,
+        categoria: r.categoria || 'S/C',
+        precio: r.precio_venta_usd || 0,
         stock: (r.cantidad_la_plata || 0) + (r.cantidad_mitre || 0)
       })).filter(r => r.stock > 0);
       setRepuestos(repuestosMapeados);

@@ -1,5 +1,5 @@
 import { pdf } from '@react-pdf/renderer';
-import GarantiaPDF from '../../../shared/components/pdf/GarantiaPDF';
+import GarantiaPDF_Mejorado from '../../soporte/components/pdf/GarantiaPDF_Mejorado';
 
 /**
  * Genera un blob de PDF de garantía para un producto
@@ -9,6 +9,12 @@ import GarantiaPDF from '../../../shared/components/pdf/GarantiaPDF';
  * @param {string} datosGarantia.cliente - Nombre completo del cliente
  * @param {string} datosGarantia.fechaCompra - Fecha de compra (formato legible)
  * @param {string} datosGarantia.plazoGarantia - Plazo de garantía
+ * @param {string} [datosGarantia.numeroGarantia] - Número de garantía (opcional)
+ * @param {string} [datosGarantia.numeroVenta] - Número de venta (opcional)
+ * @param {string} [datosGarantia.clienteDNI] - DNI del cliente (opcional)
+ * @param {string} [datosGarantia.clienteDireccion] - Dirección del cliente (opcional)
+ * @param {string} [datosGarantia.clienteEmail] - Email del cliente (opcional)
+ * @param {string} [datosGarantia.clienteTelefono] - Teléfono del cliente (opcional)
  * @returns {Promise<Blob>} Blob del PDF de garantía
  */
 export const generarGarantiaPDFBlob = async (datosGarantia) => {
@@ -18,25 +24,39 @@ export const generarGarantiaPDFBlob = async (datosGarantia) => {
       numeroSerie = '',
       cliente = '',
       fechaCompra = '',
-      plazoGarantia = ''
+      plazoGarantia = '',
+      numeroGarantia = '',
+      numeroVenta = '',
+      clienteDNI = '',
+      clienteDireccion = '',
+      clienteEmail = '',
+      clienteTelefono = ''
     } = datosGarantia;
 
-    console.log('📄 Generando PDF de garantía:', {
+    console.log('📄 Generando PDF de garantía mejorado:', {
       producto,
       numeroSerie,
       cliente,
       fechaCompra,
-      plazoGarantia
+      plazoGarantia,
+      numeroGarantia,
+      numeroVenta
     });
 
-    // Generar el blob del PDF
+    // Generar el blob del PDF con nueva versión mejorada
     const blob = await pdf(
-      <GarantiaPDF
+      <GarantiaPDF_Mejorado
         producto={producto}
         numeroSerie={numeroSerie}
         cliente={cliente}
         fechaCompra={fechaCompra}
         plazoGarantia={plazoGarantia}
+        numeroGarantia={numeroGarantia}
+        numeroVenta={numeroVenta}
+        clienteDNI={clienteDNI}
+        clienteDireccion={clienteDireccion}
+        clienteEmail={clienteEmail}
+        clienteTelefono={clienteTelefono}
       />
     ).toBlob();
 

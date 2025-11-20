@@ -18,101 +18,118 @@ El sistema de compras maneja dos flujos principales:
   - Datos de logística (peso, costos USA, costos ARG, etc.)
 - **Nota**: Esta tabla es independiente del flujo de compras realizadas
 
-### 2. `compras_recibos` (Agrupadores de Compras)
-- **Propósito**: Agrupar múltiples productos de una misma compra/importación
-- **Cuándo se crea**: Cuando se realiza una importación
+### 2. `compras_recibos` (Agrupadores de Compras Locales)
+- **Propósito**: Agrupar múltiples productos de una misma compra nacional o importación
+- **Cuándo se crea**: Cuando se realiza una compra (local o importada)
 - **Estructura**:
-  - 1 fila = 1 importación/compra completa
+  - 1 fila = 1 recibo/compra completa
   - Contiene datos generales (proveedor, fecha, estado)
   - Vincula todos los items de esa compra mediante `recibo_id`
 - **Campos principales**:
-  - `id`: UUID único
+  - `id`: UUID único (generado automáticamente)
+  - `numero_recibo`: Número único formato "AAAA-##" (ej: "2025-01", "2025-02", etc.)
   - `proveedor`: Nombre del proveedor
   - `fecha`: Fecha de la compra
-  - `estado`: 'importacion' → 'recibido'
+  - `metodo_pago`: Método de pago (efectivo_pesos, dolares_billete, transferencia, criptomonedas, tarjeta_credito, cuenta_corriente)
+  - `estado`: 'borrador' → 'procesado'
   - `descripcion`: Observaciones generales
+  - `fecha_procesamiento`: Timestamp cuando se procesó el recibo
 
-### 3. `compras` (Items Individuales de Compra)
+### 3. `compra_items` (Items Individuales de Compra Local)
 - **Propósito**: Guardar cada producto individual de una compra
 - **Estructura**:
   - 1 fila = 1 producto en una compra
-  - Si importas 10 productos = 10 filas en `compras`
+  - Si compras 10 productos = 10 filas en `compra_items`
   - Cada fila tiene `recibo_id` para agruparse con su recibo
 - **Campos principales**:
-  - `item`: Nombre/descripción del producto
-  - `cantidad`: Cantidad de unidades
-  - `monto`: Precio total (cantidad × precio_unitario)
-  - `proveedor`: Nombre del proveedor
+  - `id`: ID autoincremental único (IDENTITY ALWAYS)
   - `recibo_id`: FK a `compras_recibos.id` - vincula con su recibo
-  - `estado`: 'en_camino' → 'ingresado'
-  - `fecha`: Fecha de compra
-  - Campos de logística: `numero_seguimiento`, `logistica_empresa`, `peso_estimado_kg`, etc.
-  - Campos de recepción: `fecha_ingreso_real`, `peso_real_kg`, `precio_por_kg`, `costos_logistica_usd`
+  - `producto`: Nombre/descripción del producto
+  - `cantidad`: Cantidad de unidades
+  - `serial`: Número de serie (opcional)
+  - `precio_unitario`: Precio por unidad
+  - `precio_total`: Precio total (cantidad × precio_unitario)
+  - `descripcion`: Observaciones del item
 
-## Flujo de Compra
+## Flujo de Compra - Sistema Nuevo de Compras Locales
 
-### PASO 1: CREAR NUEVA IMPORTACIÓN
+### PASO 1: CREAR NUEVO RECIBO
 ```
-Usuario ingresa en "Nueva Importación":
-- Proveedor
-- Fecha
-- 10 productos (item, cantidad, precio_unitario)
-- Datos de logística (empresa, número seguimiento, etc.)
+Usuario ingresa en "Compras - Nueva Compra":
+1. Llena el formulario de recibo:
+   - Proveedor: Nombre del proveedor
+   - Fecha: Fecha de la compra
+   - Método de Pago: Selecciona de opciones disponibles
+   - Descripción: Notas opcionales
 
 Sistema crea:
-1. UN registro en compras_recibos
-   - proveedor: "Proveedor X"
-   - fecha: "2025-11-18"
-   - estado: "importacion"
-   - id generado: uuid (ej: "abc123")
+- UN registro en compras_recibos con estado="borrador"
+  - numero_recibo: Se genera automáticamente (AAAA-##)
+  - proveedor: "Proveedor X"
+  - fecha: "2025-11-18"
+  - metodo_pago: "transferencia"
+  - estado: "borrador"
+  - id: UUID generado (ej: "abc123")
 
-2. DIEZ registros en compras (uno por cada producto)
-   - compra #1: item="Notebook", cantidad=10, monto=5000, recibo_id="abc123", estado="en_camino"
-   - compra #2: item="Mouse", cantidad=10, monto=500, recibo_id="abc123", estado="en_camino"
-   - compra #3: item="Monitor", cantidad=10, monto=3000, recibo_id="abc123", estado="en_camino"
-   - ... (10 filas totales)
+Resultado: El usuario pasa a la vista de carrito
 ```
 
-### PASO 2: VER IMPORTACIONES
+### PASO 2: AGREGAR PRODUCTOS AL CARRITO
 ```
-Pantalla muestra:
-- Tabla con los RECIBOS (compras_recibos)
-  - Cada fila es 1 recibo (1 importación)
-  - Muestra: Proveedor, Fecha, Estado, Acciones
+En la vista de carrito:
+1. Usuario selecciona destino: "Stock" o "Testeo"
+2. Hace clic en "Agregar Producto"
+3. Selecciona tipo de equipo (Notebook, Celular, Otro)
+4. Ingresa datos del equipo (modelo, serial, precio, etc.)
+5. Se agrega temporalmente al carrito (sin guardar en BD aún)
 
-Cuando expandes un recibo:
-- Se muestran todos los ITEMS (compras)
-  - Filtrados por recibo_id = ese recibo
-  - Muestra: Producto, Cantidad, Precio Unitario, Total, Acciones
+Carrito muestra:
+- Lista de productos agregados
+- Opción de eliminar productos individuales
 ```
 
-### PASO 3: RECEPCIONAR IMPORTACIÓN
+### PASO 3: PROCESAR RECIBO
 ```
-Usuario hace clic en "Recepcionar" en un recibo
-- Ingresa fecha de recepción
-- Ingresa peso real, precio por kg, costos, etc.
+Usuario hace clic en "Procesar Recibo":
+- Sistema solicita confirmación (cantidad items a stock y testeo)
+- Usuario confirma
 
 Sistema:
-1. Busca todos los items en compras WHERE recibo_id = ese recibo
-2. Actualiza cada item:
-   - estado: "en_camino" → "ingresado"
-   - fecha_ingreso_real: fecha ingresada
-   - peso_real_kg: peso ingresado
-   - costos_logistica_usd: costos ingresados
-3. Actualiza el recibo:
-   - estado: "importacion" → "recibido"
+1. Guarda todos los items del carrito en compra_items
+   - Para cada item: genera registro con recibo_id
+   - Todos heredan: proveedor, fecha, metodo_pago del recibo
+2. Actualiza el recibo: estado "borrador" → "procesado"
+3. Limpia el carrito y vuelve a la vista inicial
+4. Actualiza el historial de recibos
 
-Resultado final:
-- compras_recibos: 1 recibo con estado "recibido"
-- compras: 10 items con estado "ingresado"
+Resultado:
+- compras_recibos: 1 recibo con estado="procesado"
+- compra_items: N items con los datos del compra
 ```
 
-### PASO 4: (FUTURO) PASAR A INVENTARIO
+### PASO 4: VER HISTORIAL DE RECIBOS
 ```
-Cuando se ingresa la mercadería al sistema:
-1. Los items en compras estado="ingresado" son listos para inventario
-2. Se pueden agregar a tablas de inventario (computadoras, celulares, otros, repuestos)
-3. Se puede crear un campo en compras para marcar "inventariado"
+En la vista inicial se muestra:
+- Tabla con todos los RECIBOS procesados (compras_recibos)
+  - Cada fila es 1 recibo (1 compra)
+  - Muestra: Proveedor, Fecha, Cantidad Items, Acciones
+
+Cuando expandes un recibo (clic en el chevron):
+- Se muestran todos los ITEMS (compra_items)
+  - Filtrados por recibo_id = ese recibo
+  - Muestra: Serial, Producto, Tipo, Destino (Stock/Testeo)
+```
+
+### PASO 5: (FUTURO) PASAR A INVENTARIO
+```
+Los items procesados en compra_items con destino="stock"
+pueden ser agregados a las tablas de inventario:
+- inventario (notebooks)
+- celulares (smartphones)
+- otros (accesorios)
+- repuestos (parts)
+
+Con destino="testeo" → pasan a tabla de testeo_equipos
 ```
 
 ## Relaciones y Vinculaciones
@@ -120,29 +137,32 @@ Cuando se ingresa la mercadería al sistema:
 ```
 compras_recibos (1 recibo)
     ↓ (1 a muchos)
-compras (N items de ese recibo)
+compra_items (N items de ese recibo)
     ↓ (mediante recibo_id)
     Todos los items comparten:
-    - Proveedor
-    - Fecha
-    - Número de seguimiento
-    - Logística
-    - Costos de envío
+    - numero_recibo
+    - proveedor
+    - fecha
+    - metodo_pago
 ```
 
-## Estados en Compras
+## Estados en Compras Recibos (Sistema Nuevo)
 
 | Estado | Significado | Cuándo |
 |--------|-------------|--------|
-| `en_camino` | El producto está en tránsito | Cuando se crea la compra |
-| `ingresado` | El producto llegó y fue recepcionado | Cuando se recepciona el recibo |
+| `borrador` | Recibo creado, agregando productos | Cuando se crea el recibo |
+| `procesado` | Recibo finalizado, items guardados | Cuando se hace clic en "Procesar Recibo" |
 
-## Estados en Compras Recibos
+## Métodos de Pago Disponibles
 
-| Estado | Significado | Cuándo |
-|--------|-------------|--------|
-| `importacion` | Importación pendiente de recepción | Cuando se crea |
-| `recibido` | Todos los items fueron recepcionados | Cuando se acepta la recepción |
+| Método | Código | Descripción |
+|--------|--------|-------------|
+| Efectivo en Pesos | `efectivo_pesos` | Pago en efectivo ARG |
+| Dólares Billete | `dolares_billete` | Pago en USD cash |
+| Transferencia | `transferencia` | Transferencia bancaria |
+| Criptomonedas | `criptomonedas` | Pago en cripto |
+| Tarjeta de Crédito | `tarjeta_credito` | Pago con tarjeta |
+| Cuenta Corriente | `cuenta_corriente` | Cargo a cuenta de proveedor |
 
 ## Diferencia con `importaciones`
 
@@ -152,13 +172,53 @@ La tabla `importaciones` (antigua) es para **cotizaciones/presupuestos únicos**
 - NO interfiere con el flujo de compras realizadas
 - Es independiente de `compras` y `compras_recibos`
 
+## Servicio de Compras
+
+El servicio `comprasLocalesService` (en `src/modules/compras/services/comprasLocalesService.js`) proporciona:
+
+### Métodos Disponibles
+
+1. **`generarNumeroRecibo()`**
+   - Genera automáticamente número único formato "AAAA-##"
+   - Incrementa secuencialmente cada año
+
+2. **`crearRecibo(reciboData, items = [])`**
+   - Crea un nuevo recibo y sus items
+   - Parámetros:
+     - `reciboData`: { proveedor, fecha_compra, metodo_pago, observaciones }
+     - `items`: Array de items (opcional al crear)
+
+3. **`getReciboConItems(id)`**
+   - Obtiene un recibo específico con todos sus items
+
+4. **`getAllRecibos()`**
+   - Obtiene todos los recibos procesados con sus items
+
+5. **`updateRecibo(id, reciboData, items = [])`**
+   - Actualiza un recibo y sus items
+   - Elimina items viejos y crea nuevos
+
+6. **`procesarRecibo(id)`**
+   - Cambia estado de 'borrador' a 'procesado'
+
+7. **`deleteRecibo(id)`**
+   - Elimina un recibo y sus items en cascada
+
+8. **`deleteItem(itemId)`**
+   - Elimina un item específico
+
 ---
 
-**FLUJO SIMPLIFICADO:**
+**FLUJO SIMPLIFICADO - NUEVO SISTEMA:**
 ```
-Cotización → importaciones (presupuesto)
-                ↓
-Aprobado → compras_recibos (1 recibo) + compras (N items)
-                ↓
-Recepcionado → compras estado=ingresado, compras_recibos estado=recibido
+CREAR RECIBO (borrador)
+        ↓
+AGREGAR PRODUCTOS AL CARRITO (temporal)
+        ↓
+PROCESAR RECIBO (confirmar)
+        ↓
+compras_recibos estado=procesado
++ compra_items (N items)
+        ↓
+HISTORIAL (ver recibos procesados)
 ```

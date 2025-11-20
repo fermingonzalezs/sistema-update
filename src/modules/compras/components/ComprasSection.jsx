@@ -24,16 +24,22 @@ const ComprasSection = () => {
 
   // Calcular stats
   const stats = useMemo(() => {
+    const totalItems = recibos.reduce((sum, recibo) => {
+      return sum + (recibo.compras_items?.length || 0);
+    }, 0);
+
+    const totalMonto = recibos.reduce((sum, recibo) => {
+      const subtotal = (recibo.compras_items || []).reduce((s, item) => {
+        return s + ((parseInt(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0));
+      }, 0);
+      const costos = parseFloat(recibo.costos_adicionales) || 0;
+      return sum + subtotal + costos;
+    }, 0);
+
     return {
       totalCompras: recibos.length,
-      borradores: recibos.filter(r => r.estado === 'borrador').length,
-      procesadas: recibos.filter(r => r.estado === 'procesado').length,
-      totalMonto: recibos.reduce((sum, recibo) => {
-        const monto = (recibo.compras_items || []).reduce((s, item) => {
-          return s + ((parseInt(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0));
-        }, 0);
-        return sum + monto;
-      }, 0)
+      totalItems: totalItems,
+      totalMonto: totalMonto
     };
   }, [recibos]);
 
@@ -47,10 +53,10 @@ const ComprasSection = () => {
       if (filtroBusqueda && !recibo.proveedor.toLowerCase().includes(filtroBusqueda.toLowerCase())) return false;
 
       // Filtro por fecha desde
-      if (filtroFechaDesde && recibo.fecha_compra < filtroFechaDesde) return false;
+      if (filtroFechaDesde && recibo.fecha < filtroFechaDesde) return false;
 
       // Filtro por fecha hasta
-      if (filtroFechaHasta && recibo.fecha_compra > filtroFechaHasta) return false;
+      if (filtroFechaHasta && recibo.fecha > filtroFechaHasta) return false;
 
       return true;
     });
@@ -108,20 +114,18 @@ const ComprasSection = () => {
 
   // Manejar procesamiento
   const handleProcesarCompra = async (id) => {
-    if (confirm('¿Estás seguro de que deseas procesar esta compra?')) {
-      setIsLoadingAction(true);
-      try {
-        const resultado = await procesarRecibo(id);
-        if (resultado.success) {
-          alert(resultado.message);
-        } else {
-          alert('Error: ' + resultado.error);
-        }
-      } catch (err) {
-        alert('Error procesando compra: ' + err.message);
-      } finally {
-        setIsLoadingAction(false);
+    setIsLoadingAction(true);
+    try {
+      const resultado = await procesarRecibo(id);
+      if (resultado.success) {
+        alert(resultado.message);
+      } else {
+        alert('Error: ' + resultado.error);
       }
+    } catch (err) {
+      alert('Error procesando compra: ' + err.message);
+    } finally {
+      setIsLoadingAction(false);
     }
   };
 
@@ -181,29 +185,23 @@ const ComprasSection = () => {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Tarjeta
           icon={ShoppingBag}
-          titulo="Total Compras"
+          titulo="Compras"
           valor={stats.totalCompras}
         />
         <Tarjeta
           icon={Package}
-          titulo="Borradores"
-          valor={stats.borradores}
+          titulo="Items"
+          valor={stats.totalItems}
           color="yellow"
         />
         <Tarjeta
-          icon={CheckCircle}
-          titulo="Procesadas"
-          valor={stats.procesadas}
-          color="green"
-        />
-        <Tarjeta
           icon={DollarSign}
-          titulo="Total Monto"
-          valor={`$${stats.totalMonto.toFixed(2)}`}
-          color="blue"
+          titulo="Monto Total"
+          valor={`U$ ${Math.round(stats.totalMonto)}`}
+          color="green"
         />
       </div>
 
@@ -218,8 +216,8 @@ const ComprasSection = () => {
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
-              <option value="borrador">Borrador</option>
-              <option value="procesado">Procesado</option>
+              <option value="en_camino">En Camino</option>
+              <option value="ingresado">Ingresado</option>
             </select>
           </div>
 
@@ -275,79 +273,115 @@ const ComprasSection = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
+              <colgroup>
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '18%' }} />
+              </colgroup>
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Proveedor</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Total</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {recibosFiltrados.map((recibo, idx) => {
-                  const total = (recibo.compras_items || []).reduce((sum, item) => {
+                  const subtotal = (recibo.compras_items || []).reduce((sum, item) => {
                     return sum + ((parseInt(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0));
                   }, 0);
+                  const total = subtotal + (parseFloat(recibo.costos_adicionales) || 0);
 
-                  const estadoBadge = recibo.estado === 'borrador'
-                    ? <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">📝 Borrador</span>
-                    : <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">✅ Procesado</span>;
+                  const estadoBadge = recibo.estado === 'en_camino'
+                    ? <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">EN CAMINO</span>
+                    : <span className="px-3 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">INGRESADO</span>;
 
                   return (
                     <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-4 py-3 text-sm font-mono text-slate-800">#{recibo.numero_recibo}</td>
-                      <td className="px-4 py-3 text-sm text-slate-800">{new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}</td>
-                      <td className="px-4 py-3 text-sm text-slate-800">{recibo.proveedor}</td>
-                      <td className="px-4 py-3 text-center text-sm text-slate-800">{recibo.compras_items?.length || 0}</td>
-                      <td className="px-4 py-3 text-right text-sm font-medium text-slate-800">${total.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-800">{recibo.numero_recibo}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.proveedores?.nombre || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.compras_items?.length || 0}</td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">U$ {Math.round(total).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
                       <td className="px-4 py-3 text-center">{estadoBadge}</td>
-                      <td className="px-4 py-3 text-center space-x-2 flex items-center justify-center">
-                        <button
-                          onClick={() => {
-                            setReciboEnDetalle(recibo);
-                            setShowDetalle(true);
-                          }}
-                          title="Ver detalle"
-                          className="p-2 hover:bg-blue-100 text-blue-600 rounded transition-colors"
-                        >
-                          <Eye size={18} />
-                        </button>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => {
+                              setReciboEnDetalle(recibo);
+                              setShowDetalle(true);
+                            }}
+                            title="Ver detalle"
+                            className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                          >
+                            <Eye size={18} />
+                          </button>
 
-                        {recibo.estado === 'borrador' && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setReciboEnEdicion(recibo);
-                                setShowNuevaCompra(true);
-                              }}
-                              title="Editar"
-                              className="p-2 hover:bg-orange-100 text-orange-600 rounded transition-colors"
-                            >
-                              <Edit2 size={18} />
-                            </button>
+                          {recibo.estado === 'en_camino' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setReciboEnEdicion(recibo);
+                                  setShowNuevaCompra(true);
+                                }}
+                                title="Editar"
+                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                              >
+                                <Edit2 size={18} />
+                              </button>
 
-                            <button
-                              onClick={() => handleProcesarCompra(recibo.id)}
-                              disabled={isLoadingAction}
-                              title="Procesar"
-                              className="p-2 hover:bg-green-100 text-green-600 rounded transition-colors disabled:opacity-50"
-                            >
-                              <CheckCircle size={18} />
-                            </button>
+                              <button
+                                onClick={() => handleProcesarCompra(recibo.id)}
+                                disabled={isLoadingAction}
+                                title="Marcar como INGRESADO"
+                                className="text-emerald-600 hover:text-emerald-700 transition-colors disabled:opacity-50"
+                              >
+                                <CheckCircle size={18} />
+                              </button>
 
-                            <button
-                              onClick={() => handleEliminarCompra(recibo.id)}
-                              disabled={isLoadingAction}
-                              title="Eliminar"
-                              className="p-2 hover:bg-red-100 text-red-600 rounded transition-colors disabled:opacity-50"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </>
-                        )}
+                              <button
+                                onClick={() => handleEliminarCompra(recibo.id)}
+                                disabled={isLoadingAction}
+                                title="Eliminar"
+                                className="text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
+
+                          {recibo.estado === 'ingresado' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setReciboEnEdicion(recibo);
+                                  setShowNuevaCompra(true);
+                                }}
+                                title="Editar"
+                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                              >
+                                <Edit2 size={18} />
+                              </button>
+
+                              <button
+                                onClick={() => handleEliminarCompra(recibo.id)}
+                                disabled={isLoadingAction}
+                                title="Eliminar"
+                                className="text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -378,6 +412,17 @@ const ComprasSection = () => {
           setReciboEnDetalle(null);
         }}
         recibo={reciboEnDetalle}
+        onEdit={(recibo) => {
+          setReciboEnEdicion(recibo);
+          setShowDetalle(false);
+          setShowNuevaCompra(true);
+        }}
+        onDelete={(id) => {
+          handleEliminarCompra(id);
+          setShowDetalle(false);
+          setReciboEnDetalle(null);
+        }}
+        isLoading={isLoadingAction}
       />
     </div>
   );

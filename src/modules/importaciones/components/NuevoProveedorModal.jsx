@@ -10,7 +10,6 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
     email: '',
     telefono: '',
     pais: '',
-    website: '',
     direccion: '',
     barrio: ''
   });
@@ -89,18 +88,6 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
               value={formData.pais}
               onChange={(e) => setFormData({ ...formData, pais: e.target.value })}
               placeholder="País"
-              disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Website</label>
-            <input
-              type="text"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-              placeholder="www.ejemplo.com"
               disabled={isSubmitting}
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />

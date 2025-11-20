@@ -50,11 +50,12 @@ export const comprasLocalesService = {
 
       const datosRecibo = {
         numero_recibo: numeroRecibo,
-        proveedor: reciboData.proveedor,
+        proveedor_id: reciboData.proveedor_id,
         fecha: reciboData.fecha_compra,
         metodo_pago: reciboData.metodo_pago,
         descripcion: reciboData.observaciones || null,
-        estado: 'borrador',
+        estado: 'en_camino',
+        costos_adicionales: parseFloat(reciboData.costos_adicionales) || 0,
         created_at: new Date().toISOString()
       };
 
@@ -76,7 +77,8 @@ export const comprasLocalesService = {
           cantidad: parseInt(item.cantidad),
           serial: item.serial || null,
           precio_unitario: parseFloat(item.precio_unitario),
-          precio_total: parseInt(item.cantidad) * parseFloat(item.precio_unitario),
+          precio_total: parseFloat(item.precio_total),
+          costos_adicionales: parseFloat(item.costos_adicionales) || 0,
           descripcion: item.descripcion || null,
           created_at: new Date().toISOString()
         }));
@@ -138,10 +140,10 @@ export const comprasLocalesService = {
    */
   async getAllRecibos() {
     try {
-      // Obtener todos los recibos
+      // Obtener todos los recibos con datos del proveedor
       const { data: recibos, error: errorRecibos } = await supabase
         .from('compras_recibos')
-        .select('*')
+        .select('*, proveedores(id, nombre)')
         .order('created_at', { ascending: false });
 
       if (errorRecibos) throw errorRecibos;
@@ -183,7 +185,7 @@ export const comprasLocalesService = {
       const { error: errorUpdate } = await supabase
         .from('compras_recibos')
         .update({
-          proveedor: reciboData.proveedor,
+          proveedor_id: reciboData.proveedor_id,
           fecha: reciboData.fecha_compra,
           metodo_pago: reciboData.metodo_pago,
           descripcion: reciboData.observaciones || null,
@@ -210,7 +212,8 @@ export const comprasLocalesService = {
           cantidad: parseInt(item.cantidad),
           serial: item.serial || null,
           precio_unitario: parseFloat(item.precio_unitario),
-          precio_total: parseInt(item.cantidad) * parseFloat(item.precio_unitario),
+          precio_total: parseFloat(item.precio_total),
+          costos_adicionales: parseFloat(item.costos_adicionales) || 0,
           descripcion: item.descripcion || null,
           created_at: new Date().toISOString()
         }));
@@ -234,14 +237,14 @@ export const comprasLocalesService = {
   },
 
   /**
-   * Cambiar estado de recibo de 'borrador' a 'procesado'
+   * Cambiar estado de recibo de 'en_camino' a 'ingresado'
    */
   async procesarRecibo(id) {
     try {
       const { data, error } = await supabase
         .from('compras_recibos')
         .update({
-          estado: 'procesado',
+          estado: 'ingresado',
           fecha_procesamiento: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
