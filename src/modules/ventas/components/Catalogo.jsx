@@ -16,6 +16,7 @@ import { cotizacionService } from "../../../shared/services/cotizacionService";
 import ProductModal from "../../../shared/components/base/ProductModal";
 import ModalProducto from "../../../shared/components/modals/ModalProducto";
 import { supabase } from "../../../lib/supabase";
+import MarcaSelector from "../../../shared/components/ui/MarcaSelector";
 
 // Importar formatter unificado y copyGenerator
 import { formatearMonto } from "../../../shared/utils/formatters";
@@ -829,15 +830,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca *
                 </label>
-                <input
-                  type="text"
+                <MarcaSelector
                   value={editForm.marca}
-                  onChange={(e) =>
-                    handleEditFormChange("marca", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: Lenovo, HP, Dell"
-                  required
+                  onChange={(valor) => handleEditFormChange("marca", valor)}
+                  placeholder="Seleccionar o agregar marca"
+                  className="w-full"
                 />
               </div>
               <div>
@@ -1399,15 +1396,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca *
                 </label>
-                <input
-                  type="text"
+                <MarcaSelector
                   value={editForm.marca}
-                  onChange={(e) =>
-                    handleEditFormChange("marca", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: Apple, Samsung"
-                  required
+                  onChange={(valor) => handleEditFormChange("marca", valor)}
+                  placeholder="Seleccionar o agregar marca"
+                  className="w-full"
                 />
               </div>
               <div>
@@ -1763,14 +1756,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
                 </label>
-                <input
-                  type="text"
+                <MarcaSelector
                   value={editForm.marca || ""}
-                  onChange={(e) =>
-                    handleEditFormChange("marca", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: Logitech, Samsung, HP..."
+                  onChange={(valor) => handleEditFormChange("marca", valor)}
+                  placeholder="Seleccionar o agregar marca"
+                  className="w-full"
                 />
               </div>
               <div className="col-span-2">

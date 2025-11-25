@@ -16,6 +16,7 @@ import {
   CATEGORIAS_OTROS_ARRAY,
   CATEGORIAS_OTROS_LABELS
 } from '../../constants/categoryConstants';
+import MarcaSelector from '../ui/MarcaSelector';
 
 // Configuración de campos por tipo de producto
 const CONFIGURACION_PRODUCTOS = {
@@ -24,8 +25,8 @@ const CONFIGURACION_PRODUCTOS = {
     titulo: 'Notebook/Computadora',
     camposObligatorios: ['serial', 'modelo'],
     camposEspecificos: [
-      'procesador', 'slots', 'tipo_ram', 'ram', 'ssd', 'hdd', 'so', 
-      'pantalla', 'resolucion', 'refresh', 'touchscreen', 'placa_video', 
+      'procesador', 'slots', 'tipo_ram', 'ram', 'ssd', 'hdd', 'so',
+      'pantalla', 'resolucion', 'refresh', 'touchscreen', 'placa_video',
       'vram', 'teclado_retro', 'idioma_teclado', 'bateria', 'duracion'
     ],
     mapeoPrecios: {
@@ -85,10 +86,10 @@ const OPCIONES = {
   }))
 };
 
-const ModalProducto = ({ 
-  isOpen, 
-  onClose, 
-  onSave, 
+const ModalProducto = ({
+  isOpen,
+  onClose,
+  onSave,
   tipo, // 'notebook', 'celular', 'otros'
   modo = 'crear', // 'crear', 'editar', 'cargar_desde_testeo'
   data = null, // datos del producto o equipo de testeo
@@ -178,7 +179,7 @@ const ModalProducto = ({
 
       // Preparar datos según la tabla
       const datosParaGuardar = prepararDatosSegunTabla();
-      
+
       // Debug log para ver qué datos se están enviando
       console.log('Datos que se van a guardar:', datosParaGuardar);
       console.log('Tabla destino:', configuracion.tabla);
@@ -224,18 +225,18 @@ const ModalProducto = ({
 
   const prepararDatosSegunTabla = () => {
     const datos = { ...formData };
-    
+
     // Transformaciones específicas por tipo
     if (tipo === 'notebook') {
       datos.touchscreen = datos.touchscreen === true || datos.touchscreen === 'SI';
       // No incluir precio_costo_total - se calcula automáticamente
       delete datos.precio_costo_total;
     }
-    
+
     if (tipo === 'celular') {
       if (datos.ciclos) datos.ciclos = parseInt(datos.ciclos) || null;
     }
-    
+
     if (tipo === 'otros') {
       datos.cantidad = parseInt(datos.cantidad) || 1;
     }
@@ -282,7 +283,7 @@ const ModalProducto = ({
             <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
               Información Básica
             </h4>
-            
+
             {renderCamposBasicos()}
           </div>
 
@@ -291,7 +292,7 @@ const ModalProducto = ({
             <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
               Precios
             </h4>
-            
+
             {renderCamposPrecios()}
           </div>
 
@@ -301,7 +302,7 @@ const ModalProducto = ({
               <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
                 Especificaciones
               </h4>
-              
+
               {renderCamposEspecificos()}
             </div>
           )}
@@ -311,7 +312,7 @@ const ModalProducto = ({
             <h4 className="text-md font-medium text-slate-800 border-b border-slate-200 pb-2">
               Otros Datos
             </h4>
-            
+
             {renderOtrosCampos()}
           </div>
 
@@ -394,16 +395,12 @@ const ModalProducto = ({
         {/* Marca */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
-          <select
+          <MarcaSelector
             value={formData.marca || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, marca: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="">Seleccionar...</option>
-            {OPCIONES.marca[tipo]?.map(marca => (
-              <option key={marca} value={marca}>{marca}</option>
-            ))}
-          </select>
+            onChange={(valor) => setFormData(prev => ({ ...prev, marca: valor }))}
+            placeholder="Seleccionar marca..."
+            className="w-full"
+          />
         </div>
 
         {/* Condición */}
@@ -517,9 +514,9 @@ const ModalProducto = ({
           <input
             type="number"
             value={formData[tipo === 'notebook' ? 'precio_costo_usd' : 'precio_compra_usd'] || 0}
-            onChange={(e) => setFormData(prev => ({ 
-              ...prev, 
-              [tipo === 'notebook' ? 'precio_costo_usd' : 'precio_compra_usd']: parseFloat(e.target.value) || 0 
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              [tipo === 'notebook' ? 'precio_costo_usd' : 'precio_compra_usd']: parseFloat(e.target.value) || 0
             }))}
             className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
             step="0.01"
@@ -890,9 +887,9 @@ const ModalProducto = ({
           <input
             type="text"
             value={formData.garantia || (tipo === 'notebook' ? formData.garantia_update : '')}
-            onChange={(e) => setFormData(prev => ({ 
-              ...prev, 
-              [tipo === 'notebook' ? 'garantia_update' : 'garantia']: e.target.value 
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              [tipo === 'notebook' ? 'garantia_update' : 'garantia']: e.target.value
             }))}
             className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
             placeholder="Ej: 12 meses, 6 meses"

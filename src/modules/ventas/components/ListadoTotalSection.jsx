@@ -116,6 +116,7 @@ const ListadoTotalSection = () => {
     'REDES': '🌐',
     'BAGS_CASES': '💼',
     'CABLES_CARGADORES': '🔌',
+    'MEMORIA': '🧠',
     'REPUESTOS': '🔧',
     'OTROS': '📦'
   };
@@ -290,6 +291,7 @@ const ListadoTotalSection = () => {
     'REDES': 'bg-blue-100 text-blue-700',
     'BAGS_CASES': 'bg-slate-100 text-slate-700',
     'CABLES_CARGADORES': 'bg-cyan-100 text-cyan-700',
+    'MEMORIA': 'bg-fuchsia-100 text-fuchsia-700',
     'REPUESTOS': 'bg-gray-100 text-gray-700'
   };
 
@@ -297,7 +299,12 @@ const ListadoTotalSection = () => {
   const coloresCondiciones = {
     'nuevo': 'bg-emerald-100 text-emerald-700',
     'usado': 'bg-yellow-100 text-yellow-700',
-    'refurbished': 'bg-blue-100 text-blue-700'
+    'refurbished': 'bg-blue-100 text-blue-700',
+    'reparacion': 'bg-orange-100 text-orange-700',
+    'reservado': 'bg-purple-100 text-purple-700',
+    'prestado': 'bg-cyan-100 text-cyan-700',
+    'sin_reparacion': 'bg-red-100 text-red-700',
+    'uso_oficina': 'bg-slate-100 text-slate-700'
   };
 
   // Labels de categorías - versión corta para gráficos (máx 7 caracteres)
@@ -323,6 +330,7 @@ const ListadoTotalSection = () => {
     'REDES': 'Redes',
     'BAGS_CASES': 'Bags',
     'CABLES_CARGADORES': 'Cables',
+    'MEMORIA': 'Memoria',
     'REPUESTOS': 'Repuest',
     'OTROS': 'Otros'
   };
@@ -350,6 +358,7 @@ const ListadoTotalSection = () => {
     'REDES': 'Redes',
     'BAGS_CASES': 'Bags/Cases',
     'CABLES_CARGADORES': 'Cables/Cargadores',
+    'MEMORIA': 'Memoria',
     'REPUESTOS': 'Repuestos',
     'OTROS': 'Otros'
   };
@@ -358,7 +367,12 @@ const ListadoTotalSection = () => {
   const labelsCondiciones = {
     'nuevo': 'NUEVO',
     'usado': 'USADO',
-    'refurbished': 'REFURBISHED'
+    'refurbished': 'REFURBISHED',
+    'reparacion': 'REPARACIÓN',
+    'reservado': 'RESERVADO',
+    'prestado': 'PRESTADO',
+    'sin_reparacion': 'SIN REPARACIÓN',
+    'uso_oficina': 'USO OFICINA'
   };
 
   // Aplicar filtros
@@ -509,6 +523,7 @@ const ListadoTotalSection = () => {
     'REDES': '#2563eb',            // blue-600
     'BAGS_CASES': '#64748b',       // slate-500
     'CABLES_CARGADORES': '#0891b2', // cyan-600
+    'MEMORIA': '#d946ef',          // fuchsia-500
     'REPUESTOS': '#6b7280',        // gray-500
     'OTROS': '#9ca3af'             // gray-400
   };
@@ -516,7 +531,12 @@ const ListadoTotalSection = () => {
   const COLORES_CONDICIONES = {
     'nuevo': '#10b981',
     'usado': '#eab308',
-    'refurbished': '#3b82f6'
+    'refurbished': '#3b82f6',
+    'reparacion': '#f97316',
+    'reservado': '#a855f7',
+    'prestado': '#06b6d4',
+    'sin_reparacion': '#ef4444',
+    'uso_oficina': '#64748b'
   };
 
   // Función para exportar a Excel
@@ -1068,6 +1088,7 @@ const ListadoTotalSection = () => {
               <option value="DRONES">Drones</option>
               <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
               <option value="GAMING">Gaming</option>
+              <option value="MEMORIA">Memoria</option>
               <option value="MONITORES">Monitores</option>
               <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
               <option value="OTROS">Otros</option>
@@ -1094,6 +1115,11 @@ const ListadoTotalSection = () => {
               <option value="nuevo">Nuevo</option>
               <option value="usado">Usado</option>
               <option value="refurbished">Refurbished</option>
+              <option value="reparacion">Reparación</option>
+              <option value="reservado">Reservado</option>
+              <option value="prestado">Prestado</option>
+              <option value="sin_reparacion">Sin Reparación</option>
+              <option value="uso_oficina">Uso Oficina</option>
             </select>
           </div>
 

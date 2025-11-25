@@ -5,8 +5,6 @@ import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
-import { generarGarantiaPDFBlob, generarNombreArchivoGarantia } from '../../../modules/ventas/utils/garantiaPDFService.jsx';
-import { enviarGarantiasPorEmail } from '../../../modules/ventas/utils/emailService';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +21,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     return `${año}-${mes}-${día}`;
   };
 
-  // Función para obtener fecha y hora local en formato ISO
+  // Función para obtener fecha y hora local en formato ISO con zona horaria de Buenos Aires (UTC-3)
   const obtenerFechaHoraLocal = () => {
     const fecha = new Date();
     const año = fecha.getFullYear();
@@ -32,7 +30,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     const horas = String(fecha.getHours()).padStart(2, '0');
     const minutos = String(fecha.getMinutes()).padStart(2, '0');
     const segundos = String(fecha.getSeconds()).padStart(2, '0');
-    return `${año}-${mes}-${día}T${horas}:${minutos}:${segundos}`;
+    return `${año}-${mes}-${día}T${horas}:${minutos}:${segundos}-03:00`;
   };
 
   const [fechaVenta, setFechaVenta] = useState(obtenerFechaLocal());
@@ -69,11 +67,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
 
-  // Estados para garantías
-  const [enviandoGarantias, setEnviandoGarantias] = useState(false);
-  const [garantiasEnviadas, setGarantiasEnviadas] = useState(false);
-  const [mensajeGarantias, setMensajeGarantias] = useState('');
-  const [enviarGarantiaAutomatico, setEnviarGarantiaAutomatico] = useState(false);
+  // Estados para garantías eliminados - las garantías se generan desde GarantiasSection
 
 
   // Establecer cliente inicial cuando se proporciona
@@ -509,136 +503,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }
   };
 
-  const handleEnviarGarantias = async () => {
-    // Si no hay email, saltar silenciosamente
-    if (!clienteSeleccionado?.email) {
-      console.log('⚠️ Cliente sin email, saltando envío de garantías');
-      // Limpiar directamente
-      limpiarTodoPostVenta();
-      return;
-    }
-
-    setEnviandoGarantias(true);
-    setMensajeGarantias('Preparando garantías...');
-
-    try {
-      console.log(`📧 Iniciando generación de ${carrito.length} garantía(s)...`);
-
-      // Preparar datos de garantías para enviar por email
-      const garantiasEmail = [];
-      const garantiasPDF = [];
-
-      for (let i = 0; i < carrito.length; i++) {
-        const item = carrito[i];
-        const producto = item.producto || item;
-
-        try {
-          // Obtener nombre del producto según tipo
-          let nombreProducto = 'Producto sin nombre';
-          if (producto.modelo) {
-            nombreProducto = producto.modelo; // inventario o celulares
-          } else if (producto.nombre_producto) {
-            nombreProducto = producto.nombre_producto; // otros
-          }
-
-          // Obtener serial del producto
-          let numeroSerie = 'N/A';
-          if (producto.serial) {
-            numeroSerie = producto.serial;
-          } else if (item.serial) {
-            numeroSerie = item.serial;
-          }
-
-          // Obtener garantía según tipo de producto
-          let plazoGarantia = '3 meses';
-          if (producto.garantia) {
-            plazoGarantia = producto.garantia; // celulares y otros
-          } else if (producto.garantia_update) {
-            plazoGarantia = producto.garantia_update; // inventario (computadoras)
-          }
-
-          // Datos de la garantía para email y PDF mejorado
-          const datosGarantia = {
-            producto: nombreProducto,
-            numeroSerie: numeroSerie,
-            cliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
-            fechaCompra: new Date().toLocaleDateString('es-AR'),
-            plazoGarantia: plazoGarantia,
-            // Datos adicionales para el PDF mejorado
-            clienteDNI: clienteSeleccionado.documento || '',
-            clienteDireccion: clienteSeleccionado.direccion || '',
-            clienteEmail: clienteSeleccionado.email || '',
-            clienteTelefono: clienteSeleccionado.telefono || '',
-            numeroVenta: Math.floor(Math.random() * 1000000) // Número temporal, idealmente vendría de la BD
-          };
-
-          // Agregar a lista de email
-          console.log(`📧 Producto ${i + 1}:`, {
-            producto: datosGarantia.producto,
-            numeroSerie: datosGarantia.numeroSerie,
-            plazoGarantia: datosGarantia.plazoGarantia
-          });
-
-          garantiasEmail.push({
-            producto: datosGarantia.producto,
-            numeroSerie: datosGarantia.numeroSerie,
-            plazoGarantia: datosGarantia.plazoGarantia
-          });
-
-          // Generar PDF también (descarga local)
-          console.log(`📄 Generando PDF ${i + 1}/${carrito.length}:`, datosGarantia);
-          const pdfBlob = await generarGarantiaPDFBlob(datosGarantia);
-          const nombreArchivo = generarNombreArchivoGarantia({
-            cliente: clienteSeleccionado.nombre,
-            numeroSerie: datosGarantia.numeroSerie
-          });
-
-          garantiasPDF.push({
-            blob: pdfBlob,
-            nombreArchivo
-          });
-
-          setMensajeGarantias(`Preparadas ${i + 1}/${carrito.length} garantía(s)...`);
-          console.log(`✅ Garantía ${i + 1}/${carrito.length} preparada`);
-        } catch (error) {
-          console.error(`❌ Error procesando garantía ${i + 1}:`, error);
-          throw new Error(`Error procesando garantía para ${producto.modelo || 'producto'}: ${error.message}`);
-        }
-      }
-
-      console.log(`✅ Todas las garantías preparadas, enviando ${garantiasEmail.length} por email...`);
-      setMensajeGarantias(`Enviando garantías a ${clienteSeleccionado.email}...`);
-
-      // Enviar email con tabla de garantías
-      const resultado = await enviarGarantiasPorEmail({
-        destinatario: clienteSeleccionado.email,
-        nombreCliente: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
-        garantias: garantiasEmail
-      });
-
-      if (resultado.success) {
-        console.log('✅ Garantías enviadas exitosamente');
-        setGarantiasEnviadas(true);
-        setMensajeGarantias(
-          `✅ ${resultado.archivosEnviados} garantía(s) enviada(s) exitosamente a ${clienteSeleccionado.email}`
-        );
-
-        // Esperar 2 segundos antes de limpiar para que el usuario vea el mensaje
-        setTimeout(() => {
-          limpiarTodoPostVenta();
-        }, 2000);
-      } else if (resultado.skipped) {
-        console.log('⚠️ Envío saltado (sin email válido)');
-        limpiarTodoPostVenta();
-      } else {
-        throw new Error(resultado.error || 'Error desconocido al enviar garantías');
-      }
-    } catch (error) {
-      console.error('❌ Error en handleEnviarGarantias:', error);
-      setMensajeGarantias(`❌ Error: ${error.message}`);
-      setEnviandoGarantias(false);
-    }
-  };
+  // Función de envío de garantías eliminada - las garantías se generan desde GarantiasSection
 
   const limpiarTodoPostVenta = () => {
     console.log('🧹 Limpiando estado post-venta...');
@@ -709,8 +574,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         ? `${vendedorSeleccionado.nombre} ${vendedorSeleccionado.apellido}`
         : '';
 
-      // Usar la fecha seleccionada por el usuario + hora actual
-      const fechaVentaCompleta = `${fechaVenta}T${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}`;
+      // Usar la fecha seleccionada por el usuario + hora actual con zona horaria de Buenos Aires (UTC-3)
+      const fechaVentaCompleta = `${fechaVenta}T${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}-03:00`;
 
       const datosVentaCompletos = {
         cliente_id: clienteSeleccionado.id,
@@ -758,25 +623,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
       alert(mensajeExito);
 
-      // ✅ DECIDIR: Auto-enviar garantías o limpiar
+      // ✅ Limpiar después de la venta exitosa
       setMostrarFormulario(false);
       setMostrarConfirmacion(false);
 
-      if (enviarGarantiaAutomatico && clienteSeleccionado?.email) {
-        // Auto-enviar garantías
-        console.log('📧 Auto-enviando garantías (checkbox marcado)...');
-        setEnviandoGarantias(true);
-        setMensajeGarantias('Preparando garantías...');
-
-        // Usar setTimeout para ejecutar después de que se actualice el estado
-        setTimeout(() => {
-          handleEnviarGarantias();
-        }, 100);
-      } else {
-        // No enviar garantías, limpiar directamente
-        console.log('📧 Envío de garantías no marcado, limpiando...');
-        limpiarTodoPostVenta();
-      }
+      // Limpiar directamente - las garantías se generan desde GarantiasSection
+      console.log('🧹 Venta completada, limpiando...');
+      limpiarTodoPostVenta();
 
     } catch (err) {
       console.error('❌ Error procesando venta:', err);
@@ -1485,20 +1338,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    {/* Checkbox: Enviar garantía por mail */}
-                    <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200 mb-6">
-                      <input
-                        type="checkbox"
-                        id="enviarGarantia"
-                        checked={enviarGarantiaAutomatico}
-                        onChange={(e) => setEnviarGarantiaAutomatico(e.target.checked)}
-                        className="w-5 h-5 text-emerald-600 border-slate-300 rounded cursor-pointer"
-                      />
-                      <label htmlFor="enviarGarantia" className="text-sm font-medium text-slate-800 cursor-pointer">
-                        (PRUEBA) enviar recibo por mail
-                      </label>
                     </div>
 
                     {/* Botones */}

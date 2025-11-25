@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader, Eye } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -67,14 +67,21 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   };
 
+  const formatearNombreProducto = (nombre) => {
+    if (!nombre) return '';
+    return nombre
+      .replace(/_/g, ' / ')
+      .replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   const getProductosDetallados = (items) => {
     if (!items || items.length === 0) return 'Sin productos';
     return items.map((item, index) => (
       <div key={index} className="mb-1 last:mb-0">
         <div className="flex items-center space-x-2 flex-1 min-w-0">
           {getIconoProducto(item.tipo_producto)}
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-xs text-slate-800 truncate">{item.copy}</div>
+          <div className="min-w-0 text-left">
+            <div className="font-medium text-xs text-slate-800 truncate">{formatearNombreProducto(item.copy)}</div>
             {item.serial_producto && <div className="text-xs text-slate-500 font-mono truncate">{item.serial_producto}</div>}
           </div>
         </div>
@@ -179,16 +186,17 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
               </p>
             </div>
             <div className="overflow-x-auto flex-grow">
-              <table className="w-full divide-y divide-slate-200">
+              <table className="w-full divide-y divide-slate-200 table-fixed">
                 <thead className="bg-slate-800 text-white sticky top-0">
                   <tr>
                     <th className="px-4 py-2 text-center text-xs font-medium uppercase w-10">Contab.</th>
                     <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Fecha</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase flex-1">Cliente</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-64">Productos</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase">Productos</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-48">Cliente</th>
                     <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Total</th>
                     <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Ganancia</th>
                     <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Vendedor</th>
+                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
@@ -224,20 +232,20 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                         {formatearFechaCompleta(transaccion.fecha_venta)}
                       </td>
 
+                      {/* Productos */}
+                      <td className="px-4 py-3 text-sm text-slate-800 text-start">
+                        {getProductosDetallados(transaccion.venta_items || [])}
+                      </td>
+
                       {/* Cliente */}
-                      <td className="px-4 py-3 text-sm text-start">
-                        <div className="flex items-center space-x-1">
+                      <td className="px-4 py-3 text-sm text-center">
+                        <div className="flex items-center justify-center space-x-1">
                           <User className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0">
                             <p className="text-slate-800 font-medium truncate">{transaccion.cliente_nombre}</p>
                             {transaccion.cliente_email && <p className="text-xs text-slate-500 truncate">{transaccion.cliente_email}</p>}
                           </div>
                         </div>
-                      </td>
-
-                      {/* Productos */}
-                      <td className="px-4 py-3 text-sm text-slate-800 max-w-xs text-start">
-                        {getProductosDetallados(transaccion.venta_items || [])}
                       </td>
 
                       {/* Total */}
@@ -255,6 +263,20 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                       {/* Vendedor */}
                       <td className="px-4 py-3 text-center text-sm text-slate-800">
                         {transaccion.vendedor || '-'}
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            manejarAbrirRecibo(transaccion);
+                          }}
+                          className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-100 transition-colors"
+                          title="Ver recibo"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}

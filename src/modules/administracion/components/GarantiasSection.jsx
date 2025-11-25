@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useGarantias } from '../../../lib/useGarantiasFix';
-import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../soporte/components/pdf/GarantiaPDF_NewStyle';
+import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../soporte/components/pdf/GarantiaPDF';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -78,6 +78,65 @@ const GarantiasSection = () => {
   };
 
   const manejarAbrirGarantia = async (garantia) => {
+    // Abrir ventana INMEDIATAMENTE (síncrono con el click)
+    const ventanaGarantia = window.open('about:blank', '_blank');
+
+    if (!ventanaGarantia) {
+      alert('⚠️ Por favor, permite los popups para ver la garantía en una nueva pestaña.');
+      return;
+    }
+
+    // Mostrar mensaje de carga en la ventana
+    ventanaGarantia.document.write(`
+      <html>
+        <head>
+          <title>Generando Garantía...</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              background: #f3f4f6;
+            }
+            .loader {
+              text-align: center;
+            }
+            .spinner {
+              border: 4px solid #e5e7eb;
+              border-top: 4px solid #10b981;
+              border-radius: 50%;
+              width: 40px;
+              height: 40px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 20px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            h2 {
+              color: #1e293b;
+              margin: 0 0 10px 0;
+            }
+            p {
+              color: #64748b;
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loader">
+            <div class="spinner"></div>
+            <h2>Generando garantía...</h2>
+            <p>Por favor espera un momento</p>
+          </div>
+        </body>
+      </html>
+    `);
+
     setDescargando(garantia.id);
 
     try {
@@ -89,8 +148,7 @@ const GarantiasSection = () => {
         serial_producto: garantia.serial_producto, // Serial para incluir en descripción
         numero_serie: garantia.serial_producto,
         precio_venta_usd: garantia.precio_total,
-        garantia_update: garantia.plazo_garantia,
-        plazo_garantia_dias: garantia.plazo_garantia // Asegurar que se pase el plazo
+        garantia: garantia.garantia_texto || 'N/A' // Usar el campo garantia_texto de la vista
       };
 
       console.log('📄 Objeto producto para PDF:', producto);
@@ -114,19 +172,22 @@ const GarantiasSection = () => {
         // cotizacionDolar: garantia.cotizacion_dolar
       };
 
-      const resultado = await abrirGarantiaPDF(producto, cliente, datosVenta);
-      
+      const resultado = await abrirGarantiaPDF(producto, cliente, datosVenta, ventanaGarantia);
+
       if (resultado.success) {
-        // Mostrar mensaje de éxito brevemente
-        setTimeout(() => {
-          console.log('✅ PDF de garantía:', resultado.mensaje);
-        }, 100);
+        console.log('✅ PDF de garantía:', resultado.mensaje);
       } else {
         alert('❌ Error al generar la garantía: ' + resultado.error);
+        if (ventanaGarantia && !ventanaGarantia.closed) {
+          ventanaGarantia.close();
+        }
       }
     } catch (error) {
       console.error('Error generando garantía:', error);
       alert('❌ Error al generar la garantía. Intente nuevamente.');
+      if (ventanaGarantia && !ventanaGarantia.closed) {
+        ventanaGarantia.close();
+      }
     } finally {
       setDescargando(null);
     }

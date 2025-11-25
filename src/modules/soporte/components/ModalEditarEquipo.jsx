@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import ModalProducto from '../../../shared/components/modals/ModalProducto';
+import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 
 const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' }) => {
   const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
@@ -10,6 +11,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
     tipo: '',
     serial: '',
     modelo: '',
+    marca: '',
     proveedor: '',
     estado_estetico: 'bueno',
     estado_testeo: 'pendiente',
@@ -24,6 +26,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
         tipo: equipo.tipo || '',
         serial: equipo.serial || '',
         modelo: equipo.modelo || '',
+        marca: equipo.marca || '',
         proveedor: equipo.proveedor || '',
         estado_estetico: equipo.estado_estetico || 'bueno',
         estado_testeo: equipo.estado_testeo || 'pendiente',
@@ -34,20 +37,21 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (modo === 'cargar_stock') {
       // Abrir modal unificado para cargar al stock
       setMostrarModalProducto(true);
       return;
     }
-    
+
     setSaving(true);
-    
+
     try {
       // Solo modo editar - actualizar datos básicos de testeo
       const datosTesteo = {
         serial: formData.serial,
         modelo: formData.modelo,
+        marca: formData.marca,
         proveedor: formData.proveedor,
         estado_estetico: formData.estado_estetico,
         estado_testeo: formData.estado_testeo,
@@ -60,7 +64,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
         .eq('id', equipo.id);
 
       if (error) throw error;
-      
+
       onSave();
       onClose();
       alert('Equipo actualizado correctamente');
@@ -79,7 +83,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
         .from('testeo_equipos')
         .update({ estado_testeo: 'completado' })
         .eq('id', equipo.id);
-      
+
       // Cerrar modales
       setMostrarModalProducto(false);
       onSave();
@@ -138,19 +142,34 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                     className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Marca
+                    </label>
+                    <MarcaSelector
+                      value={formData.marca}
+                      onChange={(valor) => setFormData(prev => ({ ...prev, marca: valor }))}
+                      placeholder="Seleccionar marca"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Proveedor
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.proveedor}
+                      onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Proveedor
-                </label>
-                <input
-                  type="text"
-                  value={formData.proveedor}
-                  onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -226,8 +245,8 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
             >
               <Save className="w-4 h-4" />
               <span>
-                {saving ? 'Procesando...' : 
-                 modo === 'cargar_stock' ? 'Cargar al Stock' : 'Guardar Cambios'}
+                {saving ? 'Procesando...' :
+                  modo === 'cargar_stock' ? 'Cargar al Stock' : 'Guardar Cambios'}
               </span>
             </button>
           </div>

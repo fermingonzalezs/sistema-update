@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 1.4,
   },
-  
+
   // Header de la empresa
   companyHeader: {
     flexDirection: 'row',
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     fontFamily: 'Roboto',
   },
-  
+
   // Header del documento
   documentTitleSection: {
     alignItems: 'flex-end',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Roboto',
     color: '#1F2937',
-    marginTop:10,
+    marginTop: 10,
     marginBottom: 5,
     letterSpacing: 1,
   },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'Roboto',
   },
-  
+
   // Información del cliente
   clientSection: {
     flexDirection: 'row',
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 4,
   },
-  
+
   // Tabla de productos
   table: {
     marginBottom: 30,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto',
     marginTop: 2,
   },
-  
+
   // Columnas de la tabla con mejor distribución
   colNumber: {
     width: '8%',
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     width: '14%',
     textAlign: 'right',
   },
-  
+
   // Sección de totales
   totalsSection: {
     marginTop: 20,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto',
     letterSpacing: 0.3,
   },
-  
+
   // Footer
   footer: {
     marginTop: 50,
@@ -283,19 +283,19 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     marginBottom: 3,
   },
-  
+
   // Elementos decorativos
   divider: {
     height: 1,
     backgroundColor: '#E5E7EB',
     marginVertical: 10,
   },
-  
+
   // Espaciado y elementos de diseño
   spacer: {
     height: 15,
   },
-  
+
   // Metadatos del documento
   metadata: {
     position: 'absolute',
@@ -313,7 +313,7 @@ const ReciboVentaDocument = ({ data }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(valor);
-    
+
     return moneda === 'USD' ? `US$ ${numero}` : `$ ${numero}`;
   };
 
@@ -385,12 +385,12 @@ const ReciboVentaDocument = ({ data }) => {
             <Text style={[styles.tableHeaderText, styles.colUnitPrice]}>Precio Unit.</Text>
             <Text style={[styles.tableHeaderText, styles.colAmount]}>Importe</Text>
           </View>
-          
+
           {data.items.map((item, index) => (
-            <View 
-              key={index} 
+            <View
+              key={index}
               style={[
-                styles.tableRow, 
+                styles.tableRow,
                 index === data.items.length - 1 && styles.tableRowLast
               ]}
             >
@@ -428,7 +428,7 @@ const ReciboVentaDocument = ({ data }) => {
                 {formatearMoneda(calcularSubtotal(), data.moneda)}
               </Text>
             </View>
-            
+
             {calcularDescuento() > 0 && (
               <View style={[styles.totalRow, styles.discountRow]}>
                 <Text style={[styles.totalLabel, styles.discountLabel]}>Descuento</Text>
@@ -437,7 +437,7 @@ const ReciboVentaDocument = ({ data }) => {
                 </Text>
               </View>
             )}
-            
+
             <View style={styles.finalTotalRow}>
               <Text style={styles.finalTotalLabel}>TOTAL</Text>
               <Text style={styles.finalTotalValue}>
@@ -476,7 +476,9 @@ export const convertirVentaARecibo = (transaccion) => {
       cuit: "30-71850553-2"
     },
     invoice: {
-      number: `REC-${String(transaccion.numero_transaccion).padStart(6, '0')}`,
+      number: transaccion.numero_transaccion?.startsWith('VEN-')
+        ? transaccion.numero_transaccion
+        : `REC-${String(transaccion.numero_transaccion).padStart(6, '0')}`,
       date: new Date(transaccion.fecha_venta).toLocaleDateString('es-AR', {
         day: '2-digit',
         month: '2-digit',
@@ -507,17 +509,17 @@ export const generarYDescargarRecibo = async (transaccion) => {
   try {
     const reciboData = convertirVentaARecibo(transaccion);
     const blob = await pdf(<ReciboVentaDocument data={reciboData} />).toBlob();
-    
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `recibo-${String(transaccion.numero_transaccion).padStart(6, '0')}-${new Date().toISOString().split('T')[0]}.pdf`;
-    
+    link.download = `recibo-${transaccion.numero_transaccion?.startsWith('VEN-') ? transaccion.numero_transaccion : String(transaccion.numero_transaccion).padStart(6, '0')}-${new Date().toISOString().split('T')[0]}.pdf`;
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     return {
       success: true,
       filename: link.download

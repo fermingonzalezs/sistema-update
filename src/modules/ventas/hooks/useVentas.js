@@ -29,12 +29,12 @@ export const ventasService = {
         )
       `)
       .order('fecha_venta', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error obteniendo transacciones:', error)
       throw error
     }
-    
+
     console.log(`✅ ${data.length} transacciones obtenidas`)
     return data
   },
@@ -42,10 +42,49 @@ export const ventasService = {
   // Crear nueva transacción con múltiples items
   async createTransaction(datosCliente, carritoItems, fechaVenta = null) {
     console.log('💾 Creando transacción con', carritoItems.length, 'items')
-    
+
     // Generar número de transacción único
-    const numeroTransaccion = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
-    
+    // Generar número de transacción único con formato VEN-AÑO-NUMERO
+    const generarNumeroTransaccion = async () => {
+      const anio = new Date().getFullYear();
+      const prefix = `VEN-${anio}-`;
+
+      try {
+        // Buscar la última transacción del año actual
+        const { data, error } = await supabase
+          .from('transacciones')
+          .select('numero_transaccion')
+          .ilike('numero_transaccion', `${prefix}%`)
+          .order('id', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // Ignorar error si no hay resultados
+          console.error('Error buscando última transacción:', error);
+          throw error;
+        }
+
+        let secuencia = 1;
+        if (data && data.numero_transaccion) {
+          const partes = data.numero_transaccion.split('-');
+          if (partes.length === 3) {
+            const numeroAnterior = parseInt(partes[2], 10);
+            if (!isNaN(numeroAnterior)) {
+              secuencia = numeroAnterior + 1;
+            }
+          }
+        }
+
+        return `${prefix}${String(secuencia).padStart(3, '0')}`;
+      } catch (error) {
+        console.error('Error generando número de transacción:', error);
+        // Fallback seguro en caso de error
+        return `VEN-${anio}-${Date.now().toString().slice(-4)}`;
+      }
+    };
+
+    const numeroTransaccion = await generarNumeroTransaccion();
+
     // Obtener el nombre del vendedor
     // Priorizar vendedor_nombre si ya viene preparado desde CarritoWidget
     let nombreVendedor = datosCliente.vendedor_nombre || datosCliente.vendedor || '';
@@ -69,7 +108,7 @@ export const ventasService = {
     }
 
     console.log('👤 Vendedor procesado:', { id: datosCliente.vendedor, nombre: nombreVendedor });
-    
+
     // Calcular totales
     const totalVenta = carritoItems.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0)
     const totalCosto = carritoItems.reduce((sum, item) => {
@@ -205,7 +244,7 @@ export const ventasService = {
           } else if (item.tipo === 'celular') {
             tipoCopy = 'celular_completo';
           }
-          
+
           copyCompleto = generateCopy(item.producto, { tipo: tipoCopy });
         } catch (error) {
           console.error('Error generando copy:', error);
@@ -266,7 +305,7 @@ export const ventasService = {
       if (errorItems) throw errorItems
 
       console.log('✅ Transacción creada exitosamente:', numeroTransaccion)
-      
+
       return {
         ...transaccion,
         venta_items: items
@@ -298,7 +337,7 @@ export const ventasService = {
   // ✅ Registrar movimiento en cuenta corriente
   async registrarMovimientoCuentaCorriente(movimientoData) {
     console.log('💳 Registrando movimiento de cuenta corriente:', movimientoData)
-    
+
     try {
       // Insertar en tabla cuentas_corrientes
       const { data, error } = await supabase
@@ -318,12 +357,12 @@ export const ventasService = {
         }])
         .select()
         .single()
-      
+
       if (error) {
         console.error('❌ Error insertando en cuentas_corrientes:', error)
         throw error
       }
-      
+
       console.log('✅ Movimiento de cuenta corriente registrado:', data)
       return data
     } catch (error) {

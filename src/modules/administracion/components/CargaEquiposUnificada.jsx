@@ -26,6 +26,7 @@ import {
   RESOLUCIONES_ARRAY,
   RESOLUCIONES_LABELS
 } from '../../../shared/constants/resolutionConstants';
+import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 
 const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, modoCarrito = false }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
@@ -65,11 +66,10 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, mo
               <button
                 key={tipo.id}
                 onClick={() => setTipoEquipo(tipo.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
-                  isSelected
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-white hover:text-slate-800 hover:bg-white'
-                }`}
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${isSelected
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-white hover:text-slate-800 hover:bg-white'
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="font-medium">{tipo.label}</span>
@@ -314,13 +314,11 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
                 </label>
-                <input
-                  type="text"
-                  name="marca"
+                <MarcaSelector
                   value={formData.marca}
-                  onChange={handleChange}
-                  placeholder="Ej: Lenovo, HP, Dell"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
+                  placeholder="Seleccionar o agregar marca"
+                  className="w-full"
                 />
               </div>
 
@@ -1038,13 +1036,11 @@ const FormularioCelular = ({ onAdd, loading }) => {
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Marca
                 </label>
-                <input
-                  type="text"
-                  name="marca"
+                <MarcaSelector
                   value={formData.marca}
-                  onChange={handleChange}
-                  placeholder="Ej: Apple, Samsung"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
+                  placeholder="Seleccionar o agregar marca"
+                  className="w-full"
                 />
               </div>
 
@@ -1692,13 +1688,11 @@ const FormularioOtro = ({ onAdd, loading }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
-                  <input
-                    type="text"
-                    name="marca"
+                  <MarcaSelector
                     value={formData.marca}
-                    onChange={handleChange}
-                    placeholder="Ej: HP, Dell, Lenovo"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
+                    placeholder="Seleccionar o agregar marca"
+                    className="w-full"
                   />
                 </div>
 
@@ -1894,135 +1888,133 @@ const FormularioOtro = ({ onAdd, loading }) => {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Marca
                   </label>
-                  <input
-                    type="text"
-                    name="marca"
+                  <MarcaSelector
                     value={formData.marca}
-                    onChange={handleChange}
-                    placeholder="Ej: Logitech, Samsung, HP..."
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
+                    placeholder="Seleccionar o agregar marca"
+                    className="w-full"
                   />
                 </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Condición *
-                </label>
-                <select
-                  name="condicion"
-                  value={formData.condicion}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                >
-                  {CONDICIONES_ARRAY.map(condicion => (
-                    <option key={condicion} value={condicion}>
-                      {CONDICIONES_LABELS[condicion]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fecha de Ingreso *
-                </label>
-                <input
-                  type="date"
-                  name="ingreso"
-                  value={formData.ingreso}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Serial (Opcional)
-                </label>
-                <input
-                  type="text"
-                  name="serial"
-                  value={formData.serial}
-                  onChange={handleChange}
-                  placeholder="Ej: SN123456 (solo para productos únicos)"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-                <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
-              </div>
-
-              <div className="md:col-span-2 lg:col-span-3">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Descripción del Producto
-                </label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  placeholder="Descripción adicional del producto..."
-                  rows={2}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* GARANTÍA Y OBSERVACIONES - Subsección separada */}
-            <div className="mt-6 pt-4 border-t border-slate-200">
-              <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Garantía
+                    Condición *
                   </label>
                   <select
-                    name="garantia"
-                    value={formData.garantia}
+                    name="condicion"
+                    value={formData.condicion}
                     onChange={handleChange}
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
                   >
-                    <option value="1 mes">1 mes</option>
-                    <option value="3 meses">3 meses</option>
-                    <option value="6 meses">6 meses</option>
-                    <option value="12 meses">12 meses</option>
-                    <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
-                    <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
-                    <option value="Sin garantía">Sin garantía</option>
+                    {CONDICIONES_ARRAY.map(condicion => (
+                      <option key={condicion} value={condicion}>
+                        {CONDICIONES_LABELS[condicion]}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Mostrar selector de fecha si se selecciona "Garantía oficial con vencimiento" */}
-                {formData.garantia === 'Garantía oficial con vencimiento' && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Fecha de vencimiento
-                    </label>
-                    <input
-                      type="date"
-                      name="garantia_oficial_fecha"
-                      value={formData.garantia_oficial_fecha}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                    />
-                  </div>
-                )}
-
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Observaciones
+                    Fecha de Ingreso *
+                  </label>
+                  <input
+                    type="date"
+                    name="ingreso"
+                    value={formData.ingreso}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Serial (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    name="serial"
+                    value={formData.serial}
+                    onChange={handleChange}
+                    placeholder="Ej: SN123456 (solo para productos únicos)"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
+                </div>
+
+                <div className="md:col-span-2 lg:col-span-3">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Descripción del Producto
                   </label>
                   <textarea
-                    name="observaciones"
-                    value={formData.observaciones}
+                    name="descripcion"
+                    value={formData.descripcion}
                     onChange={handleChange}
-                    placeholder="Comentarios adicionales sobre el producto..."
+                    placeholder="Descripción adicional del producto..."
                     rows={2}
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
               </div>
+
+              {/* GARANTÍA Y OBSERVACIONES - Subsección separada */}
+              <div className="mt-6 pt-4 border-t border-slate-200">
+                <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Garantía
+                    </label>
+                    <select
+                      name="garantia"
+                      value={formData.garantia}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    >
+                      <option value="1 mes">1 mes</option>
+                      <option value="3 meses">3 meses</option>
+                      <option value="6 meses">6 meses</option>
+                      <option value="12 meses">12 meses</option>
+                      <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+                      <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+                      <option value="Sin garantía">Sin garantía</option>
+                    </select>
+                  </div>
+
+                  {/* Mostrar selector de fecha si se selecciona "Garantía oficial con vencimiento" */}
+                  {formData.garantia === 'Garantía oficial con vencimiento' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Fecha de vencimiento
+                      </label>
+                      <input
+                        type="date"
+                        name="garantia_oficial_fecha"
+                        value={formData.garantia_oficial_fecha}
+                        onChange={handleChange}
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      />
+                    </div>
+                  )}
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Observaciones
+                    </label>
+                    <textarea
+                      name="observaciones"
+                      value={formData.observaciones}
+                      onChange={handleChange}
+                      placeholder="Comentarios adicionales sobre el producto..."
+                      rows={2}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
           )}
 
           {/* Inventario por sucursal */}

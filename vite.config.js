@@ -20,5 +20,20 @@ export default defineConfig({
       'Pragma': 'no-cache',
       'Expires': '0'
     }
+  },
+  define: {
+    'global': 'globalThis',
+  },
+  resolve: {
+    alias: {
+      'buffer': 'buffer/'
+    }
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
   }
 })

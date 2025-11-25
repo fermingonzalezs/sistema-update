@@ -20,6 +20,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
     { value: 'instagram', label: 'Instagram', icon: '📸' },
     { value: 'facebook', label: 'Facebook', icon: '👥' },
     { value: 'whatsapp', label: 'WhatsApp', icon: '💬' },
+    { value: 'referidos', label: 'Referidos', icon: '🗣️' },
     { value: 'conocidos', label: 'Conocidos', icon: '👋' },
     { value: 'otro', label: 'Otro', icon: '❓' }
   ];
@@ -76,7 +77,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -96,7 +97,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
       ...prev,
       [field]: value
     }));
-    
+
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors(prev => ({
@@ -138,9 +139,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => handleChange('nombre', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.nombre ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.nombre ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="Ingresa el nombre"
               />
               {errors.nombre && (
@@ -157,9 +157,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="text"
                 value={formData.apellido}
                 onChange={(e) => handleChange('apellido', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.apellido ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.apellido ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="Ingresa el apellido"
               />
               {errors.apellido && (
@@ -179,9 +178,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.email ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.email ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="ejemplo@email.com"
               />
               {errors.email && (
@@ -198,9 +196,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
                 type="tel"
                 value={formData.telefono}
                 onChange={(e) => handleChange('telefono', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.telefono ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.telefono ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="+54 221 123-4567"
               />
               {errors.telefono && (
