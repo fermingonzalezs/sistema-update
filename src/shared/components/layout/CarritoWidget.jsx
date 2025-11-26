@@ -525,10 +525,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     setIsOpen(false);
     setAperturaManual(false);
     setCarritoAnterior([]);
-    setEnviandoGarantias(false);
-    setGarantiasEnviadas(false);
-    setMensajeGarantias('');
-    setEnviarGarantiaAutomatico(false);
 
     // Limpiar inputs locales
     setInputMontoBase1('');
@@ -542,11 +538,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     setEditandoPrecio(null);
     setPrecioEditado('');
     setPreciosModificados({});
-
-    // Limpiar estados de garantías
-    setEnviandoGarantias(false);
-    setGarantiasEnviadas(false);
-    setMensajeGarantias('');
 
     console.log('🎉 Proceso completado exitosamente');
   };
