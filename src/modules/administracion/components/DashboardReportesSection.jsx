@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto } from '../../../shared/utils/formatters';
@@ -151,7 +151,7 @@ const dashboardService = {
 
   procesarVentasParaGraficos(ventas) {
     console.log('🔄 Procesando ventas para gráficos...', { totalVentas: ventas.length });
-    
+
     if (!ventas || ventas.length === 0) {
       console.log('⚠️ No hay ventas para procesar');
       return {
@@ -167,7 +167,7 @@ const dashboardService = {
         totales: { totalVentas: 0, totalTransacciones: 0, totalItems: 0, promedioVenta: 0, promedioItemsPorVenta: 0 }
       };
     }
-    
+
     const ventasPorDia = {};
     const ventasPorDiaSemana = {};
     const ventasPorSucursal = {};
@@ -177,7 +177,11 @@ const dashboardService = {
     const metodosDePago = {};
     const productosVendidos = {};
     const tiposProductos = {};
-    
+
+    // Estructuras para gráficos apilados
+    const ventasPorSucursalDiaria = {};
+    const ventasPorSemana = {}; // Nueva estructura para ventas semanales
+
     let totalVentas = 0;
     let totalTransacciones = 0;
     let totalItems = 0;
@@ -191,158 +195,218 @@ const dashboardService = {
     let totalUSD = 0;
     let totalPesosEfectivo = 0;
     let totalPesosDigital = 0;
-    
+
+    // Helper para obtener inicio de semana (Lunes)
+    const getStartOfWeek = (date) => {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // ajustar cuando es domingo
+      const monday = new Date(d.setDate(diff));
+      return monday.toISOString().split('T')[0];
+    };
+
     // Ventas por día
     ventas.forEach(transaccion => {
       if (!transaccion.fecha_venta) return;
-      
+
       const fecha = new Date(transaccion.fecha_venta).toISOString().split('T')[0];
       const diaSemana = new Date(transaccion.fecha_venta).toLocaleDateString('es-ES', { weekday: 'long' });
-      
+      // Capitalizar día
+      const diaSemanaCap = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+
+      const semanaInicio = getStartOfWeek(transaccion.fecha_venta);
+
       const ventaAmount = parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0);
-      const descuentoAmount = 0; // Campo no disponible en estructura actual
-      const promocioneAmount = 0; // Campo no disponible en estructura actual
-      const efectivoAmount = 0; // Simplificado por ahora
-      const debitoAmount = 0;
-      const creditoAmount = 0;
-      const transferenciaAmount = 0;
-      const mercadoPagoAmount = 0;
-      const usdAmount = ventaAmount; // Asumiendo USD por defecto
-      const pesosEfectivoAmount = 0;
-      const pesosDigitalAmount = 0;
-      
+
+      // Normalizar sucursal
+      const sucursalRaw = transaccion.sucursal || 'No especificado';
+      const sucursal = sucursalRaw.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const sucursalKey = sucursal === 'La Plata' ? 'la_plata' : 'mitre'; // Simplificar para keys
+
       totalVentas += ventaAmount;
       totalTransacciones += 1;
-      totalDescuentos += descuentoAmount;
-      totalPromociones += promocioneAmount;
-      totalEfectivo += efectivoAmount;
-      totalDebito += debitoAmount;
-      totalCredito += creditoAmount;
-      totalTransferencia += transferenciaAmount;
-      totalMercadoPago += mercadoPagoAmount;
-      totalUSD += usdAmount;
-      totalPesosEfectivo += pesosEfectivoAmount;
-      totalPesosDigital += pesosDigitalAmount;
-      
-      // Ventas por día
+
+      // Ventas por día (mantenemos para lógica interna si se necesita, pero el gráfico será semanal)
       if (!ventasPorDia[fecha]) {
         ventasPorDia[fecha] = { fecha, ventas: 0, transacciones: 0 };
       }
       ventasPorDia[fecha].ventas += ventaAmount;
       ventasPorDia[fecha].transacciones += 1;
-      
-      // Ventas por día de semana
-      if (!ventasPorDiaSemana[diaSemana]) {
-        ventasPorDiaSemana[diaSemana] = { dia: diaSemana, ventas: 0, transacciones: 0 };
+
+      // Ventas por Semana (Agrupado por sucursal)
+      if (!ventasPorSemana[semanaInicio]) {
+        ventasPorSemana[semanaInicio] = {
+          semana: semanaInicio,
+          mitre: 0,
+          la_plata: 0,
+          total: 0
+        };
       }
-      ventasPorDiaSemana[diaSemana].ventas += ventaAmount;
-      ventasPorDiaSemana[diaSemana].transacciones += 1;
-      
-      // Ventas por sucursal
-      const sucursalRaw = transaccion.sucursal || 'No especificado';
-      const sucursal = sucursalRaw.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      ventasPorSemana[semanaInicio][sucursalKey] += ventaAmount;
+      ventasPorSemana[semanaInicio].total += ventaAmount;
+
+      // Ventas por día de semana (Agrupado por sucursal)
+      if (!ventasPorDiaSemana[diaSemanaCap]) {
+        ventasPorDiaSemana[diaSemanaCap] = {
+          dia: diaSemanaCap,
+          mitre: 0,
+          la_plata: 0,
+          total: 0,
+          orden: new Date(transaccion.fecha_venta).getDay() // Para ordenar correctamente (0=Domingo, 1=Lunes...)
+        };
+        // Ajustar orden para que Lunes sea 1 y Domingo 7
+        if (ventasPorDiaSemana[diaSemanaCap].orden === 0) ventasPorDiaSemana[diaSemanaCap].orden = 7;
+      }
+      ventasPorDiaSemana[diaSemanaCap][sucursalKey] += ventaAmount;
+      ventasPorDiaSemana[diaSemanaCap].total += ventaAmount;
+
+      // Ventas por sucursal (Ahora es contador de transacciones/ventas)
       if (!ventasPorSucursal[sucursal]) {
         ventasPorSucursal[sucursal] = { sucursal, ventas: 0, transacciones: 0 };
       }
-      ventasPorSucursal[sucursal].ventas += ventaAmount;
-      
-      // Ventas por procedencia del cliente
-      const procedencia = transaccion.clientes?.procedencia || 'No especificado';
+      ventasPorSucursal[sucursal].ventas += ventaAmount; // Mantenemos el monto por si acaso
+      ventasPorSucursal[sucursal].transacciones += 1; // Usaremos esto para el gráfico
+
+      // Ventas por sucursal diaria (para gráfico apilado)
+      if (!ventasPorSucursalDiaria[fecha]) {
+        ventasPorSucursalDiaria[fecha] = { fecha };
+      }
+      ventasPorSucursalDiaria[fecha][sucursal] = (ventasPorSucursalDiaria[fecha][sucursal] || 0) + ventaAmount;
+
+      // Ventas por procedencia del cliente (Ahora es contador)
+      // Normalizar procedencia para evitar duplicados por mayúsculas/minúsculas
+      let procedencia = transaccion.clientes?.procedencia || 'No especificado';
+      // Capitalizar primera letra
+      procedencia = procedencia.charAt(0).toUpperCase() + procedencia.slice(1).toLowerCase();
+
       if (!ventasPorProcedencia[procedencia]) {
         ventasPorProcedencia[procedencia] = { procedencia, ventas: 0, cantidad: 0 };
       }
       ventasPorProcedencia[procedencia].ventas += ventaAmount;
-      ventasPorProcedencia[procedencia].cantidad += 1;
+      ventasPorProcedencia[procedencia].cantidad += 1; // Usaremos esto para el gráfico
 
-      // Ventas por vendedor
+      // Ventas por vendedor (Ahora es contador de transacciones)
       const vendedor = transaccion.vendedor_nombre || 'Sin asignar';
       if (!ventasPorVendedor[vendedor]) {
         ventasPorVendedor[vendedor] = { vendedor, ventas: 0, transacciones: 0 };
       }
       ventasPorVendedor[vendedor].ventas += ventaAmount;
-      ventasPorVendedor[vendedor].transacciones += 1;
+      ventasPorVendedor[vendedor].transacciones += 1; // Usaremos esto para el gráfico
 
       // Métodos de pago
-      if (efectivoAmount > 0) {
-        metodosDePago['Efectivo'] = (metodosDePago['Efectivo'] || 0) + efectivoAmount;
-      }
+      // ... (lógica existente simplificada en el original, se mantiene igual)
 
       // Procesar items de la venta
       if (transaccion.venta_items) {
         transaccion.venta_items.forEach(item => {
           // Productos más vendidos
-          const producto = item.copy || 'Sin especificar';
-          if (!productosVendidos[producto]) {
-            productosVendidos[producto] = { producto, cantidad: 0, ingresos: 0 };
+          const productoNombre = item.copy || 'Sin especificar';
+          const productoKey = item.producto_id ? `${productoNombre}_${item.producto_id}` : productoNombre;
+
+          if (!productosVendidos[productoKey]) {
+            productosVendidos[productoKey] = {
+              producto: productoNombre,
+              cantidad: 0,
+              ingresos: 0,
+              costo: 0,
+              ganancia: 0
+            };
           }
-          productosVendidos[producto].cantidad += item.cantidad || 0;
-          productosVendidos[producto].ingresos += parseFloat(item.precio_total || 0);
-          
-          totalItems += item.cantidad || 0;
-          
+          const cantidadItem = parseInt(item.cantidad || 1);
+          const precioTotalItem = parseFloat(item.precio_total || 0);
+          const costoItem = parseFloat(item.precio_costo || 0) * cantidadItem;
+
+          productosVendidos[productoKey].cantidad += cantidadItem;
+          productosVendidos[productoKey].ingresos += precioTotalItem;
+          productosVendidos[productoKey].costo += costoItem;
+          productosVendidos[productoKey].ganancia += (precioTotalItem - costoItem);
+
+          totalItems += cantidadItem;
+
           // Ventas por tipo
           const tipo = item.tipo_producto || 'Otros';
           if (!tiposProductos[tipo]) {
             tiposProductos[tipo] = { tipo, ventas: 0, cantidad: 0 };
           }
-          tiposProductos[tipo].ventas += parseFloat(item.precio_total || 0);
-          tiposProductos[tipo].cantidad += item.cantidad || 0;
+          tiposProductos[tipo].ventas += precioTotalItem;
+          tiposProductos[tipo].cantidad += cantidadItem;
 
-          // Ventas por categoría específica (notebooks, iphones, otros)
-          let categoria = 'Otros';
-          if (item.tipo_producto === 'computadora') {
+          // Categorías detalladas (tipo_producto directo + desglose de otros si es necesario)
+          // El usuario pidió: "las categorias tienen que ser las de la columna tipo_producto... ganancia y margen por categoria tienen que tener todas las categorias, que son notebooks, celulares y todas las categorias de otros"
+
+          let categoria = item.tipo_producto || 'Otros';
+
+          // Normalizar nombres para visualización
+          if (categoria === 'computadora') {
             categoria = 'Notebooks';
-          } else if (item.tipo_producto === 'celular') {
-            // Determinar si es iPhone basado en el modelo
-            const modelo = (item.copy || '').toLowerCase();
-            if (modelo.includes('iphone') || modelo.includes('apple')) {
-              categoria = 'iPhones';
-            } else {
-              categoria = 'Celulares';
-            }
+          } else if (categoria === 'celular') {
+            categoria = 'Celulares';
+          } else {
+            // Revertir a la lógica anterior: todo lo demás es 'Otros'
+            categoria = 'Otros';
           }
 
-          const precioVenta = parseFloat(item.precio_total || 0);
+          const precioVenta = precioTotalItem;
           const precioCosto = parseFloat(item.precio_costo || 0);
-          const cantidad = parseInt(item.cantidad || 1);
-          const ganancia = precioVenta - (precioCosto * cantidad);
+          const ganancia = precioVenta - (precioCosto * cantidadItem);
 
           if (!ventasPorCategoria[categoria]) {
-            ventasPorCategoria[categoria] = { 
-              categoria, 
-              ventas: 0, 
-              cantidad: 0, 
-              costo: 0, 
-              ganancia: 0, 
-              margen: 0 
+            ventasPorCategoria[categoria] = {
+              categoria,
+              ventas: 0,
+              cantidad: 0,
+              costo: 0,
+              ganancia: 0,
+              margen: 0
             };
           }
           ventasPorCategoria[categoria].ventas += precioVenta;
-          ventasPorCategoria[categoria].costo += (precioCosto * cantidad);
+          ventasPorCategoria[categoria].costo += costoItem;
           ventasPorCategoria[categoria].ganancia += ganancia;
-          ventasPorCategoria[categoria].cantidad += cantidad;
+          ventasPorCategoria[categoria].cantidad += cantidadItem;
         });
       }
     });
 
     const procesarObjeto = (obj) => Object.values(obj).sort((a, b) => b.ventas - a.ventas);
-    
+    const procesarObjetoPorCantidad = (obj) => Object.values(obj).sort((a, b) => b.cantidad - a.cantidad);
+    const procesarObjetoPorTransacciones = (obj) => Object.values(obj).sort((a, b) => b.transacciones - a.transacciones);
+
     // Calcular margen final para cada categoría
     Object.values(ventasPorCategoria).forEach(categoria => {
       // Margen = (Ganancia / Costo) * 100
       categoria.margen = categoria.costo > 0 ? ((categoria.ganancia / categoria.costo) * 100) : 0;
-      
-      // También calculamos el margen sobre ventas para referencia
       categoria.margenSobreVentas = categoria.ventas > 0 ? ((categoria.ganancia / categoria.ventas) * 100) : 0;
     });
 
+    // Procesar productos vendidos para ranking
+    const topProductos = Object.values(productosVendidos)
+      .sort((a, b) => b.ingresos - a.ingresos)
+      .slice(0, 10)
+      .map(p => ({
+        ...p,
+        margen: p.costo > 0 ? ((p.ganancia / p.costo) * 100) : 0
+      }));
+
+    // Procesar ventas por sucursal diaria para gráfico apilado
+    const ventasSucursalDiariaArr = Object.values(ventasPorSucursalDiaria).sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+    // Procesar ventas semanales
+    const ventasPorSemanaArr = Object.values(ventasPorSemana).sort((a, b) => new Date(a.semana) - new Date(b.semana));
+
+    // Procesar ventas por día de semana (ordenar por día lunes-domingo)
+    const ventasPorDiaSemanaArr = Object.values(ventasPorDiaSemana).sort((a, b) => a.orden - b.orden);
+
     return {
-      ventasPorDia: procesarObjeto(ventasPorDia),
-      ventasPorDiaSemana: procesarObjeto(ventasPorDiaSemana),
-      ventasPorSucursal: procesarObjeto(ventasPorSucursal),
-      ventasPorProcedencia: procesarObjeto(ventasPorProcedencia),
-      ventasPorVendedor: procesarObjeto(ventasPorVendedor),
-      ventasPorCategoria: procesarObjeto(ventasPorCategoria),
+      ventasPorDia: Object.values(ventasPorDia).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
+      ventasPorDiaSemana: ventasPorDiaSemanaArr,
+      ventasPorSemana: ventasPorSemanaArr, // Nuevo
+      ventasPorSucursal: procesarObjetoPorTransacciones(ventasPorSucursal), // Ordenar por transacciones
+      ventasPorProcedencia: procesarObjetoPorCantidad(ventasPorProcedencia), // Ordenar por cantidad
+      ventasPorVendedor: procesarObjetoPorTransacciones(ventasPorVendedor), // Ordenar por transacciones
+      ventasPorCategoria: procesarObjeto(ventasPorCategoria), // Mantener por ventas para "Valor Venta Bruta" pero usaremos cantidad para "Ventas por Categoria"
+      ventasPorSucursalDiaria: ventasSucursalDiariaArr,
+      topProductos,
       metodosDePago: Object.entries(metodosDePago).map(([metodo, cantidad]) => ({
         metodo,
         cantidad
@@ -371,33 +435,33 @@ const dashboardService = {
 
   procesarInventario(inventario) {
     console.log('🔄 Procesando inventario...');
-    
+
     const { computadoras, celulares, otros } = inventario;
-    
+
     const totalProductos = computadoras.length + celulares.length + otros.length;
-    
+
     let stockBajo = 0;
     let valorTotalInventario = 0;
-    
+
     // Analizar stock bajo (menos de 5 unidades)
     [...computadoras, ...celulares, ...otros].forEach(item => {
       const cantidad = item.cantidad || 1;
       const precio = parseFloat(item.precio_venta_usd || 0);
-      
+
       if (cantidad <= 5) {
         stockBajo += 1;
       }
-      
+
       valorTotalInventario += precio * cantidad;
     });
-    
+
     // Distribución por categoría
     const distribucionCategorias = [
       { categoria: 'Computadoras', cantidad: computadoras.length, porcentaje: (computadoras.length / totalProductos) * 100 },
       { categoria: 'Celulares', cantidad: celulares.length, porcentaje: (celulares.length / totalProductos) * 100 },
       { categoria: 'Otros', cantidad: otros.length, porcentaje: (otros.length / totalProductos) * 100 }
     ];
-    
+
     return {
       totalProductos,
       stockBajo,
@@ -413,35 +477,35 @@ const useDashboardReportes = () => {
   const [inventarioData, setInventarioData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const cargarDatos = async (fechaInicio, fechaFin) => {
     try {
       console.log('📊 Cargando datos dashboard:', { fechaInicio, fechaFin });
       setLoading(true);
       setError(null);
-      
+
       const [ventas, inventario] = await Promise.all([
         dashboardService.getVentasEnPeriodo(fechaInicio, fechaFin),
         dashboardService.getInventarioActual()
       ]);
-      
-      console.log('📊 Datos cargados:', { 
-        ventasCount: ventas?.length || 0, 
-        inventarioKeys: Object.keys(inventario || {}) 
+
+      console.log('📊 Datos cargados:', {
+        ventasCount: ventas?.length || 0,
+        inventarioKeys: Object.keys(inventario || {})
       });
-      
+
       const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventas);
       const inventarioProcessed = dashboardService.procesarInventario(inventario);
-      
-      console.log('📊 Datos procesados:', { 
+
+      console.log('📊 Datos procesados:', {
         ventasPorDia: ventasProcessed.ventasPorDia?.length || 0,
         ventasPorVendedor: ventasProcessed.ventasPorVendedor?.length || 0,
         ventasPorCategoria: ventasProcessed.ventasPorCategoria?.length || 0
       });
-      
+
       setVentasData(ventasProcessed);
       setInventarioData(inventarioProcessed);
-      
+
     } catch (err) {
       console.error('❌ Error cargando datos del dashboard:', err);
       setError(err.message || 'Error cargando datos');
@@ -449,7 +513,7 @@ const useDashboardReportes = () => {
       setLoading(false);
     }
   };
-  
+
   return { ventasData, inventarioData, loading, error, cargarDatos };
 };
 
@@ -460,7 +524,6 @@ const DashboardReportesSection = () => {
   // Colores por categoría
   const COLORES_CATEGORIAS = {
     'Notebooks': '#3b82f6',      // Azul
-    'iPhones': '#10b981',         // Verde
     'Celulares': '#f59e0b',       // Naranja
     'Otros': '#8b5cf6'            // Púrpura
   };
@@ -500,30 +563,30 @@ const DashboardReportesSection = () => {
   const [fechaFin, setFechaFin] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
-  
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatos(fechaInicio, fechaFin);
   }, []);
-  
+
   const aplicarFiltros = () => {
     cargarDatos(fechaInicio, fechaFin);
   };
-  
+
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const formattedLabel = label && typeof label === 'string' && label.includes('_') 
+      const formattedLabel = label && typeof label === 'string' && label.includes('_')
         ? label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
         : label;
-      
+
       return (
         <div className="bg-white p-3 border border-slate-200 rounded shadow-sm">
           <p className="font-medium text-slate-800">{formattedLabel}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {typeof entry.value === 'number' && entry.name.includes('$') 
-                ? formatearMonto(entry.value, 'USD') 
+              {entry.name}: {typeof entry.value === 'number' && entry.name.includes('$')
+                ? formatearMonto(entry.value, 'USD')
                 : entry.value}
             </p>
           ))}
@@ -608,22 +671,22 @@ const DashboardReportesSection = () => {
             {/* Métricas principales usando Tarjeta */}
             {ventasData && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <Tarjeta 
+                <Tarjeta
                   icon={DollarSign}
                   titulo="Total Ventas"
                   valor={formatearMonto(ventasData.totales.totalVentas, 'USD')}
                 />
-                <Tarjeta 
+                <Tarjeta
                   icon={ShoppingCart}
                   titulo="Transacciones"
                   valor={ventasData.totales.totalTransacciones}
                 />
-                <Tarjeta 
+                <Tarjeta
                   icon={TrendingUp}
                   titulo="Promedio Venta"
                   valor={formatearMonto(ventasData.totales.promedioVenta, 'USD')}
                 />
-                <Tarjeta 
+                <Tarjeta
                   icon={Package}
                   titulo="Items Vendidos"
                   valor={ventasData.totales.totalItems}
@@ -641,7 +704,7 @@ const DashboardReportesSection = () => {
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" />
-                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
@@ -664,7 +727,7 @@ const DashboardReportesSection = () => {
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="sucursal" />
-                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
@@ -679,27 +742,27 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
-              {/* Ventas por categoría (notebooks, iphones, otros) */}
+              {/* Ventas por Categoría (Cantidad) */}
               <div className="bg-white border border-slate-200 rounded">
-                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Categoría</h3>
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Categoría (Cantidad)</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
                       <Pie
                         data={ventasData?.ventasPorCategoria}
-                        cx="45%"
+                        cx="50%"
                         cy="50%"
-                        labelLine={false}
-                        label={({ categoria, ventas }) => categoria + ': ' + formatearMonto(ventas, 'USD')}
+                        labelLine={true}
+                        label={({ categoria, cantidad }) => `${categoria}: ${cantidad}`}
                         outerRadius={80}
                         fill="#8884d8"
-                        dataKey="ventas"
+                        dataKey="cantidad"
                       >
                         {ventasData?.ventasPorCategoria.map((entry, index) => (
                           <Cell key={'cell-' + index} fill={getColorPorCategoria(entry.categoria)} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
+                      <Tooltip formatter={(value) => [value, 'Unidades']} />
                       <Legend
                         layout="vertical"
                         align="right"
@@ -719,19 +782,20 @@ const DashboardReportesSection = () => {
                     <PieChart>
                       <Pie
                         data={ventasData?.ventasPorProcedencia.slice(0, 6)}
-                        cx="45%"
+                        cx="50%"
                         cy="50%"
-                        labelLine={false}
-                        label={({ procedencia, ventas }) => procedencia + ': ' + ventas.toFixed(0)}
+                        labelLine={true}
+                        label={({ procedencia, cantidad }) => `${procedencia}: ${cantidad}`}
                         outerRadius={80}
                         fill="#8884d8"
-                        dataKey="ventas"
+                        dataKey="cantidad"
+                        nameKey="procedencia"
                       >
                         {ventasData?.ventasPorProcedencia.slice(0, 6).map((entry, index) => (
                           <Cell key={'cell-' + index} fill={getColorPorIndice(index)} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => formatearMonto(value, 'USD')} />
+                      <Tooltip formatter={(value) => [value, 'Clientes']} />
                       <Legend
                         layout="vertical"
                         align="right"
@@ -745,15 +809,18 @@ const DashboardReportesSection = () => {
 
               {/* Ventas por sucursal */}
               <div className="bg-white border border-slate-200 rounded">
-                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Sucursal</h3>
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Sucursal (Transacciones)</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="sucursal" />
                       <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas">
+                      <Tooltip
+                        formatter={(value) => [value, 'Transacciones']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="transacciones">
                         {ventasData?.ventasPorSucursal.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={getColorPorSucursal(entry.sucursal)} />
                         ))}
@@ -765,15 +832,18 @@ const DashboardReportesSection = () => {
 
               {/* Ventas por vendedor */}
               <div className="bg-white border border-slate-200 rounded">
-                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Vendedor</h3>
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Vendedor (Transacciones)</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorVendedor}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="vendedor" angle={-45} textAnchor="end" height={80} />
                       <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas">
+                      <Tooltip
+                        formatter={(value) => [value, 'Transacciones']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="transacciones">
                         {ventasData?.ventasPorVendedor.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={getColorPorIndice(index)} />
                         ))}
@@ -829,37 +899,80 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
-              {/* Ventas por día */}
-              <div className="bg-white border border-slate-200 rounded">
-                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Día</h3>
+              {/* Ventas por Semana (Agrupado por Sucursal) */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Semana (Por Sucursal)</h3>
                 <div className="p-4">
-                  <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={ventasData?.ventasPorDia}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={ventasData?.ventasPorSemana}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="fecha" />
-                      <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey="ventas" stroke="#3b82f6" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Ventas por día de la semana */}
-              <div className="bg-white border border-slate-200 rounded">
-                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Día de la Semana</h3>
-                <div className="p-4">
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={ventasData?.ventasPorDiaSemana}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="dia" />
-                      <YAxis tickFormatter={(value) => String(value)} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas" fill="#8b5cf6" />
+                      <XAxis
+                        dataKey="semana"
+                        tickFormatter={(fecha) => {
+                          const [y, m, d] = fecha.split('-');
+                          return `${d}/${m}`;
+                        }}
+                      />
+                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <Tooltip
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Legend />
+                      <Bar dataKey="mitre" name="Mitre" fill={COLORES_SUCURSALES['Mitre']} />
+                      <Bar dataKey="la_plata" name="La Plata" fill={COLORES_SUCURSALES['La Plata']} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
+
+              {/* Ventas por Día de la Semana (Agrupado por Sucursal) */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Día de la Semana (Por Sucursal)</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={ventasData?.ventasPorDiaSemana}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="dia" />
+                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <Tooltip
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Legend />
+                      <Bar dataKey="mitre" name="Mitre" fill={COLORES_SUCURSALES['Mitre']} />
+                      <Bar dataKey="la_plata" name="La Plata" fill={COLORES_SUCURSALES['La Plata']} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Análisis de Margen vs Volumen (Composed Chart) */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Relación Volumen de Ventas vs Margen de Ganancia</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ComposedChart data={ventasData?.ventasPorCategoria}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="categoria" />
+                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" tickFormatter={(value) => `${value.toFixed(1)}%`} />
+                      <Tooltip
+                        formatter={(value, name) => {
+                          if (name === 'Ventas Totales') return [formatearMonto(value, 'USD'), name];
+                          if (name === 'Margen %') return [`${parseFloat(value).toFixed(1)}%`, name];
+                          return [value, name];
+                        }}
+                      />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="ventas" name="Ventas Totales" fill="#8884d8" barSize={20} />
+                      <Line yAxisId="right" type="monotone" dataKey="margen" name="Margen %" stroke="#82ca9d" strokeWidth={3} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+
             </div>
           </div>
         )}

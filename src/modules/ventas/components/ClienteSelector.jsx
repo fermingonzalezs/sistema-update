@@ -449,8 +449,8 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
           onChange={handleInputChange}
           onFocus={() => !showModal && setIsOpen(true)}
           placeholder="Buscar cliente por nombre, teléfono, email..."
-          className={`w-full pl-10 pr-10 py-3 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-            required && !selectedCliente ? 'border-red-300 bg-red-50' : 'border-slate-200'
+          className={`w-full pl-10 pr-10 py-3 border rounded bg-slate-50 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white ${
+            required && !selectedCliente ? 'border-red-300 bg-red-50' : 'border-slate-300'
           }`}
           disabled={creatingClient}
         />
@@ -471,11 +471,11 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
 
       {/* DROPDOWN */}
       {isOpen && !showModal && (
-        <div className="absolute z-40 mt-1 w-full bg-white border border-slate-200 rounded shadow-lg max-h-80 overflow-y-auto">
+        <div className="absolute z-40 mt-1 w-full bg-white border border-slate-300 rounded shadow-lg max-h-80 overflow-y-auto">
           <button
             type="button"
             onClick={handleOpenModal}
-            className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-200 flex items-center space-x-3 text-emerald-600 transition-colors"
+            className="w-full px-4 py-3 text-left hover:bg-slate-100 border-b border-slate-300 flex items-center space-x-3 text-emerald-600 transition-colors"
           >
             <Plus className="w-5 h-5" />
             <span className="font-medium">Crear nuevo cliente</span>
@@ -504,7 +504,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
                     key={cliente.id}
                     type="button"
                     onClick={() => handleSelectCliente(cliente)}
-                    className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+                    className="w-full px-4 py-3 text-left hover:bg-slate-100 border-b border-slate-200 last:border-b-0 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

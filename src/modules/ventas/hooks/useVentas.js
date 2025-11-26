@@ -424,6 +424,190 @@ export const ventasService = {
       ventasOtros: totalVentasOtros,
       ventasPorCategoria // Detalle de ventas por categoría específica
     }
+  },
+
+  // Actualizar venta existente
+  async actualizarVenta(transaccionId, datosActualizados) {
+    console.log('🔄 Actualizando venta ID:', transaccionId)
+
+    try {
+      // 1. Fetch transacción actual con items
+      const { data: transaccionActual, error: errorFetch } = await supabase
+        .from('transacciones')
+        .select(`
+          *,
+          venta_items (*)
+        `)
+        .eq('id', transaccionId)
+        .single()
+
+      if (errorFetch) throw errorFetch
+      if (!transaccionActual) throw new Error('Transacción no encontrada')
+
+      // 2. Validar que NO está contabilizada
+      if (transaccionActual.contabilizado) {
+        throw new Error('No se puede editar una venta ya contabilizada')
+      }
+
+      console.log('✅ Transacción actual:', transaccionActual)
+
+      // 3. Verificar si existe movimiento en cuenta corriente
+      const { data: movimientoCC, error: errorCC } = await supabase
+        .from('cuentas_corrientes')
+        .select('*')
+        .eq('comprobante', transaccionActual.numero_transaccion)
+        .maybeSingle()
+
+      if (errorCC) console.warn('Error verificando CC:', errorCC)
+
+      const advertenciaCC = !!movimientoCC
+      console.log(advertenciaCC ? '⚠️ Tiene movimiento en CC' : '✅ Sin movimiento en CC')
+
+      // 4. Recalcular totales con nuevos precios de items
+      const itemsActualizados = datosActualizados.items || []
+      const totalVenta = itemsActualizados.reduce((sum, item) => {
+        const itemOriginal = transaccionActual.venta_items.find(i => i.id === item.id)
+        const precioUnitario = item.precio_unitario ?? itemOriginal.precio_unitario
+        const cantidad = itemOriginal.cantidad
+        return sum + (precioUnitario * cantidad)
+      }, 0)
+
+      const totalCosto = itemsActualizados.reduce((sum, item) => {
+        const itemOriginal = transaccionActual.venta_items.find(i => i.id === item.id)
+        return sum + (itemOriginal.precio_costo * itemOriginal.cantidad)
+      }, 0)
+
+      const margenTotal = totalVenta - totalCosto
+
+      console.log('💰 Totales recalculados:', { totalVenta, totalCosto, margenTotal })
+
+      // 5. Validar suma de pagos = total (tolerancia 0.01)
+      const montoPago1 = datosActualizados.monto_pago_1 || 0
+      const montoPago2 = datosActualizados.monto_pago_2 || 0
+      const sumaPagos = montoPago1 + montoPago2
+
+      if (Math.abs(sumaPagos - totalVenta) > 0.01) {
+        throw new Error(
+          `La suma de pagos ($${sumaPagos}) no coincide con el total ($${totalVenta})`
+        )
+      }
+
+      // Guardar valores originales para audit_log
+      const oldValues = {
+        transaccion: {
+          cliente_id: transaccionActual.cliente_id,
+          cliente_nombre: transaccionActual.cliente_nombre,
+          vendedor: transaccionActual.vendedor,
+          fecha_venta: transaccionActual.fecha_venta,
+          metodo_pago: transaccionActual.metodo_pago,
+          metodo_pago_2: transaccionActual.metodo_pago_2,
+          monto_pago_1: transaccionActual.monto_pago_1,
+          monto_pago_2: transaccionActual.monto_pago_2,
+          total_venta: transaccionActual.total_venta,
+          margen_total: transaccionActual.margen_total,
+          observaciones: transaccionActual.observaciones
+        },
+        items: transaccionActual.venta_items.map(i => ({
+          id: i.id,
+          precio_unitario: i.precio_unitario,
+          precio_total: i.precio_total,
+          margen_item: i.margen_item
+        }))
+      }
+
+      // 6. UPDATE transacciones
+      const { data: transaccionActualizada, error: errorUpdate } = await supabase
+        .from('transacciones')
+        .update({
+          cliente_id: datosActualizados.cliente_id,
+          cliente_nombre: datosActualizados.cliente_nombre,
+          cliente_email: datosActualizados.cliente_email || null,
+          cliente_telefono: datosActualizados.cliente_telefono || null,
+          vendedor: datosActualizados.vendedor,
+          fecha_venta: datosActualizados.fecha_venta,
+          metodo_pago: datosActualizados.metodo_pago_1,
+          metodo_pago_2: datosActualizados.metodo_pago_2 || null,
+          monto_pago_1: montoPago1,
+          monto_pago_2: montoPago2,
+          total_venta: totalVenta,
+          margen_total: margenTotal,
+          observaciones: datosActualizados.observaciones || null
+        })
+        .eq('id', transaccionId)
+        .select()
+        .single()
+
+      if (errorUpdate) throw errorUpdate
+
+      // 7. UPDATE venta_items
+      const itemsUpdatePromises = itemsActualizados.map(async (item) => {
+        const itemOriginal = transaccionActual.venta_items.find(i => i.id === item.id)
+        const precioUnitario = item.precio_unitario
+        const precioTotal = precioUnitario * itemOriginal.cantidad
+        const margenItem = precioTotal - (itemOriginal.precio_costo * itemOriginal.cantidad)
+
+        const { error: errorItem } = await supabase
+          .from('venta_items')
+          .update({
+            precio_unitario: precioUnitario,
+            precio_total: precioTotal,
+            margen_item: margenItem
+          })
+          .eq('id', item.id)
+
+        if (errorItem) throw errorItem
+      })
+
+      await Promise.all(itemsUpdatePromises)
+      console.log('✅ Items actualizados')
+
+      // 8. INSERT audit_log
+      const changedFields = []
+      if (oldValues.transaccion.cliente_id !== datosActualizados.cliente_id) changedFields.push('cliente_id')
+      if (oldValues.transaccion.vendedor !== datosActualizados.vendedor) changedFields.push('vendedor')
+      if (oldValues.transaccion.metodo_pago !== datosActualizados.metodo_pago_1) changedFields.push('metodo_pago')
+      if (oldValues.transaccion.monto_pago_1 !== montoPago1) changedFields.push('monto_pago_1')
+
+      // Detectar cambios en items
+      itemsActualizados.forEach(item => {
+        const itemOld = oldValues.items.find(i => i.id === item.id)
+        if (itemOld && itemOld.precio_unitario !== item.precio_unitario) {
+          changedFields.push(`item_${item.id}.precio_unitario`)
+        }
+      })
+
+      const { error: errorAudit } = await supabase
+        .from('audit_log')
+        .insert({
+          table_name: 'transacciones',
+          operation: 'UPDATE',
+          record_id: transaccionId.toString(),
+          old_values: oldValues,
+          new_values: {
+            transaccion: datosActualizados,
+            items: itemsActualizados
+          },
+          changed_fields: changedFields,
+          severity: 'info',
+          category: 'data_change',
+          description: `Edición de venta ${transaccionActual.numero_transaccion}`
+        })
+
+      if (errorAudit) console.warn('Error guardando audit_log:', errorAudit)
+
+      console.log('✅ Venta actualizada exitosamente')
+
+      // 9. Return resultado
+      return {
+        transaccion: transaccionActualizada,
+        advertenciaCC,
+        movimientoCC
+      }
+
+    } catch (error) {
+      console.error('❌ Error actualizando venta:', error)
+      throw error
+    }
   }
 };
 
@@ -619,6 +803,18 @@ export function useVentas() {
     }
   }
 
+  const actualizarVenta = async (id, datos) => {
+    try {
+      setError(null)
+      const result = await ventasService.actualizarVenta(id, datos)
+      await fetchVentas() // Recargar lista
+      return result
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
   return {
     ventas,
     loading,
@@ -626,6 +822,7 @@ export function useVentas() {
     fetchVentas,
     registrarVenta, // Mantener por compatibilidad
     procesarCarrito,
-    obtenerEstadisticas
+    obtenerEstadisticas,
+    actualizarVenta
   }
 }

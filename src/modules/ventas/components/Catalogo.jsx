@@ -172,6 +172,28 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Función de fallback para copiar usando el método legacy
+  const copiarTextoFallback = (texto) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = texto;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    let success = false;
+    try {
+      success = document.execCommand('copy');
+    } catch (err) {
+      console.error('❌ Error en execCommand:', err);
+    }
+
+    document.body.removeChild(textArea);
+    return success;
+  };
+
   const generateCopyWithPrice = (producto, usePesos = false) => {
     try {
       const precio = usePesos
@@ -2827,15 +2849,47 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
+                              console.log("🔵 CLICK Botón USD - Producto:", producto?.id, producto?.modelo || producto?.nombre_producto);
+
                               try {
+                                console.log("🔵 Generando copy...");
                                 const copyText = generateCopyWithPrice(
                                   producto,
                                   false
                                 ); // Copiar USD
-                                await navigator.clipboard.writeText(copyText);
-                                console.log("✅ Copiado USD:", copyText);
+
+                                console.log("🔵 Copy generado:", copyText?.substring(0, 50));
+
+                                // Intentar con clipboard API moderno
+                                let copiado = false;
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                  try {
+                                    console.log("🔵 Intentando clipboard API...");
+                                    await navigator.clipboard.writeText(copyText);
+                                    copiado = true;
+                                    console.log("✅ Copiado USD con API:", copyText);
+                                  } catch (clipboardErr) {
+                                    console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                                    copiado = copiarTextoFallback(copyText);
+                                    if (copiado) {
+                                      console.log("✅ Copiado USD con fallback");
+                                    }
+                                  }
+                                } else {
+                                  console.log("🔵 API no disponible, usando fallback...");
+                                  copiado = copiarTextoFallback(copyText);
+                                  if (copiado) {
+                                    console.log("✅ Copiado USD con fallback");
+                                  }
+                                }
+
+                                if (!copiado) {
+                                  console.error("❌ No se pudo copiar");
+                                  alert("Error: No se pudo copiar al portapapeles");
+                                }
                               } catch (error) {
-                                console.error("Error copiando USD:", error);
+                                console.error("❌ Error copiando USD:", error);
+                                alert("Error al copiar: " + error.message);
                               }
                             }}
                             className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
@@ -2853,10 +2907,27 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   producto,
                                   true
                                 ); // Copiar Pesos
-                                await navigator.clipboard.writeText(copyText);
-                                console.log("✅ Copiado ARS:", copyText);
+
+                                // Intentar con clipboard API moderno
+                                let copiado = false;
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                  try {
+                                    await navigator.clipboard.writeText(copyText);
+                                    copiado = true;
+                                    console.log("✅ Copiado ARS:", copyText);
+                                  } catch (clipboardErr) {
+                                    console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                                    copiado = copiarTextoFallback(copyText);
+                                  }
+                                } else {
+                                  copiado = copiarTextoFallback(copyText);
+                                }
+
+                                if (copiado) {
+                                  console.log("✅ Copy ARS exitoso");
+                                }
                               } catch (error) {
-                                console.error("Error copiando ARS:", error);
+                                console.error("❌ Error copiando ARS:", error);
                               }
                             }}
                             className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
