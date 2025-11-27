@@ -20,7 +20,8 @@ import {
   DashboardReportesSection,
   RecuentoStockSection,
   GarantiasSection,
-  IngresoEquiposSection
+  IngresoEquiposSection,
+  TableroGeneralSection
 } from './modules/administracion/components';
 import {
   RatiosSection,
@@ -574,6 +575,10 @@ const AppContent = () => {
 
      {activeSection === 'dashboard-reportes' && (
        <DashboardReportesSection />
+     )}
+
+     {activeSection === 'tablero-general' && (
+       <TableroGeneralSection />
      )}
 
      {activeSection === 'garantias' && (

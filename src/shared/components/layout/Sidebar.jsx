@@ -29,7 +29,8 @@ import {
   ChevronRight,
   ChevronLeft,
   ShoppingBag,
-  Plane
+  Plane,
+  LayoutDashboard
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
@@ -83,6 +84,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       color: 'from-blue-600 to-indigo-700',
       level: 'administracion',
       items: [
+        {
+          id: 'tablero-general',
+          label: 'Tablero General',
+          icon: LayoutDashboard,
+          description: 'Resumen financiero mensual'
+        },
         {
           id: 'ventas',
           label: 'Historial Ventas',

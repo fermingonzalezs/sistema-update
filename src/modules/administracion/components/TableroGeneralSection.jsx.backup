@@ -1,0 +1,590 @@
+import React, { useState } from 'react';
+import { LayoutDashboard, ChevronRight, ChevronDown } from 'lucide-react';
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+const TableroGeneralSection = () => {
+  const [añoSeleccionado, setAñoSeleccionado] = useState(new Date().getFullYear());
+  const [ingresosExpanded, setIngresosExpanded] = useState(false);
+  const [costosExpanded, setCostosExpanded] = useState(false);
+  const [gastosExpanded, setGastosExpanded] = useState(false);
+
+  // Datos mock para 12 meses - ESTRUCTURA REAL DEL ESTADO DE RESULTADOS
+  const datosMock = [
+    {
+      mes: 'Ene',
+      // INGRESOS (4.x - Resultado Positivo)
+      diferenciaCotizacion: 2000,
+      ingresosExtraordinarios: 3000,
+      ventaNotebooksNuevas: 40000,
+      ventaNotebooksUsadas: 25000,
+      ventaCelularesNuevos: 35000,
+      ventaCelularesUsados: 20000,
+      ventaOtros: 15000,
+      ventaServiciosCourier: 10000,
+      totalIngresos: 150000,
+
+      // COSTOS (5.x - CMV)
+      cmvLogisticaImportacion: 5000,
+      cmvNotebooksNuevas: 25000,
+      cmvNotebooksUsadas: 15000,
+      cmvCelularesNuevos: 22000,
+      cmvCelularesUsados: 13000,
+      cmvOtros: 10000,
+      totalCostos: 90000,
+
+      // GANANCIA BRUTA
+      gananciaBruta: 60000,
+
+      // GASTOS OPERATIVOS (6.x)
+      diferenciaCotizacionGasto: 1000,
+      gastosOficina: 2000,
+      honorarios: 5000,
+      servicios: 3000,
+      gastosExtraordinarios: 2000,
+      sueldos: 25000,
+      alquileres: 6000,
+      expensas: 2000,
+      impuestoDebitoCredito: 1500,
+      comisionesFinancieras: 2000,
+      logisticaViaticos: 1500,
+      marketing: 1000,
+      gastosGarantias: 500,
+      totalGastos: 52500,
+
+      // UTILIDAD NETA
+      utilidadNeta: 7500
+    },
+    {
+      mes: 'Feb',
+      diferenciaCotizacion: 1800, ingresosExtraordinarios: 2800, ventaNotebooksNuevas: 38000, ventaNotebooksUsadas: 24000,
+      ventaCelularesNuevos: 33000, ventaCelularesUsados: 19000, ventaOtros: 14000, ventaServiciosCourier: 13400,
+      totalIngresos: 145000,
+      cmvLogisticaImportacion: 4800, cmvNotebooksNuevas: 24000, cmvNotebooksUsadas: 14500, cmvCelularesNuevos: 21000,
+      cmvCelularesUsados: 12500, cmvOtros: 10200, totalCostos: 87000, gananciaBruta: 58000,
+      diferenciaCotizacionGasto: 950, gastosOficina: 1900, honorarios: 4800, servicios: 2900, gastosExtraordinarios: 1900,
+      sueldos: 25000, alquileres: 6000, expensas: 2000, impuestoDebitoCredito: 1450, comisionesFinancieras: 1900,
+      logisticaViaticos: 1450, marketing: 950, gastosGarantias: 500, totalGastos: 50800, utilidadNeta: 7200
+    },
+    {
+      mes: 'Mar',
+      ventasProductos: 130000,
+      ventasServicios: 35000,
+      totalIngresos: 165000,
+      costoComputadoras: 55000,
+      costoCelulares: 31000,
+      costoOtros: 12000,
+      totalCostos: 98000,
+      gananciaBruta: 67000,
+      gastosComerciales: 8500,
+      gastosAdministrativos: 14300,
+      gastosPersonal: 25000,
+      impuestos: 4200,
+      totalGastos: 52000,
+      utilidadNeta: 15000
+    },
+    {
+      mes: 'Abr',
+      ventasProductos: 123000,
+      ventasServicios: 35000,
+      totalIngresos: 158000,
+      costoComputadoras: 52000,
+      costoCelulares: 30000,
+      costoOtros: 13000,
+      totalCostos: 95000,
+      gananciaBruta: 63000,
+      gastosComerciales: 8200,
+      gastosAdministrativos: 13900,
+      gastosPersonal: 25000,
+      impuestos: 4100,
+      totalGastos: 51200,
+      utilidadNeta: 11800
+    },
+    {
+      mes: 'May',
+      ventasProductos: 135000,
+      ventasServicios: 37000,
+      totalIngresos: 172000,
+      costoComputadoras: 58000,
+      costoCelulares: 32000,
+      costoOtros: 13000,
+      totalCostos: 103000,
+      gananciaBruta: 69000,
+      gastosComerciales: 8700,
+      gastosAdministrativos: 14300,
+      gastosPersonal: 25000,
+      impuestos: 4400,
+      totalGastos: 52400,
+      utilidadNeta: 16600
+    },
+    {
+      mes: 'Jun',
+      ventasProductos: 131000,
+      ventasServicios: 37000,
+      totalIngresos: 168000,
+      costoComputadoras: 56000,
+      costoCelulares: 31000,
+      costoOtros: 13000,
+      totalCostos: 100000,
+      gananciaBruta: 68000,
+      gastosComerciales: 8600,
+      gastosAdministrativos: 14200,
+      gastosPersonal: 25000,
+      impuestos: 4300,
+      totalGastos: 52100,
+      utilidadNeta: 15900
+    },
+    {
+      mes: 'Jul',
+      ventasProductos: 118000,
+      ventasServicios: 37000,
+      totalIngresos: 155000,
+      costoComputadoras: 50000,
+      costoCelulares: 30000,
+      costoOtros: 13000,
+      totalCostos: 93000,
+      gananciaBruta: 62000,
+      gastosComerciales: 8100,
+      gastosAdministrativos: 14000,
+      gastosPersonal: 25000,
+      impuestos: 4000,
+      totalGastos: 51100,
+      utilidadNeta: 10900
+    },
+    {
+      mes: 'Ago',
+      ventasProductos: 124000,
+      ventasServicios: 38000,
+      totalIngresos: 162000,
+      costoComputadoras: 53000,
+      costoCelulares: 31000,
+      costoOtros: 13000,
+      totalCostos: 97000,
+      gananciaBruta: 65000,
+      gastosComerciales: 8400,
+      gastosAdministrativos: 14100,
+      gastosPersonal: 25000,
+      impuestos: 4200,
+      totalGastos: 51700,
+      utilidadNeta: 13300
+    },
+    {
+      mes: 'Sep',
+      ventasProductos: 137000,
+      ventasServicios: 38000,
+      totalIngresos: 175000,
+      costoComputadoras: 58000,
+      costoCelulares: 33000,
+      costoOtros: 14000,
+      totalCostos: 105000,
+      gananciaBruta: 70000,
+      gastosComerciales: 8800,
+      gastosAdministrativos: 14400,
+      gastosPersonal: 25000,
+      impuestos: 4500,
+      totalGastos: 52700,
+      utilidadNeta: 17300
+    },
+    {
+      mes: 'Oct',
+      ventasProductos: 142000,
+      ventasServicios: 38000,
+      totalIngresos: 180000,
+      costoComputadoras: 60000,
+      costoCelulares: 34000,
+      costoOtros: 14000,
+      totalCostos: 108000,
+      gananciaBruta: 72000,
+      gastosComerciales: 9000,
+      gastosAdministrativos: 14500,
+      gastosPersonal: 25000,
+      impuestos: 4600,
+      totalGastos: 53100,
+      utilidadNeta: 18900
+    },
+    {
+      mes: 'Nov',
+      ventasProductos: 145000,
+      ventasServicios: 40000,
+      totalIngresos: 185000,
+      costoComputadoras: 61000,
+      costoCelulares: 35000,
+      costoOtros: 15000,
+      totalCostos: 111000,
+      gananciaBruta: 74000,
+      gastosComerciales: 9200,
+      gastosAdministrativos: 14600,
+      gastosPersonal: 25000,
+      impuestos: 4700,
+      totalGastos: 53500,
+      utilidadNeta: 20500
+    },
+    {
+      mes: 'Dic',
+      ventasProductos: 152000,
+      ventasServicios: 43000,
+      totalIngresos: 195000,
+      costoComputadoras: 64000,
+      costoCelulares: 37000,
+      costoOtros: 16000,
+      totalCostos: 117000,
+      gananciaBruta: 78000,
+      gastosComerciales: 9500,
+      gastosAdministrativos: 14800,
+      gastosPersonal: 25000,
+      impuestos: 5000,
+      totalGastos: 54300,
+      utilidadNeta: 23700
+    }
+  ];
+
+  // Calcular totales anuales
+  const totales = datosMock.reduce((acc, mes) => ({
+    ventasProductos: acc.ventasProductos + mes.ventasProductos,
+    ventasServicios: acc.ventasServicios + mes.ventasServicios,
+    totalIngresos: acc.totalIngresos + mes.totalIngresos,
+    costoComputadoras: acc.costoComputadoras + mes.costoComputadoras,
+    costoCelulares: acc.costoCelulares + mes.costoCelulares,
+    costoOtros: acc.costoOtros + mes.costoOtros,
+    totalCostos: acc.totalCostos + mes.totalCostos,
+    gananciaBruta: acc.gananciaBruta + mes.gananciaBruta,
+    gastosComerciales: acc.gastosComerciales + mes.gastosComerciales,
+    gastosAdministrativos: acc.gastosAdministrativos + mes.gastosAdministrativos,
+    gastosPersonal: acc.gastosPersonal + mes.gastosPersonal,
+    impuestos: acc.impuestos + mes.impuestos,
+    totalGastos: acc.totalGastos + mes.totalGastos,
+    utilidadNeta: acc.utilidadNeta + mes.utilidadNeta
+  }), {
+    ventasProductos: 0,
+    ventasServicios: 0,
+    totalIngresos: 0,
+    costoComputadoras: 0,
+    costoCelulares: 0,
+    costoOtros: 0,
+    totalCostos: 0,
+    gananciaBruta: 0,
+    gastosComerciales: 0,
+    gastosAdministrativos: 0,
+    gastosPersonal: 0,
+    impuestos: 0,
+    totalGastos: 0,
+    utilidadNeta: 0
+  });
+
+  // Definir las filas expandibles - ESTRUCTURA REAL DEL ESTADO DE RESULTADOS
+  const filasIngresos = [
+    { id: 'diferenciaCotizacion', label: 'Diferencia Cotización', codigo: '4.0.01', color: 'text-emerald-600' },
+    { id: 'ingresosExtraordinarios', label: 'Ingresos Extraordinarios', codigo: '4.0.02', color: 'text-emerald-600' },
+    { id: 'ventaNotebooksNuevas', label: 'Venta Notebooks Nuevas', codigo: '4.0.03', color: 'text-emerald-600' },
+    { id: 'ventaNotebooksUsadas', label: 'Venta Notebooks Usadas', codigo: '4.0.04', color: 'text-emerald-600' },
+    { id: 'ventaCelularesNuevos', label: 'Venta Celulares Nuevos', codigo: '4.0.05', color: 'text-emerald-600' },
+    { id: 'ventaCelularesUsados', label: 'Venta Celulares Usados', codigo: '4.0.06', color: 'text-emerald-600' },
+    { id: 'ventaOtros', label: 'Venta Otros', codigo: '4.0.07', color: 'text-emerald-600' },
+    { id: 'ventaServiciosCourier', label: 'Venta Servicios de Courier', codigo: '4.0.08', color: 'text-emerald-600' }
+  ];
+
+  const filasCostos = [
+    { id: 'cmvLogisticaImportacion', label: 'CMV Logística Importación', codigo: '5.0.01', color: 'text-red-600' },
+    { id: 'cmvNotebooksNuevas', label: 'CMV Notebooks Nuevas', codigo: '5.0.02', color: 'text-red-600' },
+    { id: 'cmvNotebooksUsadas', label: 'CMV Notebooks Usadas', codigo: '5.0.03', color: 'text-red-600' },
+    { id: 'cmvCelularesNuevos', label: 'CMV Celulares Nuevos', codigo: '5.0.04', color: 'text-red-600' },
+    { id: 'cmvCelularesUsados', label: 'CMV Celulares Usados', codigo: '5.0.05', color: 'text-red-600' },
+    { id: 'cmvOtros', label: 'CMV Otros', codigo: '5.0.06', color: 'text-red-600' }
+  ];
+
+  const filasGastos = [
+    { id: 'diferenciaCotizacionGasto', label: 'Diferencia Cotización', codigo: '6.0.01', color: 'text-orange-600' },
+    { id: 'gastosOficina', label: 'Gastos Oficina', codigo: '6.0.02', color: 'text-orange-600' },
+    { id: 'honorarios', label: 'Honorarios', codigo: '6.0.03', color: 'text-orange-600' },
+    { id: 'servicios', label: 'Servicios', codigo: '6.0.04', color: 'text-orange-600' },
+    { id: 'gastosExtraordinarios', label: 'Gastos Extraordinarios', codigo: '6.0.05', color: 'text-orange-600' },
+    { id: 'sueldos', label: 'Sueldos', codigo: '6.0.06', color: 'text-orange-600' },
+    { id: 'alquileres', label: 'Alquileres', codigo: '6.0.07', color: 'text-orange-600' },
+    { id: 'expensas', label: 'Expensas', codigo: '6.0.08', color: 'text-orange-600' },
+    { id: 'impuestoDebitoCredito', label: 'Impuesto a los Débitos y Créditos', codigo: '6.0.09', color: 'text-orange-600' },
+    { id: 'comisionesFinancieras', label: 'Gastos por Comisiones Financieras', codigo: '6.0.10', color: 'text-orange-600' },
+    { id: 'logisticaViaticos', label: 'Logística y Viáticos', codigo: '6.0.11', color: 'text-orange-600' },
+    { id: 'marketing', label: 'Marketing', codigo: '6.0.12', color: 'text-orange-600' },
+    { id: 'gastosGarantias', label: 'Gastos por Garantías', codigo: '6.0.13', color: 'text-orange-600' }
+  ];
+
+  const categorias = [
+    // INGRESOS
+    { id: 'totalIngresos', label: 'TOTAL INGRESOS', color: 'text-emerald-600', bold: true, section: 'INGRESOS (Resultado Positivo)', expandable: true },
+
+    // COSTOS
+    { id: 'totalCostos', label: 'TOTAL COSTOS (CMV)', color: 'text-red-600', bold: true, section: 'COSTOS (Costo de Mercadería Vendida)', expandable: true },
+
+    // GANANCIA BRUTA
+    { id: 'gananciaBruta', label: 'GANANCIA BRUTA', color: 'text-slate-800', bold: true, section: 'GANANCIA BRUTA' },
+
+    // GASTOS OPERATIVOS
+    { id: 'totalGastos', label: 'TOTAL GASTOS OPERATIVOS', color: 'text-orange-700', bold: true, section: 'GASTOS OPERATIVOS', expandable: true },
+
+    // UTILIDAD NETA
+    { id: 'utilidadNeta', label: 'UTILIDAD NETA', color: 'text-emerald-700', bold: true, section: 'RESULTADO DEL EJERCICIO' }
+  ];
+
+  // Generar opciones de años
+  const añosDisponibles = [];
+  const añoActual = new Date().getFullYear();
+  for (let i = añoActual - 5; i <= añoActual + 1; i++) {
+    añosDisponibles.push(i);
+  }
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0
+    }).format(value);
+  };
+
+  const formatCurrencyCompact = (value) => {
+    if (value >= 1000) {
+      return `$${(value / 1000).toFixed(0)}k`;
+    }
+    return `$${value}`;
+  };
+
+  let currentSection = null;
+
+  return (
+    <div className="bg-white rounded border border-slate-200">
+      {/* Header */}
+      <div className="bg-slate-800 p-6 text-white">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <LayoutDashboard size={28} />
+            <div>
+              <h2 className="text-2xl font-semibold">Tablero General</h2>
+              <p className="text-slate-300 mt-1">Estado de Resultados mensual - Estructura contable</p>
+            </div>
+          </div>
+          <div>
+            <select
+              value={añoSeleccionado}
+              onChange={(e) => setAñoSeleccionado(Number(e.target.value))}
+              className="bg-white text-slate-800 px-4 py-2 rounded border border-slate-200 font-medium"
+            >
+              {añosDisponibles.map(año => (
+                <option key={año} value={año}>{año}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla de datos mensuales */}
+      <div className="p-6">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-800 text-white">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sticky left-0 bg-slate-800">Categoría</th>
+                {datosMock.map((dato) => (
+                  <th key={dato.mes} className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap">
+                    {dato.mes}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-slate-700">Total {añoSeleccionado}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {categorias.map((categoria, catIndex) => {
+                const showSectionHeader = currentSection !== categoria.section;
+                if (showSectionHeader) {
+                  currentSection = categoria.section;
+                }
+
+                const isIngresosRow = categoria.id === 'totalIngresos';
+                const isCostosRow = categoria.id === 'totalCostos';
+                const isGastosRow = categoria.id === 'totalGastos';
+                const isExpandable = categoria.expandable;
+                const isUtilidadNeta = categoria.id === 'utilidadNeta';
+
+                return (
+                  <React.Fragment key={categoria.id}>
+                    {/* Header de sección */}
+                    {showSectionHeader && (
+                      <tr className="bg-slate-700">
+                        <td colSpan={14} className="px-4 py-2 text-xs font-bold text-white uppercase tracking-wider">
+                          {categoria.section}
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Fila principal */}
+                    <tr
+                      onClick={() => {
+                        if (isIngresosRow) setIngresosExpanded(!ingresosExpanded);
+                        if (isCostosRow) setCostosExpanded(!costosExpanded);
+                        if (isGastosRow) setGastosExpanded(!gastosExpanded);
+                      }}
+                      className={`${catIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${isExpandable ? 'cursor-pointer hover:bg-slate-100' : ''}`}
+                    >
+                      <td className={`px-4 py-3 text-sm ${categoria.bold ? 'font-semibold' : ''} ${categoria.color} sticky left-0 ${catIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${isExpandable ? 'hover:bg-slate-100' : ''}`}>
+                        <div className="flex items-center gap-2">
+                          {isExpandable && (
+                            <>
+                              {(isIngresosRow && ingresosExpanded) || (isCostosRow && costosExpanded) || (isGastosRow && gastosExpanded) ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </>
+                          )}
+                          {categoria.label}
+                        </div>
+                      </td>
+                      {datosMock.map((dato) => (
+                        <td
+                          key={dato.mes}
+                          className={`px-4 py-3 text-sm text-center ${categoria.color} ${categoria.bold ? 'font-semibold' : ''}`}
+                        >
+                          {formatCurrencyCompact(dato[categoria.id])}
+                        </td>
+                      ))}
+                      <td className={`px-4 py-3 text-sm text-center ${isUtilidadNeta ? (totales.utilidadNeta >= 0 ? 'text-emerald-700' : 'text-red-600') : categoria.color} font-bold bg-slate-100`}>
+                        {formatCurrency(totales[categoria.id])}
+                      </td>
+                    </tr>
+
+                    {/* Filas expandidas - Ingresos */}
+                    {isIngresosRow && ingresosExpanded && filasIngresos.map((fila, idx) => (
+                      <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                        <td className={`px-4 py-2 text-sm ${fila.color} pl-12 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-slate-200 px-1 rounded text-slate-600">{fila.codigo}</code>
+                            <span>{fila.label}</span>
+                          </div>
+                        </td>
+                        {datosMock.map((dato) => (
+                          <td key={dato.mes} className={`px-4 py-2 text-sm text-center ${fila.color}`}>
+                            {formatCurrencyCompact(dato[fila.id])}
+                          </td>
+                        ))}
+                        <td className={`px-4 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                          {formatCurrency(totales[fila.id])}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Filas expandidas - Costos */}
+                    {isCostosRow && costosExpanded && filasCostos.map((fila, idx) => (
+                      <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                        <td className={`px-4 py-2 text-sm ${fila.color} pl-12 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-slate-200 px-1 rounded text-slate-600">{fila.codigo}</code>
+                            <span>{fila.label}</span>
+                          </div>
+                        </td>
+                        {datosMock.map((dato) => (
+                          <td key={dato.mes} className={`px-4 py-2 text-sm text-center ${fila.color}`}>
+                            {formatCurrencyCompact(dato[fila.id])}
+                          </td>
+                        ))}
+                        <td className={`px-4 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                          {formatCurrency(totales[fila.id])}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Filas expandidas - Gastos */}
+                    {isGastosRow && gastosExpanded && filasGastos.map((fila, idx) => (
+                      <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                        <td className={`px-4 py-2 text-sm ${fila.color} pl-12 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-slate-200 px-1 rounded text-slate-600">{fila.codigo}</code>
+                            <span>{fila.label}</span>
+                          </div>
+                        </td>
+                        {datosMock.map((dato) => (
+                          <td key={dato.mes} className={`px-4 py-2 text-sm text-center ${fila.color}`}>
+                            {formatCurrencyCompact(dato[fila.id])}
+                          </td>
+                        ))}
+                        <td className={`px-4 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                          {formatCurrency(totales[fila.id])}
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Gráfico */}
+        <div className="mt-8">
+          <ResponsiveContainer width="100%" height={400}>
+            <ComposedChart data={datosMock}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis
+                dataKey="mes"
+                tick={{ fontSize: 12 }}
+                stroke="#475569"
+              />
+              <YAxis
+                tick={{ fontSize: 12 }}
+                stroke="#475569"
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '4px'
+                }}
+              />
+              <Legend
+                wrapperStyle={{ paddingTop: '20px' }}
+                iconType="rect"
+              />
+              <Bar
+                dataKey="totalIngresos"
+                fill="#10b981"
+                name="Total Ingresos"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="totalCostos"
+                fill="#ef4444"
+                name="Total Costos"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="totalGastos"
+                fill="#f97316"
+                name="Total Gastos"
+                radius={[4, 4, 0, 0]}
+              />
+              <Line
+                type="monotone"
+                dataKey="utilidadNeta"
+                stroke="#1e293b"
+                strokeWidth={3}
+                name="Utilidad Neta"
+                dot={{ fill: '#1e293b', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TableroGeneralSection;

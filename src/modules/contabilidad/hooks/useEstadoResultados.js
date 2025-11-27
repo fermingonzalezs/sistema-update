@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { calcularSaldoCuenta } from '../utils/saldosUtils';
+import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -29,6 +30,9 @@ export const estadoResultadosService = {
       if (fechaHasta) {
         asientosQuery = asientosQuery.lte('fecha', fechaHasta);
       }
+
+      // EXCLUIR ASIENTOS DE CIERRE
+      asientosQuery = excluirAsientosDeCierre(asientosQuery);
 
       const { data: asientos, error: errorAsientos } = await asientosQuery;
       
@@ -209,14 +213,14 @@ export const estadoResultadosService = {
 
     try {
       const meses = [];
-      
+
       for (let mes = 1; mes <= 12; mes++) {
         const fechaDesde = `${año}-${mes.toString().padStart(2, '0')}-01`;
         const ultimoDia = new Date(año, mes, 0).getDate();
-        const fechaHasta = `${año}-${mes.toString().padStart(2, '0')}-${ultimoDia}`;
-        
+        const fechaHasta = `${año}-${mes.toString().padStart(2, '0')}-${ultimoDia.toString().padStart(2, '0')}`;
+
         const estadoMensual = await this.getEstadoResultados(fechaDesde, fechaHasta);
-        
+
         meses.push({
           mes,
           nombreMes: new Date(año, mes - 1).toLocaleDateString('es-ES', { month: 'long' }),

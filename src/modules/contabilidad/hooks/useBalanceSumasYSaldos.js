@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { calcularSaldoCuenta, clasificarSaldo } from '../utils/saldosUtils';
+import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // Servicio para Balance de Sumas y Saldos
 export const balanceSumasYSaldosService = {
@@ -19,13 +20,16 @@ export const balanceSumasYSaldosService = {
       let asientosQuery = supabase
         .from('asientos_contables')
         .select('id');
-      
+
       if (fechaDesde) {
         asientosQuery = asientosQuery.gte('fecha', fechaDesde);
       }
       if (fechaHasta) {
         asientosQuery = asientosQuery.lte('fecha', fechaHasta);
       }
+
+      // EXCLUIR ASIENTOS DE CIERRE
+      asientosQuery = excluirAsientosDeCierre(asientosQuery);
 
       const { data: asientos, error: errorAsientos } = await asientosQuery;
       if (errorAsientos) throw errorAsientos;
@@ -73,10 +77,15 @@ export const balanceSumasYSaldosService = {
       let saldosIniciales = {};
       if (fechaDesde) {
         // Primero obtener asientos anteriores al período
-        const { data: asientosAnteriores, error: errorAsientosAnteriores } = await supabase
+        let asientosInicialQuery = supabase
           .from('asientos_contables')
           .select('id')
           .lt('fecha', fechaDesde);
+
+        // EXCLUIR ASIENTOS DE CIERRE TAMBIÉN DE SALDOS INICIALES
+        asientosInicialQuery = excluirAsientosDeCierre(asientosInicialQuery);
+
+        const { data: asientosAnteriores, error: errorAsientosAnteriores } = await asientosInicialQuery;
 
         if (!errorAsientosAnteriores && asientosAnteriores && asientosAnteriores.length > 0) {
           const asientoIdsAnteriores = asientosAnteriores.map(a => a.id);

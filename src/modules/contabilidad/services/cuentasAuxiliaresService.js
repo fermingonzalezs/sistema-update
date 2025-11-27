@@ -1,5 +1,6 @@
 // src/modules/contabilidad/services/cuentasAuxiliaresService.js
 import { supabase } from '../../../lib/supabase';
+import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // 📊 SERVICE: Operaciones de cuentas auxiliares con tabla relacional
 export const cuentasAuxiliaresService = {
@@ -56,8 +57,16 @@ export const cuentasAuxiliaresService = {
           if (cuenta.cuenta_id) {
             const { data: movimientos, error: movError } = await supabase
               .from('movimientos_contables')
-              .select('debe, haber')
-              .eq('cuenta_id', cuenta.cuenta_id);
+              .select(`
+                debe,
+                haber,
+                asientos_contables!inner (
+                  id,
+                  tipo_asiento
+                )
+              `)
+              .eq('cuenta_id', cuenta.cuenta_id)
+              .neq('asientos_contables.tipo_asiento', 'cierre');
 
             if (!movError && movimientos) {
               saldoContable = movimientos.reduce((total, mov) => {
@@ -135,8 +144,16 @@ export const cuentasAuxiliaresService = {
       if (cuenta.cuenta_id) {
         const { data: movimientos, error: movError } = await supabase
           .from('movimientos_contables')
-          .select('debe, haber')
-          .eq('cuenta_id', cuenta.cuenta_id);
+          .select(`
+            debe,
+            haber,
+            asientos_contables!inner (
+              id,
+              tipo_asiento
+            )
+          `)
+          .eq('cuenta_id', cuenta.cuenta_id)
+          .neq('asientos_contables.tipo_asiento', 'cierre');
 
         if (!movError && movimientos) {
           saldoContable = movimientos.reduce((total, mov) => {

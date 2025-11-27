@@ -138,6 +138,7 @@ const libroDiarioService = {
         fecha: asientoData.fecha,
         descripcion: asientoData.descripcion,
         notas: asientoData.notas || null,
+        tipo_asiento: asientoData.tipo_asiento || 'operacion', // NUEVO: incluir tipo_asiento
         total_debe: totalDebe,
         total_haber: totalHaber,
         usuario: 'admin'
@@ -462,6 +463,7 @@ const LibroDiarioSection = () => {
     fecha: obtenerFechaLocal(),
     descripcion: '',
     notas: '', // Campo para notas adicionales del asiento
+    tipo_asiento: 'operacion', // NUEVO: tipo de asiento (operacion o cierre)
     cotizacion_usd: 0, // Cotización única para todo el asiento
     movimientos: [
       { 
@@ -532,6 +534,7 @@ const LibroDiarioSection = () => {
       fecha: obtenerFechaLocal(),
       descripcion: '',
       notas: '',
+      tipo_asiento: 'operacion',
       cotizacion_usd: 0,
       movimientos: [
         { 
@@ -779,6 +782,7 @@ const LibroDiarioSection = () => {
         fecha: datosPreparados.fecha,
         descripcion: datosPreparados.descripcion,
         notas: asiento.notas || '',
+        tipo_asiento: asiento.tipo_asiento || 'operacion', // NUEVO: cargar tipo_asiento
         cotizacion_usd: asiento.cotizacion_promedio || 0,
         movimientos: datosPreparados.movimientos.map(mov => {
           const montoUSD = mov.debe > 0 ? mov.debe : mov.haber;
@@ -874,6 +878,7 @@ const LibroDiarioSection = () => {
         fecha: formData.fecha,
         descripcion: formData.descripcion,
         notas: formData.notas,
+        tipo_asiento: formData.tipo_asiento, // NUEVO: incluir tipo_asiento en edición
         movimientos: formData.movimientos.map(mov => {
           const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
           const montoIngresado = parseFloat(mov.monto || 0);
@@ -1010,6 +1015,11 @@ const LibroDiarioSection = () => {
 
                   <div className="font-medium text-lg text-gray-900 flex items-center gap-2">
                     {asiento.descripcion}
+                    {asiento.tipo_asiento === 'cierre' && (
+                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded border border-red-300">
+                        CIERRE
+                      </span>
+                    )}
                     {asientosConFotos[asiento.id] && (
                       <Paperclip size={16} className="text-emerald-600" title="Tiene archivos adjuntos" />
                     )}
@@ -1184,6 +1194,11 @@ const LibroDiarioSection = () => {
                 <div className="col-span-2 text-sm">{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</div>
                 <div className="col-span-5 text-sm flex items-center gap-2">
                   {asiento.descripcion}
+                  {asiento.tipo_asiento === 'cierre' && (
+                    <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded border border-red-300">
+                      CIERRE
+                    </span>
+                  )}
                   {asientosConFotos[asiento.id] && (
                     <Paperclip size={14} className="text-emerald-600" title="Tiene archivos adjuntos" />
                   )}
@@ -1557,6 +1572,26 @@ const LibroDiarioSection = () => {
                     Solo necesario si hay cuentas en ARS
                   </p>
                 </div>
+              </div>
+
+              {/* Checkbox de Asiento de Cierre */}
+              <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded">
+                <input
+                  type="checkbox"
+                  id="asiento_cierre_checkbox"
+                  checked={formData.tipo_asiento === 'cierre'}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    tipo_asiento: e.target.checked ? 'cierre' : 'operacion'
+                  })}
+                  className="w-5 h-5 text-red-600 border-red-300 rounded focus:ring-2 focus:ring-red-500"
+                />
+                <label
+                  htmlFor="asiento_cierre_checkbox"
+                  className="text-sm font-medium text-red-800 cursor-pointer select-none"
+                >
+                  Este es un asiento de cierre de mes (no será incluido en análisis financieros)
+                </label>
               </div>
 
               {/* Campo de Notas */}

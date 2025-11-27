@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { calcularSaldoCuenta } from '../utils/saldosUtils';
+import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -93,10 +94,15 @@ export const estadoSituacionPatrimonialService = {
 
       // Obtener TODOS los movimientos hasta la fecha de corte
       // Primero obtenemos los asientos, luego los movimientos en lotes para evitar el límite
-      const { data: asientos, error: errorAsientos } = await supabase
+      let queryAsientos = supabase
         .from('asientos_contables')
         .select('id')
         .lte('fecha', fecha);
+
+      // EXCLUIR ASIENTOS DE CIERRE
+      queryAsientos = excluirAsientosDeCierre(queryAsientos);
+
+      const { data: asientos, error: errorAsientos } = await queryAsientos;
 
       if (errorAsientos) throw errorAsientos;
 
