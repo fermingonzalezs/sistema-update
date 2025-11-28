@@ -288,7 +288,20 @@ const generateNotebookCopy = (comp, config) => {
   if (comp.resolucion || comp.hz || comp.frecuencia) {
     let resolucionCompleta = '';
     if (comp.resolucion) {
-      resolucionCompleta = comp.resolucion.toUpperCase();
+      // Para MacBooks, mostrar solo los números de resolución
+      if (comp.resolucion.toLowerCase().includes('macbook')) {
+        // Extraer números de resolución de RESOLUCIONES_LABELS
+        const RESOLUCIONES_NUMEROS = {
+          'MacBook Air 13"': '2560x1664',
+          'MacBook Air 15"': '2880x1864',
+          'MacBook Pro 14"': '3024x1964',
+          'MacBook Pro 16"': '3456x2234'
+        };
+        resolucionCompleta = RESOLUCIONES_NUMEROS[comp.resolucion] || comp.resolucion.toUpperCase();
+      } else {
+        // Para Windows, mantener la etiqueta (FHD, QHD, etc.)
+        resolucionCompleta = comp.resolucion.toUpperCase();
+      }
     }
     if (comp.hz || comp.frecuencia) {
       const hz = comp.hz || comp.frecuencia;

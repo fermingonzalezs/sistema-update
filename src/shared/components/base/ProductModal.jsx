@@ -123,6 +123,20 @@ const ProductModal = ({
       );
     }
 
+    // Renderizado personalizado para resolución (mostrar números en MacBooks)
+    if (campo.key === 'resolucion' && tipoProducto === 'notebook' && valor) {
+      // Para MacBooks, mostrar solo los números de resolución
+      if (valor.toLowerCase().includes('macbook')) {
+        const RESOLUCIONES_NUMEROS = {
+          'MacBook Air 13"': '2560x1664',
+          'MacBook Air 15"': '2880x1864',
+          'MacBook Pro 14"': '3024x1964',
+          'MacBook Pro 16"': '3456x2234'
+        };
+        displayValue = RESOLUCIONES_NUMEROS[valor] || valor;
+      }
+    }
+
     // Poner en mayúscula la condición
     if (campo.key === 'condicion') {
       displayValue = (valor || 'N/A').toUpperCase();

@@ -137,10 +137,10 @@ const CuentasCorrientesSection = () => {
 
     switch (filtroSaldo) {
       case 'acreedores':
-        matchFiltro = saldo > 0; // Nos deben (saldo positivo) - son nuestros acreedores
+        matchFiltro = saldo < 0; // Les debemos (saldo negativo) - son nuestros acreedores
         break;
       case 'deudores':
-        matchFiltro = saldo < 0; // Les debemos (saldo negativo) - somos deudores con ellos
+        matchFiltro = saldo > 0; // Nos deben (saldo positivo) - son nuestros deudores
         break;
       case 'todos':
         matchFiltro = true; // Mostrar todos
@@ -441,7 +441,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
       descripcion: 'Un cliente nos paga (reducir su deuda con nosotros)',
       icon: TrendingDown,
       conceptoPlaceholder: 'Pago recibido',
-      filtroClientes: 'acreedores' // Solo clientes que nos deben
+      filtroClientes: 'deudores' // Solo clientes que nos deben
     },
     agregar_deuda: {
       titulo: 'Agregar Deuda',
@@ -510,9 +510,9 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
 
     switch (config.filtroClientes) {
       case 'acreedores':
-        return saldo > 0; // Solo clientes que nos deben (saldo positivo)
-      case 'deudores':
         return saldo < 0; // Solo clientes a los que les debemos (saldo negativo)
+      case 'deudores':
+        return saldo > 0; // Solo clientes que nos deben (saldo positivo)
       case 'todos':
       default:
         return true; // Todos los clientes
@@ -647,7 +647,7 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
           {/* Cliente */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cliente * {config.filtroClientes === 'acreedores' && '(que nos debe)'}
+              Cliente * {config.filtroClientes === 'deudores' && '(que nos debe)'}
             </label>
             
             {/* Para Registrar Pago usar dropdown simple con clientes que tienen deuda */}
@@ -915,8 +915,8 @@ const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = nu
                 className="w-full p-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="todos">Todos</option>
-                <option value="acreedores">Acreedores (nos deben)</option>
-                <option value="deudores">Deudores (les debemos)</option>
+                <option value="deudores">Deudores (nos deben)</option>
+                <option value="acreedores">Acreedores (les debemos)</option>
               </select>
 
               {/* Botón limpiar filtro de cliente */}

@@ -124,12 +124,14 @@ export const estadoResultadosService = {
           resultado.ingresos[cuenta.id].monto = monto;
         } else if (cuenta.tipo === 'resultado negativo') { // COSTOS Y GASTOS
           // Determinar si es costo o gasto por código
-          if (cuenta.codigo.startsWith('5')) {
+          // CMV: 5.0.x (Costo de Mercadería Vendida)
+          // Gastos: 5.1.x (Gastos Operativos)
+          if (cuenta.codigo.startsWith('5.0')) {
             if (!resultado.costos[cuenta.id]) {
               resultado.costos[cuenta.id] = { cuenta, monto: 0 };
             }
             resultado.costos[cuenta.id].monto = monto;
-          } else if (cuenta.codigo.startsWith('6')) {
+          } else if (cuenta.codigo.startsWith('5.1')) {
             if (!resultado.gastos[cuenta.id]) {
               resultado.gastos[cuenta.id] = { cuenta, monto: 0 };
             }

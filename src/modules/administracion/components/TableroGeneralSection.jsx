@@ -391,7 +391,7 @@ const TableroGeneralSection = () => {
     { id: 'gananciaBruta', label: 'GANANCIA BRUTA', codigo: '', color: 'text-slate-800', bold: true, section: 'VENTAS', isSeparator: true },
 
     // GASTOS OPERATIVOS
-    { id: 'totalGastos', label: 'TOTAL GASTOS OPERATIVOS', codigo: '6.0', color: 'text-orange-700', bold: true, section: 'GASTOS OPERATIVOS', expandable: true },
+    { id: 'totalGastos', label: 'TOTAL GASTOS OPERATIVOS', codigo: '5.1', color: 'text-orange-700', bold: true, section: 'GASTOS', expandable: true },
 
     // UTILIDAD NETA
     { id: 'utilidadNeta', label: 'UTILIDAD NETA', codigo: '', color: 'text-emerald-700', bold: true, section: 'RESULTADO' }
