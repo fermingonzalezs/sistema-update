@@ -1,6 +1,7 @@
 // src/lib/clientes.js - Service + Hook completo
 import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { parseFechaLocal } from '../../../shared/utils/formatters';
 
 // 📊 SERVICE: Operaciones de base de datos
 export const clientesService = {
@@ -189,8 +190,9 @@ export const clientesService = {
       // Cumpleaños ESTE MES específicamente
       const cumpleanosEsteMes = data.filter(cliente => {
         if (!cliente.cumpleanos) return false;
-        const cumple = new Date(cliente.cumpleanos);
-        return cumple.getMonth() === ahora.getMonth();
+        // Usar parseFechaLocal para evitar problemas de zona horaria
+        const cumple = parseFechaLocal(cliente.cumpleanos);
+        return cumple && cumple.getMonth() === ahora.getMonth();
       }).length;
 
       return {
@@ -247,8 +249,9 @@ export const clientesService = {
       hoy.setHours(0, 0, 0, 0);
 
       const clientesConCumpleanos = data.map(cliente => {
-        const cumple = new Date(cliente.cumpleanos);
-        if (isNaN(cumple.getTime())) return null;
+        // Usar parseFechaLocal para evitar problemas de zona horaria
+        const cumple = parseFechaLocal(cliente.cumpleanos);
+        if (!cumple || isNaN(cumple.getTime())) return null;
 
         let cumpleEsteAno = new Date(hoy.getFullYear(), cumple.getMonth(), cumple.getDate());
         cumpleEsteAno.setHours(0, 0, 0, 0);

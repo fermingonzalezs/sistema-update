@@ -19,6 +19,7 @@ import HistorialComprasModal from './HistorialComprasModal';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import CumpleanosProximos from './CumpleanosProximos';
 import { clienteMatchesSearch } from '../utils/stringUtils';
+import { parseFechaLocal } from '../../../shared/utils/formatters';
 
 const Clientes = () => {
   const [showModal, setShowModal] = useState(false);
@@ -126,7 +127,9 @@ const Clientes = () => {
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'No especificado';
-    return new Date(fecha).toLocaleDateString('es-AR');
+    // Usar parseFechaLocal para evitar problemas de zona horaria
+    const fechaLocal = parseFechaLocal(fecha);
+    return fechaLocal ? fechaLocal.toLocaleDateString('es-AR') : 'No especificado';
   };
 
   return (

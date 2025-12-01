@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Gift, ShoppingBag, DollarSign, Clock, ChevronDown, ChevronUp, Mail, MessageCircle } from 'lucide-react';
-import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
+import { formatearMonto, formatearFecha, parseFechaLocal } from '../../../shared/utils/formatters';
 
 const CumpleanosProximos = ({ getProximosCumpleanosConHistorial }) => {
   const [cumpleanos, setCumpleanos] = useState([]);
@@ -131,9 +131,9 @@ const CumpleanosProximos = ({ getProximosCumpleanosConHistorial }) => {
                     </td>
                     <td className="py-3 px-3">
                       <div className="text-sm text-slate-600">
-                        {new Date(cliente.cumpleanos).toLocaleDateString('es-AR', { 
-                          day: 'numeric', 
-                          month: 'short' 
+                        {parseFechaLocal(cliente.cumpleanos)?.toLocaleDateString('es-AR', {
+                          day: 'numeric',
+                          month: 'short'
                         })}
                       </div>
                     </td>

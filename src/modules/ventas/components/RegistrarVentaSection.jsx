@@ -818,7 +818,7 @@ const RegistrarVentaSection = () => {
                           {/* Segunda línea: Info general (solo para "otros") */}
                           {categoriaSeleccionada === 'otros' && (
                             <div className="text-xs text-slate-500 mt-1">
-                              Serial: {producto.serial} • Stock: {producto.stock}
+                              {producto.serial} • {producto.stock}
                               {producto.condicion && (
                                 <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${getCondicionColor(producto.condicion)}`}>
                                   {CONDICIONES_LABELS[producto.condicion] || producto.condicion}

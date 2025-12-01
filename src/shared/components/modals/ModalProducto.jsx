@@ -49,7 +49,7 @@ const CONFIGURACION_PRODUCTOS = {
     tabla: 'otros',
     titulo: 'Otro Producto',
     camposObligatorios: ['nombre_producto', 'cantidad', 'precio_compra_usd', 'precio_venta_usd', 'categoria', 'condicion', 'sucursal'],
-    camposEspecificos: ['descripcion', 'precio_venta_pesos'],
+    camposEspecificos: ['descripcion', 'procesador', 'observaciones', 'precio_venta_pesos'],
     mapeoPrecios: {
       precio_compra: 'precio_compra_usd',
       precio_venta: 'precio_venta_usd',
@@ -870,6 +870,31 @@ const ModalProducto = ({
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
               rows="3"
               placeholder="Descripción detallada del producto"
+            />
+          </div>
+
+          {/* Campos específicos para DESKTOP */}
+          {formData.categoria === 'DESKTOP' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Modelo Procesador</label>
+              <input
+                type="text"
+                value={formData.procesador || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, procesador: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+            <textarea
+              value={formData.observaciones || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              rows="3"
+              placeholder="Notas adicionales sobre el producto, estado, accesorios incluidos, etc."
             />
           </div>
         </div>

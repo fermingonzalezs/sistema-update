@@ -21,7 +21,8 @@ import {
   RecuentoStockSection,
   GarantiasSection,
   IngresoEquiposSection,
-  TableroGeneralSection
+  TableroGeneralSection,
+  RecibosSection
 } from './modules/administracion/components';
 import {
   RatiosSection,
@@ -583,6 +584,10 @@ const AppContent = () => {
 
      {activeSection === 'garantias' && (
        <GarantiasSection />
+     )}
+
+     {activeSection === 'recibos' && (
+       <RecibosSection />
      )}
 
      {activeSection === 'ingreso-equipos' && (

@@ -6,7 +6,6 @@ import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { descargarLibroMayorPDF } from './pdf/LibroMayorPDF';
 import { calcularSaldoCuenta } from '../utils/saldosUtils';
-import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -82,8 +81,8 @@ const libroMayorService = {
       asientosQuery = asientosQuery.lte('fecha', fechaHasta);
     }
 
-    // EXCLUIR ASIENTOS DE CIERRE
-    asientosQuery = excluirAsientosDeCierre(asientosQuery);
+    // INCLUIR ASIENTOS DE CIERRE EN LIBROS MAYORES
+    // asientosQuery = excluirAsientosDeCierre(asientosQuery);
 
     const { data: asientos, error: errorAsientos } = await asientosQuery;
     if (errorAsientos) throw errorAsientos;
@@ -114,8 +113,8 @@ const libroMayorService = {
         .select('id')
         .lt('fecha', fechaDesde);
 
-      // EXCLUIR ASIENTOS DE CIERRE TAMBIÉN DE SALDOS INICIALES
-      asientosAnterioresQuery = excluirAsientosDeCierre(asientosAnterioresQuery);
+      // INCLUIR ASIENTOS DE CIERRE EN SALDOS INICIALES
+      // asientosAnterioresQuery = excluirAsientosDeCierre(asientosAnterioresQuery);
 
       const { data: asientosAnteriores } = await asientosAnterioresQuery;
 

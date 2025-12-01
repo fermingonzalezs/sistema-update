@@ -122,6 +122,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           description: 'Gestión de garantías'
         },
         {
+          id: 'recibos',
+          label: 'Recibos',
+          icon: FileText,
+          description: 'Recibos customizables'
+        },
+        {
           id: 'recuento-stock',
           label: 'Recuento Stock',
           icon: Package,

@@ -72,6 +72,39 @@ export const obtenerFechaLocal = () => {
 };
 
 /**
+ * Convierte una fecha en formato YYYY-MM-DD a un objeto Date en zona horaria local
+ * Evita problemas de conversión UTC que causan desfase de fechas
+ * USO: Para cumpleaños, fechas de nacimiento, o cualquier fecha sin hora específica
+ *
+ * PROBLEMA: new Date('2024-01-23') interpreta como UTC y puede restar un día
+ * SOLUCIÓN: Separar componentes y crear Date en zona local
+ *
+ * @param {string} fechaString - Fecha en formato YYYY-MM-DD
+ * @returns {Date} Objeto Date en zona horaria local
+ */
+export const parseFechaLocal = (fechaString) => {
+  if (!fechaString) return null;
+  const [year, month, day] = fechaString.split('-').map(num => parseInt(num, 10));
+  return new Date(year, month - 1, day); // month - 1 porque Date usa índice 0-11
+};
+
+/**
+ * Convierte un objeto Date a formato YYYY-MM-DD en zona horaria local
+ * Evita problemas de conversión UTC
+ * USO: Para guardar fechas en la base de datos o inputs type="date"
+ *
+ * @param {Date} fecha - Objeto Date
+ * @returns {string} Fecha en formato YYYY-MM-DD
+ */
+export const formatearFechaParaInput = (fecha) => {
+  if (!fecha) return '';
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
  * Formatea una fecha en formato YYYY-MM-DD a formato local (DD/MM/YYYY) sin problemas de zona horaria
  * Evita que new Date('2024-09-01') se interprete como UTC y reste un día
  * @param {string} fechaString - Fecha en formato YYYY-MM-DD
@@ -154,6 +187,8 @@ export default {
   formatearFecha,
   formatearFechaInput,
   obtenerFechaLocal,
+  parseFechaLocal,
+  formatearFechaParaInput,
   formatearFechaReporte,
   esMonedaUSD,
   formatearMonto,

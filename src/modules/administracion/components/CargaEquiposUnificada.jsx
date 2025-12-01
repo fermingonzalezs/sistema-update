@@ -1456,6 +1456,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
     serial: '',
 
     // Especificaciones para DESKTOP
+    procesador: '',
     motherboard: '',
     memoria: '',
     gpu: '',
@@ -1560,6 +1561,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
       let descripcion = formData.descripcion;
       if (formData.categoria === CATEGORIAS_OTROS.DESKTOP) {
         const specs = [
+          formData.procesador && `Procesador: ${formData.procesador}`,
           formData.motherboard && `Motherboard: ${formData.motherboard}`,
           formData.memoria && `Memoria: ${formData.memoria}`,
           formData.gpu && `GPU: ${formData.gpu}`,
@@ -1577,7 +1579,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         }
       }
 
-      const { garantia_oficial_fecha, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, ...dataRest } = formData; // Excluir campos especiales de Desktop
+      const { garantia_oficial_fecha, procesador, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, ...dataRest } = formData; // Excluir campos especiales de Desktop
 
       const dataToSubmit = {
         ...dataRest,
@@ -1611,6 +1613,7 @@ const FormularioOtro = ({ onAdd, loading }) => {
         cantidad_la_plata: 0,
         cantidad_mitre: 0,
         serial: '',
+        procesador: '',
         motherboard: '',
         memoria: '',
         gpu: '',
@@ -1723,6 +1726,18 @@ const FormularioOtro = ({ onAdd, loading }) => {
                     placeholder="Ej: Pavilion 15"
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
+                  <input
+                    type="text"
+                    name="procesador"
+                    value={formData.procesador}
+                    onChange={handleChange}
+                    placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
 
@@ -1841,6 +1856,19 @@ const FormularioOtro = ({ onAdd, loading }) => {
                     </select>
                   </div>
                 )}
+
+                {/* OBSERVACIONES - Campo adicional para Desktop */}
+                <div className="col-span-full">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                  <textarea
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    rows="3"
+                    placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc."
+                  />
+                </div>
               </div>
             </div>
           ) : (
