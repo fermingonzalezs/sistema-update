@@ -87,7 +87,7 @@ class CotizacionServiceUnificado {
         // Guardar en cache
         this.cachedCotizacion = {
           ...cotizacion,
-          valor: cotizacion.promedio, // Compatibilidad
+          valor: cotizacion.venta, // Usar precio de VENTA (más alto)
           fuente: source.name,
           timestamp: new Date().toISOString(),
           error: false
@@ -118,11 +118,12 @@ class CotizacionServiceUnificado {
 
     // Último recurso: cotización de emergencia
     console.warn('⚠️ Usando cotización de emergencia:', this.fallbackCotizacion);
+    const ventaEmergencia = this.fallbackCotizacion * 1.02; // Usar precio de venta
     const cotizacionEmergencia = {
       compra: this.fallbackCotizacion * 0.98,
-      venta: this.fallbackCotizacion * 1.02,
+      venta: ventaEmergencia,
       promedio: this.fallbackCotizacion,
-      valor: this.fallbackCotizacion,
+      valor: ventaEmergencia, // Usar precio de VENTA
       fecha: new Date().toISOString(),
       fuente: 'EMERGENCIA',
       timestamp: new Date().toISOString(),
@@ -199,7 +200,7 @@ class CotizacionServiceUnificado {
         compra: cotizacion.cotizacion_compra,
         venta: cotizacion.cotizacion_venta,
         promedio: cotizacion.cotizacion_promedio,
-        valor: cotizacion.cotizacion_promedio,
+        valor: cotizacion.cotizacion_venta, // Usar precio de VENTA
         fecha: cotizacion.fecha,
         fuente: cotizacion.fuente + ' (BD)',
         timestamp: cotizacion.created_at
@@ -222,7 +223,7 @@ class CotizacionServiceUnificado {
         compra: cotizacion.cotizacion_compra,
         venta: cotizacion.cotizacion_venta,
         promedio: cotizacion.cotizacion_promedio,
-        valor: cotizacion.cotizacion_promedio,
+        valor: cotizacion.cotizacion_venta, // Usar precio de VENTA
         fecha: cotizacion.fecha,
         fuente: cotizacion.fuente + ' (BD-Anterior)',
         timestamp: cotizacion.created_at
@@ -299,7 +300,7 @@ class CotizacionServiceUnificado {
           compra: ultima.cotizacion_compra,
           venta: ultima.cotizacion_venta,
           promedio: ultima.cotizacion_promedio,
-          valor: ultima.cotizacion_promedio,
+          valor: ultima.cotizacion_venta, // Usar precio de VENTA
           fecha: ultima.fecha,
           fuente: ultima.fuente + ' (BD)',
           timestamp: ultima.created_at,

@@ -371,19 +371,22 @@ const RegistrarVentaSection = () => {
 
       console.log('✅ Producto custom creado:', nuevoProducto);
 
-      // Agregar al carrito
+      // Agregar al carrito con la cantidad ingresada
+      const cantidadIngresada = parseInt(productoCustom.cantidad) || 1;
+      const precioUnitario = nuevoProducto.precio_venta_usd || 0;
+
       const itemCarrito = {
         id: nuevoProducto.id,
         serial: nuevoProducto.nombre_producto,
         descripcion: nuevoProducto.descripcion,
-        precio: nuevoProducto.precio_venta_usd || 0,
+        precio: precioUnitario,
         stock: nuevoProducto.cantidad_la_plata + nuevoProducto.cantidad_mitre,
         condicion: nuevoProducto.condicion,
         tipo: 'otro', // CORREGIDO: Debe ser singular para que coincida con useVentas
         categoria: nuevoProducto.categoria ? nuevoProducto.categoria.toUpperCase() : 'ACCESORIOS', // Categoría normalizada en MAYÚSCULAS
-        cantidad: 1,
-        total: nuevoProducto.precio_venta_usd || 0,
-        precio_unitario: nuevoProducto.precio_venta_usd || 0, // CRÍTICO: Agregar precio_unitario
+        cantidad: cantidadIngresada,
+        total: precioUnitario * cantidadIngresada,
+        precio_unitario: precioUnitario, // CRÍTICO: Agregar precio_unitario
         producto: nuevoProducto // Datos completos del producto
       };
 
@@ -509,7 +512,19 @@ const RegistrarVentaSection = () => {
         total: carrito.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0)
       });
 
-      const transaccion = await procesarCarrito(carrito, datosCliente);
+      // Crear función callback para refrescar inventarios
+      const refrescarInventarios = async () => {
+        console.log('🔄 Refrescando inventarios en RegistrarVentaSection...')
+        await Promise.all([
+          fetchComputers(),
+          fetchCelulares(),
+          fetchOtros()
+        ])
+        console.log('✅ Inventarios refrescados en RegistrarVentaSection')
+      }
+
+      // Pasar callback a procesarCarrito
+      const transaccion = await procesarCarrito(carrito, datosCliente, refrescarInventarios);
 
       console.log('✅ Transacción procesada:', transaccion);
 

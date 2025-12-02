@@ -77,6 +77,7 @@ class CotizacionService {
         // Guardar en cache
         this.cachedCotizacion = {
           ...cotizacion,
+          valor: cotizacion.venta, // Usar precio de VENTA (más alto)
           fuente: source.name,
           timestamp: new Date().toISOString()
         };
@@ -106,10 +107,12 @@ class CotizacionService {
 
     // Último recurso: cotización de emergencia
     console.warn('⚠️ Usando cotización de emergencia:', this.fallbackCotizacion);
+    const ventaEmergencia = this.fallbackCotizacion * 1.02; // Usar precio de venta
     const cotizacionEmergencia = {
       compra: this.fallbackCotizacion * 0.98,
-      venta: this.fallbackCotizacion * 1.02,
+      venta: ventaEmergencia,
       promedio: this.fallbackCotizacion,
+      valor: ventaEmergencia, // Usar precio de VENTA
       fecha: new Date().toISOString(),
       fuente: 'EMERGENCIA',
       timestamp: new Date().toISOString()
@@ -234,6 +237,7 @@ class CotizacionService {
           compra: ultima.cotizacion_compra,
           venta: ultima.cotizacion_venta,
           promedio: ultima.cotizacion_promedio,
+          valor: ultima.cotizacion_venta, // Usar precio de VENTA
           fecha: ultima.fecha,
           fuente: ultima.fuente + ' (BD)',
           timestamp: ultima.created_at

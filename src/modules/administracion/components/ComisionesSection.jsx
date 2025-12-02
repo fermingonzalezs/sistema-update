@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, User, DollarSign, Calendar, Settings, TrendingUp, Edit2, Save, X, FileText, Monitor, Smartphone, Box } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal, parseFechaLocal, formatearFechaReporte } from '../../../shared/utils/formatters';
 import { useVendedores } from '../../ventas/hooks/useVendedores';
 import { supabase } from '../../../lib/supabase';
 
@@ -28,10 +28,18 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   useEffect(() => {
     const hoy = new Date();
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    
-    setFechaFin(hoy.toISOString().split('T')[0]);
-    setFechaInicio(inicioMes.toISOString().split('T')[0]);
-    
+
+    // Usar formato local YYYY-MM-DD sin conversión UTC
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    setFechaFin(`${year}-${month}-${day}`);
+
+    const yearInicio = inicioMes.getFullYear();
+    const monthInicio = String(inicioMes.getMonth() + 1).padStart(2, '0');
+    const dayInicio = String(inicioMes.getDate()).padStart(2, '0');
+    setFechaInicio(`${yearInicio}-${monthInicio}-${dayInicio}`);
+
     // Cargar vendedores de la base de datos
     fetchVendedores();
   }, [fetchVendedores]);
@@ -51,10 +59,10 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
   // Filtrar ventas según criterios
   const filtrarVentas = () => {
     return ventas.filter(venta => {
-      // Filtro por fecha
-      const fechaVenta = new Date(venta.fecha_venta);
-      const inicio = new Date(fechaInicio);
-      const fin = new Date(fechaFin);
+      // Filtro por fecha - usar parseFechaLocal para evitar problemas de zona horaria
+      const fechaVenta = parseFechaLocal(venta.fecha_venta.split('T')[0]);
+      const inicio = parseFechaLocal(fechaInicio);
+      const fin = parseFechaLocal(fechaFin);
       fin.setHours(23, 59, 59, 999); // Incluir hasta el final del día
 
       const cumpleFecha = fechaVenta >= inicio && fechaVenta <= fin;
@@ -562,7 +570,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                 {detalleEquipos.map((equipo, index) => (
                   <tr key={index} className="hover:bg-slate-50">
                     <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-700">
-                      {new Date(equipo.fecha_venta).toLocaleDateString('es-AR')}
+                      {formatearFechaReporte(equipo.fecha_venta.split('T')[0])}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">
                       <div className="flex items-center">

@@ -72,11 +72,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Establecer cliente inicial cuando se proporciona
   useEffect(() => {
-    if (clienteInicial && !clienteSeleccionado) {
+    if (clienteInicial) {
       setClienteSeleccionado(clienteInicial);
       console.log('🧑‍💼 Cliente inicial establecido:', clienteInicial);
     }
-  }, [clienteInicial, clienteSeleccionado]);
+  }, [clienteInicial]);
 
   // Estado para evitar reapertura automática
   const [carritoAnterior, setCarritoAnterior] = useState([]);

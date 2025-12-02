@@ -333,6 +333,31 @@ export const ventasService = {
     }
   },
 
+  /**
+   * Genera un resumen de productos para mostrar en cuenta corriente
+   * Ejemplo: "IPHONE 17 PRO - CABLE USB-C (x2) - FUNDA IPHONE 17 PRO"
+   * @param {Array} carrito - Array de items del carrito con estructura { producto, cantidad, tipo }
+   * @returns {string} Resumen de productos en mayúsculas, limitado a 200 caracteres
+   */
+  generarResumenProductos(carrito) {
+    const nombres = carrito.map(item => {
+      // Obtener nombre del producto según tipo
+      const nombre = item.producto.modelo ||
+                     item.producto.nombre_producto ||
+                     item.producto.descripcion ||
+                     'Producto';
+
+      // Agregar cantidad siempre (x1), (x2), (x3), etc.
+      return `${nombre.toUpperCase()} (x${item.cantidad})`;
+    });
+
+    const resumen = nombres.join(' - ');
+
+    // Limitar a 200 caracteres para no exceder límites de BD
+    return resumen.length > 200
+      ? resumen.substring(0, 197) + '...'
+      : resumen;
+  },
 
   // ✅ Registrar movimiento en cuenta corriente
   async registrarMovimientoCuentaCorriente(movimientoData) {
@@ -644,7 +669,7 @@ export function useVentas() {
   }
 
   // Nueva función para procesar carrito completo como transacción
-  const procesarCarrito = async (carrito, datosCliente) => {
+  const procesarCarrito = async (carrito, datosCliente, onInventoryUpdate) => {
     try {
       setError(null)
 
@@ -679,13 +704,16 @@ export function useVentas() {
 
         // Registrar movimiento solo si hay monto en cuenta corriente
         if (montoCuentaCorriente > 0 && datosCliente.cliente_id) {
+          // Generar resumen de productos para el concepto
+          const resumenProductos = ventasService.generarResumenProductos(carrito);
+
           cuentaCorrienteCreada = await ventasService.registrarMovimientoCuentaCorriente({
             cliente_id: datosCliente.cliente_id,
             transaccion_id: nuevaTransaccion.id,
             numero_transaccion: nuevaTransaccion.numero_transaccion,
             monto: montoCuentaCorriente,
-            concepto: `Venta productos - ${nuevaTransaccion.numero_transaccion}`,
-            observaciones: datosCliente.observaciones || 'Venta a cuenta corriente'
+            concepto: resumenProductos,
+            observaciones: `${datosCliente.observaciones || 'Venta a cuenta corriente'} - TXN: ${nuevaTransaccion.numero_transaccion}`
           })
           console.log(`✅ Movimiento de cuenta corriente registrado: $${montoCuentaCorriente}`)
         }
@@ -746,6 +774,19 @@ export function useVentas() {
 
         setVentas(prev => [nuevaTransaccion, ...prev])
         console.log('✅ Transacción procesada exitosamente:', nuevaTransaccion.numero_transaccion)
+
+        // Refrescar inventarios después de venta exitosa
+        if (onInventoryUpdate && typeof onInventoryUpdate === 'function') {
+          try {
+            console.log('🔄 Refrescando inventarios...')
+            await onInventoryUpdate()
+            console.log('✅ Inventarios actualizados')
+          } catch (refreshError) {
+            // No bloquear la venta si falla el refresh
+            console.error('⚠️ Error refrescando inventarios (no crítico):', refreshError)
+          }
+        }
+
         return nuevaTransaccion
 
       } catch (inventarioError) {

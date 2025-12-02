@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { calcularSaldoCuenta } from '../utils/saldosUtils';
-import { excluirAsientosDeCierre } from '../utils/filtrosAsientos';
 
 // Función para ordenar cuentas por código (reemplaza jerarquía)
 const ordenarCuentasPorCodigo = (cuentasObj) => {
@@ -99,8 +98,7 @@ export const estadoSituacionPatrimonialService = {
         .select('id')
         .lte('fecha', fecha);
 
-      // EXCLUIR ASIENTOS DE CIERRE
-      queryAsientos = excluirAsientosDeCierre(queryAsientos);
+      // NOTA: No se excluyen asientos de cierre para que se reflejen en el balance
 
       const { data: asientos, error: errorAsientos } = await queryAsientos;
 
