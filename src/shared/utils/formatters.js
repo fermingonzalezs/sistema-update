@@ -142,18 +142,19 @@ export const esMonedaUSD = (cuenta, monto, contexto = 'general') => {
  */
 export const formatearMonto = (monto, moneda = 'USD', mostrarSimbolo = true) => {
   if (!monto && monto !== 0) return mostrarSimbolo ? (moneda === 'USD' ? 'U$0' : '$0') : '0';
-  
+
   const formatter = new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
-  
+
+  const esNegativo = monto < 0;
   const montoFormateado = formatter.format(Math.abs(monto));
   const simbolo = moneda === 'USD' ? 'U$' : '$';
-  
-  if (!mostrarSimbolo) return montoFormateado;
-  
-  return `${simbolo}${montoFormateado}`;
+
+  if (!mostrarSimbolo) return esNegativo ? `-${montoFormateado}` : montoFormateado;
+
+  return esNegativo ? `-${simbolo}${montoFormateado}` : `${simbolo}${montoFormateado}`;
 };
 
 /**

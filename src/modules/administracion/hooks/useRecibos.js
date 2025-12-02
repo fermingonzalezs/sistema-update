@@ -6,65 +6,71 @@ export const useRecibos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Cargar todos los recibos con sus items
+  // Cargar todos los documentos (recibos y remitos) con sus items
   const fetchRecibos = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Cargar recibos con información del cliente
-      const { data: recibosData, error: recibosError } = await supabase
-        .from('recibos')
+      // Cargar documentos con información del cliente
+      const { data: documentosData, error: documentosError } = await supabase
+        .from('recibos_remitos')
         .select(`
           *,
           clientes (
             nombre,
             apellido,
             telefono,
-            email
+            nombre,
+            apellido,
+            telefono,
+            email,
+            direccion
           )
         `)
         .order('fecha', { ascending: false });
 
-      if (recibosError) throw recibosError;
+      if (documentosError) throw documentosError;
 
-      // Cargar items de cada recibo
-      const recibosConItems = await Promise.all(
-        recibosData.map(async (recibo) => {
+      // Cargar items de cada documento
+      const documentosConItems = await Promise.all(
+        documentosData.map(async (documento) => {
           const { data: items, error: itemsError } = await supabase
-            .from('recibos_items')
+            .from('recibos_remitos_items')
             .select('*')
-            .eq('recibo_id', recibo.id)
+            .eq('recibo_id', documento.id)
             .order('orden', { ascending: true });
 
           if (itemsError) throw itemsError;
 
           return {
-            ...recibo,
+            ...documento,
             items: items || []
           };
         })
       );
 
-      setRecibos(recibosConItems);
+      setRecibos(documentosConItems);
     } catch (err) {
-      console.error('Error al cargar recibos:', err);
+      console.error('Error al cargar documentos:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Generar número de recibo automático
-  const generarNumeroRecibo = async () => {
+  // Generar número de documento automático según tipo
+  const generarNumeroDocumento = async (tipoDocumento) => {
     try {
       const year = new Date().getFullYear();
+      const prefijo = tipoDocumento === 'remito' ? 'REM' : 'REC';
 
-      // Buscar el último número de recibo del año actual
+      // Buscar el último número de documento del año actual y tipo
       const { data, error } = await supabase
-        .from('recibos')
+        .from('recibos_remitos')
         .select('numero_recibo')
-        .like('numero_recibo', `REC-${year}-%`)
+        .eq('tipo_documento', tipoDocumento)
+        .like('numero_recibo', `${prefijo}-${year}-%`)
         .order('numero_recibo', { ascending: false })
         .limit(1);
 
@@ -74,132 +80,161 @@ export const useRecibos = () => {
         // Extraer el número y sumar 1
         const ultimoNumero = data[0].numero_recibo;
         const numero = parseInt(ultimoNumero.split('-')[2]) + 1;
-        return `REC-${year}-${numero.toString().padStart(4, '0')}`;
+        return `${prefijo}-${year}-${numero.toString().padStart(4, '0')}`;
       } else {
-        // Primer recibo del año
-        return `REC-${year}-0001`;
+        // Primer documento del año
+        return `${prefijo}-${year}-0001`;
       }
     } catch (err) {
-      console.error('Error al generar número de recibo:', err);
+      console.error('Error al generar número de documento:', err);
       throw err;
     }
   };
 
-  // Crear nuevo recibo con sus items
-  const crearRecibo = async (reciboData) => {
+  // Crear nuevo documento (recibo o remito) con sus items
+  const crearDocumento = async (documentoData) => {
     try {
       setError(null);
 
-      // Generar número de recibo
-      const numeroRecibo = await generarNumeroRecibo();
+      const tipoDocumento = documentoData.tipo_documento || 'recibo';
 
-      // Preparar datos del recibo
-      const nuevoRecibo = {
-        numero_recibo: numeroRecibo,
-        fecha: reciboData.fecha || new Date().toISOString(),
-        cliente_id: reciboData.cliente_id,
-        cliente_nombre: reciboData.cliente_nombre,
-        cliente_direccion: reciboData.cliente_direccion || '',
-        cliente_telefono: reciboData.cliente_telefono || '',
-        cliente_email: reciboData.cliente_email || '',
-        metodo_pago: reciboData.metodo_pago || 'efectivo',
-        moneda: reciboData.moneda || 'USD',
-        descuento: reciboData.descuento || 0,
-        total: reciboData.total,
-        created_by: reciboData.created_by || ''
+      // Generar número de documento
+      const numeroDocumento = await generarNumeroDocumento(tipoDocumento);
+
+      // Preparar datos base del documento
+      const nuevoDocumento = {
+        numero_recibo: numeroDocumento,
+        tipo_documento: tipoDocumento,
+        fecha: documentoData.fecha || new Date().toISOString(),
+        cliente_id: documentoData.cliente_id,
+        cliente_nombre: documentoData.cliente_nombre,
+        cliente_nombre: documentoData.cliente_nombre,
+        cliente_direccion: documentoData.cliente_direccion || '',
+        cliente_telefono: documentoData.cliente_telefono || '',
+        cliente_email: documentoData.cliente_email || '',
+        created_by: documentoData.created_by || ''
       };
 
-      // Insertar recibo
-      const { data: reciboInsertado, error: reciboError } = await supabase
-        .from('recibos')
-        .insert([nuevoRecibo])
+      // Agregar campos específicos según tipo de documento
+      if (tipoDocumento === 'recibo') {
+        nuevoDocumento.metodo_pago = documentoData.metodo_pago || 'efectivo';
+        nuevoDocumento.moneda = documentoData.moneda || 'USD';
+        nuevoDocumento.descuento = documentoData.descuento || 0;
+        nuevoDocumento.total = documentoData.total;
+      } else if (tipoDocumento === 'remito') {
+        nuevoDocumento.fecha_entrega = documentoData.fecha_entrega || null;
+        nuevoDocumento.quien_retira = documentoData.quien_retira || '';
+        nuevoDocumento.observaciones = documentoData.observaciones || '';
+      }
+
+      // Insertar documento
+      const { data: documentoInsertado, error: documentoError } = await supabase
+        .from('recibos_remitos')
+        .insert([nuevoDocumento])
         .select()
         .single();
 
-      if (reciboError) throw reciboError;
+      if (documentoError) throw documentoError;
 
       // Insertar items
-      if (reciboData.items && reciboData.items.length > 0) {
-        const itemsConReciboId = reciboData.items.map((item, index) => ({
-          recibo_id: reciboInsertado.id,
+      if (documentoData.items && documentoData.items.length > 0) {
+        const itemsConDocumentoId = documentoData.items.map((item, index) => ({
+          recibo_id: documentoInsertado.id,
           descripcion: item.descripcion,
           cantidad: item.cantidad,
-          precio_unitario: item.precio_unitario,
-          precio_total: item.precio_total,
+          precio_unitario: tipoDocumento === 'recibo' ? item.precio_unitario : null,
+          precio_total: tipoDocumento === 'recibo' ? item.precio_total : null,
+          serial: item.serial || null,
           orden: index
         }));
 
         const { error: itemsError } = await supabase
-          .from('recibos_items')
-          .insert(itemsConReciboId);
+          .from('recibos_remitos_items')
+          .insert(itemsConDocumentoId);
 
         if (itemsError) throw itemsError;
       }
 
-      // Recargar recibos
+      // Recargar documentos
       await fetchRecibos();
 
-      return { success: true, recibo: reciboInsertado };
+      return { success: true, documento: documentoInsertado };
     } catch (err) {
-      console.error('Error al crear recibo:', err);
+      console.error('Error al crear documento:', err);
       setError(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  // Eliminar recibo
-  const eliminarRecibo = async (reciboId) => {
+  // Mantener compatibilidad con código existente
+  const crearRecibo = (reciboData) => {
+    return crearDocumento({ ...reciboData, tipo_documento: 'recibo' });
+  };
+
+  // Crear remito
+  const crearRemito = (remitoData) => {
+    return crearDocumento({ ...remitoData, tipo_documento: 'remito' });
+  };
+
+  // Eliminar documento
+  const eliminarDocumento = async (documentoId) => {
     try {
       setError(null);
 
       const { error } = await supabase
-        .from('recibos')
+        .from('recibos_remitos')
         .delete()
-        .eq('id', reciboId);
+        .eq('id', documentoId);
 
       if (error) throw error;
 
-      // Recargar recibos
+      // Recargar documentos
       await fetchRecibos();
 
       return { success: true };
     } catch (err) {
-      console.error('Error al eliminar recibo:', err);
+      console.error('Error al eliminar documento:', err);
       setError(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  // Obtener un recibo específico con sus items
-  const obtenerRecibo = async (reciboId) => {
+  // Mantener compatibilidad
+  const eliminarRecibo = eliminarDocumento;
+
+  // Obtener un documento específico con sus items
+  const obtenerDocumento = async (documentoId) => {
     try {
-      const { data: recibo, error: reciboError } = await supabase
-        .from('recibos')
+      const { data: documento, error: documentoError } = await supabase
+        .from('recibos_remitos')
         .select('*')
-        .eq('id', reciboId)
+        .eq('id', documentoId)
         .single();
 
-      if (reciboError) throw reciboError;
+      if (documentoError) throw documentoError;
 
       const { data: items, error: itemsError } = await supabase
-        .from('recibos_items')
+        .from('recibos_remitos_items')
         .select('*')
-        .eq('recibo_id', reciboId)
+        .eq('recibo_id', documentoId)
         .order('orden', { ascending: true });
 
       if (itemsError) throw itemsError;
 
       return {
-        ...recibo,
+        ...documento,
         items: items || []
       };
     } catch (err) {
-      console.error('Error al obtener recibo:', err);
+      console.error('Error al obtener documento:', err);
       throw err;
     }
   };
 
-  // Cargar recibos al montar el componente
+  // Mantener compatibilidad
+  const obtenerRecibo = obtenerDocumento;
+
+  // Cargar documentos al montar el componente
   useEffect(() => {
     fetchRecibos();
   }, []);
@@ -209,8 +244,12 @@ export const useRecibos = () => {
     loading,
     error,
     crearRecibo,
+    crearRemito,
+    crearDocumento,
     eliminarRecibo,
+    eliminarDocumento,
     obtenerRecibo,
+    obtenerDocumento,
     refetch: fetchRecibos
   };
 };

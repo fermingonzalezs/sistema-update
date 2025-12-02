@@ -15,6 +15,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
     cumpleanos: '',
     procedencia: '',
     profesion: '',
+    profesion: '',
+    direccion: '',
     notas: ''
   });
   const [errors, setErrors] = useState({});
@@ -38,6 +40,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
         cumpleanos: '',
         procedencia: '',
         profesion: '',
+        profesion: '',
+        direccion: '',
         notas: ''
       });
       setErrors({});
@@ -70,7 +74,7 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation(); // ✅ Prevenir propagación
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -91,7 +95,7 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
       ...prev,
       [field]: value
     }));
-    
+
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -108,12 +112,12 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   const modalContent = (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
       style={{ zIndex: 9999 }} // ✅ Z-index muy alto
       onClick={handleClose}
     >
-      <div 
+      <div
         className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()} // ✅ Prevenir cierre al hacer clic dentro
       >
@@ -145,9 +149,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => handleChange('nombre', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.nombre ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.nombre ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="Ingresa el nombre"
                 autoFocus
               />
@@ -165,9 +168,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
                 type="text"
                 value={formData.apellido}
                 onChange={(e) => handleChange('apellido', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.apellido ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.apellido ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="Ingresa el apellido"
               />
               {errors.apellido && (
@@ -187,9 +189,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.email ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.email ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="ejemplo@email.com"
               />
               {errors.email && (
@@ -206,9 +207,8 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
                 type="tel"
                 value={formData.telefono}
                 onChange={(e) => handleChange('telefono', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-                  errors.telefono ? 'border-red-500' : 'border-slate-200'
-                }`}
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.telefono ? 'border-red-500' : 'border-slate-200'
+                  }`}
                 placeholder="+54 221 123-4567"
               />
               {errors.telefono && (
@@ -251,19 +251,35 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Profesión */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="w-4 h-4 inline mr-1" />
-              Profesión
-            </label>
-            <input
-              type="text"
-              value={formData.profesion}
-              onChange={(e) => handleChange('profesion', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Ej: Ingeniero, Docente, Médico..."
-            />
+          {/* Profesión y Dirección */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Briefcase className="w-4 h-4 inline mr-1" />
+                Profesión
+              </label>
+              <input
+                type="text"
+                value={formData.profesion}
+                onChange={(e) => handleChange('profesion', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Ej: Ingeniero, Docente..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MapPin className="w-4 h-4 inline mr-1" />
+                Dirección
+              </label>
+              <input
+                type="text"
+                value={formData.direccion}
+                onChange={(e) => handleChange('direccion', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Calle 123 N° 456"
+              />
+            </div>
           </div>
 
           {/* Notas */}
@@ -361,9 +377,9 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
   // ✅ CERRAR DROPDOWN - Sin interferir con el modal
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && 
-          !dropdownRef.current.contains(event.target) && 
-          !showModal) { // ✅ Solo cerrar si no hay modal
+      if (dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !showModal) { // ✅ Solo cerrar si no hay modal
         setIsOpen(false);
       }
     };
@@ -381,18 +397,18 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
   // ✅ HANDLER DE CREACIÓN SIMPLIFICADO
   const handleCreateCliente = async (clienteData) => {
     setCreatingClient(true);
-    
+
     try {
       console.log('🔄 Creando cliente desde selector...', clienteData);
       const nuevoCliente = await createCliente(clienteData);
       console.log('✅ Cliente creado exitosamente:', nuevoCliente);
-      
+
       // ✅ SELECCIONAR INMEDIATAMENTE
       handleSelectCliente(nuevoCliente);
-      
+
       // ✅ CERRAR MODAL
       setShowModal(false);
-      
+
     } catch (error) {
       console.error('❌ Error creando cliente:', error);
       alert('❌ Error creando cliente: ' + error.message);
@@ -404,11 +420,11 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     if (!isOpen && !showModal) {
       setIsOpen(true);
     }
-    
+
     if (value === '') {
       onSelectCliente(null);
     }
@@ -449,9 +465,8 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
           onChange={handleInputChange}
           onFocus={() => !showModal && setIsOpen(true)}
           placeholder="Buscar cliente por nombre, teléfono, email..."
-          className={`w-full pl-10 pr-10 py-3 border rounded bg-slate-50 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white ${
-            required && !selectedCliente ? 'border-red-300 bg-red-50' : 'border-slate-300'
-          }`}
+          className={`w-full pl-10 pr-10 py-2 border rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${required && !selectedCliente ? 'border-red-300 bg-red-50' : 'border-slate-200'
+            }`}
           disabled={creatingClient}
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -498,7 +513,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
             <div className="max-h-64 overflow-y-auto">
               {filteredClientes.map((cliente) => {
                 const procedencia = formatProcedencia(cliente.procedencia);
-                
+
                 return (
                   <button
                     key={cliente.id}
@@ -518,7 +533,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
                             </span>
                           )}
                         </div>
-                        
+
                         <div className="space-y-1">
                           {cliente.telefono && (
                             <div className="flex items-center space-x-1 text-sm text-slate-600">

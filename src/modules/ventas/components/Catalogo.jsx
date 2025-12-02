@@ -497,6 +497,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       setEditForm({
         // Campos básicos
         nombre_producto: producto.nombre_producto || "",
+        serial: producto.serial || "",
         categoria: producto.categoria || "",
         marca: producto.marca || "",
         descripcion: producto.descripcion || "",
@@ -700,6 +701,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           ...datosActualizados,
           // Campos básicos
           nombre_producto: editForm.nombre_producto,
+          serial: editForm.serial,
           categoria: editForm.categoria,
           marca: editForm.marca,
           descripcion: editForm.descripcion,
