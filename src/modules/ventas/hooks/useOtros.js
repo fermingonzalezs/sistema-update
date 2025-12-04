@@ -374,12 +374,20 @@ export const otrosService = {
     console.log('💾 Creando producto custom para venta:', datosCustom);
 
     // Validaciones específicas para productos custom
+    if (!datosCustom.nombre_producto?.trim()) {
+      throw new Error('El nombre del producto es obligatorio');
+    }
+
     if (!datosCustom.serial?.trim()) {
-      throw new Error('El serial/nombre es obligatorio');
+      throw new Error('El serial es obligatorio');
     }
 
     if (!datosCustom.descripcion?.trim()) {
       throw new Error('La descripción es obligatoria');
+    }
+
+    if (!datosCustom.categoria?.trim()) {
+      throw new Error('La categoría es obligatoria');
     }
 
     if (!datosCustom.precio_compra || datosCustom.precio_compra <= 0) {
@@ -406,9 +414,10 @@ export const otrosService = {
 
     // Preparar datos para inserción
     const productoData = {
-      nombre_producto: datosCustom.serial.trim(),
+      nombre_producto: datosCustom.nombre_producto.trim(),
+      serial: datosCustom.serial.trim(),
       descripcion: datosCustom.descripcion.trim(),
-      categoria: 'ACCESORIOS', // Fijo según especificación
+      categoria: datosCustom.categoria.trim(),
       condicion: condicionNormalizada,
       precio_compra_usd: parseFloat(datosCustom.precio_compra),
       precio_venta_usd: parseFloat(datosCustom.precio_venta),

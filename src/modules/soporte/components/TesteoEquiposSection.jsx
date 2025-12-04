@@ -58,7 +58,8 @@ function TesteoEquiposSection() {
         .from('ingresos_equipos')
         .select('*')
         .in('destino', ['testeo'])
-        .in('estado', ['pendiente', 'en_testeo'])
+        .in('destino', ['testeo'])
+        .in('estado', ['pendiente']) // Solo pendientes, los 'en_testeo' ya están en la otra lista
         .in('tipo_producto', ['notebook', 'celular', 'otros']) // Todos los tipos
         .order('fecha', { ascending: false });
 
@@ -72,18 +73,33 @@ function TesteoEquiposSection() {
   // Función para procesar ingreso desde administración a testeo
   const procesarIngresoATesteo = async (ingreso) => {
     try {
-      // Usar solo campos básicos que existen en testeo_equipos
+      // Extraer precio de venta de las notas si existe
+      const precioVentaMatch = ingreso.notas?.match(/Precio Venta: \$?([\d.]+)/);
+      const precioVenta = precioVentaMatch ? parseFloat(precioVentaMatch[1]) : 0;
+
       const datosEquipo = {
         tipo: ingreso.tipo_producto,
         serial: (() => {
-          const serialMatch = ingreso.notas?.match(/Serial:\s*([^\s]+)/);
-          return serialMatch ? serialMatch[1] : 'Por definir';
+          const serialMatch = ingreso.notas?.match(/Serial:\s*([^\s|]+)/);
+          return serialMatch ? serialMatch[1].trim() : 'Por definir';
         })(),
-        modelo: 'Por definir',
+        modelo: (() => {
+          const modeloMatch = ingreso.notas?.match(/Modelo:\s*([^|]+)/);
+          return modeloMatch ? modeloMatch[1].trim() : 'Por definir';
+        })(),
+        categoria: (() => {
+          const categoriaMatch = ingreso.notas?.match(/Categoria:\s*([^|]+)/);
+          return categoriaMatch ? categoriaMatch[1].trim() : null;
+        })(),
         proveedor: ingreso.proveedor || '',
         observaciones: `Equipo ingresado desde administración. ${ingreso.notas || ''}`,
         estado_testeo: 'pendiente',
-        checklist_data: {},
+        checklist_data: {
+          _precios: {
+            compra: ingreso.precio_compra || 0,
+            venta: precioVenta
+          }
+        },
         checklist_completado: false,
         estado_estetico: 'bueno',
         observaciones_testeo: ingreso.descripcion_completa
@@ -106,7 +122,7 @@ function TesteoEquiposSection() {
 
       // Recargar listas
       await Promise.all([cargarEquipos(), cargarIngresosPendientes()]);
-      
+
       alert('Equipo movido a testeo correctamente');
     } catch (err) {
       console.error('Error procesando ingreso:', err);
@@ -137,6 +153,27 @@ function TesteoEquiposSection() {
     }
   };
 
+  const eliminarEquipoTesteado = async (equipo) => {
+    if (!window.confirm(`¿Estás seguro de eliminar este equipo testeado?\n\n${equipo.marca} ${equipo.modelo}\nSerial: ${equipo.serial}\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('testeo_equipos')
+        .delete()
+        .eq('id', equipo.id);
+
+      if (error) throw error;
+
+      await cargarEquipos();
+      alert('✅ Equipo eliminado correctamente');
+    } catch (err) {
+      console.error('Error eliminando equipo:', err);
+      alert('❌ Error al eliminar: ' + err.message);
+    }
+  };
+
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-AR', {
       day: '2-digit',
@@ -152,11 +189,11 @@ function TesteoEquiposSection() {
     const ahora = new Date();
     const fechaInicio = new Date(fecha);
     const diferencia = ahora - fechaInicio;
-    
+
     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
     const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (dias > 0) {
       return `${dias} día${dias > 1 ? 's' : ''}`;
     } else if (horas > 0) {
@@ -164,6 +201,38 @@ function TesteoEquiposSection() {
     } else {
       return `${minutos} minuto${minutos > 1 ? 's' : ''}`;
     }
+  };
+
+  const formatCategoria = (categoria) => {
+    if (!categoria) return 'Sin categoría';
+    const map = {
+      'windows': 'Windows',
+      'macbook': 'MacBook',
+      'iphone': 'iPhone',
+      'android': 'Android',
+      'ipad': 'iPad',
+      'tablet': 'Tablet',
+      'monitor': 'Monitor',
+      'cargador': 'Cargador',
+      'bags_cases': 'Bags/Cases',
+      'cables_cargadores': 'Cables y Cargadores',
+      'fundas_templados': 'Fundas y Templados',
+      'mouse_teclados': 'Mouse y Teclados',
+      'mochilas_fundas': 'Mochilas y Fundas',
+      'accesorios': 'Accesorios',
+      'almacenamiento': 'Almacenamiento',
+      'audio': 'Audio',
+      'camaras': 'Cámaras',
+      'componentes': 'Componentes',
+      'consolas': 'Consolas',
+      'desktop': 'Desktop',
+      'gaming': 'Gaming',
+      'memoria': 'Memoria',
+      'monitores': 'Monitores',
+      'repuestos': 'Repuestos',
+      'streaming': 'Streaming'
+    };
+    return map[categoria.toLowerCase()] || categoria.charAt(0).toUpperCase() + categoria.slice(1).toLowerCase();
   };
 
   return (
@@ -195,7 +264,7 @@ function TesteoEquiposSection() {
               </span>
             </div>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
@@ -236,12 +305,11 @@ function TesteoEquiposSection() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        ingreso.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ingreso.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'
+                        }`}>
                         {ingreso.estado === 'pendiente' ? 'Pendiente' :
-                         ingreso.estado === 'en_testeo' ? 'En Testeo' :
-                         ingreso.estado}
+                          ingreso.estado === 'en_testeo' ? 'En Testeo' :
+                            ingreso.estado}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -318,9 +386,8 @@ function TesteoEquiposSection() {
                       </td>
                       {/* Categoría */}
                       <td className="px-6 py-4 text-sm text-slate-900 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${
-                          equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
+                          }`}>
                           {equipo.categoria || 'Sin categoría'}
                         </span>
                       </td>
@@ -457,29 +524,26 @@ function TesteoEquiposSection() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-900 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${
-                          equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {equipo.categoria || 'Sin categoría'}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                          {formatCategoria(equipo.categoria)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          equipo.estado_testeo === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${equipo.estado_testeo === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
                           equipo.estado_testeo === 'rechazado' ? 'bg-red-100 text-red-800' :
-                          equipo.estado_testeo === 'condicional' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-slate-100 text-slate-800'
-                        }`}>
+                            equipo.estado_testeo === 'condicional' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-slate-100 text-slate-800'
+                          }`}>
                           {equipo.estado_testeo === 'aprobado' ? '✓ Aprobado' :
-                           equipo.estado_testeo === 'rechazado' ? '✗ Rechazado' :
-                           equipo.estado_testeo === 'condicional' ? '⚠ Condicional' :
-                           equipo.estado_testeo}
+                            equipo.estado_testeo === 'rechazado' ? '✗ Rechazado' :
+                              equipo.estado_testeo === 'condicional' ? '⚠ Condicional' :
+                                equipo.estado_testeo}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${
-                          estadosEsteticos.find(e => e.value === equipo.estado_estetico)?.color || 'bg-slate-100'
-                        } text-white`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${estadosEsteticos.find(e => e.value === equipo.estado_estetico)?.color || 'bg-slate-100'
+                          } text-white`}>
                           {estadosEsteticos.find(e => e.value === equipo.estado_estetico)?.label || equipo.estado_estetico}
                         </span>
                       </td>
@@ -493,16 +557,23 @@ function TesteoEquiposSection() {
                                 setMostrarModal(true);
                               }
                             }}
-                            className={`px-3 py-1 rounded text-sm transition-colors flex items-center ${
-                              equipo.estado_testeo === 'rechazado'
-                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                            }`}
+                            className={`px-3 py-1 rounded text-sm transition-colors flex items-center ${equipo.estado_testeo === 'rechazado'
+                              ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              }`}
                             title={equipo.estado_testeo === 'rechazado' ? 'Este equipo fue rechazado en testeo' : 'Cargar al stock'}
                             disabled={equipo.estado_testeo === 'rechazado'}
                           >
                             <Package className="w-3 h-3 mr-1" />
                             Cargar al Stock
+                          </button>
+
+                          <button
+                            onClick={() => eliminarEquipoTesteado(equipo)}
+                            className="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded transition-colors"
+                            title="Eliminar equipo testeado"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

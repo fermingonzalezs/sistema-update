@@ -38,8 +38,10 @@ const RegistrarVentaSection = () => {
 
   // Estados para producto custom (fuera de stock)
   const [productoCustom, setProductoCustom] = useState({
+    nombre: '',
     serial: '',
     descripcion: '',
+    categoria: 'ACCESORIOS',
     condicion: 'usado',
     precioCompra: '',
     precioVenta: '',
@@ -345,13 +347,28 @@ const RegistrarVentaSection = () => {
   };
 
   const agregarProductoCustom = async () => {
-    if (!productoCustom.descripcion || !productoCustom.precioVenta || !productoCustom.precioCompra) {
-      alert('Serial/nombre, descripción, precio de compra y precio de venta son requeridos');
+    if (!productoCustom.nombre) {
+      alert('El nombre del producto es requerido');
       return;
     }
 
     if (!productoCustom.serial) {
-      alert('El serial/nombre es requerido');
+      alert('El serial es requerido');
+      return;
+    }
+
+    if (!productoCustom.descripcion) {
+      alert('La descripción es requerida');
+      return;
+    }
+
+    if (!productoCustom.categoria) {
+      alert('La categoría es requerida');
+      return;
+    }
+
+    if (!productoCustom.precioVenta || !productoCustom.precioCompra) {
+      alert('Los precios de compra y venta son requeridos');
       return;
     }
 
@@ -360,8 +377,10 @@ const RegistrarVentaSection = () => {
     try {
       // Crear el producto en la base de datos
       const nuevoProducto = await crearProductoCustom({
+        nombre_producto: productoCustom.nombre,
         serial: productoCustom.serial,
         descripcion: productoCustom.descripcion,
+        categoria: productoCustom.categoria,
         condicion: productoCustom.condicion,
         precio_compra: parseFloat(productoCustom.precioCompra),
         precio_venta: parseFloat(productoCustom.precioVenta),
@@ -397,8 +416,10 @@ const RegistrarVentaSection = () => {
 
       // Limpiar formulario
       setProductoCustom({
+        nombre: '',
         serial: '',
         descripcion: '',
+        categoria: 'ACCESORIOS',
         condicion: 'usado',
         precioCompra: '',
         precioVenta: '',
@@ -649,7 +670,7 @@ const RegistrarVentaSection = () => {
               )}
 
               {/* Lista de productos o formulario custom */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div className="space-y-2">
                 {!categoriaSeleccionada ? (
                   <div className="text-center py-8 text-slate-500">
                     <Package className="w-12 h-12 mx-auto mb-3 text-slate-300" />
@@ -663,21 +684,38 @@ const RegistrarVentaSection = () => {
                 ) : categoriaSeleccionada === 'custom' ? (
                   /* Formulario para item fuera de stock */
                   <div className="space-y-3">
-                    {/* Primera fila: Serial - Descripción */}
+                    {/* Primera fila: Nombre - Serial */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                          Serial/Nombre *
+                          Nombre del Producto *
+                        </label>
+                        <input
+                          type="text"
+                          value={productoCustom.nombre}
+                          onChange={(e) => setProductoCustom(prev => ({ ...prev, nombre: e.target.value }))}
+                          className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                          placeholder="Ej: Mouse Logitech, Cable USB-C, etc."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Serial/Código *
                         </label>
                         <input
                           type="text"
                           value={productoCustom.serial}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, serial: e.target.value }))}
                           className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
-                          placeholder="Ej: MON001, Cable-USB, etc."
+                          placeholder="Ej: MON001, SN123456, etc."
                           required
                         />
                       </div>
+                    </div>
+
+                    {/* Segunda fila: Descripción - Categoría */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
                           Descripción *
@@ -691,9 +729,41 @@ const RegistrarVentaSection = () => {
                           required
                         />
                       </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                          Categoría *
+                        </label>
+                        <select
+                          value={productoCustom.categoria}
+                          onChange={(e) => setProductoCustom(prev => ({ ...prev, categoria: e.target.value }))}
+                          className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+                          required
+                        >
+                          <option value="ACCESORIOS">Accesorios</option>
+                          <option value="MONITORES">Monitores</option>
+                          <option value="COMPONENTES">Componentes</option>
+                          <option value="FUNDAS_TEMPLADOS">Fundas y Templados</option>
+                          <option value="TABLETS">Tablets</option>
+                          <option value="APPLE">Apple</option>
+                          <option value="MOUSE_TECLADOS">Mouse y Teclados</option>
+                          <option value="AUDIO">Audio</option>
+                          <option value="ALMACENAMIENTO">Almacenamiento</option>
+                          <option value="CAMARAS">Cámaras</option>
+                          <option value="CONSOLAS">Consolas</option>
+                          <option value="GAMING">Gaming</option>
+                          <option value="DRONES">Drones</option>
+                          <option value="WATCHES">Watches</option>
+                          <option value="PLACAS_VIDEO">Placas de Video</option>
+                          <option value="STREAMING">Streaming</option>
+                          <option value="REDES">Redes</option>
+                          <option value="BAGS_CASES">Bags y Cases</option>
+                          <option value="CABLES_CARGADORES">Cables y Cargadores</option>
+                          <option value="REPUESTOS">Repuestos</option>
+                        </select>
+                      </div>
                     </div>
 
-                    {/* Segunda fila: Condición - Cantidad - Sucursal */}
+                    {/* Tercera fila: Condición - Cantidad - Sucursal */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
@@ -742,7 +812,7 @@ const RegistrarVentaSection = () => {
                       </div>
                     </div>
 
-                    {/* Tercera fila: Precio Compra - Precio Venta */}
+                    {/* Cuarta fila: Precio Compra - Precio Venta */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">

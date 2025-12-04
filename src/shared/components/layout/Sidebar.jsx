@@ -30,7 +30,8 @@ import {
   ChevronLeft,
   ShoppingBag,
   Plane,
-  LayoutDashboard
+  LayoutDashboard,
+  Mail
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
@@ -219,6 +220,12 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
           label: 'Testeo Equipos',
           icon: Monitor,
           description: 'Testeo de notebooks y celulares'
+        },
+        {
+          id: 'email-preview',
+          label: 'Preview Email',
+          icon: Mail,
+          description: 'Previsualización template de email'
         }
       ]
     },

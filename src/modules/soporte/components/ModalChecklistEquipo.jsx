@@ -57,7 +57,7 @@ const categorias = {
 const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
   const [checklist, setChecklist] = useState({});
   const [observaciones, setObservaciones] = useState('');
-  
+
   // Función para obtener el checklist correcto según el tipo
   const getChecklistPorTipo = (tipo) => {
     switch (tipo) {
@@ -71,9 +71,9 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
         return checklistNotebook;
     }
   };
-  
+
   const checklistActual = getChecklistPorTipo(equipo?.tipo);
-  
+
   // Función para obtener el título según el tipo
   const getTituloPorTipo = (tipo) => {
     switch (tipo) {
@@ -106,15 +106,18 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
   };
 
   const calcularResultado = () => {
-    const itemsCompletados = Object.keys(checklist).length;
-    const itemsFuncionando = Object.values(checklist).filter(status => status === 'si').length;
-    
+    // Filtrar claves especiales que empiezan con _ (como _precios)
+    const itemsChecklist = Object.keys(checklist).filter(k => !k.startsWith('_'));
+    const itemsCompletados = itemsChecklist.length;
+    const itemsFuncionando = Object.entries(checklist)
+      .filter(([k, v]) => !k.startsWith('_') && v === 'si').length;
+
     if (itemsCompletados < checklistActual.length) {
       return { resultado: 'pendiente', porcentaje: 0 };
     }
-    
+
     const porcentaje = (itemsFuncionando / checklistActual.length) * 100;
-    
+
     if (porcentaje >= 90) {
       return { resultado: 'aprobado', porcentaje };
     } else if (porcentaje >= 70) {
@@ -130,7 +133,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
 
     try {
       const { resultado, porcentaje } = calcularResultado();
-      
+
       // Actualizar equipo con checklist completado
       const { error } = await supabase
         .from('testeo_equipos')
@@ -156,8 +159,10 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
     }
   };
 
-  const itemsCompletados = Object.keys(checklist).length;
-  const itemsFuncionando = Object.values(checklist).filter(status => status === 'si').length;
+  const itemsChecklistKeys = Object.keys(checklist).filter(k => !k.startsWith('_'));
+  const itemsCompletados = itemsChecklistKeys.length;
+  const itemsFuncionando = Object.entries(checklist)
+    .filter(([k, v]) => !k.startsWith('_') && v === 'si').length;
   const progreso = checklistActual.length > 0 ? (itemsCompletados / checklistActual.length) * 100 : 0;
   const { resultado, porcentaje } = calcularResultado();
 
@@ -191,7 +196,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
               <span>{progreso.toFixed(0)}% completado</span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progreso}%` }}
               ></div>
@@ -200,15 +205,14 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
 
           {/* Resultado preliminar */}
           {itemsCompletados === checklistActual.length && (
-            <div className={`mt-4 p-3 rounded-lg ${
-              resultado === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
+            <div className={`mt-4 p-3 rounded-lg ${resultado === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
               resultado === 'condicional' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
-            }`}>
+                'bg-red-100 text-red-800'
+              }`}>
               <div className="flex items-center space-x-2">
                 {resultado === 'aprobado' ? <CheckCircle className="w-5 h-5" /> :
-                 resultado === 'condicional' ? <AlertTriangle className="w-5 h-5" /> :
-                 <XCircle className="w-5 h-5" />}
+                  resultado === 'condicional' ? <AlertTriangle className="w-5 h-5" /> :
+                    <XCircle className="w-5 h-5" />}
                 <span className="font-medium">
                   Resultado: {resultado.toUpperCase()} ({porcentaje.toFixed(1)}% funcionando)
                 </span>
@@ -221,56 +225,53 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
           {/* Checklist por categorías */}
           {Object.entries(categorias).map(([categoriaKey, categoria]) => {
             const itemsCategoria = checklistActual.filter(item => item.categoria === categoriaKey);
-            
+
             return (
               <div key={categoriaKey} className="mb-6">
                 <h4 className={`text-sm font-medium px-3 py-1 rounded-full inline-block mb-4 ${categoria.color}`}>
                   {categoria.label}
                 </h4>
-                
+
                 <div className="space-y-3">
                   {itemsCategoria.map((item) => {
                     const estado = checklist[item.id];
-                    
+
                     return (
                       <div key={item.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
                         <span className="text-slate-800 font-medium">{item.label}</span>
-                        
+
                         <div className="flex space-x-2">
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'si')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                              estado === 'si'
-                                ? 'border-emerald-600 bg-emerald-600 text-white'
-                                : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
-                            }`}
+                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'si'
+                              ? 'border-emerald-600 bg-emerald-600 text-white'
+                              : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
+                              }`}
                           >
                             <CheckCircle className="w-4 h-4 inline mr-1" />
                             Sí
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'no')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                              estado === 'no'
-                                ? 'border-red-600 bg-red-600 text-white'
-                                : 'border-red-600 text-red-600 hover:bg-red-50'
-                            }`}
+                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'no'
+                              ? 'border-red-600 bg-red-600 text-white'
+                              : 'border-red-600 text-red-600 hover:bg-red-50'
+                              }`}
                           >
                             <XCircle className="w-4 h-4 inline mr-1" />
                             No
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'parcial')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                              estado === 'parcial'
-                                ? 'border-yellow-600 bg-yellow-600 text-white'
-                                : 'border-yellow-600 text-yellow-600 hover:bg-yellow-50'
-                            }`}
+                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'parcial'
+                              ? 'border-yellow-600 bg-yellow-600 text-white'
+                              : 'border-yellow-600 text-yellow-600 hover:bg-yellow-50'
+                              }`}
                           >
                             <AlertTriangle className="w-4 h-4 inline mr-1" />
                             Parcial
@@ -314,10 +315,10 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
             >
               <Save className="w-4 h-4" />
               <span>
-                {saving ? 'Guardando...' : 
-                 itemsCompletados < checklistActual.length ? 
-                 `Completar checklist (${checklistActual.length - itemsCompletados} pendientes)` : 
-                 'Guardar Checklist'}
+                {saving ? 'Guardando...' :
+                  itemsCompletados < checklistActual.length ?
+                    `Completar checklist (${checklistActual.length - itemsCompletados} pendientes)` :
+                    'Guardar Checklist'}
               </span>
             </button>
           </div>

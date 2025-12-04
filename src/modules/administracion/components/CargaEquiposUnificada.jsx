@@ -28,7 +28,7 @@ import {
 } from '../../../shared/constants/resolutionConstants';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 
-const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, modoCarrito = false }) => {
+const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, modoCarrito = false, modoCompra = false, onReturnData }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
 
   const tiposEquipo = [
@@ -81,20 +81,20 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, mo
 
       {/* Renderizar el formulario correspondiente */}
       {tipoEquipo === 'notebook' && (
-        <FormularioNotebook onAdd={onAddComputer} loading={loading} modoCarrito={modoCarrito} />
+        <FormularioNotebook onAdd={onAddComputer} loading={loading} modoCarrito={modoCarrito} modoCompra={modoCompra} onReturnData={onReturnData} />
       )}
       {tipoEquipo === 'celular' && (
-        <FormularioCelular onAdd={onAddCelular} loading={loading} modoCarrito={modoCarrito} />
+        <FormularioCelular onAdd={onAddCelular} loading={loading} modoCarrito={modoCarrito} modoCompra={modoCompra} onReturnData={onReturnData} />
       )}
       {tipoEquipo === 'otro' && (
-        <FormularioOtro onAdd={onAddOtro} loading={loading} modoCarrito={modoCarrito} />
+        <FormularioOtro onAdd={onAddOtro} loading={loading} modoCarrito={modoCarrito} modoCompra={modoCompra} onReturnData={onReturnData} />
       )}
     </div>
   );
 };
 
 // Formulario para Notebook renovado y organizado
-const FormularioNotebook = ({ onAdd, loading }) => {
+const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios
     serial: '',
@@ -203,47 +203,91 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         fotos: formData.fotos
       };
 
-      await onAdd(dataToSubmit);
+      // Si está en modo compra, solo retornar los datos sin guardar en BD
+      if (modoCompra && onReturnData) {
+        onReturnData('notebook', dataToSubmit);
 
-      // Reset form
-      setFormData({
-        serial: '',
-        modelo: '',
-        marca: '',
-        categoria: CATEGORIAS_NOTEBOOKS.WINDOWS,
-        precio_costo_usd: '',
-        envios_repuestos: '0',
-        precio_venta_usd: '',
-        sucursal: UBICACIONES.LA_PLATA,
-        condicion: CONDICIONES.NUEVO,
-        estado: null, // null por defecto cuando es nuevo
-        procesador: '',
-        slots: '',
-        tipo_ram: 'DDR4',
-        ram: '',
-        ssd: '',
-        hdd: '',
-        so: 'WIN11',
-        pantalla: '',
-        resolucion: 'FHD',
-        refresh: '',
-        touchscreen: false,
-        placa_video: '',
-        vram: '',
-        teclado_retro: 'SI',
-        idioma_teclado: 'Español',
-        color: '',
-        bateria: '',
-        duracion: '',
-        garantia_update: '3 meses',
-        garantia_oficial: '',
-        garantia_oficial_fecha: '',
-        fallas: 'Ninguna',
-        fotos: '',
-        ingreso: new Date().toISOString().split('T')[0]
-      });
+        // Reset form para permitir agregar más productos
+        setFormData({
+          serial: '',
+          modelo: '',
+          marca: '',
+          categoria: CATEGORIAS_NOTEBOOKS.WINDOWS,
+          precio_costo_usd: '',
+          envios_repuestos: '0',
+          precio_venta_usd: '',
+          sucursal: UBICACIONES.LA_PLATA,
+          condicion: CONDICIONES.NUEVO,
+          estado: null,
+          procesador: '',
+          slots: '',
+          tipo_ram: 'DDR4',
+          ram: '',
+          ssd: '',
+          hdd: '',
+          so: 'WIN11',
+          pantalla: '',
+          resolucion: 'FHD',
+          refresh: '',
+          touchscreen: false,
+          placa_video: '',
+          vram: '',
+          teclado_retro: 'SI',
+          idioma_teclado: 'Español',
+          color: '',
+          bateria: '',
+          duracion: '',
+          garantia_update: '3 meses',
+          garantia_oficial: '',
+          garantia_oficial_fecha: '',
+          fallas: 'Ninguna',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+      } else {
+        // Modo normal: guardar en BD
+        await onAdd(dataToSubmit);
 
-      alert('✅ Computadora agregada exitosamente!');
+        // Reset form
+        setFormData({
+          serial: '',
+          modelo: '',
+          marca: '',
+          categoria: CATEGORIAS_NOTEBOOKS.WINDOWS,
+          precio_costo_usd: '',
+          envios_repuestos: '0',
+          precio_venta_usd: '',
+          sucursal: UBICACIONES.LA_PLATA,
+          condicion: CONDICIONES.NUEVO,
+          estado: null,
+          procesador: '',
+          slots: '',
+          tipo_ram: 'DDR4',
+          ram: '',
+          ssd: '',
+          hdd: '',
+          so: 'WIN11',
+          pantalla: '',
+          resolucion: 'FHD',
+          refresh: '',
+          touchscreen: false,
+          placa_video: '',
+          vram: '',
+          teclado_retro: 'SI',
+          idioma_teclado: 'Español',
+          color: '',
+          bateria: '',
+          duracion: '',
+          garantia_update: '3 meses',
+          garantia_oficial: '',
+          garantia_oficial_fecha: '',
+          fallas: 'Ninguna',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+
+        alert('✅ Computadora agregada exitosamente!');
+      }
     } catch (err) {
       alert('❌ Error: ' + err.message);
     } finally {
@@ -844,7 +888,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
 };
 
 // Formulario para Celular actualizado
-const FormularioCelular = ({ onAdd, loading }) => {
+const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios según tabla celulares
     serial: '',
@@ -938,34 +982,65 @@ const FormularioCelular = ({ onAdd, loading }) => {
         fotos: formData.fotos
       };
 
-      await onAdd(dataToSubmit);
+      // Si está en modo compra, solo retornar los datos sin guardar en BD
+      if (modoCompra && onReturnData) {
+        onReturnData('celular', dataToSubmit);
 
-      // Reset form
-      setFormData({
-        serial: '',
-        categoria: CATEGORIAS_CELULARES.ANDROID,
-        marca: '',
-        condicion: CONDICIONES.NUEVO,
-        modelo: '',
-        capacidad: '',
-        color: '',
-        sim_esim: 'SIM',
-        estado: null,
-        bateria: '',
-        ciclos: '',
-        ram: '',
-        sucursal: UBICACIONES.LA_PLATA,
-        precio_compra_usd: '',
-        costos_adicionales: '0',
-        precio_venta_usd: '',
-        garantia: '3 meses',
-        garantia_oficial_fecha: '',
-        fallas: 'Ninguna',
-        fotos: '',
-        ingreso: new Date().toISOString().split('T')[0]
-      });
+        // Reset form para permitir agregar más productos
+        setFormData({
+          serial: '',
+          categoria: CATEGORIAS_CELULARES.ANDROID,
+          marca: '',
+          condicion: CONDICIONES.NUEVO,
+          modelo: '',
+          capacidad: '',
+          color: '',
+          sim_esim: 'SIM',
+          estado: null,
+          bateria: '',
+          ciclos: '',
+          ram: '',
+          sucursal: UBICACIONES.LA_PLATA,
+          precio_compra_usd: '',
+          costos_adicionales: '0',
+          precio_venta_usd: '',
+          garantia: '3 meses',
+          garantia_oficial_fecha: '',
+          fallas: 'Ninguna',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+      } else {
+        // Modo normal: guardar en BD
+        await onAdd(dataToSubmit);
 
-      alert('✅ Celular agregado exitosamente!');
+        // Reset form
+        setFormData({
+          serial: '',
+          categoria: CATEGORIAS_CELULARES.ANDROID,
+          marca: '',
+          condicion: CONDICIONES.NUEVO,
+          modelo: '',
+          capacidad: '',
+          color: '',
+          sim_esim: 'SIM',
+          estado: null,
+          bateria: '',
+          ciclos: '',
+          ram: '',
+          sucursal: UBICACIONES.LA_PLATA,
+          precio_compra_usd: '',
+          costos_adicionales: '0',
+          precio_venta_usd: '',
+          garantia: '3 meses',
+          garantia_oficial_fecha: '',
+          fallas: 'Ninguna',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+
+        alert('✅ Celular agregado exitosamente!');
+      }
     } catch (err) {
       alert('❌ Error: ' + err.message);
     } finally {
@@ -1427,7 +1502,7 @@ const FormularioCelular = ({ onAdd, loading }) => {
 };
 
 // Formulario para Otro Producto actualizado
-const FormularioOtro = ({ onAdd, loading }) => {
+const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
   const [formData, setFormData] = useState({
     // Información básica del producto
     nombre_producto: '',
@@ -1595,40 +1670,77 @@ const FormularioOtro = ({ onAdd, loading }) => {
         fotos: formData.fotos
       };
 
-      await onAdd(dataToSubmit);
+      // Si está en modo compra, solo retornar los datos sin guardar en BD
+      if (modoCompra && onReturnData) {
+        onReturnData('otro', dataToSubmit);
 
-      // Reset form
-      setFormData({
-        nombre_producto: '',
-        descripcion: '',
-        categoria: '',
-        marca: '',
-        modelo: '',
-        color: '',
-        condicion: CONDICIONES.NUEVO,
-        estado: null,
-        precio_compra_usd: '',
-        precio_venta_usd: '',
-        costos_adicionales: '0',
-        cantidad_la_plata: 0,
-        cantidad_mitre: 0,
-        serial: '',
-        procesador: '',
-        motherboard: '',
-        memoria: '',
-        gpu: '',
-        ssd: '',
-        hdd: '',
-        gabinete: '',
-        fuente: '',
-        garantia: '3 meses',
-        garantia_oficial_fecha: '',
-        observaciones: '',
-        fotos: '',
-        ingreso: new Date().toISOString().split('T')[0]
-      });
+        // Reset form para permitir agregar más productos
+        setFormData({
+          nombre_producto: '',
+          descripcion: '',
+          categoria: '',
+          marca: '',
+          modelo: '',
+          color: '',
+          condicion: CONDICIONES.NUEVO,
+          estado: null,
+          precio_compra_usd: '',
+          precio_venta_usd: '',
+          costos_adicionales: '0',
+          cantidad_la_plata: 0,
+          cantidad_mitre: 0,
+          serial: '',
+          procesador: '',
+          motherboard: '',
+          memoria: '',
+          gpu: '',
+          ssd: '',
+          hdd: '',
+          gabinete: '',
+          fuente: '',
+          garantia: '3 meses',
+          garantia_oficial_fecha: '',
+          observaciones: '',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+      } else {
+        // Modo normal: guardar en BD
+        await onAdd(dataToSubmit);
 
-      alert('✅ Producto agregado exitosamente!');
+        // Reset form
+        setFormData({
+          nombre_producto: '',
+          descripcion: '',
+          categoria: '',
+          marca: '',
+          modelo: '',
+          color: '',
+          condicion: CONDICIONES.NUEVO,
+          estado: null,
+          precio_compra_usd: '',
+          precio_venta_usd: '',
+          costos_adicionales: '0',
+          cantidad_la_plata: 0,
+          cantidad_mitre: 0,
+          serial: '',
+          procesador: '',
+          motherboard: '',
+          memoria: '',
+          gpu: '',
+          ssd: '',
+          hdd: '',
+          gabinete: '',
+          fuente: '',
+          garantia: '3 meses',
+          garantia_oficial_fecha: '',
+          observaciones: '',
+          fotos: '',
+          ingreso: new Date().toISOString().split('T')[0]
+        });
+
+        alert('✅ Producto agregado exitosamente!');
+      }
     } catch (err) {
       alert('❌ Error: ' + err.message);
     } finally {

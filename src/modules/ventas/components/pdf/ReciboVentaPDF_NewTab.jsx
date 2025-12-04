@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textTransform: 'uppercase',
   },
-  
+
   // Tabla de productos
   table: {
     marginBottom: 25,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     marginTop: 2,
   },
-  
+
   // Columnas de la tabla con mejor distribución
   colItem: {
     width: '60%',
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderRightWidth: 0,
   },
-  
+
   // Sección de totales
   totalsSection: {
     marginTop: 15,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     letterSpacing: 0.3,
   },
-  
+
   // Footer
   footer: {
     marginTop: 20,
@@ -476,19 +476,19 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
     marginBottom: 2,
   },
-  
+
   // Elementos decorativos
   divider: {
     height: 1,
     backgroundColor: '#E5E7EB',
     marginVertical: 10,
   },
-  
+
   // Espaciado y elementos de diseño
   spacer: {
     height: 15,
   },
-  
+
   // Sección específica para pagarés
   pagareSection: {
     marginTop: 15,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     textTransform: 'uppercase',
   },
-  
+
   // Sección de información de garantía
   warrantySection: {
     marginTop: 15,
@@ -594,7 +594,7 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(valor);
-    
+
     return moneda === 'USD' ? `US$ ${numero}` : `$ ${numero}`;
   };
 
@@ -620,9 +620,9 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
   const docInfo = tipoDocumento || determinarTipoDocumento(data.metodoPago);
   const fechaVencimiento = docInfo.esCredito ? calcularFechaVencimiento(data.invoice.date) : null;
   const textoLegal = docInfo.esCredito ? generarTextoLegalPagare(
-    calcularTotal(), 
-    data.moneda, 
-    fechaVencimiento, 
+    calcularTotal(),
+    data.moneda,
+    fechaVencimiento,
     data.client.name
   ) : null;
 
@@ -657,7 +657,7 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
 
           {/* Lado derecho: RECIBO */}
           <View style={styles.documentTitleSection}>
-            <Text style={styles.documentTitle}>RECIBO</Text>
+            <Text style={styles.documentTitle}>{docInfo.tipo}</Text>
             <Text style={styles.documentInfo}>{data.invoice.date}</Text>
             <Text style={styles.documentSubtitle}>{data.invoice.number}</Text>
           </View>
@@ -672,12 +672,12 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
             <Text style={[styles.tableHeaderText, styles.colPrice]}>Precio</Text>
             <Text style={[styles.tableHeaderText, styles.colTotalLast]}>Total</Text>
           </View>
-          
+
           {data.items.map((item, index) => (
-            <View 
-              key={index} 
+            <View
+              key={index}
               style={[
-                styles.tableRow, 
+                styles.tableRow,
                 index === data.items.length - 1 && styles.tableRowLast
               ]}
             >
@@ -716,21 +716,6 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
           </View>
         </View>
 
-        {/* Sección específica para pagarés */}
-        {docInfo.esCredito && (
-          <View style={styles.pagareSection}>
-            <Text style={styles.pagareTitle}>Términos del Pagaré</Text>
-            <Text style={styles.pagareText}>{textoLegal}</Text>
-            <View style={styles.vencimientoInfo}>
-              <Text style={styles.vencimientoLabel}>Fecha de vencimiento:</Text>
-              <Text style={styles.vencimientoFecha}>{fechaVencimiento}</Text>
-            </View>
-            <View style={styles.vencimientoInfo}>
-              <Text style={styles.vencimientoLabel}>Lugar de pago:</Text>
-              <Text style={styles.vencimientoFecha}>{data.company.address}</Text>
-            </View>
-          </View>
-        )}
 
         {/* Espacio para firmar */}
         <View style={styles.signatureSection}>
@@ -802,15 +787,15 @@ export const generarYDescargarRecibo = async (transaccion) => {
     const reciboData = convertirVentaARecibo(transaccion);
     const tipoDocumento = determinarTipoDocumento(transaccion.metodo_pago);
     const blob = await pdf(<ReciboVentaDocument data={reciboData} tipoDocumento={tipoDocumento} />).toBlob();
-    
+
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-    
+
     // Cleanup después de un tiempo
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 10000);
-    
+
     return {
       success: true,
       message: `${tipoDocumento.tipo} abierto en nueva pestaña`

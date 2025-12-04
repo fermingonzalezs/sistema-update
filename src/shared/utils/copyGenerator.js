@@ -9,11 +9,16 @@ import { formatearMonto } from './formatters';
  * - 'notebook_simple': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
  * - 'celular_simple': 📱 MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - PRECIO
  * - 'otro_simple': 📦 MODELO - DESCRIPCION - PRECIO
- * 
+ *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
  * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION (sin emoji, sin precio)
  * - 'celular_completo': MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO (sin emoji, sin precio)
  * - 'otro_completo': MODELO - DESCRIPCION (sin emoji, sin precio)
+ *
+ * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
+ * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - ESTADO - COLOR - IDIOMA
+ * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO
+ * - 'otro_documento': NOMBRE_PRODUCTO (solo nombre, sin descripción ni observaciones)
  */
 
 // Configuraciones por defecto para cada tipo
@@ -43,7 +48,7 @@ const TYPE_DEFAULTS = {
     maxLength: null,
     style: 'simple'
   },
-  
+
   // VERSIONES COMPLETAS - Para Catálogo información interna
   notebook_completo: {
     includeEmojis: false,
@@ -69,7 +74,33 @@ const TYPE_DEFAULTS = {
     maxLength: null,
     style: 'completo'
   },
-  
+
+  // VERSIONES DOCUMENTOS - Para Recibos, Garantías, Emails (SIN observaciones/notas)
+  notebook_documento: {
+    includeEmojis: false,
+    includePrice: false,
+    includeTechnicalDetails: true,
+    separator: ' - ',
+    maxLength: null,
+    style: 'documento'
+  },
+  celular_documento: {
+    includeEmojis: false,
+    includePrice: false,
+    includeTechnicalDetails: true,
+    separator: ' - ',
+    maxLength: null,
+    style: 'documento'
+  },
+  otro_documento: {
+    includeEmojis: false,
+    includePrice: false,
+    includeTechnicalDetails: false, // Solo nombre, sin detalles técnicos
+    separator: ' - ',
+    maxLength: null,
+    style: 'documento'
+  },
+
   // Alias para compatibilidad
   notebook: {
     includeEmojis: true,
@@ -117,16 +148,19 @@ export const generateCopy = (producto, options = {}) => {
     case 'notebook':
     case 'notebook_simple':
     case 'notebook_completo':
+    case 'notebook_documento':
       copy = generateNotebookCopy(producto, config);
       break;
     case 'celular':
     case 'celular_simple':
     case 'celular_completo':
+    case 'celular_documento':
       copy = generateCelularCopy(producto, config);
       break;
     case 'otro':
     case 'otro_simple':
     case 'otro_completo':
+    case 'otro_documento':
       copy = generateOtroCopy(producto, config);
       break;
     default:
@@ -164,15 +198,15 @@ const determinarTipoCopy = (producto, categoria) => {
       default: return 'otro_simple';
     }
   }
-  
+
   if (producto.procesador && (producto.ram || producto.memoria_ram)) {
     return 'notebook_simple';
   }
-  
+
   if (producto.capacidad && producto.modelo && producto.marca) {
     return 'celular_simple';
   }
-  
+
   return 'otro_simple';
 };
 
@@ -181,7 +215,7 @@ const determinarTipoCopy = (producto, categoria) => {
  */
 const getEstadoLetra = (estado) => {
   if (!estado) return '';
-  
+
   switch (estado.toLowerCase()) {
     case 'nuevo': return 'A++';
     case 'excelente': return 'A+';
@@ -198,33 +232,33 @@ const getEstadoLetra = (estado) => {
  */
 const hasValidStorage = (value) => {
   if (!value) return false;
-  
+
   // Handle null, undefined, empty string
   if (value === null || value === undefined || value === '') return false;
-  
+
   // Handle 'N/A' and similar invalid values
   if (typeof value === 'string') {
     const cleanValue = value.trim().toLowerCase();
     if (cleanValue === 'n/a' || cleanValue === 'na' || cleanValue === '-' || cleanValue === 'ninguno' || cleanValue === 'sin') {
       return false;
     }
-    
+
     // Extract numeric part from strings like "256GB", "1TB", "512", etc.
     const numericMatch = cleanValue.match(/(\d+(?:\.\d+)?)/);
     if (numericMatch) {
       const numericValue = parseFloat(numericMatch[1]);
       return numericValue > 0;
     }
-    
+
     // If it's a string but no numeric match, consider it invalid
     return false;
   }
-  
+
   // Handle numeric values
   if (typeof value === 'number') {
     return value > 0;
   }
-  
+
   return false;
 };
 
@@ -246,40 +280,14 @@ const generateNotebookCopy = (comp, config) => {
   }
 
   // 1. MODELO
-  const modelo = comp.modelo || 'Sin modelo';
+  let modelo = comp.modelo || 'Sin modelo';
+  // Remover marca del modelo si está presente
+  if (comp.marca && modelo.toLowerCase().startsWith(comp.marca.toLowerCase())) {
+    modelo = modelo.substring(comp.marca.length).trim();
+  }
   partes.push(modelo.toUpperCase());
 
-  // 2. PROCESADOR
-  if (comp.procesador) {
-    partes.push(comp.procesador.toUpperCase());
-  }
-
-  // 3. MEMORIA
-  if (comp.memoria_ram || comp.ram) {
-    const ram = comp.memoria_ram || comp.ram;
-    const tipoRam = comp.tipo_ram || 'DDR4';
-    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
-    const ramLimpio = String(ram).replace(/GB/gi, '');
-    partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
-  }
-
-  // 4. ALMACENAMIENTO (después de memoria, antes de pantalla)
-  const almacenamientos = [];
-  if (hasValidStorage(comp.ssd)) {
-    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
-    const unit = String(comp.ssd).toLowerCase().includes('tb') ? 'TB' : 'GB';
-    almacenamientos.push(`${ssdLimpio}${unit} SSD`);
-  }
-  if (hasValidStorage(comp.hdd)) {
-    const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
-    const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
-    almacenamientos.push(`${hddLimpio}${unit} HDD`);
-  }
-  if (almacenamientos.length > 0) {
-    partes.push(almacenamientos.join(' + '));
-  }
-
-  // 5. PANTALLA Y RESOLUCIÓN JUNTAS
+  // 2. PANTALLA Y RESOLUCIÓN JUNTAS (Movido antes de procesador)
   let pantallaResolucion = '';
   if (comp.pantalla) {
     // Mostrar el texto exactamente como se cargó, sin agregar comillas
@@ -315,7 +323,37 @@ const generateNotebookCopy = (comp, config) => {
     partes.push(pantallaResolucion);
   }
 
-  // 6. GPU VRAM (AL FINAL, después de pantalla)
+  // 3. PROCESADOR
+  if (comp.procesador) {
+    partes.push(comp.procesador.toUpperCase());
+  }
+
+  // 4. MEMORIA
+  if (comp.memoria_ram || comp.ram) {
+    const ram = comp.memoria_ram || comp.ram;
+    const tipoRam = comp.tipo_ram || 'DDR4';
+    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
+    const ramLimpio = String(ram).replace(/GB/gi, '');
+    partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
+  }
+
+  // 5. ALMACENAMIENTO
+  const almacenamientos = [];
+  if (hasValidStorage(comp.ssd)) {
+    const ssdLimpio = String(comp.ssd).replace(/GB/gi, '').replace(/TB/gi, '');
+    const unit = String(comp.ssd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    almacenamientos.push(`${ssdLimpio}${unit} SSD`);
+  }
+  if (hasValidStorage(comp.hdd)) {
+    const hddLimpio = String(comp.hdd).replace(/GB/gi, '').replace(/TB/gi, '');
+    const unit = String(comp.hdd).toLowerCase().includes('tb') ? 'TB' : 'GB';
+    almacenamientos.push(`${hddLimpio}${unit} HDD`);
+  }
+  if (almacenamientos.length > 0) {
+    partes.push(almacenamientos.join(' + '));
+  }
+
+  // 6. GPU VRAM (AL FINAL, después de almacenamiento)
   if (comp.placa_video || comp.placa_de_video || comp.gpu) {
     let gpu = comp.placa_video || comp.placa_de_video || comp.gpu;
     // Verificar si vram existe y no está vacío
@@ -374,7 +412,7 @@ const generateNotebookCopy = (comp, config) => {
     }
   }
 
-  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
+  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
     // 11. SISTEMA OPERATIVO
     if (comp.sistema_operativo || comp.so) {
@@ -414,6 +452,9 @@ const generateNotebookCopy = (comp, config) => {
     // 17. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
+  // VERSIÓN DOCUMENTO: Sin observaciones, notas, SO adicional
+  // Ya tiene: MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERÍA - ESTADO - COLOR - IDIOMA
+
   // 11. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (comp.precio_venta_usd) {
@@ -422,7 +463,7 @@ const generateNotebookCopy = (comp, config) => {
       partes.push('CONSULTAR');
     }
   }
-  
+
   // Unir las partes
   if (config.includeEmojis) {
     // Para versión simple: emoji seguido del resto sin separador
@@ -453,22 +494,26 @@ const generateCelularCopy = (cel, config) => {
   // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
 
   // 1. MODELO (sin marca al principio)
-  const modelo = cel.modelo || 'Sin modelo';
+  let modelo = cel.modelo || 'Sin modelo';
+  // Remover marca del modelo si está presente
+  if (cel.marca && modelo.toLowerCase().startsWith(cel.marca.toLowerCase())) {
+    modelo = modelo.substring(cel.marca.length).trim();
+  }
   partes.push(modelo.toUpperCase());
 
-  // 2. CAPACIDAD
-  if (cel.capacidad) {
-    // La capacidad ya viene formateada (ej: "256GB"), no agregar más unidades
-    partes.push(cel.capacidad.toUpperCase());
-  }
-
-  // 3. COLOR
+  // 2. COLOR (Movido antes de capacidad)
   if (cel.color) {
     if (config.style === 'completo') {
       partes.push(cel.color.charAt(0).toUpperCase() + cel.color.slice(1).toLowerCase());
     } else {
       partes.push(cel.color.toUpperCase());
     }
+  }
+
+  // 3. CAPACIDAD
+  if (cel.capacidad) {
+    // La capacidad ya viene formateada (ej: "256GB"), no agregar más unidades
+    partes.push(cel.capacidad.toUpperCase());
   }
 
   // 4. BATERÍA Y ESTADO - SOLO para USADOS/REFURBISH (antes del precio)
@@ -496,8 +541,8 @@ const generateCelularCopy = (cel, config) => {
   }
 
   // 5. CAMPOS ADICIONALES - Removidos según nuevos requerimientos
-  
-  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
+
+  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
     // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (cel.fallas || cel.problemas || cel.defectos) {
@@ -508,24 +553,27 @@ const generateCelularCopy = (cel, config) => {
         partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
       }
     }
-    
+
     // 7. OBSERVACIONES
     if (cel.observaciones || cel.notas || cel.comentarios) {
       const obs = cel.observaciones || cel.notas || cel.comentarios;
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
-    
+
     // 8. GARANTIA - Removida del copy según requerimientos
-    
+
     // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
-    
+
     // 10. PROVEEDOR
     if (cel.proveedor || cel.importador) {
       const proveedor = cel.proveedor || cel.importador;
       partes.push(`Proveedor: ${proveedor.charAt(0).toUpperCase() + proveedor.slice(1).toLowerCase()}`);
     }
   }
-  
+
+  // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor
+  // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA - ESTADO
+
   // 6. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (cel.precio_venta_usd) {
@@ -534,7 +582,7 @@ const generateCelularCopy = (cel, config) => {
       partes.push('CONSULTAR');
     }
   }
-  
+
   // Unir las partes
   if (config.includeEmojis) {
     // Para versión simple: emoji seguido del resto sin separador
@@ -592,13 +640,13 @@ const generateOtroCopy = (otro, config) => {
     const emoji = getCategoriaEmoji(otro.categoria);
     partes.push(emoji);
   }
-  
+
   // CODIGO al principio (solo en versión completa)
   if (config.style === 'completo' && (otro.codigo || otro.codigo_producto || otro.sku)) {
     const codigo = otro.codigo || otro.codigo_producto || otro.sku;
     partes.push(codigo);
   }
-  
+
   // 1. NOMBRE DEL PRODUCTO
   let nombreProducto = '';
   if (otro.nombre_producto) {
@@ -617,31 +665,29 @@ const generateOtroCopy = (otro, config) => {
 
   // Para versión SIMPLE: solo EMOJI - NOMBRE - PRECIO (sin descripción, sin especificaciones)
   // Para versión COMPLETA: agregar campos adicionales
+  // Para versión DOCUMENTO: SOLO NOMBRE (sin descripción, color, estado, notas, observaciones)
   if (config.style === 'completo') {
     // 2. DESCRIPCION (solo si es diferente del nombre)
     if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
       partes.push(otro.descripcion.charAt(0).toUpperCase() + otro.descripcion.slice(1).toLowerCase());
     }
   }
-  
-  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA
+
+  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 3. CATEGORIA
-    if (otro.categoria) {
-      partes.push(otro.categoria.charAt(0).toUpperCase() + otro.categoria.slice(1).toLowerCase());
-    }
-    
+    // 3. CATEGORIA - Removida del copy según requerimientos
+
     // 4. COLOR
     if (otro.color) {
       partes.push(otro.color.charAt(0).toUpperCase() + otro.color.slice(1).toLowerCase());
     }
-    
+
     // 5. ESTADO
     if (otro.condicion || otro.estado) {
       const estado = otro.condicion || otro.estado;
       partes.push(estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase());
     }
-    
+
     // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (otro.fallas || otro.problemas || otro.defectos) {
       const notas = otro.fallas || otro.problemas || otro.defectos;
@@ -651,18 +697,21 @@ const generateOtroCopy = (otro, config) => {
         partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
       }
     }
-    
+
     // 7. OBSERVACIONES
     if (otro.observaciones || otro.notas || otro.comentarios) {
       const obs = otro.observaciones || otro.notas || otro.comentarios;
       partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
     }
-    
+
     // 8. GARANTIA - Removida del copy según requerimientos
-    
+
     // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
-  
+
+  // VERSIÓN DOCUMENTO: Solo NOMBRE_PRODUCTO
+  // Sin descripción, color, estado, notas ni observaciones
+
   // 3. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (otro.precio_venta_usd) {
@@ -671,7 +720,7 @@ const generateOtroCopy = (otro, config) => {
       partes.push('CONSULTAR');
     }
   }
-  
+
   // Unir las partes
   if (config.includeEmojis) {
     // Para versión simple: emoji seguido del resto sin separador
@@ -720,10 +769,10 @@ export const generarCopyOtro = (otro) => {
  */
 export const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
   const tipo = determinarTipoCopy(producto, categoria);
-  return generateCopy(producto, { 
-    tipo: tipo, 
+  return generateCopy(producto, {
+    tipo: tipo,
     categoria: categoria,
-    cotizacionDolar: cotizacionDolar 
+    cotizacionDolar: cotizacionDolar
   });
 };
 

@@ -7,13 +7,12 @@ import NuevaCompraModal from './NuevaCompraModal';
 import DetalleCompraModal from './DetalleCompraModal';
 
 const ComprasSection = () => {
-  const { recibos, loading, error, crearRecibo, actualizarRecibo, procesarRecibo, deleteRecibo } = useComprasLocales();
+  const { recibos, loading, error, crearRecibo, procesarRecibo, deleteRecibo, fetchRecibos } = useComprasLocales();
 
   // Estados modales
   const [showNuevaCompra, setShowNuevaCompra] = useState(false);
   const [showDetalle, setShowDetalle] = useState(false);
   const [reciboEnDetalle, setReciboEnDetalle] = useState(null);
-  const [reciboEnEdicion, setReciboEnEdicion] = useState(null);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   // Filtros
@@ -93,25 +92,6 @@ const ComprasSection = () => {
     }
   };
 
-  // Manejar edición
-  const handleEditarCompra = async (reciboData, items) => {
-    setIsLoadingAction(true);
-    try {
-      const resultado = await actualizarRecibo(reciboEnEdicion.id, reciboData, items);
-      if (resultado.success) {
-        setShowNuevaCompra(false);
-        setReciboEnEdicion(null);
-        alert(resultado.message);
-      } else {
-        alert('Error: ' + resultado.error);
-      }
-    } catch (err) {
-      alert('Error actualizando compra: ' + err.message);
-    } finally {
-      setIsLoadingAction(false);
-    }
-  };
-
   // Manejar procesamiento
   const handleProcesarCompra = async (id) => {
     setIsLoadingAction(true);
@@ -165,7 +145,6 @@ const ComprasSection = () => {
             </div>
             <button
               onClick={() => {
-                setReciboEnEdicion(null);
                 setShowNuevaCompra(true);
               }}
               className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
@@ -328,17 +307,6 @@ const ComprasSection = () => {
                           {recibo.estado === 'en_camino' && (
                             <>
                               <button
-                                onClick={() => {
-                                  setReciboEnEdicion(recibo);
-                                  setShowNuevaCompra(true);
-                                }}
-                                title="Editar"
-                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                              >
-                                <Edit2 size={18} />
-                              </button>
-
-                              <button
                                 onClick={() => handleProcesarCompra(recibo.id)}
                                 disabled={isLoadingAction}
                                 title="Marcar como INGRESADO"
@@ -360,17 +328,6 @@ const ComprasSection = () => {
 
                           {recibo.estado === 'ingresado' && (
                             <>
-                              <button
-                                onClick={() => {
-                                  setReciboEnEdicion(recibo);
-                                  setShowNuevaCompra(true);
-                                }}
-                                title="Editar"
-                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                              >
-                                <Edit2 size={18} />
-                              </button>
-
                               <button
                                 onClick={() => handleEliminarCompra(recibo.id)}
                                 disabled={isLoadingAction}
@@ -397,12 +354,9 @@ const ComprasSection = () => {
         isOpen={showNuevaCompra}
         onClose={() => {
           setShowNuevaCompra(false);
-          setReciboEnEdicion(null);
         }}
-        onSave={reciboEnEdicion ? handleEditarCompra : handleNuevaCompra}
+        onSave={fetchRecibos}
         isLoading={isLoadingAction}
-        isEditing={!!reciboEnEdicion}
-        reciboInicial={reciboEnEdicion}
       />
 
       <DetalleCompraModal

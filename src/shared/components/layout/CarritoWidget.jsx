@@ -67,6 +67,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
 
+  // Estado para controlar envío de email (PRUEBA)
+  const [enviarEmail, setEnviarEmail] = useState(false);
+
   // Estados para garantías eliminados - las garantías se generan desde GarantiasSection
 
 
@@ -585,7 +588,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         fecha_venta: fechaVentaCompleta,
         // ✅ NUEVO: Información para cuenta corriente
         esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente',
-        total: calcularTotal()
+        total: calcularTotal(),
+        // ✅ Flag para controlar envío de email (PRUEBA)
+        enviarEmail: enviarEmail
       };
 
       console.log('📦 Datos completos de la venta:', datosVentaCompletos);
@@ -862,6 +867,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           Limpiar carrito
                         </button>
                       </div>
+
                       <button
                         onClick={() => setMostrarFormulario(true)}
                         className="w-full bg-emerald-600 text-white py-3 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
@@ -1329,6 +1335,24 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Checkbox para envío de email */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mx-4 mb-4">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={enviarEmail}
+                          onChange={(e) => setEnviarEmail(e.target.checked)}
+                          className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-yellow-700" />
+                          <span className="text-sm font-semibold text-yellow-900">
+                            Enviar email con recibo y garantías (PRUEBA - NO MANDAR)
+                          </span>
+                        </div>
+                      </label>
                     </div>
 
                     {/* Botones */}

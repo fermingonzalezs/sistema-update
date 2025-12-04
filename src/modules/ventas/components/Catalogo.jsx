@@ -250,9 +250,8 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
       return `${infoBase} - Precio: ${precio}`;
     } catch (error) {
       console.error("Error generando copy:", error);
-      return `Error al generar información del producto: ${
-        producto.modelo || producto.nombre_producto || "Sin información"
-      }`;
+      return `Error al generar información del producto: ${producto.modelo || producto.nombre_producto || "Sin información"
+        }`;
     }
   };
 
@@ -369,15 +368,15 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         producto._tipoProducto === "celulares"
           ? "celular"
           : producto._tipoProducto === "notebooks"
-          ? "notebook"
-          : "otros";
+            ? "notebook"
+            : "otros";
     } else {
       tipo =
         categoriaActiva === "celulares"
           ? "celular"
           : categoriaActiva === "notebooks"
-          ? "notebook"
-          : "otros";
+            ? "notebook"
+            : "otros";
     }
 
     // Función para normalizar sucursal a valores válidos para la base de datos
@@ -534,8 +533,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
     // Confirmación doble para evitar eliminaciones accidentales
     const confirmacion = window.confirm(
-      `¿Estás seguro de que deseas eliminar este producto?\n\n${
-        modalEdit.tipo === "otros" ? editForm.nombre_producto : editForm.modelo
+      `¿Estás seguro de que deseas eliminar este producto?\n\n${modalEdit.tipo === "otros" ? editForm.nombre_producto : editForm.modelo
       }\n\nEsta acción no se puede deshacer.`
     );
 
@@ -749,8 +747,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         modalEdit.tipo === "notebook"
           ? "Notebook"
           : modalEdit.tipo === "celular"
-          ? "Celular"
-          : "Producto";
+            ? "Celular"
+            : "Producto";
       setEditSuccess(`${tipoProducto} actualizado correctamente`);
 
       // Cerrar modal después de 2 segundos
@@ -1980,8 +1978,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   💱 Precio estimado en pesos: $
                   {editForm.precio_venta_usd
                     ? Math.round(
-                        editForm.precio_venta_usd * cotizacionDolar
-                      ).toLocaleString("es-AR")
+                      editForm.precio_venta_usd * cotizacionDolar
+                    ).toLocaleString("es-AR")
                     : "0"}{" "}
                   | Cotización: ${cotizacionDolar}
                 </p>
@@ -2022,20 +2020,18 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <button
               key={cat.id}
               onClick={() => cambiarCategoria(cat.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${
-                categoriaActiva === cat.id
+              className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${categoriaActiva === cat.id
                   ? "bg-emerald-600 text-white"
                   : "bg-slate-700 text-white hover:bg-slate-200"
-              }`}
+                }`}
             >
               <span className="text-lg">{cat.icon}</span>
               <span className="font-medium">{cat.label}</span>
               <span
-                className={`text-xs px-2 py-1 rounded ${
-                  categoriaActiva === cat.id
+                className={`text-xs px-2 py-1 rounded ${categoriaActiva === cat.id
                     ? "bg-slate-200 text-slate-800"
                     : "bg-slate-300 text-slate-800"
-                }`}
+                  }`}
               >
                 {cat.data?.length || 0}
               </span>
@@ -2049,100 +2045,90 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  !filtros.categoria
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    !filtros.categoria
+                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "macbook")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "macbook"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "macbook"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>🍎</span>
                 <span>Macbook</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "macbook"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "macbook"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("macbook")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "windows")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "windows"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "windows"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>🪟</span>
                 <span>Windows</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "windows"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "windows"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("windows")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "2-en-1")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "2-en-1"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "2-en-1"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>🔄</span>
                 <span>2-en-1</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "2-en-1"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "2-en-1"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("2-en-1")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "gaming")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "gaming"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "gaming"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>🎮</span>
                 <span>Gaming</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "gaming"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "gaming"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("gaming")}
                 </span>
@@ -2157,60 +2143,54 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  !filtros.categoria
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    !filtros.categoria
+                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "iphone")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "iphone"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "iphone"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>📱</span>
                 <span>iPhone</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "iphone"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "iphone"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("iphone")}
                 </span>
               </button>
               <button
                 onClick={() => actualizarFiltro("categoria", "android")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  filtros.categoria === "android"
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "android"
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>🤖</span>
                 <span>Android</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    filtros.categoria === "android"
+                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "android"
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("android")}
                 </span>
@@ -2225,20 +2205,18 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                  !filtros.categoria
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
                     ? "bg-emerald-600 text-white"
                     : "bg-slate-700 text-white hover:bg-slate-600"
-                }`}
+                  }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    !filtros.categoria
+                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
                       ? "bg-slate-200 text-slate-800"
                       : "bg-slate-300 text-slate-800"
-                  }`}
+                    }`}
                 >
                   {contarPorSubcategoria("")}
                 </span>
@@ -2247,62 +2225,60 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <button
                   key={categoria}
                   onClick={() => actualizarFiltro("categoria", categoria)}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                    filtros.categoria === categoria
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === categoria
                       ? "bg-emerald-600 text-white"
                       : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
+                    }`}
                 >
                   <span>
                     {categoria === "DESKTOP"
                       ? "💻"
                       : categoria === "ACCESORIOS"
-                      ? "🔧"
-                      : categoria === "MONITORES"
-                      ? "🖥️"
-                      : categoria === "COMPONENTES"
-                      ? "⚡"
-                      : categoria === "FUNDAS_TEMPLADOS"
-                      ? "🛡️"
-                      : categoria === "TABLETS"
-                      ? "📱"
-                      : categoria === "MOUSE_TECLADOS"
-                      ? "⌨️"
-                      : categoria === "AUDIO"
-                      ? "🎧"
-                      : categoria === "ALMACENAMIENTO"
-                      ? "💾"
-                      : categoria === "CAMARAS"
-                      ? "📷"
-                      : categoria === "CONSOLAS"
-                      ? "🎮"
-                      : categoria === "GAMING"
-                      ? "🎯"
-                      : categoria === "DRONES"
-                      ? "🚁"
-                      : categoria === "WATCHES"
-                      ? "⌚"
-                      : categoria === "PLACAS_VIDEO"
-                      ? "🎨"
-                      : categoria === "STREAMING"
-                      ? "📡"
-                      : categoria === "REDES"
-                      ? "🌐"
-                      : categoria === "BAGS_CASES"
-                      ? "💼"
-                      : categoria === "CABLES_CARGADORES"
-                      ? "🔌"
-                      : categoria === "REPUESTOS"
-                      ? "🔩"
-                      : "📦"}
+                        ? "🔧"
+                        : categoria === "MONITORES"
+                          ? "🖥️"
+                          : categoria === "COMPONENTES"
+                            ? "⚡"
+                            : categoria === "FUNDAS_TEMPLADOS"
+                              ? "🛡️"
+                              : categoria === "TABLETS"
+                                ? "📱"
+                                : categoria === "MOUSE_TECLADOS"
+                                  ? "⌨️"
+                                  : categoria === "AUDIO"
+                                    ? "🎧"
+                                    : categoria === "ALMACENAMIENTO"
+                                      ? "💾"
+                                      : categoria === "CAMARAS"
+                                        ? "📷"
+                                        : categoria === "CONSOLAS"
+                                          ? "🎮"
+                                          : categoria === "GAMING"
+                                            ? "🎯"
+                                            : categoria === "DRONES"
+                                              ? "🚁"
+                                              : categoria === "WATCHES"
+                                                ? "⌚"
+                                                : categoria === "PLACAS_VIDEO"
+                                                  ? "🎨"
+                                                  : categoria === "STREAMING"
+                                                    ? "📡"
+                                                    : categoria === "REDES"
+                                                      ? "🌐"
+                                                      : categoria === "BAGS_CASES"
+                                                        ? "💼"
+                                                        : categoria === "CABLES_CARGADORES"
+                                                          ? "🔌"
+                                                          : categoria === "REPUESTOS"
+                                                            ? "🔩"
+                                                            : "📦"}
                   </span>
                   <span>{getCategoriaLabel(categoria)}</span>
                   <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      filtros.categoria === categoria
+                    className={`text-xs px-2 py-1 rounded ${filtros.categoria === categoria
                         ? "bg-slate-200 text-slate-800"
                         : "bg-slate-300 text-slate-800"
-                    }`}
+                      }`}
                   >
                     {contarPorSubcategoria(categoria)}
                   </span>
@@ -2325,28 +2301,26 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     onClick={() =>
                       actualizarFiltro("subcategoria", subcat.value)
                     }
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                      filtros.subcategoria === subcat.value
+                    className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.subcategoria === subcat.value
                         ? "bg-emerald-600 text-white"
                         : "bg-slate-700 text-white hover:bg-slate-600"
-                    }`}
+                      }`}
                   >
                     <span>
                       {subcat.value === "notebooks"
                         ? "💻"
                         : subcat.value === "celulares"
-                        ? "📱"
-                        : subcat.value === "otros"
-                        ? "📦"
-                        : ""}
+                          ? "📱"
+                          : subcat.value === "otros"
+                            ? "📦"
+                            : ""}
                     </span>
                     <span>{subcat.label}</span>
                     <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        filtros.subcategoria === subcat.value
+                      className={`text-xs px-2 py-1 rounded ${filtros.subcategoria === subcat.value
                           ? "bg-slate-200 text-slate-800"
                           : "bg-slate-300 text-slate-800"
-                      }`}
+                        }`}
                     >
                       {count}
                     </span>
@@ -2566,24 +2540,36 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </select>
             </div>
 
-            {/* Sucursal/Ubicación */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
-                Ubicación
-              </label>
-              <select
-                value={filtros.sucursal}
-                onChange={(e) => actualizarFiltro("sucursal", e.target.value)}
-                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
-              >
-                <option value="">Todas</option>
-                {UBICACIONES_ARRAY.map((ubicacion) => (
-                  <option key={ubicacion} value={ubicacion}>
-                    {getUbicacionLabel(ubicacion)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Sucursal/Ubicación - Ocultar para "otros" */}
+            {(() => {
+              const esOtros =
+                categoriaActiva === "otros" ||
+                categoriaActiva.startsWith("otros-") ||
+                (categoriaActiva === "apple" && filtros.subcategoria === "otros") ||
+                ["desktop", "tablets", "gpu", "componentes", "audio"].includes(categoriaActiva);
+
+              if (esOtros) return null;
+
+              return (
+                <div>
+                  <label className="block text-xs font-medium text-slate-200 mb-1">
+                    Ubicación
+                  </label>
+                  <select
+                    value={filtros.sucursal}
+                    onChange={(e) => actualizarFiltro("sucursal", e.target.value)}
+                    className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                  >
+                    <option value="">Todas</option>
+                    {UBICACIONES_ARRAY.map((ubicacion) => (
+                      <option key={ubicacion} value={ubicacion}>
+                        {getUbicacionLabel(ubicacion)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -2680,458 +2666,458 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
               return (
                 <div
-                key={producto.id}
-                className="group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2 min-w-[950px]"
-                onClick={() => setModalDetalle({ open: true, producto })}
-              >
-                {/* Información del producto */}
-                <div className={`text-start ${esOtros ? 'col-span-5' : 'col-span-6'}`}>
-                  {esOtros ? (
-                    <div>
-                      <div className="text-sm truncate uppercase">
-                        <span>
-                          {producto.nombre_producto || "SIN NOMBRE"}
-                        </span>
-                        {producto.descripcion && (
-                          <span className="text-slate-500">
-                            {" "}
-                            - {producto.descripcion}
+                  key={producto.id}
+                  className="group cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 border border-slate-200 rounded p-2 bg-white grid items-center shadow-sm hover:shadow-md grid-cols-12 gap-2 min-w-[950px]"
+                  onClick={() => setModalDetalle({ open: true, producto })}
+                >
+                  {/* Información del producto */}
+                  <div className={`text-start ${esOtros ? 'col-span-5' : 'col-span-6'}`}>
+                    {esOtros ? (
+                      <div>
+                        <div className="text-sm truncate uppercase">
+                          <span>
+                            {producto.nombre_producto || "SIN NOMBRE"}
+                          </span>
+                          {producto.descripcion && (
+                            <span className="text-slate-500">
+                              {" "}
+                              - {producto.descripcion}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm font-medium truncate">
+                        {generateCopy(producto, {
+                          tipo: (() => {
+                            // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
+                            let tipoProducto = "notebook_completo";
+                            if (categoriaActiva === "celulares") {
+                              tipoProducto = "celular_completo";
+                            } else if (
+                              categoriaActiva === "apple" &&
+                              producto._tipoProducto === "celulares"
+                            ) {
+                              tipoProducto = "celular_completo";
+                            }
+                            return tipoProducto;
+                          })()
+                        })}
+                        {producto.stock > 0 && (
+                          <span className="ml-1 text-emerald-600 text-sm">
+                            Stock: {producto.stock}
                           </span>
                         )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm font-medium truncate">
-                      {generateCopy(producto, { tipo: (() => {
-                        // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
-                        let tipoProducto = "notebook_completo";
-                        if (categoriaActiva === "celulares") {
-                          tipoProducto = "celular_completo";
-                        } else if (
-                          categoriaActiva === "apple" &&
-                          producto._tipoProducto === "celulares"
-                        ) {
-                          tipoProducto = "celular_completo";
-                        }
-                        return tipoProducto;
-                      })() })}
-                      {producto.stock > 0 && (
-                        <span className="ml-1 text-emerald-600 text-sm">
-                          Stock: {producto.stock}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
 
-                {(() => {
-                  if (esOtros) {
-                    return (
-                      // Columnas para otros productos - mostrar stock por sucursal
-                      <>
-                        {/* Serial */}
-                        <div className="col-span-1 flex justify-center items-center px-2">
-                          <span className="text-xs font-mono text-slate-600 truncate" title={producto.serial || "Sin serial"}>
-                            {producto.serial ? producto.serial : "-"}
-                          </span>
-                        </div>
-
-                        {/* Stock Mitre */}
-                        <div className="col-span-1 flex justify-center">
-                          <span
-                            className={`px-2 py-1 text-sm font-medium rounded ${
-                              (producto.cantidad_mitre || 0) > 0
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            {producto.cantidad_mitre || 0}
-                          </span>
-                        </div>
-
-                        {/* Stock La Plata */}
-                        <div className="col-span-1 flex justify-center">
-                          <span
-                            className={`px-2 py-1 text-sm font-medium rounded ${
-                              (producto.cantidad_la_plata || 0) > 0
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            {producto.cantidad_la_plata || 0}
-                          </span>
-                        </div>
-
-                        {/* Estado */}
-                        <div className="col-span-1 text-center flex justify-center items-center px-2">
-                          <span
-                            className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${(() => {
-                              const condicion = (
-                                producto.condicion ||
-                                producto.estado ||
-                                ""
-                              )
-                                .toLowerCase()
-                                .trim();
-                              if (condicion === "nuevo")
-                                return "bg-emerald-100 text-emerald-700";
-                              if (condicion === "excelente")
-                                return "bg-emerald-100 text-emerald-700";
-                              if (
-                                condicion === "refurbished" ||
-                                condicion === "reacondicionado"
-                              )
-                                return "bg-blue-100 text-blue-700";
-                              if (condicion === "muy bueno")
-                                return "bg-blue-100 text-blue-700";
-                              if (condicion === "usado")
-                                return "bg-yellow-100 text-yellow-700";
-                              if (condicion === "bueno")
-                                return "bg-yellow-100 text-yellow-700";
-                              if (condicion === "regular")
-                                return "bg-orange-100 text-orange-700";
-                              if (
-                                condicion === "reparacion" ||
-                                condicion === "reparación"
-                              )
-                                return "bg-red-100 text-red-700";
-                              if (condicion === "reservado")
-                                return "bg-purple-100 text-purple-700";
-                              if (condicion === "prestado")
-                                return "bg-cyan-100 text-cyan-700";
-                              if (
-                                condicion === "sin_reparacion" ||
-                                condicion === "sin reparación"
-                              )
-                                return "bg-gray-100 text-gray-700";
-                              if (
-                                condicion === "uso_oficina" ||
-                                condicion === "uso oficina"
-                              )
-                                return "bg-orange-100 text-orange-700";
-                              return "bg-slate-100 text-slate-700";
-                            })()}`}
-                            title={(() => {
-                              const condicion =
-                                producto.condicion || producto.estado || "N/A";
-                              if (condicion.toLowerCase() === "uso_oficina")
-                                return "USO OFICINA";
-                              return condicion.toUpperCase();
-                            })()}
-                          >
-                            {(() => {
-                              const condicion =
-                                producto.condicion || producto.estado || "N/A";
-                              if (condicion.toLowerCase() === "uso_oficina")
-                                return "USO OFICINA";
-                              return condicion.toUpperCase();
-                            })()}
-                          </span>
-                        </div>
-
-                        {/* Precio */}
-                        <div className="col-span-1 text-center">
-                          <div className="text-lg font-bold text-slate-800 leading-tight">
-                            {formatearMonto(producto.precio_venta_usd, "USD")}
+                  {(() => {
+                    if (esOtros) {
+                      return (
+                        // Columnas para otros productos - mostrar stock por sucursal
+                        <>
+                          {/* Serial */}
+                          <div className="col-span-1 flex justify-center items-center px-2">
+                            <span className="text-xs font-mono text-slate-600 truncate" title={producto.serial || "Sin serial"}>
+                              {producto.serial ? producto.serial : "-"}
+                            </span>
                           </div>
-                          <div className="text-sm text-slate-500 leading-tight">
-                            $
-                            {Math.round(
-                              producto.precio_venta_usd * cotizacionDolar
-                            ).toLocaleString("es-AR")}
+
+                          {/* Stock Mitre */}
+                          <div className="col-span-1 flex justify-center">
+                            <span
+                              className={`px-2 py-1 text-sm font-medium rounded ${(producto.cantidad_mitre || 0) > 0
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                                }`}
+                            >
+                              {producto.cantidad_mitre || 0}
+                            </span>
                           </div>
-                        </div>
 
-                        {/* Acciones - NUEVOS CUADRADOS EMOJI */}
-                        <div
-                          className="col-span-2 flex justify-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {/* Botón 1: Copiar USD */}
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              console.log("🔵 CLICK Botón USD - Producto:", producto?.id, producto?.modelo || producto?.nombre_producto);
+                          {/* Stock La Plata */}
+                          <div className="col-span-1 flex justify-center">
+                            <span
+                              className={`px-2 py-1 text-sm font-medium rounded ${(producto.cantidad_la_plata || 0) > 0
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                                }`}
+                            >
+                              {producto.cantidad_la_plata || 0}
+                            </span>
+                          </div>
 
-                              try {
-                                console.log("🔵 Generando copy...");
-                                const copyText = generateCopyWithPrice(
-                                  producto,
-                                  false
-                                ); // Copiar USD
+                          {/* Estado */}
+                          <div className="col-span-1 text-center flex justify-center items-center px-2">
+                            <span
+                              className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${(() => {
+                                const condicion = (
+                                  producto.condicion ||
+                                  producto.estado ||
+                                  ""
+                                )
+                                  .toLowerCase()
+                                  .trim();
+                                if (condicion === "nuevo")
+                                  return "bg-emerald-100 text-emerald-700";
+                                if (condicion === "excelente")
+                                  return "bg-emerald-100 text-emerald-700";
+                                if (
+                                  condicion === "refurbished" ||
+                                  condicion === "reacondicionado"
+                                )
+                                  return "bg-blue-100 text-blue-700";
+                                if (condicion === "muy bueno")
+                                  return "bg-blue-100 text-blue-700";
+                                if (condicion === "usado")
+                                  return "bg-yellow-100 text-yellow-700";
+                                if (condicion === "bueno")
+                                  return "bg-yellow-100 text-yellow-700";
+                                if (condicion === "regular")
+                                  return "bg-orange-100 text-orange-700";
+                                if (
+                                  condicion === "reparacion" ||
+                                  condicion === "reparación"
+                                )
+                                  return "bg-red-100 text-red-700";
+                                if (condicion === "reservado")
+                                  return "bg-purple-100 text-purple-700";
+                                if (condicion === "prestado")
+                                  return "bg-cyan-100 text-cyan-700";
+                                if (
+                                  condicion === "sin_reparacion" ||
+                                  condicion === "sin reparación"
+                                )
+                                  return "bg-gray-100 text-gray-700";
+                                if (
+                                  condicion === "uso_oficina" ||
+                                  condicion === "uso oficina"
+                                )
+                                  return "bg-orange-100 text-orange-700";
+                                return "bg-slate-100 text-slate-700";
+                              })()}`}
+                              title={(() => {
+                                const condicion =
+                                  producto.condicion || producto.estado || "N/A";
+                                if (condicion.toLowerCase() === "uso_oficina")
+                                  return "USO OFICINA";
+                                return condicion.toUpperCase();
+                              })()}
+                            >
+                              {(() => {
+                                const condicion =
+                                  producto.condicion || producto.estado || "N/A";
+                                if (condicion.toLowerCase() === "uso_oficina")
+                                  return "USO OFICINA";
+                                return condicion.toUpperCase();
+                              })()}
+                            </span>
+                          </div>
 
-                                console.log("🔵 Copy generado:", copyText?.substring(0, 50));
+                          {/* Precio */}
+                          <div className="col-span-1 text-center">
+                            <div className="text-lg font-bold text-slate-800 leading-tight">
+                              {formatearMonto(producto.precio_venta_usd, "USD")}
+                            </div>
+                            <div className="text-sm text-slate-500 leading-tight">
+                              $
+                              {Math.round(
+                                producto.precio_venta_usd * cotizacionDolar
+                              ).toLocaleString("es-AR")}
+                            </div>
+                          </div>
 
-                                // Intentar con clipboard API moderno
-                                let copiado = false;
-                                if (navigator.clipboard && navigator.clipboard.writeText) {
-                                  try {
-                                    console.log("🔵 Intentando clipboard API...");
-                                    await navigator.clipboard.writeText(copyText);
-                                    copiado = true;
-                                    console.log("✅ Copiado USD con API:", copyText);
-                                  } catch (clipboardErr) {
-                                    console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                          {/* Acciones - NUEVOS CUADRADOS EMOJI */}
+                          <div
+                            className="col-span-2 flex justify-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* Botón 1: Copiar USD */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                console.log("🔵 CLICK Botón USD - Producto:", producto?.id, producto?.modelo || producto?.nombre_producto);
+
+                                try {
+                                  console.log("🔵 Generando copy...");
+                                  const copyText = generateCopyWithPrice(
+                                    producto,
+                                    false
+                                  ); // Copiar USD
+
+                                  console.log("🔵 Copy generado:", copyText?.substring(0, 50));
+
+                                  // Intentar con clipboard API moderno
+                                  let copiado = false;
+                                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    try {
+                                      console.log("🔵 Intentando clipboard API...");
+                                      await navigator.clipboard.writeText(copyText);
+                                      copiado = true;
+                                      console.log("✅ Copiado USD con API:", copyText);
+                                    } catch (clipboardErr) {
+                                      console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                                      copiado = copiarTextoFallback(copyText);
+                                      if (copiado) {
+                                        console.log("✅ Copiado USD con fallback");
+                                      }
+                                    }
+                                  } else {
+                                    console.log("🔵 API no disponible, usando fallback...");
                                     copiado = copiarTextoFallback(copyText);
                                     if (copiado) {
                                       console.log("✅ Copiado USD con fallback");
                                     }
                                   }
-                                } else {
-                                  console.log("🔵 API no disponible, usando fallback...");
-                                  copiado = copiarTextoFallback(copyText);
-                                  if (copiado) {
-                                    console.log("✅ Copiado USD con fallback");
+
+                                  if (!copiado) {
+                                    console.error("❌ No se pudo copiar");
+                                    alert("Error: No se pudo copiar al portapapeles");
                                   }
+                                } catch (error) {
+                                  console.error("❌ Error copiando USD:", error);
+                                  alert("Error al copiar: " + error.message);
                                 }
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Copiar información USD"
+                            >
+                              U$
+                            </button>
 
-                                if (!copiado) {
-                                  console.error("❌ No se pudo copiar");
-                                  alert("Error: No se pudo copiar al portapapeles");
-                                }
-                              } catch (error) {
-                                console.error("❌ Error copiando USD:", error);
-                                alert("Error al copiar: " + error.message);
-                              }
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Copiar información USD"
-                          >
-                            U$
-                          </button>
+                            {/* Botón 2: Copiar Pesos */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const copyText = generateCopyWithPrice(
+                                    producto,
+                                    true
+                                  ); // Copiar Pesos
 
-                          {/* Botón 2: Copiar Pesos */}
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                const copyText = generateCopyWithPrice(
-                                  producto,
-                                  true
-                                ); // Copiar Pesos
-
-                                // Intentar con clipboard API moderno
-                                let copiado = false;
-                                if (navigator.clipboard && navigator.clipboard.writeText) {
-                                  try {
-                                    await navigator.clipboard.writeText(copyText);
-                                    copiado = true;
-                                    console.log("✅ Copiado ARS:", copyText);
-                                  } catch (clipboardErr) {
-                                    console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                                  // Intentar con clipboard API moderno
+                                  let copiado = false;
+                                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    try {
+                                      await navigator.clipboard.writeText(copyText);
+                                      copiado = true;
+                                      console.log("✅ Copiado ARS:", copyText);
+                                    } catch (clipboardErr) {
+                                      console.warn("⚠️ Clipboard API falló, usando fallback:", clipboardErr);
+                                      copiado = copiarTextoFallback(copyText);
+                                    }
+                                  } else {
                                     copiado = copiarTextoFallback(copyText);
                                   }
-                                } else {
-                                  copiado = copiarTextoFallback(copyText);
+
+                                  if (copiado) {
+                                    console.log("✅ Copy ARS exitoso");
+                                  }
+                                } catch (error) {
+                                  console.error("❌ Error copiando ARS:", error);
                                 }
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Copiar información ARS"
+                            >
+                              $
+                            </button>
 
-                                if (copiado) {
-                                  console.log("✅ Copy ARS exitoso");
+                            {/* Botón 3: Agregar a Venta */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(producto);
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
+                              title="Agregar al carrito"
+                            >
+                              V
+                            </button>
+
+                            {/* Botón 4: Editar */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(producto);
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Editar producto"
+                            >
+                              E
+                            </button>
+                          </div>
+                        </>
+                      );
+                    } else {
+                      // Columnas para notebooks y celulares (incluyendo Apple notebooks y celulares)
+                      return (
+                        <>
+                          {/* Serial para notebooks y celulares */}
+                          <div className="col-span-2 text-center">
+                            <div className="text-sm text-slate-700">
+                              {producto.serial || producto.imei || "N/A"}
+                            </div>
+                          </div>
+
+                          {/* Precio */}
+                          <div className="col-span-1 text-center">
+                            <div className="text-lg font-bold text-slate-800">
+                              {formatearMonto(producto.precio_venta_usd, "USD")}
+                            </div>
+                            <div className="text-sm text-slate-500">
+                              $
+                              {Math.round(
+                                producto.precio_venta_usd * cotizacionDolar
+                              ).toLocaleString("es-AR")}
+                            </div>
+                          </div>
+
+                          {/* Estado - Solo condición */}
+                          <div className="col-span-1 text-center flex justify-center items-center px-2">
+                            <span
+                              className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${(() => {
+                                const condicion = (
+                                  producto.condicion ||
+                                  producto.estado ||
+                                  ""
+                                )
+                                  .toLowerCase()
+                                  .trim();
+                                if (condicion === "nuevo")
+                                  return "bg-emerald-100 text-emerald-700";
+                                if (condicion === "excelente")
+                                  return "bg-emerald-100 text-emerald-700";
+                                if (
+                                  condicion === "refurbished" ||
+                                  condicion === "reacondicionado"
+                                )
+                                  return "bg-blue-100 text-blue-700";
+                                if (condicion === "muy bueno")
+                                  return "bg-blue-100 text-blue-700";
+                                if (condicion === "usado")
+                                  return "bg-yellow-100 text-yellow-700";
+                                if (condicion === "bueno")
+                                  return "bg-yellow-100 text-yellow-700";
+                                if (condicion === "regular")
+                                  return "bg-orange-100 text-orange-700";
+                                if (
+                                  condicion === "reparacion" ||
+                                  condicion === "reparación"
+                                )
+                                  return "bg-red-100 text-red-700";
+                                if (condicion === "reservado")
+                                  return "bg-purple-100 text-purple-700";
+                                if (condicion === "prestado")
+                                  return "bg-cyan-100 text-cyan-700";
+                                if (
+                                  condicion === "sin_reparacion" ||
+                                  condicion === "sin reparación"
+                                )
+                                  return "bg-gray-100 text-gray-700";
+                                if (
+                                  condicion === "uso_oficina" ||
+                                  condicion === "uso oficina"
+                                )
+                                  return "bg-orange-100 text-orange-700";
+                                return "bg-slate-100 text-slate-700";
+                              })()}`}
+                              title={(() => {
+                                const condicion =
+                                  producto.condicion || producto.estado || "N/A";
+                                if (condicion.toLowerCase() === "uso_oficina")
+                                  return "USO OFICINA";
+                                return condicion.toUpperCase();
+                              })()}
+                            >
+                              {(() => {
+                                const condicion =
+                                  producto.condicion || producto.estado || "N/A";
+                                if (condicion.toLowerCase() === "uso_oficina")
+                                  return "USO OFICINA";
+                                return condicion.toUpperCase();
+                              })()}
+                            </span>
+                          </div>
+
+                          {/* Acciones - NUEVOS CUADRADOS EMOJI */}
+                          <div
+                            className="col-span-2 flex justify-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* Botón 1: Copiar USD 📋 */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const copyText = generateCopyWithPrice(
+                                    producto,
+                                    false
+                                  ); // Copiar USD
+                                  await navigator.clipboard.writeText(copyText);
+                                  console.log("✅ Copiado USD:", copyText);
+                                } catch (error) {
+                                  // Fallback...
                                 }
-                              } catch (error) {
-                                console.error("❌ Error copiando ARS:", error);
-                              }
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Copiar información ARS"
-                          >
-                            $
-                          </button>
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Copiar información USD"
+                            >
+                              U$
+                            </button>
 
-                          {/* Botón 3: Agregar a Venta */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(producto);
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
-                            title="Agregar al carrito"
-                          >
-                            V
-                          </button>
+                            {/* Botón 2: Copiar Pesos 🇦🇷 */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const copyText = generateCopyWithPrice(
+                                    producto,
+                                    true
+                                  ); // Copiar Pesos
+                                  await navigator.clipboard.writeText(copyText);
+                                  console.log("✅ Copiado ARS:", copyText);
+                                } catch (error) {
+                                  // Fallback...
+                                }
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Copiar información ARS"
+                            >
+                              $
+                            </button>
 
-                          {/* Botón 4: Editar */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(producto);
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Editar producto"
-                          >
-                            E
-                          </button>
-                        </div>
-                      </>
-                    );
-                  } else {
-                    // Columnas para notebooks y celulares (incluyendo Apple notebooks y celulares)
-                    return (
-                      <>
-                        {/* Serial para notebooks y celulares */}
-                        <div className="col-span-2 text-center">
-                          <div className="text-sm text-slate-700">
-                            {producto.serial || producto.imei || "N/A"}
+                            {/* Botón 3: Agregar a Venta 🛒 */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(producto);
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
+                              title="Agregar al carrito"
+                            >
+                              V
+                            </button>
+
+                            {/* Botón 4: Editar ✏️ */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(producto);
+                              }}
+                              className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
+                              title="Editar producto"
+                            >
+                              E
+                            </button>
                           </div>
-                        </div>
-
-                        {/* Precio */}
-                        <div className="col-span-1 text-center">
-                          <div className="text-lg font-bold text-slate-800">
-                            {formatearMonto(producto.precio_venta_usd, "USD")}
-                          </div>
-                          <div className="text-sm text-slate-500">
-                            $
-                            {Math.round(
-                              producto.precio_venta_usd * cotizacionDolar
-                            ).toLocaleString("es-AR")}
-                          </div>
-                        </div>
-
-                        {/* Estado - Solo condición */}
-                        <div className="col-span-1 text-center flex justify-center items-center px-2">
-                          <span
-                            className={`px-2 h-7 text-xs font-medium rounded inline-flex items-center truncate max-w-[90%] ${(() => {
-                              const condicion = (
-                                producto.condicion ||
-                                producto.estado ||
-                                ""
-                              )
-                                .toLowerCase()
-                                .trim();
-                              if (condicion === "nuevo")
-                                return "bg-emerald-100 text-emerald-700";
-                              if (condicion === "excelente")
-                                return "bg-emerald-100 text-emerald-700";
-                              if (
-                                condicion === "refurbished" ||
-                                condicion === "reacondicionado"
-                              )
-                                return "bg-blue-100 text-blue-700";
-                              if (condicion === "muy bueno")
-                                return "bg-blue-100 text-blue-700";
-                              if (condicion === "usado")
-                                return "bg-yellow-100 text-yellow-700";
-                              if (condicion === "bueno")
-                                return "bg-yellow-100 text-yellow-700";
-                              if (condicion === "regular")
-                                return "bg-orange-100 text-orange-700";
-                              if (
-                                condicion === "reparacion" ||
-                                condicion === "reparación"
-                              )
-                                return "bg-red-100 text-red-700";
-                              if (condicion === "reservado")
-                                return "bg-purple-100 text-purple-700";
-                              if (condicion === "prestado")
-                                return "bg-cyan-100 text-cyan-700";
-                              if (
-                                condicion === "sin_reparacion" ||
-                                condicion === "sin reparación"
-                              )
-                                return "bg-gray-100 text-gray-700";
-                              if (
-                                condicion === "uso_oficina" ||
-                                condicion === "uso oficina"
-                              )
-                                return "bg-orange-100 text-orange-700";
-                              return "bg-slate-100 text-slate-700";
-                            })()}`}
-                            title={(() => {
-                              const condicion =
-                                producto.condicion || producto.estado || "N/A";
-                              if (condicion.toLowerCase() === "uso_oficina")
-                                return "USO OFICINA";
-                              return condicion.toUpperCase();
-                            })()}
-                          >
-                            {(() => {
-                              const condicion =
-                                producto.condicion || producto.estado || "N/A";
-                              if (condicion.toLowerCase() === "uso_oficina")
-                                return "USO OFICINA";
-                              return condicion.toUpperCase();
-                            })()}
-                          </span>
-                        </div>
-
-                        {/* Acciones - NUEVOS CUADRADOS EMOJI */}
-                        <div
-                          className="col-span-2 flex justify-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {/* Botón 1: Copiar USD 📋 */}
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                const copyText = generateCopyWithPrice(
-                                  producto,
-                                  false
-                                ); // Copiar USD
-                                await navigator.clipboard.writeText(copyText);
-                                console.log("✅ Copiado USD:", copyText);
-                              } catch (error) {
-                                // Fallback...
-                              }
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Copiar información USD"
-                          >
-                            U$
-                          </button>
-
-                          {/* Botón 2: Copiar Pesos 🇦🇷 */}
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                const copyText = generateCopyWithPrice(
-                                  producto,
-                                  true
-                                ); // Copiar Pesos
-                                await navigator.clipboard.writeText(copyText);
-                                console.log("✅ Copiado ARS:", copyText);
-                              } catch (error) {
-                                // Fallback...
-                              }
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Copiar información ARS"
-                          >
-                            $
-                          </button>
-
-                          {/* Botón 3: Agregar a Venta 🛒 */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(producto);
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
-                            title="Agregar al carrito"
-                          >
-                            V
-                          </button>
-
-                          {/* Botón 4: Editar ✏️ */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(producto);
-                            }}
-                            className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                            title="Editar producto"
-                          >
-                            E
-                          </button>
-                        </div>
-                      </>
-                    );
-                  }
-                })()}
-              </div>
-            );
+                        </>
+                      );
+                    }
+                  })()}
+                </div>
+              );
             })}
 
             {datos.length === 0 && (
@@ -3152,13 +3138,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         tipoProducto={
           categoriaActiva === "apple"
             ? (modalDetalle.producto?._tipoProducto === "celulares"
-                ? "celular"
-                : modalDetalle.producto?._tipoProducto === "notebooks"
+              ? "celular"
+              : modalDetalle.producto?._tipoProducto === "notebooks"
                 ? "notebook"
                 : "otro")
             : (categoriaActiva === "celulares"
-                ? "celular"
-                : categoriaActiva === "notebooks"
+              ? "celular"
+              : categoriaActiva === "notebooks"
                 ? "notebook"
                 : "otro")
         }

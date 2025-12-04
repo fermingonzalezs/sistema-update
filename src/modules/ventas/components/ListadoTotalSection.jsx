@@ -178,19 +178,19 @@ const ListadoTotalSection = () => {
       });
     });
 
-   // Agregar celulares
+    // Agregar celulares
     celulares.forEach(cel => {
       // Agregar TODOS los celulares sin filtros
       let infoAdicional = '';
 
-      if(cel.condicion === 'usado' || cel.condicion === 'refurbished'){
+      if (cel.condicion === 'usado' || cel.condicion === 'refurbished') {
         // Usando cel.estado para la condición estética
         const estetica = cel.estado ? `${cel.estado}` : '';
 
         const bateria = cel.bateria ? `🔋${cel.bateria}` : '';
 
         const partesAdicionales = [estetica, bateria].filter(p => p !== '');
-        if(partesAdicionales.length > 0){
+        if (partesAdicionales.length > 0) {
           infoAdicional = ` ${partesAdicionales.join(' ')}`;
         }
       }
@@ -245,12 +245,12 @@ const ListadoTotalSection = () => {
         info: `${emoji} ${info.trim()}`,
         stock: stockTotal,
 
-        // Nuevos campos detallados - otros NO tienen desglose
-        precioCompra: null, // No mostrar
-        envioRepuestos: null, // No mostrar
-        precioCompraTotal: precioCompraTotal,
+        // Nuevos campos detallados
+        precioCompra: otro.precio_compra_usd || 0,
+        envioRepuestos: otro.costos_adicionales || 0,
+        precioCompraTotal: (otro.precio_compra_usd || 0) + (otro.costos_adicionales || 0),
         precioVenta: otro.precio_venta_usd || 0,
-        serial: null, // No tienen serial
+        serial: otro.serial || '',
         fechaIngreso: otro.ingreso,
         diasEnStock: diasEnStock,
         margen: margen,
@@ -727,6 +727,7 @@ const ListadoTotalSection = () => {
       } else if (tabla === 'otros') {
         productoActualizado = await updateOtro(idOriginal, {
           precio_compra_usd: parseFloat(valoresEdicion.precioCompra) || 0,
+          costos_adicionales: parseFloat(valoresEdicion.envioRepuestos) || 0,
           precio_venta_usd: parseFloat(valoresEdicion.precioVenta) || 0
         });
         // Actualizar solo este item en el estado local
@@ -876,11 +877,10 @@ const ListadoTotalSection = () => {
             {/* Botón Edición Masiva */}
             <button
               onClick={toggleEdicionMasiva}
-              className={`px-4 py-2 rounded flex items-center gap-2 transition-colors font-medium ${
-                modoEdicionMasiva
-                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
+              className={`px-4 py-2 rounded flex items-center gap-2 transition-colors font-medium ${modoEdicionMasiva
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
             >
               📝 {modoEdicionMasiva ? 'Salir edición' : 'Editar todos'}
             </button>
@@ -1242,24 +1242,23 @@ const ListadoTotalSection = () => {
 
                     {/* Stock */}
                     <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-sm font-medium ${
-                        producto.stock > 5 ? 'bg-green-100 text-green-700' :
+                      <span className={`px-2 py-1 rounded text-sm font-medium ${producto.stock > 5 ? 'bg-green-100 text-green-700' :
                         producto.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                          'bg-red-100 text-red-700'
+                        }`}>
                         {producto.stock}
                       </span>
                     </td>
 
                     {/* Precio Compra (PC) */}
                     <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-                      {estaEditando && producto.tabla !== 'otros' ? (
+                      {estaEditando ? (
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={valoresEdicion.precioCompra}
-                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioCompra: e.target.value})}
+                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioCompra: e.target.value })}
                           className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                       ) : (
@@ -1269,13 +1268,13 @@ const ListadoTotalSection = () => {
 
                     {/* Costos Extras (Envío/Repuestos) */}
                     <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-                      {estaEditando && producto.tabla !== 'otros' ? (
+                      {estaEditando ? (
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={valoresEdicion.envioRepuestos}
-                          onChange={(e) => setValoresEdicion({...valoresEdicion, envioRepuestos: e.target.value})}
+                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, envioRepuestos: e.target.value })}
                           className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                       ) : (
@@ -1285,29 +1284,16 @@ const ListadoTotalSection = () => {
 
                     {/* PC Total */}
                     <td className="px-4 py-2 text-center text-sm font-medium text-slate-700">
-                      {estaEditando && producto.tabla === 'otros' ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={valoresEdicion.precioCompra}
-                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioCompra: e.target.value})}
-                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        formatearMonto(producto.precioCompraTotal, 'USD')
-                      )}
+                      {formatearMonto(producto.precioCompraTotal, 'USD')}
                     </td>
 
                     {/* Margen % */}
                     <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        producto.margen > 30 ? 'bg-green-100 text-green-700' :
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${producto.margen > 30 ? 'bg-green-100 text-green-700' :
                         producto.margen > 15 ? 'bg-yellow-100 text-yellow-700' :
-                        producto.margen > 0 ? 'bg-orange-100 text-orange-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                          producto.margen > 0 ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                        }`}>
                         {producto.margen.toFixed(1)}%
                       </span>
                     </td>
@@ -1320,7 +1306,7 @@ const ListadoTotalSection = () => {
                           min="0"
                           step="0.01"
                           value={valoresEdicion.precioVenta}
-                          onChange={(e) => setValoresEdicion({...valoresEdicion, precioVenta: e.target.value})}
+                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioVenta: e.target.value })}
                           className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                       ) : (
@@ -1369,11 +1355,10 @@ const ListadoTotalSection = () => {
                             {/* Botón E de editar cuando NO está editando - 32x32px */}
                             <button
                               onClick={() => iniciarEdicionFila(producto)}
-                              className={`w-8 h-8 rounded transition-colors font-bold text-sm flex items-center justify-center ${
-                                modoEdicionMasiva
-                                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                  : 'bg-slate-600 hover:bg-slate-700 text-white'
-                              }`}
+                              className={`w-8 h-8 rounded transition-colors font-bold text-sm flex items-center justify-center ${modoEdicionMasiva
+                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                : 'bg-slate-600 hover:bg-slate-700 text-white'
+                                }`}
                               title="Editar producto"
                               disabled={modoEdicionMasiva}
                             >
@@ -1408,11 +1393,10 @@ const ListadoTotalSection = () => {
             <button
               onClick={guardarEdicionesMasivas}
               disabled={guardandoMasivo}
-              className={`px-6 py-3 rounded flex items-center gap-2 font-medium text-white ${
-                guardandoMasivo
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-emerald-600 hover:bg-emerald-700'
-              }`}
+              className={`px-6 py-3 rounded flex items-center gap-2 font-medium text-white ${guardandoMasivo
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
             >
               {guardandoMasivo ? (
                 <>

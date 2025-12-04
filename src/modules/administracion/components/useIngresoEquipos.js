@@ -6,7 +6,7 @@ export const useIngresoEquipos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Obtener historial de ingresos
+  // Obtener historial de ingresos con datos relacionados de inventario
   const fetchIngresos = async () => {
     try {
       setLoading(true);
@@ -16,7 +16,49 @@ export const useIngresoEquipos = () => {
         .order('fecha', { ascending: false });
 
       if (error) throw error;
-      setIngresos(data || []);
+
+      // Enriquecer con datos de subcategoría desde las tablas de inventario
+      const ingresosEnriquecidos = await Promise.all(
+        (data || []).map(async (ingreso) => {
+          let subcategoria = null;
+
+          if (ingreso.referencia_inventario_id) {
+            try {
+              if (ingreso.tipo_producto === 'notebook') {
+                const { data: notebook } = await supabase
+                  .from('inventario')
+                  .select('categoria')
+                  .eq('id', ingreso.referencia_inventario_id)
+                  .single();
+                subcategoria = notebook?.categoria || null;
+              } else if (ingreso.tipo_producto === 'celular') {
+                const { data: celular } = await supabase
+                  .from('celulares')
+                  .select('categoria')
+                  .eq('id', ingreso.referencia_inventario_id)
+                  .single();
+                subcategoria = celular?.categoria || null;
+              } else if (ingreso.tipo_producto === 'otro') {
+                const { data: otro } = await supabase
+                  .from('otros')
+                  .select('categoria')
+                  .eq('id', ingreso.referencia_inventario_id)
+                  .single();
+                subcategoria = otro?.categoria || null;
+              }
+            } catch (err) {
+              console.error('Error fetching subcategoria:', err);
+            }
+          }
+
+          return {
+            ...ingreso,
+            subcategoria
+          };
+        })
+      );
+
+      setIngresos(ingresosEnriquecidos);
     } catch (err) {
       console.error('Error fetching ingresos:', err);
       setError(err.message);
@@ -35,10 +77,10 @@ export const useIngresoEquipos = () => {
         .single();
 
       if (error) throw error;
-      
+
       // Actualizar lista local
       setIngresos(prev => [data, ...prev]);
-      
+
       return { success: true, data };
     } catch (err) {
       console.error('Error registrando ingreso:', err);
@@ -64,8 +106,8 @@ export const useIngresoEquipos = () => {
       if (error) throw error;
 
       // Actualizar lista local
-      setIngresos(prev => 
-        prev.map(ingreso => 
+      setIngresos(prev =>
+        prev.map(ingreso =>
           ingreso.id === id ? { ...ingreso, ...updateData } : ingreso
         )
       );
@@ -79,8 +121,8 @@ export const useIngresoEquipos = () => {
 
   // Obtener ingresos pendientes de testeo
   const getIngresosPendientesTesteo = () => {
-    return ingresos.filter(ingreso => 
-      ingreso.destino === 'testeo' && 
+    return ingresos.filter(ingreso =>
+      ingreso.destino === 'testeo' &&
       (ingreso.estado === 'pendiente' || ingreso.estado === 'en_testeo')
     );
   };
@@ -89,18 +131,25 @@ export const useIngresoEquipos = () => {
   const generarDescripcionCompleta = (tipoProducto, datos) => {
     switch (tipoProducto) {
       case 'notebook':
-        return `${datos.marca || ''} ${datos.modelo || ''} - ${datos.procesador || ''} / ${datos.ram || ''}GB RAM / ${datos.ssd || ''}GB SSD${datos.hdd ? ` + ${datos.hdd}GB HDD` : ''} / ${datos.pantalla || ''}"`;
-      
+        let modeloNotebook = datos.modelo || '';
+        if (datos.marca && modeloNotebook.toLowerCase().startsWith(datos.marca.toLowerCase())) {
+          modeloNotebook = modeloNotebook.substring(datos.marca.length).trim();
+        }
+        return `${modeloNotebook} - ${datos.pantalla || ''}" - ${datos.procesador || ''} - ${datos.ram || ''}GB RAM - ${datos.ssd || ''}GB SSD${datos.hdd ? ` + ${datos.hdd}GB HDD` : ''}`;
+
       case 'celular':
-        return `${datos.marca || ''} ${datos.modelo || ''} - ${datos.capacidad || ''} / ${datos.color || ''} / Batería: ${datos.porcentaje_bateria || ''}%`;
-      
+        let modeloCelular = datos.modelo || '';
+        if (datos.marca && modeloCelular.toLowerCase().startsWith(datos.marca.toLowerCase())) {
+          modeloCelular = modeloCelular.substring(datos.marca.length).trim();
+        }
+        return `${modeloCelular} - ${datos.color || ''} - ${datos.capacidad || ''} - Batería: ${datos.porcentaje_bateria || datos.bateria || ''}%`;
+
       case 'otro':
         const nombre = datos.nombre_producto || datos.descripcion_producto || 'Sin nombre';
-        const categoria = datos.categoria || 'Accesorio';
-        const marca = datos.marca ? ` ${datos.marca}` : '';
         const descripcion = datos.descripcion ? ` - ${datos.descripcion}` : '';
-        return `${categoria} -${marca} ${nombre}${descripcion}`;
-      
+        const cantidadTotal = (parseInt(datos.cantidad_la_plata) || 0) + (parseInt(datos.cantidad_mitre) || 0);
+        return `${nombre}${descripcion} - Cantidad: ${cantidadTotal}`;
+
       default:
         return JSON.stringify(datos);
     }

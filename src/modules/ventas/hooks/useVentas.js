@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { otrosService } from '../hooks/useOtros.js';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
+import { generarPDFsVenta, extraerInfoProductosParaEmail } from '../utils/pdfGeneratorService.jsx';
+import { enviarVentaPorEmail } from '../utils/emailService';
 
 // 📊 SERVICE: Operaciones de ventas y transacciones
 export const ventasService = {
@@ -234,22 +236,34 @@ export const ventasService = {
         });
 
 
-        // Generar copy completo del producto al momento de la venta
+        // Generar DOS copys: uno completo (para BD) y otro limpio (para documentos)
         let copyCompleto = '';
-        try {
-          // Determinar el tipo de copy según el producto
-          let tipoCopy = 'otro_completo'; // Por defecto
-          if (item.tipo === 'computadora') {
-            tipoCopy = 'notebook_completo';
-          } else if (item.tipo === 'celular') {
-            tipoCopy = 'celular_completo';
-          }
+        let copyDocumento = '';
 
-          copyCompleto = generateCopy(item.producto, { tipo: tipoCopy });
+        try {
+          // 1. COPY COMPLETO - Para guardar en BD con toda la información
+          let tipoCompleto = 'otro_completo';
+          if (item.tipo === 'computadora') {
+            tipoCompleto = 'notebook_completo';
+          } else if (item.tipo === 'celular') {
+            tipoCompleto = 'celular_completo';
+          }
+          copyCompleto = generateCopy(item.producto, { tipo: tipoCompleto });
+
+          // 2. COPY DOCUMENTO - Para recibos, garantías y emails (sin observaciones/notas)
+          let tipoDocumento = 'otro_documento';
+          if (item.tipo === 'computadora') {
+            tipoDocumento = 'notebook_documento';
+          } else if (item.tipo === 'celular') {
+            tipoDocumento = 'celular_documento';
+          }
+          copyDocumento = generateCopy(item.producto, { tipo: tipoDocumento });
         } catch (error) {
-          console.error('Error generando copy:', error);
+          console.error('Error generando copys:', error);
           // Fallback al modelo/nombre si falla la generación
-          copyCompleto = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
+          const fallback = item.producto.modelo || item.producto.nombre_producto || 'Sin descripción';
+          copyCompleto = fallback;
+          copyDocumento = fallback;
         }
 
         // Determinar tipo_producto: usar categoría específica para productos "otros"
@@ -287,7 +301,8 @@ export const ventasService = {
           tipo_producto: tipoProducto, // Ahora incluye categorías específicas normalizadas (MAYÚSCULAS)
           producto_id: item.producto.id,
           serial_producto: item.tipo === 'otro' ? (item.producto.serial || item.producto.id) : (item.producto.serial || `${item.tipo}-${item.producto.id}`),
-          copy: copyCompleto,
+          copy: copyCompleto, // Copy completo con toda la información
+          copy_documento: copyDocumento, // Copy limpio para documentos (recibos, garantías, emails)
           cantidad: item.cantidad,
           precio_unitario: precioUnitarioSeguro, // CRÍTICO: Usar precio validado
           precio_total: precioTotal,
@@ -785,6 +800,59 @@ export function useVentas() {
             // No bloquear la venta si falla el refresh
             console.error('⚠️ Error refrescando inventarios (no crítico):', refreshError)
           }
+        }
+
+        // 📧 ENVIAR EMAIL CON RECIBO Y GARANTÍAS (solo si está habilitado)
+        if (datosCliente.enviarEmail && datosCliente.cliente_email) {
+          try {
+            console.log('📧 Iniciando envío de email con PDFs...');
+
+            // Generar PDFs
+            const { reciboPDF, garantiasPDF } = await generarPDFsVenta(
+              nuevaTransaccion,
+              {
+                cliente_nombre: datosCliente.cliente_nombre,
+                cliente_email: datosCliente.cliente_email,
+                cliente_telefono: datosCliente.cliente_telefono,
+                dni: datosCliente.dni || ''
+              }
+            );
+
+            // Extraer info de productos para el mensaje
+            const productosInfo = extraerInfoProductosParaEmail(nuevaTransaccion.venta_items);
+
+            // Enviar email
+            const resultadoEmail = await enviarVentaPorEmail({
+              destinatario: datosCliente.cliente_email,
+              nombreCliente: datosCliente.cliente_nombre,
+              reciboPDF,
+              garantiasPDF,
+              productos: productosInfo,
+              numeroTransaccion: nuevaTransaccion.numero_transaccion,
+              totalVenta: nuevaTransaccion.total_venta,
+              transaccion: nuevaTransaccion
+            });
+
+            if (resultadoEmail.success) {
+              console.log('✅ Email enviado exitosamente con', resultadoEmail.adjuntosEnviados, 'adjuntos');
+              // Agregar flag de email enviado a la transacción
+              nuevaTransaccion.email_enviado = true;
+            } else if (!resultadoEmail.skipped) {
+              console.warn('⚠️ No se pudo enviar el email:', resultadoEmail.error);
+            }
+          } catch (emailError) {
+            // No bloquear la venta si falla el envío de email
+            console.error('⚠️ Error enviando email (no crítico):', emailError);
+            nuevaTransaccion.email_enviado = false;
+            nuevaTransaccion.email_error = emailError.message;
+          }
+        } else {
+          if (!datosCliente.enviarEmail) {
+            console.log('ℹ️ No se envió email: función deshabilitada (checkbox no marcado)');
+          } else {
+            console.log('ℹ️ No se envió email: cliente sin dirección de correo');
+          }
+          nuevaTransaccion.email_enviado = false;
         }
 
         return nuevaTransaccion

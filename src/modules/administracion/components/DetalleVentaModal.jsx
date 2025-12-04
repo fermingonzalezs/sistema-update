@@ -45,6 +45,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
                     <th className="px-4 py-2 text-center font-semibold uppercase">PRODUCTO</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">SERIAL</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">CANT.</th>
+                    <th className="px-4 py-2 text-center font-semibold uppercase">COSTO UNIT.</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">PRECIO UNIT.</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">SUBTOTAL</th>
                   </tr>
@@ -60,6 +61,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
                       </td>
                       <td className="px-4 py-3 text-slate-800 font-mono text-xs text-center">{item.serial_producto || '-'}</td>
                       <td className="px-4 py-3 text-center text-slate-800">{item.cantidad}</td>
+                      <td className="px-4 py-3 text-center text-slate-600">{formatearMonto(item.precio_costo, 'USD')}</td>
                       <td className="px-4 py-3 text-center text-slate-800">{formatearMonto(item.precio_unitario, 'USD')}</td>
                       <td className="px-4 py-3 text-center font-semibold text-slate-800">{formatearMonto(item.precio_total, 'USD')}</td>
                     </tr>

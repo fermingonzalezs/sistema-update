@@ -22,9 +22,9 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
 
     setIsSubmitting(true);
     try {
-      await crearProveedor(formData);
+      const proveedorCreado = await crearProveedor(formData);
       alert('✅ Proveedor creado exitosamente');
-      onSuccess();
+      onSuccess(proveedorCreado);
     } catch (err) {
       alert('❌ Error: ' + err.message);
     } finally {

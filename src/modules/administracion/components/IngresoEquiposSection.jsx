@@ -5,18 +5,20 @@ import { useIngresoEquipos } from './useIngresoEquipos';
 import { useInventario } from '../../ventas/hooks/useInventario';
 import { useCelulares } from '../../ventas/hooks/useCelulares';
 import { useOtros } from '../../ventas/hooks/useOtros';
+import { useAuthContext } from '../../../context/AuthContext';
 
 const IngresoEquiposSection = () => {
   const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  
-  const { 
-    ingresos, 
-    loading: ingresosLoading, 
-    registrarIngreso, 
-    generarDescripcionCompleta 
+  const { user } = useAuthContext();
+
+  const {
+    ingresos,
+    loading: ingresosLoading,
+    registrarIngreso,
+    generarDescripcionCompleta
   } = useIngresoEquipos();
-  
+
   const { addComputer, loading: computersLoading } = useInventario();
   const { addCelular, loading: celularesLoading } = useCelulares();
   const { addOtro, loading: otrosLoading } = useOtros();
@@ -34,6 +36,12 @@ const IngresoEquiposSection = () => {
     try {
       // Preparar datos del ingreso
       const descripcionCompleta = generarDescripcionCompleta(tipoEquipo, datos);
+      // Usar username, pero si es "admin" usar el nombre real o email
+      let username = user?.user_metadata?.username;
+      if (!username || username.toLowerCase() === 'admin') {
+        username = user?.user_metadata?.nombre || user?.email || 'Sistema';
+      }
+
       const ingresoData = {
         tipo_producto: tipoEquipo,
         descripcion_completa: descripcionCompleta,
@@ -41,8 +49,8 @@ const IngresoEquiposSection = () => {
         proveedor: datos.proveedor || '',
         garantias: datos.garantia || datos.garantias || '',
         destino: destinoSeleccionado,
-        usuario_ingreso: 'admin', // TODO: obtener del contexto de auth
-        notas: `${tipoEquipo.toUpperCase()} - Serial: ${datos.serial || 'N/A'}`
+        usuario_ingreso: username,
+        notas: `${tipoEquipo.toUpperCase()} - Serial: ${datos.serial || 'N/A'} | Precio Venta: ${datos.precio_venta_usd || 0} | Modelo: ${datos.modelo || datos.nombre_producto || 'N/A'} | Categoria: ${datos.categoria || ''}`
       };
 
       if (destinoSeleccionado === 'stock') {
@@ -63,7 +71,7 @@ const IngresoEquiposSection = () => {
           ...ingresoData,
           estado: 'pendiente'
         });
-        
+
         if (resultado.success) {
           alert('Equipo enviado a testeo. Aparecerá en la sección de Testeo de Equipos en Soporte.');
           setMostrarFormulario(false);
@@ -113,6 +121,47 @@ const IngresoEquiposSection = () => {
     return destino === 'stock' ? Package : Clock;
   };
 
+  const normalizarCategoria = (categoria) => {
+    if (!categoria) return '';
+
+    // Diccionario de normalización para categorías de "otros"
+    const normalizaciones = {
+      'CABLES_CARGADORES': 'Cables y Cargadores',
+      'CABLES_cARGADORES': 'Cables y Cargadores',
+      'FUNDAS_TEMPLADOS': 'Fundas y Templados',
+      'MOUSE_TECLADOS': 'Mouse y Teclados',
+      'BAGS_CASES': 'Mochilas y Fundas',
+      'ACCESORIOS': 'Accesorios',
+      'ALMACENAMIENTO': 'Almacenamiento',
+      'AUDIO': 'Audio',
+      'CAMARAS': 'Cámaras',
+      'COMPONENTES': 'Componentes',
+      'CONSOLAS': 'Consolas',
+      'DESKTOP': 'Desktop',
+      'GAMING': 'Gaming',
+      'MEMORIA': 'Memoria',
+      'MONITORES': 'Monitores',
+      'REPUESTOS': 'Repuestos',
+      'STREAMING': 'Streaming'
+    };
+
+    const categoriaUpper = categoria.toUpperCase();
+    return normalizaciones[categoriaUpper] || categoria.charAt(0).toUpperCase() + categoria.slice(1).toLowerCase();
+  };
+
+  const getCategoriaColor = (tipoProducto) => {
+    switch (tipoProducto) {
+      case 'notebook':
+        return 'bg-blue-100 text-blue-800';
+      case 'celular':
+        return 'bg-purple-100 text-purple-800';
+      case 'otro':
+        return 'bg-emerald-100 text-emerald-800';
+      default:
+        return 'bg-slate-100 text-slate-800';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -147,11 +196,10 @@ const IngresoEquiposSection = () => {
             <div className="flex space-x-4">
               <button
                 onClick={() => setDestinoSeleccionado('stock')}
-                className={`flex-1 p-4 rounded border transition-all ${
-                  destinoSeleccionado === 'stock'
-                    ? 'border-emerald-600 bg-emerald-600 text-white'
-                    : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50'
-                }`}
+                className={`flex-1 p-4 rounded border transition-all ${destinoSeleccionado === 'stock'
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-3">
                   <Package className="w-5 h-5" />
@@ -161,14 +209,13 @@ const IngresoEquiposSection = () => {
                   </div>
                 </div>
               </button>
-              
+
               <button
                 onClick={() => setDestinoSeleccionado('testeo')}
-                className={`flex-1 p-4 rounded border transition-all ${
-                  destinoSeleccionado === 'testeo'
-                    ? 'border-slate-800 bg-slate-800 text-white'
-                    : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50'
-                }`}
+                className={`flex-1 p-4 rounded border transition-all ${destinoSeleccionado === 'testeo'
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50'
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-3">
                   <Clock className="w-5 h-5" />
@@ -196,64 +243,73 @@ const IngresoEquiposSection = () => {
         <div className="p-6 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-800">Historial de Ingresos</h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Fecha
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Producto
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Usuario
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Categoría
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Descripción
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Precio Compra
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Destino
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200">
               {ingresosLoading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="6" className="px-4 py-3 text-center text-slate-500">
                     Cargando historial...
                   </td>
                 </tr>
               ) : ingresos.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
+                  <td colSpan="6" className="px-4 py-3 text-center text-slate-500">
                     No hay ingresos registrados
                   </td>
                 </tr>
               ) : (
-                ingresos.map((ingreso) => {
+                ingresos.map((ingreso, index) => {
                   const DestinoIcon = getDestinoIcon(ingreso.destino);
+                  const categoriaTexto = normalizarCategoria(ingreso.subcategoria || ingreso.tipo_producto);
+                  const categoriaColor = getCategoriaColor(ingreso.tipo_producto);
+
                   return (
-                    <tr key={ingreso.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    <tr key={ingreso.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <td className="px-4 py-3 text-center text-sm text-slate-800 whitespace-nowrap">
                         {formatearFecha(ingreso.fecha)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">
-                          {ingreso.tipo_producto}
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
+                        {ingreso.usuario_ingreso || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${categoriaColor}`}>
+                          {categoriaTexto}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-900 max-w-xs truncate">
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
                         {ingreso.descripcion_completa}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                      <td className="px-4 py-3 text-center text-sm text-slate-800 whitespace-nowrap">
                         {formatearPrecio(ingreso.precio_compra)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center space-x-2">
                           <DestinoIcon className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-slate-900 capitalize">{ingreso.destino}</span>
+                          <span className="text-sm text-slate-800 capitalize">{ingreso.destino}</span>
                         </div>
                       </td>
                     </tr>

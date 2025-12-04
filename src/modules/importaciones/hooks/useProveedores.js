@@ -41,7 +41,6 @@ export const useProveedores = () => {
           telefono: proveedorData.telefono?.trim() || null,
           pais: proveedorData.pais?.trim() || null,
           direccion: proveedorData.direccion?.trim() || null,
-          website: proveedorData.website?.trim() || null,
           notas: proveedorData.notas?.trim() || null,
           activo: true
         }])

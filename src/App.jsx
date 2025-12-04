@@ -39,6 +39,7 @@ import {
 import ComprasSection from './modules/compras/components/ComprasSection';
 import { ImportacionesSection } from './modules/importaciones/components';
 import ProveedoresSection from './modules/compras/components/ProveedoresSection';
+import EmailPreview from './pages/EmailPreview';
 
 // 🔄 IMPORTS ACTUALIZADOS - Desde archivos modulares
 import { useInventario } from './modules/ventas/hooks/useInventario';
@@ -588,6 +589,10 @@ const AppContent = () => {
 
      {activeSection === 'recibos' && (
        <RecibosSection />
+     )}
+
+     {activeSection === 'email-preview' && (
+       <EmailPreview />
      )}
 
      {activeSection === 'ingreso-equipos' && (

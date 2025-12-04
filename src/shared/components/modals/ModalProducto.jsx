@@ -145,11 +145,17 @@ const ModalProducto = ({
         setFormData({ ...defaults[tipo], ...data });
       } else if (modo === 'cargar_desde_testeo' && equipoTesteo) {
         // Cargar desde testeo - mapear campos básicos
+        const preciosGuardados = equipoTesteo.checklist_data?._precios || {};
+
         const datosBase = {
           ...defaults[tipo],
           serial: equipoTesteo.serial || '',
           modelo: equipoTesteo.modelo || '',
           marca: equipoTesteo.marca || '',
+          // Pre-cargar precios si existen
+          precio_costo_usd: preciosGuardados.compra || 0,
+          precio_compra_usd: preciosGuardados.compra || 0,
+          precio_venta_usd: preciosGuardados.venta || 0,
           // Agregar otros campos mapeables del testeo
         };
         setFormData(datosBase);
