@@ -216,38 +216,38 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
 
       // Para categoría Apple, determinar el tipo según _tipoProducto
       if (categoriaActiva === "apple") {
-        let tipoSimple = "notebook_simple";
+        let tipoComercial = "notebook_comercial";
         if (producto._tipoProducto === "celulares") {
-          tipoSimple = "celular_simple";
+          tipoComercial = "celular_comercial";
         } else if (producto._tipoProducto === "otros") {
-          tipoSimple = "otro_simple";
+          tipoComercial = "otro_comercial";
         }
 
         infoBase = generateCopy(producto, {
-          tipo: tipoSimple,
+          tipo: tipoComercial,
           includePrice: false,
         });
       } else if (categoriaActiva.startsWith("otros") || categoriaActiva === "otros") {
         // Para otros productos: usar la función del generador
         infoBase = generateCopy(producto, {
-          tipo: "otro_simple",
+          tipo: "otro_comercial",
           includePrice: false, // No incluir precio aquí porque lo agregaremos al final
         });
       } else {
         // Para notebooks y celulares: usar copy completo con emoji
-        let tipoSimple = "notebook_simple";
+        let tipoComercial = "notebook_comercial";
         if (categoriaActiva === "celulares") {
-          tipoSimple = "celular_simple";
+          tipoComercial = "celular_comercial";
         }
 
         infoBase = generateCopy(producto, {
-          tipo: tipoSimple,
+          tipo: tipoComercial,
           includePrice: false, // No incluir precio aquí porque lo agregaremos al final
         });
       }
 
       // Agregar precio al final (el estado ya está incluido en infoBase si es necesario)
-      return `${infoBase} - Precio: ${precio}`;
+      return `${infoBase} - ${precio}`;
     } catch (error) {
       console.error("Error generando copy:", error);
       return `Error al generar información del producto: ${producto.modelo || producto.nombre_producto || "Sin información"
@@ -2021,16 +2021,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               key={cat.id}
               onClick={() => cambiarCategoria(cat.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${categoriaActiva === cat.id
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-200"
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-700 text-white hover:bg-slate-200"
                 }`}
             >
               <span className="text-lg">{cat.icon}</span>
               <span className="font-medium">{cat.label}</span>
               <span
                 className={`text-xs px-2 py-1 rounded ${categoriaActiva === cat.id
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
+                  ? "bg-slate-200 text-slate-800"
+                  : "bg-slate-300 text-slate-800"
                   }`}
               >
                 {cat.data?.length || 0}
@@ -2046,16 +2046,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("")}
@@ -2064,16 +2064,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "macbook")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "macbook"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>🍎</span>
                 <span>Macbook</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "macbook"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("macbook")}
@@ -2082,16 +2082,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "windows")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "windows"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>🪟</span>
                 <span>Windows</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "windows"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("windows")}
@@ -2100,16 +2100,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "2-en-1")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "2-en-1"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>🔄</span>
                 <span>2-en-1</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "2-en-1"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("2-en-1")}
@@ -2118,16 +2118,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "gaming")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "gaming"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>🎮</span>
                 <span>Gaming</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "gaming"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("gaming")}
@@ -2144,16 +2144,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("")}
@@ -2162,16 +2162,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "iphone")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "iphone"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>📱</span>
                 <span>iPhone</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "iphone"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("iphone")}
@@ -2180,16 +2180,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "android")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "android"
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>🤖</span>
                 <span>Android</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${filtros.categoria === "android"
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("android")}
@@ -2206,16 +2206,16 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               <button
                 onClick={() => actualizarFiltro("categoria", "")}
                 className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
               >
                 <span>📦</span>
                 <span>Todos</span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
+                    ? "bg-slate-200 text-slate-800"
+                    : "bg-slate-300 text-slate-800"
                     }`}
                 >
                   {contarPorSubcategoria("")}
@@ -2226,8 +2226,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   key={categoria}
                   onClick={() => actualizarFiltro("categoria", categoria)}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === categoria
-                      ? "bg-emerald-600 text-white"
-                      : "bg-slate-700 text-white hover:bg-slate-600"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-slate-700 text-white hover:bg-slate-600"
                     }`}
                 >
                   <span>
@@ -2276,8 +2276,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   <span>{getCategoriaLabel(categoria)}</span>
                   <span
                     className={`text-xs px-2 py-1 rounded ${filtros.categoria === categoria
-                        ? "bg-slate-200 text-slate-800"
-                        : "bg-slate-300 text-slate-800"
+                      ? "bg-slate-200 text-slate-800"
+                      : "bg-slate-300 text-slate-800"
                       }`}
                   >
                     {contarPorSubcategoria(categoria)}
@@ -2302,8 +2302,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       actualizarFiltro("subcategoria", subcat.value)
                     }
                     className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.subcategoria === subcat.value
-                        ? "bg-emerald-600 text-white"
-                        : "bg-slate-700 text-white hover:bg-slate-600"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-700 text-white hover:bg-slate-600"
                       }`}
                   >
                     <span>
@@ -2318,8 +2318,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     <span>{subcat.label}</span>
                     <span
                       className={`text-xs px-2 py-1 rounded ${filtros.subcategoria === subcat.value
-                          ? "bg-slate-200 text-slate-800"
-                          : "bg-slate-300 text-slate-800"
+                        ? "bg-slate-200 text-slate-800"
+                        : "bg-slate-300 text-slate-800"
                         }`}
                     >
                       {count}
@@ -2728,8 +2728,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                           <div className="col-span-1 flex justify-center">
                             <span
                               className={`px-2 py-1 text-sm font-medium rounded ${(producto.cantidad_mitre || 0) > 0
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
                                 }`}
                             >
                               {producto.cantidad_mitre || 0}
@@ -2740,8 +2740,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                           <div className="col-span-1 flex justify-center">
                             <span
                               className={`px-2 py-1 text-sm font-medium rounded ${(producto.cantidad_la_plata || 0) > 0
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
                                 }`}
                             >
                               {producto.cantidad_la_plata || 0}

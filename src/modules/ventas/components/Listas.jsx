@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Copy, Monitor, Smartphone, Box, Search, 
+import {
+  Copy, Monitor, Smartphone, Box, Search,
   Check, FileText, Edit2, Save, X, Filter, Zap
 } from 'lucide-react';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
@@ -42,7 +42,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   const [editandoMensaje, setEditandoMensaje] = useState(null);
   const [mensajeTemp, setMensajeTemp] = useState('');
-  
+
   // Estados para filtros avanzados
   const [modoFiltros, setModoFiltros] = useState(false);
   const [filtroExcluirMarca, setFiltroExcluirMarca] = useState('');
@@ -62,13 +62,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   // Obtener productos del tipo activo
   const getProductosActivos = () => {
     switch (tipoActivo) {
-      case 'computadora': 
+      case 'computadora':
         return computers.map(p => ({ ...p, tipo: 'computadora' }));
-      case 'celular': 
+      case 'celular':
         return celulares.map(p => ({ ...p, tipo: 'celular' }));
-      case 'otro': 
+      case 'otro':
         return otros.map(p => ({ ...p, tipo: 'otro' }));
-      default: 
+      default:
         return [];
     }
   };
@@ -106,7 +106,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     }));
     setProductosConCopy(productosConCopyGenerado);
     setSeleccionados(new Set()); // Limpiar selección al cambiar tipo
-    
+
     // Limpiar filtro de estado al cambiar tipo
     setFiltros(prev => ({ ...prev, estado: '' }));
   }, [tipoActivo, computers, celulares, otros]);
@@ -152,14 +152,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
       const cumpleMarca = filtros.marca === '' || (producto.marca && producto.marca.toLowerCase() === filtros.marca.toLowerCase());
       const cumpleExclusionMarca = filtroExcluirMarca === '' || !producto.marca || producto.marca.toLowerCase() !== filtroExcluirMarca.toLowerCase();
-      
+
       const condicionNormalizada = normalizarCondicion(producto.condicion);
       const condicionFiltro = normalizarCondicion(filtros.condicion);
       const cumpleCondicion = filtros.condicion === '' || condicionNormalizada === condicionFiltro;
-      
+
       const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
       const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
-      
+
       const cumpleFiltros =
         cumpleMarca &&
         cumpleExclusionMarca &&
@@ -232,15 +232,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const generarListaCompleta = () => {
     const productosSeleccionados = productosFiltradosYOrdenados.filter(p => seleccionados.has(p.id));
     const copysSeleccionados = productosSeleccionados.map(p => p.copy);
-    
+
     const lista = [
       mensajes[tipoActivo].inicial,
       '',
-      ...copysSeleccionados,
+      copysSeleccionados.join('\n\n'),
       '',
       mensajes[tipoActivo].final
     ].join('\n');
-    
+
     return lista;
   };
 
@@ -254,14 +254,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     let success = false;
     try {
       success = document.execCommand('copy');
     } catch (err) {
       console.error('❌ Error en execCommand:', err);
     }
-    
+
     document.body.removeChild(textArea);
     return success;
   };
@@ -269,19 +269,19 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   // Copiar lista completa al portapapeles
   const copiarListaCompleta = async () => {
     console.log('🔄 Botón copiar lista presionado. Productos seleccionados:', seleccionados.size);
-    
+
     if (seleccionados.size === 0) {
       console.log('❌ No hay productos seleccionados');
       alert('Por favor selecciona al menos un producto');
       return;
     }
-    
+
     try {
       const lista = generarListaCompleta();
       console.log('📋 Lista generada:', lista.substring(0, 100) + '...');
-      
+
       let copiado = false;
-      
+
       // Intentar primero con la API moderna del clipboard
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
@@ -297,11 +297,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         console.log('📝 Using fallback copy method');
         copiado = copiarTextoFallback(lista);
       }
-      
+
       if (copiado) {
         setCopiados(prev => new Set([...prev, 'lista-completa']));
         console.log('✅ Lista copiada al portapapeles exitosamente');
-        
+
         setTimeout(() => {
           setCopiados(prev => {
             const nuevos = new Set(prev);
@@ -312,16 +312,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       } else {
         throw new Error('No se pudo copiar el texto al portapapeles');
       }
-      
+
     } catch (err) {
       console.error('❌ Error copiando lista:', err);
-      
+
       // Como último recurso, mostrar el texto en un modal para copia manual
       const lista = generarListaCompleta();
       const shouldShowModal = window.confirm(
         'No se pudo copiar automáticamente al portapapeles. ¿Quieres ver el texto para copiarlo manualmente?'
       );
-      
+
       if (shouldShowModal) {
         // Crear un modal simple con el texto
         const modal = document.createElement('div');
@@ -337,7 +337,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           align-items: center;
           z-index: 9999;
         `;
-        
+
         const content = document.createElement('div');
         content.style.cssText = `
           background: white;
@@ -348,7 +348,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           overflow-y: auto;
           position: relative;
         `;
-        
+
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕ Cerrar';
         closeBtn.style.cssText = `
@@ -362,7 +362,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           border-radius: 4px;
           cursor: pointer;
         `;
-        
+
         const textArea = document.createElement('textarea');
         textArea.value = lista;
         textArea.style.cssText = `
@@ -376,22 +376,22 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           margin-top: 30px;
         `;
         textArea.readOnly = true;
-        
+
         const instruction = document.createElement('p');
         instruction.textContent = 'Selecciona todo el texto (Ctrl+A) y cópialo (Ctrl+C):';
         instruction.style.marginBottom = '10px';
-        
+
         closeBtn.onclick = () => document.body.removeChild(modal);
         modal.onclick = (e) => {
           if (e.target === modal) document.body.removeChild(modal);
         };
-        
+
         content.appendChild(closeBtn);
         content.appendChild(instruction);
         content.appendChild(textArea);
         modal.appendChild(content);
         document.body.appendChild(modal);
-        
+
         // Seleccionar todo el texto automáticamente
         textArea.focus();
         textArea.select();
@@ -560,17 +560,17 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   // Obtener valores únicos del stock actual
   const getUniqueValues = () => {
     const productos = getProductosActivos();
-    
+
     const marcas = [...new Set(productos.map(p => p.marca).filter(Boolean))].sort();
     const condiciones = [...new Set(productos.map(p => p.condicion).filter(Boolean))].sort();
     const pantallas = [...new Set(productos.map(p => p.pantalla).filter(Boolean))].sort();
     const idiomas = [...new Set(productos.map(p => p.idioma_teclado).filter(Boolean))].sort();
-    
+
     // Para categorías de OTROS, usar solo productos de tipo "otro"
-    const categoriasOtros = tipoActivo === 'otro' 
+    const categoriasOtros = tipoActivo === 'otro'
       ? [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort()
       : [];
-    
+
     return { marcas, condiciones, pantallas, idiomas, categoriasOtros };
   };
 
@@ -578,36 +578,36 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const getTipoConfig = (tipo) => {
     switch (tipo) {
       case 'computadora':
-        return { 
-          label: 'Notebooks', 
-          icon: Monitor, 
+        return {
+          label: 'Notebooks',
+          icon: Monitor,
           color: 'blue',
           bgColor: 'bg-blue-500',
           borderColor: 'border-black-500',
           textColor: 'text-white-600'
         };
       case 'celular':
-        return { 
-          label: 'Celulares', 
-          icon: Smartphone, 
+        return {
+          label: 'Celulares',
+          icon: Smartphone,
           color: 'green',
           bgColor: 'bg-green-500',
           borderColor: 'border-green-500',
           textColor: 'text-green-600'
         };
       case 'otro':
-        return { 
-          label: 'Otros', 
-          icon: Box, 
+        return {
+          label: 'Otros',
+          icon: Box,
           color: 'purple',
           bgColor: 'bg-purple-500',
           borderColor: 'border-purple-500',
           textColor: 'text-purple-600'
         };
       default:
-        return { 
-          label: 'Productos', 
-          icon: FileText, 
+        return {
+          label: 'Productos',
+          icon: FileText,
           color: 'gray',
           bgColor: 'bg-gray-500',
           borderColor: 'border-gray-500',
@@ -653,19 +653,17 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <button
                   key={tipo}
                   onClick={() => setTipoActivo(tipo)}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${
-                    tipoActivo === tipo
+                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${tipoActivo === tipo
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-slate-700 hover:bg-slate-200'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{config.label}</span>
-                  <span className={`text-sm px-2 py-0.5 rounded ${
-                    tipoActivo === tipo
+                  <span className={`text-sm px-2 py-0.5 rounded ${tipoActivo === tipo
                       ? 'bg-emerald-700 text-white'
                       : 'bg-slate-200 text-slate-600'
-                  }`}>
+                    }`}>
                     {tipo === 'computadora' ? computers.length :
                       tipo === 'celular' ? celulares.length : otros.length}
                   </span>
@@ -687,11 +685,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             <div className="flex space-x-2">
               <button
                 onClick={() => setModoFiltros(!modoFiltros)}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  modoFiltros
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${modoFiltros
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-700 text-white hover:bg-slate-600'
-                }`}
+                  }`}
               >
                 {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
               </button>
@@ -715,250 +712,250 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <Zap className="w-4 h-4" />
               <span>Filtros Rápidos</span>
             </h4>
-          <div className="flex flex-wrap gap-2">
-            {/* Filtros para celulares */}
-            <button
-              onClick={aplicarFiltroiPhoneUsado}
-              className="px-3 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-            >
-              <Smartphone className="w-4 h-4" />
-              <span>iPhone Usados</span>
-            </button>
-            <button
-              onClick={aplicarFiltroiPhoneNuevo}
-              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-            >
-              <Smartphone className="w-4 h-4" />
-              <span>iPhone Nuevos</span>
-            </button>
-            
-            {/* Filtros para notebooks */}
-            <button
-              onClick={aplicarFiltroMacBooksNuevas}
-              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-            >
-              <Monitor className="w-4 h-4" />
-              <span>MacBooks Nuevas</span>
-            </button>
-            <button
-              onClick={aplicarFiltroMacBooksUsadas}
-              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-            >
-              <Monitor className="w-4 h-4" />
-              <span>MacBooks Usadas</span>
-            </button>
-            <button
-              onClick={aplicarFiltroWindowsNuevas}
-              className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
-            >
-              <Monitor className="w-4 h-4" />
-              <span>Windows Nuevas</span>
-            </button>
-            <button
-              onClick={aplicarFiltroWindowsUsadas}
-              className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
-            >
-              <Monitor className="w-4 h-4" />
-              <span>Windows Usadas</span>
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {/* Filtros para celulares */}
+              <button
+                onClick={aplicarFiltroiPhoneUsado}
+                className="px-3 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>iPhone Usados</span>
+              </button>
+              <button
+                onClick={aplicarFiltroiPhoneNuevo}
+                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>iPhone Nuevos</span>
+              </button>
+
+              {/* Filtros para notebooks */}
+              <button
+                onClick={aplicarFiltroMacBooksNuevas}
+                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>MacBooks Nuevas</span>
+              </button>
+              <button
+                onClick={aplicarFiltroMacBooksUsadas}
+                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>MacBooks Usadas</span>
+              </button>
+              <button
+                onClick={aplicarFiltroWindowsNuevas}
+                className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>Windows Nuevas</span>
+              </button>
+              <button
+                onClick={aplicarFiltroWindowsUsadas}
+                className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>Windows Usadas</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Filtros personalizables - Solo para computadoras y celulares */}
-        {modoFiltros && tipoActivo !== 'otro' && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
-              <select
-                value={filtros.marca}
-                onChange={(e) => handleFiltroChange('marca', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {getUniqueValues().marcas.map(marca => (
-                  <option key={marca} value={marca}>{marca}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
-              <select
-                value={filtros.condicion}
-                onChange={(e) => handleFiltroChange('condicion', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {getUniqueValues().condiciones.map(condicion => (
-                  <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
-                ))}
-              </select>
-            </div>
-
-            {(tipoActivo === 'computadora' || tipoActivo === 'celular') && (
+          {/* Filtros personalizables - Solo para computadoras y celulares */}
+          {modoFiltros && tipoActivo !== 'otro' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
                 <select
-                  value={filtros.estado}
-                  onChange={(e) => handleFiltroChange('estado', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="">Todos</option>
-                  {(tipoActivo === 'computadora' ? estadosDisponibles.notebooks : estadosDisponibles.celulares).map(estado => (
-                    <option key={estado} value={estado}>{estado}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Precio Max USD</label>
-              <input
-                type="number"
-                value={filtros.precioMax}
-                onChange={(e) => handleFiltroChange('precioMax', e.target.value)}
-                placeholder="999999"
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-            </div>
-
-            {tipoActivo === 'computadora' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">RAM Min (GB)</label>
-                <input
-                  type="number"
-                  value={filtros.ramMin}
-                  onChange={(e) => handleFiltroChange('ramMin', e.target.value)}
-                  placeholder="4"
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                {tipoActivo === 'computadora' ? 'SSD Min (GB)' : 'Capacidad Min (GB)'}
-              </label>
-              <input
-                type="number"
-                value={filtros.almacenamientoMin}
-                onChange={(e) => handleFiltroChange('almacenamientoMin', e.target.value)}
-                placeholder="128"
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Pantalla</label>
-              <select
-                value={filtros.pantalla}
-                onChange={(e) => handleFiltroChange('pantalla', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {getUniqueValues().pantallas.map(pantalla => (
-                  <option key={pantalla} value={pantalla}>{pantalla}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Idioma</label>
-              <select
-                value={filtros.idioma}
-                onChange={(e) => handleFiltroChange('idioma', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todos</option>
-                {getUniqueValues().idiomas.map(idioma => (
-                  <option key={idioma} value={idioma}>{idioma}</option>
-                ))}
-              </select>
-            </div>
-
-            {tipoActivo === 'computadora' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Línea de Procesador</label>
-                <select
-                  value={filtros.lineaProcesador}
-                  onChange={(e) => handleFiltroChange('lineaProcesador', e.target.value)}
+                  value={filtros.marca}
+                  onChange={(e) => handleFiltroChange('marca', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="">Todas</option>
-                  <optgroup label="Intel">
-                    <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
-                    <option value="i5">{LINEAS_PROCESADOR_LABELS.i5}</option>
-                    <option value="i7">{LINEAS_PROCESADOR_LABELS.i7}</option>
-                    <option value="i9">{LINEAS_PROCESADOR_LABELS.i9}</option>
-                  </optgroup>
-                  <optgroup label="AMD">
-                    <option value="r3">{LINEAS_PROCESADOR_LABELS.r3}</option>
-                    <option value="r5">{LINEAS_PROCESADOR_LABELS.r5}</option>
-                    <option value="r7">{LINEAS_PROCESADOR_LABELS.r7}</option>
-                    <option value="r9">{LINEAS_PROCESADOR_LABELS.r9}</option>
-                  </optgroup>
-                  <optgroup label="Apple">
-                    <option value="m1">{LINEAS_PROCESADOR_LABELS.m1}</option>
-                    <option value="m2">{LINEAS_PROCESADOR_LABELS.m2}</option>
-                    <option value="m3">{LINEAS_PROCESADOR_LABELS.m3}</option>
-                    <option value="m4">{LINEAS_PROCESADOR_LABELS.m4}</option>
-                    <option value="m5">{LINEAS_PROCESADOR_LABELS.m5}</option>
-                  </optgroup>
-                  <option value="otro">{LINEAS_PROCESADOR_LABELS.otro}</option>
+                  {getUniqueValues().marcas.map(marca => (
+                    <option key={marca} value={marca}>{marca}</option>
+                  ))}
                 </select>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Filtros para productos OTROS */}
-        {modoFiltros && tipoActivo === 'otro' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
-              <select
-                value={filtros.categoria}
-                onChange={(e) => handleFiltroChange('categoria', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas las categorías</option>
-                {getUniqueValues().categoriasOtros.map(categoria => (
-                  <option key={categoria} value={categoria}>
-                    {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+                <select
+                  value={filtros.condicion}
+                  onChange={(e) => handleFiltroChange('condicion', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas</option>
+                  {getUniqueValues().condiciones.map(condicion => (
+                    <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(tipoActivo === 'computadora' || tipoActivo === 'celular') && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+                  <select
+                    value={filtros.estado}
+                    onChange={(e) => handleFiltroChange('estado', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Todos</option>
+                    {(tipoActivo === 'computadora' ? estadosDisponibles.notebooks : estadosDisponibles.celulares).map(estado => (
+                      <option key={estado} value={estado}>{estado}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Precio Max USD</label>
+                <input
+                  type="number"
+                  value={filtros.precioMax}
+                  onChange={(e) => handleFiltroChange('precioMax', e.target.value)}
+                  placeholder="999999"
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+
+              {tipoActivo === 'computadora' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">RAM Min (GB)</label>
+                  <input
+                    type="number"
+                    value={filtros.ramMin}
+                    onChange={(e) => handleFiltroChange('ramMin', e.target.value)}
+                    placeholder="4"
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  {tipoActivo === 'computadora' ? 'SSD Min (GB)' : 'Capacidad Min (GB)'}
+                </label>
+                <input
+                  type="number"
+                  value={filtros.almacenamientoMin}
+                  onChange={(e) => handleFiltroChange('almacenamientoMin', e.target.value)}
+                  placeholder="128"
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Pantalla</label>
+                <select
+                  value={filtros.pantalla}
+                  onChange={(e) => handleFiltroChange('pantalla', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas</option>
+                  {getUniqueValues().pantallas.map(pantalla => (
+                    <option key={pantalla} value={pantalla}>{pantalla}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Idioma</label>
+                <select
+                  value={filtros.idioma}
+                  onChange={(e) => handleFiltroChange('idioma', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todos</option>
+                  {getUniqueValues().idiomas.map(idioma => (
+                    <option key={idioma} value={idioma}>{idioma}</option>
+                  ))}
+                </select>
+              </div>
+
+              {tipoActivo === 'computadora' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Línea de Procesador</label>
+                  <select
+                    value={filtros.lineaProcesador}
+                    onChange={(e) => handleFiltroChange('lineaProcesador', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Todas</option>
+                    <optgroup label="Intel">
+                      <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
+                      <option value="i5">{LINEAS_PROCESADOR_LABELS.i5}</option>
+                      <option value="i7">{LINEAS_PROCESADOR_LABELS.i7}</option>
+                      <option value="i9">{LINEAS_PROCESADOR_LABELS.i9}</option>
+                    </optgroup>
+                    <optgroup label="AMD">
+                      <option value="r3">{LINEAS_PROCESADOR_LABELS.r3}</option>
+                      <option value="r5">{LINEAS_PROCESADOR_LABELS.r5}</option>
+                      <option value="r7">{LINEAS_PROCESADOR_LABELS.r7}</option>
+                      <option value="r9">{LINEAS_PROCESADOR_LABELS.r9}</option>
+                    </optgroup>
+                    <optgroup label="Apple">
+                      <option value="m1">{LINEAS_PROCESADOR_LABELS.m1}</option>
+                      <option value="m2">{LINEAS_PROCESADOR_LABELS.m2}</option>
+                      <option value="m3">{LINEAS_PROCESADOR_LABELS.m3}</option>
+                      <option value="m4">{LINEAS_PROCESADOR_LABELS.m4}</option>
+                      <option value="m5">{LINEAS_PROCESADOR_LABELS.m5}</option>
+                    </optgroup>
+                    <option value="otro">{LINEAS_PROCESADOR_LABELS.otro}</option>
+                  </select>
+                </div>
+              )}
             </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
-              <select
-                value={filtros.marca}
-                onChange={(e) => handleFiltroChange('marca', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {getUniqueValues().marcas.map(marca => (
-                  <option key={marca} value={marca}>{marca}</option>
-                ))}
-              </select>
+          )}
+
+          {/* Filtros para productos OTROS */}
+          {modoFiltros && tipoActivo === 'otro' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                <select
+                  value={filtros.categoria}
+                  onChange={(e) => handleFiltroChange('categoria', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas las categorías</option>
+                  {getUniqueValues().categoriasOtros.map(categoria => (
+                    <option key={categoria} value={categoria}>
+                      {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
+                <select
+                  value={filtros.marca}
+                  onChange={(e) => handleFiltroChange('marca', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas</option>
+                  {getUniqueValues().marcas.map(marca => (
+                    <option key={marca} value={marca}>{marca}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+                <select
+                  value={filtros.condicion}
+                  onChange={(e) => handleFiltroChange('condicion', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas</option>
+                  {getUniqueValues().condiciones.map(condicion => (
+                    <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
-              <select
-                value={filtros.condicion}
-                onChange={(e) => handleFiltroChange('condicion', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Todas</option>
-                {getUniqueValues().condiciones.map(condicion => (
-                  <option key={condicion} value={condicion}>{condicion.charAt(0).toUpperCase() + condicion.slice(1)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
 
@@ -979,37 +976,37 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
             </div>
             <div className="p-4">
-            
-            {editandoMensaje === `${tipoActivo}-inicial` ? (
-              <div className="space-y-3">
-                <textarea
-                  value={mensajeTemp}
-                  onChange={(e) => setMensajeTemp(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  rows="3"
-                />
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => guardarMensaje(tipoActivo, 'inicial')}
-                    className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
-                  >
-                    <Save className="w-3 h-3" />
-                    <span>Guardar</span>
-                  </button>
-                  <button
-                    onClick={cancelarEdicionMensaje}
-                    className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                    <span>Cancelar</span>
-                  </button>
+
+              {editandoMensaje === `${tipoActivo}-inicial` ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={mensajeTemp}
+                    onChange={(e) => setMensajeTemp(e.target.value)}
+                    className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    rows="3"
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => guardarMensaje(tipoActivo, 'inicial')}
+                      className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
+                    >
+                      <Save className="w-3 h-3" />
+                      <span>Guardar</span>
+                    </button>
+                    <button
+                      onClick={cancelarEdicionMensaje}
+                      className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Cancelar</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
-                {mensajes[tipoActivo].inicial}
-              </div>
-            )}
+              ) : (
+                <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
+                  {mensajes[tipoActivo].inicial}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1027,37 +1024,37 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
             </div>
             <div className="p-4">
-            
-            {editandoMensaje === `${tipoActivo}-final` ? (
-              <div className="space-y-3">
-                <textarea
-                  value={mensajeTemp}
-                  onChange={(e) => setMensajeTemp(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  rows="15"
-                />
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => guardarMensaje(tipoActivo, 'final')}
-                    className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
-                  >
-                    <Save className="w-3 h-3" />
-                    <span>Guardar</span>
-                  </button>
-                  <button
-                    onClick={cancelarEdicionMensaje}
-                    className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                    <span>Cancelar</span>
-                  </button>
+
+              {editandoMensaje === `${tipoActivo}-final` ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={mensajeTemp}
+                    onChange={(e) => setMensajeTemp(e.target.value)}
+                    className="w-full p-3 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    rows="15"
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => guardarMensaje(tipoActivo, 'final')}
+                      className="px-3 py-1 bg-emerald-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-emerald-700 transition-colors"
+                    >
+                      <Save className="w-3 h-3" />
+                      <span>Guardar</span>
+                    </button>
+                    <button
+                      onClick={cancelarEdicionMensaje}
+                      className="px-3 py-1 bg-slate-600 text-white rounded text-sm flex items-center space-x-1 hover:bg-slate-700 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Cancelar</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
-                {mensajes[tipoActivo].final}
-              </div>
-            )}
+              ) : (
+                <div className="bg-slate-50 p-4 rounded text-sm whitespace-pre-line text-slate-700">
+                  {mensajes[tipoActivo].final}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1078,11 +1075,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </div>
                 <button
                   onClick={copiarListaCompleta}
-                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 relative z-20 ${
-                    copiados.has('lista-completa')
+                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 relative z-20 ${copiados.has('lista-completa')
                       ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
+                    }`}
                 >
                   {copiados.has('lista-completa') ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                   <span>{copiados.has('lista-completa') ? 'Lista Copiada!' : 'Copiar Lista Completa'}</span>
@@ -1107,11 +1103,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 </h3>
                 <button
                   onClick={seleccionarTodos}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
                       ? 'bg-slate-700 text-white hover:bg-slate-600'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
+                    }`}
                 >
                   {seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
                     ? 'Deseleccionar Todos'

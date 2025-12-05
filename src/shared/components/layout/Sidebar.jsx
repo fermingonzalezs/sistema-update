@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   ShoppingCart,
   Plus,
@@ -27,7 +28,6 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
-  ChevronLeft,
   ShoppingBag,
   Plane,
   LayoutDashboard,
@@ -35,9 +35,9 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
-const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggleCollapse }) => {
+const Sidebar = ({ activeSection, isCollapsed = false }) => {
   const { user, hasAccess, getAllowedSections } = useAuthContext();
-  
+
   // Estado para controlar qué secciones están expandidas
   const [expandedSections, setExpandedSections] = useState(new Set(['VENTAS']));
 
@@ -47,33 +47,37 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       color: 'from-green-500 to-green-600',
       level: 'ventas',
       items: [
-
         {
           id: 'registrar-venta',
+          path: '/registrar-venta',
           label: 'Registrar Venta',
           icon: Plus,
           description: 'Seleccionar productos y carrito'
         },
-         {
+        {
           id: 'inventario',
+          path: '/catalogo',
           label: 'Catálogo',
           icon: List,
           description: 'Listado total de productos'
         },
         {
           id: 'listado-total',
+          path: '/stock',
           label: 'Listado Total',
           icon: Package,
           description: 'Vista unificada de inventario'
         },
         {
           id: 'copys',
+          path: '/listas',
           label: 'Listas',
           icon: FileText,
           description: 'Generador de listas'
         },
         {
           id: 'clientes',
+          path: '/clientes',
           label: 'Clientes',
           icon: Users,
           description: 'Gestión de clientes'
@@ -87,55 +91,63 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       items: [
         {
           id: 'tablero-general',
+          path: '/tablero',
           label: 'Tablero General',
           icon: LayoutDashboard,
           description: 'Resumen financiero mensual'
         },
         {
           id: 'ventas',
+          path: '/ventas',
           label: 'Historial Ventas',
           icon: BarChart3,
           description: 'Registro de ventas'
         },
         {
           id: 'comisiones',
+          path: '/comisiones',
           label: 'Comisiones',
           icon: Calculator,
-          description: 'Calc. de comisiones',
-          disabled: false  // Cambiar de true a false
+          description: 'Calc. de comisiones'
         },
         {
           id: 'dashboard-reportes',
+          path: '/reportes',
           label: 'Dashboard',
           icon: BarChart3,
           description: 'Reportes visuales'
         },
         {
           id: 'ingreso-equipos',
+          path: '/ingreso-equipos',
           label: 'Ingreso de Equipos',
           icon: Plus,
           description: 'Cargar productos'
         },
         {
           id: 'garantias',
+          path: '/garantias',
           label: 'Garantías',
           icon: Shield,
           description: 'Gestión de garantías'
         },
         {
           id: 'recibos',
+          path: '/recibos',
           label: 'Recibos',
           icon: FileText,
           description: 'Recibos customizables'
         },
         {
           id: 'recuento-stock',
+          path: '/recuento-stock',
           label: 'Recuento Stock',
           icon: Package,
           description: 'Contar inventario'
         },
         {
           id: 'cuentas-corrientes',
+          path: '/cuentas-corrientes',
           label: 'Cuentas Corrientes',
           icon: CreditCard,
           description: 'Deudas y saldos'
@@ -149,54 +161,63 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       items: [
         {
           id: 'ratios',
+          path: '/contabilidad/ratios',
           label: 'Ratios Financieros',
           icon: TrendingUp,
           description: 'Indicadores de liquidez'
         },
         {
           id: 'plan-cuentas',
+          path: '/contabilidad/plan-cuentas',
           label: 'Plan de Cuentas',
           icon: BookOpen,
           description: 'Estructura contable'
         },
         {
           id: 'libro-diario',
+          path: '/contabilidad/libro-diario',
           label: 'Libro Diario',
           icon: FileText,
           description: 'Asientos contables'
         },
         {
           id: 'libro-mayor',
+          path: '/contabilidad/libro-mayor',
           label: 'Libro Mayor',
           icon: BookOpen,
           description: 'Mayor por cuenta'
         },
         {
           id: 'conciliacion-caja',
+          path: '/contabilidad/conciliacion',
           label: 'Conciliación Caja',
           icon: DollarSign,
           description: 'Verificar efectivo'
         },
         {
           id: 'estado-situacion-patrimonial',
+          path: '/contabilidad/situacion-patrimonial',
           label: 'Estado Situación Patrimonial',
           icon: BarChart3,
           description: 'Balance patrimonial'
         },
         {
           id: 'estado-resultados',
+          path: '/contabilidad/resultados',
           label: 'Estado de Resultados',
           icon: TrendingUp,
           description: 'Ingresos y gastos'
         },
         {
           id: 'balance-sumas-saldos',
+          path: '/contabilidad/balance',
           label: 'Balance de Sumas y Saldos',
           icon: ArrowUpDown,
           description: 'Verificación contable'
         },
         {
           id: 'cuentas-auxiliares',
+          path: '/contabilidad/cuentas-auxiliares',
           label: 'Cuentas Auxiliares',
           icon: Calculator,
           description: 'Control detallado de inventarios'
@@ -210,19 +231,21 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       items: [
         {
           id: 'reparaciones',
+          path: '/reparaciones',
           label: 'Reparaciones',
           icon: Wrench,
-          description: 'Gestión de reparaciones',
-          disabled: false
+          description: 'Gestión de reparaciones'
         },
         {
           id: 'testeo-equipos',
+          path: '/testeo-equipos',
           label: 'Testeo Equipos',
           icon: Monitor,
           description: 'Testeo de notebooks y celulares'
         },
         {
           id: 'email-preview',
+          path: '/email-preview',
           label: 'Preview Email',
           icon: Mail,
           description: 'Previsualización template de email'
@@ -236,18 +259,21 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
       items: [
         {
           id: 'compras',
+          path: '/compras',
           label: 'Compras Locales',
           icon: ShoppingCart,
           description: 'Registro de compras locales'
         },
         {
           id: 'importaciones',
+          path: '/importaciones',
           label: 'Compras Internacionales',
           icon: Plane,
           description: 'Gestión de compras internacionales'
         },
         {
           id: 'proveedores-compras',
+          path: '/proveedores',
           label: 'Proveedores',
           icon: Users,
           description: 'Gestión de proveedores'
@@ -258,11 +284,9 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
 
   // Filtrar grupos según el nivel de usuario
   const allowedSections = getAllowedSections();
-  const filteredMenuGroups = menuGroups.filter(group => 
+  const filteredMenuGroups = menuGroups.filter(group =>
     user?.nivel === 'admin' || allowedSections.includes(group.level)
   );
-
-
 
   // Función para alternar el estado expandido de una sección
   const toggleSection = (sectionTitle) => {
@@ -278,35 +302,23 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
   };
 
   return (
-    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-70'
-    }`}>
-      {/* Header fijo - NO scrolleable */}
-      <div className={`${isCollapsed ? "p-2" : "p-8"} ${isCollapsed ? "pb-2" : "pb-4"} border-b border-slate-200 bg-slate-800 relative z-10`}>
-        <div className="w-full">
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
-            {/* Botón de colapso integrado */}
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors focus:outline-none"
-                title={isCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
-              >
-                {isCollapsed ? (
-                  <ChevronRight size={20} className="text-white" strokeWidth={2.5} />
-                ) : (
-                  <ChevronLeft size={20} className="text-white" strokeWidth={2.5} />
-                )}
-              </button>
-            )}
-          </div>
+    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 transition-all duration-500 ease-in-out ${isCollapsed ? 'w-16' : 'w-70'
+      }`}>
+      {/* Header con Logo */}
+      <div className={`${isCollapsed ? "p-2" : "p-4"} border-b border-slate-700 bg-slate-800 relative z-10`}>
+        <div className="flex items-center justify-center">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className={`transition-all duration-300 ${isCollapsed ? 'w-10 h-10' : 'w-16 h-16'}`}
+          />
         </div>
       </div>
 
       {/* Contenido scrolleable - solo el menú */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
-        <div className={isCollapsed ? "p-2 pt-4" : "p-8 pt-8"}>
-          <nav className={isCollapsed ? "space-y-2" : "space-y-8"}>
+        <div className={isCollapsed ? "p-2 pt-4" : "p-4 pt-4"}>
+          <nav className={isCollapsed ? "space-y-2" : "space-y-6"}>
             {filteredMenuGroups.map((group, groupIndex) => {
               const isGroupDisabled = group.disabled;
               const isExpanded = expandedSections.has(group.title);
@@ -317,7 +329,7 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
                   {!isCollapsed ? (
                     <button
                       onClick={() => toggleSection(group.title)}
-                      className={`w-full bg-emerald-600 p-4 rounded-lg mb-4 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
+                      className={`w-full bg-emerald-600 p-3 rounded-lg mb-3 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
                         } hover:bg-emerald-600/80 transition-all duration-200`}
                     >
                       <div className="flex items-center justify-between">
@@ -353,95 +365,102 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
                   )}
 
                   {/* Items del grupo - con animación de colapso */}
-                  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isCollapsed ? 'max-h-screen opacity-100' : 
+                  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'max-h-screen opacity-100' :
                     isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-                  }`}>
-                    <div className="space-y-2 pb-2">
+                    }`}>
+                    <div className="space-y-1 pb-2">
                       {group.items.map((item) => {
                         const Icon = item.icon;
-                        const isActive = activeSection === item.id;
                         const isItemDisabled = item.disabled || isGroupDisabled || !hasAccess(item.id);
 
+                        if (isItemDisabled) {
+                          return (
+                            <div
+                              key={item.id}
+                              className={`w-full group relative overflow-hidden rounded-lg transition-all duration-300 opacity-50 cursor-not-allowed ${isCollapsed ? 'p-2' : 'p-3'
+                                } border border-transparent`}
+                              title={isCollapsed ? item.label : undefined}
+                            >
+                              {isCollapsed ? (
+                                <div className="flex items-center justify-center">
+                                  <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
+                                    <Icon className="w-4 h-4" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="relative flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
+                                      <Icon className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                      <div className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
+                                        <span>{item.label}</span>
+                                        <AlertCircle className="w-3 h-3 opacity-50" />
+                                      </div>
+                                      <div className="text-xs text-slate-200/70">
+                                        {item.description}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
                         return (
-                          <button
+                          <NavLink
                             key={item.id}
-                            onClick={() => !isItemDisabled && setActiveSection(item.id)}
-                            disabled={isItemDisabled}
-                            className={`w-full group relative overflow-hidden rounded-lg transition-all duration-300 focus:outline-none ${
-                              isCollapsed ? 'p-2' : 'p-4'
-                            } ${isItemDisabled
-                              ? 'opacity-50 cursor-not-allowed'
-                              : isActive
+                            to={item.path}
+                            className={({ isActive }) => `w-full group relative overflow-hidden rounded-lg transition-all duration-300 focus:outline-none block ${isCollapsed ? 'p-2' : 'p-3'
+                              } ${isActive
                                 ? 'bg-white border border-slate-200 shadow-lg'
                                 : 'hover:bg-slate-200/20 border border-transparent'
                               }`}
                             title={isCollapsed ? item.label : undefined}
                           >
-                            {isCollapsed ? (
-                              /* Vista colapsada - solo iconos */
-                              <div className="flex items-center justify-center">
-                                <div className={`p-2 rounded-lg transition-colors ${isItemDisabled
-                                  ? 'bg-slate-200/10 text-slate-200'
-                                  : isActive
+                            {({ isActive }) => (
+                              isCollapsed ? (
+                                <div className="flex items-center justify-center">
+                                  <div className={`p-2 rounded-lg transition-colors ${isActive
                                     ? 'bg-emerald-600 text-white shadow-sm'
                                     : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
-                                  }`}>
-                                  <Icon className="w-4 h-4" />
-                                </div>
-                              </div>
-                            ) : (
-                              /* Vista expandida - iconos y texto */
-                              <div className="relative flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                  <div className={`p-2 rounded-lg transition-colors ${isItemDisabled
-                                    ? 'bg-slate-200/10 text-slate-200'
-                                    : isActive
-                                      ? 'bg-emerald-600 text-white shadow-sm'
-                                      : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                     }`}>
                                     <Icon className="w-4 h-4" />
                                   </div>
-
-                                  <div className="text-left">
-                                    <div className={`text-sm font-semibold transition-colors flex items-center space-x-2 ${isItemDisabled
-                                      ? 'text-slate-200'
-                                      : isActive
+                                </div>
+                              ) : (
+                                <div className="relative flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className={`p-2 rounded-lg transition-colors ${isActive
+                                      ? 'bg-emerald-600 text-white shadow-sm'
+                                      : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
+                                      }`}>
+                                      <Icon className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                      <div className={`text-sm font-semibold transition-colors ${isActive
                                         ? 'text-slate-800'
                                         : 'text-slate-200 group-hover:text-white'
-                                      }`}>
-                                      <span>{item.label}</span>
-                                      {isItemDisabled && (
-                                        <AlertCircle className="w-3 h-3 opacity-50" />
-                                      )}
-                                    </div>
-                                    <div className={`text-xs transition-colors ${isItemDisabled
-                                      ? 'text-slate-200/70'
-                                      : isActive
+                                        }`}>
+                                        {item.label}
+                                      </div>
+                                      <div className={`text-xs transition-colors ${isActive
                                         ? 'text-slate-800/70'
                                         : 'text-slate-200/70 group-hover:text-slate-200'
-                                      }`}>
-                                      {item.description}
+                                        }`}>
+                                        {item.description}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-
-                                <div className="flex items-center space-x-2">
-                                  {/* Badge para carrito */}
-                                  {item.badge && !isItemDisabled && (
-                                    <div className="bg-emerald-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                                      {item.badge}
-                                    </div>
-                                  )}
-
-                                  {/* Indicador activo */}
-                                  {isActive && !isItemDisabled && (
+                                  {isActive && (
                                     <div className="w-2 h-2 bg-emerald-600 rounded-full shadow-sm" />
                                   )}
                                 </div>
-                              </div>
+                              )
                             )}
-                          </button>
+                          </NavLink>
                         );
                       })}
                     </div>
@@ -453,33 +472,16 @@ const Sidebar = ({ activeSection, setActiveSection, isCollapsed = false, onToggl
         </div>
       </div>
 
-      {/* CSS personalizado para ocultar scrollbars y eliminar outlines */}
+      {/* CSS personalizado para ocultar scrollbars */}
       <style>{`
         .scrollbar-hide {
-          -ms-overflow-style: none;  /* Internet Explorer 10+ */
-          scrollbar-width: none;  /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
         .scrollbar-hide::-webkit-scrollbar {
-          display: none;  /* Safari and Chrome */
+          display: none;
         }
-        
-        /* Eliminar todos los outlines de botones */
-        button:focus {
-          outline: none !important;
-          box-shadow: none !important;
-        }
-        
-        button:focus-visible {
-          outline: none !important;
-          box-shadow: none !important;
-        }
-        
-        button:active {
-          outline: none !important;
-          box-shadow: none !important;
-        }
-        
-        *:focus {
+        button:focus, a:focus {
           outline: none !important;
         }
       `}</style>

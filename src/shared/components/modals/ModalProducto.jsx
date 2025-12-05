@@ -670,11 +670,14 @@ const ModalProducto = ({
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Slots RAM</label>
               <input
-                type="text"
-                value={formData.slots || '2'}
-                onChange={(e) => setFormData(prev => ({ ...prev, slots: e.target.value }))}
+                type="number"
+                value={formData.slots || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, slots: parseInt(e.target.value) || null }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Ej: 2"
+                min="1"
+                max="4"
+                step="1"
               />
             </div>
 
@@ -765,13 +768,15 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">VRAM</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">VRAM (GB)</label>
               <input
-                type="text"
+                type="number"
                 value={formData.vram || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, vram: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, vram: parseInt(e.target.value) || null }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Ej: 8GB"
+                placeholder="Ej: 4, 8, 16"
+                min="0"
+                step="1"
               />
             </div>
           </div>
@@ -860,11 +865,14 @@ const ModalProducto = ({
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Batería (%)</label>
             <input
-              type="text"
+              type="number"
               value={formData.bateria || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, bateria: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, bateria: parseInt(e.target.value) || null }))}
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Ej: 85%, 100%"
+              placeholder="Ej: 85, 100"
+              min="0"
+              max="100"
+              step="1"
             />
           </div>
 

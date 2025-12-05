@@ -456,13 +456,15 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM (GB)</label>
                   <input
-                    type="text"
+                    type="number"
                     name="ram"
                     value={formData.ram}
                     onChange={handleChange}
-                    placeholder="Ej: 8GB, 16GB, 32GB"
+                    placeholder="Ej: 8, 16, 32"
+                    min="0"
+                    step="1"
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
@@ -495,25 +497,29 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">SSD (GB)</label>
                   <input
-                    type="text"
+                    type="number"
                     name="ssd"
                     value={formData.ssd}
                     onChange={handleChange}
-                    placeholder="Ej: 256GB, 512GB, 1TB"
+                    placeholder="Ej: 256, 512, 1024"
+                    min="0"
+                    step="1"
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">HDD (GB)</label>
                   <input
-                    type="text"
+                    type="number"
                     name="hdd"
                     value={formData.hdd}
                     onChange={handleChange}
-                    placeholder="Ej: 1TB, 2TB o vacío si no tiene"
+                    placeholder="Ej: 1000, 2000 o vacío"
+                    min="0"
+                    step="1"
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
@@ -559,13 +565,16 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla (pulgadas)</label>
                   <input
-                    type="text"
+                    type="number"
                     name="pantalla"
                     value={formData.pantalla}
                     onChange={handleChange}
-                    placeholder="Ej: 15.6 pulgadas"
+                    placeholder="Ej: 15.6"
+                    min="10"
+                    max="20"
+                    step="0.1"
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
@@ -1267,14 +1276,16 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   {formData.categoria === CATEGORIAS_CELULARES.ANDROID && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Memoria RAM
+                        Memoria RAM (GB)
                       </label>
                       <input
-                        type="text"
+                        type="number"
                         name="ram"
                         value={formData.ram}
                         onChange={handleChange}
-                        placeholder="Ej: 4GB, 6GB, 8GB, 12GB"
+                        placeholder="Ej: 4, 6, 8, 12"
+                        min="0"
+                        step="1"
                         className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                       />
                     </div>

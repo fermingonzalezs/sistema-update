@@ -5,10 +5,10 @@ import { formatearMonto } from './formatters';
 
 /**
  * Tipos de copys disponibles:
- * VERSIONES SIMPLES (para Listas y botones copy):
- * - 'notebook_simple': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * - 'celular_simple': 📱 MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - PRECIO
- * - 'otro_simple': 📦 MODELO - DESCRIPCION - PRECIO
+ * VERSIONES COMERCIALES (para Listas y botones copy):
+ * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
+ * - 'celular_comercial': 📱 MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - PRECIO
+ * - 'otro_comercial': 📦 MODELO - DESCRIPCION - PRECIO
  *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
  * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION (sin emoji, sin precio)
@@ -23,8 +23,8 @@ import { formatearMonto } from './formatters';
 
 // Configuraciones por defecto para cada tipo
 const TYPE_DEFAULTS = {
-  // VERSIONES SIMPLES - Para Listas y copy buttons
-  notebook_simple: {
+  // VERSIONES COMERCIALES - Para Listas y copy buttons
+  notebook_comercial: {
     includeEmojis: true,
     includePrice: true,
     includeTechnicalDetails: true,
@@ -32,7 +32,7 @@ const TYPE_DEFAULTS = {
     maxLength: null,
     style: 'simple'
   },
-  celular_simple: {
+  celular_comercial: {
     includeEmojis: true,
     includePrice: true,
     includeTechnicalDetails: true,
@@ -40,7 +40,7 @@ const TYPE_DEFAULTS = {
     maxLength: null,
     style: 'simple'
   },
-  otro_simple: {
+  otro_comercial: {
     includeEmojis: true,
     includePrice: true,
     includeTechnicalDetails: true,
@@ -146,19 +146,22 @@ export const generateCopy = (producto, options = {}) => {
   let copy = '';
   switch (tipo) {
     case 'notebook':
-    case 'notebook_simple':
+    case 'notebook_simple': // Retrocompatibilidad
+    case 'notebook_comercial':
     case 'notebook_completo':
     case 'notebook_documento':
       copy = generateNotebookCopy(producto, config);
       break;
     case 'celular':
-    case 'celular_simple':
+    case 'celular_simple': // Retrocompatibilidad
+    case 'celular_comercial':
     case 'celular_completo':
     case 'celular_documento':
       copy = generateCelularCopy(producto, config);
       break;
     case 'otro':
-    case 'otro_simple':
+    case 'otro_simple': // Retrocompatibilidad
+    case 'otro_comercial':
     case 'otro_completo':
     case 'otro_documento':
       copy = generateOtroCopy(producto, config);
@@ -189,25 +192,25 @@ const determinarTipoCopy = (producto, categoria) => {
     }
   }
 
-  // Auto-determinar por campos del producto (por defecto versión simple para Listas)
+  // Auto-determinar por campos del producto (por defecto versión comercial para Listas)
   if (producto.tipo) {
     switch (producto.tipo) {
-      case 'computadora': return 'notebook_simple';
-      case 'celular': return 'celular_simple';
-      case 'otro': return 'otro_simple';
-      default: return 'otro_simple';
+      case 'computadora': return 'notebook_comercial';
+      case 'celular': return 'celular_comercial';
+      case 'otro': return 'otro_comercial';
+      default: return 'otro_comercial';
     }
   }
 
   if (producto.procesador && (producto.ram || producto.memoria_ram)) {
-    return 'notebook_simple';
+    return 'notebook_comercial';
   }
 
   if (producto.capacidad && producto.modelo && producto.marca) {
-    return 'celular_simple';
+    return 'celular_comercial';
   }
 
-  return 'otro_simple';
+  return 'otro_comercial';
 };
 
 /**
@@ -264,8 +267,8 @@ const hasValidStorage = (value) => {
 
 /**
  * Generar copy para notebooks
- * NUEVAS: 💻 MODELO - PROCESADOR - MEMORIA - ALMACENAMIENTO - PANTALLA - PRECIO
- * USADAS/REFURBISHED: 💻 MODELO - PROCESADOR - MEMORIA - ALMACENAMIENTO - PANTALLA - 🔋 BATERIA DURACION - ESTADO ESTÉTICO - PRECIO
+ * NUEVAS: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - CONDICION - PRECIO
+ * USADAS/REFURBISHED: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - 🔋 BATERIA DURACION - CONDICION - ESTADO ESTÉTICO - PRECIO
  */
 const generateNotebookCopy = (comp, config) => {
   const partes = [];
@@ -285,13 +288,16 @@ const generateNotebookCopy = (comp, config) => {
   if (comp.marca && modelo.toLowerCase().startsWith(comp.marca.toLowerCase())) {
     modelo = modelo.substring(comp.marca.length).trim();
   }
-  partes.push(modelo.toUpperCase());
+  partes.push(modelo);
 
   // 2. PANTALLA Y RESOLUCIÓN JUNTAS (Movido antes de procesador)
   let pantallaResolucion = '';
   if (comp.pantalla) {
-    // Mostrar el texto exactamente como se cargó, sin agregar comillas
     pantallaResolucion = String(comp.pantalla);
+    // Agregar comillas si no las tiene y no dice "pulgadas"
+    if (!pantallaResolucion.includes('"') && !pantallaResolucion.toLowerCase().includes('pulgadas')) {
+      pantallaResolucion += '"';
+    }
   }
   if (comp.resolucion || comp.hz || comp.frecuencia) {
     let resolucionCompleta = '';
@@ -305,10 +311,10 @@ const generateNotebookCopy = (comp, config) => {
           'MacBook Pro 14"': '3024x1964',
           'MacBook Pro 16"': '3456x2234'
         };
-        resolucionCompleta = RESOLUCIONES_NUMEROS[comp.resolucion] || comp.resolucion.toUpperCase();
+        resolucionCompleta = RESOLUCIONES_NUMEROS[comp.resolucion] || comp.resolucion;
       } else {
         // Para Windows, mantener la etiqueta (FHD, QHD, etc.)
-        resolucionCompleta = comp.resolucion.toUpperCase();
+        resolucionCompleta = comp.resolucion;
       }
     }
     if (comp.hz || comp.frecuencia) {
@@ -316,16 +322,15 @@ const generateNotebookCopy = (comp, config) => {
       resolucionCompleta += resolucionCompleta ? ` ${hz}HZ` : `${hz}HZ`;
     }
     if (resolucionCompleta) {
-      pantallaResolucion += pantallaResolucion ? ` ${resolucionCompleta}` : resolucionCompleta;
+      partes.push(pantallaResolucion ? `${pantallaResolucion} ${resolucionCompleta}` : resolucionCompleta);
     }
-  }
-  if (pantallaResolucion) {
+  } else if (pantallaResolucion) {
     partes.push(pantallaResolucion);
   }
 
   // 3. PROCESADOR
   if (comp.procesador) {
-    partes.push(comp.procesador.toUpperCase());
+    partes.push(comp.procesador);
   }
 
   // 4. MEMORIA
@@ -334,7 +339,7 @@ const generateNotebookCopy = (comp, config) => {
     const tipoRam = comp.tipo_ram || 'DDR4';
     // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
     const ramLimpio = String(ram).replace(/GB/gi, '');
-    partes.push(`${ramLimpio}GB ${tipoRam}`.toUpperCase());
+    partes.push(`${ramLimpio}GB ${tipoRam}`);
   }
 
   // 5. ALMACENAMIENTO
@@ -365,10 +370,10 @@ const generateNotebookCopy = (comp, config) => {
         gpu += ` ${vramLimpio}GB`;
       }
     }
-    partes.push(gpu.toUpperCase());
+    partes.push(gpu);
   }
 
-  // 7. BATERÍA Y ESTADO - SOLO para USADAS/REFURBISHED (antes del precio)
+  // 7. BATERÍA - SOLO para USADAS/REFURBISHED
   if (!esNueva) {
     // Batería con emoji 🔋
     let bateriaInfo = '';
@@ -385,77 +390,62 @@ const generateNotebookCopy = (comp, config) => {
     if (bateriaInfo) {
       partes.push(bateriaInfo);
     }
-
-    // Estado estético
-    if (comp.estado) {
-      const estado = comp.estado.toUpperCase();
-      partes.push(estado);
-    }
   }
 
-  // 8. COLOR - SIEMPRE (antes del precio, tanto en simple como completo)
+  // 8. CONDICION - SIEMPRE
+  if (comp.condicion) {
+    partes.push(comp.condicion);
+  }
+
+  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED
+  if (!esNueva && comp.estado) {
+    partes.push(comp.estado);
+  }
+
+  // 10. COLOR - SIEMPRE (antes del precio, tanto en simple como completo)
   if (comp.color) {
-    if (config.style === 'completo') {
-      partes.push(comp.color.charAt(0).toUpperCase() + comp.color.slice(1).toLowerCase());
-    } else {
-      partes.push(comp.color.toUpperCase());
-    }
+    partes.push(comp.color);
   }
 
-  // 9. IDIOMA TECLADO - SIEMPRE (después del color, antes del precio)
+  // 11. IDIOMA TECLADO - SIEMPRE (después del color, antes del precio)
   if (comp.idioma || comp.idioma_teclado) {
     const idioma = comp.idioma || comp.idioma_teclado;
-    if (config.style === 'completo') {
-      partes.push(idioma.charAt(0).toUpperCase() + idioma.slice(1).toLowerCase());
-    } else {
-      partes.push(idioma.toUpperCase());
-    }
+    partes.push(idioma);
   }
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 11. SISTEMA OPERATIVO
+    // 12. SISTEMA OPERATIVO
     if (comp.sistema_operativo || comp.so) {
       const so = comp.sistema_operativo || comp.so;
-      partes.push(so.toUpperCase());
+      partes.push(so);
     }
 
-    // 12. COLOR
-    if (comp.color) {
-      partes.push(comp.color.charAt(0).toUpperCase() + comp.color.slice(1).toLowerCase());
-    }
-
-    // 13. IDIOMA
-    if (comp.idioma || comp.idioma_teclado) {
-      const idioma = comp.idioma || comp.idioma_teclado;
-      partes.push(idioma.charAt(0).toUpperCase() + idioma.slice(1).toLowerCase());
-    }
-
-    // 14. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
+    // 13. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (comp.fallas || comp.problemas || comp.defectos) {
       const notas = comp.fallas || comp.problemas || comp.defectos;
       // Verificar que no esté vacío o sea "ninguna"
       const notasLimpio = notas.trim().toLowerCase();
       if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+        partes.push(`Notas: ${notas}`);
       }
     }
 
-    // 15. OBSERVACIONES
+    // 14. OBSERVACIONES
     if (comp.observaciones || comp.notas || comp.comentarios) {
       const obs = comp.observaciones || comp.notas || comp.comentarios;
-      partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
+      partes.push(`Observaciones: ${obs}`);
     }
 
-    // 16. GARANTIA - Removida del copy según requerimientos
+    // 15. GARANTIA - Removida del copy según requerimientos
 
-    // 17. SUCURSAL - Removida del copy, ahora se muestra en columna separada
+    // 16. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
   // VERSIÓN DOCUMENTO: Sin observaciones, notas, SO adicional
   // Ya tiene: MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERÍA - ESTADO - COLOR - IDIOMA
 
-  // 11. PRECIO (solo en versión simple)
+  // 15. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (comp.precio_venta_usd) {
       partes.push(formatearMonto(comp.precio_venta_usd, 'USD', true));
@@ -476,8 +466,8 @@ const generateNotebookCopy = (comp, config) => {
 
 /**
  * Generar copy para celulares
- * NUEVOS: 📱 MODELO - CAPACIDAD - COLOR - PRECIO (sin batería, sin estado)
- * USADOS/REFURBISHED: 📱 MODELO - CAPACIDAD - COLOR - 🔋 BATERIA - ESTADO ESTÉTICO - PRECIO
+ * NUEVOS: 📱 MODELO - CAPACIDAD - COLOR - CONDICION - PRECIO
+ * USADOS/REFURBISHED: 📱 MODELO - CAPACIDAD - COLOR - 🔋 BATERIA - CONDICION - ESTADO ESTÉTICO - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
   const partes = [];
@@ -499,24 +489,23 @@ const generateCelularCopy = (cel, config) => {
   if (cel.marca && modelo.toLowerCase().startsWith(cel.marca.toLowerCase())) {
     modelo = modelo.substring(cel.marca.length).trim();
   }
-  partes.push(modelo.toUpperCase());
+  partes.push(modelo);
 
   // 2. COLOR (Movido antes de capacidad)
   if (cel.color) {
-    if (config.style === 'completo') {
-      partes.push(cel.color.charAt(0).toUpperCase() + cel.color.slice(1).toLowerCase());
-    } else {
-      partes.push(cel.color.toUpperCase());
-    }
+    partes.push(cel.color);
   }
 
   // 3. CAPACIDAD
   if (cel.capacidad) {
-    // La capacidad ya viene formateada (ej: "256GB"), no agregar más unidades
-    partes.push(cel.capacidad.toUpperCase());
+    // Convertir a string primero por si es numérico
+    const capacidadStr = String(cel.capacidad);
+    // Agregar 'GB' si no está presente
+    const capacidadFinal = capacidadStr.toUpperCase().includes('GB') ? capacidadStr : `${capacidadStr}GB`;
+    partes.push(capacidadFinal);
   }
 
-  // 4. BATERÍA Y ESTADO - SOLO para USADOS/REFURBISH (antes del precio)
+  // 4. BATERÍA - SOLO para USADOS/REFURBISH (antes del precio)
   if (!esNuevo) {
     // Batería con emoji 🔋
     let bateriaInfo = '';
@@ -532,49 +521,53 @@ const generateCelularCopy = (cel, config) => {
     if (bateriaInfo) {
       partes.push(bateriaInfo);
     }
-
-    // Estado estético
-    if (cel.estado) {
-      const estado = cel.estado.toUpperCase();
-      partes.push(estado);
-    }
   }
 
-  // 5. CAMPOS ADICIONALES - Removidos según nuevos requerimientos
+  // 5. CONDICION - SIEMPRE
+  if (cel.condicion) {
+    partes.push(cel.condicion);
+  }
+
+  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED
+  if (!esNuevo && cel.estado) {
+    partes.push(cel.estado);
+  }
+
+  // 7. CAMPOS ADICIONALES - Removidos según nuevos requerimientos
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
+    // 7. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
     if (cel.fallas || cel.problemas || cel.defectos) {
       const notas = cel.fallas || cel.problemas || cel.defectos;
       // Verificar que no esté vacío o sea "ninguna"
       const notasLimpio = notas.trim().toLowerCase();
       if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+        partes.push(`Notas: ${notas}`);
       }
     }
 
-    // 7. OBSERVACIONES
+    // 8. OBSERVACIONES
     if (cel.observaciones || cel.notas || cel.comentarios) {
       const obs = cel.observaciones || cel.notas || cel.comentarios;
-      partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
+      partes.push(`Observaciones: ${obs}`);
     }
 
-    // 8. GARANTIA - Removida del copy según requerimientos
+    // 9. GARANTIA - Removida del copy según requerimientos
 
-    // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
+    // 10. SUCURSAL - Removida del copy, ahora se muestra en columna separada
 
-    // 10. PROVEEDOR
+    // 11. PROVEEDOR
     if (cel.proveedor || cel.importador) {
       const proveedor = cel.proveedor || cel.importador;
-      partes.push(`Proveedor: ${proveedor.charAt(0).toUpperCase() + proveedor.slice(1).toLowerCase()}`);
+      partes.push(`Proveedor: ${proveedor}`);
     }
   }
 
   // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor
   // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA - ESTADO
 
-  // 6. PRECIO (solo en versión simple)
+  // 10. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (cel.precio_venta_usd) {
       partes.push(formatearMonto(cel.precio_venta_usd, 'USD', true));
@@ -629,11 +622,15 @@ const getCategoriaEmoji = (categoria) => {
 
 /**
  * Generar copy para otros productos
- * SIMPLE: [EMOJI CATEGORÍA] NOMBRE_PRODUCTO - PRECIO
- * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - ESTADO - FALLAS - OBSERVACIONES
+ * SIMPLE: [EMOJI CATEGORÍA] NOMBRE_PRODUCTO - CONDICION - PRECIO
+ * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - CONDICION - ESTADO - FALLAS - OBSERVACIONES
  */
 const generateOtroCopy = (otro, config) => {
   const partes = [];
+
+  // Determinar si es nuevo o usado/refurbished
+  const condicion = (otro.condicion || '').toLowerCase();
+  const esNuevo = condicion === 'nuevo' || condicion === 'nueva';
 
   // Emoji solo en versión simple - usar emoji según categoría
   if (config.includeEmojis) {
@@ -661,7 +658,7 @@ const generateOtroCopy = (otro, config) => {
   } else {
     nombreProducto = otro.descripcion || 'Producto sin nombre';
   }
-  partes.push(nombreProducto.toUpperCase());
+  partes.push(nombreProducto);
 
   // Para versión SIMPLE: solo EMOJI - NOMBRE - PRECIO (sin descripción, sin especificaciones)
   // Para versión COMPLETA: agregar campos adicionales
@@ -669,23 +666,25 @@ const generateOtroCopy = (otro, config) => {
   if (config.style === 'completo') {
     // 2. DESCRIPCION (solo si es diferente del nombre)
     if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
-      partes.push(otro.descripcion.charAt(0).toUpperCase() + otro.descripcion.slice(1).toLowerCase());
+      partes.push(otro.descripcion);
     }
+  }
+
+  // 3. CONDICION - SIEMPRE
+  if (otro.condicion) {
+    partes.push(otro.condicion);
+  }
+
+  // 4. ESTADO - SOLO para USADOS/REFURBISHED
+  if (!esNuevo && otro.estado) {
+    partes.push(otro.estado);
   }
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 3. CATEGORIA - Removida del copy según requerimientos
-
-    // 4. COLOR
+    // 5. COLOR
     if (otro.color) {
-      partes.push(otro.color.charAt(0).toUpperCase() + otro.color.slice(1).toLowerCase());
-    }
-
-    // 5. ESTADO
-    if (otro.condicion || otro.estado) {
-      const estado = otro.condicion || otro.estado;
-      partes.push(estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase());
+      partes.push(otro.color);
     }
 
     // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
@@ -694,14 +693,14 @@ const generateOtroCopy = (otro, config) => {
       // Verificar que no esté vacío o sea "ninguna"
       const notasLimpio = notas.trim().toLowerCase();
       if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas.charAt(0).toUpperCase() + notas.slice(1).toLowerCase()}`);
+        partes.push(`Notas: ${notas}`);
       }
     }
 
     // 7. OBSERVACIONES
     if (otro.observaciones || otro.notas || otro.comentarios) {
       const obs = otro.observaciones || otro.notas || otro.comentarios;
-      partes.push(`Observaciones: ${obs.charAt(0).toUpperCase() + obs.slice(1).toLowerCase()}`);
+      partes.push(`Observaciones: ${obs}`);
     }
 
     // 8. GARANTIA - Removida del copy según requerimientos
@@ -712,7 +711,7 @@ const generateOtroCopy = (otro, config) => {
   // VERSIÓN DOCUMENTO: Solo NOMBRE_PRODUCTO
   // Sin descripción, color, estado, notas ni observaciones
 
-  // 3. PRECIO (solo en versión simple)
+  // 8. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (otro.precio_venta_usd) {
       partes.push(formatearMonto(otro.precio_venta_usd, 'USD', true));
@@ -753,15 +752,15 @@ export const generarCopy = (producto) => {
 };
 
 export const generarCopyComputadora = (comp) => {
-  return generateCopy({ ...comp, tipo: 'computadora' }, { tipo: 'notebook_simple' });
+  return generateCopy({ ...comp, tipo: 'computadora' }, { tipo: 'notebook_comercial' });
 };
 
 export const generarCopyCelular = (cel) => {
-  return generateCopy({ ...cel, tipo: 'celular' }, { tipo: 'celular_simple' });
+  return generateCopy({ ...cel, tipo: 'celular' }, { tipo: 'celular_comercial' });
 };
 
 export const generarCopyOtro = (otro) => {
-  return generateCopy({ ...otro, tipo: 'otro' }, { tipo: 'otro_simple' });
+  return generateCopy({ ...otro, tipo: 'otro' }, { tipo: 'otro_comercial' });
 };
 
 /**
@@ -776,18 +775,23 @@ export const generateUnifiedCopy = (producto, categoria, cotizacionDolar) => {
   });
 };
 
-// FUNCIONES PARA VERSIONES SIMPLES (Listas + botones copy)
-export const generateNotebookSimple = (producto) => {
-  return generateCopy(producto, { tipo: 'notebook_simple' });
+// FUNCIONES PARA VERSIONES COMERCIALES (Listas + botones copy)
+export const generateNotebookComercial = (producto) => {
+  return generateCopy(producto, { tipo: 'notebook_comercial' });
 };
 
-export const generateCelularSimple = (producto) => {
-  return generateCopy(producto, { tipo: 'celular_simple' });
+export const generateCelularComercial = (producto) => {
+  return generateCopy(producto, { tipo: 'celular_comercial' });
 };
 
-export const generateOtroSimple = (producto) => {
-  return generateCopy(producto, { tipo: 'otro_simple' });
+export const generateOtroComercial = (producto) => {
+  return generateCopy(producto, { tipo: 'otro_comercial' });
 };
+
+// Alias para retrocompatibilidad
+export const generateNotebookSimple = generateNotebookComercial;
+export const generateCelularSimple = generateCelularComercial;
+export const generateOtroSimple = generateOtroComercial;
 
 // FUNCIONES PARA VERSIONES COMPLETAS (Catálogo información)
 export const generateNotebookCompleto = (producto) => {
@@ -813,6 +817,132 @@ export const generateCelular = (producto) => {
 
 export const generateOtro = (producto) => {
   return generateCopy(producto, { tipo: 'otro_simple' });
+};
+
+// ============================================================
+// FUNCIONES PARA VENTA_ITEMS - TODOS LOS CAMPOS DE CADA TABLA
+// Genera copy con todos los valores sin labels, separados por " - "
+// ============================================================
+
+/**
+ * Genera copy con TODOS los campos de la tabla inventario (notebooks)
+ * Solo valores, sin labels, ordenados por columnas de la tabla
+ */
+export const generateNotebookAllFields = (producto) => {
+  const valores = [];
+
+  // Orden: id, serial, modelo, marca, categoria, procesador, linea_procesador, ram, tipo_ram, slots,
+  // ssd, hdd, pantalla, resolucion, refresh, touchscreen, so, placa_video, vram, 
+  // idioma_teclado, teclado_retro, color, bateria, duracion, condicion, estado,
+  // garantia_update, garantia_oficial, fallas, sucursal, ingreso, precio_costo_usd, envios_repuestos, precio_costo_total, precio_venta_usd
+
+  if (producto.id !== undefined) valores.push(producto.id);
+  if (producto.serial) valores.push(producto.serial);
+  if (producto.modelo) valores.push(producto.modelo);
+  if (producto.marca) valores.push(producto.marca);
+  if (producto.categoria) valores.push(producto.categoria);
+  if (producto.procesador) valores.push(producto.procesador);
+  if (producto.linea_procesador) valores.push(producto.linea_procesador);
+  if (producto.ram || producto.memoria_ram) valores.push(producto.ram || producto.memoria_ram);
+  if (producto.tipo_ram) valores.push(producto.tipo_ram);
+  if (producto.slots) valores.push(producto.slots);
+  if (producto.ssd) valores.push(producto.ssd);
+  if (producto.hdd) valores.push(producto.hdd);
+  if (producto.pantalla) valores.push(producto.pantalla);
+  if (producto.resolucion) valores.push(producto.resolucion);
+  if (producto.refresh || producto.hz) valores.push(producto.refresh || producto.hz);
+  if (producto.touchscreen !== undefined) valores.push(producto.touchscreen);
+  if (producto.so || producto.sistema_operativo) valores.push(producto.so || producto.sistema_operativo);
+  if (producto.placa_video || producto.placa_de_video || producto.gpu) valores.push(producto.placa_video || producto.placa_de_video || producto.gpu);
+  if (producto.vram) valores.push(producto.vram);
+  if (producto.idioma_teclado || producto.idioma) valores.push(producto.idioma_teclado || producto.idioma);
+  if (producto.teclado_retro) valores.push(producto.teclado_retro);
+  if (producto.color) valores.push(producto.color);
+  if (producto.bateria || producto.porcentaje_de_bateria) valores.push(producto.bateria || producto.porcentaje_de_bateria);
+  if (producto.duracion || producto.duracion_bateria) valores.push(producto.duracion || producto.duracion_bateria);
+  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.estado) valores.push(producto.estado);
+  if (producto.garantia_update) valores.push(producto.garantia_update);
+  if (producto.garantia_oficial) valores.push(producto.garantia_oficial);
+  if (producto.fallas) valores.push(producto.fallas);
+  if (producto.sucursal) valores.push(producto.sucursal);
+  if (producto.ingreso) valores.push(producto.ingreso);
+  if (producto.precio_costo_usd !== undefined) valores.push(producto.precio_costo_usd);
+  if (producto.envios_repuestos !== undefined) valores.push(producto.envios_repuestos);
+  if (producto.precio_costo_total !== undefined) valores.push(producto.precio_costo_total);
+  if (producto.precio_venta_usd !== undefined) valores.push(producto.precio_venta_usd);
+
+  return valores.join(' - ') || 'Sin información';
+};
+
+/**
+ * Genera copy con TODOS los campos de la tabla celulares
+ * Solo valores, sin labels, ordenados por columnas de la tabla
+ */
+export const generateCelularAllFields = (producto) => {
+  const valores = [];
+
+  // Orden: id, serial, modelo, marca, color, capacidad, ram, condicion, estado, bateria, ciclos,
+  // fallas, observaciones, garantia, proveedor, sucursal, precio_compra_usd, costos_adicionales, costo_total_usd, precio_venta_usd
+
+  if (producto.id !== undefined) valores.push(producto.id);
+  if (producto.serial) valores.push(producto.serial);
+  if (producto.modelo) valores.push(producto.modelo);
+  if (producto.marca) valores.push(producto.marca);
+  if (producto.color) valores.push(producto.color);
+  if (producto.capacidad) valores.push(producto.capacidad);
+  if (producto.ram) valores.push(producto.ram);
+  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.estado) valores.push(producto.estado);
+  if (producto.bateria || producto.porcentaje_de_bateria) valores.push(producto.bateria || producto.porcentaje_de_bateria);
+  if (producto.ciclos || producto.ciclos_bateria) valores.push(producto.ciclos || producto.ciclos_bateria);
+  if (producto.fallas) valores.push(producto.fallas);
+  if (producto.observaciones) valores.push(producto.observaciones);
+  if (producto.garantia) valores.push(producto.garantia);
+  if (producto.proveedor || producto.importador) valores.push(producto.proveedor || producto.importador);
+  if (producto.sucursal) valores.push(producto.sucursal);
+  if (producto.precio_compra_usd !== undefined) valores.push(producto.precio_compra_usd);
+  if (producto.costos_adicionales !== undefined) valores.push(producto.costos_adicionales);
+  if (producto.costo_total_usd !== undefined) valores.push(producto.costo_total_usd);
+  if (producto.precio_venta_usd !== undefined) valores.push(producto.precio_venta_usd);
+
+  return valores.join(' - ') || 'Sin información';
+};
+
+/**
+ * Genera copy con TODOS los campos de la tabla otros
+ * Solo valores, sin labels, ordenados por columnas de la tabla
+ */
+export const generateOtroAllFields = (producto) => {
+  const valores = [];
+
+  // Orden: id, serial, codigo, nombre_producto, descripcion, categoria, marca, modelo, condicion, estado,
+  // color, fallas, observaciones, garantia, sucursal, cantidad_la_plata, cantidad_mitre,
+  // precio_compra_usd, costos_adicionales, costo_total_usd, precio_venta_usd
+
+  if (producto.id !== undefined) valores.push(producto.id);
+  if (producto.serial) valores.push(producto.serial);
+  if (producto.codigo || producto.codigo_producto || producto.sku) valores.push(producto.codigo || producto.codigo_producto || producto.sku);
+  if (producto.nombre_producto) valores.push(producto.nombre_producto);
+  if (producto.descripcion) valores.push(producto.descripcion);
+  if (producto.categoria) valores.push(producto.categoria);
+  if (producto.marca) valores.push(producto.marca);
+  if (producto.modelo || producto.modelo_otro) valores.push(producto.modelo || producto.modelo_otro);
+  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.estado) valores.push(producto.estado);
+  if (producto.color) valores.push(producto.color);
+  if (producto.fallas) valores.push(producto.fallas);
+  if (producto.observaciones) valores.push(producto.observaciones);
+  if (producto.garantia) valores.push(producto.garantia);
+  if (producto.sucursal) valores.push(producto.sucursal);
+  if (producto.cantidad_la_plata !== undefined) valores.push(producto.cantidad_la_plata);
+  if (producto.cantidad_mitre !== undefined) valores.push(producto.cantidad_mitre);
+  if (producto.precio_compra_usd !== undefined) valores.push(producto.precio_compra_usd);
+  if (producto.costos_adicionales !== undefined) valores.push(producto.costos_adicionales);
+  if (producto.costo_total_usd !== undefined) valores.push(producto.costo_total_usd);
+  if (producto.precio_venta_usd !== undefined) valores.push(producto.precio_venta_usd);
+
+  return valores.join(' - ') || 'Sin información';
 };
 
 export default generateCopy;

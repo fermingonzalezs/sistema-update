@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { otrosService } from '../hooks/useOtros.js';
-import { generateCopy } from '../../../shared/utils/copyGenerator';
+import { generateCopy, generateNotebookAllFields, generateCelularAllFields, generateOtroAllFields } from '../../../shared/utils/copyGenerator';
 import { generarPDFsVenta, extraerInfoProductosParaEmail } from '../utils/pdfGeneratorService.jsx';
 import { enviarVentaPorEmail } from '../utils/emailService';
 
@@ -236,19 +236,19 @@ export const ventasService = {
         });
 
 
-        // Generar DOS copys: uno completo (para BD) y otro limpio (para documentos)
+        // Generar DOS copys: uno con TODOS los campos (para BD) y otro limpio (para documentos)
         let copyCompleto = '';
         let copyDocumento = '';
 
         try {
-          // 1. COPY COMPLETO - Para guardar en BD con toda la información
-          let tipoCompleto = 'otro_completo';
+          // 1. COPY COMPLETO - Con TODOS los campos de la tabla correspondiente
           if (item.tipo === 'computadora') {
-            tipoCompleto = 'notebook_completo';
+            copyCompleto = generateNotebookAllFields(item.producto);
           } else if (item.tipo === 'celular') {
-            tipoCompleto = 'celular_completo';
+            copyCompleto = generateCelularAllFields(item.producto);
+          } else {
+            copyCompleto = generateOtroAllFields(item.producto);
           }
-          copyCompleto = generateCopy(item.producto, { tipo: tipoCompleto });
 
           // 2. COPY DOCUMENTO - Para recibos, garantías y emails (sin observaciones/notas)
           let tipoDocumento = 'otro_documento';
@@ -358,9 +358,9 @@ export const ventasService = {
     const nombres = carrito.map(item => {
       // Obtener nombre del producto según tipo
       const nombre = item.producto.modelo ||
-                     item.producto.nombre_producto ||
-                     item.producto.descripcion ||
-                     'Producto';
+        item.producto.nombre_producto ||
+        item.producto.descripcion ||
+        'Producto';
 
       // Agregar cantidad siempre (x1), (x2), (x3), etc.
       return `${nombre.toUpperCase()} (x${item.cantidad})`;
