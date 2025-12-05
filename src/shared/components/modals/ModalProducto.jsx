@@ -16,6 +16,10 @@ import {
   CATEGORIAS_OTROS_ARRAY,
   CATEGORIAS_OTROS_LABELS
 } from '../../constants/categoryConstants';
+import {
+  LINEAS_PROCESADOR_ARRAY,
+  LINEAS_PROCESADOR_LABELS
+} from '../../constants/processorConstants';
 import MarcaSelector from '../ui/MarcaSelector';
 
 // Configuración de campos por tipo de producto
@@ -25,7 +29,7 @@ const CONFIGURACION_PRODUCTOS = {
     titulo: 'Notebook/Computadora',
     camposObligatorios: ['serial', 'modelo'],
     camposEspecificos: [
-      'procesador', 'slots', 'tipo_ram', 'ram', 'ssd', 'hdd', 'so',
+      'procesador', 'linea_procesador', 'slots', 'tipo_ram', 'ram', 'ssd', 'hdd', 'so',
       'pantalla', 'resolucion', 'refresh', 'touchscreen', 'placa_video',
       'vram', 'teclado_retro', 'idioma_teclado', 'bateria', 'duracion'
     ],
@@ -607,13 +611,46 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">RAM</label>
-              <input
-                type="text"
-                value={formData.ram || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, ram: e.target.value }))}
+              <label className="block text-sm font-medium text-slate-700 mb-2">Línea de Procesador</label>
+              <select
+                value={formData.linea_procesador || 'otro'}
+                onChange={(e) => setFormData(prev => ({ ...prev, linea_procesador: e.target.value }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Ej: 16GB"
+              >
+                <optgroup label="Intel">
+                  <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
+                  <option value="i5">{LINEAS_PROCESADOR_LABELS.i5}</option>
+                  <option value="i7">{LINEAS_PROCESADOR_LABELS.i7}</option>
+                  <option value="i9">{LINEAS_PROCESADOR_LABELS.i9}</option>
+                </optgroup>
+                <optgroup label="AMD">
+                  <option value="r3">{LINEAS_PROCESADOR_LABELS.r3}</option>
+                  <option value="r5">{LINEAS_PROCESADOR_LABELS.r5}</option>
+                  <option value="r7">{LINEAS_PROCESADOR_LABELS.r7}</option>
+                  <option value="r9">{LINEAS_PROCESADOR_LABELS.r9}</option>
+                </optgroup>
+                <optgroup label="Apple">
+                  <option value="m1">{LINEAS_PROCESADOR_LABELS.m1}</option>
+                  <option value="m2">{LINEAS_PROCESADOR_LABELS.m2}</option>
+                  <option value="m3">{LINEAS_PROCESADOR_LABELS.m3}</option>
+                  <option value="m4">{LINEAS_PROCESADOR_LABELS.m4}</option>
+                  <option value="m5">{LINEAS_PROCESADOR_LABELS.m5}</option>
+                </optgroup>
+                <option value="otro">{LINEAS_PROCESADOR_LABELS.otro}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">RAM (GB)</label>
+              <input
+                type="number"
+                value={formData.ram || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, ram: parseInt(e.target.value) || 0 }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Ej: 16"
+                min="0"
+                max="256"
+                step="1"
               />
             </div>
 
@@ -642,24 +679,28 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">SSD (GB)</label>
               <input
-                type="text"
+                type="number"
                 value={formData.ssd || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, ssd: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, ssd: parseInt(e.target.value) || 0 }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Ej: 512GB"
+                placeholder="Ej: 512"
+                min="0"
+                step="1"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">HDD (GB)</label>
               <input
-                type="text"
+                type="number"
                 value={formData.hdd || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, hdd: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, hdd: parseInt(e.target.value) || 0 }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Ej: 1TB"
+                placeholder="Ej: 1000 (para 1TB)"
+                min="0"
+                step="1"
               />
             </div>
 
@@ -677,13 +718,16 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Pantalla</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Pantalla (pulgadas)</label>
               <input
-                type="text"
+                type="number"
                 value={formData.pantalla || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, pantalla: e.target.value }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, pantalla: parseFloat(e.target.value) || null }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Ej: 15.6 pulgadas"
+                placeholder="Ej: 15.6"
+                min="10"
+                max="20"
+                step="0.1"
               />
             </div>
 
@@ -801,17 +845,16 @@ const ModalProducto = ({
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad (GB)</label>
+            <input
+              type="number"
               value={formData.capacidad || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, capacidad: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, capacidad: parseInt(e.target.value) || 0 }))}
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="">Seleccionar...</option>
-              {OPCIONES.capacidad.map(cap => (
-                <option key={cap} value={cap}>{cap}</option>
-              ))}
-            </select>
+              placeholder="Ej: 128, 256, 512"
+              min="0"
+              step="1"
+            />
           </div>
 
           <div>
@@ -852,13 +895,16 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM (GB)</label>
             <input
-              type="text"
+              type="number"
               value={formData.ram || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, ram: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, ram: parseInt(e.target.value) || 0 }))}
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Ej: 4GB, 6GB, 8GB"
+              placeholder="Ej: 4, 6, 8"
+              min="0"
+              max="64"
+              step="1"
             />
           </div>
         </div>

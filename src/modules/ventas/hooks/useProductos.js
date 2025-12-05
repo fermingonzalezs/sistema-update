@@ -11,14 +11,14 @@ export const useProductos = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data, error } = await supabase
         .from('otros')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       // Transformar datos para que coincidan con la estructura esperada
       const productosTransformados = (data || []).map(item => ({
         id: item.id,
@@ -40,7 +40,7 @@ export const useProductos = () => {
         created_at: item.created_at,
         updated_at: item.updated_at
       }));
-      
+
       setProductos(productosTransformados);
     } catch (err) {
       console.error('Error cargando productos:', err);
@@ -66,6 +66,7 @@ export const useProductos = () => {
 
   // Función para parsear especificaciones básicas desde la descripción
   const parseEspecificaciones = (descripcion, categoria) => {
+    if (!descripcion) return {};
     const desc = descripcion.toLowerCase();
     const specs = {};
 
@@ -104,7 +105,7 @@ export const useProductos = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data, error } = await supabase
         .from('otros')
         .select('*')
@@ -112,7 +113,7 @@ export const useProductos = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       return data || [];
     } catch (err) {
       console.error('Error cargando productos por categoría:', err);
@@ -127,7 +128,7 @@ export const useProductos = () => {
   const createProducto = async (producto) => {
     try {
       setError(null);
-      
+
       // Transformar a estructura de tabla 'otros'
       const nuevoItem = {
         descripcion_producto: producto.nombre || producto.descripcion,
@@ -140,7 +141,7 @@ export const useProductos = () => {
         garantia: producto.garantia || '',
         fallas: producto.fallas || 'Ninguna'
       };
-      
+
       const { data, error } = await supabase
         .from('otros')
         .insert([nuevoItem])
@@ -148,7 +149,7 @@ export const useProductos = () => {
         .single();
 
       if (error) throw error;
-      
+
       await fetchProductos(); // Recargar productos
       return data;
     } catch (err) {
@@ -162,7 +163,7 @@ export const useProductos = () => {
   const updateProducto = async (id, updates) => {
     try {
       setError(null);
-      
+
       // Transformar updates a estructura de tabla 'otros'
       const updatesTransformados = {};
       if (updates.nombre) updatesTransformados.descripcion_producto = updates.nombre;
@@ -174,7 +175,7 @@ export const useProductos = () => {
       if (updates.ubicacion) updatesTransformados.sucursal = updates.ubicacion;
       if (updates.garantia) updatesTransformados.garantia = updates.garantia;
       if (updates.fallas) updatesTransformados.fallas = updates.fallas;
-      
+
       const { data, error } = await supabase
         .from('otros')
         .update(updatesTransformados)
@@ -183,7 +184,7 @@ export const useProductos = () => {
         .single();
 
       if (error) throw error;
-      
+
       await fetchProductos(); // Recargar productos
       return data;
     } catch (err) {
@@ -197,14 +198,14 @@ export const useProductos = () => {
   const deleteProducto = async (id) => {
     try {
       setError(null);
-      
+
       const { error } = await supabase
         .from('otros')
         .update({ disponible: false })
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setProductos(prev => prev.filter(p => p.id !== id));
     } catch (err) {
       console.error('Error eliminando producto:', err);
@@ -217,7 +218,7 @@ export const useProductos = () => {
   const updateStock = async (id, nuevoStock) => {
     try {
       setError(null);
-      
+
       const { data, error } = await supabase
         .from('otros')
         .update({ cantidad: nuevoStock })
@@ -226,7 +227,7 @@ export const useProductos = () => {
         .single();
 
       if (error) throw error;
-      
+
       await fetchProductos(); // Recargar productos
       return data;
     } catch (err) {
@@ -256,7 +257,7 @@ export const useProductos = () => {
   // Buscar productos
   const buscarProductos = (termino) => {
     const terminoLower = termino.toLowerCase();
-    return productos.filter(p => 
+    return productos.filter(p =>
       p.nombre?.toLowerCase().includes(terminoLower) ||
       p.descripcion?.toLowerCase().includes(terminoLower) ||
       p.marca?.toLowerCase().includes(terminoLower) ||
@@ -275,7 +276,7 @@ export const useProductos = () => {
     productos,
     loading,
     error,
-    
+
     // Funciones CRUD
     fetchProductos,
     fetchProductosPorCategoria,
@@ -283,7 +284,7 @@ export const useProductos = () => {
     updateProducto,
     deleteProducto,
     updateStock,
-    
+
     // Utilidades
     getCategorias,
     getProductosPorCategoria,

@@ -48,21 +48,27 @@ export function useCelulares() {
     // Transformaciones específicas para celulares
     transformOnCreate: (data) => ({
       ...data,
-      // Asegurar tipos correctos
+      // Asegurar tipos correctos para precios
       precio_compra_usd: parseFloat(data.precio_compra_usd) || 0,
       costos_adicionales: parseFloat(data.costos_adicionales) || 0,
       precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
+      // Convertir especificaciones numéricas
+      capacidad: parseInt(data.capacidad) || 0,
+      ram: parseInt(data.ram) || 0,
       ciclos: parseInt(data.ciclos) || 0
       // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
 
     transformOnUpdate: (data) => ({
       ...data,
-      // Validaciones específicas en updates
+      // Validaciones específicas en updates para precios
       precio_compra_usd: data.precio_compra_usd ? parseFloat(data.precio_compra_usd) : undefined,
       costos_adicionales: data.costos_adicionales !== undefined ? parseFloat(data.costos_adicionales) || 0 : undefined,
       precio_venta_usd: data.precio_venta_usd ? parseFloat(data.precio_venta_usd) : undefined,
-      ciclos: data.ciclos ? parseInt(data.ciclos) : undefined
+      // Convertir especificaciones numéricas si vienen en updates
+      capacidad: data.capacidad !== undefined ? parseInt(data.capacidad) || 0 : undefined,
+      ram: data.ram !== undefined ? parseInt(data.ram) || 0 : undefined,
+      ciclos: data.ciclos !== undefined ? parseInt(data.ciclos) || 0 : undefined
       // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
     
@@ -75,6 +81,18 @@ export function useCelulares() {
           throw new Error(`Ya existe un celular con serial: ${data.serial}`);
         }
       }
+
+      // Validar rangos de valores numéricos
+      if (data.capacidad && (data.capacidad < 0 || data.capacidad > 5000)) {
+        throw new Error('Capacidad debe estar entre 0 y 5000 GB');
+      }
+      if (data.ram && (data.ram < 0 || data.ram > 64)) {
+        throw new Error('RAM debe estar entre 0 y 64 GB');
+      }
+      if (data.ciclos && (data.ciclos < 0 || data.ciclos > 10000)) {
+        throw new Error('Ciclos de batería debe estar entre 0 y 10000');
+      }
+
       return data;
     },
     

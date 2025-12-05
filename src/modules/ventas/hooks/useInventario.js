@@ -14,6 +14,10 @@ import {
   isValidUbicacion,
   normalizeUbicacion
 } from '../../../shared/constants/productConstants';
+import {
+  LINEAS_PROCESADOR_ARRAY,
+  isValidLineaProcesador
+} from '../../../shared/constants/processorConstants';
 
 // 📊 SERVICE: Operaciones de inventario de computadoras
 export const inventarioService = {
@@ -98,13 +102,14 @@ export const inventarioService = {
         
         // Especificaciones principales
         procesador: computadora.procesador || '',
+        linea_procesador: computadora.linea_procesador || 'otro',
         slots: computadora.slots || '2',
         tipo_ram: computadora.tipo_ram || 'DDR4',
-        ram: computadora.ram || '',
-        ssd: computadora.ssd || '',
-        hdd: computadora.hdd || '',
+        ram: parseInt(computadora.ram) || 0,
+        ssd: parseInt(computadora.ssd) || 0,
+        hdd: parseInt(computadora.hdd) || 0,
         so: computadora.so || 'WIN11',
-        pantalla: computadora.pantalla || '',
+        pantalla: parseFloat(computadora.pantalla) || null,
         resolucion: computadora.resolucion || 'FHD',
         refresh: computadora.refresh || '',
         touchscreen: computadora.touchscreen || false,
@@ -156,12 +161,26 @@ export const inventarioService = {
     if (updates.precio_venta_usd !== undefined) {
       cleanUpdates.precio_venta_usd = parseFloat(updates.precio_venta_usd) || 0;
     }
-    
+
+    // Convertir especificaciones numéricas
+    if (updates.ram !== undefined) {
+      cleanUpdates.ram = parseInt(updates.ram) || 0;
+    }
+    if (updates.ssd !== undefined) {
+      cleanUpdates.ssd = parseInt(updates.ssd) || 0;
+    }
+    if (updates.hdd !== undefined) {
+      cleanUpdates.hdd = parseInt(updates.hdd) || 0;
+    }
+    if (updates.pantalla !== undefined) {
+      cleanUpdates.pantalla = parseFloat(updates.pantalla) || null;
+    }
+
     // Validar booleanos
     if (updates.touchscreen !== undefined) {
       cleanUpdates.touchscreen = Boolean(updates.touchscreen);
     }
-    
+
     // No incluir precio_costo_total ya que se calcula automáticamente
     delete cleanUpdates.precio_costo_total;
 
@@ -372,7 +391,7 @@ export function useInventario() {
     clearError,
     customQuery
   } = useSupabaseEntity('inventario', {
-    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, categoria, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso',
+    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, categoria, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, linea_procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso',
     // Configuración específica para inventario
     defaultFilters: {},
     defaultOrderBy: 'created_at',
@@ -381,13 +400,19 @@ export function useInventario() {
     // Transformaciones específicas para inventario
     transformOnCreate: (data) => ({
       ...data,
-      // Asegurar tipos correctos
+      // Asegurar tipos correctos para precios
       precio_costo_usd: parseFloat(data.precio_costo_usd) || 0,
       envios_repuestos: parseFloat(data.envios_repuestos) || 0,
       precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
-      // Validaciones
+      // Convertir especificaciones numéricas
+      ram: parseInt(data.ram) || 0,
+      ssd: parseInt(data.ssd) || 0,
+      hdd: parseInt(data.hdd) || 0,
+      pantalla: parseFloat(data.pantalla) || null,
+      // Validaciones y defaults
       sucursal: data.sucursal || 'la_plata',
       condicion: data.condicion || 'usado',
+      linea_procesador: data.linea_procesador || 'otro',
       slots: data.slots || '2',
       tipo_ram: data.tipo_ram || 'DDR4',
       so: data.so || 'WIN11',
@@ -406,6 +431,12 @@ export function useInventario() {
       precio_costo_usd: data.precio_costo_usd !== undefined ? parseFloat(data.precio_costo_usd) || 0 : undefined,
       envios_repuestos: data.envios_repuestos !== undefined ? parseFloat(data.envios_repuestos) || 0 : undefined,
       precio_venta_usd: data.precio_venta_usd !== undefined ? parseFloat(data.precio_venta_usd) || 0 : undefined,
+      // Convertir especificaciones numéricas si vienen en updates
+      ram: data.ram !== undefined ? parseInt(data.ram) || 0 : undefined,
+      ssd: data.ssd !== undefined ? parseInt(data.ssd) || 0 : undefined,
+      hdd: data.hdd !== undefined ? parseInt(data.hdd) || 0 : undefined,
+      pantalla: data.pantalla !== undefined ? parseFloat(data.pantalla) || null : undefined,
+      // Validar booleanos
       touchscreen: data.touchscreen !== undefined ? Boolean(data.touchscreen) : undefined,
     }),
     
@@ -425,7 +456,26 @@ export function useInventario() {
       if (existing) {
         throw new Error(`Ya existe una computadora con serial: ${data.serial}`);
       }
-      
+
+      // Validar rangos de valores numéricos
+      if (data.ram && (data.ram < 0 || data.ram > 256)) {
+        throw new Error('RAM debe estar entre 0 y 256 GB');
+      }
+      if (data.ssd && (data.ssd < 0 || data.ssd > 10000)) {
+        throw new Error('SSD debe estar entre 0 y 10000 GB');
+      }
+      if (data.hdd && (data.hdd < 0 || data.hdd > 10000)) {
+        throw new Error('HDD debe estar entre 0 y 10000 GB');
+      }
+      if (data.pantalla && (data.pantalla < 10 || data.pantalla > 20)) {
+        throw new Error('Pantalla debe estar entre 10 y 20 pulgadas');
+      }
+
+      // Validar línea de procesador
+      if (data.linea_procesador && !isValidLineaProcesador(data.linea_procesador)) {
+        throw new Error(`Línea de procesador inválida: ${data.linea_procesador}. Debe ser una de: ${LINEAS_PROCESADOR_ARRAY.join(', ')}`);
+      }
+
       return {
         ...data,
         serial: data.serial.trim(),

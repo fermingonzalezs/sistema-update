@@ -32,7 +32,8 @@
       "mcp__supabase__list_edge_functions",
       "Bash(awk:*)",
       "Bash(node test-compras-nacionales.js:*)",
-      "Bash(npx supabase functions deploy:*)"
+      "Bash(npx supabase functions deploy:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

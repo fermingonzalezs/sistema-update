@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
 import { supabase } from '../../../lib/supabase';
+import { LINEAS_PROCESADOR_LABELS } from '../../../shared/constants/processorConstants';
 
 const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [tipoActivo, setTipoActivo] = useState('computadora');
@@ -54,15 +55,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     ramMin: '',
     almacenamientoMin: '',
     pantalla: '',
-    idioma: ''
+    idioma: '',
+    lineaProcesador: ''
   });
-
-  // Función para extraer números de strings (ej: "16GB" -> 16, "512GB SSD" -> 512)
-  const extractNumber = (str) => {
-    if (!str) return 0;
-    const match = str.toString().match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
-  };
 
   // Obtener productos del tipo activo
   const getProductosActivos = () => {
@@ -165,17 +160,18 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
       const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
       
-      const cumpleFiltros = 
+      const cumpleFiltros =
         cumpleMarca &&
         cumpleExclusionMarca &&
         cumpleCondicion &&
         cumpleEstado &&
         cumpleCategoria &&
         (filtros.precioMax === '' || (producto.precio_venta_usd <= parseFloat(filtros.precioMax))) &&
-        (tipoActivo !== 'computadora' || filtros.ramMin === '' || extractNumber(producto.ram || producto.memoria_ram) >= parseInt(filtros.ramMin)) &&
-        (filtros.almacenamientoMin === '' || extractNumber(producto.ssd || producto.capacidad) >= parseInt(filtros.almacenamientoMin)) &&
-        (filtros.pantalla === '' || (producto.pantalla && producto.pantalla.toLowerCase().includes(filtros.pantalla.toLowerCase()))) &&
-        (filtros.idioma === '' || (producto.idioma_teclado && producto.idioma_teclado.toLowerCase().includes(filtros.idioma.toLowerCase())));
+        (tipoActivo !== 'computadora' || filtros.ramMin === '' || (producto.ram || producto.memoria_ram) >= parseInt(filtros.ramMin)) &&
+        (filtros.almacenamientoMin === '' || (producto.ssd || producto.capacidad) >= parseInt(filtros.almacenamientoMin)) &&
+        (filtros.pantalla === '' || (producto.pantalla && producto.pantalla.toString().includes(filtros.pantalla))) &&
+        (filtros.idioma === '' || (producto.idioma_teclado && producto.idioma_teclado.toLowerCase().includes(filtros.idioma.toLowerCase()))) &&
+        (filtros.lineaProcesador === '' || (producto.linea_procesador === filtros.lineaProcesador));
 
       return cumpleBusqueda && cumpleFiltros;
     });
@@ -879,6 +875,39 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 ))}
               </select>
             </div>
+
+            {tipoActivo === 'computadora' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Línea de Procesador</label>
+                <select
+                  value={filtros.lineaProcesador}
+                  onChange={(e) => handleFiltroChange('lineaProcesador', e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Todas</option>
+                  <optgroup label="Intel">
+                    <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
+                    <option value="i5">{LINEAS_PROCESADOR_LABELS.i5}</option>
+                    <option value="i7">{LINEAS_PROCESADOR_LABELS.i7}</option>
+                    <option value="i9">{LINEAS_PROCESADOR_LABELS.i9}</option>
+                  </optgroup>
+                  <optgroup label="AMD">
+                    <option value="r3">{LINEAS_PROCESADOR_LABELS.r3}</option>
+                    <option value="r5">{LINEAS_PROCESADOR_LABELS.r5}</option>
+                    <option value="r7">{LINEAS_PROCESADOR_LABELS.r7}</option>
+                    <option value="r9">{LINEAS_PROCESADOR_LABELS.r9}</option>
+                  </optgroup>
+                  <optgroup label="Apple">
+                    <option value="m1">{LINEAS_PROCESADOR_LABELS.m1}</option>
+                    <option value="m2">{LINEAS_PROCESADOR_LABELS.m2}</option>
+                    <option value="m3">{LINEAS_PROCESADOR_LABELS.m3}</option>
+                    <option value="m4">{LINEAS_PROCESADOR_LABELS.m4}</option>
+                    <option value="m5">{LINEAS_PROCESADOR_LABELS.m5}</option>
+                  </optgroup>
+                  <option value="otro">{LINEAS_PROCESADOR_LABELS.otro}</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 

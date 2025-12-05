@@ -86,7 +86,7 @@ export const useCatalogoUnificado = () => {
         fetch: fetchComputers,
         delete: deleteComputer,
         update: updateComputer,
-        filtrosDisponibles: ['marca', 'condicion', 'estado', 'sucursal', 'pantalla', 'idioma_teclado', 'precio'],
+        filtrosDisponibles: ['marca', 'condicion', 'estado', 'sucursal', 'pantalla', 'idioma_teclado', 'precio', 'linea_procesador'],
         camposOrdenamiento: [
           { value: 'modelo-asc', label: 'Nombre (A-Z)' },
           { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
@@ -163,8 +163,8 @@ export const useCatalogoUnificado = () => {
       const nombreProducto = (item.nombre_producto || '').toUpperCase();
 
       if (nombreProducto.includes('MACBOOK') || nombreProducto.includes('MAC BOOK') ||
-          nombreProducto.includes('IMAC') || nombreProducto.includes('MAC MINI') ||
-          nombreProducto.includes('MAC PRO') || nombreProducto.includes('MAC STUDIO')) {
+        nombreProducto.includes('IMAC') || nombreProducto.includes('MAC MINI') ||
+        nombreProducto.includes('MAC PRO') || nombreProducto.includes('MAC STUDIO')) {
         // Es un Macbook/Mac mal clasificado
         appleOtrosMacbooks.push(item);
       } else if (nombreProducto.includes('IPHONE') || nombreProducto.includes('I PHONE')) {
@@ -269,12 +269,12 @@ export const useCatalogoUnificado = () => {
         if ((item.cantidad_mitre || 0) > 0) sucursalesConStock.push('MITRE');
         return sucursalesConStock;
       }
-      
+
       // Para notebooks y celulares que usan ubicacion/sucursal
       const sucursal = item.ubicacion || item.sucursal;
       return sucursal || null;
     }).flat().filter(Boolean))];
-    
+
     // Para categorías específicas, extraer categorías de productos
     const categorias = [...new Set(datosActuales.map(item => item.categoria).filter(Boolean))];
 
@@ -285,13 +285,19 @@ export const useCatalogoUnificado = () => {
     const almacenamientos = categoriaActiva === 'celulares'
       ? [...new Set(datosActuales.map(item => item.capacidad).filter(Boolean))]
       : categoriaActiva === 'notebooks'
-      ? [...new Set(datosActuales.map(item => item.ssd).filter(v => v && !v.includes('x')))].sort((a, b) => {
+        ? [...new Set(datosActuales.map(item => {
+          // Normalizar a string para comparación consistente
+          const ssd = item.ssd;
+          if (!ssd) return null;
+          const ssdStr = String(ssd);
+          return ssdStr.includes('x') ? null : ssdStr;
+        }).filter(Boolean))].sort((a, b) => {
           // Ordenar numéricamente (ya sin GB)
           const numA = parseInt(a) || 0;
           const numB = parseInt(b) || 0;
           return numA - numB;
         })
-      : [];
+        : [];
 
     // Para notebooks: rangos de pantalla predefinidos
     const rangosPantalla = ['<13', '13-14', '14-15', '15-16', '>16'];
@@ -299,18 +305,18 @@ export const useCatalogoUnificado = () => {
     // Para notebooks: RAM y idiomas de teclado
     const rams = categoriaActiva === 'notebooks'
       ? [...new Set(datosActuales.map(item => {
-          // Normalizar valores de RAM: "8GB" -> "8", "16 GB" -> "16", etc.
-          const ram = item.ram ? item.ram.toString().trim() : '';
-          const match = ram.match(/^(\d+)\s*(GB)?$/i);
-          return match ? match[1] : null;
-        }).filter(Boolean))].sort((a, b) => {
-          // Ordenar numéricamente
-          const numA = parseInt(a) || 0;
-          const numB = parseInt(b) || 0;
-          return numA - numB;
-        })
+        // Normalizar valores de RAM: "8GB" -> "8", "16 GB" -> "16", etc.
+        const ram = item.ram ? item.ram.toString().trim() : '';
+        const match = ram.match(/^(\d+)\s*(GB)?$/i);
+        return match ? match[1] : null;
+      }).filter(Boolean))].sort((a, b) => {
+        // Ordenar numéricamente
+        const numA = parseInt(a) || 0;
+        const numB = parseInt(b) || 0;
+        return numA - numB;
+      })
       : [];
-    const idiomasTeclado = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.idioma_teclado).filter(Boolean))]:[];
+    const idiomasTeclado = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.idioma_teclado).filter(Boolean))] : [];
 
     return {
       marcas: marcas.sort(),
@@ -356,62 +362,66 @@ export const useCatalogoUnificado = () => {
           // El filtro de ubicación ahora solo organiza visualmente, no filtra por stock
           return true; // Mostrar todos los productos "otros" independientemente del stock
         }
-    
-            const sucursalItem = item.ubicacion || item.sucursal || '';
-            const sucursalFiltro = filtrosUnificados.sucursal;
-            return sucursalItem === sucursalFiltro;
-          });
-        }
-    
-        // Filtrar por almacenamiento
-        if(categoriaActiva === 'celulares' && filtrosUnificados.almacenamiento){
-          filtered = filtered.filter(item => item.capacidad === filtrosUnificados.almacenamiento);
-        }
 
-        if(categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento){
-          filtered = filtered.filter(item => item.ssd === filtrosUnificados.almacenamiento);
-        }
+        const sucursalItem = item.ubicacion || item.sucursal || '';
+        const sucursalFiltro = filtrosUnificados.sucursal;
+        return sucursalItem === sucursalFiltro;
+      });
+    }
 
-        // Filtrar por RAM (notebooks)
-        if(categoriaActiva === 'notebooks' && filtrosUnificados.ram){
-          filtered = filtered.filter(item => {
-            // Normalizar el valor de RAM del producto para comparación
-            const ramProducto = item.ram ? item.ram.toString().trim() : '';
-            const matchProducto = ramProducto.match(/^(\d+)\s*(GB)?$/i);
-            const ramNormalizado = matchProducto ? matchProducto[1] : '';
-            return ramNormalizado === filtrosUnificados.ram;
-          });
-        }
+    // Filtrar por almacenamiento
+    if (categoriaActiva === 'celulares' && filtrosUnificados.almacenamiento) {
+      filtered = filtered.filter(item => item.capacidad === filtrosUnificados.almacenamiento);
+    }
 
-        // Filtrar por pantalla con rangos (notebooks)
-        if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
-          filtered = filtered.filter(item => {
-            const pantalla = item.pantalla ? parseFloat(item.pantalla) : 0;
-            const rango = filtrosUnificados.pantalla;
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento) {
+      filtered = filtered.filter(item => {
+        // Normalizar a string para comparación consistente
+        const ssdStr = item.ssd ? String(item.ssd) : '';
+        return ssdStr === filtrosUnificados.almacenamiento;
+      });
+    }
 
-            if (rango === '<13') return pantalla < 13;
-            if (rango === '13-14') return pantalla >= 13 && pantalla < 14;
-            if (rango === '14-15') return pantalla >= 14 && pantalla < 15;
-            if (rango === '15-16') return pantalla >= 15 && pantalla <= 16;
-            if (rango === '>16') return pantalla > 16;
+    // Filtrar por RAM (notebooks)
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.ram) {
+      filtered = filtered.filter(item => {
+        // Normalizar el valor de RAM del producto para comparación
+        const ramProducto = item.ram ? item.ram.toString().trim() : '';
+        const matchProducto = ramProducto.match(/^(\d+)\s*(GB)?$/i);
+        const ramNormalizado = matchProducto ? matchProducto[1] : '';
+        return ramNormalizado === filtrosUnificados.ram;
+      });
+    }
 
-            return true;
-          });
-        }
+    // Filtrar por pantalla con rangos (notebooks)
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.pantalla) {
+      filtered = filtered.filter(item => {
+        const pantalla = item.pantalla ? parseFloat(item.pantalla) : 0;
+        const rango = filtrosUnificados.pantalla;
+
+        if (rango === '<13') return pantalla < 13;
+        if (rango === '13-14') return pantalla >= 13 && pantalla < 14;
+        if (rango === '14-15') return pantalla >= 14 && pantalla < 15;
+        if (rango === '15-16') return pantalla >= 15 && pantalla <= 16;
+        if (rango === '>16') return pantalla > 16;
+
+        return true;
+      });
+    }
 
     // Filtrar por idioma de teclado (notebooks)
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado) {
       filtered = filtered.filter(item => item.idioma_teclado === filtrosUnificados.idioma_teclado);
     }
 
     if (filtrosUnificados.precioMin) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         parseFloat(item.precio_venta_usd) >= parseFloat(filtrosUnificados.precioMin)
       );
     }
 
     if (filtrosUnificados.precioMax) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         parseFloat(item.precio_venta_usd) <= parseFloat(filtrosUnificados.precioMax)
       );
     }
@@ -463,9 +473,9 @@ export const useCatalogoUnificado = () => {
         const serial = (item.serial || item.imei || '').toLowerCase();
         const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
         const marca = (item.marca || '').toLowerCase();
-        return serial.includes(busquedaLower) || 
-               modelo.includes(busquedaLower) ||
-               marca.includes(busquedaLower);
+        return serial.includes(busquedaLower) ||
+          modelo.includes(busquedaLower) ||
+          marca.includes(busquedaLower);
       });
     }
 
@@ -694,12 +704,12 @@ export const useCatalogoUnificado = () => {
 
     // Filtros específicos de notebooks
     // Almacenamiento para notebooks
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento){
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.almacenamiento) {
       filtered = filtered.filter(item => item.ssd === filtrosUnificados.almacenamiento);
     }
 
     // RAM para notebooks
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.ram){
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.ram) {
       filtered = filtered.filter(item => {
         // Normalizar el valor de RAM del producto para comparación
         const ramProducto = item.ram ? item.ram.toString().trim() : '';
@@ -710,7 +720,7 @@ export const useCatalogoUnificado = () => {
     }
 
     // Pantalla con rangos para notebooks
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.pantalla){
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.pantalla) {
       filtered = filtered.filter(item => {
         const pantalla = item.pantalla ? parseFloat(item.pantalla) : 0;
         const rango = filtrosUnificados.pantalla;
@@ -725,7 +735,7 @@ export const useCatalogoUnificado = () => {
       });
     }
 
-    if(categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado){
+    if (categoriaActiva === 'notebooks' && filtrosUnificados.idioma_teclado) {
       filtered = filtered.filter(item => item.idioma_teclado === filtrosUnificados.idioma_teclado);
     }
 
@@ -746,8 +756,8 @@ export const useCatalogoUnificado = () => {
         const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
         const marca = (item.marca || '').toLowerCase();
         return serial.includes(busquedaLower) ||
-               modelo.includes(busquedaLower) ||
-               marca.includes(busquedaLower);
+          modelo.includes(busquedaLower) ||
+          marca.includes(busquedaLower);
       });
     }
 
