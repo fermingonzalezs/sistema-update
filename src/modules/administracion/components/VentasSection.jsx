@@ -34,7 +34,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       const camposTransaccion = [transaccion.cliente_nombre, transaccion.vendedor].filter(Boolean);
       const coincideTransaccion = camposTransaccion.some(campo => campo.toLowerCase().includes(buscar));
       const coincideProductos = transaccion.venta_items?.some(item => {
-        const camposItem = [item.copy, item.serial_producto].filter(Boolean);
+        const camposItem = [item.copy_documento || item.copy, item.serial_producto].filter(Boolean);
         return camposItem.some(campo => campo.toLowerCase().includes(buscar));
       });
       if (!coincideTransaccion && !coincideProductos) return false;
@@ -89,7 +89,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             <div className="flex items-center space-x-2 flex-1 min-w-0">
               {getIconoProducto(item.tipo_producto)}
               <div className="min-w-0 text-left">
-                <div className="font-medium text-xs text-slate-800 truncate">{formatearNombreProducto(item.copy)}</div>
+                <div className="font-medium text-xs text-slate-800 truncate">{formatearNombreProducto(item.copy_documento || item.copy)}</div>
                 {item.serial_producto && <div className="text-xs text-slate-500 font-mono truncate">{item.serial_producto}</div>}
               </div>
             </div>

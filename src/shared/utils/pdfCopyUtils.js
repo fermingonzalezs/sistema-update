@@ -101,6 +101,21 @@ const normalizarCondicion = (condicion) => {
 export const generarCopyParaPDF = (item) => {
   console.log('📄 [pdfCopyUtils] Generando copy para PDF. Item recibido:', item);
 
+  // ✅ PRIORIDAD 1: Usar copy_documento si está disponible (generado al crear la transacción)
+  if (item.copy_documento) {
+    console.log('📄 [pdfCopyUtils] ✅ Usando copy_documento disponible:', item.copy_documento);
+    return item.copy_documento;
+  }
+
+  // ✅ PRIORIDAD 2: Usar copy completo como fallback
+  if (item.copy) {
+    console.log('📄 [pdfCopyUtils] ⚠️ copy_documento no disponible, usando copy:', item.copy);
+    return item.copy;
+  }
+
+  // ✅ PRIORIDAD 3: Generar desde cero si no hay nada disponible
+  console.log('📄 [pdfCopyUtils] ⚠️ Generando copy desde cero (fallback)');
+
   const tipoProducto = detectarTipoProducto(item);
   const serial = item.serial_producto || item.numero_serie || '';
   const datos = extraerDatosDeCopy(item.copy || '');

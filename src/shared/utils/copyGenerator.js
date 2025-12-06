@@ -15,9 +15,9 @@ import { formatearMonto } from './formatters';
  * - 'celular_completo': MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO (sin emoji, sin precio)
  * - 'otro_completo': MODELO - DESCRIPCION (sin emoji, sin precio)
  *
- * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
- * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - ESTADO - COLOR - IDIOMA
- * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO
+ * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas/condición/estado):
+ * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - COLOR - IDIOMA
+ * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA
  * - 'otro_documento': NOMBRE_PRODUCTO (solo nombre, sin descripción ni observaciones)
  */
 
@@ -282,12 +282,8 @@ const generateNotebookCopy = (comp, config) => {
     partes.push('💻');
   }
 
-  // 1. MODELO
+  // 1. MODELO (mantener marca si está incluida en el nombre)
   let modelo = comp.modelo || 'Sin modelo';
-  // Remover marca del modelo si está presente
-  if (comp.marca && modelo.toLowerCase().startsWith(comp.marca.toLowerCase())) {
-    modelo = modelo.substring(comp.marca.length).trim();
-  }
   partes.push(modelo);
 
   // 2. PANTALLA Y RESOLUCIÓN JUNTAS (Movido antes de procesador)
@@ -392,13 +388,13 @@ const generateNotebookCopy = (comp, config) => {
     }
   }
 
-  // 8. CONDICION - SIEMPRE
-  if (comp.condicion) {
+  // 8. CONDICION - Solo en versiones comercial/completa, NO en documento
+  if (comp.condicion && config.style !== 'documento') {
     partes.push(comp.condicion);
   }
 
-  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED
-  if (!esNueva && comp.estado) {
+  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED, NO en documento
+  if (!esNueva && comp.estado && config.style !== 'documento') {
     partes.push(comp.estado);
   }
 
@@ -442,8 +438,8 @@ const generateNotebookCopy = (comp, config) => {
     // 16. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
-  // VERSIÓN DOCUMENTO: Sin observaciones, notas, SO adicional
-  // Ya tiene: MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERÍA - ESTADO - COLOR - IDIOMA
+  // VERSIÓN DOCUMENTO: Sin observaciones, notas, SO adicional, condición ni estado
+  // Ya tiene: MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERÍA - COLOR - IDIOMA
 
   // 15. PRECIO (solo en versión simple)
   if (config.includePrice) {
@@ -483,12 +479,8 @@ const generateCelularCopy = (cel, config) => {
 
   // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
 
-  // 1. MODELO (sin marca al principio)
+  // 1. MODELO (mantener marca si está incluida en el nombre)
   let modelo = cel.modelo || 'Sin modelo';
-  // Remover marca del modelo si está presente
-  if (cel.marca && modelo.toLowerCase().startsWith(cel.marca.toLowerCase())) {
-    modelo = modelo.substring(cel.marca.length).trim();
-  }
   partes.push(modelo);
 
   // 2. COLOR (Movido antes de capacidad)
@@ -523,13 +515,13 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
-  // 5. CONDICION - SIEMPRE
-  if (cel.condicion) {
+  // 5. CONDICION - Solo en versiones comercial/completa, NO en documento
+  if (cel.condicion && config.style !== 'documento') {
     partes.push(cel.condicion);
   }
 
-  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED
-  if (!esNuevo && cel.estado) {
+  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED, NO en documento
+  if (!esNuevo && cel.estado && config.style !== 'documento') {
     partes.push(cel.estado);
   }
 
@@ -564,8 +556,8 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
-  // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor
-  // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA - ESTADO
+  // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor, condición ni estado
+  // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA
 
   // 10. PRECIO (solo en versión simple)
   if (config.includePrice) {

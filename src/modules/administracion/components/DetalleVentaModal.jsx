@@ -56,7 +56,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-2">
                           {getIconoProducto(item.tipo_producto)}
-                          <span className="text-slate-800">{item.copy}</span>
+                          <span className="text-slate-800">{item.copy_documento || item.copy}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-slate-800 font-mono text-xs text-center">{item.serial_producto || '-'}</td>

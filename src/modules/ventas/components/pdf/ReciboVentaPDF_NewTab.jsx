@@ -764,8 +764,9 @@ export const convertirVentaARecibo = (transaccion) => {
       email: transaccion.cliente_email || ''
     },
     items: (transaccion.venta_items || []).map(item => {
-      // Generar copy simplificado para PDF usando función compartida
-      const descripcion = generarCopyParaPDF(item);
+      // ✅ Usar copy_documento si está disponible (generado al crear la transacción)
+      // Si no, usar función generarCopyParaPDF como fallback
+      let descripcion = item.copy_documento || generarCopyParaPDF(item);
 
       return {
         description: descripcion,
