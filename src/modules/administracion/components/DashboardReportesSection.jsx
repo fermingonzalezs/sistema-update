@@ -41,9 +41,10 @@ const dashboardService = {
           procedencia
         ),
         venta_items (
-          tipo_producto, 
-          copy, 
-          cantidad, 
+          tipo_producto,
+          copy,
+          copy_documento,
+          cantidad,
           precio_total,
           producto_id,
           serial_producto,

@@ -89,7 +89,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             <div className="flex items-center space-x-2 flex-1 min-w-0">
               {getIconoProducto(item.tipo_producto)}
               <div className="min-w-0 text-left">
-                <div className="font-medium text-xs text-slate-800 truncate">{formatearNombreProducto(item.copy)}</div>
+                <div className="font-medium text-xs text-slate-800 truncate">{formatearNombreProducto(item.copy_documento || item.copy)}</div>
                 {item.serial_producto && <div className="text-xs text-slate-500 font-mono truncate">{item.serial_producto}</div>}
               </div>
             </div>
@@ -148,9 +148,9 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       {/* Top section: Cards and Filters */}
       <div className="p-6 flex-shrink-0">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <Tarjeta icon={BarChart3} titulo="Transacciones Filtradas" valor={estadisticasFiltradas.totalVentas} />
-          <Tarjeta icon={DollarSign} titulo="Ingresos Filtrados" valor={formatearMonto(estadisticasFiltradas.totalIngresos, 'USD')} />
-          <Tarjeta icon={TrendingUp} titulo="Ganancias Filtradas" valor={formatearMonto(estadisticasFiltradas.totalGanancias, 'USD')} />
+          <Tarjeta icon={BarChart3} titulo="Transacciones" valor={estadisticasFiltradas.totalVentas} />
+          <Tarjeta icon={DollarSign} titulo="Ingresos" valor={formatearMonto(estadisticasFiltradas.totalIngresos, 'USD')} />
+          <Tarjeta icon={TrendingUp} titulo="Ganancias" valor={formatearMonto(estadisticasFiltradas.totalGanancias, 'USD')} />
           <Tarjeta icon={TrendingUp} titulo="Margen Promedio" valor={`${estadisticasFiltradas.margenPromedio}%`} />
         </div>
 

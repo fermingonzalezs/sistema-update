@@ -230,6 +230,14 @@ const getEstadoLetra = (estado) => {
 };
 
 /**
+ * Capitalizar primera letra de un string
+ */
+const capitalize = (str) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+/**
  * Helper function to check if SSD/HDD value represents valid storage
  * Handles both numeric values and string values like "256GB", "1TB", "512", etc.
  */
@@ -282,12 +290,8 @@ const generateNotebookCopy = (comp, config) => {
     partes.push('💻');
   }
 
-  // 1. MODELO
-  let modelo = comp.modelo || 'Sin modelo';
-  // Remover marca del modelo si está presente
-  if (comp.marca && modelo.toLowerCase().startsWith(comp.marca.toLowerCase())) {
-    modelo = modelo.substring(comp.marca.length).trim();
-  }
+  // 1. MODELO (tal como está en la base de datos)
+  const modelo = comp.modelo || 'Sin modelo';
   partes.push(modelo);
 
   // 2. PANTALLA Y RESOLUCIÓN JUNTAS (Movido antes de procesador)
@@ -394,7 +398,7 @@ const generateNotebookCopy = (comp, config) => {
 
   // 8. CONDICION - SIEMPRE
   if (comp.condicion) {
-    partes.push(comp.condicion);
+    partes.push(capitalize(comp.condicion));
   }
 
   // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED
@@ -421,15 +425,7 @@ const generateNotebookCopy = (comp, config) => {
       partes.push(so);
     }
 
-    // 13. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
-    if (comp.fallas || comp.problemas || comp.defectos) {
-      const notas = comp.fallas || comp.problemas || comp.defectos;
-      // Verificar que no esté vacío o sea "ninguna"
-      const notasLimpio = notas.trim().toLowerCase();
-      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas}`);
-      }
-    }
+    // 13. NOTAS - Removidas según requerimientos
 
     // 14. OBSERVACIONES
     if (comp.observaciones || comp.notas || comp.comentarios) {
@@ -483,12 +479,8 @@ const generateCelularCopy = (cel, config) => {
 
   // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
 
-  // 1. MODELO (sin marca al principio)
-  let modelo = cel.modelo || 'Sin modelo';
-  // Remover marca del modelo si está presente
-  if (cel.marca && modelo.toLowerCase().startsWith(cel.marca.toLowerCase())) {
-    modelo = modelo.substring(cel.marca.length).trim();
-  }
+  // 1. MODELO (tal como está en la base de datos)
+  const modelo = cel.modelo || 'Sin modelo';
   partes.push(modelo);
 
   // 2. COLOR (Movido antes de capacidad)
@@ -525,7 +517,7 @@ const generateCelularCopy = (cel, config) => {
 
   // 5. CONDICION - SIEMPRE
   if (cel.condicion) {
-    partes.push(cel.condicion);
+    partes.push(capitalize(cel.condicion));
   }
 
   // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED
@@ -537,15 +529,7 @@ const generateCelularCopy = (cel, config) => {
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 7. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
-    if (cel.fallas || cel.problemas || cel.defectos) {
-      const notas = cel.fallas || cel.problemas || cel.defectos;
-      // Verificar que no esté vacío o sea "ninguna"
-      const notasLimpio = notas.trim().toLowerCase();
-      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas}`);
-      }
-    }
+    // 7. NOTAS - Removidas según requerimientos
 
     // 8. OBSERVACIONES
     if (cel.observaciones || cel.notas || cel.comentarios) {
@@ -672,7 +656,7 @@ const generateOtroCopy = (otro, config) => {
 
   // 3. CONDICION - SIEMPRE
   if (otro.condicion) {
-    partes.push(otro.condicion);
+    partes.push(capitalize(otro.condicion));
   }
 
   // 4. ESTADO - SOLO para USADOS/REFURBISHED
@@ -687,15 +671,7 @@ const generateOtroCopy = (otro, config) => {
       partes.push(otro.color);
     }
 
-    // 6. NOTAS (antes Fallas) - Solo mostrar si tiene contenido
-    if (otro.fallas || otro.problemas || otro.defectos) {
-      const notas = otro.fallas || otro.problemas || otro.defectos;
-      // Verificar que no esté vacío o sea "ninguna"
-      const notasLimpio = notas.trim().toLowerCase();
-      if (notasLimpio && notasLimpio !== 'ninguna' && notasLimpio !== 'ninguno' && notasLimpio !== 'n/a') {
-        partes.push(`Notas: ${notas}`);
-      }
-    }
+    // 6. NOTAS - Removidas según requerimientos
 
     // 7. OBSERVACIONES
     if (otro.observaciones || otro.notas || otro.comentarios) {
@@ -860,7 +836,7 @@ export const generateNotebookAllFields = (producto) => {
   if (producto.color) valores.push(producto.color);
   if (producto.bateria || producto.porcentaje_de_bateria) valores.push(producto.bateria || producto.porcentaje_de_bateria);
   if (producto.duracion || producto.duracion_bateria) valores.push(producto.duracion || producto.duracion_bateria);
-  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.condicion) valores.push(capitalize(producto.condicion));
   if (producto.estado) valores.push(producto.estado);
   if (producto.garantia_update) valores.push(producto.garantia_update);
   if (producto.garantia_oficial) valores.push(producto.garantia_oficial);
@@ -892,7 +868,7 @@ export const generateCelularAllFields = (producto) => {
   if (producto.color) valores.push(producto.color);
   if (producto.capacidad) valores.push(producto.capacidad);
   if (producto.ram) valores.push(producto.ram);
-  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.condicion) valores.push(capitalize(producto.condicion));
   if (producto.estado) valores.push(producto.estado);
   if (producto.bateria || producto.porcentaje_de_bateria) valores.push(producto.bateria || producto.porcentaje_de_bateria);
   if (producto.ciclos || producto.ciclos_bateria) valores.push(producto.ciclos || producto.ciclos_bateria);
@@ -928,7 +904,7 @@ export const generateOtroAllFields = (producto) => {
   if (producto.categoria) valores.push(producto.categoria);
   if (producto.marca) valores.push(producto.marca);
   if (producto.modelo || producto.modelo_otro) valores.push(producto.modelo || producto.modelo_otro);
-  if (producto.condicion) valores.push(producto.condicion);
+  if (producto.condicion) valores.push(capitalize(producto.condicion));
   if (producto.estado) valores.push(producto.estado);
   if (producto.color) valores.push(producto.color);
   if (producto.fallas) valores.push(producto.fallas);

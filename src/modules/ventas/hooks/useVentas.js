@@ -22,6 +22,7 @@ export const ventasService = {
           producto_id,
           serial_producto,
           copy,
+          copy_documento,
           cantidad,
           precio_unitario,
           precio_total,

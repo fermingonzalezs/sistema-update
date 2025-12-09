@@ -413,10 +413,11 @@ const TableroGeneralSection = () => {
   };
 
   const formatCurrencyCompact = (value) => {
-    if (value >= 1000) {
-      return `$${(value / 1000).toFixed(0)}k`;
-    }
-    return `$${value}`;
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0
+    }).format(value);
   };
 
   let currentSection = null;
@@ -621,7 +622,12 @@ const TableroGeneralSection = () => {
               <YAxis
                 tick={{ fontSize: 12 }}
                 stroke="#475569"
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => new Intl.NumberFormat('es-AR', {
+                  style: 'currency',
+                  currency: 'ARS',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }).format(value)}
               />
               <Tooltip
                 formatter={(value) => formatCurrency(value)}

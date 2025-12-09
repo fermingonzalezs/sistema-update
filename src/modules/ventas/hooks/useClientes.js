@@ -311,6 +311,7 @@ export const clientesService = {
             tipo_producto,
             serial_producto,
             copy,
+            copy_documento,
             cantidad,
             precio_unitario,
             precio_total,

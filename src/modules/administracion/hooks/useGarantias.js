@@ -30,11 +30,14 @@ export const useGarantias = () => {
           venta_items (
             id,
             modelo_producto,
+            copy,
+            copy_documento,
             serial_producto,
             tipo_producto,
             cantidad,
             precio_total,
-            precio_unitario
+            precio_unitario,
+            garantia
           )
         `)
         .not('venta_items.serial_producto', 'is', null)

@@ -32,6 +32,7 @@ export const useGarantias = () => {
           venta_items (
             id,
             copy,
+            copy_documento,
             serial_producto,
             tipo_producto,
             cantidad,

@@ -212,7 +212,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           {getIconoProducto(item.tipo_producto)}
-                          <span className="text-slate-800">{item.copy}</span>
+                          <span className="text-slate-800">{item.copy_documento || item.copy}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800">

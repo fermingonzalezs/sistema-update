@@ -2687,7 +2687,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm font-medium truncate">
+                      <div className="text-sm font-medium truncate uppercase">
                         {generateCopy(producto, {
                           tipo: (() => {
                             // Para notebooks y celulares (incluyendo Apple notebooks y celulares)

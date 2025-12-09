@@ -95,45 +95,19 @@ const normalizarCondicion = (condicion) => {
 
 /**
  * Generar copy simplificado para PDFs
- * @param {Object} item - Item de venta con copy y datos
- * @returns {string} Copy simplificado según tipo de producto
+ * @param {Object} item - Item de venta con copy_documento y datos
+ * @returns {string} Copy limpio para documentos
  */
 export const generarCopyParaPDF = (item) => {
   console.log('📄 [pdfCopyUtils] Generando copy para PDF. Item recibido:', item);
 
-  const tipoProducto = detectarTipoProducto(item);
-  const serial = item.serial_producto || item.numero_serie || '';
-  const datos = extraerDatosDeCopy(item.copy || '');
+  // Usar copy_documento (para documentos limpios) o copy como fallback
+  // copy_documento ya está limpio y formateado correctamente, no necesita procesamiento adicional
+  const copyFinal = item.copy_documento || item.copy || 'Producto sin especificar';
 
-  console.log('📄 [pdfCopyUtils] Tipo producto:', tipoProducto);
-  console.log('📄 [pdfCopyUtils] Serial encontrado:', serial);
-  console.log('📄 [pdfCopyUtils] Datos extraídos del copy:', datos);
+  console.log('📄 [pdfCopyUtils] Copy final:', copyFinal);
 
-  const partes = [];
-
-  if (tipoProducto === 'computadora') {
-    // NOTEBOOKS: MODELO - MEMORIA - ALMACENAMIENTO (SIN SERIAL)
-    if (datos.modelo) partes.push(datos.modelo.toUpperCase());
-    if (datos.memoria) partes.push(datos.memoria.toUpperCase());
-    if (datos.almacenamiento) partes.push(datos.almacenamiento.toUpperCase());
-
-  } else if (tipoProducto === 'celular') {
-    // CELULARES: MODELO - COLOR - ALMACENAMIENTO (SIN SERIAL)
-    if (datos.modelo) partes.push(datos.modelo.toUpperCase());
-    if (datos.color) partes.push(datos.color.toUpperCase());
-    if (datos.almacenamiento) partes.push(datos.almacenamiento.toUpperCase());
-
-  } else {
-    // OTROS: PRODUCTO - CONDICION
-    if (datos.modelo) partes.push(datos.modelo.toUpperCase());
-    const condicion = normalizarCondicion(datos.condicion);
-    partes.push(condicion);
-  }
-
-  const resultado = partes.filter(p => p).join(' - ') || item.copy || 'Producto sin especificar';
-  console.log('📄 [pdfCopyUtils] Copy generado:', resultado);
-
-  return resultado;
+  return copyFinal;
 };
 
 export default generarCopyParaPDF;

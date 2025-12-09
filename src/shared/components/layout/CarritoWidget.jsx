@@ -63,7 +63,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [editandoPrecio, setEditandoPrecio] = useState(null); // ID del item siendo editado
   const [precioEditado, setPrecioEditado] = useState(''); // Valor temporal del precio
   const [preciosModificados, setPreciosModificados] = useState({}); // Precios originales guardados
-  
+
   // Estado para prevenir doble procesamiento de ventas
   const [procesandoVenta, setProcesandoVenta] = useState(false);
 
@@ -182,9 +182,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setDatosCliente(prev => ({ 
-      ...prev, 
-      [name]: value 
+    setDatosCliente(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -242,7 +242,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const obtenerTotalAPagar = (metodoPago, recargo = 0) => {
     const totalBase = calcularTotal();
     const totalConRecargo = totalBase * (1 + recargo / 100);
-    
+
     if (esMetodoEnPesos(metodoPago)) {
       return totalConRecargo * datosCliente.cotizacion_dolar;
     }
@@ -254,31 +254,31 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
     const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
     const montoBaseFloat = parseFloat(montoBase) || 0;
-    
+
     // Actualizar input local del monto base
     if (metodo === 1) {
       setInputMontoBase1(montoBase);
     } else {
       setInputMontoBase2(montoBase);
     }
-    
+
     // Calcular monto final con recargo
-    const montoFinalEnMonedaMetodo = necesitaRecargo(metodoPago) && recargo > 0 
+    const montoFinalEnMonedaMetodo = necesitaRecargo(metodoPago) && recargo > 0
       ? montoBaseFloat * (1 + recargo / 100)
       : montoBaseFloat;
-    
+
     // Actualizar input del monto final
     if (metodo === 1) {
       setInputMontoFinal1(montoFinalEnMonedaMetodo.toFixed(2));
     } else {
       setInputMontoFinal2(montoFinalEnMonedaMetodo.toFixed(2));
     }
-    
+
     // Convertir monto base a USD para guardar en estado
     const montoBaseUSD = esMetodoEnPesos(metodoPago)
       ? montoBaseFloat / datosCliente.cotizacion_dolar
       : montoBaseFloat;
-    
+
     setDatosCliente(prev => ({
       ...prev,
       [`monto_pago_${metodo}`]: montoBaseUSD
@@ -290,31 +290,31 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
     const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
     const montoFinalFloat = parseFloat(montoFinal) || 0;
-    
+
     // Actualizar input local del monto final
     if (metodo === 1) {
       setInputMontoFinal1(montoFinal);
     } else {
       setInputMontoFinal2(montoFinal);
     }
-    
+
     // Calcular monto base (sin recargo)
     const montoBaseEnMonedaMetodo = necesitaRecargo(metodoPago) && recargo > 0
       ? montoFinalFloat / (1 + recargo / 100)
       : montoFinalFloat;
-    
+
     // Actualizar input del monto base
     if (metodo === 1) {
       setInputMontoBase1(montoBaseEnMonedaMetodo.toFixed(2));
     } else {
       setInputMontoBase2(montoBaseEnMonedaMetodo.toFixed(2));
     }
-    
+
     // Convertir monto base a USD para guardar en estado
     const montoBaseUSD = esMetodoEnPesos(metodoPago)
       ? montoBaseEnMonedaMetodo / datosCliente.cotizacion_dolar
       : montoBaseEnMonedaMetodo;
-    
+
     setDatosCliente(prev => ({
       ...prev,
       [`monto_pago_${metodo}`]: montoBaseUSD
@@ -344,11 +344,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const distribuyeMontos = () => {
     // Solo distribuir si hay un segundo método seleccionado
     if (!datosCliente.metodo_pago_2) return;
-    
+
     const totalUSD = calcularTotal();
     const monto1USD = datosCliente.monto_pago_1;
     const monto2USD = totalUSD - monto1USD;
-    
+
     setDatosCliente(prev => ({
       ...prev,
       monto_pago_2: Math.max(0, monto2USD)
@@ -421,7 +421,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const iniciarEdicionPrecio = (item) => {
     setEditandoPrecio(item.id);
     setPrecioEditado(item.precio_unitario.toString());
-    
+
     // Guardar precio original si no está guardado ya
     if (!preciosModificados[item.id]) {
       setPreciosModificados(prev => ({
@@ -436,7 +436,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   const confirmarEdicionPrecio = (itemId) => {
     const nuevoPrecio = parseFloat(precioEditado);
-    
+
     // Validaciones
     if (isNaN(nuevoPrecio) || nuevoPrecio <= 0) {
       alert('⚠️ El precio debe ser un número mayor a 0');
@@ -446,7 +446,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // Confirmar si hay una gran diferencia con el precio original
     const precioOriginal = preciosModificados[itemId]?.precio_original || 0;
     const diferenciaPorcentaje = Math.abs((nuevoPrecio - precioOriginal) / precioOriginal) * 100;
-    
+
     if (diferenciaPorcentaje > 50) {
       const confirmar = window.confirm(
         `⚠️ El precio modificado es ${diferenciaPorcentaje.toFixed(1)}% diferente al precio original.\n\n` +
@@ -454,7 +454,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         `Precio nuevo: $${nuevoPrecio.toFixed(2)}\n\n` +
         `¿Está seguro de aplicar este cambio?`
       );
-      
+
       if (!confirmar) {
         cancelarEdicionPrecio();
         return;
@@ -463,7 +463,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
     // Actualizar precio del item en el carrito
     onUpdatePrecio(itemId, nuevoPrecio);
-    
+
     // Marcar como modificado
     setPreciosModificados(prev => ({
       ...prev,
@@ -485,15 +485,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   const restaurarPrecioOriginal = (itemId) => {
     const precioOriginal = preciosModificados[itemId]?.precio_original;
-    
+
     if (precioOriginal) {
       const confirmar = window.confirm(
         `¿Restaurar el precio original de $${precioOriginal.toFixed(2)}?`
       );
-      
+
       if (confirmar) {
         onUpdatePrecio(itemId, precioOriginal);
-        
+
         // Marcar como no modificado
         setPreciosModificados(prev => ({
           ...prev,
@@ -629,9 +629,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
     } catch (err) {
       console.error('❌ Error procesando venta:', err);
-      
+
       let errorMessage = 'Error procesando venta';
-      
+
       if (err.message.includes('cliente')) {
         errorMessage = 'Error con los datos del cliente';
       } else if (err.message.includes('stock') || err.message.includes('inventario')) {
@@ -639,7 +639,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       } else if (err.message.includes('network') || err.message.includes('fetch')) {
         errorMessage = 'Error de conexión - verifique su internet';
       }
-      
+
       alert(`❌ ${errorMessage}:\n\n${err.message}\n\nIntente nuevamente o contacte al administrador.`);
     } finally {
       // ✅ SIEMPRE liberar el bloqueo de procesamiento
@@ -797,11 +797,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   ) : (
                                     // Modo visualización
                                     <>
-                                      <span className={`text-sm ${
-                                        preciosModificados[item.id]?.fue_modificado
+                                      <span className={`text-sm ${preciosModificados[item.id]?.fue_modificado
                                           ? 'text-emerald-600 font-semibold'
                                           : 'text-slate-700'
-                                      }`}>
+                                        }`}>
                                         ${item.precio_unitario.toFixed(2)}
                                       </span>
 
@@ -902,34 +901,34 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                 </div>
 
                 <form onSubmit={handleProcesarVenta} className="p-6 space-y-6">
-                    {/* ✅ Selector de cliente */}
-                    <div className="space-y-4">
-                      <div className="bg-slate-800 rounded p-3 mb-4">
-                        <h4 className="text-white text-sm font-semibold uppercase text-center">
-                          Cliente
-                        </h4>
-                      </div>
-                      <ClienteSelector
-                        selectedCliente={clienteSeleccionado}
-                        onSelectCliente={setClienteSeleccionado}
-                        required={true}
-                      />
+                  {/* ✅ Selector de cliente */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-800 rounded p-3 mb-4">
+                      <h4 className="text-white text-sm font-semibold uppercase text-center">
+                        Cliente
+                      </h4>
+                    </div>
+                    <ClienteSelector
+                      selectedCliente={clienteSeleccionado}
+                      onSelectCliente={setClienteSeleccionado}
+                      required={true}
+                    />
+                  </div>
+
+                  {/* Productos Unificados */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-800 rounded p-3 mb-4">
+                      <h4 className="text-white text-sm font-semibold uppercase text-center">
+                        Productos
+                      </h4>
                     </div>
 
-                    {/* Productos Unificados */}
-                    <div className="space-y-4">
-                      <div className="bg-slate-800 rounded p-3 mb-4">
-                        <h4 className="text-white text-sm font-semibold uppercase text-center">
-                          Productos
-                        </h4>
+                    {carrito.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500">
+                        <p className="text-sm">No hay productos en el carrito</p>
                       </div>
-
-                      {carrito.length === 0 ? (
-                        <div className="text-center py-8 text-slate-500">
-                          <p className="text-sm">No hay productos en el carrito</p>
-                        </div>
-                      ) : (
-                        <>
+                    ) : (
+                      <>
                         <div className="border border-slate-200 rounded overflow-hidden">
                           <table className="w-full">
                             <thead className="bg-slate-600 text-white">
@@ -1015,11 +1014,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                         <>
                                           <button
                                             onClick={() => iniciarEdicionPrecio(item)}
-                                            className={`text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ${
-                                              preciosModificados[item.id]?.fue_modificado
+                                            className={`text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ${preciosModificados[item.id]?.fue_modificado
                                                 ? 'text-emerald-600'
                                                 : 'text-slate-800'
-                                            }`}
+                                              }`}
                                             title="Click para editar"
                                             type="button"
                                           >
@@ -1065,151 +1063,151 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           </table>
                         </div>
 
-                        </>
-                      )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Cotización y Pago */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-800 rounded p-3 mb-4">
+                      <h4 className="text-white text-sm font-semibold uppercase text-center">
+                        Pago
+                      </h4>
                     </div>
 
-                    {/* Cotización y Pago */}
-                    <div className="space-y-4">
-                      <div className="bg-slate-800 rounded p-3 mb-4">
-                        <h4 className="text-white text-sm font-semibold uppercase text-center">
-                          Pago
-                        </h4>
+                    {/* Resumen de Cotización */}
+                    <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-3 gap-4 mb-4">
+                      <div className="text-center">
+                        <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
+                        <p className="text-lg font-bold text-slate-800">U$${calcularTotal().toFixed(2)}</p>
                       </div>
 
-                      {/* Resumen de Cotización */}
-                      <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center">
-                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
-                          <p className="text-lg font-bold text-slate-800">U$${calcularTotal().toFixed(2)}</p>
-                        </div>
-
-                        <div className="text-center">
-                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cotización</p>
-                          {editandoCotizacion ? (
-                            <input
-                              type="number"
-                              value={datosCliente.cotizacion_dolar}
-                              onChange={(e) => setDatosCliente(prev => ({...prev, cotizacion_dolar: parseFloat(e.target.value) || 0}))}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  setEditandoCotizacion(false);
-                                } else if (e.key === 'Escape') {
-                                  setEditandoCotizacion(false);
-                                }
-                              }}
-                              className="w-full text-center text-lg font-bold border border-emerald-500 rounded px-2 text-slate-800 focus:outline-none"
-                              step="0.01"
-                              autoFocus
-                            />
-                          ) : (
-                            <p
-                              onClick={() => setEditandoCotizacion(!editandoCotizacion)}
-                              className="text-lg font-bold text-slate-800 cursor-pointer hover:opacity-70 transition-opacity"
-                              title="Click para editar"
-                            >
-                              ${datosCliente.cotizacion_dolar}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="text-center">
-                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total ARS</p>
-                          <p className="text-lg font-bold text-slate-800">${calcularTotalPesos().toLocaleString('es-AR')}</p>
-                        </div>
-                      </div>
-
-                      {/* Primer método de pago */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                            Método de Pago 1 *
-                          </label>
-                          <select
-                            name="metodo_pago_1"
-                            value={datosCliente.metodo_pago_1}
-                            onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                      <div className="text-center">
+                        <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cotización</p>
+                        {editandoCotizacion ? (
+                          <input
+                            type="number"
+                            value={datosCliente.cotizacion_dolar}
+                            onChange={(e) => setDatosCliente(prev => ({ ...prev, cotizacion_dolar: parseFloat(e.target.value) || 0 }))}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                setEditandoCotizacion(false);
+                              } else if (e.key === 'Escape') {
+                                setEditandoCotizacion(false);
+                              }
+                            }}
+                            className="w-full text-center text-lg font-bold border border-emerald-500 rounded px-2 text-slate-800 focus:outline-none"
+                            step="0.01"
+                            autoFocus
+                          />
+                        ) : (
+                          <p
+                            onClick={() => setEditandoCotizacion(!editandoCotizacion)}
+                            className="text-lg font-bold text-slate-800 cursor-pointer hover:opacity-70 transition-opacity"
+                            title="Click para editar"
                           >
-                            <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                            <option value="dolares_billete">💸 Dólares Billete</option>
-                            <option value="transferencia">🏦 Transferencia</option>
-                            <option value="criptomonedas">₿ Criptomonedas</option>
-                            <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                            <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
-                          </select>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                              Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
-                            </label>
-                            <input
-                              type="number"
-                              value={inputMontoBase1}
-                              onChange={(e) => handleMontoBaseChange(1, e.target.value)}
-                              onBlur={distribuyeMontos}
-                              className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                              placeholder="Ingrese el monto a cobrar"
-                              step="1"
-                              min="0"
-                            />
-                          </div>
-                        </div>
+                            ${datosCliente.cotizacion_dolar}
+                          </p>
+                        )}
                       </div>
 
-
-                      {/* Segundo método de pago (opcional) */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                            Método de Pago 2
-                          </label>
-                          <select
-                            name="metodo_pago_2"
-                            value={datosCliente.metodo_pago_2}
-                            onChange={(e) => handleMetodoPagoChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                          >
-                            <option value="">Seleccionar método</option>
-                            <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                            <option value="dolares_billete">💸 Dólares Billete</option>
-                            <option value="transferencia">🏦 Transferencia</option>
-                            <option value="criptomonedas">₿ Criptomonedas</option>
-                            <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                            <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
-                          </select>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                              Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
-                            </label>
-                            <input
-                              type="number"
-                              value={inputMontoBase2}
-                              onChange={(e) => handleMontoBaseChange(2, e.target.value)}
-                              className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                              placeholder="Ingrese el monto a cobrar"
-                              step="1"
-                              min="0"
-                              disabled={!datosCliente.metodo_pago_2}
-                            />
-                          </div>
-                        </div>
+                      <div className="text-center">
+                        <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total ARS</p>
+                        <p className="text-lg font-bold text-slate-800">${calcularTotalPesos().toLocaleString('es-AR')}</p>
                       </div>
-
                     </div>
-                  
-                    {/* Información adicional */}
-                    <div className="space-y-4">
-                      <div className="bg-slate-800 rounded p-3 mb-4">
-                        <h4 className="text-white text-sm font-semibold uppercase text-center">
-                          Información adicional
-                        </h4>
-                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Primer método de pago */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Método de Pago 1 *
+                        </label>
+                        <select
+                          name="metodo_pago_1"
+                          value={datosCliente.metodo_pago_1}
+                          onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        >
+                          <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
+                          <option value="dolares_billete">💸 Dólares Billete</option>
+                          <option value="transferencia">🏦 Transferencia</option>
+                          <option value="criptomonedas">₿ Criptomonedas</option>
+                          <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                          <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                        </select>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                            Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                          </label>
+                          <input
+                            type="number"
+                            value={inputMontoBase1}
+                            onChange={(e) => handleMontoBaseChange(1, e.target.value)}
+                            onBlur={distribuyeMontos}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder="Ingrese el monto a cobrar"
+                            step="1"
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+
+                    {/* Segundo método de pago (opcional) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Método de Pago 2
+                        </label>
+                        <select
+                          name="metodo_pago_2"
+                          value={datosCliente.metodo_pago_2}
+                          onChange={(e) => handleMetodoPagoChange(2, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        >
+                          <option value="">Seleccionar método</option>
+                          <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
+                          <option value="dolares_billete">💸 Dólares Billete</option>
+                          <option value="transferencia">🏦 Transferencia</option>
+                          <option value="criptomonedas">₿ Criptomonedas</option>
+                          <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                          <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                        </select>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                            Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                          </label>
+                          <input
+                            type="number"
+                            value={inputMontoBase2}
+                            onChange={(e) => handleMontoBaseChange(2, e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder="Ingrese el monto a cobrar"
+                            step="1"
+                            min="0"
+                            disabled={!datosCliente.metodo_pago_2}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Información adicional */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-800 rounded p-3 mb-4">
+                      <h4 className="text-white text-sm font-semibold uppercase text-center">
+                        Información adicional
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Vendedor *</label>
                         <select
@@ -1266,130 +1264,128 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                     </div>
+                  </div>
+
+
+                  {/* Resumen */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-800 rounded p-3 mb-4">
+                      <h4 className="text-white text-sm font-semibold uppercase text-center">
+                        Resumen de la venta
+                      </h4>
                     </div>
-
-                    
-                    {/* Resumen */}
-                    <div className="space-y-4">
-                      <div className="bg-slate-800 rounded p-3 mb-4">
-                        <h4 className="text-white text-sm font-semibold uppercase text-center">
-                          Resumen de la venta
-                        </h4>
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        {/* Primera fila: Cliente, Productos, Vendedor */}
-                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cliente</p>
-                            {clienteSeleccionado && (
-                              <p className="text-sm font-medium text-slate-800">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</p>
-                            )}
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Productos</p>
-                            <p className="text-sm font-medium text-slate-800">{calcularCantidadTotal()}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Vendedor</p>
-                            <p className="text-sm font-medium text-slate-800">{vendedores.find(v => v.id === datosCliente.vendedor)?.nombre} {vendedores.find(v => v.id === datosCliente.vendedor)?.apellido}</p>
-                          </div>
-                        </div>
-
-                        {/* Segunda fila: Sucursal, Fecha, Total USD */}
-                        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Sucursal</p>
-                            <p className="text-sm font-medium text-slate-800">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Fecha</p>
-                            <p className="text-sm font-medium text-slate-800">{new Date(fechaVenta).toLocaleDateString('es-AR')}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
-                            <p className="text-sm font-medium text-slate-800">U$${calcularTotal().toFixed(2)}</p>
-                          </div>
-                        </div>
-
-                        {/* Métodos de Pago */}
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                      {/* Primera fila: Cliente, Productos, Vendedor */}
+                      <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
                         <div className="text-center">
-                          <p className="text-xs text-slate-600 font-medium uppercase mb-2">Métodos de pago</p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-slate-800">{datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                              parseFloat(inputMontoBase1) || 0,
-                              obtenerMonedaMetodo(datosCliente.metodo_pago_1)
-                            )}</p>
-                            {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
-                              <p className="text-sm text-slate-800">{datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                                parseFloat(inputMontoBase2) || 0,
-                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                              )}</p>
-                            )}
-                          </div>
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cliente</p>
+                          {clienteSeleccionado && (
+                            <p className="text-sm font-medium text-slate-800">{clienteSeleccionado.nombre} {clienteSeleccionado.apellido}</p>
+                          )}
                         </div>
-
-                        {/* Aviso de cuenta corriente */}
-                        {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
-                          <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
-                            💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
-                          </div>
-                        )}
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Productos</p>
+                          <p className="text-sm font-medium text-slate-800">{calcularCantidadTotal()}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Vendedor</p>
+                          <p className="text-sm font-medium text-slate-800">{vendedores.find(v => v.id === datosCliente.vendedor)?.nombre} {vendedores.find(v => v.id === datosCliente.vendedor)?.apellido}</p>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Checkbox para envío de email */}
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mx-4 mb-4">
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={enviarEmail}
-                          onChange={(e) => setEnviarEmail(e.target.checked)}
-                          className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-                        />
-                        <div className="flex items-center space-x-2">
-                          <Mail className="w-5 h-5 text-yellow-700" />
-                          <span className="text-sm font-semibold text-yellow-900">
-                            Enviar email con recibo y garantías (PRUEBA - NO MANDAR)
-                          </span>
+                      {/* Segunda fila: Sucursal, Fecha, Total USD */}
+                      <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Sucursal</p>
+                          <p className="text-sm font-medium text-slate-800">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</p>
                         </div>
-                      </label>
-                    </div>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Fecha</p>
+                          <p className="text-sm font-medium text-slate-800">{new Date(fechaVenta).toLocaleDateString('es-AR')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
+                          <p className="text-sm font-medium text-slate-800">U$${calcularTotal().toFixed(2)}</p>
+                        </div>
+                      </div>
 
-                    {/* Botones */}
-                    <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
-                        <button
-                          type="button"
-                          onClick={() => {
+                      {/* Métodos de Pago */}
+                      <div className="text-center">
+                        <p className="text-xs text-slate-600 font-medium uppercase mb-2">Métodos de pago</p>
+                        <div className="space-y-1">
+                          <p className="text-sm text-slate-800">{datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                            parseFloat(inputMontoBase1) || 0,
+                            obtenerMonedaMetodo(datosCliente.metodo_pago_1)
+                          )}</p>
+                          {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
+                            <p className="text-sm text-slate-800">{datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                              parseFloat(inputMontoBase2) || 0,
+                              obtenerMonedaMetodo(datosCliente.metodo_pago_2)
+                            )}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Aviso de cuenta corriente */}
+                      {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
+                        <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
+                          💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Checkbox para envío de email */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mx-4 mb-4">
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={enviarEmail}
+                        onChange={(e) => setEnviarEmail(e.target.checked)}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                      />
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-5 h-5 text-yellow-700" />
+                        <span className="text-sm font-semibold text-yellow-900">
+                          USAR - Manda mail de prueba a soporte - USAR                         </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Botones */}
+                  <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => {
                         setMostrarFormulario(false);
                         setAperturaManual(false);
                       }}
-                          className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={!clienteSeleccionado || !datosCliente.vendedor}
-                          className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${
-                            (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                              ? 'bg-slate-800 text-white hover:bg-slate-700'
-                              : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          }`}
-                        >
-                          {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
-                            <>
-                              <CreditCard className="w-5 h-5" />
-                              <span>Procesar</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className="w-5 h-5" />
-                              <span>Procesar</span>
-                            </>
-                          )}
-                        </button>
-                    </div>
-                  </form>
+                      className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!clienteSeleccionado || !datosCliente.vendedor}
+                      className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                          ? 'bg-slate-800 text-white hover:bg-slate-700'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        }`}
+                    >
+                      {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
+                        <>
+                          <CreditCard className="w-5 h-5" />
+                          <span>Procesar</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-5 h-5" />
+                          <span>Procesar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </>
             )}
           </div>
@@ -1425,11 +1421,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
               <button
                 onClick={confirmarVenta}
                 disabled={procesandoVenta}
-                className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${
-                  procesandoVenta
+                className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${procesandoVenta
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                     : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                }`}
+                  }`}
               >
                 {procesandoVenta ? (
                   <>

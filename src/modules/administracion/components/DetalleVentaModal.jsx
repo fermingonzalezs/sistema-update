@@ -19,7 +19,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-slate-800 p-6 text-white flex items-center justify-between sticky top-0">
           <div className="text-center w-full">
@@ -37,7 +37,6 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
         <div className="p-6 space-y-6">
           {/* Sección Productos */}
           <div className="border border-slate-200 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase">{transaccion.venta_items?.length || 0} PRODUCTOS</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white border-b border-slate-200">
@@ -56,7 +55,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-2">
                           {getIconoProducto(item.tipo_producto)}
-                          <span className="text-slate-800">{item.copy}</span>
+                          <span className="text-slate-800 truncate max-w-md" title={item.copy_documento || item.copy}>{item.copy_documento || item.copy}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-slate-800 font-mono text-xs text-center">{item.serial_producto || '-'}</td>
@@ -71,47 +70,42 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
             </div>
           </div>
 
-          {/* Sección Financiera */}
+          {/* Tarjetas de Totales y Pagos */}
           <div className="border border-slate-200 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase">FINANCIERO</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-slate-50 p-3 rounded text-center">
+            <div className="flex flex-wrap justify-center gap-4">
+              {/* Tarjetas de totales */}
+              <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                 <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total Cobrado</p>
                 <p className="text-lg font-semibold text-slate-800">{formatearMonto(montoTotal, 'USD')}</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded text-center">
+              <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                 <p className="text-xs text-slate-600 font-medium uppercase mb-1">Costo Total</p>
                 <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.total_costo || 0, 'USD')}</p>
               </div>
-              <div className={`p-3 rounded text-center ${transaccion.margen_total >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+              <div className={`p-3 rounded text-center min-w-[160px] ${transaccion.margen_total >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
                 <p className="text-xs text-slate-600 font-medium uppercase mb-1">Ganancia</p>
                 <p className={`text-lg font-semibold ${transaccion.margen_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {formatearMonto(transaccion.margen_total || 0, 'USD')}
                 </p>
               </div>
-              <div className="bg-slate-50 p-3 rounded text-center">
+              <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                 <p className="text-xs text-slate-600 font-medium uppercase mb-1">Margen %</p>
                 <p className={`text-lg font-semibold ${transaccion.margen_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {margenPorcentaje}%
                 </p>
               </div>
-            </div>
-          </div>
 
-          {/* Sección Pago */}
-          <div className="border border-slate-200 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase">PAGO</h3>
-            <div className="space-y-3 text-center">
+              {/* Pagos */}
               {transaccion.metodo_pago && (
-                <div>
-                  <p className="text-sm text-slate-600 capitalize uppercase">{transaccion.metodo_pago.replace(/_/g, ' ')}</p>
-                  <p className="text-slate-800 font-semibold">{formatearMonto(transaccion.monto_pago_1 || 0, 'USD')}</p>
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago.replace(/_/g, ' ')}</p>
+                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_1 || 0, 'USD')}</p>
                 </div>
               )}
               {transaccion.metodo_pago_2 && (
-                <div>
-                  <p className="text-sm text-slate-600 capitalize uppercase">{transaccion.metodo_pago_2.replace(/_/g, ' ')}</p>
-                  <p className="text-slate-800 font-semibold">{formatearMonto(transaccion.monto_pago_2 || 0, 'USD')}</p>
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago_2.replace(/_/g, ' ')}</p>
+                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_2 || 0, 'USD')}</p>
                 </div>
               )}
             </div>
@@ -120,7 +114,16 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
           {/* Sección Meta */}
           <div className="border border-slate-200 rounded p-4">
             <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase">INFORMACIÓN ADICIONAL</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-sm text-slate-600 font-medium uppercase mb-1">Cliente</p>
+                <p className="text-slate-800 font-semibold">{transaccion.cliente_nombre || '-'}</p>
+                <p className="text-xs text-slate-600 mt-1">
+                  {transaccion.cliente_email && `${transaccion.cliente_email}`}
+                  {transaccion.cliente_email && transaccion.cliente_telefono && ' - '}
+                  {transaccion.cliente_telefono && `${transaccion.cliente_telefono}`}
+                </p>
+              </div>
               <div>
                 <p className="text-sm text-slate-600 font-medium uppercase mb-1">Vendedor</p>
                 <p className="text-slate-800">{transaccion.vendedor || '-'}</p>
@@ -145,19 +148,6 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
               <p className="text-slate-700 text-sm whitespace-pre-wrap text-center">{transaccion.observaciones}</p>
             </div>
           )}
-
-          {/* Sección Cliente - Al Final */}
-          <div className="border border-slate-200 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center uppercase">CLIENTE</h3>
-            <div className="text-center space-y-2">
-              <p className="text-slate-800 font-semibold text-lg">{transaccion.cliente_nombre || '-'}</p>
-              <p className="text-slate-700">
-                {transaccion.cliente_email && `${transaccion.cliente_email}`}
-                {transaccion.cliente_email && transaccion.cliente_telefono && ' - '}
-                {transaccion.cliente_telefono && `${transaccion.cliente_telefono}`}
-              </p>
-            </div>
-          </div>
 
           {/* Footer - Botones */}
           <div className="flex justify-center gap-3 pt-4 border-t border-slate-200">
