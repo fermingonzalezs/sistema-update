@@ -757,7 +757,7 @@ const GarantiaDocument = ({ data, tipoDocumento }) => {
           </View>
           <View style={styles.condicionesContent}>
             <Text style={styles.condicionesText}>
-              LA EMPRESA acompaña a cada uno de sus productos con un certificado de garantía, comprometiéndose a reparar o cambiar cualquier parte que el criterio resultaría defectuosa. La garantía será efectiva únicamente en nuestras oficinas.
+              LA EMPRESA acompaña a cada uno de sus productos con un certificado de garantía, comprometiéndose a reparar o reemplazar cualquier parte que, a criterio del servicio técnico especializado, resulte defectuosa de fabricación. La garantía será efectiva únicamente en nuestras oficinas.
             </Text>
             <Text style={styles.condicionesText}>
               Esta garantía NO da el derecho a exigir la sustitución de la totalidad del elemento o de sus partes, ni el reintegro del importe pagado por el producto. Tampoco cubre funcionamientos originados por causas ajenas al producto o por las fallas del producto. La garantía es única y sólo cubre defectos de fabricación; no contempla fallas debidas a mal degradación de los componentes por el uso, rotura, suciedad, errores en la operación, instalación defectuosa, etc.
@@ -907,7 +907,8 @@ export const generarYDescargarGarantiaProducto = async (producto, cliente = {}, 
       cliente_telefono: cliente.telefono || '',
       cliente_email: cliente.email || '',
       venta_items: [{
-        copy: producto.copy || 'Producto sin especificar', // Necesita 'copy' no 'modelo_producto'
+        copy: producto.copy || 'Producto sin especificar', // Copy completo con condición
+        copy_documento: producto.copy_documento || producto.copy || 'Producto sin especificar', // Copy limpio para documentos
         modelo_producto: producto.copy || 'Producto sin especificar',
         cantidad: 1,
         precio_unitario: producto.precio_venta_usd || 0,

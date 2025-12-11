@@ -33,7 +33,8 @@
       "Bash(awk:*)",
       "Bash(node test-compras-nacionales.js:*)",
       "Bash(npx supabase functions deploy:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Skill(frontend-design)"
     ],
     "deny": [],
     "ask": []

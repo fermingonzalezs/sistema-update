@@ -146,12 +146,14 @@ export const useGarantias = () => {
                 metodo_pago: transaccion.metodo_pago,
                 // Datos del producto
                 modelo_producto: getProductModel(item.copy),
-                copy_completo: item.copy, // Guardar el copy completo con condición incluida
+                copy: item.copy, // Copy completo con condición incluida
+                copy_documento: item.copy_documento, // Copy limpio para documentos (recibos, garantías, emails)
                 serial_producto: item.serial_producto,
                 tipo_producto: item.tipo_producto,
                 cantidad: item.cantidad,
                 precio_total: item.precio_total,
                 precio_unitario: item.precio_unitario,
+                garantia: item.garantia, // Garantía del producto
                 // Datos de garantía (desde BD)
                 fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
                 dias_restantes: diasRestantes,

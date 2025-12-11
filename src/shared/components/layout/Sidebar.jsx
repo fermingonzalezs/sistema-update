@@ -31,11 +31,13 @@ import {
   ShoppingBag,
   Plane,
   LayoutDashboard,
-  Mail
+  Mail,
+  ChevronLeft,
+  Menu
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
-const Sidebar = ({ activeSection, isCollapsed = false }) => {
+const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
   const { user, hasAccess, getAllowedSections } = useAuthContext();
 
   // Estado para controlar qué secciones están expandidas
@@ -302,17 +304,28 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
   };
 
   return (
-    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 transition-all duration-500 ease-in-out ${isCollapsed ? 'w-16' : 'w-70'
+    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 ${isCollapsed ? 'w-16' : 'w-70'
       }`}>
-      {/* Header con Logo */}
-      <div className={`${isCollapsed ? "p-2" : "p-4"} border-b border-slate-700 bg-slate-800 relative z-10`}>
+      {/* Header con Logo y Toggle */}
+      <div className={`flex flex-col items-center justify-center ${isCollapsed ? "p-2 py-4 gap-4" : "p-4 relative"} border-b border-slate-700 bg-slate-800 z-10`}>
         <div className="flex items-center justify-center">
           <img
             src="/logo.png"
             alt="Logo"
-            className={`transition-all duration-300 ${isCollapsed ? 'w-10 h-10' : 'w-16 h-16'}`}
+            className={`${isCollapsed ? 'w-8 h-8' : 'w-16 h-16'}`}
           />
         </div>
+
+        {/* Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          className={`
+            text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700
+            ${isCollapsed ? '' : 'absolute right-4 top-1/2 -translate-y-1/2'}
+          `}
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
       {/* Contenido scrolleable - solo el menú */}
@@ -330,7 +343,7 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                     <button
                       onClick={() => toggleSection(group.title)}
                       className={`w-full bg-emerald-600 p-3 rounded-lg mb-3 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
-                        } hover:bg-emerald-600/80 transition-all duration-200`}
+                        } hover:bg-emerald-600/80`}
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold text-white tracking-wider flex items-center space-x-2">
@@ -346,9 +359,9 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                         </h3>
                         <div className="flex items-center">
                           {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-white transition-transform duration-200" />
+                            <ChevronDown className="w-4 h-4 text-white" />
                           ) : (
-                            <ChevronRight className="w-4 h-4 text-white transition-transform duration-200" />
+                            <ChevronRight className="w-4 h-4 text-white" />
                           )}
                         </div>
                       </div>
@@ -365,7 +378,7 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                   )}
 
                   {/* Items del grupo - con animación de colapso */}
-                  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? 'max-h-screen opacity-100' :
+                  <div className={`overflow-hidden ${isCollapsed ? 'max-h-screen opacity-100' :
                     isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
                     }`}>
                     <div className="space-y-1 pb-2">
@@ -377,7 +390,7 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                           return (
                             <div
                               key={item.id}
-                              className={`w-full group relative overflow-hidden rounded-lg transition-all duration-300 opacity-50 cursor-not-allowed ${isCollapsed ? 'p-2' : 'p-3'
+                              className={`w-full group relative overflow-hidden rounded-lg opacity-50 cursor-not-allowed ${isCollapsed ? 'p-2' : 'p-3'
                                 } border border-transparent`}
                               title={isCollapsed ? item.label : undefined}
                             >
@@ -413,7 +426,7 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                           <NavLink
                             key={item.id}
                             to={item.path}
-                            className={({ isActive }) => `w-full group relative overflow-hidden rounded-lg transition-all duration-300 focus:outline-none block ${isCollapsed ? 'p-2' : 'p-3'
+                            className={({ isActive }) => `w-full group relative overflow-hidden rounded-lg focus:outline-none block ${isCollapsed ? 'p-2' : 'p-3'
                               } ${isActive
                                 ? 'bg-white border border-slate-200 shadow-lg'
                                 : 'hover:bg-slate-200/20 border border-transparent'
@@ -423,7 +436,7 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                             {({ isActive }) => (
                               isCollapsed ? (
                                 <div className="flex items-center justify-center">
-                                  <div className={`p-2 rounded-lg transition-colors ${isActive
+                                  <div className={`p-2 rounded-lg ${isActive
                                     ? 'bg-emerald-600 text-white shadow-sm'
                                     : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                     }`}>
@@ -433,20 +446,20 @@ const Sidebar = ({ activeSection, isCollapsed = false }) => {
                               ) : (
                                 <div className="relative flex items-center justify-between">
                                   <div className="flex items-center space-x-3">
-                                    <div className={`p-2 rounded-lg transition-colors ${isActive
+                                    <div className={`p-2 rounded-lg ${isActive
                                       ? 'bg-emerald-600 text-white shadow-sm'
                                       : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                       }`}>
                                       <Icon className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                      <div className={`text-sm font-semibold transition-colors ${isActive
+                                      <div className={`text-sm font-semibold ${isActive
                                         ? 'text-slate-800'
                                         : 'text-slate-200 group-hover:text-white'
                                         }`}>
                                         {item.label}
                                       </div>
-                                      <div className={`text-xs transition-colors ${isActive
+                                      <div className={`text-xs ${isActive
                                         ? 'text-slate-800/70'
                                         : 'text-slate-200/70 group-hover:text-slate-200'
                                         }`}>

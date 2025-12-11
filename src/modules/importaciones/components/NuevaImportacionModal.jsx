@@ -355,14 +355,17 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className="bg-slate-100 border-t border-slate-200">
+                  <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right text-slate-800">
+                      <td colSpan="3" className="px-4 py-3 text-sm font-semibold text-right">
                         TOTAL:
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-center text-slate-800">
+                      <td className="px-4 py-3 text-sm font-semibold text-center">
+                        ${formatNumber(calcularTotalItems())}
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-center text-slate-800">
+                      <td className="px-4 py-3 text-sm font-semibold text-center">
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-center">
                         {calcularPesoTotal().toFixed(2)} kg
                       </td>
                       <td></td>

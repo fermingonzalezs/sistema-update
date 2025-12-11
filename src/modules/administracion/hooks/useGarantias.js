@@ -216,17 +216,20 @@ export const useGarantias = () => {
                 metodo_pago: transaccion.metodo_pago,
                 // Datos del producto
                 modelo_producto: item.modelo_producto,
+                copy: item.copy,
+                copy_documento: item.copy_documento,
                 serial_producto: item.serial_producto,
                 tipo_producto: item.tipo_producto,
                 cantidad: item.cantidad,
                 precio_total: item.precio_total,
                 precio_unitario: item.precio_unitario,
+                garantia: item.garantia,
                 // Datos de garantía calculados
                 fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
                 dias_restantes: diasRestantes,
                 estado_garantia: estadoGarantia,
                 plazo_garantia: diasGarantia.toString(),
-                tipo_garantia: item.tipo_producto === 'computadora' ? `Computadora (${garantiaTextoOriginal})` : 
+                tipo_garantia: item.tipo_producto === 'computadora' ? `Computadora (${garantiaTextoOriginal})` :
                               item.tipo_producto === 'celular' ? `Celular (${garantiaTextoOriginal})` : `Otros (${garantiaTextoOriginal})`
               });
             }

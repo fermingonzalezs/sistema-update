@@ -101,9 +101,11 @@ const normalizarCondicion = (condicion) => {
 export const generarCopyParaPDF = (item) => {
   console.log('📄 [pdfCopyUtils] Generando copy para PDF. Item recibido:', item);
 
-  // Usar copy_documento (para documentos limpios) o copy como fallback
+  // Usar copy_documento (para documentos limpios) si existe y no está vacío, si no usar copy
   // copy_documento ya está limpio y formateado correctamente, no necesita procesamiento adicional
-  const copyFinal = item.copy_documento || item.copy || 'Producto sin especificar';
+  const copyFinal = (item.copy_documento && item.copy_documento.trim() !== '')
+    ? item.copy_documento
+    : (item.copy || 'Producto sin especificar');
 
   console.log('📄 [pdfCopyUtils] Copy final:', copyFinal);
 

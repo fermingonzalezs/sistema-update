@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Search, Download, Mail, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye } from 'lucide-react';
+import { Shield, Filter, Download, BarChart3, Package, CheckCircle, XCircle, Monitor, Smartphone, Box, Eye, RefreshCw } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useGarantias } from '../../../lib/useGarantiasFix';
 import { generarYDescargarGarantiaProducto as abrirGarantiaPDF } from '../../soporte/components/pdf/GarantiaPDF';
@@ -143,12 +143,13 @@ const GarantiasSection = () => {
       console.log('📄 Datos de garantía originales:', garantia);
 
       const producto = {
-        copy: garantia.copy_completo || garantia.modelo_producto || '', // Copy completo para procesamiento
+        copy: garantia.copy || garantia.modelo_producto || '', // Copy completo con condición incluida
+        copy_documento: garantia.copy_documento || garantia.copy || garantia.modelo_producto || '', // Copy limpio para documentos
         tipo_producto: garantia.tipo_producto, // Tipo para saber cómo formatear
         serial_producto: garantia.serial_producto, // Serial para incluir en descripción
         numero_serie: garantia.serial_producto,
         precio_venta_usd: garantia.precio_total,
-        garantia: garantia.garantia_texto || 'N/A' // Usar el campo garantia_texto de la vista
+        garantia: garantia.garantia || garantia.garantia_texto || 'N/A' // Usar el campo garantia o garantia_texto
       };
 
       console.log('📄 Objeto producto para PDF:', producto);
@@ -207,10 +208,17 @@ const GarantiasSection = () => {
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'Activa': return 'text-slate-800 bg-slate-100';
-      case 'Vencida': return 'text-slate-600 bg-slate-100';
-      default: return 'text-slate-600 bg-slate-100';
+      case 'Activa': return 'text-emerald-700 bg-emerald-50 border border-emerald-200';
+      case 'Vencida': return 'text-slate-700 bg-slate-100 border border-slate-300';
+      default: return 'text-slate-600 bg-slate-100 border border-slate-200';
     }
+  };
+
+  const getProductDescription = (garantia) => {
+    // Prioridad: copy_documento > copy > modelo_producto
+    return (garantia.copy_documento && garantia.copy_documento.trim())
+      ? garantia.copy_documento
+      : (garantia.copy || garantia.modelo_producto || 'Producto sin especificar');
   };
 
   if (loading) {
@@ -218,52 +226,53 @@ const GarantiasSection = () => {
   }
 
   return (
-    <div className="bg-slate-50 w-full min-w-0">
-      <div className="bg-white rounded border border-slate-200 mb-6">
-        {/* Header */}
+    <div className="bg-slate-50 w-full min-w-0 p-4 md:p-6">
+      {/* Header Principal */}
+      <div className="bg-white rounded border border-slate-200 mb-6 overflow-hidden">
         <div className="p-6 bg-slate-800 text-white">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <Shield className="w-6 h-6" />
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-emerald-600 rounded flex items-center justify-center">
+                <Shield className="w-6 h-6" />
+              </div>
               <div>
                 <h2 className="text-2xl font-semibold">Gestión de Garantías</h2>
-                <p className="text-slate-300 mt-1">Control y administración de garantías de productos</p>
+                <p className="text-slate-300 text-sm mt-1">Administración y seguimiento de cobertura de productos</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={refrescarDatos}
-                className="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-600 transition-colors flex items-center space-x-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Actualizar</span>
-              </button>
-            </div>
+            <button
+              onClick={refrescarDatos}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors duration-200"
+              title="Actualizar datos"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline text-sm font-medium">Actualizar</span>
+            </button>
           </div>
         </div>
 
-        {/* Dashboard de Estadísticas usando Tarjeta */}
+        {/* Estadísticas */}
         {estadisticas && (
-          <div className="p-6 border-t border-slate-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Tarjeta 
+          <div className="p-6 border-t border-slate-200 bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Tarjeta
                 icon={Package}
-                titulo="Total Garantías"
+                titulo="Total"
                 valor={estadisticas.totalGarantias || 0}
               />
-              <Tarjeta 
+              <Tarjeta
                 icon={CheckCircle}
-                titulo="Garantías Activas"
+                titulo="Activas"
                 valor={estadisticas.garantiasActivas || 0}
               />
-              <Tarjeta 
+              <Tarjeta
                 icon={XCircle}
-                titulo="Garantías Vencidas"
+                titulo="Vencidas"
                 valor={estadisticas.garantiasVencidas || 0}
               />
-              <Tarjeta 
+              <Tarjeta
                 icon={BarChart3}
-                titulo="Valor Equipos Garantizados"
+                titulo="Valor Total USD"
                 valor={formatearMonto(valorEquiposGarantizados, 'USD')}
               />
             </div>
@@ -272,134 +281,137 @@ const GarantiasSection = () => {
       </div>
 
       {/* Filtros y Búsqueda */}
-      <div className="p-6 bg-white border border-slate-200 rounded mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Tipo de búsqueda */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Buscar por</label>
-            <select
-              value={filtros.tipoBusqueda}
-              onChange={(e) => setFiltros(prev => ({ ...prev, tipoBusqueda: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="serial">Número de Serie</option>
-              <option value="cliente">Nombre Cliente</option>
-            </select>
-          </div>
+      <div className="bg-white rounded border border-slate-200 mb-6 overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-slate-200 flex items-center space-x-2">
+          <Filter className="w-5 h-5 text-slate-600" />
+          <h3 className="font-semibold text-slate-800">Filtros</h3>
+        </div>
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Tipo de búsqueda */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Buscar por</label>
+              <select
+                value={filtros.tipoBusqueda}
+                onChange={(e) => setFiltros(prev => ({ ...prev, tipoBusqueda: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+              >
+                <option value="serial">Número de Serie</option>
+                <option value="cliente">Nombre Cliente</option>
+              </select>
+            </div>
 
-          {/* Campo de búsqueda */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              {filtros.tipoBusqueda === 'serial' ? 'Serial' : 'Cliente'}
-            </label>
-            <div className="flex">
+            {/* Campo de búsqueda */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                {filtros.tipoBusqueda === 'serial' ? 'Serial' : 'Cliente'}
+              </label>
               <input
                 type="text"
                 value={filtros.busqueda}
                 onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
                 placeholder={filtros.tipoBusqueda === 'serial' ? 'Ej: DL123456' : 'Ej: Juan Pérez'}
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-l text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
               />
-              
             </div>
-          </div>
 
-          {/* Filtro por tipo de producto */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo Producto</label>
-            <select
-              value={filtros.tipoProducto}
-              onChange={(e) => setFiltros(prev => ({ ...prev, tipoProducto: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="todos">Todos</option>
-              <option value="computadora">Computadoras</option>
-              <option value="celular">Celulares</option>
-              <option value="otro">Otros</option>
-            </select>
-          </div>
+            {/* Filtro por tipo de producto */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Tipo Producto</label>
+              <select
+                value={filtros.tipoProducto}
+                onChange={(e) => setFiltros(prev => ({ ...prev, tipoProducto: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+              >
+                <option value="todos">Todos</option>
+                <option value="computadora">Computadoras</option>
+                <option value="celular">Celulares</option>
+                <option value="otro">Otros</option>
+              </select>
+            </div>
 
-          {/* Filtro por estado */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Estado</label>
-            <select
-              value={filtros.estadoGarantia}
-              onChange={(e) => setFiltros(prev => ({ ...prev, estadoGarantia: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="todos">Todos</option>
-              <option value="Activa">Activas</option>
-              <option value="Vencida">Vencidas</option>
-            </select>
+            {/* Filtro por estado */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Estado</label>
+              <select
+                value={filtros.estadoGarantia}
+                onChange={(e) => setFiltros(prev => ({ ...prev, estadoGarantia: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+              >
+                <option value="todos">Todos</option>
+                <option value="Activa">Activas</option>
+                <option value="Vencida">Vencidas</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-slate-100 border-l-4 border-slate-400 rounded mb-6">
-          <span className="text-slate-800">{error}</span>
+        <div className="p-4 bg-slate-100 border border-slate-300 rounded mb-6 text-slate-800">
+          <p className="text-sm font-medium">⚠️ {error}</p>
         </div>
       )}
 
-      {/* Tabla de Garantías - Responsiva */}
+      {/* Tabla de Garantías */}
       <div className="bg-white rounded border border-slate-200 overflow-hidden">
         {/* Vista de tabla para desktop */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+          <table className="w-full">
+            <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Cliente</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Producto</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Serial</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Fecha</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Garantía</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Estado</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Acción</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Cliente</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Producto</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Serial</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Fecha</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Garantía</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Estado</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Acción</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
-              {garantiasFiltradas.map((garantia) => (
-                <tr key={garantia.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <div className="max-w-xs">
-                      <div className="text-sm font-medium text-slate-900 truncate">{garantia.cliente_nombre}</div>
-                      <div className="text-sm text-slate-500 truncate">{garantia.cliente_telefono}</div>
+            <tbody className="divide-y divide-slate-200">
+              {garantiasFiltradas.map((garantia, idx) => (
+                <tr key={garantia.id} className={idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-white'} style={{ transition: 'background-color 0.15s' }}>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">{garantia.cliente_nombre}</div>
+                      <div className="text-xs text-slate-500 mt-1">{garantia.cliente_telefono}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-left">
                     <div className="flex items-center max-w-xs">
-                      {getIconoProducto(garantia.tipo_producto)}
-                      <div className="ml-2 min-w-0">
-                        <div className="text-sm font-medium text-slate-900 truncate">{garantia.modelo_producto}</div>
-                        <div className="text-sm text-slate-500 capitalize truncate">{garantia.tipo_producto}</div>
+                      <div className="flex-shrink-0">
+                        {getIconoProducto(garantia.tipo_producto)}
+                      </div>
+                      <div className="ml-3 min-w-0 flex-1">
+                        <div className="text-sm font-medium text-slate-900 truncate" title={getProductDescription(garantia)}>{getProductDescription(garantia)}</div>
+                        <div className="text-xs text-slate-500 capitalize truncate">{garantia.tipo_producto}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-mono text-slate-900 max-w-28 truncate" title={garantia.serial_producto}>{garantia.serial_producto}</div>
+                  <td className="px-4 py-3 text-center">
+                    <div className="text-sm font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded inline-block">{garantia.serial_producto}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm text-slate-900">{formatearFecha(garantia.fecha_venta)}</div>
-                    <div className="text-sm text-slate-500 truncate">#{garantia.numero_transaccion}</div>
+                  <td className="px-4 py-3 text-center">
+                    <div className="text-sm font-medium text-slate-900">{formatearFecha(garantia.fecha_venta)}</div>
+                    <div className="text-xs text-slate-500 mt-1">#{garantia.numero_transaccion}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm text-slate-900">{garantia.garantia_texto || 'N/A'}</div>
-                    <div className="text-sm text-slate-500">
-                      Vence: {formatearFecha(garantia.fecha_vencimiento)}
-                    </div>
+                  <td className="px-4 py-3 text-center">
+                    <div className="text-sm font-medium text-slate-900">{garantia.garantia_texto || 'N/A'}</div>
+                    <div className="text-xs text-slate-500 mt-1">Vence: {formatearFecha(garantia.fecha_vencimiento)}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getEstadoColor(garantia.estado_garantia)}`}>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded ${getEstadoColor(garantia.estado_garantia)}`}>
                       {garantia.estado_garantia}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => manejarAbrirGarantia(garantia)}
                       disabled={descargando === garantia.id}
-                      className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
+                      className="inline-flex items-center justify-center space-x-1 px-3 py-2 rounded text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-150"
                       title="Ver certificado de garantía"
                     >
                       {descargando === garantia.id ? (
@@ -407,7 +419,7 @@ const GarantiasSection = () => {
                       ) : (
                         <>
                           <Eye className="w-4 h-4" />
-                          <span className="text-xs">Garantía</span>
+                          <span className="text-xs font-medium">Ver</span>
                         </>
                       )}
                     </button>
@@ -421,53 +433,52 @@ const GarantiasSection = () => {
         {/* Vista de cards para móviles */}
         <div className="md:hidden">
           {garantiasFiltradas.map((garantia) => (
-            <div key={garantia.id} className="border-b border-slate-200 p-4">
+            <div key={garantia.id} className="border-b border-slate-200 p-4 hover:bg-slate-50 transition-colors">
               <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-start space-x-3 flex-1">
                   {getIconoProducto(garantia.tipo_producto)}
-                  <div>
-                    <div className="text-sm font-medium text-slate-900">{garantia.cliente_nombre}</div>
-                    <div className="text-xs text-slate-500">{garantia.cliente_telefono}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-slate-900">{garantia.cliente_nombre}</div>
+                    <div className="text-xs text-slate-500 mt-1">{garantia.cliente_telefono}</div>
                   </div>
                 </div>
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getEstadoColor(garantia.estado_garantia)}`}>
+                <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded flex-shrink-0 ${getEstadoColor(garantia.estado_garantia)}`}>
                   {garantia.estado_garantia}
                 </span>
               </div>
-              
-              <div className="space-y-2">
+
+              <div className="space-y-3 mt-3 pt-3 border-t border-slate-200">
                 <div>
-                  <div className="text-sm font-medium text-slate-900">{garantia.modelo_producto}</div>
-                  <div className="text-xs text-slate-500 capitalize">{garantia.tipo_producto}</div>
+                  <div className="text-sm font-medium text-slate-900 break-words">{getProductDescription(garantia)}</div>
+                  <div className="text-xs text-slate-500 capitalize mt-1">{garantia.tipo_producto}</div>
                 </div>
-                
-                <div className="flex justify-between items-center">
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-xs text-slate-500">Serial:</div>
-                    <div className="text-sm font-mono text-slate-900">{garantia.serial_producto}</div>
+                    <div className="text-xs font-semibold text-slate-600 uppercase">Serial</div>
+                    <div className="text-sm font-mono text-slate-900 mt-1">{garantia.serial_producto}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-500">Vence:</div>
-                    <div className="text-sm text-slate-900">{formatearFecha(garantia.fecha_vencimiento)}</div>
+                    <div className="text-xs font-semibold text-slate-600 uppercase">Vence</div>
+                    <div className="text-sm text-slate-900 mt-1">{formatearFecha(garantia.fecha_vencimiento)}</div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between items-center pt-2">
+
+                <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                   <div className="text-xs text-slate-500">
-                    #{garantia.numero_transaccion} • {formatearFecha(garantia.fecha_venta)}
+                    #{garantia.numero_transaccion}
                   </div>
                   <button
                     onClick={() => manejarAbrirGarantia(garantia)}
                     disabled={descargando === garantia.id}
-                    className="text-slate-600 hover:text-slate-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-slate-100"
-                    title="Ver certificado de garantía"
+                    className="inline-flex items-center justify-center space-x-1 px-3 py-2 rounded text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                   >
                     {descargando === garantia.id ? (
                       <LoadingSpinner size="small" showText={false} />
                     ) : (
                       <>
                         <Eye className="w-4 h-4" />
-                        <span className="text-xs">Garantía</span>
+                        <span className="text-xs font-medium">Ver</span>
                       </>
                     )}
                   </button>
@@ -477,18 +488,18 @@ const GarantiasSection = () => {
           ))}
         </div>
 
-          {garantiasFiltradas.length === 0 && (
-            <div className="text-center py-8">
-              <Shield className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-              <p className="text-slate-600">No se encontraron garantías</p>
-              <p className="text-sm text-slate-500">Intenta modificar los filtros de búsqueda</p>
-            </div>
-          )}
+        {garantiasFiltradas.length === 0 && (
+          <div className="text-center py-12">
+            <Shield className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+            <p className="text-slate-700 font-medium">No se encontraron garantías</p>
+            <p className="text-slate-500 text-sm mt-1">Intenta modificar los filtros de búsqueda</p>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
           <p className="text-sm text-slate-600">
-            Mostrando {garantiasFiltradas.length} de {garantias.length} garantías
+            <span className="font-semibold text-slate-800">{garantiasFiltradas.length}</span> de <span className="font-semibold text-slate-800">{garantias.length}</span> garantías
           </p>
         </div>
       </div>
