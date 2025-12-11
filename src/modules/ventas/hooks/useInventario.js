@@ -131,7 +131,10 @@ export const inventarioService = {
         fallas: computadora.fallas || 'Ninguna',
 
         // Fecha de ingreso
-        ingreso: computadora.ingreso || new Date().toISOString().split('T')[0]
+        ingreso: computadora.ingreso || (() => {
+          const ahora = new Date();
+          return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+        })()
       }])
       .select()
     
@@ -421,7 +424,10 @@ export function useInventario() {
       idioma_teclado: data.idioma_teclado || 'Español',
       garantia_update: data.garantia_update || '6 meses',
       fallas: data.fallas || 'Ninguna',
-      ingreso: data.ingreso || new Date().toISOString().split('T')[0],
+      ingreso: data.ingreso || (() => {
+        const ahora = new Date();
+        return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+      })(),
       touchscreen: data.touchscreen || false
     }),
     

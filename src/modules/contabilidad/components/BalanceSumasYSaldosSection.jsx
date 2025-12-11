@@ -45,9 +45,16 @@ const BalanceSumasYSaldosSection = () => {
     const hoy = new Date();
     const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
-    
-    setFechaDesde(primerDia.toISOString().split('T')[0]);
-    setFechaHasta(ultimoDia.toISOString().split('T')[0]);
+
+    const formatearFecha = (fecha) => {
+      const año = fecha.getFullYear();
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const día = String(fecha.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${día}`;
+    };
+
+    setFechaDesde(formatearFecha(primerDia));
+    setFechaHasta(formatearFecha(ultimoDia));
   }, []);
 
   // Cargar cotización del dólar
@@ -114,8 +121,15 @@ const BalanceSumasYSaldosSection = () => {
         return;
     }
 
-    setFechaDesde(desde.toISOString().split('T')[0]);
-    setFechaHasta(hasta.toISOString().split('T')[0]);
+    const formatearFecha = (fecha) => {
+      const año = fecha.getFullYear();
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const día = String(fecha.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${día}`;
+    };
+
+    setFechaDesde(formatearFecha(desde));
+    setFechaHasta(formatearFecha(hasta));
   };
 
   const formatearMoneda = (monto) => formatearMonto(monto, 'USD');

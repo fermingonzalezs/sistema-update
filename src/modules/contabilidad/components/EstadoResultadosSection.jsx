@@ -30,13 +30,19 @@ const EstadoResultadosSection = () => {
       // Primer día del mes actual
       const ahora = new Date();
       const primerDiaMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-      return primerDiaMes.toISOString().split('T')[0];
+      const año = primerDiaMes.getFullYear();
+      const mes = String(primerDiaMes.getMonth() + 1).padStart(2, '0');
+      const día = String(primerDiaMes.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${día}`;
     })(),
     fechaHasta: (() => {
       // Último día del mes actual
       const ahora = new Date();
       const ultimoDiaMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0);
-      return ultimoDiaMes.toISOString().split('T')[0];
+      const año = ultimoDiaMes.getFullYear();
+      const mes = String(ultimoDiaMes.getMonth() + 1).padStart(2, '0');
+      const día = String(ultimoDiaMes.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${día}`;
     })()
   });
 

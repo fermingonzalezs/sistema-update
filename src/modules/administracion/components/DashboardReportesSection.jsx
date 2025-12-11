@@ -203,7 +203,10 @@ const dashboardService = {
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1); // ajustar cuando es domingo
       const monday = new Date(d.setDate(diff));
-      return monday.toISOString().split('T')[0];
+      const año = monday.getFullYear();
+      const mes = String(monday.getMonth() + 1).padStart(2, '0');
+      const día = String(monday.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${día}`;
     };
 
     // Ventas por día
@@ -558,11 +561,18 @@ const DashboardReportesSection = () => {
   const [fechaInicio, setFechaInicio] = useState(() => {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() - 30);
-    return fecha.toISOString().split('T')[0];
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const día = String(fecha.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${día}`;
   });
 
   const [fechaFin, setFechaFin] = useState(() => {
-    return new Date().toISOString().split('T')[0];
+    const fecha = new Date();
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const día = String(fecha.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${día}`;
   });
 
   // Cargar datos iniciales

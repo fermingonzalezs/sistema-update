@@ -381,6 +381,10 @@ export const ventasService = {
 
     try {
       // Insertar en tabla cuentas_corrientes
+      // Obtener fecha local sin conversión a ISO
+      const ahora = new Date();
+      const fechaLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+
       const { data, error } = await supabase
         .from('cuentas_corrientes')
         .insert([{
@@ -390,7 +394,7 @@ export const ventasService = {
           tipo_operacion: 'venta_fiado',
           concepto: movimientoData.concepto,
           monto: movimientoData.monto,
-          fecha_operacion: new Date().toISOString().split('T')[0], // Solo fecha YYYY-MM-DD
+          fecha_operacion: fechaLocal, // Solo fecha YYYY-MM-DD en zona horaria local
           estado: 'pendiente',
           comprobante: movimientoData.numero_transaccion || null,
           observaciones: movimientoData.observaciones,

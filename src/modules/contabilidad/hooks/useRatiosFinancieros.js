@@ -670,8 +670,15 @@ export const ratiosFinancierosService = {
         const primerDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
         const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
 
-        fechaInicioStr = primerDiaMes.toISOString().split('T')[0];
-        fechaFinStr = ultimoDiaMes.toISOString().split('T')[0];
+        const formatearFecha = (fecha) => {
+          const año = fecha.getFullYear();
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const día = String(fecha.getDate()).padStart(2, '0');
+          return `${año}-${mes}-${día}`;
+        };
+
+        fechaInicioStr = formatearFecha(primerDiaMes);
+        fechaFinStr = formatearFecha(ultimoDiaMes);
       }
 
       console.log('📅 RATIOS - Período de análisis:', {

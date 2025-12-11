@@ -12,8 +12,18 @@ export const balanceSumasYSaldosService = {
       // Si no se especifican fechas, usar el mes actual
       if (!fechaDesde || !fechaHasta) {
         const hoy = new Date();
-        fechaDesde = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-        fechaHasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
+        const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+        const formatearFecha = (fecha) => {
+          const año = fecha.getFullYear();
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const día = String(fecha.getDate()).padStart(2, '0');
+          return `${año}-${mes}-${día}`;
+        };
+
+        fechaDesde = formatearFecha(primerDiaMes);
+        fechaHasta = formatearFecha(ultimoDiaMes);
       }
 
       // Primero obtener los IDs de asientos que coinciden con el período
