@@ -2,8 +2,9 @@
 // src/shared/services/cotizacionService.js
 
 import { supabase } from '../../lib/supabase';
-import { 
-  convertirARSaUSD, 
+import { obtenerFechaLocal } from '../utils/formatters';
+import {
+  convertirARSaUSD,
   convertirUSDaARS,
   crearResultadoConversionARS,
   crearResultadoConversionUSD,
@@ -39,7 +40,7 @@ class CotizacionServiceUnificado {
         }
       }
     ];
-    
+
     this.fallbackCotizacion = 1000;
     this.cacheDuration = 15 * 60 * 1000; // 15 minutos
     this.lastUpdate = null;
@@ -53,8 +54,8 @@ class CotizacionServiceUnificado {
     console.log('📈 Obteniendo cotización USD/ARS...');
 
     // Verificar cache
-    if (this.cachedCotizacion && this.lastUpdate && 
-        (Date.now() - this.lastUpdate) < this.cacheDuration) {
+    if (this.cachedCotizacion && this.lastUpdate &&
+      (Date.now() - this.lastUpdate) < this.cacheDuration) {
       console.log('✅ Usando cotización en cache:', this.cachedCotizacion);
       return this.cachedCotizacion;
     }
@@ -95,10 +96,10 @@ class CotizacionServiceUnificado {
         this.lastUpdate = Date.now();
 
         console.log(`✅ Cotización obtenida de ${source.name}:`, cotizacion);
-        
+
         // Guardar en base de datos
         await this.guardarCotizacionDiaria(this.cachedCotizacion);
-        
+
         return this.cachedCotizacion;
 
       } catch (error) {
@@ -110,7 +111,7 @@ class CotizacionServiceUnificado {
     // Si todas las APIs fallan, usar última cotización de la base de datos
     console.log('🔄 Todas las APIs fallaron, buscando última cotización en BD...');
     const ultimaCotizacion = await this.obtenerUltimaCotizacionBD();
-    
+
     if (ultimaCotizacion) {
       console.log('✅ Usando última cotización de BD:', ultimaCotizacion);
       return ultimaCotizacion;
@@ -140,7 +141,7 @@ class CotizacionServiceUnificado {
   async convertirARSaUSD(montoARS, cotizacionEspecifica = null) {
     const cotizacion = cotizacionEspecifica || await this.obtenerCotizacionActual();
     const valorCotizacion = cotizacion.valor || cotizacion.promedio;
-    
+
     return crearResultadoConversionARS(montoARS, valorCotizacion, cotizacion.fuente);
   }
 
@@ -150,7 +151,7 @@ class CotizacionServiceUnificado {
   async convertirUSDaARS(montoUSD, cotizacionEspecifica = null) {
     const cotizacion = cotizacionEspecifica || await this.obtenerCotizacionActual();
     const valorCotizacion = cotizacion.valor || cotizacion.promedio;
-    
+
     return crearResultadoConversionUSD(montoUSD, valorCotizacion, cotizacion.fuente);
   }
 
@@ -159,20 +160,20 @@ class CotizacionServiceUnificado {
    */
   async prepararMovimientoAutomatico(movimientoData, cuenta) {
     const { monto, tipo, cotizacionManual } = movimientoData;
-    
+
     if (cuenta.requiere_cotizacion || cuenta.moneda_original === 'ARS') {
       let cotizacion;
-      
+
       if (cotizacionManual && cotizacionManual > 0) {
         cotizacion = cotizacionManual;
       } else {
         const cotizacionData = await this.obtenerCotizacionActual();
         cotizacion = cotizacionData.valor || cotizacionData.promedio;
       }
-      
+
       return prepararMovimientoContable(movimientoData, cuenta, cotizacion);
     }
-    
+
     return prepararMovimientoContable(movimientoData, cuenta);
   }
 
@@ -239,8 +240,8 @@ class CotizacionServiceUnificado {
    */
   async guardarCotizacionDiaria(cotizacion) {
     try {
-      const fecha = new Date().toISOString().split('T')[0];
-      
+      const fecha = obtenerFechaLocal();
+
       const { data: existente } = await supabase
         .from('cotizaciones_diarias')
         .select('id')
@@ -335,7 +336,7 @@ class CotizacionServiceUnificado {
       };
     }
 
-    const minutosDesdeActualizacion = this.lastUpdate ? 
+    const minutosDesdeActualizacion = this.lastUpdate ?
       Math.floor((Date.now() - this.lastUpdate) / 60000) : 0;
 
     return {
@@ -345,8 +346,8 @@ class CotizacionServiceUnificado {
       timestamp: this.cachedCotizacion.timestamp,
       minutosDesdeActualizacion,
       esEmergencia: this.cachedCotizacion.error || false,
-      mensaje: this.cachedCotizacion.error ? 
-        'Cotización de emergencia (sin conexión)' : 
+      mensaje: this.cachedCotizacion.error ?
+        'Cotización de emergencia (sin conexión)' :
         `Actualizada hace ${minutosDesdeActualizacion} min`
     };
   }

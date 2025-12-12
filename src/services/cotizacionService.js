@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { obtenerFechaLocal } from '../shared/utils/formatters';
 
 class CotizacionService {
   constructor() {
@@ -28,7 +29,7 @@ class CotizacionService {
         }
       }
     ];
-    
+
     this.fallbackCotizacion = 1000; // Cotización de emergencia
     this.cacheDuration = 15 * 60 * 1000; // 15 minutos en milisegundos
     this.lastUpdate = null;
@@ -43,8 +44,8 @@ class CotizacionService {
     console.log('📈 Obteniendo cotización USD/ARS...');
 
     // Verificar cache
-    if (this.cachedCotizacion && this.lastUpdate && 
-        (Date.now() - this.lastUpdate) < this.cacheDuration) {
+    if (this.cachedCotizacion && this.lastUpdate &&
+      (Date.now() - this.lastUpdate) < this.cacheDuration) {
       console.log('✅ Usando cotización en cache:', this.cachedCotizacion);
       return this.cachedCotizacion;
     }
@@ -84,10 +85,10 @@ class CotizacionService {
         this.lastUpdate = Date.now();
 
         console.log(`✅ Cotización obtenida de ${source.name}:`, cotizacion);
-        
+
         // Guardar en base de datos
         await this.guardarCotizacionDiaria(this.cachedCotizacion);
-        
+
         return this.cachedCotizacion;
 
       } catch (error) {
@@ -99,7 +100,7 @@ class CotizacionService {
     // Si todas las APIs fallan, usar última cotización de la base de datos
     console.log('🔄 Todas las APIs fallaron, buscando última cotización en BD...');
     const ultimaCotizacion = await this.obtenerUltimaCotizacionBD();
-    
+
     if (ultimaCotizacion) {
       console.log('✅ Usando última cotización de BD:', ultimaCotizacion);
       return ultimaCotizacion;
@@ -173,8 +174,8 @@ class CotizacionService {
    */
   async guardarCotizacionDiaria(cotizacion) {
     try {
-      const fecha = new Date().toISOString().split('T')[0];
-      
+      const fecha = obtenerFechaLocal();
+
       // Verificar si ya existe cotización para hoy
       const { data: existente } = await supabase
         .from('cotizaciones_diarias')
@@ -263,9 +264,9 @@ class CotizacionService {
     }
 
     const montoUSD = parseFloat((montoARS / cotizacion.promedio).toFixed(4));
-    
+
     console.log(`💱 Conversión: $${montoARS} ARS → $${montoUSD} USD (cotización: ${cotizacion.promedio})`);
-    
+
     return {
       montoOriginalARS: montoARS,
       montoUSD: montoUSD,
@@ -287,9 +288,9 @@ class CotizacionService {
     }
 
     const montoARS = parseFloat((montoUSD * cotizacion.promedio).toFixed(2));
-    
+
     console.log(`💱 Conversión: $${montoUSD} USD → $${montoARS} ARS (cotización: ${cotizacion.promedio})`);
-    
+
     return {
       montoOriginalUSD: montoUSD,
       montoARS: montoARS,
@@ -312,7 +313,7 @@ class CotizacionService {
       const { data, error } = await supabase
         .from('cotizaciones_diarias')
         .select('*')
-        .gte('fecha', fechaDesde.toISOString().split('T')[0])
+        .gte('fecha', fechaDesde.toISOString().split('T')[0]) // Este uso es correcto - calculando fecha pasada
         .order('fecha', { ascending: false });
 
       if (error) throw error;
@@ -329,10 +330,10 @@ class CotizacionService {
    * @returns {boolean} True si es válida
    */
   validarCotizacion(cotizacion) {
-    return typeof cotizacion === 'number' && 
-           cotizacion > 0 && 
-           cotizacion < 10000 && 
-           !isNaN(cotizacion);
+    return typeof cotizacion === 'number' &&
+      cotizacion > 0 &&
+      cotizacion < 10000 &&
+      !isNaN(cotizacion);
   }
 
   /**

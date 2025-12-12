@@ -12,7 +12,7 @@ export const formatearMonedaLibroDiario = (valor, esUSD = true) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
-  
+
   return esUSD ? `U$${formateado}` : `$${formateado}`;
 };
 
@@ -26,13 +26,13 @@ export const formatearMonedaGeneral = (valor, moneda = 'USD') => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
-  
+
   if (moneda === 'USD') {
     return `U$${formateado}`;
   } else if (moneda === 'ARS') {
     return `$${formateado}`;
   }
-  
+
   return `U$${formateado}`; // Por defecto USD
 };
 
@@ -52,13 +52,6 @@ export const formatearNumeroReporte = (valor) => {
  */
 export const formatearFecha = (fecha) => {
   return new Date(fecha).toLocaleDateString('es-AR');
-};
-
-/**
- * Formatea fechas para inputs type="date"
- */
-export const formatearFechaInput = (fecha) => {
-  return new Date(fecha).toISOString().split('T')[0];
 };
 
 /**
@@ -126,12 +119,12 @@ export const esMonedaUSD = (cuenta, monto, contexto = 'general') => {
   if (contexto === 'libro-diario') {
     return true;
   }
-  
+
   // En otros contextos, verificar la cuenta
   if (cuenta && cuenta.moneda_original) {
     return cuenta.moneda_original === 'USD';
   }
-  
+
   // Por defecto, asumir USD
   return true;
 };
@@ -162,13 +155,13 @@ export const formatearMonto = (monto, moneda = 'USD', mostrarSimbolo = true) => 
  */
 export const formatearMontoCompleto = (monto, moneda = 'USD') => {
   if (!monto && monto !== 0) return moneda === 'USD' ? 'U$0.0000' : '$0.00';
-  
+
   const decimales = moneda === 'USD' ? 4 : 2;
   const formatter = new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: decimales,
     maximumFractionDigits: decimales
   });
-  
+
   const simbolo = moneda === 'USD' ? 'U$' : '$';
   return `${simbolo}${formatter.format(monto)}`;
 };
@@ -186,7 +179,6 @@ export default {
   formatearMonedaGeneral,
   formatearNumeroReporte,
   formatearFecha,
-  formatearFechaInput,
   obtenerFechaLocal,
   parseFechaLocal,
   formatearFechaParaInput,

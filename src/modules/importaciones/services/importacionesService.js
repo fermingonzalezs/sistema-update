@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabase.js';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 const importacionesService = {
   // 📋 Obtener todos los recibos
@@ -100,7 +101,7 @@ const importacionesService = {
           empresa_logistica: reciboData.empresa_logistica?.trim() || null,
           fecha_estimada_ingreso: reciboData.fecha_estimada_ingreso || null,
           observaciones: reciboData.observaciones?.trim() || null,
-          estado: 'en_transito'
+          estado: 'en_transito_usa'
         }])
         .select()
         .single();
@@ -153,7 +154,18 @@ const importacionesService = {
     try {
       return await this.updateRecibo(id, {
         estado: 'en_deposito_usa',
-        fecha_ingreso_deposito_usa: fechaIngreso || new Date().toISOString().split('T')[0]
+        fecha_ingreso_deposito_usa: fechaIngreso || obtenerFechaLocal()
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ➡️ Avanzar a siguiente estado (para estados intermedios sin modal)
+  async avanzarEstado(id, nuevoEstado) {
+    try {
+      return await this.updateRecibo(id, {
+        estado: nuevoEstado
       });
     } catch (error) {
       throw error;
@@ -262,8 +274,10 @@ const importacionesService = {
 
       const stats = {
         total: data.length,
-        enTransito: data.filter(r => r.estado === 'en_transito').length,
+        enTransitoUSA: data.filter(r => r.estado === 'en_transito_usa').length,
         enDepositoUSA: data.filter(r => r.estado === 'en_deposito_usa').length,
+        enVueloInternacional: data.filter(r => r.estado === 'en_vuelo_internacional').length,
+        enDepositoARG: data.filter(r => r.estado === 'en_deposito_arg').length,
         recepcionadas: data.filter(r => r.estado === 'recepcionado').length,
         totalInvertido: data.reduce((sum, recibo) => {
           return sum + (recibo.importaciones_items || []).reduce((itemSum, item) =>

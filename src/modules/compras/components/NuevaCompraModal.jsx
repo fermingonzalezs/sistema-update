@@ -4,6 +4,7 @@ import { useProveedores } from '../../importaciones/hooks/useProveedores';
 import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
 import CargaEquiposUnificada from '../../administracion/components/CargaEquiposUnificada';
 import { supabase } from '../../../lib/supabase';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditing = false, reciboInicial = null }) => {
   const { proveedores } = useProveedores();
@@ -25,7 +26,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   const [formRecibo, setFormRecibo] = useState({
     proveedor_id: reciboInicial?.proveedor_id || '',
     proveedor: reciboInicial?.proveedor || '',
-    fecha_compra: reciboInicial?.fecha || new Date().toISOString().split('T')[0],
+    fecha_compra: reciboInicial?.fecha || obtenerFechaLocal(),
     metodo_pago: reciboInicial?.metodo_pago || 'transferencia',
     observaciones: reciboInicial?.descripcion || '',
     costos_adicionales: reciboInicial?.costos_adicionales || 0

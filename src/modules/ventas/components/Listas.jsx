@@ -158,7 +158,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       const cumpleCondicion = filtros.condicion === '' || condicionNormalizada === condicionFiltro;
 
       const cumpleEstado = filtros.estado === '' || (producto.estado && producto.estado === filtros.estado);
-      const cumpleCategoria = filtros.categoria === '' || (producto.tipo === 'otro' && producto.categoria === filtros.categoria);
+      // Filtro de categoría: funciona para notebooks, celulares y otros
+      const cumpleCategoria = filtros.categoria === '' || (producto.categoria && producto.categoria.toLowerCase() === filtros.categoria.toLowerCase());
 
       const cumpleFiltros =
         cumpleMarca &&
@@ -430,14 +431,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: 'Apple',
       condicion: 'usado', // Usar 'usado' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'iphone', // ✅ Filtrar específicamente por categoría iphone
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
-    setBusqueda('iPhone');
+    setBusqueda('');
     setFiltroExcluirMarca(''); // Limpiar exclusión
   };
 
@@ -448,14 +450,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: 'Apple',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'iphone', // ✅ Filtrar específicamente por categoría iphone
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
-    setBusqueda('iPhone');
+    setBusqueda('');
     setFiltroExcluirMarca(''); // Limpiar exclusión
   };
 
@@ -466,12 +469,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: 'Apple',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'macbook', // ✅ Filtrar específicamente por categoría macbook
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
     setBusqueda(''); // Eliminar búsqueda específica
     setFiltroExcluirMarca(''); // Limpiar exclusiones
@@ -484,12 +488,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: 'Apple',
       condicion: 'usado', // Usar 'usado' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'macbook', // ✅ Filtrar específicamente por categoría macbook
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
     setBusqueda(''); // Eliminar búsqueda específica
     setFiltroExcluirMarca(''); // Limpiar exclusiones
@@ -502,16 +507,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: '',
       condicion: 'nuevo', // Usar 'nuevo' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'windows', // ✅ Filtrar específicamente por categoría windows
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
     setBusqueda('');
-    // Aplicar filtro especial para excluir Apple
-    setFiltroExcluirMarca('Apple');
+    setFiltroExcluirMarca(''); // Ya no necesitamos excluir Apple porque filtramos por categoría
   };
 
   const aplicarFiltroWindowsUsadas = () => {
@@ -521,16 +526,75 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       marca: '',
       condicion: 'usado', // Usar 'usado' normalizado
       estado: '',
-      categoria: '',
+      categoria: 'windows', // ✅ Filtrar específicamente por categoría windows
       precioMax: '',
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
     setBusqueda('');
-    // Aplicar filtro especial para excluir Apple
-    setFiltroExcluirMarca('Apple');
+    setFiltroExcluirMarca(''); // Ya no necesitamos excluir Apple porque filtramos por categoría
+  };
+
+  // Nuevos filtros para Gaming
+  const aplicarFiltroGamingNuevas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: '',
+      condicion: 'nuevo',
+      estado: '',
+      categoria: 'gaming', // ✅ Filtrar por categoría gaming
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: '',
+      lineaProcesador: ''
+    });
+    setBusqueda('');
+    setFiltroExcluirMarca('');
+  };
+
+  const aplicarFiltroGamingUsadas = () => {
+    setTipoActivo('computadora');
+    setModoFiltros(true);
+    setFiltros({
+      marca: '',
+      condicion: 'usado',
+      estado: '',
+      categoria: 'gaming', // ✅ Filtrar por categoría gaming
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: '',
+      lineaProcesador: ''
+    });
+    setBusqueda('');
+    setFiltroExcluirMarca('');
+  };
+
+  // Nuevo filtro para Android
+  const aplicarFiltroAndroid = () => {
+    setTipoActivo('celular');
+    setModoFiltros(true);
+    setFiltros({
+      marca: '',
+      condicion: '',
+      estado: '',
+      categoria: 'android', // ✅ Filtrar por categoría android
+      precioMax: '',
+      ramMin: '',
+      almacenamientoMin: '',
+      pantalla: '',
+      idioma: '',
+      lineaProcesador: ''
+    });
+    setBusqueda('');
+    setFiltroExcluirMarca('');
   };
 
   const limpiarFiltros = () => {
@@ -543,7 +607,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       ramMin: '',
       almacenamientoMin: '',
       pantalla: '',
-      idioma: ''
+      idioma: '',
+      lineaProcesador: ''
     });
     setBusqueda('');
     setModoFiltros(false);
@@ -758,12 +823,70 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <Monitor className="w-4 h-4" />
                 <span>Windows Usadas</span>
               </button>
+
+              {/* Nuevos filtros para Gaming */}
+              <button
+                onClick={aplicarFiltroGamingNuevas}
+                className="px-3 py-2 bg-purple-600 text-white rounded text-sm font-medium hover:bg-purple-700 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>Gaming Nuevas</span>
+              </button>
+              <button
+                onClick={aplicarFiltroGamingUsadas}
+                className="px-3 py-2 bg-purple-500 text-white rounded text-sm font-medium hover:bg-purple-600 transition-colors flex items-center space-x-1"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>Gaming Usadas</span>
+              </button>
+
+              {/* Nuevo filtro para Android */}
+              <button
+                onClick={aplicarFiltroAndroid}
+                className="px-3 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors flex items-center space-x-1"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>Android</span>
+              </button>
             </div>
           </div>
 
           {/* Filtros personalizables - Solo para computadoras y celulares */}
           {modoFiltros && tipoActivo !== 'otro' && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Filtro de Categoría */}
+              {tipoActivo === 'computadora' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                  <select
+                    value={filtros.categoria}
+                    onChange={(e) => handleFiltroChange('categoria', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Todas</option>
+                    <option value="macbook">MacBook</option>
+                    <option value="windows">Windows</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="2-en-1">2-en-1</option>
+                  </select>
+                </div>
+              )}
+
+              {tipoActivo === 'celular' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                  <select
+                    value={filtros.categoria}
+                    onChange={(e) => handleFiltroChange('categoria', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Todas</option>
+                    <option value="iphone">iPhone</option>
+                    <option value="android">Android</option>
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
                 <select

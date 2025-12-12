@@ -803,6 +803,49 @@ npm run build --verbose
 - Implement offline functionality
 - Add real-time notifications
 
+## Date Handling Standards - MANDATORY
+
+**CRITICAL**: All date operations MUST use the centralized functions in `/src/shared/utils/formatters.js`. This prevents timezone bugs where dates appear one day off (due to UTC interpretation in Argentina timezone UTC-3).
+
+### ❌ NEVER Use These Patterns:
+```javascript
+// WRONG - causes timezone issues
+new Date().toISOString().split('T')[0]    // For getting today's date
+new Date(fecha).toISOString().split('T')[0]  // For formatting existing dates
+
+// Also avoid inline formatting
+const fecha = new Date();
+const fechaStr = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+```
+
+### ✅ ALWAYS Use These Utility Functions:
+```javascript
+import { obtenerFechaLocal, parseFechaLocal, formatearFechaParaInput, formatearFechaReporte } from '../../../shared/utils/formatters';
+
+// Get today's date (YYYY-MM-DD) - for default form values
+const hoy = obtenerFechaLocal();
+
+// Parse date string to Date object safely
+const fechaObj = parseFechaLocal('2024-12-12');
+
+// Format Date object for <input type="date">
+const fechaInput = formatearFechaParaInput(new Date());
+
+// Format for display (DD/MM/YYYY)
+const fechaDisplay = formatearFechaReporte('2024-12-12');
+```
+
+### When Each Function Should Be Used:
+| Function | Use Case |
+|----------|----------|
+| `obtenerFechaLocal()` | Default date values in forms, new records |
+| `parseFechaLocal(string)` | Converting YYYY-MM-DD string to Date object |
+| `formatearFechaParaInput(Date)` | Formatting Date object for date inputs |
+| `formatearFechaReporte(string)` | Displaying dates to users (DD/MM/YYYY) |
+
+### Exception - Full Timestamps:
+For `created_at`, `updated_at` columns that need full timestamps (not just date), using `new Date().toISOString()` is acceptable as these represent exact moments in time.
+
 ## Problemas Conocidos y Soluciones en Desarrollo
 
 ### Problema: Sidebar desaparece al hacer clic en botones de filtro de fechas (VentasSection)

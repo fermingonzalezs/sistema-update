@@ -2,12 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { calculosImportacion } from '../utils/calculosImportacion';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
   const { recepcionarEnArgentina } = useImportaciones();
 
   const [formDatos, setFormDatos] = useState({
-    fecha_recepcion: new Date().toISOString().split('T')[0],
+    fecha_recepcion: obtenerFechaLocal(),
     peso_total_con_caja_kg: '',
     peso_sin_caja_kg: '',
     precio_por_kg_usd: '',
@@ -99,19 +100,17 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
       return;
     }
 
-    // Validar que todos los pesos reales estén ingresados
-    const todasItemsConPeso = (recibo.importaciones_items || []).every(item => pesosReales[item.id]);
-    if (!todasItemsConPeso) {
-      alert('Por favor ingresa el peso real para todos los productos');
-      return;
-    }
-
+    // Los pesos reales son opcionales, si no se ingresan se usan los estimados
     setIsSubmitting(true);
     try {
-      // Convertir pesosReales a números
+      // Convertir pesosReales a números, usando pesos estimados si no se ingresó un peso real
       const pesosRealesNumericos = {};
-      for (const [itemId, peso] of Object.entries(pesosReales)) {
-        pesosRealesNumericos[itemId] = parseFloat(peso) || 0;
+      for (const item of recibo.importaciones_items) {
+        const pesoIngresado = pesosReales[item.id];
+        // Si el peso está vacío o es inválido, usar el peso estimado
+        pesosRealesNumericos[item.id] = (pesoIngresado !== '' && pesoIngresado !== null && pesoIngresado !== undefined)
+          ? parseFloat(pesoIngresado)
+          : (item.peso_estimado_unitario_kg || 0);
       }
 
       // Convertir todos los formDatos a números

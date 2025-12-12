@@ -3,7 +3,7 @@ import { FileText, Plus, Eye, Trash2, User, Calendar, DollarSign, Loader, FileCh
 import { useRecibos } from '../hooks/useRecibos';
 import { generarYDescargarRecibo } from '../pdf/ReciboPDF';
 import { generarYDescargarRemito } from '../pdf/RemitoPDF';
-import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
+import { formatearMonto, formatearFecha, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
 import SelectorProductosStock from './SelectorProductosStock';
 
@@ -18,7 +18,7 @@ const RecibosSection = () => {
   const [formData, setFormData] = useState({
     // Campos comunes
     items: [{ descripcion: '', cantidad: 1, precio_unitario: 0, serial: '' }],
-    fecha: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+    fecha: obtenerFechaLocal(), // Fecha actual por defecto
 
     // Campos de recibo
     metodo_pago: 'efectivo_pesos',
@@ -132,7 +132,7 @@ const RecibosSection = () => {
 
       // Preparar datos base del documento
       const datosBase = {
-        fecha: formData.fecha || new Date().toISOString().split('T')[0],
+        fecha: formData.fecha || obtenerFechaLocal(),
         cliente_id: clienteSeleccionado.id,
         cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido || ''}`.trim(),
         cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido || ''}`.trim(),
@@ -170,7 +170,7 @@ const RecibosSection = () => {
         // Resetear formulario
         setFormData({
           items: [{ descripcion: '', cantidad: 1, precio_unitario: 0, serial: '' }],
-          fecha: new Date().toISOString().split('T')[0],
+          fecha: obtenerFechaLocal(),
           metodo_pago: 'efectivo_pesos',
           moneda: 'USD',
           descuento: 0,

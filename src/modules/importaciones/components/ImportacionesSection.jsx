@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
@@ -7,8 +7,15 @@ import NuevaImportacionModal from './NuevaImportacionModal';
 import RecepcionModal from './RecepcionModal';
 import DetalleRecibo from './DetalleRecibo';
 import FechaDepositoUSAModal from './FechaDepositoUSAModal';
-import PasarAComprasModal from './PasarAComprasModal';
 import { calculosImportacion } from '../utils/calculosImportacion';
+import {
+  ESTADOS_IMPORTACION,
+  LABELS_ESTADOS,
+  COLORES_ESTADOS,
+  obtenerSiguienteEstado,
+  obtenerIconoSiguienteEstado,
+  obtenerLabelSiguienteEstado
+} from '../constants/estadosImportacion';
 
 const METODOS_PAGO = [
   { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
@@ -26,8 +33,8 @@ const ImportacionesSection = () => {
     error,
     fetchRecibos,
     marcarEnDepositoUSA,
-    deleteRecibo,
-    pasarACompras
+    avanzarEstado,
+    deleteRecibo
   } = useImportaciones();
 
   const { proveedores } = useProveedores();
@@ -40,9 +47,6 @@ const ImportacionesSection = () => {
   const [showFechaDepositoModal, setShowFechaDepositoModal] = useState(false);
   const [reciboToMarkDeposito, setReciboToMarkDeposito] = useState(null);
   const [isMarkingDeposito, setIsMarkingDeposito] = useState(false);
-  const [showPasarComprasModal, setShowPasarComprasModal] = useState(false);
-  const [reciboToPasarCompras, setReciboToPasarCompras] = useState(null);
-  const [isPasandoCompras, setIsPasandoCompras] = useState(false);
 
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -67,14 +71,16 @@ const ImportacionesSection = () => {
 
   // Stats
   const stats = useMemo(() => {
-    const enTransito = recibos.filter(r => r.estado === 'en_transito').length;
-    const enDepositoUSA = recibos.filter(r => r.estado === 'en_deposito_usa').length;
-    const recepcionadas = recibos.filter(r => r.estado === 'recepcionado').length;
+    const enTransitoUSA = recibos.filter(r => r.estado === ESTADOS_IMPORTACION.EN_TRANSITO_USA).length;
+    const enDepositoUSA = recibos.filter(r => r.estado === ESTADOS_IMPORTACION.EN_DEPOSITO_USA).length;
+    const enVueloInternacional = recibos.filter(r => r.estado === ESTADOS_IMPORTACION.EN_VUELO_INTERNACIONAL).length;
+    const enDepositoARG = recibos.filter(r => r.estado === ESTADOS_IMPORTACION.EN_DEPOSITO_ARG).length;
+    const recepcionadas = recibos.filter(r => r.estado === ESTADOS_IMPORTACION.RECEPCIONADO).length;
     const totalInvertido = recibos.reduce((sum, recibo) => {
       return sum + (recibo.importaciones_items || []).reduce((itemSum, item) => itemSum + (item.precio_total_usd || 0), 0);
     }, 0);
 
-    return { enTransito, enDepositoUSA, recepcionadas, totalInvertido };
+    return { enTransitoUSA, enDepositoUSA, enVueloInternacional, enDepositoARG, recepcionadas, totalInvertido };
   }, [recibos]);
 
   // Proveedores únicos
@@ -98,26 +104,38 @@ const ImportacionesSection = () => {
     setFiltroFechaHasta('');
   };
 
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'en_transito':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'en_deposito_usa':
-        return 'bg-blue-100 text-blue-800';
-      case 'recepcionado':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-slate-100 text-slate-800';
+  // Avanzar al siguiente estado
+  const handleAvanzarEstado = async (recibo) => {
+    const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
+
+    if (!siguienteEstado) {
+      return; // Ya está en el último estado
+    }
+
+    // Si el siguiente estado requiere modal con datos adicionales
+    if (siguienteEstado === ESTADOS_IMPORTACION.EN_DEPOSITO_USA) {
+      setReciboToMarkDeposito(recibo);
+      setShowFechaDepositoModal(true);
+    } else if (siguienteEstado === ESTADOS_IMPORTACION.RECEPCIONADO) {
+      setReciboToReceive(recibo);
+      setShowReceiveModal(true);
+    } else {
+      // Estados intermedios (EN_VUELO_INTERNACIONAL, EN_DEPOSITO_ARG): actualizar directamente
+      try {
+        await avanzarEstado(recibo.id, siguienteEstado);
+        await fetchRecibos();
+      } catch (err) {
+        alert(`Error al avanzar estado: ${err.message}`);
+      }
     }
   };
 
+  const getEstadoColor = (estado) => {
+    return COLORES_ESTADOS[estado] || 'bg-slate-100 text-slate-800';
+  };
+
   const getEstadoLabel = (estado) => {
-    const labels = {
-      'en_transito': 'EN TRÁNSITO',
-      'en_deposito_usa': 'EN DEPÓSITO USA',
-      'recepcionado': 'RECEPCIONADO'
-    };
-    return labels[estado] || estado;
+    return LABELS_ESTADOS[estado] || estado;
   };
 
   return (
@@ -145,11 +163,11 @@ const ImportacionesSection = () => {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Tarjeta
           icon={TrendingUp}
-          titulo="En Tránsito"
-          valor={stats.enTransito}
+          titulo="En Tránsito USA"
+          valor={stats.enTransitoUSA}
         />
         <Tarjeta
           icon={Package}
@@ -157,7 +175,17 @@ const ImportacionesSection = () => {
           valor={stats.enDepositoUSA}
         />
         <Tarjeta
-          icon={Truck}
+          icon={Plane}
+          titulo="En Vuelo INT"
+          valor={stats.enVueloInternacional}
+        />
+        <Tarjeta
+          icon={Home}
+          titulo="En Depósito ARG"
+          valor={stats.enDepositoARG}
+        />
+        <Tarjeta
+          icon={Check}
           titulo="Recepcionadas"
           valor={stats.recepcionadas}
         />
@@ -174,9 +202,11 @@ const ImportacionesSection = () => {
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="todos">Todos</option>
-              <option value="en_transito">En Tránsito</option>
-              <option value="en_deposito_usa">En Depósito USA</option>
-              <option value="recepcionado">Recepcionadas</option>
+              <option value={ESTADOS_IMPORTACION.EN_TRANSITO_USA}>En Tránsito USA</option>
+              <option value={ESTADOS_IMPORTACION.EN_DEPOSITO_USA}>En Depósito USA</option>
+              <option value={ESTADOS_IMPORTACION.EN_VUELO_INTERNACIONAL}>En Vuelo Internacional</option>
+              <option value={ESTADOS_IMPORTACION.EN_DEPOSITO_ARG}>En Depósito ARG</option>
+              <option value={ESTADOS_IMPORTACION.RECEPCIONADO}>Recepcionadas</option>
             </select>
           </div>
           <div>
@@ -252,7 +282,8 @@ const ImportacionesSection = () => {
               <p className="text-sm text-slate-500 mt-1">Haz clic en "Nueva Importación" para agregar una</p>
             </div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1200px]">
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
@@ -269,23 +300,25 @@ const ImportacionesSection = () => {
               <tbody className="divide-y divide-slate-200">
                 {recibosFiltrados.map((recibo, idx) => (
                   <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-800">{recibo.numero_recibo}</td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
+                      {recibo.numero_recibo}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
                       {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.proveedores?.nombre || '-'}>
                       {recibo.proveedores?.nombre || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
                       {recibo.importaciones_items?.length || 0}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">
+                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
                       USD ${formatNumber(
                         (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">
-                      {recibo.estado === 'recepcionado' ? (
+                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                      {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
                         `USD $${formatNumber(
                           (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
                         )}`
@@ -294,15 +327,41 @@ const ImportacionesSection = () => {
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`px-3 py-1 rounded text-xs font-semibold ${getEstadoColor(recibo.estado)}`}>
+                      <span className={`inline-block px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${getEstadoColor(recibo.estado)}`}>
                         {getEstadoLabel(recibo.estado)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.observaciones || '-'}>
                       {recibo.observaciones || '-'}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex justify-center gap-3">
+                      <div className="flex justify-end gap-3">
+                        {/* Botón único para avanzar al siguiente estado */}
+                        {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
+                          const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
+                          if (!siguienteEstado) return null;
+
+                          const IconoSiguiente = {
+                            'Package': Package,
+                            'Plane': Plane,
+                            'Home': Home,
+                            'Check': Check,
+                            'ArrowRight': ArrowRight
+                          }[obtenerIconoSiguienteEstado(recibo.estado)] || ArrowRight;
+
+                          const labelSiguiente = obtenerLabelSiguienteEstado(recibo.estado);
+
+                          return (
+                            <button
+                              onClick={() => handleAvanzarEstado(recibo)}
+                              className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                              title={`Avanzar a: ${labelSiguiente}`}
+                            >
+                              <IconoSiguiente size={18} />
+                            </button>
+                          );
+                        })()}
+
                         <button
                           onClick={() => setExpandedRecibo(recibo)}
                           className="text-emerald-600 hover:text-emerald-700 transition-colors"
@@ -310,42 +369,7 @@ const ImportacionesSection = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        {recibo.estado === 'en_transito' && (
-                          <button
-                            onClick={() => {
-                              setReciboToMarkDeposito(recibo);
-                              setShowFechaDepositoModal(true);
-                            }}
-                            className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                            title="Marcar en depósito USA"
-                          >
-                            <Package size={18} />
-                          </button>
-                        )}
-                        {recibo.estado === 'en_deposito_usa' && (
-                          <button
-                            onClick={() => {
-                              setReciboToReceive(recibo);
-                              setShowReceiveModal(true);
-                            }}
-                            className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                            title="Recepcionar"
-                          >
-                            <Truck size={18} />
-                          </button>
-                        )}
-                        {recibo.estado === 'recepcionado' && (
-                          <button
-                            onClick={() => {
-                              setReciboToPasarCompras(recibo);
-                              setShowPasarComprasModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-700 transition-colors"
-                            title="Pasar a Compras"
-                          >
-                            <ShoppingCart size={18} />
-                          </button>
-                        )}
+
                         <button
                           onClick={async () => {
                             if (window.confirm('¿Eliminar esta importación?')) {
@@ -368,6 +392,7 @@ const ImportacionesSection = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
@@ -425,31 +450,6 @@ const ImportacionesSection = () => {
               alert('Error: ' + err.message);
             } finally {
               setIsMarkingDeposito(false);
-            }
-          }}
-        />
-      )}
-
-      {showPasarComprasModal && reciboToPasarCompras && (
-        <PasarAComprasModal
-          recibo={reciboToPasarCompras}
-          isSubmitting={isPasandoCompras}
-          onClose={() => {
-            setShowPasarComprasModal(false);
-            setReciboToPasarCompras(null);
-          }}
-          onConfirm={async (reciboEditado, itemsEditados) => {
-            setIsPasandoCompras(true);
-            try {
-              await pasarACompras(reciboEditado, itemsEditados, reciboToPasarCompras);
-              alert('✅ Importación pasada a compras exitosamente');
-              setShowPasarComprasModal(false);
-              setReciboToPasarCompras(null);
-              fetchRecibos();
-            } catch (err) {
-              alert('❌ Error: ' + err.message);
-            } finally {
-              setIsPasandoCompras(false);
             }
           }}
         />

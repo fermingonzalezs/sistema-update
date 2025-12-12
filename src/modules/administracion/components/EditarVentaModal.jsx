@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Monitor, Smartphone, Box, AlertTriangle, Save, Loader } from 'lucide-react';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, formatearFechaParaInput, parseFechaLocal } from '../../../shared/utils/formatters';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { useVentas } from '../../../modules/ventas/hooks/useVentas';
@@ -66,9 +66,8 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
       // Vendedor
       setVendedor(transaccion.vendedor || '');
 
-      // Fecha (formato YYYY-MM-DD)
-      const fecha = new Date(transaccion.fecha_venta);
-      const fechaStr = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+      // Fecha (formato YYYY-MM-DD) - usar split para evitar problemas de timezone
+      const fechaStr = transaccion.fecha_venta.split('T')[0];
       setFechaVenta(fechaStr);
 
       // Observaciones

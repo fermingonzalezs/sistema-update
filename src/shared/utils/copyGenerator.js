@@ -548,6 +548,17 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
+  // 8. OBSERVACIONES - Para versión comercial (simple) y completa
+  if (config.style === 'simple' && (cel.observaciones || cel.notas || cel.comentarios)) {
+    const obs = cel.observaciones || cel.notas || cel.comentarios;
+    partes.push(obs);
+  }
+
+  // 9. FALLAS/NOTAS - Para versión comercial (simple) ANTES del precio
+  if (config.style === 'simple' && cel.fallas && cel.fallas.trim()) {
+    partes.push(cel.fallas);
+  }
+
   // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor
   // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA - ESTADO
 

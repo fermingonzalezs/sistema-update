@@ -3,7 +3,7 @@ import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Mon
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
-import { formatearMonto } from '../../../shared/utils/formatters';
+import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 // Servicio para Dashboard de Reportes
 const dashboardService = {
@@ -213,7 +213,7 @@ const dashboardService = {
     ventas.forEach(transaccion => {
       if (!transaccion.fecha_venta) return;
 
-      const fecha = new Date(transaccion.fecha_venta).toISOString().split('T')[0];
+      const fecha = transaccion.fecha_venta.split('T')[0];
       const diaSemana = new Date(transaccion.fecha_venta).toLocaleDateString('es-ES', { weekday: 'long' });
       // Capitalizar día
       const diaSemanaCap = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
@@ -561,19 +561,10 @@ const DashboardReportesSection = () => {
   const [fechaInicio, setFechaInicio] = useState(() => {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() - 30);
-    const año = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const día = String(fecha.getDate()).padStart(2, '0');
-    return `${año}-${mes}-${día}`;
+    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
   });
 
-  const [fechaFin, setFechaFin] = useState(() => {
-    const fecha = new Date();
-    const año = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const día = String(fecha.getDate()).padStart(2, '0');
-    return `${año}-${mes}-${día}`;
-  });
+  const [fechaFin, setFechaFin] = useState(() => obtenerFechaLocal());
 
   // Cargar datos iniciales
   useEffect(() => {

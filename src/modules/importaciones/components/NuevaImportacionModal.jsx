@@ -3,6 +3,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
 import { calculosImportacion } from '../utils/calculosImportacion';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import NuevoProveedorModal from './NuevoProveedorModal';
 
 const METODOS_PAGO = [
@@ -21,7 +22,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
   const [formRecibo, setFormRecibo] = useState({
     proveedor_id: '',
     cliente_id: null,
-    fecha_compra: new Date().toISOString().split('T')[0],
+    fecha_compra: obtenerFechaLocal(),
     metodo_pago: 'transferencia',
     tracking_number: '',
     empresa_logistica: '',

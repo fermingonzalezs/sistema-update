@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Monitor, Smartphone, Box, Plus } from 'lucide-react';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import {
   CONDICIONES,
   CONDICIONES_ARRAY,
@@ -146,7 +147,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     fotos: '',
 
     // Fecha de ingreso
-    ingreso: new Date().toISOString().split('T')[0]
+    ingreso: obtenerFechaLocal()
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -242,7 +243,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           garantia_oficial_fecha: '',
           fallas: 'Ninguna',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
       } else {
         // Modo normal: guardar en BD
@@ -283,7 +284,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           garantia_oficial_fecha: '',
           fallas: 'Ninguna',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
 
         alert('✅ Computadora agregada exitosamente!');
@@ -928,7 +929,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
     fotos: '',
 
     // Fecha de ingreso
-    ingreso: new Date().toISOString().split('T')[0]
+    ingreso: obtenerFechaLocal()
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1017,7 +1018,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           garantia_oficial_fecha: '',
           fallas: 'Ninguna',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
       } else {
         // Modo normal: guardar en BD
@@ -1045,7 +1046,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           garantia_oficial_fecha: '',
           fallas: 'Ninguna',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
 
         alert('✅ Celular agregado exitosamente!');
@@ -1558,7 +1559,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
     fotos: '',
 
     // Fecha de ingreso
-    ingreso: new Date().toISOString().split('T')[0]
+    ingreso: obtenerFechaLocal()
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1713,7 +1714,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           garantia_oficial_fecha: '',
           observaciones: '',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
       } else {
         // Modo normal: guardar en BD
@@ -1747,7 +1748,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           garantia_oficial_fecha: '',
           observaciones: '',
           fotos: '',
-          ingreso: new Date().toISOString().split('T')[0]
+          ingreso: obtenerFechaLocal()
         });
 
         alert('✅ Producto agregado exitosamente!');

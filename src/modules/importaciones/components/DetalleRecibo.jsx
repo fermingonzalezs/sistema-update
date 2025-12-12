@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { ESTADOS_IMPORTACION, LABELS_ESTADOS, COLORES_ESTADOS } from '../constants/estadosImportacion';
 
 const DetalleRecibo = ({ recibo, onClose }) => {
   const formatNumber = (num) => {
@@ -25,25 +26,11 @@ const DetalleRecibo = ({ recibo, onClose }) => {
   };
 
   const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'en_transito':
-        return 'text-yellow-800 bg-yellow-100';
-      case 'en_deposito_usa':
-        return 'text-blue-800 bg-blue-100';
-      case 'recepcionado':
-        return 'text-green-800 bg-green-100';
-      default:
-        return 'text-slate-800 bg-slate-100';
-    }
+    return COLORES_ESTADOS[estado] || 'text-slate-800 bg-slate-100';
   };
 
   const getEstadoLabel = (estado) => {
-    const labels = {
-      'en_transito': 'EN TRÁNSITO',
-      'en_deposito_usa': 'EN DEPÓSITO USA',
-      'recepcionado': 'RECEPCIONADO'
-    };
-    return labels[estado] || estado;
+    return LABELS_ESTADOS[estado] || estado;
   };
 
   const totalProductos = (recibo.importaciones_items || []).reduce((sum, item) => sum + (item.precio_total_usd || 0), 0);
@@ -159,19 +146,19 @@ const DetalleRecibo = ({ recibo, onClose }) => {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
-                    {recibo.estado === 'en_transito' && (
+                    {recibo.estado === ESTADOS_IMPORTACION.EN_TRANSITO_USA && (
                       <>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Total (kg)</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Total USD</th>
                       </>
                     )}
-                    {recibo.estado === 'en_deposito_usa' && (
+                    {recibo.estado === ESTADOS_IMPORTACION.EN_DEPOSITO_USA && (
                       <>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Total (kg)</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Total USD</th>
                       </>
                     )}
-                    {recibo.estado === 'recepcionado' && (
+                    {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && (
                       <>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Est. (kg)</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Real (kg)</th>
@@ -200,7 +187,7 @@ const DetalleRecibo = ({ recibo, onClose }) => {
                       </td>
                       <td className="px-4 py-3 text-center text-slate-600">{item.cantidad}</td>
                       <td className="px-4 py-3 text-center text-slate-600">${formatNumber(item.precio_unitario_usd)}</td>
-                      {recibo.estado === 'en_transito' && (
+                      {recibo.estado === ESTADOS_IMPORTACION.EN_TRANSITO_USA && (
                         <>
                           <td className="px-4 py-3 text-center text-slate-600">
                             {item.peso_estimado_total_kg ? item.peso_estimado_total_kg.toFixed(2) : '-'}
@@ -210,7 +197,7 @@ const DetalleRecibo = ({ recibo, onClose }) => {
                           </td>
                         </>
                       )}
-                      {recibo.estado === 'en_deposito_usa' && (
+                      {recibo.estado === ESTADOS_IMPORTACION.EN_DEPOSITO_USA && (
                         <>
                           <td className="px-4 py-3 text-center text-slate-600">
                             {item.peso_estimado_total_kg ? item.peso_estimado_total_kg.toFixed(2) : '-'}
@@ -220,7 +207,7 @@ const DetalleRecibo = ({ recibo, onClose }) => {
                           </td>
                         </>
                       )}
-                      {recibo.estado === 'recepcionado' && (
+                      {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && (
                         <>
                           <td className="px-4 py-3 text-center text-slate-600">
                             {item.peso_estimado_unitario_kg ? item.peso_estimado_unitario_kg.toFixed(2) : '-'}
@@ -247,7 +234,7 @@ const DetalleRecibo = ({ recibo, onClose }) => {
           </div>
 
           {/* INFORMACIÓN DE RECEPCIÓN (si está recepcionada) */}
-          {recibo.estado === 'recepcionado' && (
+          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && (
             <div className="space-y-3">
               <div className="bg-slate-200 p-4 rounded-t border border-slate-300">
                 <h4 className="font-semibold text-slate-800 uppercase">Información de Recepción</h4>

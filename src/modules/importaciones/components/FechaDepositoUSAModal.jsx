@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
 const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [fecha, setFecha] = useState(obtenerFechaLocal());
 
   const handleConfirm = () => {
     if (!fecha) {

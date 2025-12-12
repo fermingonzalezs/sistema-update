@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Package, Clock, CheckCircle } from 'lucide-react';
+import { Plus, Package, Clock, CheckCircle, Layers } from 'lucide-react';
 import CargaEquiposUnificada from './CargaEquiposUnificada';
+import CargaMasivaEquipos from './CargaMasivaEquipos';
 import { useIngresoEquipos } from './useIngresoEquipos';
 import { useInventario } from '../../ventas/hooks/useInventario';
 import { useCelulares } from '../../ventas/hooks/useCelulares';
@@ -10,6 +11,7 @@ import { useAuthContext } from '../../../context/AuthContext';
 const IngresoEquiposSection = () => {
   const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
   const { user } = useAuthContext();
 
   const {
@@ -175,14 +177,24 @@ const IngresoEquiposSection = () => {
                 <p className="text-slate-300 mt-1">Cargar nuevos productos al sistema</p>
               </div>
             </div>
-            <button
-              onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
-              disabled={loading}
-            >
-              <Plus className="w-4 h-4" />
-              <span>{mostrarFormulario ? 'Ocultar' : 'Nuevo Ingreso'}</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setModalCargaMasiva(true)}
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
+                disabled={loading}
+              >
+                <Layers className="w-4 h-4" />
+                <span>Carga Masiva</span>
+              </button>
+              <button
+                onClick={() => setMostrarFormulario(!mostrarFormulario)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center space-x-2 transition-colors"
+                disabled={loading}
+              >
+                <Plus className="w-4 h-4" />
+                <span>{mostrarFormulario ? 'Ocultar' : 'Nuevo Ingreso'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -320,6 +332,16 @@ const IngresoEquiposSection = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal de Carga Masiva */}
+      <CargaMasivaEquipos
+        isOpen={modalCargaMasiva}
+        onClose={() => setModalCargaMasiva(false)}
+        onSuccess={() => {
+          setModalCargaMasiva(false);
+          // Refrescar datos si es necesario
+        }}
+      />
     </div>
   );
 };

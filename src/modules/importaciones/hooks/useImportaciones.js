@@ -100,6 +100,22 @@ export const useImportaciones = () => {
     }
   }, []);
 
+  // ➡️ Avanzar a siguiente estado (para estados intermedios)
+  const avanzarEstado = useCallback(async (id, nuevoEstado) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const actualizado = await importacionesService.avanzarEstado(id, nuevoEstado);
+      setRecibos(prev => prev.map(r => r.id === id ? actualizado : r));
+      return actualizado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // 🇦🇷 Recepcionar en Argentina
   const recepcionarEnArgentina = useCallback(async (id, datosRecepcion) => {
     setLoading(true);
@@ -167,6 +183,7 @@ export const useImportaciones = () => {
     crearRecibo,
     actualizarRecibo,
     marcarEnDepositoUSA,
+    avanzarEstado,
     recepcionarEnArgentina,
     deleteRecibo,
     getEstadisticas,

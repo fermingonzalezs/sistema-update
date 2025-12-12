@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Save, AlertTriangle, CheckCircle, RefreshCw, Eye, FileText, Monitor, Smartphone, Box, Calculator, ChevronDown, ChevronUp, Edit2, X } from 'lucide-react';
+import { Package, Search, RefreshCw, Monitor, Smartphone, Box, History, Calculator, Save, AlertTriangle, ChevronDown, ChevronUp, MessageSquare, Edit, CheckCircle } from 'lucide-react';
+import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 
@@ -62,8 +63,8 @@ const recuentoStockService = {
         // Para productos "otros": filtrar por stock en la sucursal
         if (item.tipo === 'otro') {
           const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
-                                 sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
-                                 0;
+            sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
+              0;
           return stockSucursal > 0;
         }
 
@@ -125,7 +126,7 @@ const recuentoStockService = {
 
     for (const ajuste of ajustes) {
       const tabla = ajuste.tipo === 'computadora' ? 'inventario' :
-                   ajuste.tipo === 'celular' ? 'celulares' : 'otros';
+        ajuste.tipo === 'celular' ? 'celulares' : 'otros';
 
       if (ajuste.tipo === 'otro') {
         // Para productos "otros", actualizar cantidad por sucursal
@@ -316,8 +317,8 @@ export const RecuentoStockSection = () => {
       const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0; // SERVICIO TÉCNICO no maneja productos "otros"
+          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
+            0; // SERVICIO TÉCNICO no maneja productos "otros"
       } else {
         stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
       }
@@ -345,7 +346,7 @@ export const RecuentoStockSection = () => {
       const mensajeDetalle = Object.entries(porTipo)
         .map(([tipo, cantidad]) => {
           const nombre = tipo === 'computadora' ? 'Notebooks' :
-                        tipo === 'celular' ? 'Celulares' : 'Otros';
+            tipo === 'celular' ? 'Celulares' : 'Otros';
           return `• ${nombre}: ${cantidad}`;
         })
         .join('\n');
@@ -386,8 +387,8 @@ export const RecuentoStockSection = () => {
       let stockSistema;
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0;
+          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
+            0;
       } else {
         stockSistema = 1;
       }
@@ -484,7 +485,7 @@ export const RecuentoStockSection = () => {
       const ahora = new Date();
 
       // Fecha en formato YYYY-MM-DD (zona horaria local)
-      const fechaLocal = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+      const fechaLocal = obtenerFechaLocal();
 
       // Timestamp completo en ISO format (con zona horaria local)
       const offset = ahora.getTimezoneOffset();
@@ -602,11 +603,10 @@ export const RecuentoStockSection = () => {
                 <button
                   onClick={iniciarRecuento}
                   disabled={!sucursalSeleccionada}
-                  className={`px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors ${
-                    sucursalSeleccionada 
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                  className={`px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors ${sucursalSeleccionada
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                       : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   <Calculator size={18} />
                   Iniciar Recuento
@@ -825,8 +825,8 @@ export const RecuentoStockSection = () => {
                   let stockSistema;
                   if (producto.tipo === 'otro') {
                     stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-                       sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                       0; // SERVICIO TÉCNICO no maneja productos "otros"
+                      sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
+                        0; // SERVICIO TÉCNICO no maneja productos "otros"
                   } else {
                     stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
                   }
@@ -835,10 +835,9 @@ export const RecuentoStockSection = () => {
                   const contado = stockReal !== undefined;
 
                   return (
-                    <tr key={`${producto.tipo}-${producto.id}`} className={`hover:bg-slate-50 ${
-                      diferencia !== null && diferencia !== 0 ? 'bg-slate-100' : 
-                      contado ? 'bg-emerald-50' : ''
-                    }`}>
+                    <tr key={`${producto.tipo}-${producto.id}`} className={`hover:bg-slate-50 ${diferencia !== null && diferencia !== 0 ? 'bg-slate-100' :
+                        contado ? 'bg-emerald-50' : ''
+                      }`}>
                       <td className="py-3 px-4">
                         <div>
                           <div className="font-medium text-slate-800 flex items-center gap-2">
@@ -888,9 +887,8 @@ export const RecuentoStockSection = () => {
                       </td>
                       <td className="text-center py-3 px-4">
                         {diferencia !== null ? (
-                          <span className={`font-medium ${
-                            diferencia === 0 ? 'text-emerald-600' : 'text-slate-600'
-                          }`}>
+                          <span className={`font-medium ${diferencia === 0 ? 'text-emerald-600' : 'text-slate-600'
+                            }`}>
                             {diferencia > 0 ? '+' : ''}{diferencia}
                           </span>
                         ) : (
@@ -991,11 +989,10 @@ export const RecuentoStockSection = () => {
                             )}
                           </td>
                           <td className="text-center py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              recuento.estado === 'sin_diferencias'
+                            <span className={`px-2 py-1 rounded text-xs ${recuento.estado === 'sin_diferencias'
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : 'bg-slate-100 text-slate-800'
-                            }`}>
+                              }`}>
                               {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
                             </span>
                           </td>
@@ -1095,13 +1092,12 @@ export const RecuentoStockSection = () => {
                                             <tr key={prodIndex} className={prodIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                               <td className="py-2 px-3 text-sm text-slate-800">{prod.descripcion}</td>
                                               <td className="text-center py-2 px-3">
-                                                <span className={`px-2 py-1 rounded text-xs ${
-                                                  prod.tipo === 'computadora' ? 'bg-blue-100 text-blue-800' :
-                                                  prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
-                                                  'bg-slate-100 text-slate-800'
-                                                }`}>
+                                                <span className={`px-2 py-1 rounded text-xs ${prod.tipo === 'computadora' ? 'bg-blue-100 text-blue-800' :
+                                                    prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
+                                                      'bg-slate-100 text-slate-800'
+                                                  }`}>
                                                   {prod.tipo === 'computadora' ? 'Notebook' :
-                                                   prod.tipo === 'celular' ? 'Celular' : 'Otro'}
+                                                    prod.tipo === 'celular' ? 'Celular' : 'Otro'}
                                                 </span>
                                               </td>
                                               <td className="py-2 px-3 text-sm text-slate-600">
@@ -1117,9 +1113,8 @@ export const RecuentoStockSection = () => {
                                                 {diferencia === 0 ? (
                                                   <span className="text-emerald-600 font-medium text-sm">✓</span>
                                                 ) : (
-                                                  <span className={`text-sm font-medium ${
-                                                    diferencia < 0 ? 'text-red-600' : 'text-blue-600'
-                                                  }`}>
+                                                  <span className={`text-sm font-medium ${diferencia < 0 ? 'text-red-600' : 'text-blue-600'
+                                                    }`}>
                                                     {diferencia > 0 ? '+' : ''}{diferencia}
                                                   </span>
                                                 )}
