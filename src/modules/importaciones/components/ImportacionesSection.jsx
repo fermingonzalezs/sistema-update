@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight } from 'lucide-react';
+import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
@@ -14,7 +14,10 @@ import {
   COLORES_ESTADOS,
   obtenerSiguienteEstado,
   obtenerIconoSiguienteEstado,
-  obtenerLabelSiguienteEstado
+  obtenerLabelSiguienteEstado,
+  obtenerEstadoAnterior,
+  obtenerIconoEstadoAnterior,
+  obtenerLabelEstadoAnterior
 } from '../constants/estadosImportacion';
 
 const METODOS_PAGO = [
@@ -120,12 +123,33 @@ const ImportacionesSection = () => {
       setReciboToReceive(recibo);
       setShowReceiveModal(true);
     } else {
-      // Estados intermedios (EN_VUELO_INTERNACIONAL, EN_DEPOSITO_ARG): actualizar directamente
+      // Estados intermedios (EN_VUELO_INTERNACIONAL, EN_DEPOSITO_ARG): confirmar antes de actualizar
+      if (window.confirm(`¿Estás seguro de avanzar al estado "${LABELS_ESTADOS[siguienteEstado]}"?`)) {
+        try {
+          await avanzarEstado(recibo.id, siguienteEstado);
+          await fetchRecibos();
+        } catch (err) {
+          alert(`Error al avanzar estado: ${err.message}`);
+        }
+      }
+    }
+  };
+
+  // Retroceder al estado anterior
+  const handleRetrocederEstado = async (recibo) => {
+    const estadoAnterior = obtenerEstadoAnterior(recibo.estado);
+
+    if (!estadoAnterior) {
+      return; // Ya está en el primer estado
+    }
+
+    // Confirmar antes de retroceder
+    if (window.confirm(`¿Estás seguro de volver al estado "${LABELS_ESTADOS[estadoAnterior]}"?`)) {
       try {
-        await avanzarEstado(recibo.id, siguienteEstado);
+        await avanzarEstado(recibo.id, estadoAnterior);
         await fetchRecibos();
       } catch (err) {
-        alert(`Error al avanzar estado: ${err.message}`);
+        alert(`Error al retroceder estado: ${err.message}`);
       }
     }
   };
@@ -284,114 +308,140 @@ const ImportacionesSection = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1200px]">
-              <thead className="bg-slate-800 text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic. USD</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {recibosFiltrados.map((recibo, idx) => (
-                  <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
-                      {recibo.numero_recibo}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                      {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.proveedores?.nombre || '-'}>
-                      {recibo.proveedores?.nombre || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                      {recibo.importaciones_items?.length || 0}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
-                      USD ${formatNumber(
-                        (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
-                      {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
-                        `USD $${formatNumber(
-                          (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
-                        )}`
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-block px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${getEstadoColor(recibo.estado)}`}>
-                        {getEstadoLabel(recibo.estado)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.observaciones || '-'}>
-                      {recibo.observaciones || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex justify-end gap-3">
-                        {/* Botón único para avanzar al siguiente estado */}
-                        {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
-                          const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
-                          if (!siguienteEstado) return null;
-
-                          const IconoSiguiente = {
-                            'Package': Package,
-                            'Plane': Plane,
-                            'Home': Home,
-                            'Check': Check,
-                            'ArrowRight': ArrowRight
-                          }[obtenerIconoSiguienteEstado(recibo.estado)] || ArrowRight;
-
-                          const labelSiguiente = obtenerLabelSiguienteEstado(recibo.estado);
-
-                          return (
-                            <button
-                              onClick={() => handleAvanzarEstado(recibo)}
-                              className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                              title={`Avanzar a: ${labelSiguiente}`}
-                            >
-                              <IconoSiguiente size={18} />
-                            </button>
-                          );
-                        })()}
-
-                        <button
-                          onClick={() => setExpandedRecibo(recibo)}
-                          className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                          title="Ver detalles"
-                        >
-                          <Eye size={18} />
-                        </button>
-
-                        <button
-                          onClick={async () => {
-                            if (window.confirm('¿Eliminar esta importación?')) {
-                              try {
-                                await deleteRecibo(recibo.id);
-                                alert('✅ Importación eliminada');
-                              } catch (err) {
-                                alert('Error: ' + err.message);
-                              }
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-700 transition-colors"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
+                <thead className="bg-slate-800 text-white">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic. USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {recibosFiltrados.map((recibo, idx) => (
+                    <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
+                        {recibo.numero_recibo}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.proveedores?.nombre || '-'}>
+                        {recibo.proveedores?.nombre || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        {recibo.importaciones_items?.length || 0}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                        USD ${formatNumber(
+                          (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                        {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
+                          `USD $${formatNumber(
+                            (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
+                          )}`
+                        ) : (
+                          '-'
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-block px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${getEstadoColor(recibo.estado)}`}>
+                          {getEstadoLabel(recibo.estado)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.observaciones || '-'}>
+                        {recibo.observaciones || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-end gap-3">
+                          {/* Botón para retroceder al estado anterior */}
+                          {recibo.estado !== ESTADOS_IMPORTACION.EN_TRANSITO_USA && (() => {
+                            const estadoAnterior = obtenerEstadoAnterior(recibo.estado);
+                            if (!estadoAnterior) return null;
+
+                            const IconoAnterior = {
+                              'TrendingUp': TrendingUp,
+                              'Package': Package,
+                              'Plane': Plane,
+                              'Home': Home,
+                              'ArrowLeft': ArrowLeft
+                            }[obtenerIconoEstadoAnterior(recibo.estado)] || ArrowLeft;
+
+                            const labelAnterior = obtenerLabelEstadoAnterior(recibo.estado);
+
+                            return (
+                              <button
+                                onClick={() => handleRetrocederEstado(recibo)}
+                                className="text-amber-600 hover:text-amber-700 transition-colors"
+                                title={`Volver a: ${labelAnterior}`}
+                              >
+                                <IconoAnterior size={18} />
+                              </button>
+                            );
+                          })()}
+
+                          {/* Botón para avanzar al siguiente estado */}
+                          {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
+                            const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
+                            if (!siguienteEstado) return null;
+
+                            const IconoSiguiente = {
+                              'Package': Package,
+                              'Plane': Plane,
+                              'Home': Home,
+                              'Check': Check,
+                              'ArrowRight': ArrowRight
+                            }[obtenerIconoSiguienteEstado(recibo.estado)] || ArrowRight;
+
+                            const labelSiguiente = obtenerLabelSiguienteEstado(recibo.estado);
+
+                            return (
+                              <button
+                                onClick={() => handleAvanzarEstado(recibo)}
+                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                                title={`Avanzar a: ${labelSiguiente}`}
+                              >
+                                <IconoSiguiente size={18} />
+                              </button>
+                            );
+                          })()}
+
+                          <button
+                            onClick={() => setExpandedRecibo(recibo)}
+                            className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                            title="Ver detalles"
+                          >
+                            <Eye size={18} />
+                          </button>
+
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('¿Eliminar esta importación?')) {
+                                try {
+                                  await deleteRecibo(recibo.id);
+                                  alert('✅ Importación eliminada');
+                                } catch (err) {
+                                  alert('Error: ' + err.message);
+                                }
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700 transition-colors"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

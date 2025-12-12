@@ -751,21 +751,34 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
             </div>
 
-            {/* Observaciones */}
+            {/* Garantía y Observaciones */}
             <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Observaciones</h4>
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Garantía y Observaciones</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
-                        <input
-                            type="text"
-                            value={datos.garantia || ''}
+                        <select
+                            value={datos.garantia || '3 meses'}
                             onChange={(e) => handleChange('garantia', e.target.value)}
-                            placeholder="Ej: 6 meses"
                             className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
-                        />
+                        >
+                            {GARANTIAS_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
                     </div>
-                    <div>
+                    {datos.garantia === 'Garantía oficial con vencimiento' && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
+                            <input
+                                type="date"
+                                value={datos.garantia_oficial_fecha || ''}
+                                onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)}
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            />
+                        </div>
+                    )}
+                    <div className={datos.garantia === 'Garantía oficial con vencimiento' ? 'md:col-span-2' : ''}>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
                         <input
                             type="text"

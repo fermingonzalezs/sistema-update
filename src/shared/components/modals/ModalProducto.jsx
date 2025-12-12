@@ -102,6 +102,7 @@ const ModalProducto = ({
   const configuracion = CONFIGURACION_PRODUCTOS[tipo];
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [garantiaOficialFecha, setGarantiaOficialFecha] = useState('');
 
   // Inicializar form data según el modo
   useEffect(() => {
@@ -124,7 +125,7 @@ const ModalProducto = ({
           touchscreen: false,
           teclado_retro: 'SI',
           idioma_teclado: 'Español',
-          garantia_update: '6 meses',
+          garantia_update: '3 meses',
           fallas: 'Ninguna'
         },
         celular: {
@@ -132,7 +133,8 @@ const ModalProducto = ({
           condicion: CONDICIONES.USADO,
           estado: ESTADOS.A,
           precio_compra_usd: 0,
-          precio_venta_usd: 0
+          precio_venta_usd: 0,
+          garantia: '3 meses'
         },
         otros: {
           sucursal: UBICACIONES.LA_PLATA,
@@ -140,13 +142,28 @@ const ModalProducto = ({
           cantidad: 1,
           precio_compra_usd: 0,
           precio_venta_usd: 0,
-          precio_venta_pesos: 0
+          precio_venta_pesos: 0,
+          garantia: '3 meses'
         }
       };
 
       if (modo === 'editar' && data) {
         // Editar producto existente
-        setFormData({ ...defaults[tipo], ...data });
+        const datosEdicion = { ...defaults[tipo], ...data };
+
+        // Extraer fecha de garantía si tiene formato "Garantía oficial con vencimiento (DD/MM/YYYY)"
+        const campoGarantia = tipo === 'notebook' ? 'garantia_update' : 'garantia';
+        const garantiaValor = datosEdicion[campoGarantia];
+        if (garantiaValor && garantiaValor.includes('Garantía oficial con vencimiento')) {
+          const match = garantiaValor.match(/\((\d{2})\/(\d{2})\/(\d{4})\)/);
+          if (match) {
+            const [, dia, mes, anio] = match;
+            setGarantiaOficialFecha(`${anio}-${mes}-${dia}`);
+            datosEdicion[campoGarantia] = 'Garantía oficial con vencimiento';
+          }
+        }
+
+        setFormData(datosEdicion);
       } else if (modo === 'cargar_desde_testeo' && equipoTesteo) {
         // Cargar desde testeo - mapear campos básicos
         const preciosGuardados = equipoTesteo.checklist_data?._precios || {};
@@ -235,6 +252,19 @@ const ModalProducto = ({
 
   const prepararDatosSegunTabla = () => {
     const datos = { ...formData };
+
+    // Formatear garantía oficial con vencimiento si está seleccionada
+    const campoGarantia = tipo === 'notebook' ? 'garantia_update' : 'garantia';
+    if (datos[campoGarantia] === 'Garantía oficial con vencimiento' && garantiaOficialFecha) {
+      const fecha = new Date(garantiaOficialFecha + 'T00:00:00');
+      const fechaFormateada = fecha.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
+      datos[campoGarantia] = `Garantía oficial con vencimiento (${fechaFormateada})`;
+    }
 
     // Transformaciones específicas por tipo
     if (tipo === 'notebook') {
@@ -965,47 +995,74 @@ const ModalProducto = ({
   }
 
   function renderOtrosCampos() {
+    const campoGarantia = tipo === 'notebook' ? 'garantia_update' : 'garantia';
+    const valorGarantia = formData[campoGarantia] || '3 meses';
+
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
-          <input
-            type="text"
-            value={formData.garantia || (tipo === 'notebook' ? formData.garantia_update : '')}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              [tipo === 'notebook' ? 'garantia_update' : 'garantia']: e.target.value
-            }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-            placeholder="Ej: 12 meses, 6 meses"
-          />
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+            <select
+              value={valorGarantia}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                [campoGarantia]: e.target.value
+              }))}
+              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="1 mes">1 mes</option>
+              <option value="3 meses">3 meses</option>
+              <option value="6 meses">6 meses</option>
+              <option value="12 meses">12 meses</option>
+              <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+              <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+              <option value="Sin garantía">Sin garantía</option>
+            </select>
+          </div>
+
+          {/* Mostrar campo de fecha si se selecciona "Garantía oficial con vencimiento" */}
+          {valorGarantia === 'Garantía oficial con vencimiento' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Fecha de vencimiento
+              </label>
+              <input
+                type="date"
+                value={garantiaOficialFecha}
+                onChange={(e) => setGarantiaOficialFecha(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          )}
+
+          {tipo === 'notebook' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
+              <input
+                type="text"
+                value={formData.fallas || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, fallas: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Ej: Ninguna, Pantalla rayada"
+              />
+            </div>
+          )}
         </div>
 
-        {tipo === 'notebook' && (
+        {/* Fallas para celular y otros - en una fila separada */}
+        {tipo !== 'notebook' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía Oficial</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Fallas / Observaciones</label>
             <input
               type="text"
-              value={formData.garantia_oficial || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, garantia_oficial: e.target.value }))}
+              value={formData.fallas || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, fallas: e.target.value }))}
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Garantía del fabricante"
+              placeholder="Ej: Ninguna, Pantalla rayada"
             />
           </div>
         )}
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
-          <input
-            type="text"
-            value={formData.fallas || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, fallas: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
-            placeholder="Ej: Ninguna, Pantalla rayada"
-          />
-        </div>
-
-        {/* Campo 'disponible' eliminado - ahora se maneja por eliminación directa tras venta */}
       </div>
     );
   }

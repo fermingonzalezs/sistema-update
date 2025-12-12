@@ -94,17 +94,26 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   // Cálculo en tiempo real de costos prorrateados
   const calcularCostosProrrateados = () => {
     const totalSinCostos = items.reduce((sum, item) => sum + item.precio_total, 0);
-    const costosAdicionales = parseFloat(formRecibo.costos_adicionales) || 0;
+    // Convertir a número y redondear a 2 decimales para evitar errores de punto flotante
+    const costosAdicionalesRaw = parseFloat(formRecibo.costos_adicionales);
+    const costosAdicionales = isNaN(costosAdicionalesRaw) ? 0 : Math.round(costosAdicionalesRaw * 100) / 100;
 
-    if (totalSinCostos === 0) return items;
+    if (totalSinCostos === 0 || costosAdicionales === 0) {
+      // Si no hay costos adicionales, retornar items sin costos distribuidos
+      return items.map(item => ({
+        ...item,
+        costos_adicionales: 0,
+        precio_final: item.precio_total
+      }));
+    }
 
     return items.map(item => {
       const proporcion = item.precio_total / totalSinCostos;
-      const costoDistribuido = costosAdicionales * proporcion;
+      const costoDistribuido = Math.round(costosAdicionales * proporcion * 100) / 100;
       return {
         ...item,
         costos_adicionales: costoDistribuido,
-        precio_final: item.precio_total + costoDistribuido
+        precio_final: Math.round((item.precio_total + costoDistribuido) * 100) / 100
       };
     });
   };
@@ -476,8 +485,18 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formRecibo.costos_adicionales}
-                    onChange={(e) => setFormRecibo({ ...formRecibo, costos_adicionales: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Guardar el valor como string para permitir escribir, pero validar que sea numérico
+                      setFormRecibo({ ...formRecibo, costos_adicionales: value === '' ? '0' : value });
+                    }}
+                    onBlur={(e) => {
+                      // Al perder el foco, normalizar el valor a número
+                      const numValue = parseFloat(e.target.value) || 0;
+                      setFormRecibo({ ...formRecibo, costos_adicionales: numValue.toFixed(2) });
+                    }}
                     placeholder="0.00"
                     className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   />

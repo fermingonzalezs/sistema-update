@@ -62,6 +62,17 @@ import {
 
 // La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
+// Opciones de garantía estándar
+const GARANTIAS_OPTIONS = [
+  '1 mes',
+  '3 meses',
+  '6 meses',
+  '12 meses',
+  'Garantía oficial Apple (12 meses)',
+  'Garantía oficial con vencimiento',
+  'Sin garantía'
+];
+
 // Modal de detalle unificado
 
 const Catalogo = ({ onAddToCart, onNavigate }) => {
@@ -102,6 +113,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [editSuccess, setEditSuccess] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [categoriasOtros, setCategoriasOtros] = useState([]);
+  const [garantiaOficialFecha, setGarantiaOficialFecha] = useState('');
 
   // Función para contar productos por subcategoría
   // Usa datosSinFiltroSubcategoria que tiene todos los filtros aplicados
@@ -516,6 +528,24 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       });
     }
 
+    // Extraer fecha de garantía oficial con vencimiento si existe
+    const campoGarantia = tipo === 'notebook' ? producto.garantia_update : producto.garantia;
+    if (campoGarantia && campoGarantia.includes('Garantía oficial con vencimiento')) {
+      const match = campoGarantia.match(/\((\d{2})\/(\d{2})\/(\d{4})\)/);
+      if (match) {
+        const [, dia, mes, anio] = match;
+        setGarantiaOficialFecha(`${anio}-${mes}-${dia}`);
+        // Actualizar el formulario para que muestre solo "Garantía oficial con vencimiento" sin la fecha
+        if (tipo === 'notebook') {
+          setEditForm(prev => ({ ...prev, garantia_update: 'Garantía oficial con vencimiento' }));
+        } else {
+          setEditForm(prev => ({ ...prev, garantia: 'Garantía oficial con vencimiento' }));
+        }
+      }
+    } else {
+      setGarantiaOficialFecha('');
+    }
+
     setModalEdit({ open: true, producto, tipo });
     setEditError(null);
     setEditSuccess(null);
@@ -653,7 +683,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
           // Estado y garantía
           ingreso: editForm.ingreso,
-          garantia_update: editForm.garantia_update,
+          garantia_update: editForm.garantia_update === 'Garantía oficial con vencimiento' && garantiaOficialFecha
+            ? `Garantía oficial con vencimiento (${new Date(garantiaOficialFecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })})`
+            : editForm.garantia_update,
           garantia_oficial: editForm.garantia_oficial,
           fallas: editForm.fallas,
           fotos: editForm.fotos,
@@ -687,7 +719,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           ciclos: editForm.ciclos,
 
           // Estado y garantía
-          garantia: editForm.garantia,
+          garantia: editForm.garantia === 'Garantía oficial con vencimiento' && garantiaOficialFecha
+            ? `Garantía oficial con vencimiento (${new Date(garantiaOficialFecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })})`
+            : editForm.garantia,
           fallas: editForm.fallas,
           fotos: editForm.fotos,
         };
@@ -720,7 +754,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           precio_venta_usd: parseFloat(editForm.precio_venta_usd),
 
           // Estado y garantía
-          garantia: editForm.garantia,
+          garantia: editForm.garantia === 'Garantía oficial con vencimiento' && garantiaOficialFecha
+            ? `Garantía oficial con vencimiento (${new Date(garantiaOficialFecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })})`
+            : editForm.garantia,
           observaciones: editForm.observaciones,
           fotos: editForm.fotos,
         };
@@ -1292,32 +1328,33 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Update
+                  Garantía
                 </label>
-                <input
-                  type="text"
-                  value={editForm.garantia_update}
+                <select
+                  value={editForm.garantia_update || '3 meses'}
                   onChange={(e) =>
                     handleEditFormChange("garantia_update", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 6 meses"
-                />
+                >
+                  {GARANTIAS_OPTIONS.map((opcion) => (
+                    <option key={opcion} value={opcion}>{opcion}</option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Garantía Oficial
-                </label>
-                <input
-                  type="text"
-                  value={editForm.garantia_oficial}
-                  onChange={(e) =>
-                    handleEditFormChange("garantia_oficial", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 12 meses"
-                />
-              </div>
+              {editForm.garantia_update === 'Garantía oficial con vencimiento' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    value={garantiaOficialFecha}
+                    onChange={(e) => setGarantiaOficialFecha(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Observaciones
@@ -1646,16 +1683,31 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Garantía
                 </label>
-                <input
-                  type="text"
-                  value={editForm.garantia}
+                <select
+                  value={editForm.garantia || '3 meses'}
                   onChange={(e) =>
                     handleEditFormChange("garantia", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 3 meses"
-                />
+                >
+                  {GARANTIAS_OPTIONS.map((opcion) => (
+                    <option key={opcion} value={opcion}>{opcion}</option>
+                  ))}
+                </select>
               </div>
+              {editForm.garantia === 'Garantía oficial con vencimiento' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    value={garantiaOficialFecha}
+                    onChange={(e) => setGarantiaOficialFecha(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Observaciones
@@ -1852,16 +1904,31 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Garantía
                 </label>
-                <input
-                  type="text"
-                  value={editForm.garantia}
+                <select
+                  value={editForm.garantia || '3 meses'}
                   onChange={(e) =>
                     handleEditFormChange("garantia", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 3 meses, 1 año"
-                />
+                >
+                  {GARANTIAS_OPTIONS.map((opcion) => (
+                    <option key={opcion} value={opcion}>{opcion}</option>
+                  ))}
+                </select>
               </div>
+              {editForm.garantia === 'Garantía oficial con vencimiento' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Fecha de vencimiento
+                  </label>
+                  <input
+                    type="date"
+                    value={garantiaOficialFecha}
+                    onChange={(e) => setGarantiaOficialFecha(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
