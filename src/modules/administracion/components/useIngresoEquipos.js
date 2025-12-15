@@ -12,7 +12,12 @@ export const useIngresoEquipos = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('ingresos_equipos')
-        .select('*')
+        .select(`
+          *,
+          proveedores:proveedor_id (
+            nombre
+          )
+        `)
         .order('fecha', { ascending: false });
 
       if (error) throw error;
@@ -53,7 +58,9 @@ export const useIngresoEquipos = () => {
 
           return {
             ...ingreso,
-            subcategoria
+            subcategoria,
+            // Si no hay proveedor en el campo (legacy), usar el nombre del JOIN
+            proveedor: ingreso.proveedor || ingreso.proveedores?.nombre || null
           };
         })
       );

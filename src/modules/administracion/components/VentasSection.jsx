@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader, Eye, Edit } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader, Eye, Edit, Mail } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -7,6 +7,8 @@ import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters
 import { supabase } from '../../../lib/supabase';
 import DetalleVentaModal from './DetalleVentaModal';
 import EditarVentaModal from './EditarVentaModal';
+import { generarPDFsVenta, extraerInfoProductosParaEmail } from '../../ventas/utils/pdfGeneratorService';
+import { enviarVentaPorEmail } from '../../ventas/utils/emailService';
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [filtroTipo, setFiltroTipo] = useState('todos');
@@ -16,6 +18,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const [ventaEnEdicion, setVentaEnEdicion] = useState(null);
+  const [enviandoEmail, setEnviandoEmail] = useState({});
 
   const ventasFiltradas = useMemo(() => ventas.filter(transaccion => {
     if (!transaccion.venta_items?.length) return false;
@@ -139,6 +142,62 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       alert('Error al actualizar el estado de contabilizado');
     } finally {
       setActualizandoContabilizado(prev => ({ ...prev, [transaccionId]: false }));
+    }
+  };
+
+  const manejarEnviarEmail = async (transaccion) => {
+    // Pedir confirmación antes de enviar
+    const clienteEmail = transaccion.cliente_email || 'sin email';
+    const confirmar = window.confirm(
+      `¿Enviar email con recibo y garantías?\n\n` +
+      `Cliente: ${transaccion.cliente_nombre}\n` +
+      `Email del cliente: ${clienteEmail}\n` +
+      `Transacción: ${transaccion.numero_transaccion}\n\n` +
+      `El email se enviará a: soporte.updatenotebooks@gmail.com (modo prueba)`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      setEnviandoEmail(prev => ({ ...prev, [transaccion.id]: true }));
+      console.log('📧 Enviando email para venta:', transaccion.numero_transaccion);
+
+      // Generar PDFs
+      const { reciboPDF, garantiasPDF } = await generarPDFsVenta(
+        transaccion,
+        {
+          cliente_nombre: transaccion.cliente_nombre,
+          cliente_email: transaccion.cliente_email,
+          cliente_telefono: transaccion.cliente_telefono,
+          dni: transaccion.cliente_dni || ''
+        }
+      );
+
+      // Extraer info de productos para el mensaje
+      const productosInfo = extraerInfoProductosParaEmail(transaccion.venta_items);
+
+      // Enviar email
+      const resultadoEmail = await enviarVentaPorEmail({
+        destinatario: transaccion.cliente_email || 'soporte.updatenotebooks@gmail.com',
+        nombreCliente: transaccion.cliente_nombre,
+        reciboPDF,
+        garantiasPDF,
+        productos: productosInfo,
+        numeroTransaccion: transaccion.numero_transaccion,
+        totalVenta: (parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0)),
+        transaccion: transaccion
+      });
+
+      if (resultadoEmail.success) {
+        alert(`✅ Email enviado exitosamente a soporte.updatenotebooks@gmail.com con ${resultadoEmail.adjuntosEnviados} adjuntos`);
+      } else {
+        throw new Error(resultadoEmail.error);
+      }
+    } catch (error) {
+      console.error('❌ Error enviando email:', error);
+      alert('Error al enviar email: ' + error.message);
+    } finally {
+      setEnviandoEmail(prev => ({ ...prev, [transaccion.id]: false }));
     }
   };
 
@@ -282,16 +341,33 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
 
                       {/* Acciones */}
                       <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            manejarAbrirRecibo(transaccion);
-                          }}
-                          className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-100 transition-colors"
-                          title="Ver recibo"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              manejarAbrirRecibo(transaccion);
+                            }}
+                            className="text-slate-600 hover:text-slate-800 p-1 rounded hover:bg-slate-100 transition-colors"
+                            title="Ver recibo"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              manejarEnviarEmail(transaccion);
+                            }}
+                            disabled={enviandoEmail[transaccion.id]}
+                            className="text-slate-600 hover:text-emerald-600 p-1 rounded hover:bg-emerald-50 transition-colors disabled:opacity-50"
+                            title="Enviar email con recibo y garantías"
+                          >
+                            {enviandoEmail[transaccion.id] ? (
+                              <Loader className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Mail className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

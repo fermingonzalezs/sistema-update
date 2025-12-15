@@ -81,6 +81,7 @@ export const otrosService = {
         // Información básica
         nombre_producto: producto.nombre_producto?.trim() || producto.descripcion_producto?.trim(),
         descripcion: producto.descripcion?.trim() || '',
+        marca: producto.marca || '',
         categoria: categoriaNormalizada,
 
         // Datos normalizados

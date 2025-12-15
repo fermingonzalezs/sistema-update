@@ -396,13 +396,13 @@ const generateNotebookCopy = (comp, config) => {
     }
   }
 
-  // 8. CONDICION - SIEMPRE
-  if (comp.condicion) {
+  // 8. CONDICION - SIEMPRE (excepto en versión documento)
+  if (comp.condicion && config.style !== 'documento') {
     partes.push(capitalize(comp.condicion));
   }
 
-  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED
-  if (!esNueva && comp.estado) {
+  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED (excepto en versión documento)
+  if (!esNueva && comp.estado && config.style !== 'documento') {
     partes.push(comp.estado);
   }
 
@@ -515,13 +515,13 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
-  // 5. CONDICION - SIEMPRE
-  if (cel.condicion) {
+  // 5. CONDICION - SIEMPRE (excepto en versión documento)
+  if (cel.condicion && config.style !== 'documento') {
     partes.push(capitalize(cel.condicion));
   }
 
-  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED
-  if (!esNuevo && cel.estado) {
+  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  if (!esNuevo && cel.estado && config.style !== 'documento') {
     partes.push(cel.estado);
   }
 
@@ -665,13 +665,13 @@ const generateOtroCopy = (otro, config) => {
     }
   }
 
-  // 3. CONDICION - SIEMPRE
-  if (otro.condicion) {
+  // 3. CONDICION - SIEMPRE (excepto en versión documento)
+  if (otro.condicion && config.style !== 'documento') {
     partes.push(capitalize(otro.condicion));
   }
 
-  // 4. ESTADO - SOLO para USADOS/REFURBISHED
-  if (!esNuevo && otro.estado) {
+  // 4. ESTADO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  if (!esNuevo && otro.estado && config.style !== 'documento') {
     partes.push(otro.estado);
   }
 

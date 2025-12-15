@@ -122,14 +122,32 @@ export const useCargaMasiva = (tipoEquipo) => {
             // Obtener precio de compra según tipo de producto
             const precioCompra = datosComunes.precio_costo_usd || datosComunes.precio_compra_usd || 0;
 
+            // Obtener nombre del proveedor si hay proveedor_id
+            let nombreProveedor = null;
+            if (datosComunes.proveedor_id) {
+                try {
+                    const { data: proveedor, error: proveedorError } = await supabase
+                        .from('proveedores')
+                        .select('nombre')
+                        .eq('id', datosComunes.proveedor_id)
+                        .single();
+
+                    if (!proveedorError && proveedor) {
+                        nombreProveedor = proveedor.nombre;
+                    }
+                } catch (err) {
+                    console.error('Error obteniendo proveedor:', err);
+                }
+            }
+
             // Preparar datos del registro de ingreso
             const registroIngreso = {
                 tipo_producto: tipoProducto,
                 descripcion_completa: descripcion,
                 precio_compra: precioCompra,
-                proveedor: datosComunes.proveedor || null,
+                proveedor: nombreProveedor,
                 proveedor_id: datosComunes.proveedor_id || null,
-                garantias: datosComunes.garantia_update || datosComunes.garantia_oficial || datosComunes.garantia || null,
+                garantias: datosComunes.garantia || datosComunes.garantia_oficial || null,
                 destino: 'stock', // Carga masiva siempre va directo a stock
                 usuario_ingreso: usuario || 'Sistema',
                 referencia_inventario_id: equipoId,
