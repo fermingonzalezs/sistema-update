@@ -49,6 +49,7 @@ const IngresoEquiposSection = () => {
         descripcion_completa: descripcionCompleta,
         precio_compra: datos.precio_costo_usd || datos.precio_compra_usd || datos.precio_compra || 0,
         proveedor: datos.proveedor || '',
+        proveedor_id: datos.proveedor_id || null,
         garantias: datos.garantia || datos.garantias || '',
         destino: destinoSeleccionado,
         usuario_ingreso: username,
@@ -276,6 +277,9 @@ const IngresoEquiposSection = () => {
                   Precio Compra
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Proveedor
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Destino
                 </th>
               </tr>
@@ -283,13 +287,13 @@ const IngresoEquiposSection = () => {
             <tbody className="divide-y divide-slate-200">
               {ingresosLoading ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-3 text-center text-slate-500">
+                  <td colSpan="7" className="px-4 py-3 text-center text-slate-500">
                     Cargando historial...
                   </td>
                 </tr>
               ) : ingresos.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-3 text-center text-slate-500">
+                  <td colSpan="7" className="px-4 py-3 text-center text-slate-500">
                     No hay ingresos registrados
                   </td>
                 </tr>
@@ -317,6 +321,9 @@ const IngresoEquiposSection = () => {
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800 whitespace-nowrap">
                         {formatearPrecio(ingreso.precio_compra)}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-slate-600">
+                        {ingreso.proveedor || <span className="italic text-slate-400">Sin especificar</span>}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-2">

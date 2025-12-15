@@ -55,7 +55,11 @@ export function useCelulares() {
       // Convertir especificaciones numéricas
       capacidad: parseInt(data.capacidad) || 0,
       ram: parseInt(data.ram) || 0,
-      ciclos: parseInt(data.ciclos) || 0
+      ciclos: parseInt(data.ciclos) || 0,
+      // Proveedor (nullable)
+      proveedor_id: data.proveedor_id || null,
+      // Mapear servicio_tecnico a rsn_idm_fixcenter (valor esperado por la DB)
+      sucursal: data.sucursal === 'servicio_tecnico' ? 'rsn_idm_fixcenter' : data.sucursal
       // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
 
@@ -68,7 +72,9 @@ export function useCelulares() {
       // Convertir especificaciones numéricas si vienen en updates
       capacidad: data.capacidad !== undefined ? parseInt(data.capacidad) || 0 : undefined,
       ram: data.ram !== undefined ? parseInt(data.ram) || 0 : undefined,
-      ciclos: data.ciclos !== undefined ? parseInt(data.ciclos) || 0 : undefined
+      ciclos: data.ciclos !== undefined ? parseInt(data.ciclos) || 0 : undefined,
+      // Mapear servicio_tecnico a rsn_idm_fixcenter (valor esperado por la DB)
+      sucursal: data.sucursal === 'servicio_tecnico' ? 'rsn_idm_fixcenter' : data.sucursal
       // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
     

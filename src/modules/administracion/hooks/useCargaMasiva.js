@@ -128,6 +128,7 @@ export const useCargaMasiva = (tipoEquipo) => {
                 descripcion_completa: descripcion,
                 precio_compra: precioCompra,
                 proveedor: datosComunes.proveedor || null,
+                proveedor_id: datosComunes.proveedor_id || null,
                 garantias: datosComunes.garantia_update || datosComunes.garantia_oficial || datosComunes.garantia || null,
                 destino: 'stock', // Carga masiva siempre va directo a stock
                 usuario_ingreso: usuario || 'Sistema',

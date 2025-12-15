@@ -107,7 +107,10 @@ export const otrosService = {
 
         // Información adicional
         garantia: producto.garantia || '',
-        observaciones: producto.observaciones || producto.fallas || 'Ninguna'
+        observaciones: producto.observaciones || producto.fallas || 'Ninguna',
+
+        // Proveedor
+        proveedor_id: producto.proveedor_id || null
       }])
       .select()
     

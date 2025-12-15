@@ -130,6 +130,9 @@ export const inventarioService = {
         garantia_oficial: computadora.garantia_oficial || '',
         fallas: computadora.fallas || 'Ninguna',
 
+        // Proveedor
+        proveedor_id: computadora.proveedor_id || null,
+
         // Fecha de ingreso
         ingreso: computadora.ingreso || (() => {
           const ahora = new Date();

@@ -1,8 +1,11 @@
 // FormularioDatosComunes.jsx - Formulario de datos compartidos
-import React from 'react';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { CONDICIONES_ARRAY, CONDICIONES_LABELS, ESTADOS_ARRAY, ESTADOS_LABELS, UBICACIONES_ARRAY, UBICACIONES_LABELS } from '../../../shared/constants/productConstants';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
+import { useProveedores } from '../../importaciones/hooks/useProveedores';
+import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
 
 // Categorías de "otros" productos
 const CATEGORIAS_OTROS = [
@@ -24,6 +27,10 @@ const GARANTIAS_OPTIONS = [
 ];
 
 const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
+    // Hook de proveedores
+    const { proveedores, loading: proveedoresLoading } = useProveedores();
+    const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
+
     const handleChange = (campo, valor) => {
         onChange({ ...datos, [campo]: valor });
     };
@@ -91,6 +98,33 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
                                 className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor</label>
+                            <div className="flex gap-2">
+                                <select
+                                    value={datos.proveedor_id || ''}
+                                    onChange={(e) => handleChange('proveedor_id', e.target.value)}
+                                    disabled={proveedoresLoading}
+                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm"
+                                >
+                                    <option value="">Sin especificar</option>
+                                    {proveedores.map(prov => (
+                                        <option key={prov.id} value={prov.id}>
+                                            {prov.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNuevoProveedorModal(true)}
+                                    className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                                    title="Nuevo Proveedor"
+                                    disabled={proveedoresLoading}
+                                >
+                                    <Plus size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -282,10 +316,10 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Garantía y Observaciones</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Garantía Update</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
                             <select
-                                value={datos.garantia_update || '3 meses'}
-                                onChange={(e) => handleChange('garantia_update', e.target.value)}
+                                value={datos.garantia || '3 meses'}
+                                onChange={(e) => handleChange('garantia', e.target.value)}
                                 className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
                             >
                                 {GARANTIAS_OPTIONS.map(opt => (
@@ -293,7 +327,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 ))}
                             </select>
                         </div>
-                        {datos.garantia_update === 'Garantía oficial con vencimiento' && (
+                        {datos.garantia === 'Garantía oficial con vencimiento' && (
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
                                 <input
@@ -304,7 +338,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 />
                             </div>
                         )}
-                        <div className={datos.garantia_update === 'Garantía oficial con vencimiento' ? 'md:col-span-2' : ''}>
+                        <div className={datos.garantia === 'Garantía oficial con vencimiento' ? 'md:col-span-2' : ''}>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Fallas/Observaciones</label>
                             <input
                                 type="text"
@@ -371,6 +405,33 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
                                 className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor</label>
+                            <div className="flex gap-2">
+                                <select
+                                    value={datos.proveedor_id || ''}
+                                    onChange={(e) => handleChange('proveedor_id', e.target.value)}
+                                    disabled={proveedoresLoading}
+                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm"
+                                >
+                                    <option value="">Sin especificar</option>
+                                    {proveedores.map(prov => (
+                                        <option key={prov.id} value={prov.id}>
+                                            {prov.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNuevoProveedorModal(true)}
+                                    className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                                    title="Nuevo Proveedor"
+                                    disabled={proveedoresLoading}
+                                >
+                                    <Plus size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -790,6 +851,17 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal para crear nuevo proveedor */}
+            {showNuevoProveedorModal && (
+                <NuevoProveedorModal
+                    onClose={() => setShowNuevoProveedorModal(false)}
+                    onSuccess={(nuevoProveedor) => {
+                        setShowNuevoProveedorModal(false);
+                        handleChange('proveedor_id', nuevoProveedor.id);
+                    }}
+                />
+            )}
         </div>
     );
 };

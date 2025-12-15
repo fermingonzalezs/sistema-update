@@ -71,7 +71,7 @@ export const ESTADOS_COLORES = {
 export const UBICACIONES = {
   LA_PLATA: 'la_plata',
   MITRE: 'mitre',
-  SERVICIO_TECNICO: 'servicio_tecnico'
+  SERVICIO_TECNICO: 'rsn_idm_fixcenter' // Valor que espera la DB
 };
 
 export const UBICACIONES_ARRAY = Object.values(UBICACIONES);

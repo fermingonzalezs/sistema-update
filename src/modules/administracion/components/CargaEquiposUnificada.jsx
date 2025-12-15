@@ -28,6 +28,8 @@ import {
   RESOLUCIONES_LABELS
 } from '../../../shared/constants/resolutionConstants';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
+import { useProveedores } from '../../importaciones/hooks/useProveedores';
+import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
 
 const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, modoCarrito = false, modoCompra = false, onReturnData }) => {
   const [tipoEquipo, setTipoEquipo] = useState('notebook');
@@ -113,6 +115,9 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     condicion: CONDICIONES.NUEVO,
     estado: null, // null por defecto cuando es nuevo
 
+    // Proveedor
+    proveedor_id: '',
+
     // Especificaciones principales
     procesador: '',
     slots: '',
@@ -151,6 +156,10 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Hook de proveedores
+  const { proveedores, loading: proveedoresLoading } = useProveedores();
+  const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -201,7 +210,9 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
         estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
         // Si slots está vacío, convertir a null
         slots: formData.slots === '' ? null : formData.slots,
-        fotos: formData.fotos
+        fotos: formData.fotos,
+        // Agregar proveedor_id (nullable)
+        proveedor_id: formData.proveedor_id || null
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -220,6 +231,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          proveedor_id: '',
           procesador: '',
           slots: '',
           tipo_ram: 'DDR4',
@@ -261,6 +273,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          proveedor_id: '',
           procesador: '',
           slots: '',
           tipo_ram: 'DDR4',
@@ -438,6 +451,38 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   </select>
                 </div>
               )}
+
+              {/* PROVEEDOR */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Proveedor
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="proveedor_id"
+                    value={formData.proveedor_id}
+                    onChange={handleChange}
+                    disabled={proveedoresLoading}
+                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Sin especificar</option>
+                    {proveedores.map(prov => (
+                      <option key={prov.id} value={prov.id}>
+                        {prov.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowNuevoProveedorModal(true)}
+                    className="px-3 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    title="Nuevo Proveedor"
+                    disabled={proveedoresLoading}
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* ESPECIFICACIONES TÉCNICAS */}
@@ -892,6 +937,17 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
             </button>
           </div>
         </form>
+
+        {/* Modal para crear nuevo proveedor */}
+        {showNuevoProveedorModal && (
+          <NuevoProveedorModal
+            onClose={() => setShowNuevoProveedorModal(false)}
+            onSuccess={(nuevoProveedor) => {
+              setShowNuevoProveedorModal(false);
+              setFormData({ ...formData, proveedor_id: nuevoProveedor.id });
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -910,6 +966,9 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
     color: '',
     sim_esim: 'SIM', // Nueva opción SIM/ESIM
     estado: null, // null por defecto cuando es nuevo
+
+    // Proveedor
+    proveedor_id: '',
 
     // Información específica del dispositivo
     bateria: '', // Solo porcentaje, ej: "85%"
@@ -933,6 +992,10 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Hook de proveedores
+  const { proveedores, loading: proveedoresLoading } = useProveedores();
+  const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -989,7 +1052,9 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         // Incluir RAM y SIM/eSIM si existen
         ram: formData.ram || null,
         sim_esim: formData.sim_esim || null,
-        fotos: formData.fotos
+        fotos: formData.fotos,
+        // Agregar proveedor_id (nullable)
+        proveedor_id: formData.proveedor_id || null
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -1007,6 +1072,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           color: '',
           sim_esim: 'SIM',
           estado: null,
+          proveedor_id: '',
           bateria: '',
           ciclos: '',
           ram: '',
@@ -1035,6 +1101,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           color: '',
           sim_esim: 'SIM',
           estado: null,
+          proveedor_id: '',
           bateria: '',
           ciclos: '',
           ram: '',
@@ -1209,6 +1276,38 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   <option value="ESIM">eSIM</option>
                   <option value="Dual">Dual (SIM + eSIM)</option>
                 </select>
+              </div>
+
+              {/* PROVEEDOR */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Proveedor
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="proveedor_id"
+                    value={formData.proveedor_id}
+                    onChange={handleChange}
+                    disabled={proveedoresLoading}
+                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Sin especificar</option>
+                    {proveedores.map(prov => (
+                      <option key={prov.id} value={prov.id}>
+                        {prov.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowNuevoProveedorModal(true)}
+                    className="px-3 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    title="Nuevo Proveedor"
+                    disabled={proveedoresLoading}
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1508,6 +1607,17 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
             </button>
           </div>
         </form>
+
+        {/* Modal para crear nuevo proveedor */}
+        {showNuevoProveedorModal && (
+          <NuevoProveedorModal
+            onClose={() => setShowNuevoProveedorModal(false)}
+            onSuccess={(nuevoProveedor) => {
+              setShowNuevoProveedorModal(false);
+              setFormData({ ...formData, proveedor_id: nuevoProveedor.id });
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -1527,6 +1637,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
     // Condición del producto
     condicion: CONDICIONES.NUEVO,
     estado: null,
+
+    // Proveedor
+    proveedor_id: '',
 
     // Precios
     precio_compra_usd: '',
@@ -1563,6 +1676,10 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Hook de proveedores
+  const { proveedores, loading: proveedoresLoading } = useProveedores();
+  const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
 
   // Determinar si es Desktop
   const isDesktop = formData.categoria === CATEGORIAS_OTROS.DESKTOP;
@@ -1679,7 +1796,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
         precio_venta_usd: parseFloat(formData.precio_venta_usd) || 0,
         costos_adicionales: parseFloat(formData.costos_adicionales) || 0,
         serial: formData.serial?.trim() || null,
-        fotos: formData.fotos
+        fotos: formData.fotos,
+        // Agregar proveedor_id (nullable)
+        proveedor_id: formData.proveedor_id || null
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -1696,6 +1815,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           color: '',
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          proveedor_id: '',
           precio_compra_usd: '',
           precio_venta_usd: '',
           costos_adicionales: '0',
@@ -1730,6 +1850,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           color: '',
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          proveedor_id: '',
           precio_compra_usd: '',
           precio_venta_usd: '',
           costos_adicionales: '0',
@@ -2096,6 +2217,38 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
                 </div>
 
+                {/* PROVEEDOR */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Proveedor
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      name="proveedor_id"
+                      value={formData.proveedor_id}
+                      onChange={handleChange}
+                      disabled={proveedoresLoading}
+                      className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    >
+                      <option value="">Sin especificar</option>
+                      {proveedores.map(prov => (
+                        <option key={prov.id} value={prov.id}>
+                          {prov.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowNuevoProveedorModal(true)}
+                      className="px-3 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                      title="Nuevo Proveedor"
+                      disabled={proveedoresLoading}
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </div>
+
                 <div className="md:col-span-2 lg:col-span-3">
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Descripción del Producto
@@ -2332,6 +2485,17 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
             </button>
           </div>
         </form>
+
+        {/* Modal para crear nuevo proveedor */}
+        {showNuevoProveedorModal && (
+          <NuevoProveedorModal
+            onClose={() => setShowNuevoProveedorModal(false)}
+            onSuccess={(nuevoProveedor) => {
+              setShowNuevoProveedorModal(false);
+              setFormData({ ...formData, proveedor_id: nuevoProveedor.id });
+            }}
+          />
+        )}
       </div>
     </div>
   );
