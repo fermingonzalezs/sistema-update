@@ -22,21 +22,37 @@ export const estadoResultadosService = {
       // Primero obtener asientos del período (query de dos pasos)
       let asientosQuery = supabase
         .from('asientos_contables')
-        .select('id');
+        .select('id, fecha');
 
+      // Filtros de fecha - IMPORTANTE: usar formato correcto para incluir todo el día
       if (fechaDesde) {
-        asientosQuery = asientosQuery.gte('fecha', fechaDesde);
+        // Desde las 00:00:00 del día inicial
+        asientosQuery = asientosQuery.gte('fecha', `${fechaDesde}T00:00:00`);
       }
       if (fechaHasta) {
-        asientosQuery = asientosQuery.lte('fecha', fechaHasta);
+        // Hasta las 23:59:59 del día final
+        asientosQuery = asientosQuery.lte('fecha', `${fechaHasta}T23:59:59`);
       }
 
       // EXCLUIR ASIENTOS DE CIERRE
       asientosQuery = excluirAsientosDeCierre(asientosQuery);
 
       const { data: asientos, error: errorAsientos } = await asientosQuery;
-      
+
       if (errorAsientos) throw errorAsientos;
+
+      console.log('📊 FILTRO APLICADO:', {
+        fechaDesde: `${fechaDesde}T00:00:00`,
+        fechaHasta: `${fechaHasta}T23:59:59`,
+        asientosEncontrados: asientos?.length || 0
+      });
+
+      if (asientos && asientos.length > 0) {
+        console.log('📋 ASIENTOS EN RANGO:', asientos.map(a => ({
+          id: a.id,
+          fecha: a.fecha
+        })));
+      }
 
       if (!asientos || asientos.length === 0) {
         console.log('ℹ️ No hay asientos en el período');
@@ -53,17 +69,50 @@ export const estadoResultadosService = {
 
       const asientoIds = asientos.map(a => a.id);
 
-      // Obtener movimientos de esos asientos
-      const { data: movimientos, error } = await supabase
-        .from('movimientos_contables')
-        .select(`
-          *,
-          plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria),
-          asientos_contables (fecha)
-        `)
-        .in('asiento_id', asientoIds);
+      // Obtener movimientos con paginación para superar el límite de 1000 de Supabase
+      // Dividir asientoIds en chunks de 100 (menos asientos = menos movimientos por consulta)
+      const CHUNK_SIZE = 100;
+      const PAGE_SIZE = 1000;
+      const chunks = [];
+      for (let i = 0; i < asientoIds.length; i += CHUNK_SIZE) {
+        chunks.push(asientoIds.slice(i, i + CHUNK_SIZE));
+      }
 
-      if (error) throw error;
+      console.log(`📦 Obteniendo movimientos en ${chunks.length} lote(s)...`);
+
+      // Obtener movimientos de todos los lotes con paginación
+      let todosLosMovimientos = [];
+      for (const chunk of chunks) {
+        let offset = 0;
+        let hayMas = true;
+
+        while (hayMas) {
+          const { data: movimientosChunk, error } = await supabase
+            .from('movimientos_contables')
+            .select(`
+              *,
+              plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria),
+              asientos_contables (fecha)
+            `)
+            .in('asiento_id', chunk)
+            .range(offset, offset + PAGE_SIZE - 1);
+
+          if (error) throw error;
+
+          const recibidos = movimientosChunk?.length || 0;
+          todosLosMovimientos = todosLosMovimientos.concat(movimientosChunk || []);
+
+          // Si recibimos menos de PAGE_SIZE, ya no hay más datos
+          if (recibidos < PAGE_SIZE) {
+            hayMas = false;
+          } else {
+            offset += PAGE_SIZE;
+          }
+        }
+      }
+
+      const movimientos = todosLosMovimientos;
+      console.log(`✅ Total movimientos obtenidos (sin límite): ${movimientos.length}`);
 
       console.log('🔍 DEBUG ESTADO RESULTADOS - Total movimientos obtenidos:', movimientos.length);
       console.log('🔍 DEBUG ESTADO RESULTADOS - Asientos del período:', asientos.length);
@@ -259,7 +308,7 @@ export function useEstadoResultados() {
   const fetchEstadoResultados = async (fechaDesde, fechaHasta) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const data = await estadoResultadosService.getEstadoResultados(fechaDesde, fechaHasta);
       setEstadoResultados(data);
@@ -274,7 +323,7 @@ export function useEstadoResultados() {
   const fetchComparativoMensual = async (año) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const data = await estadoResultadosService.getComparativoMensual(año);
       setComparativoMensual(data);

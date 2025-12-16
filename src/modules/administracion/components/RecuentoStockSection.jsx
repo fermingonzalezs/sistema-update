@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, RefreshCw, Monitor, Smartphone, Box, History, Calculator, Save, AlertTriangle, ChevronDown, ChevronUp, MessageSquare, Edit, CheckCircle } from 'lucide-react';
+import { Package, Search, RefreshCw, Monitor, Smartphone, Box, History, Calculator, Save, AlertTriangle, ChevronDown, ChevronUp, MessageSquare, Edit, Edit2, CheckCircle, BarChart3, Eye, X } from 'lucide-react';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { supabase } from '../../../lib/supabase';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
+import { CATEGORIAS_OTROS_ARRAY, CATEGORIAS_OTROS_LABELS, getCategoriaLabel } from '../../../shared/constants/categoryConstants';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
+import { useAuthContext } from '../../../context/AuthContext';
 
 // Servicio para Recuento de Stock
 const recuentoStockService = {
-  async getInventarioCompleto(sucursal = null) {
-    console.log('📦 Obteniendo inventario completo para sucursal:', sucursal || 'todas');
+  async getInventarioCompleto(sucursal = null, categoria = null) {
+    console.log('📦 Obteniendo inventario para sucursal:', sucursal || 'todas', '| Categoría:', categoria || 'todas');
 
     // Helper para ordenar por nombre/modelo
     const sortByName = (a, b) => {
@@ -16,78 +19,100 @@ const recuentoStockService = {
       return nameA.localeCompare(nameB);
     };
 
-    let computadoras, celulares, otros;
+    const sucursalNormalizada = sucursal ? sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_') : null;
 
-    if (sucursal) {
-      const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
+    let inventario = [];
 
-      console.log('🔍 Buscando productos para sucursal normalizada:', sucursalNormalizada);
+    // Determinar qué tipo de productos obtener según la categoría
+    if (categoria === 'notebooks') {
+      // Solo notebooks
+      let query = supabase.from('inventario').select('*');
+      if (sucursalNormalizada) {
+        query = query.eq('sucursal', sucursalNormalizada);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      inventario = data.map(item => ({ ...item, tipo: 'computadora' }));
 
-      // ⭐ IMPORTANTE: Filtrar notebooks y celulares por columna 'sucursal'
-      // Los productos "otros" no tienen columna sucursal, se filtran después
-      [computadoras, celulares, otros] = await Promise.all([
-        supabase.from('inventario').select('*').eq('sucursal', sucursalNormalizada),
-        supabase.from('celulares').select('*').eq('sucursal', sucursalNormalizada),
-        supabase.from('otros').select('*') // Todos los productos "otros" - se filtran por stock después
-      ]);
-    } else {
-      [computadoras, celulares, otros] = await Promise.all([
-        supabase.from('inventario').select('*'),
-        supabase.from('celulares').select('*'),
-        supabase.from('otros').select('*')
-      ]);
-    }
+    } else if (categoria === 'celulares') {
+      // Solo celulares
+      let query = supabase.from('celulares').select('*');
+      if (sucursalNormalizada) {
+        query = query.eq('sucursal', sucursalNormalizada);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      inventario = data.map(item => ({ ...item, tipo: 'celular' }));
 
-    if (computadoras.error) throw computadoras.error;
-    if (celulares.error) throw celulares.error;
-    if (otros.error) throw otros.error;
+    } else if (categoria && categoria.startsWith('otros_')) {
+      // Subcategoría específica de otros (ej: 'otros_AUDIO')
+      const subcategoria = categoria.replace('otros_', '');
+      const { data, error } = await supabase
+        .from('otros')
+        .select('*')
+        .eq('categoria', subcategoria);
+      if (error) throw error;
 
-    console.log('📊 Productos obtenidos de BD - Notebooks:', computadoras.data.length, 'Celulares:', celulares.data.length, 'Otros:', otros.data.length);
-
-    // Ordenar cada categoría alfabéticamente
-    computadoras.data.sort(sortByName);
-    celulares.data.sort(sortByName);
-    otros.data.sort(sortByName);
-
-    let inventario = [
-      ...computadoras.data.map(item => ({ ...item, tipo: 'computadora' })),
-      ...celulares.data.map(item => ({ ...item, tipo: 'celular' })),
-      ...otros.data.map(item => ({ ...item, tipo: 'otro' }))
-    ];
-
-    // ⭐ FILTRADO CRÍTICO: Si hay sucursal seleccionada, filtrar estrictamente
-    if (sucursal) {
-      const sucursalNormalizada = sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
-
-      inventario = inventario.filter(item => {
-        // Para productos "otros": filtrar por stock en la sucursal
-        if (item.tipo === 'otro') {
+      // Filtrar por stock en la sucursal
+      inventario = data
+        .filter(item => {
+          if (!sucursalNormalizada) return true;
           const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
-            sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) :
-              0;
+            sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) : 0;
           return stockSucursal > 0;
-        }
+        })
+        .map(item => ({ ...item, tipo: 'otro' }));
 
-        // Para notebooks y celulares: verificar que tengan la sucursal correcta
-        // (ya vienen filtrados de la DB, pero doble verificación por seguridad)
-        if (item.sucursal) {
-          const sucursalItem = item.sucursal.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
-          return sucursalItem === sucursalNormalizada;
-        }
+    } else {
+      // Fallback: todos los productos (comportamiento legacy)
+      let computadoras, celulares, otros;
 
-        // Si no tiene campo sucursal, no incluir (para evitar productos huérfanos)
-        console.warn('⚠️ Producto sin sucursal encontrado:', item.tipo, item.id);
-        return false;
-      });
+      if (sucursalNormalizada) {
+        [computadoras, celulares, otros] = await Promise.all([
+          supabase.from('inventario').select('*').eq('sucursal', sucursalNormalizada),
+          supabase.from('celulares').select('*').eq('sucursal', sucursalNormalizada),
+          supabase.from('otros').select('*')
+        ]);
+      } else {
+        [computadoras, celulares, otros] = await Promise.all([
+          supabase.from('inventario').select('*'),
+          supabase.from('celulares').select('*'),
+          supabase.from('otros').select('*')
+        ]);
+      }
+
+      if (computadoras.error) throw computadoras.error;
+      if (celulares.error) throw celulares.error;
+      if (otros.error) throw otros.error;
+
+      inventario = [
+        ...computadoras.data.map(item => ({ ...item, tipo: 'computadora' })),
+        ...celulares.data.map(item => ({ ...item, tipo: 'celular' })),
+        ...otros.data.map(item => ({ ...item, tipo: 'otro' }))
+      ];
+
+      // Filtrar otros por stock en sucursal
+      if (sucursalNormalizada) {
+        inventario = inventario.filter(item => {
+          if (item.tipo === 'otro') {
+            const stockSucursal = sucursalNormalizada === 'la_plata' ? (item.cantidad_la_plata || 0) :
+              sucursalNormalizada === 'mitre' ? (item.cantidad_mitre || 0) : 0;
+            return stockSucursal > 0;
+          }
+          return true;
+        });
+      }
     }
 
-    console.log(`✅ ${inventario.length} productos filtrados para recuento - Notebooks: ${inventario.filter(i => i.tipo === 'computadora').length}, Celulares: ${inventario.filter(i => i.tipo === 'celular').length}, Otros: ${inventario.filter(i => i.tipo === 'otro').length}`);
+    // Ordenar alfabéticamente
+    inventario.sort(sortByName);
 
+    console.log(`✅ ${inventario.length} productos para recuento de categoría: ${categoria || 'todas'}`);
     return inventario;
   },
 
   async guardarRecuento(recuentoData) {
-    console.log('💾 Guardando recuento de stock...');
+    console.log('💾 Guardando recuento de stock...', { categoria: recuentoData.categoria });
 
     const { data, error } = await supabase
       .from('recuentos_stock')
@@ -95,6 +120,7 @@ const recuentoStockService = {
         fecha_recuento: recuentoData.fecha,
         timestamp_recuento: recuentoData.timestamp,
         sucursal: recuentoData.sucursal,
+        categoria: recuentoData.categoria, // 'notebooks' | 'celulares' | 'otros_AUDIO' | etc.
         tipo_recuento: recuentoData.tipo, // 'completo' | 'parcial'
         productos_contados: recuentoData.productosContados,
         diferencias_encontradas: recuentoData.diferencias,
@@ -108,7 +134,7 @@ const recuentoStockService = {
     return data[0];
   },
 
-  async getRecuentosAnteriores(limite = 10) {
+  async getRecuentosAnteriores(limite = 20) {
     console.log('📊 Obteniendo recuentos anteriores...');
 
     const { data, error } = await supabase
@@ -119,6 +145,36 @@ const recuentoStockService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // NUEVO: Obtener estado de recuentos agrupado por sucursal y categoría
+  async getEstadoRecuentos() {
+    console.log('📊 Obteniendo estado de recuentos por sucursal/categoría...');
+
+    const { data, error } = await supabase
+      .from('recuentos_stock')
+      .select('id, fecha_recuento, sucursal, categoria, estado, productos_contados')
+      .order('fecha_recuento', { ascending: false });
+
+    if (error) throw error;
+
+    // Agrupar: encontrar el último recuento por cada sucursal+categoría
+    const estadoPorSucursalCategoria = {};
+    for (const recuento of (data || [])) {
+      const key = `${recuento.sucursal}_${recuento.categoria}`;
+      if (!estadoPorSucursalCategoria[key]) {
+        const productos = JSON.parse(recuento.productos_contados || '[]');
+        estadoPorSucursalCategoria[key] = {
+          sucursal: recuento.sucursal,
+          categoria: recuento.categoria,
+          fechaUltimoRecuento: recuento.fecha_recuento,
+          estado: recuento.estado,
+          cantidadProductos: productos.length
+        };
+      }
+    }
+
+    return Object.values(estadoPorSucursalCategoria);
   },
 
   async actualizarStockSistema(ajustes) {
@@ -166,6 +222,18 @@ const recuentoStockService = {
 
     if (error) throw error;
     return data[0];
+  },
+
+  async eliminarRecuento(recuentoId) {
+    console.log('🗑️ Eliminando recuento...', recuentoId);
+
+    const { error } = await supabase
+      .from('recuentos_stock')
+      .delete()
+      .eq('id', recuentoId);
+
+    if (error) throw error;
+    return true;
   }
 };
 
@@ -173,14 +241,15 @@ const recuentoStockService = {
 function useRecuentoStock() {
   const [inventario, setInventario] = useState([]);
   const [recuentosAnteriores, setRecuentosAnteriores] = useState([]);
+  const [estadoRecuentos, setEstadoRecuentos] = useState([]); // NUEVO
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchInventario = async (sucursal = null) => {
+  const fetchInventario = async (sucursal = null, categoria = null) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await recuentoStockService.getInventarioCompleto(sucursal);
+      const data = await recuentoStockService.getInventarioCompleto(sucursal, categoria);
       setInventario(data);
     } catch (err) {
       setError(err.message);
@@ -198,11 +267,22 @@ function useRecuentoStock() {
     }
   };
 
+  // NUEVO: Cargar estado de recuentos agrupado
+  const fetchEstadoRecuentos = async () => {
+    try {
+      const data = await recuentoStockService.getEstadoRecuentos();
+      setEstadoRecuentos(data);
+    } catch (err) {
+      console.error('Error cargando estado de recuentos:', err);
+    }
+  };
+
   const guardarRecuento = async (recuentoData) => {
     try {
       setError(null);
       const resultado = await recuentoStockService.guardarRecuento(recuentoData);
       fetchRecuentosAnteriores(); // Actualizar historial
+      fetchEstadoRecuentos(); // Actualizar estado
       return resultado;
     } catch (err) {
       setError(err.message);
@@ -232,16 +312,31 @@ function useRecuentoStock() {
     }
   };
 
+  const eliminarRecuento = async (recuentoId) => {
+    try {
+      setError(null);
+      await recuentoStockService.eliminarRecuento(recuentoId);
+      fetchRecuentosAnteriores(); // Refrescar historial
+      fetchEstadoRecuentos(); // Refrescar estado
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   return {
     inventario,
     recuentosAnteriores,
+    estadoRecuentos,
     loading,
     error,
     fetchInventario,
     fetchRecuentosAnteriores,
+    fetchEstadoRecuentos,
     guardarRecuento,
     aplicarAjustes,
-    actualizarComentario
+    actualizarComentario,
+    eliminarRecuento
   };
 }
 
@@ -250,18 +345,23 @@ export const RecuentoStockSection = () => {
   const {
     inventario,
     recuentosAnteriores,
+    estadoRecuentos,
     loading,
     error,
     fetchInventario,
     fetchRecuentosAnteriores,
+    fetchEstadoRecuentos,
     guardarRecuento,
     aplicarAjustes,
-    actualizarComentario
+    actualizarComentario,
+    eliminarRecuento
   } = useRecuentoStock();
 
+  const { user } = useAuthContext(); // Obtener usuario logueado
+
   const [filtro, setFiltro] = useState('');
-  const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
   const [stockContado, setStockContado] = useState({});
   const [observaciones, setObservaciones] = useState('');
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
@@ -270,18 +370,42 @@ export const RecuentoStockSection = () => {
   const [recuentoExpandido, setRecuentoExpandido] = useState(null);
   const [editandoComentario, setEditandoComentario] = useState(null);
   const [nuevoComentario, setNuevoComentario] = useState('');
+  const [mostrarEstadoRecuentos, setMostrarEstadoRecuentos] = useState(true);
+  const [modalProductos, setModalProductos] = useState(null); // {productos: [], titulo: string}
+
+  // Generar lista de categorías disponibles
+  const categoriasDisponibles = [
+    { value: 'notebooks', label: '💻 Notebooks', grupo: 'principal' },
+    { value: 'celulares', label: '📱 Celulares', grupo: 'principal' },
+    ...CATEGORIAS_OTROS_ARRAY.map(cat => ({
+      value: `otros_${cat}`,
+      label: `📦 ${getCategoriaLabel(cat)}`,
+      grupo: 'otros'
+    }))
+  ];
 
   useEffect(() => {
     console.log('🚀 Iniciando recuento de stock...');
     fetchRecuentosAnteriores();
+    fetchEstadoRecuentos(); // Cargar estado de recuentos
   }, []);
 
+  // Cargar inventario cuando se selecciona sucursal Y categoría
+  useEffect(() => {
+    if (sucursalSeleccionada && categoriaSeleccionada) {
+      fetchInventario(sucursalSeleccionada, categoriaSeleccionada);
+      // Limpiar conteos al cambiar
+      setStockContado({});
+      setMostrarSoloDiferencias(false);
+      setRecuentoIniciado(false);
+    }
+  }, [sucursalSeleccionada, categoriaSeleccionada]);
+
+  // Limpiar categoría al cambiar sucursal
   useEffect(() => {
     if (sucursalSeleccionada) {
-      fetchInventario(sucursalSeleccionada);
-      // Limpiar filtros al cambiar sucursal
+      setCategoriaSeleccionada('');
       setFiltro('');
-      setTipoFiltro('todos');
       setStockContado({});
       setMostrarSoloDiferencias(false);
       setRecuentoIniciado(false);
@@ -289,6 +413,10 @@ export const RecuentoStockSection = () => {
   }, [sucursalSeleccionada]);
 
   const iniciarRecuento = () => {
+    if (!categoriaSeleccionada) {
+      alert('Debe seleccionar una categoría antes de iniciar el recuento.');
+      return;
+    }
     setRecuentoIniciado(true);
     setStockContado({});
     setObservaciones('');
@@ -303,30 +431,28 @@ export const RecuentoStockSection = () => {
   };
 
   const inventarioFiltrado = inventario.filter(producto => {
-    // Filtro por tipo (computadora, celular, otro, o todos)
-    const cumpleTipo = tipoFiltro === 'todos' || producto.tipo === tipoFiltro;
-
+    // Filtro por texto (modelo, descripción, serial)
     const cumpleFiltro = filtro === '' ||
       producto.modelo?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.nombre_producto?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.descripcion?.toLowerCase().includes(filtro.toLowerCase()) ||
       producto.serial?.toLowerCase().includes(filtro.toLowerCase());
 
+    // Filtro de diferencias (solo mostrar productos con diferencia)
     if (mostrarSoloDiferencias) {
       let stockSistema;
       const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-            0; // SERVICIO TÉCNICO no maneja productos "otros"
+          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) : 0;
       } else {
-        stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
+        stockSistema = 1;
       }
       const stockReal = stockContado[`${producto.tipo}-${producto.id}`] || 0;
-      return cumpleTipo && cumpleFiltro && (stockReal !== stockSistema);
+      return cumpleFiltro && (stockReal !== stockSistema);
     }
 
-    return cumpleTipo && cumpleFiltro;
+    return cumpleFiltro;
   });
 
   const validarRecuentoCompleto = () => {
@@ -366,47 +492,56 @@ export const RecuentoStockSection = () => {
     const productosContados = [];
     const sucursalNormalizada = sucursalSeleccionada.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
 
-    console.log('📊 Calculando diferencias para', inventarioAProcesar.length, 'productos de sucursal:', sucursalSeleccionada);
-    console.log('📦 Desglose inventario a procesar:', {
-      notebooks: inventarioAProcesar.filter(p => p.tipo === 'computadora').length,
-      celulares: inventarioAProcesar.filter(p => p.tipo === 'celular').length,
-      otros: inventarioAProcesar.filter(p => p.tipo === 'otro').length
-    });
+    console.log('📊 Calculando diferencias para', inventarioAProcesar.length, 'productos');
 
-    // ⭐ IMPORTANTE: Solo procesar productos que REALMENTE están en el inventario de la sucursal
     for (const producto of inventarioAProcesar) {
-      // Verificación de seguridad: asegurar que el producto pertenece a la sucursal
+      // Verificación de seguridad para notebooks/celulares
       if (producto.tipo !== 'otro') {
         const sucursalProducto = producto.sucursal?.toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
         if (sucursalProducto !== sucursalNormalizada) {
-          console.warn('⚠️ Producto con sucursal incorrecta detectado y omitido:', producto.tipo, producto.id, 'Sucursal producto:', sucursalProducto, 'Sucursal esperada:', sucursalNormalizada);
-          continue; // Saltar este producto
+          console.warn('⚠️ Producto con sucursal incorrecta omitido:', producto.id);
+          continue;
         }
       }
 
       let stockSistema;
       if (producto.tipo === 'otro') {
         stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-            0;
+          sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) : 0;
       } else {
         stockSistema = 1;
       }
 
-      // Obtener el stock real contado - debe existir porque ya validamos que todos estén contados
       const claveProducto = `${producto.tipo}-${producto.id}`;
       const stockReal = stockContado[claveProducto] !== undefined ? parseInt(stockContado[claveProducto]) : 0;
 
-      // ⭐ IMPORTANTE: Guardar TODOS los productos de la sucursal con su stock real y sistema
-      // Esto crea una "foto" completa del inventario en el día del recuento
+      // ⭐ FOTO COMPLETA del producto en el momento del recuento
+      let copyCompleto = '';
+      try {
+        copyCompleto = generateCopy(producto, { includePrice: true, includeEmojis: true });
+      } catch (e) {
+        copyCompleto = producto.modelo || producto.nombre_producto || producto.descripcion || '';
+      }
+
       productosContados.push({
         id: producto.id,
         tipo: producto.tipo,
-        descripcion: producto.modelo || producto.nombre_producto || producto.descripcion,
+        nombre: producto.modelo || producto.nombre_producto || producto.descripcion || 'Sin nombre',
         serial: producto.serial || `${producto.tipo}-${producto.id}`,
+        sucursal: sucursalSeleccionada,
+        categoriaRecuento: categoriaSeleccionada, // La categoría del recuento actual
         stockSistema,
-        stockReal: stockReal,
-        sucursal: sucursalSeleccionada
+        stockReal,
+        // FOTO COMPLETA - Nuevos campos
+        copyCompleto,
+        precioCompraUSD: producto.precio_compra_usd || producto.precio_costo_usd || 0,
+        costosAdicionales: producto.envios_repuestos || producto.costo_adicional || 0,
+        precioVentaUSD: producto.precio_venta_usd || 0,
+        fechaIngreso: producto.ingreso || producto.created_at?.split('T')[0] || null,
+        condicion: producto.condicion || null,
+        estado: producto.estado || null,
+        subcategoria: producto.categoria || null,
+        marca: producto.marca || null
       });
 
       // Solo agregar a diferencias si hay discrepancia
@@ -415,33 +550,30 @@ export const RecuentoStockSection = () => {
         const precioCosto = producto.precio_costo_usd || producto.precio_compra_usd || 0;
         const diferenciaUSD = diferenciaQuantity * precioCosto;
 
-        const diferencia = {
+        diferencias.push({
+          id: producto.id,
           nombre: producto.modelo || producto.nombre_producto || producto.descripcion,
+          serial: producto.serial || `${producto.tipo}-${producto.id}`,
           diferencia_cantidad: diferenciaQuantity,
-          diferencia_usd: diferenciaUSD
-        };
-
-        if (diferenciaQuantity < 0) {
-          diferencia.serial = producto.serial || `${producto.tipo}-${producto.id}`;
-        }
-        diferencias.push(diferencia);
+          diferencia_usd: diferenciaUSD,
+          stockSistema,
+          stockReal
+        });
       }
     }
 
-    console.log('✅ Productos contados a guardar:', productosContados.length);
-    console.log('📦 Desglose productos contados:', {
-      notebooks: productosContados.filter(p => p.tipo === 'computadora').length,
-      celulares: productosContados.filter(p => p.tipo === 'celular').length,
-      otros: productosContados.filter(p => p.tipo === 'otro').length
-    });
-    console.log('⚠️ Diferencias encontradas:', diferencias.length);
-
+    console.log('✅ Productos contados:', productosContados.length, '| Diferencias:', diferencias.length);
     return { diferencias, productosContados };
   };
 
   const finalizarRecuento = async () => {
     if (!sucursalSeleccionada) {
       alert('Debe seleccionar una sucursal antes de finalizar el recuento.');
+      return;
+    }
+
+    if (!categoriaSeleccionada) {
+      alert('Debe seleccionar una categoría antes de finalizar el recuento.');
       return;
     }
 
@@ -453,25 +585,19 @@ export const RecuentoStockSection = () => {
     }
 
     console.log('📋 INICIANDO FINALIZACIÓN DE RECUENTO');
+    console.log('📦 Categoría:', categoriaSeleccionada);
     console.log('📦 Total productos en inventario:', inventario.length);
-    console.log('🔢 Total productos contados en estado:', Object.keys(stockContado).length);
+    console.log('🔢 Total productos contados:', Object.keys(stockContado).length);
 
-    // ⭐ IMPORTANTE: Calcular diferencias usando el inventario COMPLETO (sin filtros)
     const { diferencias, productosContados } = calcularDiferencias(inventario);
 
-    console.log('📊 Diferencias calculadas:', diferencias.length);
-    console.log('📦 Productos a guardar en JSON:', productosContados.length);
-    console.log('🔍 Desglose por tipo:', {
-      notebooks: productosContados.filter(p => p.tipo === 'computadora').length,
-      celulares: productosContados.filter(p => p.tipo === 'celular').length,
-      otros: productosContados.filter(p => p.tipo === 'otro').length
-    });
+    console.log('📊 Diferencias:', diferencias.length);
+    console.log('📦 Productos a guardar:', productosContados.length);
 
-    // Validación final: asegurar que productosContados == inventario
+    // Validación final
     if (productosContados.length !== inventario.length) {
       console.error('❌ ERROR: Mismatch entre inventario y productos contados');
-      console.error('Inventario:', inventario.length, 'Contados:', productosContados.length);
-      alert(`❌ Error interno: El número de productos contados (${productosContados.length}) no coincide con el inventario (${inventario.length}). Por favor contacte a soporte.`);
+      alert(`❌ Error interno: El número de productos contados (${productosContados.length}) no coincide con el inventario (${inventario.length}).`);
       return;
     }
 
@@ -481,48 +607,49 @@ export const RecuentoStockSection = () => {
     }
 
     try {
-      // Obtener fecha y timestamp locales
       const ahora = new Date();
-
-      // Fecha en formato YYYY-MM-DD (zona horaria local)
       const fechaLocal = obtenerFechaLocal();
-
-      // Timestamp completo en ISO format (con zona horaria local)
       const offset = ahora.getTimezoneOffset();
       const localTime = new Date(ahora.getTime() - (offset * 60 * 1000));
       const timestampLocal = localTime.toISOString();
+
+      // Obtener label de la categoría para el mensaje
+      const categoriaLabel = categoriasDisponibles.find(c => c.value === categoriaSeleccionada)?.label || categoriaSeleccionada;
 
       const recuentoData = {
         fecha: fechaLocal,
         timestamp: timestampLocal,
         sucursal: sucursalSeleccionada,
-        tipo: productosContados.length === inventario.length ? 'completo' : 'parcial',
+        categoria: categoriaSeleccionada, // NUEVO: categoría del recuento
+        tipo: 'completo', // Siempre completo porque ahora es por categoría
         productosContados: JSON.stringify(productosContados),
         diferencias: JSON.stringify(diferencias),
-        observaciones
+        observaciones,
+        usuario: user?.nombre || user?.email || 'admin' // Usuario real
       };
 
-      console.log('💾 Guardando recuento con datos:', {
+      console.log('💾 Guardando recuento:', {
         fecha: recuentoData.fecha,
         sucursal: recuentoData.sucursal,
-        tipo: recuentoData.tipo,
+        categoria: recuentoData.categoria,
         productos: productosContados.length,
         diferencias: diferencias.length
       });
 
-      // Log detallado del JSON que se va a guardar
-      console.log('📄 JSON productos_contados (primeros 5):', JSON.parse(recuentoData.productosContados).slice(0, 5));
-      console.log('📄 JSON diferencias (primeros 5):', JSON.parse(recuentoData.diferencias).slice(0, 5));
+      // Log del primer producto para verificar foto completa
+      if (productosContados.length > 0) {
+        console.log('📸 Ejemplo de foto completa:', productosContados[0]);
+      }
 
       await guardarRecuento(recuentoData);
 
-      console.log('✅ Recuento guardado exitosamente en la base de datos');
+      console.log('✅ Recuento guardado exitosamente');
 
       if (diferencias.length === 0) {
-        alert('✅ Recuento finalizado sin diferencias. Reporte guardado correctamente.');
+        alert(`✅ Recuento de ${categoriaLabel} finalizado sin diferencias.\n\nReporte guardado correctamente.`);
       } else {
         alert(
-          `✅ Recuento finalizado y guardado.\n\n` +
+          `✅ Recuento de ${categoriaLabel} finalizado y guardado.\n\n` +
           `⚠️ Se encontraron ${diferencias.length} diferencias que quedan registradas en el reporte.`
         );
       }
@@ -602,10 +729,10 @@ export const RecuentoStockSection = () => {
               {!recuentoIniciado ? (
                 <button
                   onClick={iniciarRecuento}
-                  disabled={!sucursalSeleccionada}
-                  className={`px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors ${sucursalSeleccionada
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  disabled={!sucursalSeleccionada || !categoriaSeleccionada}
+                  className={`px-4 py-2 rounded flex items-center gap-2 font-medium transition-colors ${sucursalSeleccionada && categoriaSeleccionada
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
                     }`}
                 >
                   <Calculator size={18} />
@@ -719,7 +846,7 @@ export const RecuentoStockSection = () => {
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal *</label>
             <select
@@ -738,6 +865,38 @@ export const RecuentoStockSection = () => {
               <p className="text-xs text-slate-500 mt-1">No se puede cambiar durante el recuento</p>
             )}
           </div>
+
+          {/* NUEVO: Selector de Categoría */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
+            <select
+              value={categoriaSeleccionada}
+              onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+              disabled={!sucursalSeleccionada || recuentoIniciado}
+            >
+              <option value="">Seleccionar categoría...</option>
+              <optgroup label="Principales">
+                <option value="notebooks">💻 Notebooks</option>
+                <option value="celulares">📱 Celulares</option>
+              </optgroup>
+              <optgroup label="Otros Productos">
+                {CATEGORIAS_OTROS_ARRAY.map(cat => (
+                  <option key={cat} value={`otros_${cat}`}>
+                    📦 {getCategoriaLabel(cat)}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            {!sucursalSeleccionada && (
+              <p className="text-xs text-slate-500 mt-1">Primero seleccione una sucursal</p>
+            )}
+            {recuentoIniciado && (
+              <p className="text-xs text-slate-500 mt-1">No se puede cambiar durante el recuento</p>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Buscar producto</label>
             <div className="relative">
@@ -748,30 +907,11 @@ export const RecuentoStockSection = () => {
                 onChange={(e) => setFiltro(e.target.value)}
                 placeholder="Modelo, descripción, serial..."
                 className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                disabled={!sucursalSeleccionada}
+                disabled={!categoriaSeleccionada}
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de producto</label>
-            <select
-              value={tipoFiltro}
-              onChange={(e) => setTipoFiltro(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              disabled={!sucursalSeleccionada}
-            >
-              <option value="todos">Todos los tipos</option>
-              <option value="computadora">Notebooks</option>
-              <option value="celular">Celulares</option>
-              <option value="otro">Otros</option>
-            </select>
-            {recuentoIniciado && tipoFiltro !== 'todos' && (
-              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                <AlertTriangle size={12} />
-                Filtro visual - Debe completar TODAS las categorías
-              </p>
-            )}
-          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Estado del recuento</label>
             <div className="text-sm py-2">
@@ -812,11 +952,10 @@ export const RecuentoStockSection = () => {
               <thead className="bg-slate-50">
                 <tr>
                   <th className="text-left py-3 px-4 font-semibold text-slate-800">Producto</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Tipo</th>
-                  <th className="text-right py-3 px-4 font-semibold text-slate-800">Stock Sistema</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Stock Sistema</th>
                   <th className="text-center py-3 px-4 font-semibold text-slate-800">Stock Real</th>
                   <th className="text-center py-3 px-4 font-semibold text-slate-800">Diferencia</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Estado Recuento</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-800">Estado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -825,10 +964,9 @@ export const RecuentoStockSection = () => {
                   let stockSistema;
                   if (producto.tipo === 'otro') {
                     stockSistema = sucursalNormalizada === 'la_plata' ? (producto.cantidad_la_plata || 0) :
-                      sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) :
-                        0; // SERVICIO TÉCNICO no maneja productos "otros"
+                      sucursalNormalizada === 'mitre' ? (producto.cantidad_mitre || 0) : 0;
                   } else {
-                    stockSistema = 1; // Para notebooks y celulares, siempre 1 si están en la sucursal
+                    stockSistema = 1;
                   }
                   const stockReal = stockContado[`${producto.tipo}-${producto.id}`];
                   const diferencia = stockReal !== undefined ? stockReal - stockSistema : null;
@@ -836,38 +974,28 @@ export const RecuentoStockSection = () => {
 
                   return (
                     <tr key={`${producto.tipo}-${producto.id}`} className={`hover:bg-slate-50 ${diferencia !== null && diferencia !== 0 ? 'bg-slate-100' :
-                        contado ? 'bg-emerald-50' : ''
+                      contado ? 'bg-emerald-50' : ''
                       }`}>
                       <td className="py-3 px-4">
                         <div>
                           <div className="font-medium text-slate-800 flex items-center gap-2">
-                            {producto.modelo || producto.nombre_producto || producto.descripcion}
-                            {/* Info adicional para celulares */}
+                            {producto.modelo || producto.nombre_producto || producto.descripcion || 'Sin nombre'}
                             {producto.tipo === 'celular' && (
                               <span className="text-sm font-normal text-slate-600">
                                 {producto.capacidad && `• ${producto.capacidad}`}
                                 {producto.color && ` • ${producto.color}`}
                               </span>
                             )}
-                            {/* Indicador solo para condiciones especiales */}
                             {(['reparacion', 'prestado', 'sin_reparacion'].includes(producto.condicion)) && (
                               <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">{producto.condicion.toUpperCase()}</span>
                             )}
                           </div>
-                          <div className="text-sm text-slate-500">
+                          <div className="text-xs text-slate-500">
                             Serial: {producto.serial || `${producto.tipo}-${producto.id}`}
-                            {producto.condicion && (
-                              <span className="ml-2 text-slate-400">• {producto.condicion.toUpperCase()}</span>
-                            )}
                           </div>
                         </div>
                       </td>
-                      <td className="text-center py-3 px-4">
-                        <div className="flex items-center justify-center">
-                          {getIconoProducto(producto.tipo)}
-                        </div>
-                      </td>
-                      <td className="text-right py-3 px-4 font-medium">
+                      <td className="text-center py-3 px-4 font-medium">
                         {stockSistema}
                       </td>
                       <td className="text-center py-3 px-4">
@@ -878,7 +1006,7 @@ export const RecuentoStockSection = () => {
                             max={producto.tipo === 'otro' ? "999" : "1"}
                             value={stockReal || ''}
                             onChange={(e) => actualizarStockContado(`${producto.tipo}-${producto.id}`, e.target.value)}
-                            className="w-20 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-20 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:ring-2 focus:ring-emerald-500"
                             placeholder="0"
                           />
                         ) : (
@@ -887,8 +1015,7 @@ export const RecuentoStockSection = () => {
                       </td>
                       <td className="text-center py-3 px-4">
                         {diferencia !== null ? (
-                          <span className={`font-medium ${diferencia === 0 ? 'text-emerald-600' : 'text-slate-600'
-                            }`}>
+                          <span className={`font-medium ${diferencia === 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
                             {diferencia > 0 ? '+' : ''}{diferencia}
                           </span>
                         ) : (
@@ -954,7 +1081,7 @@ export const RecuentoStockSection = () => {
                   <tr>
                     <th className="text-left py-3 px-4 text-xs font-medium uppercase tracking-wider">Fecha</th>
                     <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Sucursal</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Tipo</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Categoría</th>
                     <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Productos</th>
                     <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Diferencias</th>
                     <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Estado</th>
@@ -970,18 +1097,27 @@ export const RecuentoStockSection = () => {
                     const totalSobrantes = diferencias.filter(d => d.diferencia_cantidad > 0).length;
                     const impactoUSD = diferencias.reduce((sum, d) => sum + (d.diferencia_usd || 0), 0);
 
+                    // Formatear categoría para mostrar
+                    const formatearCategoria = (cat) => {
+                      if (!cat) return 'Todas';
+                      if (cat === 'notebooks') return '💻 Notebooks';
+                      if (cat === 'celulares') return '📱 Celulares';
+                      if (cat.startsWith('otros_')) return `📦 ${getCategoriaLabel(cat.replace('otros_', ''))}`;
+                      return cat;
+                    };
+
                     return (
                       <React.Fragment key={index}>
                         <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                          <td className="py-3 px-4 text-sm text-slate-800">{formatearFecha(recuento.fecha_recuento)}</td>
+                          <td className="text-center py-3 px-4 text-sm text-slate-800">{formatearFecha(recuento.fecha_recuento)}</td>
                           <td className="text-center py-3 px-4">
                             <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
                               {recuento.sucursal === 'la_plata' ? 'La Plata' : recuento.sucursal === 'LA PLATA' ? 'La Plata' : recuento.sucursal === 'MITRE' ? 'Mitre' : recuento.sucursal}
                             </span>
                           </td>
-                          <td className="text-center py-3 px-4 text-sm text-slate-800 capitalize">{recuento.tipo_recuento}</td>
-                          <td className="text-right py-3 px-4 text-sm text-slate-800 font-medium">{productos.length}</td>
-                          <td className="text-right py-3 px-4 text-sm font-medium">
+                          <td className="text-center py-3 px-4 text-sm text-slate-800">{formatearCategoria(recuento.categoria)}</td>
+                          <td className="text-center py-3 px-4 text-sm text-slate-800 font-medium">{productos.length}</td>
+                          <td className="text-center py-3 px-4 text-sm font-medium">
                             {diferencias.length > 0 ? (
                               <span className="text-slate-600">{diferencias.length}</span>
                             ) : (
@@ -990,30 +1126,43 @@ export const RecuentoStockSection = () => {
                           </td>
                           <td className="text-center py-3 px-4">
                             <span className={`px-2 py-1 rounded text-xs ${recuento.estado === 'sin_diferencias'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-slate-100 text-slate-800'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-100 text-slate-800'
                               }`}>
                               {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-sm text-slate-800">{recuento.usuario_recuento}</td>
+                          <td className="text-center py-3 px-4 text-sm text-slate-800">{recuento.usuario_recuento}</td>
                           <td className="text-center py-3 px-4">
-                            <button
-                              onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
-                              className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1 mx-auto"
-                            >
-                              {recuentoExpandido === index ? (
-                                <>
-                                  <ChevronUp size={14} />
-                                  Ocultar
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDown size={14} />
-                                  Ver detalle
-                                </>
-                              )}
-                            </button>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
+                                className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1"
+                              >
+                                {recuentoExpandido === index ? (
+                                  <>
+                                    <ChevronUp size={14} />
+                                    Ocultar
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown size={14} />
+                                    Ver
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`¿Seguro que querés eliminar el recuento de ${recuento.sucursal} del ${formatearFecha(recuento.fecha_recuento)}?`)) {
+                                    eliminarRecuento(recuento.id);
+                                  }
+                                }}
+                                className="p-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                title="Eliminar recuento"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
 
@@ -1093,8 +1242,8 @@ export const RecuentoStockSection = () => {
                                               <td className="py-2 px-3 text-sm text-slate-800">{prod.descripcion}</td>
                                               <td className="text-center py-2 px-3">
                                                 <span className={`px-2 py-1 rounded text-xs ${prod.tipo === 'computadora' ? 'bg-blue-100 text-blue-800' :
-                                                    prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
-                                                      'bg-slate-100 text-slate-800'
+                                                  prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
+                                                    'bg-slate-100 text-slate-800'
                                                   }`}>
                                                   {prod.tipo === 'computadora' ? 'Notebook' :
                                                     prod.tipo === 'celular' ? 'Celular' : 'Otro'}
@@ -1202,10 +1351,243 @@ export const RecuentoStockSection = () => {
         )}
       </div>
 
+      {/* Panel de Estado Mensual de Recuentos - Versión Compacta */}
+      <div className="bg-white rounded border border-slate-200 mt-6 p-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <BarChart3 className="w-5 h-5 text-slate-600" />
+          <h3 className="font-semibold text-slate-800">Estado de Recuentos por Mes</h3>
+        </div>
+
+        {(() => {
+          const sucursalesValidas = ['LA PLATA', 'MITRE'];
+          const todasLasCategorias = [
+            { value: 'notebooks', label: '💻 Notebooks' },
+            { value: 'celulares', label: '📱 Celulares' },
+            ...CATEGORIAS_OTROS_ARRAY.map(cat => ({
+              value: `otros_${cat}`,
+              label: `📦 ${getCategoriaLabel(cat)}`
+            }))
+          ];
+          const totalCategorias = todasLasCategorias.length;
+
+          // Agrupar recuentos por mes
+          const recuentosPorMes = {};
+          (recuentosAnteriores || []).forEach(recuento => {
+            if (!recuento.fecha_recuento) return;
+            const fecha = new Date(recuento.fecha_recuento);
+            const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+            const mesLabel = fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+
+            if (!recuentosPorMes[mesKey]) {
+              recuentosPorMes[mesKey] = { label: mesLabel, key: mesKey, recuentos: [] };
+            }
+            recuentosPorMes[mesKey].recuentos.push(recuento);
+          });
+
+          const mesesOrdenados = Object.keys(recuentosPorMes).sort((a, b) => b.localeCompare(a));
+
+          if (mesesOrdenados.length === 0) {
+            return (
+              <div className="text-center py-8 text-slate-500">
+                <Package size={32} className="mx-auto mb-2 text-slate-300" />
+                <p>No hay recuentos registrados aún</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-800 text-white">
+                  <tr>
+                    <th className="text-left py-3 px-4 text-xs font-medium uppercase">Mes</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Sucursal</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Productos</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Diferencias</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Completado</th>
+                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {mesesOrdenados.slice(0, 6).flatMap(mesKey => {
+                    const mesData = recuentosPorMes[mesKey];
+
+                    return sucursalesValidas.map((sucursal, sucIdx) => {
+                      // Filtrar recuentos de esta sucursal en este mes
+                      const recuentosSucursal = mesData.recuentos.filter(r =>
+                        r.sucursal?.toUpperCase() === sucursal
+                      );
+
+                      // Calcular métricas
+                      const categoriasContadas = new Set(recuentosSucursal.map(r => r.categoria).filter(Boolean));
+                      const totalProductos = recuentosSucursal.reduce((sum, r) => {
+                        const prods = JSON.parse(r.productos_contados || '[]');
+                        return sum + prods.length;
+                      }, 0);
+                      const totalDiferencias = recuentosSucursal.reduce((sum, r) => {
+                        const difs = JSON.parse(r.diferencias_encontradas || '[]');
+                        return sum + difs.length;
+                      }, 0);
+                      const porcentaje = Math.round((categoriasContadas.size / totalCategorias) * 100);
+                      const expandKey = `${mesKey}_${sucursal}`;
+                      const isExpanded = recuentoExpandido === expandKey;
+
+                      return (
+                        <React.Fragment key={expandKey}>
+                          <tr className={`${sucIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 cursor-pointer`}
+                            onClick={() => setRecuentoExpandido(isExpanded ? null : expandKey)}>
+                            <td className="py-3 px-4 font-medium text-slate-700 capitalize">
+                              {sucIdx === 0 ? mesData.label : ''}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
+                                {sucursal}
+                              </span>
+                            </td>
+                            <td className="text-center py-3 px-4 font-medium text-slate-800">
+                              {totalProductos}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {totalDiferencias > 0 ? (
+                                <span className="text-amber-600 font-medium">{totalDiferencias}</span>
+                              ) : (
+                                <span className="text-emerald-600">0</span>
+                              )}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-16 bg-slate-200 rounded-full h-2">
+                                  <div
+                                    className={`h-2 rounded-full ${porcentaje === 100 ? 'bg-emerald-500' : porcentaje > 50 ? 'bg-amber-500' : 'bg-slate-400'}`}
+                                    style={{ width: `${porcentaje}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">{porcentaje}%</span>
+                              </div>
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={6} className="bg-slate-50 p-4">
+                                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                  {todasLasCategorias.map(cat => {
+                                    const recuentoCategoria = recuentosSucursal.find(r => r.categoria === cat.value);
+                                    const contada = !!recuentoCategoria;
+
+                                    const handleClickCategoria = (e) => {
+                                      e.stopPropagation();
+                                      if (recuentoCategoria) {
+                                        const productos = JSON.parse(recuentoCategoria.productos_contados || '[]');
+                                        setModalProductos({
+                                          productos,
+                                          titulo: `${cat.label} - ${sucursal} - ${mesData.label}`,
+                                          fecha: recuentoCategoria.fecha_recuento
+                                        });
+                                      }
+                                    };
+
+                                    return (
+                                      <div key={cat.value}
+                                        onClick={handleClickCategoria}
+                                        className={`flex items-center gap-1 text-xs p-2 rounded cursor-pointer transition-colors ${contada
+                                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                          : 'bg-slate-100 text-slate-400'
+                                          }`}>
+                                        {contada ? <CheckCircle size={12} /> : <X size={12} />}
+                                        <span className="truncate">{cat.label}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    });
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Error */}
       {error && (
         <div className="bg-slate-100 border-l-4 border-slate-400 p-4 mt-6 rounded">
           <span className="text-slate-800">{error}</span>
+        </div>
+      )}
+
+      {/* Modal de Productos del Recuento */}
+      {modalProductos && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b bg-slate-800 text-white rounded-t-lg">
+              <div>
+                <h3 className="text-lg font-semibold">{modalProductos.titulo}</h3>
+                <p className="text-sm text-slate-300">{modalProductos.productos.length} productos • {modalProductos.fecha}</p>
+              </div>
+              <button onClick={() => setModalProductos(null)} className="p-2 hover:bg-slate-700 rounded">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="overflow-auto flex-1 p-4">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 sticky top-0">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-medium">Producto</th>
+                    <th className="text-right py-2 px-3 font-medium">P. Compra</th>
+                    <th className="text-right py-2 px-3 font-medium">+ Costos</th>
+                    <th className="text-right py-2 px-3 font-medium">Costo Total</th>
+                    <th className="text-right py-2 px-3 font-medium">P. Venta</th>
+                    <th className="text-center py-2 px-3 font-medium">F. Ingreso</th>
+                    <th className="text-left py-2 px-3 font-medium">Proveedor</th>
+                    <th className="text-center py-2 px-3 font-medium">Sist.</th>
+                    <th className="text-center py-2 px-3 font-medium">Real</th>
+                    <th className="text-center py-2 px-3 font-medium">Dif.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {modalProductos.productos.map((prod, idx) => {
+                    const costoTotal = (prod.precioCompraUSD || 0) + (prod.costosAdicionales || 0);
+                    const dif = (prod.stockReal || 0) - (prod.stockSistema || 0);
+                    return (
+                      <tr key={idx} className={dif !== 0 ? 'bg-amber-50' : ''}>
+                        <td className="py-2 px-3">
+                          <div className="font-medium text-slate-800">{prod.nombre || prod.copyCompleto?.split('\n')[0] || 'Sin nombre'}</div>
+                          <div className="text-xs text-slate-500">Serial: {prod.serial}</div>
+                        </td>
+                        <td className="text-right py-2 px-3 text-slate-700">${prod.precioCompraUSD || 0}</td>
+                        <td className="text-right py-2 px-3 text-slate-500">{prod.costosAdicionales > 0 ? `+$${prod.costosAdicionales}` : '-'}</td>
+                        <td className="text-right py-2 px-3 font-medium text-slate-800">${costoTotal}</td>
+                        <td className="text-right py-2 px-3 text-emerald-600 font-medium">${prod.precioVentaUSD || 0}</td>
+                        <td className="text-center py-2 px-3 text-xs text-slate-600">{prod.fechaIngreso || '-'}</td>
+                        <td className="text-left py-2 px-3 text-xs text-slate-600 max-w-[100px] truncate">{prod.proveedor || '-'}</td>
+                        <td className="text-center py-2 px-3">{prod.stockSistema}</td>
+                        <td className="text-center py-2 px-3">{prod.stockReal}</td>
+                        <td className={`text-center py-2 px-3 font-medium ${dif === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          {dif > 0 ? '+' : ''}{dif}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
+              <div className="text-sm text-slate-600">
+                <span className="font-medium">{modalProductos.productos.filter(p => p.stockReal !== p.stockSistema).length}</span> diferencias encontradas
+              </div>
+              <button onClick={() => setModalProductos(null)} className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-800">
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

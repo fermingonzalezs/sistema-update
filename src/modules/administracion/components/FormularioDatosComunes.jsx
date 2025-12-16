@@ -693,7 +693,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             {/* Producto */}
             <div>
                 <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Producto</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
                         <input
@@ -718,6 +718,16 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             ))}
                         </select>
                         {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
+                        <MarcaSelector
+                            value={datos.marca || ''}
+                            onChange={(value) => handleChange('marca', value)}
+                            className={`w-full ${errores.marca ? 'border-red-500' : ''}`}
+                            placeholder="Seleccionar marca..."
+                        />
+                        {errores.marca && <p className="text-red-500 text-xs mt-1">{errores.marca}</p>}
                     </div>
                 </div>
             </div>
