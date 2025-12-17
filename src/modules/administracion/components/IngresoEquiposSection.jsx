@@ -165,6 +165,27 @@ const IngresoEquiposSection = () => {
     }
   };
 
+  // Traducir emails a nombres de usuario
+  const traducirUsuario = (usuario) => {
+    if (!usuario) return 'N/A';
+
+    const traducciones = {
+      'updatenotebooksadmi@gmail.com': 'Álvaro',
+      'yaelmarich@gmail.com': 'Yael',
+      'soporte.updatenotebooks@gmail.com': 'Fermin'
+    };
+
+    // Buscar traducción exacta o parcial (por si viene con mayúsculas diferentes)
+    const usuarioLower = usuario.toLowerCase();
+    for (const [email, nombre] of Object.entries(traducciones)) {
+      if (usuarioLower === email.toLowerCase() || usuarioLower.includes(email.toLowerCase())) {
+        return nombre;
+      }
+    }
+
+    return usuario;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -265,13 +286,13 @@ const IngresoEquiposSection = () => {
                   Fecha
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Usuario
+                  Serial
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Producto
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Categoría
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Descripción
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Precio Compra
@@ -280,7 +301,7 @@ const IngresoEquiposSection = () => {
                   Proveedor
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Destino
+                  Usuario
                 </th>
               </tr>
             </thead>
@@ -299,7 +320,6 @@ const IngresoEquiposSection = () => {
                 </tr>
               ) : (
                 ingresos.map((ingreso, index) => {
-                  const DestinoIcon = getDestinoIcon(ingreso.destino);
                   const categoriaTexto = normalizarCategoria(ingreso.subcategoria || ingreso.tipo_producto);
                   const categoriaColor = getCategoriaColor(ingreso.tipo_producto);
 
@@ -309,15 +329,15 @@ const IngresoEquiposSection = () => {
                         {formatearFecha(ingreso.fecha)}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800">
-                        {ingreso.usuario_ingreso || 'N/A'}
+                        {ingreso.serial && ingreso.serial.trim() !== '' ? ingreso.serial : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
+                        {ingreso.descripcion_completa}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${categoriaColor}`}>
                           {categoriaTexto}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-sm text-slate-800">
-                        {ingreso.descripcion_completa}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800 whitespace-nowrap">
                         {formatearPrecio(ingreso.precio_compra)}
@@ -325,11 +345,8 @@ const IngresoEquiposSection = () => {
                       <td className="px-4 py-3 text-center text-sm text-slate-600">
                         {ingreso.proveedor || <span className="italic text-slate-400">Sin especificar</span>}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          <DestinoIcon className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-slate-800 capitalize">{ingreso.destino}</span>
-                        </div>
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
+                        {traducirUsuario(ingreso.usuario_ingreso)}
                       </td>
                     </tr>
                   );

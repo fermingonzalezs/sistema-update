@@ -22,43 +22,56 @@ export const useIngresoEquipos = () => {
 
       if (error) throw error;
 
-      // Enriquecer con datos de subcategoría desde las tablas de inventario
+      // Enriquecer con datos de subcategoria y serial desde las tablas de inventario
       const ingresosEnriquecidos = await Promise.all(
         (data || []).map(async (ingreso) => {
           let subcategoria = null;
+          let serial = null;
 
           if (ingreso.referencia_inventario_id) {
             try {
               if (ingreso.tipo_producto === 'notebook') {
                 const { data: notebook } = await supabase
                   .from('inventario')
-                  .select('categoria')
+                  .select('categoria, serial')
                   .eq('id', ingreso.referencia_inventario_id)
                   .single();
                 subcategoria = notebook?.categoria || null;
+                serial = notebook?.serial || null;
               } else if (ingreso.tipo_producto === 'celular') {
                 const { data: celular } = await supabase
                   .from('celulares')
-                  .select('categoria')
+                  .select('categoria, serial')
                   .eq('id', ingreso.referencia_inventario_id)
                   .single();
                 subcategoria = celular?.categoria || null;
+                serial = celular?.serial || null;
               } else if (ingreso.tipo_producto === 'otro') {
                 const { data: otro } = await supabase
                   .from('otros')
-                  .select('categoria')
+                  .select('categoria, serial')
                   .eq('id', ingreso.referencia_inventario_id)
                   .single();
                 subcategoria = otro?.categoria || null;
+                serial = otro?.serial || null;
               }
             } catch (err) {
-              console.error('Error fetching subcategoria:', err);
+              console.error('Error fetching subcategoria/serial:', err);
+            }
+          }
+
+          // Intentar extraer serial del campo notas si no se encontró en inventario
+          if (!serial && ingreso.notas) {
+            const serialMatch = ingreso.notas.match(/Serial:\s*([^|]+)/i);
+            if (serialMatch && serialMatch[1]?.trim() !== 'N/A') {
+              serial = serialMatch[1].trim();
             }
           }
 
           return {
             ...ingreso,
             subcategoria,
+            serial,
             // Si no hay proveedor en el campo (legacy), usar el nombre del JOIN
             proveedor: ingreso.proveedor || ingreso.proveedores?.nombre || null
           };

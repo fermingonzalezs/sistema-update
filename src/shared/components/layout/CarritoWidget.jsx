@@ -705,150 +705,124 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   </div>
                 ) : (
                   <>
-                    <div className="overflow-y-auto max-h-96">
-                      <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-800 text-white">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Producto</th>
-                            <th className="px-4 py-2 text-center text-xs font-medium text-slate-600 uppercase tracking-wider">Cantidad</th>
-                            <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">Precio Unit.</th>
-                            <th className="px-4 py-2 text-right text-xs font-medium text-slate-600 uppercase tracking-wider">Subtotal</th>
-                            <th className="px-4 py-2 text-center text-xs font-medium text-slate-600 uppercase tracking-wider">Acciones</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Modelo</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Categoría</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Serial</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Color</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Cant.</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Precio</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase">Subtotal</th>
+                            <th className="px-2 py-2 text-center font-semibold uppercase"></th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-slate-200">
-                          {carrito.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50">
-                              {/* Producto */}
-                              <td className="px-4 py-2">
-                                <div className="flex items-center space-x-2">
-                                  <div className="p-1 bg-slate-100 rounded">
+                        <tbody className="divide-y divide-slate-200">
+                          {carrito.map((item, index) => {
+                            const obtenerCategoria = () => {
+                              if (item.tipo === 'otro') {
+                                return item.producto.subcategoria || item.categoria || item.producto.categoria || '-';
+                              }
+                              return item.tipo === 'computadora' ? 'Notebook' : item.tipo === 'celular' ? 'Celular' : item.tipo;
+                            };
+
+                            return (
+                              <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="flex items-center justify-center space-x-2">
                                     {getIconoTipo(item.tipo)}
+                                    <span className="text-slate-800 truncate max-w-[150px]" title={item.producto.modelo || item.producto.nombre_producto}>
+                                      {item.producto.modelo || item.producto.nombre_producto || '-'}
+                                    </span>
                                   </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-slate-800 truncate">
-                                      {item.producto.modelo || item.producto.nombre_producto}
-                                    </p>
-                                    <p className="text-xs text-slate-500 capitalize">{item.tipo}</p>
-                                    {item.producto.serial && (
-                                      <p className="text-xs text-slate-400 truncate">S/N: {item.producto.serial}</p>
-                                    )}
+                                </td>
+                                <td className="px-4 py-3 text-center text-slate-700 capitalize">{obtenerCategoria()}</td>
+                                <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs">
+                                  {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-center text-slate-600 capitalize">{item.producto.color || '-'}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <button
+                                      onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
+                                      className="p-1 text-slate-500 hover:text-emerald-600"
+                                    >
+                                      <Minus className="w-3 h-3" />
+                                    </button>
+                                    <span className="w-6 text-center font-semibold text-slate-800">{item.cantidad}</span>
+                                    <button
+                                      onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
+                                      className="p-1 text-slate-500 hover:text-emerald-600"
+                                      disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </button>
                                   </div>
-                                </div>
-                              </td>
-
-                              {/* Cantidad */}
-                              <td className="px-4 py-2">
-                                <div className="flex items-center justify-center space-x-1">
-                                  <button
-                                    onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
-                                    className="p-1 text-slate-500 hover:text-emerald-600 transition-colors"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="w-8 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
-                                  <button
-                                    onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
-                                    className="p-1 text-slate-500 hover:text-emerald-600 transition-colors"
-                                    disabled={item.tipo !== 'otro' && item.cantidad >= 1}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </td>
-
-                              {/* Precio Unitario */}
-                              <td className="px-4 py-2">
-                                <div className="flex items-center justify-end space-x-1">
+                                </td>
+                                <td className="px-4 py-3 text-center">
                                   {editandoPrecio === item.id ? (
-                                    // Modo edición
-                                    <div className="flex items-center space-x-1">
+                                    <div className="flex items-center justify-center space-x-1">
                                       <input
                                         type="number"
                                         value={precioEditado}
                                         onChange={(e) => setPrecioEditado(e.target.value)}
                                         onKeyPress={(e) => {
-                                          if (e.key === 'Enter') {
-                                            confirmarEdicionPrecio(item.id);
-                                          } else if (e.key === 'Escape') {
-                                            cancelarEdicionPrecio();
-                                          }
+                                          if (e.key === 'Enter') confirmarEdicionPrecio(item.id);
+                                          else if (e.key === 'Escape') cancelarEdicionPrecio();
                                         }}
-                                        className="w-20 px-2 py-1 text-xs border border-emerald-500 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                        className="w-16 px-1 py-0.5 text-xs border border-emerald-500 rounded"
                                         step="0.01"
                                         min="0.01"
                                         autoFocus
                                       />
-                                      <button
-                                        onClick={() => confirmarEdicionPrecio(item.id)}
-                                        className="p-1 text-emerald-600 hover:text-emerald-700"
-                                        title="Confirmar"
-                                      >
+                                      <button onClick={() => confirmarEdicionPrecio(item.id)} className="text-emerald-600">
                                         <Check className="w-3 h-3" />
                                       </button>
-                                      <button
-                                        onClick={cancelarEdicionPrecio}
-                                        className="p-1 text-slate-500 hover:text-slate-700"
-                                        title="Cancelar"
-                                      >
+                                      <button onClick={cancelarEdicionPrecio} className="text-slate-500">
                                         <X className="w-3 h-3" />
                                       </button>
                                     </div>
                                   ) : (
-                                    // Modo visualización
-                                    <>
-                                      <span className={`text-sm ${preciosModificados[item.id]?.fue_modificado
-                                          ? 'text-emerald-600 font-semibold'
-                                          : 'text-slate-700'
-                                        }`}>
+                                    <div className="flex items-center justify-center space-x-1">
+                                      <span className={preciosModificados[item.id]?.fue_modificado ? 'text-emerald-600 font-semibold' : 'text-slate-800'}>
                                         ${item.precio_unitario.toFixed(2)}
                                       </span>
-
-                                      {preciosModificados[item.id]?.fue_modificado && (
-                                        <span className="text-xs text-emerald-600" title="Precio modificado">✓</span>
-                                      )}
-
                                       <button
                                         onClick={() => iniciarEdicionPrecio(item)}
-                                        className="p-1 text-slate-400 hover:text-emerald-600"
+                                        className="text-slate-400 hover:text-emerald-600"
                                         title="Editar precio"
                                       >
                                         <Edit2 className="w-3 h-3" />
                                       </button>
-
                                       {preciosModificados[item.id]?.fue_modificado && (
                                         <button
                                           onClick={() => restaurarPrecioOriginal(item.id)}
-                                          className="p-1 text-slate-400 hover:text-slate-700"
-                                          title={`Restaurar: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                          className="text-slate-400 hover:text-slate-700"
+                                          title="Restaurar precio"
                                         >
                                           <RotateCcw className="w-3 h-3" />
                                         </button>
                                       )}
-                                    </>
+                                    </div>
                                   )}
-                                </div>
-                              </td>
-
-                              {/* Subtotal */}
-                              <td className="px-4 py-2 text-right">
-                                <span className="text-sm font-semibold text-slate-800">
+                                </td>
+                                <td className="px-4 py-3 text-center font-semibold text-slate-800">
                                   ${(item.precio_unitario * item.cantidad).toFixed(2)}
-                                </span>
-                              </td>
-
-                              {/* Acciones */}
-                              <td className="px-4 py-2 text-center">
-                                <button
-                                  onClick={() => onRemover(item.id)}
-                                  className="p-1 text-slate-400 hover:text-red-600 transition-colors"
-                                  title="Eliminar"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                                </td>
+                                <td className="px-2 py-3 text-center">
+                                  <button
+                                    onClick={() => onRemover(item.id)}
+                                    className="text-slate-400 hover:text-red-600"
+                                    title="Eliminar"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1015,8 +989,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                           <button
                                             onClick={() => iniciarEdicionPrecio(item)}
                                             className={`text-sm font-medium cursor-pointer hover:opacity-70 transition-opacity ${preciosModificados[item.id]?.fue_modificado
-                                                ? 'text-emerald-600'
-                                                : 'text-slate-800'
+                                              ? 'text-emerald-600'
+                                              : 'text-slate-800'
                                               }`}
                                             title="Click para editar"
                                             type="button"
@@ -1368,8 +1342,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       type="submit"
                       disabled={!clienteSeleccionado || !datosCliente.vendedor}
                       className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                          ? 'bg-slate-800 text-white hover:bg-slate-700'
-                          : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        ? 'bg-slate-800 text-white hover:bg-slate-700'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700'
                         }`}
                     >
                       {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') ? (
@@ -1422,8 +1396,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                 onClick={confirmarVenta}
                 disabled={procesandoVenta}
                 className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${procesandoVenta
-                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
                   }`}
               >
                 {procesandoVenta ? (

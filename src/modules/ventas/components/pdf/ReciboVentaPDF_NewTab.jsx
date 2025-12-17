@@ -282,35 +282,48 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Columnas de la tabla con mejor distribución
+  // Columnas de la tabla con mejor distribución (5 columnas)
   colItem: {
-    width: '60%',
+    width: '45%',
     textAlign: 'center',
     borderRightWidth: 0.5,
     borderRightColor: '#FFFFFF',
     paddingHorizontal: 4,
   },
   colItemContent: {
-    width: '60%',
+    width: '45%',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
+  },
+  colSerial: {
+    width: '15%',
     textAlign: 'center',
     borderRightWidth: 0.5,
     borderRightColor: '#FFFFFF',
     paddingHorizontal: 4,
   },
   colQuantity: {
-    width: '13%',
+    width: '10%',
     textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   colPrice: {
-    width: '14%',
+    width: '15%',
     textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#FFFFFF',
+    paddingHorizontal: 4,
   },
   colTotal: {
-    width: '13%',
+    width: '15%',
     textAlign: 'center',
   },
   colTotalLast: {
-    width: '13%',
+    width: '15%',
     textAlign: 'center',
     borderRightWidth: 0,
   },
@@ -668,7 +681,8 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderText, styles.colItem]}>Item</Text>
-            <Text style={[styles.tableHeaderText, styles.colQuantity]}>Cantidad</Text>
+            <Text style={[styles.tableHeaderText, styles.colSerial]}>Serial</Text>
+            <Text style={[styles.tableHeaderText, styles.colQuantity]}>Cant.</Text>
             <Text style={[styles.tableHeaderText, styles.colPrice]}>Precio</Text>
             <Text style={[styles.tableHeaderText, styles.colTotalLast]}>Total</Text>
           </View>
@@ -676,6 +690,7 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
           {data.items.map((item, index) => (
             <View
               key={index}
+              wrap={false}
               style={[
                 styles.tableRow,
                 index === data.items.length - 1 && styles.tableRowLast
@@ -683,9 +698,9 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
             >
               <View style={[styles.tableCell, styles.colItemContent]}>
                 <Text>{item.description}</Text>
-                {item.serial && (
-                  <Text style={styles.serialText}>S/N: {item.serial}</Text>
-                )}
+              </View>
+              <View style={[styles.tableCell, styles.colSerial]}>
+                <Text>{item.serial && item.serial.trim() !== '' ? item.serial : '-'}</Text>
               </View>
               <View style={[styles.tableCell, styles.colQuantity]}>
                 <Text>{item.quantity}</Text>
@@ -700,8 +715,8 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
           ))}
         </View>
 
-        {/* Totales */}
-        <View style={styles.totalsSection}>
+        {/* Totales - No se corta entre páginas */}
+        <View style={styles.totalsSection} wrap={false}>
           <View style={styles.totalsContainer}>
             <View style={styles.totalsHeader}>
               <Text style={styles.totalsHeaderText}>Total</Text>
@@ -717,20 +732,20 @@ const ReciboVentaDocument = ({ data, tipoDocumento }) => {
         </View>
 
 
-        {/* Espacio para firmar */}
-        <View style={styles.signatureSection}>
+        {/* Espacio para firmar - No se corta entre páginas */}
+        <View style={styles.signatureSection} wrap={false}>
           <View style={styles.signatureLine}>
             <Text>Firma</Text>
           </View>
         </View>
 
         {/* Mensaje de agradecimiento */}
-        <View style={styles.thankYouSection}>
+        <View style={styles.thankYouSection} wrap={false}>
           <Text style={styles.thankYouText}>¡GRACIAS POR TU COMPRA!</Text>
         </View>
 
-        {/* Información de la Empresa al Final */}
-        <View style={styles.companyInfoFooter}>
+        {/* Información de la Empresa al Final - Fijado al final de la última página */}
+        <View style={styles.companyInfoFooter} wrap={false}>
           <Text style={styles.companyInfoFooterText}>
             {data.company.name} • {data.company.cuit} • {data.company.phone} • INFO@UPDATETECH.COM.AR • WWW.UPDATETECH.COM.AR
           </Text>
@@ -772,7 +787,7 @@ export const convertirVentaARecibo = (transaccion) => {
         quantity: item.cantidad || 1,
         unitPrice: item.precio_unitario || 0,
         amount: item.precio_total || 0,
-        serial: null // Serial ya está en la descripción
+        serial: item.serial_producto || null
       };
     }),
     discount: transaccion.descuento || 0,

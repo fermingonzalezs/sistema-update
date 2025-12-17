@@ -7,12 +7,12 @@ import { formatearMonto } from './formatters';
  * Tipos de copys disponibles:
  * VERSIONES COMERCIALES (para Listas y botones copy):
  * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * - 'celular_comercial': 📱 MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO - PRECIO
+ * - 'celular_comercial': 📱 MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO - PRECIO
  * - 'otro_comercial': 📦 MODELO - DESCRIPCION - PRECIO
  *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
  * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION (sin emoji, sin precio)
- * - 'celular_completo': MODELO - CAPACIDAD - COLOR - BATERIA - ESTADO (sin emoji, sin precio)
+ * - 'celular_completo': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO (sin emoji, sin precio, sin condición)
  * - 'otro_completo': MODELO - DESCRIPCION (sin emoji, sin precio)
  *
  * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
@@ -462,8 +462,8 @@ const generateNotebookCopy = (comp, config) => {
 
 /**
  * Generar copy para celulares
- * NUEVOS: 📱 MODELO - CAPACIDAD - COLOR - CONDICION - PRECIO
- * USADOS/REFURBISHED: 📱 MODELO - CAPACIDAD - COLOR - 🔋 BATERIA - CONDICION - ESTADO ESTÉTICO - PRECIO
+ * NUEVOS: 📱 MODELO - COLOR - CAPACIDAD - PRECIO
+ * USADOS/REFURBISHED: 📱 MODELO - COLOR - CAPACIDAD - 🔋 BATERIA - ESTADO ESTÉTICO - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
   const partes = [];
@@ -515,12 +515,7 @@ const generateCelularCopy = (cel, config) => {
     }
   }
 
-  // 5. CONDICION - SIEMPRE (excepto en versión documento)
-  if (cel.condicion && config.style !== 'documento') {
-    partes.push(capitalize(cel.condicion));
-  }
-
-  // 6. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  // 5. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
   if (!esNuevo && cel.estado && config.style !== 'documento') {
     partes.push(cel.estado);
   }

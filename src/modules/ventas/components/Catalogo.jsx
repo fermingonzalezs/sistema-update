@@ -310,7 +310,6 @@ Color: ${producto.color || 'N/A'}
 Estado: ${producto.estado || 'N/A'}
 Batería: ${producto.bateria || 'N/A'}
 ${producto.ciclos ? 'Ciclos: ' + producto.ciclos : ''}
-Condición: ${(producto.condicion || 'N/A').toUpperCase()}
 Garantía: ${producto.garantia_update || producto.garantia_oficial || producto.garantia || '3 meses'}`;
       } else {
         // Para "otros"
