@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Monitor, Smartphone, Box, Eye } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Plus, Trash2, Monitor, Smartphone, Box, Package, PackageOpen } from 'lucide-react';
 import { useProveedores } from '../../importaciones/hooks/useProveedores';
 import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
 import CargaEquiposUnificada from '../../administracion/components/CargaEquiposUnificada';
+import CargaMasivaCompras from './CargaMasivaCompras';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 
@@ -22,6 +23,8 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   const [mostrarModalDestino, setMostrarModalDestino] = useState(false);
   const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [procesando, setProcesando] = useState(false);
+  const [mostrarModalMasivo, setMostrarModalMasivo] = useState(false);
+  const [modoAgregar, setModoAgregar] = useState('individual');
 
   const [formRecibo, setFormRecibo] = useState({
     proveedor_id: reciboInicial?.proveedor_id || '',
@@ -33,7 +36,6 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   });
 
   const [items, setItems] = useState([]);
-  const [itemExpandido, setItemExpandido] = useState(null);
 
   // Función para generar descripción del item
   const generarDescripcionItem = (tipo, datos) => {
@@ -91,6 +93,32 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
     setItems(items.filter(item => item.id !== id));
   };
 
+  // Función para agregar lote masivo
+  const handleAgregarLoteMasivo = (itemsNuevos) => {
+    // Validar límite final
+    const totalFinal = items.length + itemsNuevos.length;
+
+    if (totalFinal > 50) {
+      const permitidos = 50 - items.length;
+      alert(`⚠️ Solo puedes agregar ${permitidos} items más (límite: 50 items por compra)`);
+      const itemsLimitados = itemsNuevos.slice(0, permitidos);
+      setItems([...items, ...itemsLimitados]);
+    } else {
+      setItems([...items, ...itemsNuevos]);
+      alert(`✅ ${itemsNuevos.length} productos agregados desde carga masiva`);
+    }
+
+    setMostrarModalMasivo(false);
+  };
+
+  // Función para eliminar lote completo
+  const eliminarLoteCompleto = (loteId) => {
+    const loteItems = items.filter(item => item.lote_id === loteId);
+    if (window.confirm(`¿Eliminar todo el lote? (${loteItems.length} items)`)) {
+      setItems(items.filter(item => item.lote_id !== loteId));
+    }
+  };
+
   // Cálculo en tiempo real de costos prorrateados
   const calcularCostosProrrateados = () => {
     const totalSinCostos = items.reduce((sum, item) => sum + item.precio_total, 0);
@@ -121,6 +149,25 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   const calcularTotalItems = () => {
     return items.reduce((sum, item) => sum + item.precio_total, 0);
   };
+
+  // Agrupar items por origen y lote
+  const itemsAgrupados = useMemo(() => {
+    const lotes = {};
+    const individuales = [];
+
+    items.forEach(item => {
+      if (item.origen === 'masivo' && item.lote_id) {
+        if (!lotes[item.lote_id]) {
+          lotes[item.lote_id] = [];
+        }
+        lotes[item.lote_id].push(item);
+      } else {
+        individuales.push(item);
+      }
+    });
+
+    return { lotes, individuales };
+  }, [items]);
 
   // Función para crear notebooks en inventario
   const crearNotebook = async (datos, costosAdicionales) => {
@@ -524,11 +571,54 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
               <h4 className="font-semibold text-white uppercase">Agregar Productos</h4>
             </div>
             <div className="border border-slate-200 border-t-0 rounded-b p-4">
-              <CargaEquiposUnificada
-                modoCompra={true}
-                onReturnData={handleAgregarItem}
-                loading={procesando}
-              />
+              {/* Botones de selección de modo */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={() => setModoAgregar('individual')}
+                  className={`p-6 rounded border-2 transition-all ${
+                    modoAgregar === 'individual'
+                      ? 'border-emerald-600 bg-emerald-50'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                  disabled={procesando}
+                >
+                  <Package size={24} className="mx-auto mb-2" />
+                  <p className="font-semibold text-slate-800">Agregar Individual</p>
+                  <p className="text-sm text-slate-500 mt-1">Un producto a la vez</p>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (items.length >= 50) {
+                      alert('⚠️ Límite alcanzado: ya tienes 50 items en esta compra');
+                      return;
+                    }
+                    setMostrarModalMasivo(true);
+                  }}
+                  disabled={items.length >= 50 || procesando}
+                  className={`p-6 rounded border-2 transition-all ${
+                    items.length >= 50
+                      ? 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
+                      : 'border-slate-200 hover:border-emerald-600'
+                  }`}
+                >
+                  <PackageOpen size={24} className="mx-auto mb-2" />
+                  <p className="font-semibold text-slate-800">Carga Masiva</p>
+                  <p className="text-sm text-slate-500 mt-1">Hasta 50 unidades del mismo modelo</p>
+                  {items.length >= 50 && (
+                    <p className="text-xs text-red-600 mt-2">Límite alcanzado</p>
+                  )}
+                </button>
+              </div>
+
+              {/* Formulario individual (solo si modo individual) */}
+              {modoAgregar === 'individual' && (
+                <CargaEquiposUnificada
+                  modoCompra={true}
+                  onReturnData={handleAgregarItem}
+                  loading={procesando}
+                />
+              )}
             </div>
           </div>
 
@@ -543,8 +633,8 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                   <table className="w-full">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Unit.</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Subtotal</th>
@@ -554,75 +644,95 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {itemsConCostosCalculados.map((item, index) => (
-                        <React.Fragment key={item.id}>
-                          <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                            <td className="px-4 py-3 text-sm">
-                              <div className="flex items-center gap-2">
-                                {getIconoTipo(item.tipo_producto)}
-                                <span className="capitalize">{item.tipo_producto}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-slate-800">{item.descripcion}</td>
+                      {/* Items individuales */}
+                      {itemsAgrupados.individuales.map((item) => {
+                        const itemConCostos = itemsConCostosCalculados.find(i => i.id === item.id);
+                        if (!itemConCostos) return null;
+
+                        return (
+                          <tr key={item.id} className="bg-white">
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">{item.descripcion}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-600 font-mono">{item.datos_completos.serial || 'N/A'}</td>
                             <td className="px-4 py-3 text-sm text-center text-slate-600">{item.cantidad}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600">${item.precio_unitario.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600">${item.precio_total.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-center text-emerald-600 font-medium">${(item.costos_adicionales || 0).toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">${item.precio_final.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-600">${Math.round(item.precio_unitario)}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-600">${Math.round(item.precio_total)}</td>
+                            <td className="px-4 py-3 text-sm text-center text-emerald-600 font-medium">${Math.round(itemConCostos.costos_adicionales || 0)}</td>
+                            <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">${Math.round(itemConCostos.precio_final)}</td>
                             <td className="px-4 py-3 text-center">
-                              <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => eliminarItem(item.id)}
+                                className="text-red-600 hover:text-red-700 transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                      {/* Lotes masivos */}
+                      {Object.entries(itemsAgrupados.lotes).map(([loteId, loteItems], loteIdx) => (
+                        <React.Fragment key={loteId}>
+                          {/* Header de lote */}
+                          <tr className="bg-emerald-100 border-t-2 border-emerald-600">
+                            <td colSpan="8" className="px-4 py-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Package size={16} className="text-emerald-700" />
+                                  <span className="font-semibold text-emerald-800">
+                                    Lote {loteIdx + 1}: {loteItems[0].descripcion}
+                                  </span>
+                                  <span className="text-emerald-600 text-sm">
+                                    ({loteItems.length} unidades)
+                                  </span>
+                                </div>
                                 <button
-                                  onClick={() => setItemExpandido(itemExpandido === item.id ? null : item.id)}
-                                  className="text-slate-600 hover:text-slate-800 transition-colors"
-                                  title="Ver detalles"
+                                  onClick={() => eliminarLoteCompleto(loteId)}
+                                  className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1 font-medium"
                                 >
-                                  <Eye size={16} />
-                                </button>
-                                <button
-                                  onClick={() => eliminarItem(item.id)}
-                                  className="text-red-600 hover:text-red-700 transition-colors"
-                                  title="Eliminar"
-                                >
-                                  <Trash2 size={16} />
+                                  <Trash2 size={14} />
+                                  Eliminar lote
                                 </button>
                               </div>
                             </td>
                           </tr>
-                          {itemExpandido === item.id && (
-                            <tr className={index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'}>
-                              <td colSpan="8" className="px-4 py-3">
-                                <div className="text-xs space-y-1 text-slate-700">
-                                  <p><strong>Serial:</strong> {item.datos_completos.serial || 'N/A'}</p>
-                                  <p><strong>Marca:</strong> {item.datos_completos.marca || 'N/A'}</p>
-                                  <p><strong>Modelo:</strong> {item.datos_completos.modelo || item.datos_completos.nombre_producto || 'N/A'}</p>
-                                  {item.tipo_producto === 'notebook' && (
-                                    <>
-                                      <p><strong>Procesador:</strong> {item.datos_completos.procesador || 'N/A'}</p>
-                                      <p><strong>RAM:</strong> {item.datos_completos.ram || 'N/A'}</p>
-                                      <p><strong>Almacenamiento:</strong> {item.datos_completos.ssd || 'N/A'}</p>
-                                    </>
-                                  )}
-                                  {item.tipo_producto === 'celular' && (
-                                    <>
-                                      <p><strong>Capacidad:</strong> {item.datos_completos.capacidad || 'N/A'}</p>
-                                      <p><strong>Color:</strong> {item.datos_completos.color || 'N/A'}</p>
-                                    </>
-                                  )}
-                                  <p><strong>Condición:</strong> {item.datos_completos.condicion || 'N/A'}</p>
-                                  <p><strong>Sucursal:</strong> {item.datos_completos.sucursal || 'N/A'}</p>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
+
+                          {/* Items del lote */}
+                          {loteItems.map((item) => {
+                            const itemConCostos = itemsConCostosCalculados.find(i => i.id === item.id);
+                            if (!itemConCostos) return null;
+
+                            return (
+                              <tr key={item.id} className="bg-emerald-50">
+                                <td className="px-4 py-2 text-sm text-center text-slate-600">{item.descripcion}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-600 font-mono">{item.datos_completos.serial}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-600">{item.cantidad}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-600">${Math.round(item.precio_unitario)}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-600">${Math.round(item.precio_total)}</td>
+                                <td className="px-4 py-2 text-sm text-center text-emerald-600 font-medium">${Math.round(itemConCostos.costos_adicionales || 0)}</td>
+                                <td className="px-4 py-2 text-sm text-center font-semibold text-slate-800">${Math.round(itemConCostos.precio_final)}</td>
+                                <td className="px-4 py-2 text-center">
+                                  <button
+                                    onClick={() => eliminarItem(item.id)}
+                                    className="text-red-600 hover:text-red-700 transition-colors"
+                                    title="Eliminar item"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </React.Fragment>
                       ))}
                     </tbody>
                     <tfoot className="bg-slate-800 text-white">
                       <tr>
                         <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">SUBTOTAL:</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-center">${calcularTotalItems().toFixed(2)}</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-center">${(parseFloat(formRecibo.costos_adicionales) || 0).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-center">${totalFinal.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-center">${Math.round(calcularTotalItems())}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-center">${Math.round(parseFloat(formRecibo.costos_adicionales) || 0)}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-center">${Math.round(totalFinal)}</td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -724,6 +834,14 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
           }}
         />
       )}
+
+      {/* MODAL DE CARGA MASIVA */}
+      <CargaMasivaCompras
+        isOpen={mostrarModalMasivo}
+        onClose={() => setMostrarModalMasivo(false)}
+        onConfirmar={handleAgregarLoteMasivo}
+        itemsYaAgregados={items}
+      />
     </div>
   );
 };

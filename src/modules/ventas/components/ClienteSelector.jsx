@@ -6,7 +6,7 @@ import { useClientes } from '../hooks/useClientes.js';
 import { clienteMatchesSearch } from '../utils/stringUtils';
 
 // ✅ MODAL CON PORTAL - Para evitar conflictos de z-index
-const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
+const ClienteModalPortal = ({ isOpen, onClose, onSave, clientesParaReferido = [] }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -15,18 +15,21 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
     cumpleanos: '',
     procedencia: '',
     profesion: '',
-    profesion: '',
     direccion: '',
-    notas: ''
+    notas: '',
+    referido_por: null
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const [searchReferido, setSearchReferido] = useState('');
 
   const procedenciaOptions = [
     { value: 'instagram', label: 'Instagram', icon: '📸' },
     { value: 'facebook', label: 'Facebook', icon: '👥' },
     { value: 'whatsapp', label: 'WhatsApp', icon: '💬' },
     { value: 'conocidos', label: 'Conocidos', icon: '👋' },
+    { value: 'referidos', label: 'Referidos', icon: '🤝' },
     { value: 'otro', label: 'Otro', icon: '❓' }
   ];
 
@@ -40,11 +43,12 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
         cumpleanos: '',
         procedencia: '',
         profesion: '',
-        profesion: '',
         direccion: '',
-        notas: ''
+        notas: '',
+        referido_por: null
       });
       setErrors({});
+      setSearchReferido('');
     }
   }, [isOpen]);
 
@@ -65,6 +69,11 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
 
     if (formData.telefono && !/^[\+]?[\d\s\-\(\)]+$/.test(formData.telefono)) {
       newErrors.telefono = 'Formato de teléfono inválido';
+    }
+
+    // Validar que si procedencia es 'referidos', se debe seleccionar quién lo refirió
+    if (formData.procedencia === 'referidos' && !formData.referido_por) {
+      newErrors.referido_por = 'Debe seleccionar quién refirió a este cliente';
     }
 
     setErrors(newErrors);
@@ -250,6 +259,77 @@ const ClienteModalPortal = ({ isOpen, onClose, onSave }) => {
               </select>
             </div>
           </div>
+
+          {/* Selector de Cliente Referidor - Solo visible cuando procedencia es 'referidos' */}
+          {formData.procedencia === 'referidos' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                🤝 ¿Quién lo refirió? *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchReferido}
+                  onChange={(e) => setSearchReferido(e.target.value)}
+                  placeholder="Buscar cliente que lo refirió..."
+                  className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.referido_por ? 'border-red-500' : 'border-slate-200'
+                    }`}
+                />
+                {formData.referido_por && (
+                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded flex items-center justify-between">
+                    <span className="text-emerald-800 text-sm">
+                      ✅ {clientesParaReferido.find(c => c.id === formData.referido_por)?.nombre} {clientesParaReferido.find(c => c.id === formData.referido_por)?.apellido}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleChange('referido_por', null);
+                        setSearchReferido('');
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      ✕ Quitar
+                    </button>
+                  </div>
+                )}
+                {searchReferido && !formData.referido_por && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-300 rounded shadow-lg max-h-40 overflow-y-auto">
+                    {clientesParaReferido
+                      .filter(c =>
+                        `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase()) ||
+                        c.telefono?.includes(searchReferido)
+                      )
+                      .slice(0, 5)
+                      .map(cliente => (
+                        <button
+                          key={cliente.id}
+                          type="button"
+                          onClick={() => {
+                            handleChange('referido_por', cliente.id);
+                            setSearchReferido(`${cliente.nombre} ${cliente.apellido}`);
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-slate-100 border-b border-slate-100 last:border-b-0"
+                        >
+                          <span className="font-medium">{cliente.nombre} {cliente.apellido}</span>
+                          {cliente.telefono && (
+                            <span className="text-slate-500 text-sm ml-2">({cliente.telefono})</span>
+                          )}
+                        </button>
+                      ))
+                    }
+                    {clientesParaReferido.filter(c =>
+                      `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase())
+                    ).length === 0 && (
+                        <div className="px-3 py-2 text-slate-500 text-sm">No se encontraron clientes</div>
+                      )}
+                  </div>
+                )}
+              </div>
+              {errors.referido_por && (
+                <p className="text-red-500 text-sm mt-1">{errors.referido_por}</p>
+              )}
+            </div>
+          )}
 
           {/* Profesión y Dirección */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -569,6 +649,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false })
         isOpen={showModal}
         onClose={handleCloseModal}
         onSave={handleCreateCliente}
+        clientesParaReferido={clientes}
       />
     </div>
   );

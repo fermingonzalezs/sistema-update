@@ -119,6 +119,7 @@ const Clientes = () => {
       'instagram': { label: 'Instagram', icon: '📸', color: 'bg-slate-100 text-slate-800' },
       'facebook': { label: 'Facebook', icon: '👥', color: 'bg-slate-100 text-slate-800' },
       'whatsapp': { label: 'WhatsApp', icon: '💬', color: 'bg-emerald-100 text-emerald-800' },
+      'referidos': { label: 'Referidos', icon: '🤝', color: 'bg-purple-100 text-purple-800' },
       'conocidos': { label: 'Conocidos', icon: '👋', color: 'bg-slate-100 text-slate-800' },
       'otro': { label: 'Otro', icon: '❓', color: 'bg-slate-100 text-slate-800' }
     };
@@ -135,14 +136,14 @@ const Clientes = () => {
   return (
     <div className="p-0">
 
-     
+
 
       <div className="flex justify-between items-start mb-6">
         {/* Estadísticas simples */}
         {estadisticas && (
           <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            
+
+
             <Tarjeta
               icon={Users}
               titulo="Total Clientes"
@@ -164,7 +165,7 @@ const Clientes = () => {
 
           </div>
         )}
-        
+
       </div>
 
       {/* Cumpleaños Próximos */}
@@ -183,18 +184,18 @@ const Clientes = () => {
           />
         </div>
         <div className="flex items-center gap-4">
-            <button
+          <button
             onClick={() => setShowModal(true)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded flex items-center gap-2 font-medium transition-colors"
-            >
+          >
             <Plus className="w-4 h-4" />
             Nuevo Cliente
-            </button>
+          </button>
         </div>
       </div>
 
 
-      
+
 
       {/* Lista de clientes */}
       <div className="bg-white rounded border border-slate-200">
@@ -221,7 +222,7 @@ const Clientes = () => {
           <div className="divide-y divide-slate-200">
             {clientes.filter(cliente => clienteMatchesSearch(cliente, searchTerm)).map((cliente) => {
               const procedencia = formatProcedencia(cliente.procedencia);
-              
+
               return (
                 <div
                   key={cliente.id}
@@ -321,6 +322,7 @@ const Clientes = () => {
         }}
         onSave={editingCliente ? handleUpdateCliente : handleCreateCliente}
         cliente={editingCliente}
+        clientesParaReferido={clientes}
       />
 
       {/* Modal de Historial de Compras */}

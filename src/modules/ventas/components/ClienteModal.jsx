@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, Calendar, MapPin, Briefcase, FileText } from 'lucide-react';
 
-const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
+const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaReferido = [] }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -11,16 +11,18 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
     cumpleanos: '',
     procedencia: '',
     profesion: '',
-    notas: ''
+    notas: '',
+    referido_por: null
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [searchReferido, setSearchReferido] = useState('');
 
   const procedenciaOptions = [
     { value: 'instagram', label: 'Instagram', icon: '📸' },
     { value: 'facebook', label: 'Facebook', icon: '👥' },
     { value: 'whatsapp', label: 'WhatsApp', icon: '💬' },
-    { value: 'referidos', label: 'Referidos', icon: '🗣️' },
+    { value: 'referidos', label: 'Referidos', icon: '🤝' },
     { value: 'conocidos', label: 'Conocidos', icon: '👋' },
     { value: 'otro', label: 'Otro', icon: '❓' }
   ];
@@ -35,8 +37,18 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
         cumpleanos: cliente.cumpleanos || '',
         procedencia: cliente.procedencia || '',
         profesion: cliente.profesion || '',
-        notas: cliente.notas || ''
+        notas: cliente.notas || '',
+        referido_por: cliente.referido_por || null
       });
+      // Si tiene referido_por, buscar el nombre del cliente referidor
+      if (cliente.referido_por && clientesParaReferido.length > 0) {
+        const referidor = clientesParaReferido.find(c => c.id === cliente.referido_por);
+        if (referidor) {
+          setSearchReferido(`${referidor.nombre} ${referidor.apellido}`);
+        }
+      } else {
+        setSearchReferido('');
+      }
     } else {
       setFormData({
         nombre: '',
@@ -46,11 +58,13 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
         cumpleanos: '',
         procedencia: '',
         profesion: '',
-        notas: ''
+        notas: '',
+        referido_por: null
       });
+      setSearchReferido('');
     }
     setErrors({});
-  }, [cliente, isOpen]);
+  }, [cliente, isOpen, clientesParaReferido]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -69,6 +83,11 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
 
     if (formData.telefono && !/^[\+]?[\d\s\-\(\)]+$/.test(formData.telefono)) {
       newErrors.telefono = 'Formato de teléfono inválido';
+    }
+
+    // Validar que si procedencia es 'referidos', se debe seleccionar quién lo refirió
+    if (formData.procedencia === 'referidos' && !formData.referido_por) {
+      newErrors.referido_por = 'Debe seleccionar quién refirió a este cliente';
     }
 
     setErrors(newErrors);
@@ -240,6 +259,77 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null }) => {
               </select>
             </div>
           </div>
+
+          {/* Selector de Cliente Referidor - Solo visible cuando procedencia es 'referidos' */}
+          {formData.procedencia === 'referidos' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                🤝 ¿Quién lo refirió? *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchReferido}
+                  onChange={(e) => setSearchReferido(e.target.value)}
+                  placeholder="Buscar cliente que lo refirió..."
+                  className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.referido_por ? 'border-red-500' : 'border-slate-200'
+                    }`}
+                />
+                {formData.referido_por && (
+                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded flex items-center justify-between">
+                    <span className="text-emerald-800 text-sm">
+                      ✅ {clientesParaReferido.find(c => c.id === formData.referido_por)?.nombre} {clientesParaReferido.find(c => c.id === formData.referido_por)?.apellido}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleChange('referido_por', null);
+                        setSearchReferido('');
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      ✕ Quitar
+                    </button>
+                  </div>
+                )}
+                {searchReferido && !formData.referido_por && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-300 rounded shadow-lg max-h-40 overflow-y-auto">
+                    {clientesParaReferido
+                      .filter(c =>
+                        `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase()) ||
+                        c.telefono?.includes(searchReferido)
+                      )
+                      .slice(0, 5)
+                      .map(clienteRef => (
+                        <button
+                          key={clienteRef.id}
+                          type="button"
+                          onClick={() => {
+                            handleChange('referido_por', clienteRef.id);
+                            setSearchReferido(`${clienteRef.nombre} ${clienteRef.apellido}`);
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-slate-100 border-b border-slate-100 last:border-b-0"
+                        >
+                          <span className="font-medium">{clienteRef.nombre} {clienteRef.apellido}</span>
+                          {clienteRef.telefono && (
+                            <span className="text-slate-500 text-sm ml-2">({clienteRef.telefono})</span>
+                          )}
+                        </button>
+                      ))
+                    }
+                    {clientesParaReferido.filter(c =>
+                      `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase())
+                    ).length === 0 && (
+                        <div className="px-3 py-2 text-slate-500 text-sm">No se encontraron clientes</div>
+                      )}
+                  </div>
+                )}
+              </div>
+              {errors.referido_por && (
+                <p className="text-red-500 text-sm mt-1">{errors.referido_por}</p>
+              )}
+            </div>
+          )}
 
           {/* Profesión */}
           <div>

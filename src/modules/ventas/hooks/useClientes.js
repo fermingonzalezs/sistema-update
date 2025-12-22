@@ -9,7 +9,7 @@ export const clientesService = {
   async getAll() {
     try {
       console.log('📡 Obteniendo todos los clientes...');
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('*')
@@ -17,7 +17,7 @@ export const clientesService = {
         .order('apellido', { ascending: true });
 
       if (error) throw error;
-      
+
       console.log(`✅ ${data.length} clientes obtenidos`);
       return data || [];
     } catch (error) {
@@ -30,7 +30,7 @@ export const clientesService = {
   async search(searchTerm) {
     try {
       console.log('🔍 Buscando clientes:', searchTerm);
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('*')
@@ -39,7 +39,7 @@ export const clientesService = {
         .order('apellido', { ascending: true });
 
       if (error) throw error;
-      
+
       console.log(`✅ ${data.length} clientes encontrados`);
       return data || [];
     } catch (error) {
@@ -52,7 +52,7 @@ export const clientesService = {
   async getById(id) {
     try {
       console.log('👤 Obteniendo cliente ID:', id);
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('*')
@@ -60,7 +60,7 @@ export const clientesService = {
         .single();
 
       if (error) throw error;
-      
+
       console.log('✅ Cliente obtenido:', data.nombre);
       return data;
     } catch (error) {
@@ -73,7 +73,7 @@ export const clientesService = {
   async create(clienteData) {
     try {
       console.log('💾 Creando cliente:', clienteData.nombre, clienteData.apellido);
-      
+
       // Validaciones básicas
       if (!clienteData.nombre || !clienteData.apellido) {
         throw new Error('Nombre y apellido son obligatorios');
@@ -89,25 +89,26 @@ export const clientesService = {
           cumpleanos: clienteData.cumpleanos || null,
           procedencia: clienteData.procedencia || null,
           profesion: clienteData.profesion?.trim() || null,
-          notas: clienteData.notas?.trim() || null
+          notas: clienteData.notas?.trim() || null,
+          referido_por: clienteData.referido_por || null
         }])
         .select()
         .single();
 
       if (error) throw error;
-      
+
       console.log('✅ Cliente creado exitosamente:', data.nombre);
       return data;
     } catch (error) {
       console.error('❌ Error creando cliente:', error);
-      
+
       // Manejar errores específicos
       if (error.code === '23505') {
         if (error.message.includes('email')) {
           throw new Error('Ya existe un cliente con este email');
         }
       }
-      
+
       throw error;
     }
   },
@@ -116,7 +117,7 @@ export const clientesService = {
   async update(id, clienteData) {
     try {
       console.log(`🔄 Actualizando cliente ID: ${id}`);
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .update({
@@ -127,14 +128,15 @@ export const clientesService = {
           cumpleanos: clienteData.cumpleanos || null,
           procedencia: clienteData.procedencia || null,
           profesion: clienteData.profesion?.trim() || null,
-          notas: clienteData.notas?.trim() || null
+          notas: clienteData.notas?.trim() || null,
+          referido_por: clienteData.referido_por || null
         })
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      
+
       console.log('✅ Cliente actualizado:', data.nombre);
       return data;
     } catch (error) {
@@ -147,7 +149,7 @@ export const clientesService = {
   async delete(id) {
     try {
       console.log(`🗑️ Eliminando cliente ID: ${id}`);
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .update({ activo: false })
@@ -156,7 +158,7 @@ export const clientesService = {
         .single();
 
       if (error) throw error;
-      
+
       console.log('✅ Cliente eliminado (marcado como inactivo)');
       return data;
     } catch (error) {
@@ -169,7 +171,7 @@ export const clientesService = {
   async getStats() {
     try {
       console.log('📊 Calculando estadísticas de clientes...');
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('id, fecha_creacion, procedencia, cumpleanos')
@@ -178,13 +180,13 @@ export const clientesService = {
       if (error) throw error;
 
       const totalClientes = data.length;
-      
+
       // Clientes nuevos este mes
       const ahora = new Date();
       const clientesEsteMs = data.filter(cliente => {
         const fecha = new Date(cliente.fecha_creacion);
-        return fecha.getMonth() === ahora.getMonth() && 
-               fecha.getFullYear() === ahora.getFullYear();
+        return fecha.getMonth() === ahora.getMonth() &&
+          fecha.getFullYear() === ahora.getFullYear();
       }).length;
 
       // Cumpleaños ESTE MES específicamente
@@ -210,7 +212,7 @@ export const clientesService = {
   async getByProcedencia() {
     try {
       console.log('📈 Obteniendo estadísticas por procedencia...');
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('procedencia')
@@ -236,7 +238,7 @@ export const clientesService = {
   async getProximosCumpleanos() {
     try {
       console.log('🎂 Obteniendo próximos cumpleaños (con nueva lógica)...');
-      
+
       const { data, error } = await supabase
         .from('clientes')
         .select('*')
@@ -265,7 +267,7 @@ export const clientesService = {
           cumpleProximoAno.setHours(0, 0, 0, 0);
           diff = (cumpleProximoAno.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
         }
-        
+
         return {
           ...cliente,
           diasParaCumple: diff
@@ -274,7 +276,7 @@ export const clientesService = {
 
       // Ordenar por proximidad (los que ya pasaron hace poco primero, luego los que vienen)
       const cumpleañosOrdenados = clientesConCumpleanos.sort((a, b) => a.diasParaCumple - b.diasParaCumple);
-      
+
       // Filtrar para incluir solo los que pasaron hace 2 días o menos, y los próximos 15 días.
       const cumpleañosFiltrados = cumpleañosOrdenados.filter(c => c.diasParaCumple >= -2 && c.diasParaCumple <= 15);
 
@@ -340,9 +342,9 @@ export const clientesService = {
   async getProximosCumpleanosConHistorial() {
     try {
       console.log('🎂 Obteniendo próximos cumpleaños con historial...');
-      
+
       const proximosCumpleanos = await this.getProximosCumpleanos();
-      
+
       // Para cada cliente con cumpleaños próximo, obtener su historial
       const clientesConHistorial = await Promise.all(
         proximosCumpleanos.map(async (cliente) => {
@@ -426,7 +428,7 @@ export const useClientes = () => {
     setError(null);
     try {
       const clienteActualizado = await clientesService.update(id, clienteData);
-      setClientes(prev => prev.map(cliente => 
+      setClientes(prev => prev.map(cliente =>
         cliente.id === id ? clienteActualizado : cliente
       ));
       return clienteActualizado;
@@ -462,7 +464,7 @@ export const useClientes = () => {
       const stats = await clientesService.getStats();
       const procedencia = await clientesService.getByProcedencia();
       const proximosCumpleanos = await clientesService.getProximosCumpleanos();
-      
+
       return {
         ...stats,
         procedencia,

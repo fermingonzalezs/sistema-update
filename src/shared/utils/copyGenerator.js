@@ -7,12 +7,12 @@ import { formatearMonto } from './formatters';
  * Tipos de copys disponibles:
  * VERSIONES COMERCIALES (para Listas y botones copy):
  * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * - 'celular_comercial': 📱 MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO - PRECIO
+ * - 'celular_comercial': 📱 MODELO CAPACIDAD COLOR [BATERIA%] - [Estética: X] - [Observaciones] - PRECIO
  * - 'otro_comercial': 📦 MODELO - DESCRIPCION - PRECIO
  *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
  * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION (sin emoji, sin precio)
- * - 'celular_completo': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO (sin emoji, sin precio, sin condición)
+ * - 'celular_completo': MODELO CAPACIDAD COLOR [BATERIA%] - [Estética: X] - [Observaciones] (sin emoji, sin precio)
  * - 'otro_completo': MODELO - DESCRIPCION (sin emoji, sin precio)
  *
  * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
@@ -462,118 +462,108 @@ const generateNotebookCopy = (comp, config) => {
 
 /**
  * Generar copy para celulares
- * NUEVOS: 📱 MODELO - COLOR - CAPACIDAD - PRECIO
- * USADOS/REFURBISHED: 📱 MODELO - COLOR - CAPACIDAD - 🔋 BATERIA - ESTADO ESTÉTICO - PRECIO
+ * NUEVOS: 📱 MODELO CAPACIDAD COLOR - PRECIO
+ * USADOS/REFURBISHED: 📱 MODELO CAPACIDAD COLOR BATERIA% - Estética: X - Observaciones - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
-  const partes = [];
-
   // Determinar si es nuevo o usado/refurbished
   const condicion = (cel.condicion || '').toLowerCase();
   const esNuevo = condicion === 'nuevo' || condicion === 'nueva';
 
+  // Construir la parte principal sin guiones (MODELO CAPACIDAD COLOR BATERIA%)
+  let partePrincipal = [];
+
   // Emoji solo en versión simple
   if (config.includeEmojis) {
-    partes.push('📱');
+    partePrincipal.push('📱');
   }
-
-  // IMEI/SERIAL removido del copy - ahora se muestra en columna separada
 
   // 1. MODELO (tal como está en la base de datos)
   const modelo = cel.modelo || 'Sin modelo';
-  partes.push(modelo);
+  partePrincipal.push(modelo);
 
-  // 2. COLOR (Movido antes de capacidad)
-  if (cel.color) {
-    partes.push(cel.color);
-  }
-
-  // 3. CAPACIDAD
+  // 2. CAPACIDAD (almacenamiento)
   if (cel.capacidad) {
-    // Convertir a string primero por si es numérico
     const capacidadStr = String(cel.capacidad);
-    // Agregar 'GB' si no está presente
     const capacidadFinal = capacidadStr.toUpperCase().includes('GB') ? capacidadStr : `${capacidadStr}GB`;
-    partes.push(capacidadFinal);
+    partePrincipal.push(capacidadFinal);
   }
 
-  // 4. BATERÍA - SOLO para USADOS/REFURBISH (antes del precio)
+  // 3. COLOR
+  if (cel.color) {
+    partePrincipal.push(cel.color);
+  }
+
+  // 4. BATERÍA % - SOLO para USADOS/REFURBISH (con emoji 🔋)
   if (!esNuevo) {
-    // Batería con emoji 🔋
-    let bateriaInfo = '';
     if (cel.bateria || cel.porcentaje_de_bateria) {
       const bateria = cel.bateria || cel.porcentaje_de_bateria;
       const bateriaLimpio = String(bateria).replace(/%/g, '').trim();
-      bateriaInfo = `🔋${bateriaLimpio}%`;
-    }
-    if (cel.ciclos_bateria && cel.ciclos_bateria > 0) {
-      const ciclos = cel.ciclos_bateria;
-      bateriaInfo += bateriaInfo ? ` ${ciclos} ciclos` : `🔋${ciclos} ciclos`;
-    }
-    if (bateriaInfo) {
-      partes.push(bateriaInfo);
+      partePrincipal.push(`🔋${bateriaLimpio}%`);
     }
   }
 
-  // 5. ESTADO ESTÉTICO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  // Unir la parte principal con espacios (sin guiones)
+  let copyFinal = partePrincipal.join(' ');
+
+  // Partes adicionales que van con guiones
+  let partesConGuiones = [];
+
+  // Observaciones/fallas entre paréntesis (van sin guión)
+  let observacionesParentesis = '';
+
+  // 5. ESTÉTICA - SOLO para USADOS/REFURBISHED (excepto en versión documento)
   if (!esNuevo && cel.estado && config.style !== 'documento') {
-    partes.push(cel.estado);
+    partesConGuiones.push(`Estética: ${cel.estado}`);
   }
 
-  // 7. CAMPOS ADICIONALES - Removidos según nuevos requerimientos
+  // 6. OBSERVACIONES - Para versión simple y completa (si tiene) - entre paréntesis SIN guión
+  if (config.style !== 'documento') {
+    if (cel.observaciones || cel.notas || cel.comentarios) {
+      const obs = cel.observaciones || cel.notas || cel.comentarios;
+      observacionesParentesis = `(${obs})`;
+    }
+
+    // FALLAS también van entre paréntesis
+    if (cel.fallas && cel.fallas.trim()) {
+      if (observacionesParentesis) {
+        observacionesParentesis += ` (${cel.fallas})`;
+      } else {
+        observacionesParentesis = `(${cel.fallas})`;
+      }
+    }
+  }
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 7. NOTAS - Removidas según requerimientos
-
-    // 8. OBSERVACIONES
-    if (cel.observaciones || cel.notas || cel.comentarios) {
-      const obs = cel.observaciones || cel.notas || cel.comentarios;
-      partes.push(`Observaciones: ${obs}`);
-    }
-
-    // 9. GARANTIA - Removida del copy según requerimientos
-
-    // 10. SUCURSAL - Removida del copy, ahora se muestra en columna separada
-
-    // 11. PROVEEDOR
+    // PROVEEDOR
     if (cel.proveedor || cel.importador) {
       const proveedor = cel.proveedor || cel.importador;
-      partes.push(`Proveedor: ${proveedor}`);
+      partesConGuiones.push(`Proveedor: ${proveedor}`);
     }
   }
 
-  // 8. OBSERVACIONES - Para versión comercial (simple) y completa
-  if (config.style === 'simple' && (cel.observaciones || cel.notas || cel.comentarios)) {
-    const obs = cel.observaciones || cel.notas || cel.comentarios;
-    partes.push(obs);
-  }
-
-  // 9. FALLAS/NOTAS - Para versión comercial (simple) ANTES del precio
-  if (config.style === 'simple' && cel.fallas && cel.fallas.trim()) {
-    partes.push(cel.fallas);
-  }
-
-  // VERSIÓN DOCUMENTO: Sin observaciones, notas, proveedor
-  // Ya tiene: MODELO - COLOR - CAPACIDAD - BATERÍA - ESTADO
-
-  // 10. PRECIO (solo en versión simple)
+  // 7. PRECIO (solo en versión simple)
   if (config.includePrice) {
     if (cel.precio_venta_usd) {
-      partes.push(formatearMonto(cel.precio_venta_usd, 'USD', true));
+      partesConGuiones.push(formatearMonto(cel.precio_venta_usd, 'USD', true));
     } else {
-      partes.push('CONSULTAR');
+      partesConGuiones.push('CONSULTAR');
     }
   }
 
-  // Unir las partes
-  if (config.includeEmojis) {
-    // Para versión simple: emoji seguido del resto sin separador
-    return partes[0] + ' ' + partes.slice(1).join(' - ');
-  } else {
-    // Para versión completa: normal con separadores
-    return partes.join(' - ');
+  // Armar el copy final
+  // Primero agregar las partes con guiones (Estética, Precio)
+  if (partesConGuiones.length > 0) {
+    copyFinal += ' - ' + partesConGuiones.join(' - ');
   }
+
+  // Luego agregar observaciones sin guión (solo espacio)
+  if (observacionesParentesis) {
+    copyFinal += ' ' + observacionesParentesis;
+  }
+
+  return copyFinal;
 };
 
 /**

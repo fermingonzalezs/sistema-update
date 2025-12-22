@@ -826,7 +826,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   Precio de Costo *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_costo_usd"
@@ -834,7 +834,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -845,7 +845,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   Gastos Adicionales
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="envios_repuestos"
@@ -853,7 +853,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
               </div>
@@ -863,7 +863,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   Precio de Venta *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_venta_usd"
@@ -871,7 +871,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -883,9 +883,9 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 </label>
                 <input
                   type="text"
-                  value={`$${((parseFloat(formData.precio_costo_usd) || 0) + (parseFloat(formData.envios_repuestos) || 0)).toFixed(2)}`}
+                  value={`U$${((parseFloat(formData.precio_costo_usd) || 0) + (parseFloat(formData.envios_repuestos) || 0)).toFixed(2)}`}
                   disabled
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed font-medium"
                   title="Campo calculado automáticamente"
                 />
               </div>
@@ -1496,7 +1496,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   Precio de Compra *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_compra_usd"
@@ -1504,7 +1504,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -1515,7 +1515,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   Costos Adicionales
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="costos_adicionales"
@@ -1523,7 +1523,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
               </div>
@@ -1533,7 +1533,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   Precio de Venta *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500">$</span>
+                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_venta_usd"
@@ -1541,7 +1541,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -1553,9 +1553,9 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                 </label>
                 <input
                   type="text"
-                  value={`$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
+                  value={`U$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
                   disabled
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed font-medium"
                   title="Campo calculado automáticamente"
                 />
               </div>
@@ -1665,6 +1665,11 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
     gabinete: '',
     fuente: '',
 
+    // Especificaciones para TABLET
+    capacidad_almacenamiento: '',
+    tamano_pantalla: '',
+    conectividad: 'WiFi only',
+
     // Garantía y observaciones
     garantia: '3 meses',
     garantia_oficial_fecha: '',
@@ -1681,8 +1686,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
   const { proveedores, loading: proveedoresLoading } = useProveedores();
   const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
 
-  // Determinar si es Desktop
+  // Determinar si es Desktop o Tablet
   const isDesktop = formData.categoria === CATEGORIAS_OTROS.DESKTOP;
+  const isTablet = formData.categoria === CATEGORIAS_OTROS.TABLETS;
 
   // Usar constantes centralizadas en lugar de hardcodear y ordenar alfabéticamente
   const opcionesCategorias = CATEGORIAS_OTROS_ARRAY
@@ -1705,8 +1711,8 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Para Desktop, validar modelo; para otros, validar nombre_producto
-    if (isDesktop) {
+    // Para Desktop o Tablet, validar modelo; para otros, validar nombre_producto
+    if (isDesktop || isTablet) {
       if (!formData.modelo.trim()) {
         alert('El modelo es obligatorio');
         return;
@@ -1783,11 +1789,27 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
         }
       }
 
-      const { garantia_oficial_fecha, procesador, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, ...dataRest } = formData; // Excluir campos especiales de Desktop
+      // Si es Tablet, concatenar especificaciones en descripcion
+      if (formData.categoria === CATEGORIAS_OTROS.TABLETS) {
+        const specs = [
+          formData.capacidad_almacenamiento && `Almacenamiento: ${formData.capacidad_almacenamiento}`,
+          formData.tamano_pantalla && `Pantalla: ${formData.tamano_pantalla}`,
+          formData.conectividad && `Conectividad: ${formData.conectividad}`
+        ].filter(Boolean);
+
+        if (specs.length > 0) {
+          descripcion = specs.join(' - ');
+          if (formData.descripcion?.trim()) {
+            descripcion = `${formData.descripcion} - ${descripcion}`;
+          }
+        }
+      }
+
+      const { garantia_oficial_fecha, procesador, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, capacidad_almacenamiento, tamano_pantalla, conectividad, ...dataRest } = formData; // Excluir campos especiales
 
       const dataToSubmit = {
         ...dataRest,
-        nombre_producto: isDesktop ? formData.modelo : formData.nombre_producto,
+        nombre_producto: (isDesktop || isTablet) ? formData.modelo : formData.nombre_producto,
         descripcion: descripcion,
         garantia: garantia,
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
@@ -1830,6 +1852,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           hdd: '',
           gabinete: '',
           fuente: '',
+          capacidad_almacenamiento: '',
+          tamano_pantalla: '',
+          conectividad: 'WiFi only',
           garantia: '3 meses',
           garantia_oficial_fecha: '',
           observaciones: '',
@@ -1865,6 +1890,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           hdd: '',
           gabinete: '',
           fuente: '',
+          capacidad_almacenamiento: '',
+          tamano_pantalla: '',
+          conectividad: 'WiFi only',
           garantia: '3 meses',
           garantia_oficial_fecha: '',
           observaciones: '',
@@ -1882,8 +1910,10 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
   };
 
   // Determinar título y descripción basado en categoría
-  const titulo = isDesktop ? 'Nuevo Desktop' : 'Nuevo Producto';
-  const descripcion = isDesktop ? 'Complete la información de la computadora de escritorio' : 'Complete la información del producto';
+  const titulo = isDesktop ? 'Nuevo Desktop' : (isTablet ? 'Nueva Tablet' : 'Nuevo Producto');
+  const descripcion = isDesktop ? 'Complete la información de la computadora de escritorio' :
+                     (isTablet ? 'Complete la información de la tablet' :
+                      'Complete la información del producto');
 
   return (
     <div className="bg-white rounded border border-slate-200 overflow-hidden">
@@ -2112,6 +2142,172 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     rows="3"
                     placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc."
+                  />
+                </div>
+              </div>
+            </div>
+          ) : isTablet ? (
+            // Formulario TABLET
+            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
+                <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
+                Información de la Tablet
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Serial *</label>
+                  <input
+                    type="text"
+                    name="serial"
+                    value={formData.serial}
+                    onChange={handleChange}
+                    placeholder="Ej: SN123456"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                  <select
+                    name="categoria"
+                    value={formData.categoria}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  >
+                    <option value="">Seleccionar...</option>
+                    {opcionesCategorias.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                  <MarcaSelector
+                    value={formData.marca}
+                    onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
+                    placeholder="Seleccionar o agregar marca"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
+                  <select
+                    name="condicion"
+                    value={formData.condicion}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  >
+                    {CONDICIONES_ARRAY.map(condicion => (
+                      <option key={condicion} value={condicion}>
+                        {CONDICIONES_LABELS[condicion]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                  <input
+                    type="text"
+                    name="modelo"
+                    value={formData.modelo}
+                    onChange={handleChange}
+                    placeholder="Ej: iPad Pro 11, Galaxy Tab S9"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                  <input
+                    type="text"
+                    name="color"
+                    value={formData.color}
+                    onChange={handleChange}
+                    placeholder="Ej: Space Gray, Silver, Black"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad/Almacenamiento</label>
+                  <select
+                    name="capacidad_almacenamiento"
+                    value={formData.capacidad_almacenamiento}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="64GB">64GB</option>
+                    <option value="128GB">128GB</option>
+                    <option value="256GB">256GB</option>
+                    <option value="512GB">512GB</option>
+                    <option value="1TB">1TB</option>
+                    <option value="2TB">2TB</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla</label>
+                  <input
+                    type="text"
+                    name="tamano_pantalla"
+                    value={formData.tamano_pantalla}
+                    onChange={handleChange}
+                    placeholder='Ej: 10.2", 11", 12.9"'
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Conectividad</label>
+                  <select
+                    name="conectividad"
+                    value={formData.conectividad}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  >
+                    <option value="WiFi only">WiFi only</option>
+                    <option value="WiFi + Cellular">WiFi + Cellular</option>
+                    <option value="WiFi + 5G">WiFi + 5G</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
+                  <input
+                    type="date"
+                    name="ingreso"
+                    value={formData.ingreso}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    required
+                  />
+                </div>
+                {formData.condicion !== CONDICIONES.NUEVO && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
+                    <select
+                      name="estado"
+                      value={formData.estado || ''}
+                      onChange={handleChange}
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    >
+                      <option value="">Seleccionar...</option>
+                      {ESTADOS_ARRAY.map(estado => (
+                        <option key={estado} value={estado}>
+                          {ESTADOS_LABELS[estado]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="col-span-full">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                  <textarea
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    rows="3"
+                    placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc."
                   />
                 </div>
               </div>
@@ -2373,7 +2569,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   Precio de Compra USD *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500">$</span>
+                  <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_compra_usd"
@@ -2381,7 +2577,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -2392,7 +2588,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   Precio de Venta USD *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500">$</span>
+                  <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="precio_venta_usd"
@@ -2400,7 +2596,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -2411,7 +2607,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   Costos Adicionales USD
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500">$</span>
+                  <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
                   <input
                     type="number"
                     name="costos_adicionales"
@@ -2419,7 +2615,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Envíos, reparaciones u otros costos adicionales</p>
@@ -2431,9 +2627,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 </label>
                 <input
                   type="text"
-                  value={`$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
+                  value={`U$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`}
                   disabled
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed font-medium"
                   title="Campo calculado automáticamente"
                 />
               </div>
