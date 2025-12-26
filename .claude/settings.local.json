@@ -34,7 +34,8 @@
       "Bash(node test-compras-nacionales.js:*)",
       "Bash(npx supabase functions deploy:*)",
       "Bash(grep:*)",
-      "Skill(frontend-design)"
+      "Skill(frontend-design)",
+      "Bash(npx supabase:*)"
     ],
     "deny": [],
     "ask": []

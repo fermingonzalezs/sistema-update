@@ -1310,7 +1310,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   </div>
 
                   {/* Checkbox para envío de email */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mx-4 mb-4">
+                  <div className="px-4 mb-4">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1319,9 +1319,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                       />
                       <div className="flex items-center space-x-2">
-                        <Mail className="w-5 h-5 text-yellow-700" />
-                        <span className="text-sm font-semibold text-yellow-900">
-                          USAR - Manda mail de prueba a soporte - USAR                         </span>
+                        <Mail className="w-5 h-5 text-slate-800" />
+                        <span className="text-sm text-slate-800">
+                          Enviar email al cliente (puede aparecer como spam)
+                        </span>
                       </div>
                     </label>
                   </div>

@@ -18,7 +18,7 @@ import { formatearMonto } from './formatters';
  * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
  * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - ESTADO - COLOR - IDIOMA
  * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO
- * - 'otro_documento': NOMBRE_PRODUCTO (solo nombre, sin descripción ni observaciones)
+ * - 'otro_documento': NOMBRE_PRODUCTO - DESCRIPCION (sin observaciones ni notas)
  */
 
 // Configuraciones por defecto para cada tipo
@@ -95,7 +95,7 @@ const TYPE_DEFAULTS = {
   otro_documento: {
     includeEmojis: false,
     includePrice: false,
-    includeTechnicalDetails: false, // Solo nombre, sin detalles técnicos
+    includeTechnicalDetails: true, // Incluir descripción para documentos
     separator: ' - ',
     maxLength: null,
     style: 'documento'
@@ -642,8 +642,8 @@ const generateOtroCopy = (otro, config) => {
 
   // Para versión SIMPLE: solo EMOJI - NOMBRE - PRECIO (sin descripción, sin especificaciones)
   // Para versión COMPLETA: agregar campos adicionales
-  // Para versión DOCUMENTO: SOLO NOMBRE (sin descripción, color, estado, notas, observaciones)
-  if (config.style === 'completo') {
+  // Para versión DOCUMENTO: NOMBRE + DESCRIPCION (sin color, estado, notas, observaciones)
+  if (config.style === 'completo' || config.style === 'documento') {
     // 2. DESCRIPCION (solo si es diferente del nombre)
     if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
       partes.push(otro.descripcion);
@@ -680,8 +680,8 @@ const generateOtroCopy = (otro, config) => {
     // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
-  // VERSIÓN DOCUMENTO: Solo NOMBRE_PRODUCTO
-  // Sin descripción, color, estado, notas ni observaciones
+  // VERSIÓN DOCUMENTO: NOMBRE_PRODUCTO + DESCRIPCION
+  // Sin color, estado, notas ni observaciones
 
   // 8. PRECIO (solo en versión simple)
   if (config.includePrice) {

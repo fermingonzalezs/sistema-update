@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box } from 'lucide-react';
+import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box, UserPlus, Trophy } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -472,6 +472,331 @@ const dashboardService = {
       valorTotalInventario,
       distribucionCategorias
     };
+  },
+
+  async analizarAdquisicionClientes(fechaInicio, fechaFin) {
+    console.log('👥 Analizando adquisición de clientes...', { fechaInicio, fechaFin });
+
+    try {
+      // 1. Obtener todas las transacciones del período con cliente y procedencia
+      const { data: ventasEnPeriodo, error: errorVentas } = await supabase
+        .from('transacciones')
+        .select(`
+          id,
+          fecha_venta,
+          cliente_id,
+          total_venta,
+          clientes (
+            procedencia
+          ),
+          venta_items (
+            cantidad,
+            precio_total,
+            precio_costo
+          )
+        `)
+        .gte('fecha_venta', fechaInicio)
+        .lte('fecha_venta', fechaFin)
+        .not('cliente_id', 'is', null); // Solo ventas con cliente
+
+      if (errorVentas) {
+        console.error('❌ Error obteniendo ventas del período:', errorVentas);
+        throw errorVentas;
+      }
+
+      if (!ventasEnPeriodo || ventasEnPeriodo.length === 0) {
+        console.log('⚠️ No hay ventas con clientes en el período');
+        return [];
+      }
+
+      // 2. Obtener clientes únicos del período
+      const clientesUnicos = [...new Set(ventasEnPeriodo.map(v => v.cliente_id))];
+      console.log(`📊 Clientes únicos en el período: ${clientesUnicos.length}`);
+
+      // 3. Obtener fecha de primera compra de cada cliente (histórico completo)
+      const { data: primerasCompras, error: errorPrimeras } = await supabase
+        .from('transacciones')
+        .select('cliente_id, fecha_venta')
+        .in('cliente_id', clientesUnicos)
+        .order('fecha_venta', { ascending: true });
+
+      if (errorPrimeras) {
+        console.error('❌ Error obteniendo primeras compras:', errorPrimeras);
+        throw errorPrimeras;
+      }
+
+      // 4. Crear map de primera compra por cliente
+      const primeraCompraPorCliente = {};
+      primerasCompras.forEach(compra => {
+        if (!primeraCompraPorCliente[compra.cliente_id]) {
+          primeraCompraPorCliente[compra.cliente_id] = compra.fecha_venta;
+        }
+      });
+
+      // 5. Filtrar solo las ventas que son primeras compras
+      const primerasVentas = ventasEnPeriodo.filter(venta => {
+        const primeraFecha = primeraCompraPorCliente[venta.cliente_id];
+        if (!primeraFecha) return false;
+
+        // Comparar solo la fecha (sin hora)
+        const fechaVenta = venta.fecha_venta.split('T')[0];
+        const fechaPrimera = primeraFecha.split('T')[0];
+        return fechaVenta === fechaPrimera;
+      });
+
+      console.log(`✅ Primeras ventas encontradas: ${primerasVentas.length}`);
+
+      // 6. Agrupar por procedencia y calcular métricas
+      const datosPorProcedencia = {};
+
+      primerasVentas.forEach(venta => {
+        // Normalizar procedencia
+        let procedencia = venta.clientes?.procedencia || 'No especificado';
+        procedencia = procedencia.charAt(0).toUpperCase() + procedencia.slice(1).toLowerCase();
+
+        if (!datosPorProcedencia[procedencia]) {
+          datosPorProcedencia[procedencia] = {
+            procedencia,
+            nuevosClientes: 0,
+            gastoTotal: 0,
+            gananciaTotal: 0,
+            cantidadVentas: 0
+          };
+        }
+
+        // Incrementar nuevos clientes
+        datosPorProcedencia[procedencia].nuevosClientes += 1;
+        datosPorProcedencia[procedencia].cantidadVentas += 1;
+
+        // Acumular gasto total
+        const gastoVenta = parseFloat(venta.total_venta || 0);
+        datosPorProcedencia[procedencia].gastoTotal += gastoVenta;
+
+        // Calcular ganancia por item
+        if (venta.venta_items && venta.venta_items.length > 0) {
+          venta.venta_items.forEach(item => {
+            const precioTotal = parseFloat(item.precio_total || 0);
+            const precioCosto = parseFloat(item.precio_costo || 0);
+            const cantidad = parseInt(item.cantidad || 1);
+            const ganancia = precioTotal - (precioCosto * cantidad);
+            datosPorProcedencia[procedencia].gananciaTotal += ganancia;
+          });
+        }
+      });
+
+      // 7. Convertir a array y ordenar por cantidad de nuevos clientes
+      const resultado = Object.values(datosPorProcedencia)
+        .sort((a, b) => b.nuevosClientes - a.nuevosClientes);
+
+      console.log('✅ Análisis de adquisición completado:', resultado);
+      return resultado;
+
+    } catch (error) {
+      console.error('❌ Error en analizarAdquisicionClientes:', error);
+      return [];
+    }
+  },
+
+  async obtenerTopClientes(fechaInicio, fechaFin, limite = 10) {
+    console.log('🏆 Obteniendo top clientes...', { fechaInicio, fechaFin, limite });
+
+    try {
+      // 1. Obtener todas las transacciones del período con items
+      const { data: transacciones, error } = await supabase
+        .from('transacciones')
+        .select(`
+          id,
+          cliente_id,
+          cliente_nombre,
+          total_venta,
+          venta_items (
+            cantidad,
+            precio_total,
+            precio_costo
+          )
+        `)
+        .gte('fecha_venta', fechaInicio)
+        .lte('fecha_venta', fechaFin)
+        .not('cliente_id', 'is', null); // Solo ventas con cliente
+
+      if (error) {
+        console.error('❌ Error obteniendo transacciones:', error);
+        throw error;
+      }
+
+      if (!transacciones || transacciones.length === 0) {
+        console.log('⚠️ No hay transacciones en el período');
+        return [];
+      }
+
+      // 2. Agrupar por cliente y calcular métricas
+      const datosPorCliente = {};
+
+      transacciones.forEach(transaccion => {
+        const clienteId = transaccion.cliente_id;
+        const clienteNombre = transaccion.cliente_nombre || 'Cliente sin nombre';
+
+        if (!datosPorCliente[clienteId]) {
+          datosPorCliente[clienteId] = {
+            clienteId,
+            clienteNombre,
+            totalBruto: 0,
+            totalGanancia: 0,
+            cantidadItems: 0,
+            cantidadCompras: 0
+          };
+        }
+
+        // Acumular total bruto
+        const totalVenta = parseFloat(transaccion.total_venta || 0);
+        datosPorCliente[clienteId].totalBruto += totalVenta;
+        datosPorCliente[clienteId].cantidadCompras += 1;
+
+        // Calcular ganancia y cantidad de items
+        if (transaccion.venta_items && transaccion.venta_items.length > 0) {
+          transaccion.venta_items.forEach(item => {
+            const precioTotal = parseFloat(item.precio_total || 0);
+            const precioCosto = parseFloat(item.precio_costo || 0);
+            const cantidad = parseInt(item.cantidad || 1);
+
+            datosPorCliente[clienteId].cantidadItems += cantidad;
+
+            const ganancia = precioTotal - (precioCosto * cantidad);
+            datosPorCliente[clienteId].totalGanancia += ganancia;
+          });
+        }
+      });
+
+      // 3. Convertir a array, ordenar por total bruto y limitar
+      const resultado = Object.values(datosPorCliente)
+        .sort((a, b) => b.totalBruto - a.totalBruto)
+        .slice(0, limite);
+
+      console.log(`✅ Top ${resultado.length} clientes obtenidos`);
+      return resultado;
+
+    } catch (error) {
+      console.error('❌ Error en obtenerTopClientes:', error);
+      return [];
+    }
+  },
+
+  async obtenerDetalleNuevosClientesPorProcedencia(fechaInicio, fechaFin, procedencia) {
+    console.log('🔍 Obteniendo detalle de nuevos clientes...', { fechaInicio, fechaFin, procedencia });
+
+    try {
+      // 1. Obtener todas las transacciones del período con cliente y procedencia
+      const { data: ventasEnPeriodo, error: errorVentas } = await supabase
+        .from('transacciones')
+        .select(`
+          id,
+          fecha_venta,
+          cliente_id,
+          cliente_nombre,
+          total_venta,
+          clientes (
+            procedencia
+          ),
+          venta_items (
+            cantidad,
+            precio_total,
+            precio_costo
+          )
+        `)
+        .gte('fecha_venta', fechaInicio)
+        .lte('fecha_venta', fechaFin)
+        .not('cliente_id', 'is', null);
+
+      if (errorVentas) {
+        console.error('❌ Error obteniendo ventas del período:', errorVentas);
+        throw errorVentas;
+      }
+
+      if (!ventasEnPeriodo || ventasEnPeriodo.length === 0) {
+        console.log('⚠️ No hay ventas con clientes en el período');
+        return [];
+      }
+
+      // 2. Filtrar por procedencia si se especificó
+      let ventasFiltradas = ventasEnPeriodo;
+      if (procedencia && procedencia !== 'todas') {
+        ventasFiltradas = ventasEnPeriodo.filter(venta => {
+          const proc = venta.clientes?.procedencia || 'No especificado';
+          const procNormalizada = proc.charAt(0).toUpperCase() + proc.slice(1).toLowerCase();
+          return procNormalizada === procedencia;
+        });
+      }
+
+      // 3. Obtener clientes únicos de las ventas filtradas
+      const clientesUnicos = [...new Set(ventasFiltradas.map(v => v.cliente_id))];
+
+      if (clientesUnicos.length === 0) {
+        console.log('⚠️ No hay clientes en la procedencia seleccionada');
+        return [];
+      }
+
+      // 4. Obtener fecha de primera compra de cada cliente (histórico completo)
+      const { data: primerasCompras, error: errorPrimeras } = await supabase
+        .from('transacciones')
+        .select('cliente_id, fecha_venta')
+        .in('cliente_id', clientesUnicos)
+        .order('fecha_venta', { ascending: true });
+
+      if (errorPrimeras) {
+        console.error('❌ Error obteniendo primeras compras:', errorPrimeras);
+        throw errorPrimeras;
+      }
+
+      // 5. Crear map de primera compra por cliente
+      const primeraCompraPorCliente = {};
+      primerasCompras.forEach(compra => {
+        if (!primeraCompraPorCliente[compra.cliente_id]) {
+          primeraCompraPorCliente[compra.cliente_id] = compra.fecha_venta;
+        }
+      });
+
+      // 6. Filtrar solo las ventas que son primeras compras
+      const primerasVentas = ventasFiltradas.filter(venta => {
+        const primeraFecha = primeraCompraPorCliente[venta.cliente_id];
+        if (!primeraFecha) return false;
+
+        const fechaVenta = venta.fecha_venta.split('T')[0];
+        const fechaPrimera = primeraFecha.split('T')[0];
+        return fechaVenta === fechaPrimera;
+      });
+
+      // 7. Agrupar por cliente para obtener totales
+      const clientesDetalle = {};
+
+      primerasVentas.forEach(venta => {
+        const clienteId = venta.cliente_id;
+        const clienteNombre = venta.cliente_nombre || 'Cliente sin nombre';
+
+        if (!clientesDetalle[clienteId]) {
+          clientesDetalle[clienteId] = {
+            clienteId,
+            clienteNombre,
+            fechaPrimeraCompra: venta.fecha_venta,
+            cantidadCompras: 0,
+            totalGastado: 0
+          };
+        }
+
+        clientesDetalle[clienteId].cantidadCompras += 1;
+        clientesDetalle[clienteId].totalGastado += parseFloat(venta.total_venta || 0);
+      });
+
+      // 8. Convertir a array y ordenar por total gastado
+      const resultado = Object.values(clientesDetalle)
+        .sort((a, b) => b.totalGastado - a.totalGastado);
+
+      console.log(`✅ ${resultado.length} nuevos clientes encontrados para procedencia: ${procedencia || 'todas'}`);
+      return resultado;
+
+    } catch (error) {
+      console.error('❌ Error en obtenerDetalleNuevosClientesPorProcedencia:', error);
+      return [];
+    }
   }
 };
 
@@ -479,6 +804,8 @@ const dashboardService = {
 const useDashboardReportes = () => {
   const [ventasData, setVentasData] = useState(null);
   const [inventarioData, setInventarioData] = useState(null);
+  const [datosAdquisicion, setDatosAdquisicion] = useState([]);
+  const [topClientes, setTopClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -488,14 +815,18 @@ const useDashboardReportes = () => {
       setLoading(true);
       setError(null);
 
-      const [ventas, inventario] = await Promise.all([
+      const [ventas, inventario, adquisicion, clientes] = await Promise.all([
         dashboardService.getVentasEnPeriodo(fechaInicio, fechaFin),
-        dashboardService.getInventarioActual()
+        dashboardService.getInventarioActual(),
+        dashboardService.analizarAdquisicionClientes(fechaInicio, fechaFin),
+        dashboardService.obtenerTopClientes(fechaInicio, fechaFin, 10)
       ]);
 
       console.log('📊 Datos cargados:', {
         ventasCount: ventas?.length || 0,
-        inventarioKeys: Object.keys(inventario || {})
+        inventarioKeys: Object.keys(inventario || {}),
+        adquisicionCount: adquisicion?.length || 0,
+        topClientesCount: clientes?.length || 0
       });
 
       const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventas);
@@ -509,6 +840,8 @@ const useDashboardReportes = () => {
 
       setVentasData(ventasProcessed);
       setInventarioData(inventarioProcessed);
+      setDatosAdquisicion(adquisicion);
+      setTopClientes(clientes);
 
     } catch (err) {
       console.error('❌ Error cargando datos del dashboard:', err);
@@ -518,12 +851,12 @@ const useDashboardReportes = () => {
     }
   };
 
-  return { ventasData, inventarioData, loading, error, cargarDatos };
+  return { ventasData, inventarioData, datosAdquisicion, topClientes, loading, error, cargarDatos };
 };
 
 // Componente principal
 const DashboardReportesSection = () => {
-  const { ventasData, inventarioData, loading, error, cargarDatos } = useDashboardReportes();
+  const { ventasData, inventarioData, datosAdquisicion, topClientes, loading, error, cargarDatos } = useDashboardReportes();
 
   // Colores por categoría
   const COLORES_CATEGORIAS = {
@@ -566,6 +899,11 @@ const DashboardReportesSection = () => {
 
   const [fechaFin, setFechaFin] = useState(() => obtenerFechaLocal());
 
+  // Estados para debugging de nuevos clientes
+  const [procedenciaSeleccionada, setProcedenciaSeleccionada] = useState('todas');
+  const [detalleNuevosClientes, setDetalleNuevosClientes] = useState([]);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatos(fechaInicio, fechaFin);
@@ -574,6 +912,31 @@ const DashboardReportesSection = () => {
   const aplicarFiltros = () => {
     cargarDatos(fechaInicio, fechaFin);
   };
+
+  // Función para cargar detalle de nuevos clientes por procedencia
+  const cargarDetalleNuevosClientes = async (procedencia) => {
+    setCargandoDetalle(true);
+    try {
+      const detalle = await dashboardService.obtenerDetalleNuevosClientesPorProcedencia(
+        fechaInicio,
+        fechaFin,
+        procedencia
+      );
+      setDetalleNuevosClientes(detalle);
+    } catch (error) {
+      console.error('Error cargando detalle de nuevos clientes:', error);
+      setDetalleNuevosClientes([]);
+    } finally {
+      setCargandoDetalle(false);
+    }
+  };
+
+  // Cargar detalle cuando cambia la procedencia seleccionada
+  useEffect(() => {
+    if (procedenciaSeleccionada) {
+      cargarDetalleNuevosClientes(procedenciaSeleccionada);
+    }
+  }, [procedenciaSeleccionada, fechaInicio, fechaFin]);
 
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -974,6 +1337,290 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
+              {/* Análisis de Adquisición de Clientes por Procedencia */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <div className="p-4 bg-slate-800 text-white border-b">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <UserPlus className="w-5 h-5" />
+                    Nuevos Clientes por Procedencia
+                  </h3>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Clientes que realizaron su primera compra en el período
+                  </p>
+                </div>
+
+                {datosAdquisicion && datosAdquisicion.length > 0 ? (
+                  <>
+                    {/* Gráfico de barras horizontal */}
+                    <div className="p-6">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={datosAdquisicion} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="procedencia" type="category" width={120} />
+                          <Tooltip
+                            formatter={(value, name) => {
+                              if (name === 'nuevosClientes') return [value, 'Nuevos Clientes'];
+                              if (name === 'gastoTotal') return [formatearMonto(value, 'USD'), 'Gasto Total'];
+                              if (name === 'gananciaTotal') return [formatearMonto(value, 'USD'), 'Ganancia'];
+                              return [value, name];
+                            }}
+                            labelStyle={{ color: '#1e293b' }}
+                          />
+                          <Legend />
+                          <Bar dataKey="nuevosClientes" fill="#10b981" name="Nuevos Clientes" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Tabla detallada debajo del gráfico */}
+                    <div className="px-6 pb-6">
+                      <table className="w-full">
+                        <thead className="bg-slate-800 text-white">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                              Procedencia
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                              Nuevos Clientes
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                              Gasto Total
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                              Ganancia
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                              Ventas
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {datosAdquisicion.map((item, index) => (
+                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                              <td className="px-4 py-3 text-sm text-slate-800 font-medium">
+                                {item.procedencia}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-slate-800">
+                                {item.nuevosClientes}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right text-slate-800">
+                                {formatearMonto(item.gastoTotal, 'USD')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-medium">
+                                {formatearMonto(item.gananciaTotal, 'USD')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-slate-800">
+                                {item.cantidadVentas}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-slate-800 text-white">
+                          <tr>
+                            <td className="px-4 py-3 text-sm font-semibold">TOTALES</td>
+                            <td className="px-4 py-3 text-sm text-center font-semibold">
+                              {datosAdquisicion.reduce((sum, item) => sum + item.nuevosClientes, 0)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold">
+                              {formatearMonto(datosAdquisicion.reduce((sum, item) => sum + item.gastoTotal, 0), 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold">
+                              {formatearMonto(datosAdquisicion.reduce((sum, item) => sum + item.gananciaTotal, 0), 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center font-semibold">
+                              {datosAdquisicion.reduce((sum, item) => sum + item.cantidadVentas, 0)}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-6 text-center text-slate-500">
+                    No hay nuevos clientes en el período seleccionado
+                  </div>
+                )}
+              </div>
+
+              {/* DEBUG: Detalle de Nuevos Clientes por Procedencia */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <div className="p-4 bg-slate-800 text-white border-b">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    🔍 DEBUG: Detalle de Nuevos Clientes por Procedencia
+                  </h3>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Verifica qué clientes se contaron como nuevos en cada procedencia
+                  </p>
+                </div>
+
+                <div className="p-6">
+                  {/* Selector de procedencia */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Seleccionar Procedencia:
+                    </label>
+                    <select
+                      value={procedenciaSeleccionada}
+                      onChange={(e) => setProcedenciaSeleccionada(e.target.value)}
+                      className="w-full md:w-auto border border-slate-200 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                      <option value="todas">Todas las procedencias</option>
+                      {datosAdquisicion && datosAdquisicion.map((item) => (
+                        <option key={item.procedencia} value={item.procedencia}>
+                          {item.procedencia} ({item.nuevosClientes} clientes)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Tabla de clientes */}
+                  {cargandoDetalle ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                      <span className="ml-3 text-slate-600">Cargando detalles...</span>
+                    </div>
+                  ) : detalleNuevosClientes && detalleNuevosClientes.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-800 text-white">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                              Cliente
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                              Fecha Primera Compra
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                              Compras en Período
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                              Total Gastado
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {detalleNuevosClientes.map((cliente, index) => (
+                            <tr key={cliente.clienteId} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                              <td className="px-4 py-3 text-sm text-slate-800 font-medium">
+                                {cliente.clienteNombre}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-slate-600">
+                                {new Date(cliente.fechaPrimeraCompra).toLocaleDateString('es-ES')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center text-slate-800">
+                                {cliente.cantidadCompras}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-medium">
+                                {formatearMonto(cliente.totalGastado, 'USD')}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-slate-800 text-white">
+                          <tr>
+                            <td className="px-4 py-3 text-sm font-semibold">
+                              TOTAL: {detalleNuevosClientes.length} clientes nuevos
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center font-semibold">
+                              -
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center font-semibold">
+                              {detalleNuevosClientes.reduce((sum, c) => sum + c.cantidadCompras, 0)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold">
+                              {formatearMonto(detalleNuevosClientes.reduce((sum, c) => sum + c.totalGastado, 0), 'USD')}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-slate-500">
+                      {procedenciaSeleccionada === 'todas'
+                        ? 'Selecciona una procedencia para ver el detalle'
+                        : `No hay nuevos clientes en la procedencia: ${procedenciaSeleccionada}`
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ranking: Top 10 Clientes */}
+              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
+                <div className="p-4 bg-slate-800 text-white border-b">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    Top 10 Clientes del Período
+                  </h3>
+                  <p className="text-slate-300 text-sm mt-1">
+                    Clientes con mayores compras en el rango de fechas seleccionado
+                  </p>
+                </div>
+
+                {topClientes && topClientes.length > 0 ? (
+                  <div className="p-6">
+                    <table className="w-full">
+                      <thead className="bg-slate-800 text-white">
+                        <tr>
+                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                            #
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                            Cliente
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                            Total Bruto
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                            Ganancia
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                            Items
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                            Compras
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {topClientes.map((cliente, index) => (
+                          <tr key={cliente.clienteId} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                            <td className="px-4 py-3 text-sm text-center">
+                              {index < 3 ? (
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs">
+                                  {index + 1}
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 font-medium">{index + 1}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-800 font-medium">
+                              {cliente.clienteNombre}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right text-slate-800 font-semibold">
+                              {formatearMonto(cliente.totalBruto, 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-medium">
+                              {formatearMonto(cliente.totalGanancia, 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">
+                              {cliente.cantidadItems}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">
+                              {cliente.cantidadCompras}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-slate-500">
+                    No hay datos de clientes en el período seleccionado
+                  </div>
+                )}
+              </div>
 
             </div>
           </div>

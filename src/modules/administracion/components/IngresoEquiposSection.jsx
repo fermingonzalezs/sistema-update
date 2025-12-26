@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Package, Clock, CheckCircle, Layers } from 'lucide-react';
+import { Plus, Package, Clock, CheckCircle, Layers, Search } from 'lucide-react';
 import CargaEquiposUnificada from './CargaEquiposUnificada';
 import CargaMasivaEquipos from './CargaMasivaEquipos';
 import { useIngresoEquipos } from './useIngresoEquipos';
@@ -12,6 +12,7 @@ const IngresoEquiposSection = () => {
   const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
+  const [busquedaHistorial, setBusquedaHistorial] = useState('');
   const { user } = useAuthContext();
 
   const {
@@ -186,6 +187,24 @@ const IngresoEquiposSection = () => {
     return usuario;
   };
 
+  // Filtrar ingresos según búsqueda
+  const ingresosFiltrados = ingresos.filter(ingreso => {
+    if (!busquedaHistorial.trim()) return true;
+
+    const busqueda = busquedaHistorial.toLowerCase().trim();
+
+    // Buscar en modelo (descripcion_completa)
+    const modelo = (ingreso.descripcion_completa || '').toLowerCase();
+
+    // Buscar en serial
+    const serial = (ingreso.serial || '').toLowerCase();
+
+    // Buscar en proveedor
+    const proveedor = (ingreso.proveedor || '').toLowerCase();
+
+    return modelo.includes(busqueda) || serial.includes(busqueda) || proveedor.includes(busqueda);
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -275,7 +294,43 @@ const IngresoEquiposSection = () => {
       {/* Historial de ingresos */}
       <div className="bg-white rounded border border-slate-200">
         <div className="p-6 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800">Historial de Ingresos</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-slate-800">Historial de Ingresos</h3>
+            {busquedaHistorial && (
+              <span className="text-sm text-slate-600">
+                Mostrando {ingresosFiltrados.length} de {ingresos.length} ingresos
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Filtro de búsqueda */}
+        <div className="bg-gray-50 p-4 border-b">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Buscar en Historial
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={busquedaHistorial}
+                  onChange={(e) => setBusquedaHistorial(e.target.value)}
+                  placeholder="Buscar por modelo, serial o proveedor..."
+                  className="w-full border border-slate-200 rounded pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                />
+              </div>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => setBusquedaHistorial('')}
+                className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm w-full md:w-auto"
+              >
+                Limpiar Búsqueda
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -312,14 +367,14 @@ const IngresoEquiposSection = () => {
                     Cargando historial...
                   </td>
                 </tr>
-              ) : ingresos.length === 0 ? (
+              ) : ingresosFiltrados.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-4 py-3 text-center text-slate-500">
-                    No hay ingresos registrados
+                    {ingresos.length === 0 ? 'No hay ingresos registrados' : 'No se encontraron ingresos con esos criterios de búsqueda'}
                   </td>
                 </tr>
               ) : (
-                ingresos.map((ingreso, index) => {
+                ingresosFiltrados.map((ingreso, index) => {
                   const categoriaTexto = normalizarCategoria(ingreso.subcategoria || ingreso.tipo_producto);
                   const categoriaColor = getCategoriaColor(ingreso.tipo_producto);
 

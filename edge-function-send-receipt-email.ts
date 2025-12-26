@@ -36,6 +36,10 @@ serve(async (req) => {
     }
     console.log('✅ RESEND_API_KEY encontrada');
 
+    // Configuración de modo producción
+    const MODO_PRODUCCION = Deno.env.get('MODO_PRODUCCION') === 'true';
+    console.log(`🔧 Modo: ${MODO_PRODUCCION ? 'PRODUCCIÓN ✅' : 'PRUEBA ⚠️'}`);
+
     console.log('📦 Parseando request body...');
     const requestBody = await req.json();
 
@@ -55,8 +59,15 @@ serve(async (req) => {
     const destinatarioReal = destinatario;
     const destinatarioTesting = 'soporte.updatenotebooks@gmail.com';
 
+    // Seleccionar destinatario según modo
+    const destinatarioFinal = MODO_PRODUCCION ? destinatarioReal : destinatarioTesting;
+    const fromEmail = MODO_PRODUCCION
+      ? 'Update Tech <ventas@somosupdate.com>'
+      : 'Update Tech <onboarding@resend.dev>';
+    const subjectPrefix = MODO_PRODUCCION ? '' : '[PRUEBA] ';
+
     console.log('📦 Request body parseado');
-    console.log('⚠️ MODO PRUEBA: Email a', destinatarioTesting);
+    console.log(`📧 Email será enviado a: ${destinatarioFinal}`);
 
     const textoUbicacion = ubicacion === 'mitre' ? 'CABA, Buenos Aires, Argentina' : 'La Plata, Buenos Aires, Argentina';
 
@@ -105,10 +116,12 @@ serve(async (req) => {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 0;">
           <tr>
             <td align="center">
+              ${!MODO_PRODUCCION ? `
               <!-- TESTING MODE BANNER -->
               <div style="width: 100%; background-color: #FEF3C7; border: 2px solid #F59E0B; padding: 15px; margin-bottom: 0; text-align: center;">
                 <p style="margin: 0; font-size: 14px; font-weight: bold; color: #92400E;">⚠️ MODO PRUEBA - Este email debería haber sido enviado a: ${destinatarioReal}</p>
               </div>
+              ` : ''}
 
               <!-- Main Container -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #ffffff; overflow: hidden;">
@@ -236,9 +249,9 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Update Tech <onboarding@resend.dev>',
-        to: [destinatarioTesting],
-        subject: `[PRUEBA] Recibo de Compra - ${numeroTransaccion} - ${nombreCliente}`,
+        from: fromEmail,
+        to: [destinatarioFinal],
+        subject: `${subjectPrefix}Recibo de Compra - ${numeroTransaccion} - ${nombreCliente}`,
         html: htmlEmail,
         attachments
       })
@@ -256,8 +269,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         messageId: resendData.id,
-        testingMode: true,
-        sentTo: destinatarioTesting,
+        mode: MODO_PRODUCCION ? 'production' : 'testing',
+        sentTo: destinatarioFinal,
         originalRecipient: destinatarioReal
       }),
       {
