@@ -151,18 +151,25 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     const confirmar = window.confirm(
       `¿Enviar email con recibo y garantías?\n\n` +
       `Cliente: ${transaccion.cliente_nombre}\n` +
-      `Email del cliente: ${clienteEmail}\n` +
+      `Email: ${clienteEmail}\n` +
       `Transacción: ${transaccion.numero_transaccion}\n\n` +
-      `El email se enviará a: soporte.updatenotebooks@gmail.com (modo prueba)`
+      `Nota: El email puede aparecer como spam`
     );
 
     if (!confirmar) return;
 
     try {
       setEnviandoEmail(prev => ({ ...prev, [transaccion.id]: true }));
-      console.log('📧 Enviando email para venta:', transaccion.numero_transaccion);
+      console.log('📧 Iniciando envío de email para venta:', transaccion.numero_transaccion);
+      console.log('📦 Datos transacción:', {
+        cliente: transaccion.cliente_nombre,
+        email: transaccion.cliente_email,
+        items: transaccion.venta_items?.length || 0,
+        ubicacion: transaccion.ubicacion || transaccion.sucursal
+      });
 
       // Generar PDFs
+      console.log('📄 Generando PDFs...');
       const { reciboPDF, garantiasPDF } = await generarPDFsVenta(
         transaccion,
         {
@@ -172,11 +179,17 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           dni: transaccion.cliente_dni || ''
         }
       );
+      console.log('✅ PDFs generados:', {
+        recibo: !!reciboPDF,
+        garantias: garantiasPDF?.length || 0
+      });
 
       // Extraer info de productos para el mensaje
       const productosInfo = extraerInfoProductosParaEmail(transaccion.venta_items);
+      console.log('📦 Productos extraídos:', productosInfo?.length || 0);
 
       // Enviar email
+      console.log('📧 Enviando email a Edge Function...');
       const resultadoEmail = await enviarVentaPorEmail({
         destinatario: transaccion.cliente_email || 'soporte.updatenotebooks@gmail.com',
         nombreCliente: transaccion.cliente_nombre,
@@ -188,14 +201,17 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
         transaccion: transaccion
       });
 
+      console.log('📧 Resultado del envío:', resultadoEmail);
+
       if (resultadoEmail.success) {
-        alert(`✅ Email enviado exitosamente a soporte.updatenotebooks@gmail.com con ${resultadoEmail.adjuntosEnviados} adjuntos`);
+        alert(`✅ Email enviado exitosamente con ${resultadoEmail.adjuntosEnviados} adjuntos`);
       } else {
         throw new Error(resultadoEmail.error);
       }
     } catch (error) {
-      console.error('❌ Error enviando email:', error);
-      alert('Error al enviar email: ' + error.message);
+      console.error('❌ Error completo enviando email:', error);
+      console.error('Stack trace:', error.stack);
+      alert('❌ Error al enviar email: ' + error.message);
     } finally {
       setEnviandoEmail(prev => ({ ...prev, [transaccion.id]: false }));
     }
