@@ -177,6 +177,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 6,
   },
+  remitoInfoColumn: {
+    flexDirection: 'column',
+    marginBottom: 8,
+  },
   remitoInfoLabel: {
     fontSize: 8,
     fontFamily: 'Inter',
@@ -188,6 +192,15 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontFamily: 'Inter',
     color: '#374151',
+    flexWrap: 'wrap',
+    flex: 1,
+  },
+  remitoInfoValueBlock: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#374151',
+    lineHeight: 1.4,
+    marginTop: 4,
   },
 
   // Tabla de productos (sin precios)
@@ -386,9 +399,9 @@ const RemitoPDFDocument = ({ remito }) => {
               </View>
             )}
             {remito.observaciones && (
-              <View style={styles.remitoInfoRow}>
+              <View style={styles.remitoInfoColumn}>
                 <Text style={styles.remitoInfoLabel}>Observaciones:</Text>
-                <Text style={styles.remitoInfoValue}>{remito.observaciones}</Text>
+                <Text style={styles.remitoInfoValueBlock}>{remito.observaciones}</Text>
               </View>
             )}
           </View>

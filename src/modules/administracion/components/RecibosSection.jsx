@@ -135,7 +135,6 @@ const RecibosSection = () => {
         fecha: formData.fecha || obtenerFechaLocal(),
         cliente_id: clienteSeleccionado.id,
         cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido || ''}`.trim(),
-        cliente_nombre: `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido || ''}`.trim(),
         cliente_direccion: clienteSeleccionado.direccion || '',
         cliente_telefono: clienteSeleccionado.telefono || '',
         cliente_email: clienteSeleccionado.email || '',
@@ -321,7 +320,7 @@ const RecibosSection = () => {
                   />
                 </div>
 
-                {tipoDocumento === 'recibo' ? (
+                {tipoDocumento === 'recibo' && (
                   <>
                     {/* Campos específicos de recibo */}
                     <div>

@@ -397,6 +397,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     color: '#374151',
     lineHeight: 1.4,
+    flexWrap: 'wrap',
+    textAlign: 'left',
   },
 
   // Mensaje de agradecimiento
