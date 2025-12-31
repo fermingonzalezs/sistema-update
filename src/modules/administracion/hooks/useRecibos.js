@@ -121,6 +121,7 @@ export const useRecibos = () => {
         nuevoDocumento.moneda = documentoData.moneda || 'USD';
         nuevoDocumento.descuento = documentoData.descuento || 0;
         nuevoDocumento.total = documentoData.total;
+        nuevoDocumento.observaciones = documentoData.observaciones || '';
       } else if (tipoDocumento === 'remito') {
         nuevoDocumento.fecha_entrega = documentoData.fecha_entrega || null;
         nuevoDocumento.quien_retira = documentoData.quien_retira || '';

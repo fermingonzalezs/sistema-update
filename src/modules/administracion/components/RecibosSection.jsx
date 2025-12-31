@@ -151,7 +151,8 @@ const RecibosSection = () => {
           metodo_pago: formData.metodo_pago,
           moneda: formData.moneda,
           descuento: parseFloat(formData.descuento) || 0,
-          total: calcularTotal()
+          total: calcularTotal(),
+          observaciones: formData.observaciones.trim() || ''
         };
         resultado = await crearRecibo(datosRecibo);
       } else {
@@ -221,7 +222,7 @@ const RecibosSection = () => {
   // Cambiar tipo de documento resetea ciertos campos
   const cambiarTipoDocumento = (nuevoTipo) => {
     setTipoDocumento(nuevoTipo);
-    // Mantener items pero resetear campos específicos
+    // Mantener items y observaciones pero resetear campos específicos
     setFormData({
       ...formData,
       // Resetear campos de recibo si cambio a remito
@@ -233,8 +234,7 @@ const RecibosSection = () => {
       // Resetear campos de remito si cambio a recibo
       ...(nuevoTipo === 'recibo' && {
         fecha_entrega: '',
-        quien_retira: '',
-        observaciones: ''
+        quien_retira: ''
       })
     });
   };
@@ -352,7 +352,7 @@ const RecibosSection = () => {
                       </select>
                     </div>
 
-                    <div>
+                    <div className="col-span-2 md:col-span-1">
                       <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
                       <input
                         type="number"
@@ -364,7 +364,21 @@ const RecibosSection = () => {
                       />
                     </div>
                   </>
-                ) : (
+                )}
+
+                {/* Campo de observaciones común para ambos tipos */}
+                <div className="md:col-span-5">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                  <textarea
+                    value={formData.observaciones}
+                    onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+                    placeholder="Observaciones generales (opcional)"
+                    rows={2}
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
+
+                {tipoDocumento === 'remito' && (
                   <>
                     {/* Campos específicos de remito */}
                     <div>
@@ -384,17 +398,6 @@ const RecibosSection = () => {
                         value={formData.quien_retira}
                         onChange={(e) => setFormData({ ...formData, quien_retira: e.target.value })}
                         placeholder="Nombre de quien retira"
-                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
-                      <input
-                        type="text"
-                        value={formData.observaciones}
-                        onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
-                        placeholder="Observaciones generales"
                         className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>

@@ -375,6 +375,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
   },
 
+  // Sección de observaciones
+  observacionesSection: {
+    marginTop: 20,
+    marginHorizontal: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 0.5,
+    borderColor: '#000000',
+  },
+  observacionesLabel: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#000000',
+    marginBottom: 5,
+    textTransform: 'uppercase',
+  },
+  observacionesText: {
+    fontSize: 8,
+    fontFamily: 'Inter',
+    color: '#374151',
+    lineHeight: 1.4,
+  },
+
   // Mensaje de agradecimiento
   thankYouSection: {
     marginTop: 60,
@@ -522,6 +546,14 @@ const ReciboDocument = ({ data }) => {
           </View>
         </View>
 
+        {/* Observaciones - Solo si existen */}
+        {data.observaciones && data.observaciones.trim() !== '' && (
+          <View style={styles.observacionesSection} wrap={false}>
+            <Text style={styles.observacionesLabel}>Observaciones:</Text>
+            <Text style={styles.observacionesText}>{data.observaciones}</Text>
+          </View>
+        )}
+
         {/* Espacio para firmar - No se corta entre páginas */}
         <View style={styles.signatureSection} wrap={false}>
           <View style={styles.signatureLine}>
@@ -577,7 +609,8 @@ export const convertirReciboADocumento = (recibo) => {
     })),
     discount: recibo.descuento || 0,
     moneda: recibo.moneda || 'USD',
-    metodoPago: recibo.metodo_pago || 'efectivo'
+    metodoPago: recibo.metodo_pago || 'efectivo',
+    observaciones: recibo.observaciones || ''
   };
 };
 
