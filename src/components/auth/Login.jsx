@@ -41,34 +41,31 @@ const Login = ({ onLogin, error, loading }) => {
   const displayError = localError || error;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-200">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-800">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="bg-slate-800 w-16 h-16 rounded mx-auto mb-4 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded mx-auto mb-4 flex items-center justify-center">
+            <Lock className="w-16 h-16 text-white" />
           </div>
-          <h1 className="text-3xl font-bold mb-2 text-slate-800">UPDATE TECH</h1>
-          <p className="text-slate-800">Sistema de Gestión</p>
+          <h1 className="text-4xl font-bold text-white">UPDATE TECH</h1>
         </div>
 
         {/* Login Form */}
-        <div className="border rounded p-8 bg-white border-slate-200">
+        <div className="rounded p-8 bg-slate-800">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
+            {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-slate-800">
+              <label className="block text-sm font-medium mb-2 text-white text-center">
                 Email
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-800" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all bg-white border-slate-200 text-slate-800 placeholder-slate-800"
-                  placeholder="Ingresa tu email"
+                  className="w-full px-4 py-3 border-2 rounded focus:outline-none transition-all bg-slate-100 border-slate-200 text-slate-800 placeholder-transparent"
                   disabled={loading}
                   autoComplete="email"
                 />
@@ -77,25 +74,23 @@ const Login = ({ onLogin, error, loading }) => {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-slate-800">
+              <label className="block text-sm font-medium mb-2 text-white text-center">
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-800" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-12 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all bg-white border-slate-200 text-slate-800 placeholder-slate-800"
-                  placeholder="Ingresa tu contraseña"
+                  className="w-full px-4 py-3 border-2 rounded focus:outline-none transition-all bg-slate-100 border-slate-200 text-slate-800 placeholder-transparent"
                   disabled={loading}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-800 hover:text-emerald-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-600 hover:text-slate-800"
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -105,10 +100,10 @@ const Login = ({ onLogin, error, loading }) => {
 
             {/* Error Message */}
             {displayError && (
-              <div className="bg-slate-200 border border-slate-200 rounded p-3">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-slate-800" />
-                  <span className="text-sm text-slate-800">{displayError}</span>
+              <div className="bg-white/20 border-2 border-white rounded p-3">
+                <div className="flex items-center justify-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-white" />
+                  <span className="text-sm text-white">{displayError}</span>
                 </div>
               </div>
             )}
@@ -117,7 +112,7 @@ const Login = ({ onLogin, error, loading }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 text-white py-3 px-4 rounded font-medium hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
                 <>
@@ -129,16 +124,6 @@ const Login = ({ onLogin, error, loading }) => {
               )}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-800">
-              Sistema de gestión empresarial - UPDATE TECH
-            </p>
-            <p className="text-xs text-slate-500 mt-2">
-              Ingresa con tu email autorizado
-            </p>
-          </div>
         </div>
       </div>
     </div>
