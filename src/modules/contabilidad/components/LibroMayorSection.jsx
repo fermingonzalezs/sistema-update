@@ -68,39 +68,27 @@ const libroMayorService = {
 
     if (errorCuenta) throw errorCuenta;
 
-    // Obtener asientos válidos por fecha
-    let asientosQuery = supabase
-      .from('asientos_contables')
-      .select('id, fecha')
-      .order('fecha', { ascending: true });
-
-    if (fechaDesde) {
-      asientosQuery = asientosQuery.gte('fecha', fechaDesde);
-    }
-    if (fechaHasta) {
-      asientosQuery = asientosQuery.lte('fecha', fechaHasta);
-    }
-
-    // INCLUIR ASIENTOS DE CIERRE EN LIBROS MAYORES
-    // asientosQuery = excluirAsientosDeCierre(asientosQuery);
-
-    const { data: asientos, error: errorAsientos } = await asientosQuery;
-    if (errorAsientos) throw errorAsientos;
-
-    const asientoIds = asientos.map(a => a.id);
-
-    // Obtener movimientos de la cuenta específica ordenados por ID de asiento descendente
+    // Obtener movimientos directamente con filtros de fecha en el join
+    // Esto evita el problema del .in() con arrays grandes
     let movimientosQuery = supabase
       .from('movimientos_contables')
       .select(`
         *,
-        asientos_contables (
+        asientos_contables!inner (
           id, numero, fecha, descripcion, usuario
         )
       `)
       .eq('cuenta_id', cuentaId)
-      .in('asiento_id', asientoIds)
-      .order('asiento_id', { ascending: false });
+      .order('asientos_contables(fecha)', { ascending: false })
+      .limit(10000); // Límite alto para evitar restricción por defecto de 1000
+
+    // Aplicar filtros de fecha directamente en el join
+    if (fechaDesde) {
+      movimientosQuery = movimientosQuery.gte('asientos_contables.fecha', fechaDesde);
+    }
+    if (fechaHasta) {
+      movimientosQuery = movimientosQuery.lte('asientos_contables.fecha', fechaHasta);
+    }
 
     const { data: movimientos, error: errorMovimientos } = await movimientosQuery;
     if (errorMovimientos) throw errorMovimientos;
@@ -108,33 +96,25 @@ const libroMayorService = {
     // Calcular saldo inicial (movimientos antes de fechaDesde)
     let saldoInicial = 0;
     if (fechaDesde) {
-      let asientosAnterioresQuery = supabase
-        .from('asientos_contables')
-        .select('id')
-        .lt('fecha', fechaDesde);
+      // Obtener movimientos anteriores directamente con join
+      const { data: movimientosAnteriores } = await supabase
+        .from('movimientos_contables')
+        .select(`
+          debe,
+          haber,
+          asientos_contables!inner (fecha)
+        `)
+        .eq('cuenta_id', cuentaId)
+        .lt('asientos_contables.fecha', fechaDesde)
+        .limit(10000); // Límite alto para evitar restricción por defecto de 1000
 
-      // INCLUIR ASIENTOS DE CIERRE EN SALDOS INICIALES
-      // asientosAnterioresQuery = excluirAsientosDeCierre(asientosAnterioresQuery);
+      if (movimientosAnteriores && movimientosAnteriores.length > 0) {
+        // Calcular totales de debe y haber
+        const totalDebeAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
+        const totalHaberAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
 
-      const { data: asientosAnteriores } = await asientosAnterioresQuery;
-
-      if (asientosAnteriores && asientosAnteriores.length > 0) {
-        const asientoIdsAnteriores = asientosAnteriores.map(a => a.id);
-        
-        const { data: movimientosAnteriores } = await supabase
-          .from('movimientos_contables')
-          .select('debe, haber')
-          .eq('cuenta_id', cuentaId)
-          .in('asiento_id', asientoIdsAnteriores);
-
-        if (movimientosAnteriores) {
-          // Calcular totales de debe y haber
-          const totalDebeAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
-          const totalHaberAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
-
-          // Usar función utilitaria para calcular saldo inicial
-          saldoInicial = calcularSaldoCuenta(totalDebeAnterior, totalHaberAnterior, cuenta.tipo);
-        }
+        // Usar función utilitaria para calcular saldo inicial
+        saldoInicial = calcularSaldoCuenta(totalDebeAnterior, totalHaberAnterior, cuenta.tipo);
       }
     }
 
@@ -186,7 +166,8 @@ const libroMayorService = {
         debe, haber,
         asientos_contables (fecha)
       `)
-      .eq('cuenta_id', cuentaId);
+      .eq('cuenta_id', cuentaId)
+      .limit(10000); // Límite alto para evitar restricción por defecto de 1000
 
     if (error) throw error;
 

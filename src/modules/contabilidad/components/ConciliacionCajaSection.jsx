@@ -40,25 +40,24 @@ const conciliacionCajaService = {
     // Determinar si es cuenta ARS
     const esMonedaARS = cuenta.moneda_original === 'ARS' || cuenta.requiere_cotizacion;
 
-    // Obtener asientos hasta la fecha de corte
-    let asientosQuery = supabase
-      .from('asientos_contables')
-      .select('id');
-    if (fechaCorte) {
-      asientosQuery = asientosQuery.lte('fecha', fechaCorte);
-    }
-    const { data: asientos, error: errorAsientos } = await asientosQuery;
-    if (errorAsientos) throw errorAsientos;
-
-    const asientoIds = asientos.map(a => a.id);
-
-    // Obtener movimientos de la cuenta de caja
-    const { data: movimientos, error: errorMovimientos } = await supabase
+    // Obtener movimientos directamente con join para evitar problema del .in()
+    let movimientosQuery = supabase
       .from('movimientos_contables')
-      .select('debe, haber, debe_ars, haber_ars')
+      .select(`
+        debe,
+        haber,
+        debe_ars,
+        haber_ars,
+        asientos_contables!inner (fecha)
+      `)
       .eq('cuenta_id', cuentaId)
-      .in('asiento_id', asientoIds);
+      .limit(10000); // Límite alto para evitar restricción por defecto de 1000
 
+    if (fechaCorte) {
+      movimientosQuery = movimientosQuery.lte('asientos_contables.fecha', fechaCorte);
+    }
+
+    const { data: movimientos, error: errorMovimientos } = await movimientosQuery;
     if (errorMovimientos) throw errorMovimientos;
 
     // Calcular saldo según la moneda de la cuenta
