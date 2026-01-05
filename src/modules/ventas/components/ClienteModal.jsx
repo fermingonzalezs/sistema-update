@@ -1,6 +1,8 @@
 // src/components/ClienteModal.jsx
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, User, Mail, Phone, Calendar, MapPin, Briefcase, FileText } from 'lucide-react';
+import ClienteSelector from './ClienteSelector';
 
 const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaReferido = [] }) => {
   const [formData, setFormData] = useState({
@@ -16,7 +18,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [searchReferido, setSearchReferido] = useState('');
+  const [clienteReferidor, setClienteReferidor] = useState(null);
 
   const procedenciaOptions = [
     { value: 'instagram', label: 'Instagram', icon: '📸' },
@@ -40,14 +42,12 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
         notas: cliente.notas || '',
         referido_por: cliente.referido_por || null
       });
-      // Si tiene referido_por, buscar el nombre del cliente referidor
+      // Si tiene referido_por, buscar el cliente referidor
       if (cliente.referido_por && clientesParaReferido.length > 0) {
         const referidor = clientesParaReferido.find(c => c.id === cliente.referido_por);
-        if (referidor) {
-          setSearchReferido(`${referidor.nombre} ${referidor.apellido}`);
-        }
+        setClienteReferidor(referidor || null);
       } else {
-        setSearchReferido('');
+        setClienteReferidor(null);
       }
     } else {
       setFormData({
@@ -61,7 +61,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
         notas: '',
         referido_por: null
       });
-      setSearchReferido('');
+      setClienteReferidor(null);
     }
     setErrors({});
   }, [cliente, isOpen, clientesParaReferido]);
@@ -128,8 +128,9 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  // Usar Portal para evitar conflictos de z-index
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
@@ -266,65 +267,14 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 🤝 ¿Quién lo refirió? *
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchReferido}
-                  onChange={(e) => setSearchReferido(e.target.value)}
-                  placeholder="Buscar cliente que lo refirió..."
-                  className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.referido_por ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                />
-                {formData.referido_por && (
-                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded flex items-center justify-between">
-                    <span className="text-emerald-800 text-sm">
-                      ✅ {clientesParaReferido.find(c => c.id === formData.referido_por)?.nombre} {clientesParaReferido.find(c => c.id === formData.referido_por)?.apellido}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleChange('referido_por', null);
-                        setSearchReferido('');
-                      }}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      ✕ Quitar
-                    </button>
-                  </div>
-                )}
-                {searchReferido && !formData.referido_por && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-300 rounded shadow-lg max-h-40 overflow-y-auto">
-                    {clientesParaReferido
-                      .filter(c =>
-                        `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase()) ||
-                        c.telefono?.includes(searchReferido)
-                      )
-                      .slice(0, 5)
-                      .map(clienteRef => (
-                        <button
-                          key={clienteRef.id}
-                          type="button"
-                          onClick={() => {
-                            handleChange('referido_por', clienteRef.id);
-                            setSearchReferido(`${clienteRef.nombre} ${clienteRef.apellido}`);
-                          }}
-                          className="w-full px-3 py-2 text-left hover:bg-slate-100 border-b border-slate-100 last:border-b-0"
-                        >
-                          <span className="font-medium">{clienteRef.nombre} {clienteRef.apellido}</span>
-                          {clienteRef.telefono && (
-                            <span className="text-slate-500 text-sm ml-2">({clienteRef.telefono})</span>
-                          )}
-                        </button>
-                      ))
-                    }
-                    {clientesParaReferido.filter(c =>
-                      `${c.nombre} ${c.apellido}`.toLowerCase().includes(searchReferido.toLowerCase())
-                    ).length === 0 && (
-                        <div className="px-3 py-2 text-slate-500 text-sm">No se encontraron clientes</div>
-                      )}
-                  </div>
-                )}
-              </div>
+              <ClienteSelector
+                selectedCliente={clienteReferidor}
+                onSelectCliente={(cliente) => {
+                  setClienteReferidor(cliente);
+                  handleChange('referido_por', cliente?.id || null);
+                }}
+                required={true}
+              />
               {errors.referido_por && (
                 <p className="text-red-500 text-sm mt-1">{errors.referido_por}</p>
               )}
@@ -381,7 +331,8 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

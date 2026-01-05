@@ -277,6 +277,13 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
     return styles.montoNeutral;
   };
 
+  // Función para formatear monto con signo
+  const formatearMontoConSigno = (valor, moneda = 'USD') => {
+    const valorNum = parseFloat(valor) || 0;
+    const signo = valorNum >= 0 ? '-' : '+';
+    return `${signo} ${formatearMonto(Math.abs(valorNum), moneda)}`;
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page} orientation="portrait">
@@ -306,7 +313,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
           <View style={styles.estadisticaItem}>
             <Text style={styles.estadisticaLabel}>Saldo Final</Text>
             <Text style={styles.estadisticaValue}>
-              {formatearMonto(Math.abs(libroMayor.saldoFinal), 'USD')}
+              {formatearMontoConSigno(libroMayor.saldoFinal, 'USD')}
             </Text>
           </View>
           <View style={[styles.estadisticaItem, styles.estadisticaItem_last]}>
@@ -359,7 +366,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
               </View>
               <View style={[styles.tableCol, styles.tableColLast, styles.tableColSaldo]}>
                 <Text style={[styles.tableCellSaldoInicial, getSaldoColor(libroMayor.saldoInicial)]}>
-                  {formatearMonto(Math.abs(libroMayor.saldoInicial), 'USD')}
+                  {formatearMontoConSigno(libroMayor.saldoInicial, 'USD')}
                 </Text>
               </View>
             </View>
@@ -389,7 +396,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
               </View>
               <View style={[styles.tableCol, styles.tableColLast, styles.tableColSaldo]}>
                 <Text style={[styles.tableCell, getSaldoColor(mov.saldoActual)]}>
-                  {formatearMonto(Math.abs(mov.saldoActual), 'USD')}
+                  {formatearMontoConSigno(mov.saldoActual, 'USD')}
                 </Text>
               </View>
             </View>
@@ -414,7 +421,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
             </View>
             <View style={[styles.tableCol, styles.tableColLast, styles.tableColSaldo]}>
               <Text style={[styles.tableCellTotal, getSaldoColor(libroMayor.saldoFinal)]}>
-                {formatearMonto(Math.abs(libroMayor.saldoFinal), 'USD')}
+                {formatearMontoConSigno(libroMayor.saldoFinal, 'USD')}
               </Text>
             </View>
           </View>
@@ -429,22 +436,10 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
   );
 };
 
-// Función para generar y descargar el PDF
+// Función para generar y abrir el PDF en nueva ventana
 export const descargarLibroMayorPDF = async (libroMayor, fechaDesde, fechaHasta) => {
   try {
     const blob = await pdf(<LibroMayorPDF libroMayor={libroMayor} fechaDesde={fechaDesde} fechaHasta={fechaHasta} />).toBlob();
-
-    // Crear nombre del archivo con información de la cuenta y fechas
-    const cuentaCodigo = libroMayor.cuenta.codigo.replace(/\./g, '_');
-    const rangoFechas = fechaDesde && fechaHasta
-      ? `${fechaDesde}_${fechaHasta}`
-      : fechaDesde
-        ? `desde_${fechaDesde}`
-        : fechaHasta
-          ? `hasta_${fechaHasta}`
-          : 'completo';
-
-    const nombreArchivo = `libro_mayor_${cuentaCodigo}_${rangoFechas}.pdf`;
 
     // Crear URL del blob
     const url = URL.createObjectURL(blob);
@@ -452,16 +447,10 @@ export const descargarLibroMayorPDF = async (libroMayor, fechaDesde, fechaHasta)
     // Abrir en nueva pestaña
     window.open(url, '_blank');
 
-    // Crear enlace de descarga
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = nombreArchivo;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    console.log('✅ PDF del Libro Mayor descargado:', nombreArchivo);
+    // Limpiar URL después de un tiempo para liberar memoria
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
   } catch (error) {
     console.error('❌ Error generando PDF:', error);
     throw error;

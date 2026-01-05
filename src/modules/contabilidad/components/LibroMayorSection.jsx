@@ -396,7 +396,6 @@ const LibroMayorSection = () => {
       }
 
       await descargarLibroMayorPDF(libroMayor, filtros.fechaDesde, filtros.fechaHasta);
-      alert('✅ PDF del Libro Mayor descargado exitosamente');
     } catch (error) {
       console.error('Error descargando PDF:', error);
       alert('❌ Error al generar el PDF: ' + error.message);

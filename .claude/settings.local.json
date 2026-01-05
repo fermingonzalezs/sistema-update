@@ -35,7 +35,8 @@
       "Bash(npx supabase functions deploy:*)",
       "Bash(grep:*)",
       "Skill(frontend-design)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

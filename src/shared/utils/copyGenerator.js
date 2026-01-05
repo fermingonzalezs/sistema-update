@@ -6,19 +6,23 @@ import { formatearMonto } from './formatters';
 /**
  * Tipos de copys disponibles:
  * VERSIONES COMERCIALES (para Listas y botones copy):
- * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - PRECIO
- * - 'celular_comercial': 📱 MODELO CAPACIDAD COLOR [BATERIA%] - [Estética: X] - [Observaciones] - PRECIO
- * - 'otro_comercial': 📦 MODELO - DESCRIPCION - PRECIO
+ * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - GPU VRAM - [🔋BATERIA% DURACION] - CONDICION - [ESTADO] - COLOR - IDIOMA - [(Observaciones)] - PRECIO
+ * - 'celular_comercial': 📱 MODELO CAPACIDAD COLOR [🔋BATERIA%] - [Estética: X] - [(Observaciones)] - PRECIO
+ * - 'otro_comercial': 📦 MODELO - CONDICION - [ESTADO] - [(Observaciones)] - PRECIO
  *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
- * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION (sin emoji, sin precio)
- * - 'celular_completo': MODELO CAPACIDAD COLOR [BATERIA%] - [Estética: X] - [Observaciones] (sin emoji, sin precio)
- * - 'otro_completo': MODELO - DESCRIPCION (sin emoji, sin precio)
+ * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - Observaciones (sin emoji, sin precio)
+ * - 'celular_completo': MODELO CAPACIDAD COLOR [BATERIA%] - [Estética: X] - [Observaciones] - Proveedor (sin emoji, sin precio)
+ * - 'otro_completo': MODELO - DESCRIPCION - COLOR - Observaciones (sin emoji, sin precio)
  *
  * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
  * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - ESTADO - COLOR - IDIOMA
  * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO
  * - 'otro_documento': NOMBRE_PRODUCTO - DESCRIPCION (sin observaciones ni notas)
+ *
+ * NOTAS:
+ * - [Campo] = Solo para productos USADOS/REFURBISHED
+ * - (Campo) = Formato entre paréntesis
  */
 
 // Configuraciones por defecto para cada tipo
@@ -275,8 +279,8 @@ const hasValidStorage = (value) => {
 
 /**
  * Generar copy para notebooks
- * NUEVAS: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - CONDICION - PRECIO
- * USADAS/REFURBISHED: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - 🔋 BATERIA DURACION - CONDICION - ESTADO ESTÉTICO - PRECIO
+ * NUEVAS: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - GPU - CONDICION - COLOR - IDIOMA - PRECIO
+ * USADAS/REFURBISHED: 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA - ALMACENAMIENTO - GPU - 🔋BATERIA% DURACION - CONDICION - ESTADO ESTÉTICO - COLOR - IDIOMA - (Observaciones) - PRECIO
  */
 const generateNotebookCopy = (comp, config) => {
   const partes = [];
@@ -284,6 +288,18 @@ const generateNotebookCopy = (comp, config) => {
   // Determinar si es nueva o usada/refurbished
   const condicion = (comp.condicion || '').toLowerCase();
   const esNueva = condicion === 'nuevo' || condicion === 'nueva';
+
+  // DEBUG: Log temporal para verificar
+  if (!esNueva) {
+    console.log('🔍 Notebook USADO detectado:', {
+      modelo: comp.modelo,
+      condicion: comp.condicion,
+      estado: comp.estado,
+      observaciones: comp.observaciones,
+      configStyle: config.style,
+      esNueva: esNueva
+    });
+  }
 
   // Emoji solo en versión simple
   if (config.includeEmojis) {
@@ -417,18 +433,24 @@ const generateNotebookCopy = (comp, config) => {
     partes.push(idioma);
   }
 
+  // 12. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento)
+  if (!esNueva && config.style !== 'documento') {
+    if (comp.observaciones || comp.notas || comp.comentarios) {
+      const obs = comp.observaciones || comp.notas || comp.comentarios;
+      partes.push(`(${obs})`);
+    }
+  }
+
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 12. SISTEMA OPERATIVO
+    // 13. SISTEMA OPERATIVO
     if (comp.sistema_operativo || comp.so) {
       const so = comp.sistema_operativo || comp.so;
       partes.push(so);
     }
 
-    // 13. NOTAS - Removidas según requerimientos
-
-    // 14. OBSERVACIONES
-    if (comp.observaciones || comp.notas || comp.comentarios) {
+    // 14. OBSERVACIONES para productos nuevos en versión completa
+    if (esNueva && (comp.observaciones || comp.notas || comp.comentarios)) {
       const obs = comp.observaciones || comp.notas || comp.comentarios;
       partes.push(`Observaciones: ${obs}`);
     }
@@ -463,7 +485,7 @@ const generateNotebookCopy = (comp, config) => {
 /**
  * Generar copy para celulares
  * NUEVOS: 📱 MODELO CAPACIDAD COLOR - PRECIO
- * USADOS/REFURBISHED: 📱 MODELO CAPACIDAD COLOR BATERIA% - Estética: X - Observaciones - PRECIO
+ * USADOS/REFURBISHED: 📱 MODELO CAPACIDAD COLOR 🔋BATERIA% - Estética: X - (Observaciones) - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
   // Determinar si es nuevo o usado/refurbished
@@ -602,8 +624,9 @@ const getCategoriaEmoji = (categoria) => {
 
 /**
  * Generar copy para otros productos
- * SIMPLE: [EMOJI CATEGORÍA] NOMBRE_PRODUCTO - CONDICION - PRECIO
- * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - CONDICION - ESTADO - FALLAS - OBSERVACIONES
+ * COMERCIAL NUEVOS: [EMOJI] NOMBRE_PRODUCTO - CONDICION - PRECIO
+ * COMERCIAL USADOS: [EMOJI] NOMBRE_PRODUCTO - CONDICION - ESTADO - (Observaciones) - PRECIO
+ * COMPLETO: CODIGO - MODELO - DESCRIPCION - CATEGORIA - COLOR - CONDICION - ESTADO - Observaciones
  */
 const generateOtroCopy = (otro, config) => {
   const partes = [];
@@ -660,24 +683,32 @@ const generateOtroCopy = (otro, config) => {
     partes.push(otro.estado);
   }
 
+  // 5. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento)
+  if (!esNuevo && config.style !== 'documento') {
+    if (otro.observaciones || otro.notas || otro.comentarios) {
+      const obs = otro.observaciones || otro.notas || otro.comentarios;
+      partes.push(`(${obs})`);
+    }
+  }
+
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 5. COLOR
+    // 6. COLOR
     if (otro.color) {
       partes.push(otro.color);
     }
 
-    // 6. NOTAS - Removidas según requerimientos
+    // 7. NOTAS - Removidas según requerimientos
 
-    // 7. OBSERVACIONES
-    if (otro.observaciones || otro.notas || otro.comentarios) {
+    // 8. OBSERVACIONES para productos nuevos en versión completa
+    if (esNuevo && (otro.observaciones || otro.notas || otro.comentarios)) {
       const obs = otro.observaciones || otro.notas || otro.comentarios;
       partes.push(`Observaciones: ${obs}`);
     }
 
-    // 8. GARANTIA - Removida del copy según requerimientos
+    // 9. GARANTIA - Removida del copy según requerimientos
 
-    // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
+    // 10. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
   // VERSIÓN DOCUMENTO: NOMBRE_PRODUCTO + DESCRIPCION

@@ -100,10 +100,28 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   // Generar copys cuando cambien los productos o tipo activo
   useEffect(() => {
     const productos = getProductosActivos();
-    const productosConCopyGenerado = productos.map(producto => ({
-      ...producto,
-      copy: generateCopy(producto, { version: 'listas' })
-    }));
+    const productosConCopyGenerado = productos.map(producto => {
+      // Determinar el tipo de copy comercial según el tipo de producto
+      let tipoCopy;
+      switch (producto.tipo) {
+        case 'computadora':
+          tipoCopy = 'notebook_comercial';
+          break;
+        case 'celular':
+          tipoCopy = 'celular_comercial';
+          break;
+        case 'otro':
+          tipoCopy = 'otro_comercial';
+          break;
+        default:
+          tipoCopy = null; // Auto-detectar
+      }
+
+      return {
+        ...producto,
+        copy: generateCopy(producto, { tipo: tipoCopy })
+      };
+    });
     setProductosConCopy(productosConCopyGenerado);
     setSeleccionados(new Set()); // Limpiar selección al cambiar tipo
 
@@ -781,7 +799,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               {/* Filtros para celulares */}
               <button
                 onClick={aplicarFiltroiPhoneUsado}
-                className="px-3 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
               >
                 <Smartphone className="w-4 h-4" />
                 <span>iPhone Usados</span>
@@ -811,14 +829,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </button>
               <button
                 onClick={aplicarFiltroWindowsNuevas}
-                className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
               >
                 <Monitor className="w-4 h-4" />
                 <span>Windows Nuevas</span>
               </button>
               <button
                 onClick={aplicarFiltroWindowsUsadas}
-                className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
               >
                 <Monitor className="w-4 h-4" />
                 <span>Windows Usadas</span>
@@ -827,14 +845,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               {/* Nuevos filtros para Gaming */}
               <button
                 onClick={aplicarFiltroGamingNuevas}
-                className="px-3 py-2 bg-purple-600 text-white rounded text-sm font-medium hover:bg-purple-700 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
               >
                 <Monitor className="w-4 h-4" />
                 <span>Gaming Nuevas</span>
               </button>
               <button
                 onClick={aplicarFiltroGamingUsadas}
-                className="px-3 py-2 bg-purple-500 text-white rounded text-sm font-medium hover:bg-purple-600 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
               >
                 <Monitor className="w-4 h-4" />
                 <span>Gaming Usadas</span>
@@ -843,7 +861,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               {/* Nuevo filtro para Android */}
               <button
                 onClick={aplicarFiltroAndroid}
-                className="px-3 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors flex items-center space-x-1"
+                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
               >
                 <Smartphone className="w-4 h-4" />
                 <span>Android</span>

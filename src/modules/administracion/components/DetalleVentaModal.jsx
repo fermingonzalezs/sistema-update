@@ -1,9 +1,9 @@
 import React from 'react';
-import { X, Monitor, Smartphone, Box, CreditCard, User, Calendar, MapPin, Edit } from 'lucide-react';
+import { X, Monitor, Smartphone, Box, CreditCard, User, Calendar, MapPin, Edit, Trash2 } from 'lucide-react';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 
-const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
+const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
   if (!transaccion) return null;
 
   const getIconoProducto = (tipo) => {
@@ -164,6 +164,15 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar }) => {
               >
                 <Edit className="w-4 h-4" />
                 Editar Venta
+              </button>
+            )}
+            {onEliminar && (
+              <button
+                onClick={() => onEliminar(transaccion)}
+                className="px-6 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar Venta
               </button>
             )}
             <button

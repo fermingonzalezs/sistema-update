@@ -63,9 +63,10 @@ const Clientes = () => {
 
   const handleCreateCliente = async (clienteData) => {
     try {
-      await createCliente(clienteData);
+      const nuevoCliente = await createCliente(clienteData);
       setShowModal(false);
       loadEstadisticas();
+      return nuevoCliente; // Retornar el cliente creado con su ID
     } catch (error) {
       throw error;
     }

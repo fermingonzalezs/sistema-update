@@ -12,7 +12,8 @@ const METODOS_PAGO = [
   { value: 'transferencia', label: '🏦 Transferencia' },
   { value: 'criptomonedas', label: '₿ Criptomonedas' },
   { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-  { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' }
+  { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' },
+  { value: 'cliente_abona', label: '👤 Cliente Abona' }
 ];
 
 const NuevaImportacionModal = ({ onClose, onSuccess }) => {

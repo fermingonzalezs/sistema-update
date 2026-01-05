@@ -18,7 +18,8 @@ const DetalleRecibo = ({ recibo, onClose }) => {
     'transferencia': '🏦 Transferencia',
     'criptomonedas': '₿ Criptomonedas',
     'tarjeta_credito': '💳 Tarjeta de Crédito',
-    'cuenta_corriente': '🏷️ Cuenta Corriente'
+    'cuenta_corriente': '🏷️ Cuenta Corriente',
+    'cliente_abona': '👤 Cliente Abona'
   };
 
   const getMetodoPagoLabel = (metodo) => {

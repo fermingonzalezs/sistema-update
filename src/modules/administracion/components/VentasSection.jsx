@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader, Eye, Edit, Mail } from 'lucide-react';
+import { BarChart3, DollarSign, TrendingUp, Monitor, Smartphone, User, CreditCard, Box, Search, CheckCircle, Circle, Loader, Eye, Edit, Mail, Trash2 } from 'lucide-react';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 import { obtenerTextoBoton } from '../../../shared/utils/documentTypeUtils';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -19,6 +19,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const [ventaEnEdicion, setVentaEnEdicion] = useState(null);
   const [enviandoEmail, setEnviandoEmail] = useState({});
+  const [eliminandoVenta, setEliminandoVenta] = useState({});
 
   const ventasFiltradas = useMemo(() => ventas.filter(transaccion => {
     if (!transaccion.venta_items?.length) return false;
@@ -217,6 +218,53 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     }
   };
 
+  const manejarEliminarVenta = async (transaccion) => {
+    // Pedir confirmación antes de eliminar
+    const confirmar = window.confirm(
+      `⚠️ ¿Estás seguro de eliminar esta venta?\n\n` +
+      `Cliente: ${transaccion.cliente_nombre}\n` +
+      `Transacción: ${transaccion.numero_transaccion}\n` +
+      `Total: ${formatearMonto(transaccion.total_venta, 'USD')}\n\n` +
+      `Esta acción NO se puede deshacer.`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      setEliminandoVenta(prev => ({ ...prev, [transaccion.id]: true }));
+      console.log('🗑️ Eliminando venta:', transaccion.numero_transaccion);
+
+      // 1. Eliminar items de venta
+      const { error: errorItems } = await supabase
+        .from('venta_items')
+        .delete()
+        .eq('transaccion_id', transaccion.id);
+
+      if (errorItems) throw errorItems;
+      console.log('✅ Items de venta eliminados');
+
+      // 2. Eliminar transacción
+      const { error: errorVenta } = await supabase
+        .from('transacciones')
+        .delete()
+        .eq('id', transaccion.id);
+
+      if (errorVenta) throw errorVenta;
+      console.log('✅ Venta eliminada');
+
+      alert('✅ Venta eliminada exitosamente');
+
+      // Recargar estadísticas
+      if (onLoadStats) {
+        onLoadStats();
+      }
+    } catch (error) {
+      console.error('❌ Error eliminando venta:', error);
+      alert('❌ Error al eliminar venta: ' + error.message);
+    } finally {
+      setEliminandoVenta(prev => ({ ...prev, [transaccion.id]: false }));
+    }
+  };
 
   return (
     <div className="bg-slate-50 h-full w-full flex flex-col">
@@ -402,6 +450,10 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           onEditar={(transaccion) => {
             setVentaSeleccionada(null);
             setVentaEnEdicion(transaccion);
+          }}
+          onEliminar={(transaccion) => {
+            setVentaSeleccionada(null);
+            manejarEliminarVenta(transaccion);
           }}
         />
       )}

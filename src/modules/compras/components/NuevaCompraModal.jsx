@@ -16,7 +16,8 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
     { value: 'transferencia', label: '🏦 Transferencia' },
     { value: 'criptomonedas', label: '₿ Criptomonedas' },
     { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-    { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' }
+    { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' },
+    { value: 'cliente_abona', label: '👤 Cliente Abona' }
   ];
 
   const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
