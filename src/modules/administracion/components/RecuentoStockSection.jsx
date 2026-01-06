@@ -677,9 +677,18 @@ export const RecuentoStockSection = () => {
 
   const formatearFecha = (fecha) => {
     // Parsear la fecha como local, no como UTC
-    const [year, month, day] = fecha.split('-');
-    const fechaLocal = new Date(year, month - 1, day);
-    return fechaLocal.toLocaleDateString('es-AR', {
+    if (!fecha) return '';
+    if (typeof fecha === 'string' && fecha.includes('-')) {
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(year, month - 1, day);
+      return fechaLocal.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+    // Fallback para otros formatos
+    return new Date(fecha).toLocaleDateString('es-AR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'

@@ -805,46 +805,102 @@ npm run build --verbose
 
 ## Date Handling Standards - MANDATORY
 
-**CRITICAL**: All date operations MUST use the centralized functions in `/src/shared/utils/formatters.js`. This prevents timezone bugs where dates appear one day off (due to UTC interpretation in Argentina timezone UTC-3).
+**CRITICAL**: All date operations MUST use the centralized functions to prevent timezone bugs where dates appear one day off (due to UTC interpretation in Argentina timezone UTC-3).
 
-### ❌ NEVER Use These Patterns:
+### 📁 Archivos de Configuración de Timezone:
+- **Principal (USAR SIEMPRE)**: `/src/shared/config/timezone.js` - Sistema completo de manejo de fechas/horas
+- **Legacy (Compatibilidad)**: `/src/shared/utils/formatters.js` - Funciones antiguas redirigidas al nuevo sistema
+- **Guía Completa**: `/src/shared/config/TIMEZONE_GUIDE.md` - Ejemplos y casos de uso
+
+### ❌ NUNCA Uses Estos Patrones:
 ```javascript
-// WRONG - causes timezone issues
-new Date().toISOString().split('T')[0]    // For getting today's date
-new Date(fecha).toISOString().split('T')[0]  // For formatting existing dates
+// INCORRECTO - causa problemas de timezone
+new Date().toISOString().split('T')[0]           // Para fecha actual
+new Date(fecha).toISOString().split('T')[0]      // Para formatear fechas
+new Date('2024-12-31')                           // Para parsear fechas (interpreta UTC)
 
-// Also avoid inline formatting
+// INCORRECTO - formateo manual
 const fecha = new Date();
-const fechaStr = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+const str = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
 ```
 
-### ✅ ALWAYS Use These Utility Functions:
+### ✅ SIEMPRE Usa las Funciones Centralizadas:
 ```javascript
-import { obtenerFechaLocal, parseFechaLocal, formatearFechaParaInput, formatearFechaReporte } from '../../../shared/utils/formatters';
+// Para NUEVOS desarrollos, usar el módulo timezone.js
+import {
+  obtenerFechaArgentina,      // Fecha actual YYYY-MM-DD
+  obtenerTimestampActual,      // Timestamp ISO para created_at/updated_at
+  parsearFechaLocal,           // String YYYY-MM-DD → Date
+  formatearFechaLocal,         // Date → String YYYY-MM-DD
+  formatearFechaDisplay,       // String/Date → DD/MM/YYYY para UI
+  formatearTimestampDisplay,   // Timestamp → DD/MM/YYYY HH:mm:ss para UI
+  sumarDias,                   // Cálculos de fechas
+  diferenciaEnDias,            // Diferencia entre fechas
+  primerDiaMesActual,          // Primer día del mes
+  ultimoDiaMesActual,          // Último día del mes
+  esFechaValida                // Validación de fechas
+} from '../shared/config/timezone';
 
-// Get today's date (YYYY-MM-DD) - for default form values
-const hoy = obtenerFechaLocal();
-
-// Parse date string to Date object safely
-const fechaObj = parseFechaLocal('2024-12-12');
-
-// Format Date object for <input type="date">
-const fechaInput = formatearFechaParaInput(new Date());
-
-// Format for display (DD/MM/YYYY)
-const fechaDisplay = formatearFechaReporte('2024-12-12');
+// Para código EXISTENTE (legacy), también funcionan desde formatters.js
+import {
+  obtenerFechaLocal,           // = obtenerFechaArgentina
+  parseFechaLocal,             // = parsearFechaLocal
+  formatearFechaParaInput,     // = formatearFechaLocal
+  formatearFechaReporte        // = formatearFechaDisplay
+} from '../shared/utils/formatters';
 ```
 
-### When Each Function Should Be Used:
-| Function | Use Case |
-|----------|----------|
-| `obtenerFechaLocal()` | Default date values in forms, new records |
-| `parseFechaLocal(string)` | Converting YYYY-MM-DD string to Date object |
-| `formatearFechaParaInput(Date)` | Formatting Date object for date inputs |
-| `formatearFechaReporte(string)` | Displaying dates to users (DD/MM/YYYY) |
+### Casos de Uso Más Comunes:
 
-### Exception - Full Timestamps:
-For `created_at`, `updated_at` columns that need full timestamps (not just date), using `new Date().toISOString()` is acceptable as these represent exact moments in time.
+#### 1. Fecha actual para formularios
+```javascript
+import { obtenerFechaArgentina } from '../shared/config/timezone';
+const [fecha, setFecha] = useState(obtenerFechaArgentina());
+```
+
+#### 2. Timestamp para created_at/updated_at
+```javascript
+import { obtenerTimestampActual } from '../shared/config/timezone';
+const registro = {
+  ...data,
+  created_at: obtenerTimestampActual(),
+  updated_at: obtenerTimestampActual()
+};
+```
+
+#### 3. Mostrar fecha al usuario
+```javascript
+import { formatearFechaDisplay } from '../shared/config/timezone';
+<p>Fecha: {formatearFechaDisplay(venta.fecha)}</p>
+```
+
+#### 4. Mostrar timestamp completo
+```javascript
+import { formatearTimestampDisplay } from '../shared/config/timezone';
+<p>Creado: {formatearTimestampDisplay(registro.created_at)}</p>
+```
+
+#### 5. Cálculos con fechas
+```javascript
+import { sumarDias, primerDiaMesActual, ultimoDiaMesActual } from '../shared/config/timezone';
+
+const vencimiento = sumarDias('2024-12-01', 30);  // "2024-12-31"
+const mesDesde = primerDiaMesActual();            // "2024-12-01"
+const mesHasta = ultimoDiaMesActual();            // "2024-12-31"
+```
+
+### Tabla de Referencia Rápida:
+| Función | Uso | Retorna | Ejemplo |
+|---------|-----|---------|---------|
+| `obtenerFechaArgentina()` | Fecha actual | `"2024-12-31"` | Valores por defecto en forms |
+| `obtenerTimestampActual()` | Timestamp actual | ISO string | created_at/updated_at |
+| `parsearFechaLocal(str)` | String → Date | `Date` | Parsear inputs de usuario |
+| `formatearFechaLocal(date)` | Date → String | `"2024-12-31"` | Para inputs type="date" |
+| `formatearFechaDisplay(str\|date)` | Mostrar fecha | `"31/12/2024"` | Display en UI |
+| `formatearTimestampDisplay(ts)` | Mostrar timestamp | `"31/12/2024 18:30:00"` | Display en UI |
+
+### 📚 Documentación Completa:
+Para ejemplos detallados, casos de uso específicos y solución de problemas, consultar `/src/shared/config/TIMEZONE_GUIDE.md`
 
 ## Problemas Conocidos y Soluciones en Desarrollo
 

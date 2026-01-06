@@ -195,6 +195,14 @@ const GarantiasSection = () => {
   };
 
   const formatearFecha = (fecha) => {
+    if (!fecha) return '';
+    // Si es fecha tipo 'date' (YYYY-MM-DD), parsear localmente
+    if (typeof fecha === 'string' && fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(year, month - 1, day);
+      return fechaLocal.toLocaleDateString('es-AR');
+    }
+    // Para timestamps con hora
     return new Date(fecha).toLocaleDateString('es-AR');
   };
 

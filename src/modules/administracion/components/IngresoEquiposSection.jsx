@@ -94,6 +94,17 @@ const IngresoEquiposSection = () => {
   const onAddOtro = (datos) => handleAddEquipo('otro', datos, addOtro);
 
   const formatearFecha = (fecha) => {
+    // Si es una fecha tipo 'date' (YYYY-MM-DD), parsear localmente
+    if (typeof fecha === 'string' && fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(year, month - 1, day);
+      return fechaLocal.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+    // Si es timestamp completo con hora, usar directamente
     return new Date(fecha).toLocaleDateString('es-AR', {
       day: '2-digit',
       month: '2-digit',

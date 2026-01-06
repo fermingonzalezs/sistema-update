@@ -159,20 +159,30 @@ const styles = StyleSheet.create({
 // Componente del documento PDF
 const EstadoResultadosDocument = ({ data }) => {
   const formatearMoneda = (valor) => formatearMonto(valor, 'USD');
-  
+
   const fechaFormateada = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
+    if (!fecha) return '';
+    // Si es fecha tipo 'date' (YYYY-MM-DD), parsear localmente
+    if (typeof fecha === 'string' && fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(year, month - 1, day);
+      return fechaLocal.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+    // Para timestamps
+    return new Date(fecha).toLocaleDateString('es-AR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric'
     });
   };
 
-  const fechaActual = new Date().toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  // Obtener fecha actual correctamente en Argentina
+  const ahora = new Date();
+  const fechaActual = `${String(ahora.getDate()).padStart(2, '0')}/${String(ahora.getMonth() + 1).padStart(2, '0')}/${ahora.getFullYear()}`;
 
   return (
     <Document>

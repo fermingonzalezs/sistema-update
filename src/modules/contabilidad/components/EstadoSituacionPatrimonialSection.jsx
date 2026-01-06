@@ -124,7 +124,15 @@ const EstadoSituacionPatrimonialSection = () => {
   }, []);
 
   const aplicarFecha = () => {
+    console.log('🔄 Recargando balance con fecha:', fechaCorte);
     fetchBalance(fechaCorte);
+  };
+
+  const refrescarConFechaActual = () => {
+    const fechaActual = obtenerFechaLocal();
+    console.log('🔄 Refrescando balance con fecha actual:', fechaActual);
+    setFechaCorte(fechaActual);
+    fetchBalance(fechaActual);
   };
 
   const handleGenerarPDF = async () => {
@@ -220,32 +228,52 @@ const EstadoSituacionPatrimonialSection = () => {
 
       {/* Controles */}
       <div className="bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-4 h-4 text-slate-800" />
-            <label className="text-sm font-medium text-slate-800">
-              Fecha de Corte:
-            </label>
-            <input
-              type="date"
-              value={fechaCorte}
-              onChange={(e) => setFechaCorte(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-slate-800" />
+              <label className="text-sm font-medium text-slate-800">
+                Fecha de Corte:
+              </label>
+              <input
+                type="date"
+                value={fechaCorte}
+                onChange={(e) => setFechaCorte(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            <button
+              onClick={aplicarFecha}
+              disabled={loading}
+              className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Filter className="w-4 h-4" />
+              )}
+              {loading ? 'Calculando...' : 'Aplicar'}
+            </button>
           </div>
+
+          {/* Botón de Refresh */}
           <button
-            onClick={aplicarFecha}
+            onClick={refrescarConFechaActual}
             disabled={loading}
-            className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+            className="bg-slate-700 text-white py-2 px-4 rounded hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
+            title="Recargar con fecha actual"
           >
-            {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Filter className="w-4 h-4" />
-            )}
-            {loading ? 'Calculando...' : 'Aplicar'}
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar Hoy
           </button>
         </div>
+
+        {/* Info de última actualización */}
+        {balance.fechaCorte && (
+          <div className="mt-3 text-xs text-slate-600">
+            Datos al: <span className="font-semibold">{formatearFechaReporte(balance.fechaCorte)}</span>
+          </div>
+        )}
       </div>
 
       {/* Error */}

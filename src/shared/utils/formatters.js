@@ -2,6 +2,17 @@
 // src/shared/utils/formatters.js
 
 /**
+ * IMPORTANTE: Este archivo mantiene compatibilidad con código existente.
+ * Para nuevas funcionalidades de fechas, usar ../config/timezone.js que tiene más capacidades.
+ */
+import {
+  obtenerFechaArgentina,
+  parsearFechaLocal as parsearFechaLocalTimezone,
+  formatearFechaLocal as formatearFechaLocalTimezone,
+  formatearFechaDisplay
+} from '../config/timezone.js';
+
+/**
  * Formatea números para mostrar en el libro diario
  * Los USD aparecen con U$ y los ARS con $
  * Siempre 2 decimales
@@ -58,10 +69,10 @@ export const formatearFecha = (fecha) => {
  * Obtiene la fecha actual en formato YYYY-MM-DD en zona horaria local (Argentina)
  * Evita problemas de conversión UTC que pueden causar desfase de un día
  * Usar esta función en lugar de new Date().toISOString().split('T')[0]
+ * @deprecated Usar obtenerFechaArgentina() de timezone.js para nuevos desarrollos
  */
 export const obtenerFechaLocal = () => {
-  const ahora = new Date();
-  return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+  return obtenerFechaArgentina();
 };
 
 /**
@@ -74,11 +85,10 @@ export const obtenerFechaLocal = () => {
  *
  * @param {string} fechaString - Fecha en formato YYYY-MM-DD
  * @returns {Date} Objeto Date en zona horaria local
+ * @deprecated Usar parsearFechaLocal() de timezone.js para nuevos desarrollos
  */
 export const parseFechaLocal = (fechaString) => {
-  if (!fechaString) return null;
-  const [year, month, day] = fechaString.split('-').map(num => parseInt(num, 10));
-  return new Date(year, month - 1, day); // month - 1 porque Date usa índice 0-11
+  return parsearFechaLocalTimezone(fechaString);
 };
 
 /**
@@ -88,13 +98,10 @@ export const parseFechaLocal = (fechaString) => {
  *
  * @param {Date} fecha - Objeto Date
  * @returns {string} Fecha en formato YYYY-MM-DD
+ * @deprecated Usar formatearFechaLocal() de timezone.js para nuevos desarrollos
  */
 export const formatearFechaParaInput = (fecha) => {
-  if (!fecha) return '';
-  const year = fecha.getFullYear();
-  const month = String(fecha.getMonth() + 1).padStart(2, '0');
-  const day = String(fecha.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return formatearFechaLocalTimezone(fecha);
 };
 
 /**
@@ -102,13 +109,10 @@ export const formatearFechaParaInput = (fecha) => {
  * Evita que new Date('2024-09-01') se interprete como UTC y reste un día
  * @param {string} fechaString - Fecha en formato YYYY-MM-DD
  * @returns {string} Fecha formateada en formato DD/MM/YYYY
+ * @deprecated Usar formatearFechaDisplay() de timezone.js para nuevos desarrollos
  */
 export const formatearFechaReporte = (fechaString) => {
-  if (!fechaString) return '';
-  // Separar la fecha en partes para crear Date en zona local
-  const [year, month, day] = fechaString.split('-');
-  const fecha = new Date(year, month - 1, day);
-  return fecha.toLocaleDateString('es-AR');
+  return formatearFechaDisplay(fechaString);
 };
 
 /**
