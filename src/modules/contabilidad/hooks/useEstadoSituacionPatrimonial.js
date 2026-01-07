@@ -91,18 +91,41 @@ export const estadoSituacionPatrimonialService = {
     try {
       const fecha = fechaCorte || obtenerFechaLocal();
 
-      // Obtener TODOS los movimientos hasta la fecha de corte
-      // Primero obtenemos los asientos, luego los movimientos en lotes para evitar el límite
-      let queryAsientos = supabase
-        .from('asientos_contables')
-        .select('id')
-        .lte('fecha', fecha);
+      // Obtener TODOS los asientos hasta la fecha de corte con PAGINACIÓN
+      // Supabase tiene un límite de 1000 registros por defecto
+      const PAGE_SIZE_ASIENTOS = 1000;
+      let todosLosAsientos = [];
+      let offsetAsientos = 0;
+      let hayMasAsientos = true;
+
+      console.log('📦 Obteniendo asientos con paginación...');
+
+      while (hayMasAsientos) {
+        const { data: asientosPagina, error: errorAsientos } = await supabase
+          .from('asientos_contables')
+          .select('id, fecha')
+          .lte('fecha', fecha)
+          .order('fecha', { ascending: true })
+          .range(offsetAsientos, offsetAsientos + PAGE_SIZE_ASIENTOS - 1);
+
+        if (errorAsientos) throw errorAsientos;
+
+        const recibidosAsientos = asientosPagina?.length || 0;
+        todosLosAsientos = todosLosAsientos.concat(asientosPagina || []);
+
+        console.log(`   📄 Página ${Math.floor(offsetAsientos / PAGE_SIZE_ASIENTOS) + 1}: ${recibidosAsientos} asientos`);
+
+        if (recibidosAsientos < PAGE_SIZE_ASIENTOS) {
+          hayMasAsientos = false;
+        } else {
+          offsetAsientos += PAGE_SIZE_ASIENTOS;
+        }
+      }
+
+      const asientos = todosLosAsientos;
+      console.log(`✅ Total de asientos obtenidos (sin límite): ${asientos.length}`);
 
       // NOTA: No se excluyen asientos de cierre para que se reflejen en el balance
-
-      const { data: asientos, error: errorAsientos } = await queryAsientos;
-
-      if (errorAsientos) throw errorAsientos;
 
       if (!asientos || asientos.length === 0) {
         console.log('ℹ️ No hay asientos hasta la fecha de corte');
@@ -117,34 +140,107 @@ export const estadoSituacionPatrimonialService = {
         };
       }
 
+      // LOGS DETALLADOS - Mostrar información del filtrado
+      console.log('📊 FILTRO APLICADO:', {
+        fechaCorte: fecha,
+        asientosEncontrados: asientos.length
+      });
+
+      // Encontrar fecha más antigua y más reciente
+      const fechasAsientos = asientos.map(a => a.fecha).sort();
+      const fechaMasAntigua = fechasAsientos[0];
+      const fechaMasReciente = fechasAsientos[fechasAsientos.length - 1];
+
+      console.log('📅 RANGO TEMPORAL PROCESADO:', {
+        fechaMasAntigua,
+        fechaMasReciente,
+        totalDias: Math.ceil((new Date(fechaMasReciente) - new Date(fechaMasAntigua)) / (1000 * 60 * 60 * 24))
+      });
+
+      // Mostrar distribución por fecha (últimos 10 días)
+      const contadorPorFecha = {};
+      asientos.forEach(a => {
+        const soloFecha = a.fecha.split('T')[0];
+        contadorPorFecha[soloFecha] = (contadorPorFecha[soloFecha] || 0) + 1;
+      });
+
+      const fechasOrdenadas = Object.entries(contadorPorFecha)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 10);
+
+      console.log('📋 ASIENTOS POR FECHA (últimos 10 días):',
+        fechasOrdenadas.map(([fecha, count]) => `${fecha}: ${count} asientos`)
+      );
+
       const asientoIds = asientos.map(a => a.id);
-      console.log(`📊 Total de asientos hasta ${fecha}:`, asientos.length);
 
-      // Obtener movimientos en lotes para evitar límite de 1000
-      const BATCH_SIZE = 200; // Reducir tamaño de lote
+      // Obtener movimientos con paginación REAL para superar el límite de 1000 de Supabase
+      // Dividir asientoIds en chunks de 100 (menos asientos = menos movimientos por consulta)
+      const CHUNK_SIZE = 100;
+      const PAGE_SIZE = 1000;
+      const chunks = [];
+      for (let i = 0; i < asientoIds.length; i += CHUNK_SIZE) {
+        chunks.push(asientoIds.slice(i, i + CHUNK_SIZE));
+      }
+
+      console.log(`📦 Obteniendo movimientos en ${chunks.length} chunk(s)...`);
+
+      // Obtener movimientos de todos los chunks con paginación
       let todosLosMovimientos = [];
-      let batchCount = 0;
+      for (const chunk of chunks) {
+        let offset = 0;
+        let hayMas = true;
 
-      for (let i = 0; i < asientoIds.length; i += BATCH_SIZE) {
-        const batch = asientoIds.slice(i, i + BATCH_SIZE);
-        batchCount++;
+        while (hayMas) {
+          const { data: movimientosChunk, error } = await supabase
+            .from('movimientos_contables')
+            .select(`
+              *,
+              plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria)
+            `)
+            .in('asiento_id', chunk)
+            .range(offset, offset + PAGE_SIZE - 1);
 
-        const { data: movimientosBatch, error: errorBatch } = await supabase
-          .from('movimientos_contables')
-          .select(`
-            *,
-            plan_cuentas (id, codigo, nombre, tipo, nivel, padre_id, activa, imputable, categoria)
-          `)
-          .in('asiento_id', batch);
+          if (error) throw error;
 
-        if (errorBatch) throw errorBatch;
+          const recibidos = movimientosChunk?.length || 0;
+          todosLosMovimientos = todosLosMovimientos.concat(movimientosChunk || []);
 
-        console.log(`📦 Lote ${batchCount}: ${movimientosBatch.length} movimientos (asientos ${i+1}-${Math.min(i+BATCH_SIZE, asientoIds.length)})`);
-        todosLosMovimientos = todosLosMovimientos.concat(movimientosBatch);
+          // Si recibimos menos de PAGE_SIZE, ya no hay más datos
+          if (recibidos < PAGE_SIZE) {
+            hayMas = false;
+          } else {
+            offset += PAGE_SIZE;
+          }
+        }
       }
 
       const movimientos = todosLosMovimientos;
-      console.log(`📊 TOTAL de movimientos procesados en ${batchCount} lotes:`, movimientos.length);
+      console.log(`✅ Total movimientos obtenidos (sin límite): ${movimientos.length}`);
+
+      // VALIDACIÓN FINAL - Verificar fecha del último movimiento
+      if (movimientos.length > 0) {
+        const fechasMovimientos = movimientos
+          .map(m => {
+            // Necesitamos obtener la fecha del asiento, pero los movimientos no tienen la fecha directamente
+            // La validación se hará después cuando tengamos los asientos con fecha
+            return null;
+          })
+          .filter(f => f);
+
+        // Por ahora, validamos con los asientos que ya tenemos
+        if (asientos && asientos.length > 0) {
+          const fechasAsientos = asientos.map(a => a.fecha).sort();
+          const fechaMasRecienteAsiento = fechasAsientos[fechasAsientos.length - 1];
+
+          console.log('📅 FECHA DEL ÚLTIMO MOVIMIENTO FILTRADO:', {
+            fechaCorte: fecha,
+            fechaUltimoAsiento: fechaMasRecienteAsiento,
+            esAnteriorOIgualACorte: fechaMasRecienteAsiento.split('T')[0] <= fecha,
+            status: fechaMasRecienteAsiento.split('T')[0] <= fecha ? '✅ CORRECTO' : '❌ ERROR'
+          });
+        }
+      }
 
       if (!movimientos || movimientos.length === 0) {
         console.log('ℹ️ No hay movimientos hasta la fecha de corte');

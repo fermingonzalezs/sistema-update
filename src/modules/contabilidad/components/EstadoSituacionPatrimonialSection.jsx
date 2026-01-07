@@ -118,10 +118,10 @@ const EstadoSituacionPatrimonialSection = () => {
   const [fechaCorte, setFechaCorte] = useState(obtenerFechaLocal());
 
   useEffect(() => {
-    console.log('🚀 Iniciando carga de Balance General...');
+    console.log('🚀 Cargando Balance General con fecha:', fechaCorte);
     fetchBalance(fechaCorte);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fechaCorte]);
 
   const aplicarFecha = () => {
     console.log('🔄 Recargando balance con fecha:', fechaCorte);
