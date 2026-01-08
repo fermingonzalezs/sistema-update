@@ -5,6 +5,7 @@ import { otrosService } from '../hooks/useOtros.js';
 import { generateCopy, generateNotebookAllFields, generateCelularAllFields, generateOtroAllFields } from '../../../shared/utils/copyGenerator';
 import { generarPDFsVenta, extraerInfoProductosParaEmail } from '../utils/pdfGeneratorService.jsx';
 import { enviarVentaPorEmail } from '../utils/emailService';
+import { setOperationContext, clearOperationContext } from '../../../shared/services/auditService';
 
 // 📊 SERVICE: Operaciones de ventas y transacciones
 export const ventasService = {
@@ -741,10 +742,18 @@ export function useVentas() {
         // Actualizar inventario según el tipo de cada item
         const productosConAdvertencia = [] // Rastrear productos que se descargaron de otra sucursal
 
-        for (const item of carrito) {
-          console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
+        // ⭐ CONFIGURAR CONTEXTO DE AUDITORÍA: Marcar eliminaciones como "venta"
+        // Esto hace que los triggers de Supabase registren correctamente:
+        // - razon_operacion = 'venta' (en vez de 'eliminacion_manual')
+        // - referencia_id = transaccion_id (para rastrear la venta)
+        console.log('🔍 Configurando contexto de auditoría para venta:', nuevaTransaccion.id);
+        await setOperationContext('venta', nuevaTransaccion.id);
 
-          if (item.tipo === 'otro') {
+        try {
+          for (const item of carrito) {
+            console.log(`🔄 Eliminando ${item.tipo} del inventario:`, item.producto.id)
+
+            if (item.tipo === 'otro') {
             // Para productos "otros", reducir cantidad en la sucursal correspondiente
             console.log(`📦 Reduciendo cantidad de producto "otro" ID ${item.producto.id} en ${item.cantidad} unidades (Sucursal: ${datosCliente.sucursal})`)
             const resultado = await otrosService.reducirCantidad(item.producto.id, item.cantidad, datosCliente.sucursal)
@@ -783,7 +792,18 @@ export function useVentas() {
             }
 
             console.log(`✅ ${item.tipo} eliminado permanentemente de la tabla ${tabla}`)
+            }
           }
+
+          // ⭐ LIMPIAR CONTEXTO DE AUDITORÍA después de eliminar productos
+          console.log('🧹 Limpiando contexto de auditoría');
+          await clearOperationContext();
+
+        } catch (inventoryError) {
+          // Si falla la eliminación de productos, limpiar contexto y propagar error
+          console.error('❌ Error actualizando inventario:', inventoryError);
+          await clearOperationContext(); // Limpiar incluso si hay error
+          throw inventoryError;
         }
 
         // ⚠️ SI HAY PRODUCTOS DE OTRA SUCURSAL, GUARDAR EN LA TRANSACCIÓN

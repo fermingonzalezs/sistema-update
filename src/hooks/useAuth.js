@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { setAuditContext, clearAuditContext, logLoginEvent, logLogoutEvent } from '../shared/services/auditService';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -161,7 +162,23 @@ export const useAuth = () => {
         username: userMetadata.username,
         nivel: userMetadata.nivel
       });
-      
+
+      // ⭐ CONFIGURAR CONTEXTO DE AUDITORÍA
+      // Esto hace que TODOS los triggers de Supabase capturen quién hace cada operación
+      const userForAudit = {
+        id: data.user.id,
+        email: data.user.email,
+        role: userMetadata.nivel || 'user',
+        nivel: userMetadata.nivel,
+        branch: userMetadata.sucursal || 'la_plata',
+        sucursal: userMetadata.sucursal
+      };
+
+      await setAuditContext(userForAudit);
+
+      // Registrar evento de login
+      await logLoginEvent(userForAudit);
+
       return data.user;
     } catch (err) {
       const errorMessage = err.message || 'Error al iniciar sesión';
@@ -177,14 +194,29 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       console.log('🚪 Iniciando logout...');
-      
+
+      // Registrar evento de logout antes de cerrar sesión
+      if (user) {
+        const userMetadata = user.user_metadata || {};
+        await logLogoutEvent({
+          email: user.email,
+          role: userMetadata.nivel,
+          nivel: userMetadata.nivel,
+          branch: userMetadata.sucursal,
+          sucursal: userMetadata.sucursal
+        });
+      }
+
+      // Limpiar contexto de auditoría
+      await clearAuditContext();
+
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('❌ Error en logout:', error);
         throw error;
       }
-      
+
       // El estado se limpia automáticamente por onAuthStateChange
       console.log('✅ Logout completado correctamente');
     } catch (err) {
@@ -192,6 +224,8 @@ export const useAuth = () => {
       // Forzar limpieza local aunque falle el logout remoto
       setUser(null);
       setError(null);
+      // Intentar limpiar auditoría de todas formas
+      await clearAuditContext().catch(() => {});
     }
   };
 
