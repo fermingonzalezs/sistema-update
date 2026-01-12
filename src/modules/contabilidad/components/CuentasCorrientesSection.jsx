@@ -229,12 +229,14 @@ const CuentasCorrientesSection = () => {
       resultado.push(...movsConSaldo);
     });
 
-    // Ordenar todos los movimientos por created_at (más reciente primero)
+    // Ordenar todos los movimientos por fecha_operacion (más reciente primero)
     return resultado.sort((a, b) => {
-      if (a.created_at && b.created_at) {
-        return new Date(b.created_at) - new Date(a.created_at);
+      const fechaA = new Date(a.fecha_operacion);
+      const fechaB = new Date(b.fecha_operacion);
+      if (fechaA.getTime() !== fechaB.getTime()) {
+        return fechaB - fechaA; // Más reciente primero
       }
-      return b.id - a.id;
+      return b.id - a.id; // Si las fechas son iguales, ordenar por ID descendente
     });
   }, [movimientosFiltrados, saldos]);
 

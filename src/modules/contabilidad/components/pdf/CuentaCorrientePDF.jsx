@@ -1,7 +1,8 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer';
-import InterRegular from '../../../../../public/Inter/static/Inter_18pt-Regular.ttf'
-import InterBold from '../../../../../public/Inter/static/Inter_18pt-Bold.ttf'
+import InterRegular from '../../../../../public/Inter/static/Inter_18pt-Regular.ttf';
+import InterBold from '../../../../../public/Inter/static/Inter_18pt-Bold.ttf';
+import { formatearFechaDisplay } from '../../../../shared/config/timezone';
 
 // Registrar la fuente ANTES de los estilos
 Font.register({
@@ -239,10 +240,20 @@ const styles = StyleSheet.create({
 const CuentaCorrientePDFDocument = ({ data }) => {
     const { cliente, movimientos, fechaEmision } = data;
 
+    // Ordenar movimientos cronológicamente (más reciente primero) para el PDF
+    const movimientosOrdenados = [...(movimientos || [])].sort((a, b) => {
+        const fechaA = new Date(a.fecha_operacion);
+        const fechaB = new Date(b.fecha_operacion);
+        if (fechaA.getTime() !== fechaB.getTime()) {
+            return fechaB - fechaA; // Más reciente primero (descendente)
+        }
+        return b.id - a.id; // Si las fechas son iguales, ordenar por ID descendente
+    });
+
+    // Usar la función centralizada de timezone para evitar desfase de -1 día
     const formatearFecha = (fecha) => {
         if (!fecha) return '';
-        const date = new Date(fecha);
-        return date.toLocaleDateString('es-AR');
+        return formatearFechaDisplay(fecha);
     };
 
     const formatearMonto = (monto) => {
@@ -315,12 +326,12 @@ const CuentaCorrientePDFDocument = ({ data }) => {
                         <Text style={[styles.tableHeaderText, styles.colSaldo]}>SALDO</Text>
                     </View>
 
-                    {movimientos?.map((mov, index) => (
+                    {movimientosOrdenados.map((mov, index) => (
                         <View
                             key={index}
                             style={[
                                 styles.tableRow,
-                                index === movimientos.length - 1 && styles.tableRowLast
+                                index === movimientosOrdenados.length - 1 && styles.tableRowLast
                             ]}
                         >
                             <Text style={[styles.tableCell, styles.colFecha]}>

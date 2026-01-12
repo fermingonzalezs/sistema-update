@@ -72,18 +72,19 @@ export const cuentasCorrientesService = {
   // Obtener movimientos de un cliente específico
   async getMovimientosCliente(clienteId) {
     console.log('📡 Obteniendo movimientos del cliente:', clienteId);
-    
+
     const { data, error } = await supabase
       .from('cuentas_corrientes')
       .select('*')
       .eq('cliente_id', clienteId)
-      .order('created_at', { ascending: false });
-    
+      .order('fecha_operacion', { ascending: false })
+      .order('id', { ascending: false });
+
     if (error) {
       console.error('❌ Error obteniendo movimientos:', error);
       throw error;
     }
-    
+
     console.log(`✅ ${data.length} movimientos obtenidos para cliente ${clienteId}`);
     return data;
   },
@@ -252,7 +253,8 @@ export const cuentasCorrientesService = {
           apellido
         )
       `)
-      .order('created_at', { ascending: false });
+      .order('fecha_operacion', { ascending: false })
+      .order('id', { ascending: false });
 
     if (error) {
       console.error('❌ Error obteniendo todos los movimientos:', error);
