@@ -146,7 +146,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     garantia_update: '3 meses',
     garantia_oficial: '',
     garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial con vencimiento"
-    fallas: 'Ninguna',
+    fallas: '',
 
     // Fotos
     fotos: '',
@@ -253,7 +253,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           garantia_update: '3 meses',
           garantia_oficial: '',
           garantia_oficial_fecha: '',
-          fallas: 'Ninguna',
+          fallas: '',
           fotos: '',
           ingreso: obtenerFechaLocal()
         });
@@ -295,7 +295,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           garantia_update: '3 meses',
           garantia_oficial: '',
           garantia_oficial_fecha: '',
-          fallas: 'Ninguna',
+          fallas: '',
           fotos: '',
           ingreso: obtenerFechaLocal()
         });
@@ -984,7 +984,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
     // Garantía y observaciones
     garantia: '3 meses',
     garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial con vencimiento"
-    fallas: 'Ninguna',
+    fallas: '',
     fotos: '',
 
     // Fecha de ingreso
@@ -1082,7 +1082,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           precio_venta_usd: '',
           garantia: '3 meses',
           garantia_oficial_fecha: '',
-          fallas: 'Ninguna',
+          fallas: '',
           fotos: '',
           ingreso: obtenerFechaLocal()
         });
@@ -1111,7 +1111,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           precio_venta_usd: '',
           garantia: '3 meses',
           garantia_oficial_fecha: '',
-          fallas: 'Ninguna',
+          fallas: '',
           fotos: '',
           ingreso: obtenerFechaLocal()
         });
@@ -1912,8 +1912,8 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
   // Determinar título y descripción basado en categoría
   const titulo = isDesktop ? 'Nuevo Desktop' : (isTablet ? 'Nueva Tablet' : 'Nuevo Producto');
   const descripcion = isDesktop ? 'Complete la información de la computadora de escritorio' :
-                     (isTablet ? 'Complete la información de la tablet' :
-                      'Complete la información del producto');
+    (isTablet ? 'Complete la información de la tablet' :
+      'Complete la información del producto');
 
   return (
     <div className="bg-white rounded border border-slate-200 overflow-hidden">

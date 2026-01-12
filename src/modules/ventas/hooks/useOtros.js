@@ -108,18 +108,18 @@ export const otrosService = {
 
         // Información adicional
         garantia: producto.garantia || '',
-        observaciones: producto.observaciones || producto.fallas || 'Ninguna',
+        observaciones: producto.observaciones || producto.fallas || '',
 
         // Proveedor
         proveedor_id: producto.proveedor_id || null
       }])
       .select()
-    
+
     if (error) {
       console.error('❌ Error creando producto otro:', error)
       throw error
     }
-    
+
     console.log('✅ Producto otro creado exitosamente')
     return data[0]
   },
@@ -191,12 +191,12 @@ export const otrosService = {
       })
       .eq('id', id)
       .select()
-    
+
     if (error) {
       console.error('❌ Error actualizando producto otro:', error)
       throw error
     }
-    
+
     console.log('✅ Producto otro actualizado')
     return data[0]
   },
@@ -204,24 +204,24 @@ export const otrosService = {
   // Eliminar producto otro (eliminación lógica)
   async delete(id) {
     console.log(`🗑️ Eliminando producto otro ID: ${id}`)
-    
+
     // Opción 1: Eliminación física (borrar completamente)
     const { error } = await supabase
       .from('otros')
       .delete()
       .eq('id', id)
-    
+
     // Opción 2: Eliminación lógica (solo marcar como no disponible)
     // const { error } = await supabase
     //   .from('otros')
     //   .update({ disponible: false })
     //   .eq('id', id)
-    
+
     if (error) {
       console.error('❌ Error eliminando producto otro:', error)
       throw error
     }
-    
+
     console.log('✅ Producto otro eliminado')
     return true
   },
@@ -329,7 +329,7 @@ export const otrosService = {
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -337,39 +337,39 @@ export const otrosService = {
   // Buscar productos por categoría
   async getByCategoria(categoria) {
     console.log(`🔍 Buscando productos de categoría: ${categoria}`)
-    
+
     const { data, error } = await supabase
       .from('otros')
       .select('*')
       .eq('categoria', categoria)
       .eq('disponible', true)
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error buscando por categoría:', error)
       throw error
     }
-    
+
     return data
   },
 
   // Buscar productos por sucursal (productos que tienen stock en esa sucursal)
   async getBySucursal(sucursal) {
     console.log(`🏢 Buscando productos en sucursal: ${sucursal}`)
-    
+
     const campoSucursal = sucursal === 'mitre' ? 'cantidad_mitre' : 'cantidad_la_plata'
-    
+
     const { data, error } = await supabase
       .from('otros')
       .select('*')
       .gt(campoSucursal, 0)
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error buscando por sucursal:', error)
       throw error
     }
-    
+
     return data
   },
 
@@ -443,16 +443,16 @@ export const otrosService = {
   // Obtener estadísticas del inventario
   async getEstadisticas() {
     console.log('📊 Obteniendo estadísticas del inventario...')
-    
+
     const { data, error } = await supabase
       .from('otros')
       .select('categoria, cantidad_la_plata, cantidad_mitre, precio_venta_usd')
-    
+
     if (error) {
       console.error('❌ Error obteniendo estadísticas:', error)
       throw error
     }
-    
+
     // Calcular estadísticas
     const estadisticas = {
       totalProductos: data.length,
@@ -462,11 +462,11 @@ export const otrosService = {
       valorInventario: data.reduce((sum, item) => sum + (item.precio_venta_usd * ((item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0))), 0),
       categorias: {}
     }
-    
+
     // Agrupar por categoría
     data.forEach(item => {
       const totalUnidades = (item.cantidad_la_plata || 0) + (item.cantidad_mitre || 0)
-      
+
       // Por categoría
       if (!estadisticas.categorias[item.categoria]) {
         estadisticas.categorias[item.categoria] = { productos: 0, unidades: 0, unidadesLaPlata: 0, unidadesMitre: 0, valor: 0 }
@@ -477,7 +477,7 @@ export const otrosService = {
       estadisticas.categorias[item.categoria].unidadesMitre += item.cantidad_mitre || 0
       estadisticas.categorias[item.categoria].valor += item.precio_venta_usd * totalUnidades
     })
-    
+
     return estadisticas
   }
 };
@@ -518,7 +518,7 @@ export function useOtros() {
     try {
       setError(null)
       const updated = await otrosService.update(id, updates)
-      setOtros(prev => prev.map(item => 
+      setOtros(prev => prev.map(item =>
         item.id === id ? updated : item
       ))
       return updated

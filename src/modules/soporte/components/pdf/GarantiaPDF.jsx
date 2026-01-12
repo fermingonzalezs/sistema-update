@@ -2,10 +2,12 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer';
 import InterRegular from '../../../../../public/Inter/static/Inter_18pt-Regular.ttf'
 import InterBold from '../../../../../public/Inter/static/Inter_18pt-Bold.ttf'
+import InterItalic from '../../../../../public/Inter/static/Inter_18pt-Italic.ttf'
+import HeligthonSignature from '../../../../../public/fonts/Heligthon Signature.otf'
 import { determinarTipoDocumento, calcularFechaVencimiento, generarTextoLegalPagare } from '../../../../shared/utils/documentTypeUtils';
 import { generarCopyParaPDF } from '../../../../shared/utils/pdfCopyUtils';
 
-// Registrar la fuente ANTES de los estilos
+// Registrar las fuentes ANTES de los estilos
 Font.register({
   family: 'Inter',
   fonts: [
@@ -16,8 +18,17 @@ Font.register({
     {
       src: InterBold,
       fontWeight: 'bold',
+    },
+    {
+      src: InterItalic,
+      fontStyle: 'italic',
     }
   ]
+});
+
+Font.register({
+  family: 'Heligthon',
+  src: HeligthonSignature,
 });
 
 // Estilos profesionales mejorados para el PDF - Versión compacta (MISMO ESTILO QUE RECIBO)
@@ -442,13 +453,27 @@ const styles = StyleSheet.create({
   },
   signatureLine: {
     width: '40%',
+    alignItems: 'center',
+  },
+  signatureLineBar: {
+    width: '100%',
     borderTopWidth: 1,
     borderTopColor: '#000000',
-    paddingTop: 4,
+    marginTop: 4,
+  },
+  signatureText: {
+    fontSize: 32,
+    color: '#9CA3AF',
+    fontFamily: 'Heligthon',
     textAlign: 'center',
+    marginBottom: 18,
+  },
+  signatureLabelGarantia: {
     fontSize: 7,
     color: '#000000',
     fontFamily: 'Inter',
+    textAlign: 'center',
+    paddingTop: 4,
   },
 
   // Mensaje de agradecimiento
@@ -799,10 +824,19 @@ const GarantiaDocument = ({ data, tipoDocumento }) => {
           </View>
         </View>
 
+        {/* Espacio para firmar */}
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureLine}>
+            <Text style={styles.signatureText}>Update Tech</Text>
+            <View style={styles.signatureLineBar} />
+            <Text style={styles.signatureLabelGarantia}>Firma</Text>
+          </View>
+        </View>
+
         {/* Información de la Empresa al Final */}
         <View style={styles.companyInfoFooter}>
           <Text style={styles.companyInfoFooterText}>
-            {data.company.name} • {data.company.cuit} • {data.company.phone} • INFO@UPDATETECH.COM.AR • WWW.UPDATETECH.COM.AR
+            {data.company.name} • {data.company.cuit} • {data.company.phone} • INFO@UPDATETECH.COM.AR
           </Text>
         </View>
       </Page>

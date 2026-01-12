@@ -24,17 +24,17 @@ export const inventarioService = {
   // Obtener todas las computadoras disponibles
   async getAll() {
     console.log('📡 Obteniendo todas las computadoras...')
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select('*')
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error obteniendo datos:', error)
       throw error
     }
-    
+
     console.log(`✅ ${data.length} computadoras obtenidas`)
     return data
   },
@@ -80,7 +80,7 @@ export const inventarioService = {
         throw new Error(`Ubicación inválida: ${computadora.sucursal}. Debe ser una de: ${UBICACIONES_ARRAY.join(', ')}`);
       }
     }
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .insert([{
@@ -88,18 +88,18 @@ export const inventarioService = {
         serial: computadora.serial.trim(),
         modelo: computadora.modelo.trim(),
         marca: computadora.marca || '',
-        
+
         // Precios - asegurar que sean números
         precio_costo_usd: parseFloat(computadora.precio_costo_usd) || 0,
         envios_repuestos: parseFloat(computadora.envios_repuestos) || 0,
         precio_venta_usd: parseFloat(computadora.precio_venta_usd) || 0,
         // precio_costo_total se calcula automáticamente en la DB
-        
+
         // Estado y ubicación - usar valores normalizados
         sucursal: sucursalNormalizada,
         condicion: condicionNormalizada,
         estado: computadora.estado || ESTADOS.A,
-        
+
         // Especificaciones principales
         procesador: computadora.procesador || '',
         linea_procesador: computadora.linea_procesador || 'otro',
@@ -115,20 +115,20 @@ export const inventarioService = {
         touchscreen: computadora.touchscreen || false,
         placa_video: computadora.placa_video || '',
         vram: computadora.vram || '',
-        
+
         // Características físicas
         teclado_retro: computadora.teclado_retro || 'SI',
         idioma_teclado: computadora.idioma_teclado || 'Español',
         color: computadora.color || '',
-        
+
         // Batería
         bateria: computadora.bateria || '',
         duracion: computadora.duracion || '',
-        
+
         // Garantía
         garantia_update: computadora.garantia_update || '6 meses',
         garantia_oficial: computadora.garantia_oficial || '',
-        fallas: computadora.fallas || 'Ninguna',
+        fallas: computadora.fallas || '',
 
         // Proveedor
         proveedor_id: computadora.proveedor_id || null,
@@ -140,12 +140,12 @@ export const inventarioService = {
         })()
       }])
       .select()
-    
+
     if (error) {
       console.error('❌ Error creando:', error)
       throw error
     }
-    
+
     console.log('✅ Computadora creada exitosamente')
     return data[0]
   },
@@ -153,7 +153,7 @@ export const inventarioService = {
   // Actualizar computadora
   async update(id, updates) {
     console.log(`🔄 Actualizando computadora ID: ${id}`)
-    
+
     // Preparar updates con validación de tipos
     const cleanUpdates = { ...updates };
 
@@ -198,12 +198,12 @@ export const inventarioService = {
       })
       .eq('id', id)
       .select()
-    
+
     if (error) {
       console.error('❌ Error actualizando:', error)
       throw error
     }
-    
+
     console.log('✅ Computadora actualizada')
     return data[0]
   },
@@ -211,24 +211,24 @@ export const inventarioService = {
   // Eliminar computadora (eliminación física)
   async delete(id) {
     console.log(`🗑️ Eliminando computadora ID: ${id}`)
-    
+
     // Opción 1: Eliminación física (borrar completamente)
     const { error } = await supabase
       .from('inventario')
       .delete()
       .eq('id', id)
-    
+
     // Opción 2: Eliminación lógica (solo marcar como no disponible)
     // const { error } = await supabase
     //   .from('inventario')
     //   .update({ disponible: false })
     //   .eq('id', id)
-    
+
     if (error) {
       console.error('❌ Error eliminando:', error)
       throw error
     }
-    
+
     console.log('✅ Computadora eliminada')
     return true
   },
@@ -240,12 +240,12 @@ export const inventarioService = {
       .select('*')
       .eq('serial', serial.trim())
       .maybeSingle()
-    
+
     if (error) {
       console.error('❌ Error buscando por serial:', error)
       throw error
     }
-    
+
     return data
   },
 
@@ -256,7 +256,7 @@ export const inventarioService = {
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) throw error
     return data
   },
@@ -264,70 +264,70 @@ export const inventarioService = {
   // Buscar computadoras por sucursal
   async getBySucursal(sucursal) {
     console.log(`🏢 Buscando computadoras en sucursal: ${sucursal}`)
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select('*')
       .eq('sucursal', sucursal)
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error buscando por sucursal:', error)
       throw error
     }
-    
+
     return data
   },
 
   // Buscar por condición
   async getByCondicion(condicion) {
     console.log(`🔍 Buscando computadoras con condición: ${condicion}`)
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select('*')
       .eq('condicion', condicion)
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error buscando por condición:', error)
       throw error
     }
-    
+
     return data
   },
 
   // Buscar por procesador
   async getByProcesador(procesador) {
     console.log(`💻 Buscando computadoras con procesador: ${procesador}`)
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select('*')
       .ilike('procesador', `%${procesador}%`)
       .order('created_at', { ascending: false })
-    
+
     if (error) {
       console.error('❌ Error buscando por procesador:', error)
       throw error
     }
-    
+
     return data
   },
 
   // Obtener estadísticas del inventario
   async getEstadisticas() {
     console.log('📊 Obteniendo estadísticas del inventario...')
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select('sucursal, condicion, procesador, precio_venta_usd, precio_costo_total')
-    
+
     if (error) {
       console.error('❌ Error obteniendo estadísticas:', error)
       throw error
     }
-    
+
     // Calcular estadísticas
     const estadisticas = {
       totalComputadoras: data.length,
@@ -337,7 +337,7 @@ export const inventarioService = {
       condiciones: {},
       procesadores: {}
     }
-    
+
     // Agrupar por categorías
     data.forEach(item => {
       // Por sucursal
@@ -347,34 +347,34 @@ export const inventarioService = {
       estadisticas.sucursales[item.sucursal].cantidad++
       estadisticas.sucursales[item.sucursal].valorVenta += parseFloat(item.precio_venta_usd) || 0
       estadisticas.sucursales[item.sucursal].valorCosto += parseFloat(item.precio_costo_total) || 0
-      
+
       // Por condición
       if (!estadisticas.condiciones[item.condicion]) {
         estadisticas.condiciones[item.condicion] = { cantidad: 0, valorVenta: 0 }
       }
       estadisticas.condiciones[item.condicion].cantidad++
       estadisticas.condiciones[item.condicion].valorVenta += parseFloat(item.precio_venta_usd) || 0
-      
+
       // Por procesador (marcas principales)
       const procesadorMarca = item.procesador?.toLowerCase()
       let marca = 'Otros'
       if (procesadorMarca?.includes('intel')) marca = 'Intel'
       else if (procesadorMarca?.includes('amd')) marca = 'AMD'
       else if (procesadorMarca?.includes('apple')) marca = 'Apple'
-      
+
       if (!estadisticas.procesadores[marca]) {
         estadisticas.procesadores[marca] = { cantidad: 0, valorVenta: 0 }
       }
       estadisticas.procesadores[marca].cantidad++
       estadisticas.procesadores[marca].valorVenta += parseFloat(item.precio_venta_usd) || 0
     })
-    
+
     // Calcular margen total
     estadisticas.margenTotal = estadisticas.valorInventarioVenta - estadisticas.valorInventarioCosto
-    estadisticas.porcentajeMargen = estadisticas.valorInventarioCosto > 0 
+    estadisticas.porcentajeMargen = estadisticas.valorInventarioCosto > 0
       ? ((estadisticas.margenTotal / estadisticas.valorInventarioCosto) * 100).toFixed(2)
       : 0
-    
+
     return estadisticas
   },
 
@@ -402,7 +402,7 @@ export function useInventario() {
     defaultFilters: {},
     defaultOrderBy: 'created_at',
     defaultOrder: 'desc',
-    
+
     // Transformaciones específicas para inventario
     transformOnCreate: (data) => ({
       ...data,
@@ -426,14 +426,14 @@ export function useInventario() {
       teclado_retro: data.teclado_retro || 'SI',
       idioma_teclado: data.idioma_teclado || 'Español',
       garantia_update: data.garantia_update || '6 meses',
-      fallas: data.fallas || 'Ninguna',
+      fallas: data.fallas || '',
       ingreso: data.ingreso || (() => {
         const ahora = new Date();
         return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
       })(),
       touchscreen: data.touchscreen || false
     }),
-    
+
     transformOnUpdate: (data) => ({
       ...data,
       // Validar y convertir números si vienen en updates
@@ -448,18 +448,18 @@ export function useInventario() {
       // Validar booleanos
       touchscreen: data.touchscreen !== undefined ? Boolean(data.touchscreen) : undefined,
     }),
-    
+
     // Callbacks específicos
     onBeforeCreate: async (data) => {
       // Validaciones básicas
       if (!data.serial?.trim()) {
         throw new Error('El número de serie es obligatorio');
       }
-      
+
       if (!data.modelo?.trim()) {
         throw new Error('El modelo es obligatorio');
       }
-      
+
       // Validar que no exista el serial
       const existing = await inventarioService.findBySerial(data.serial.trim());
       if (existing) {
@@ -492,34 +492,34 @@ export function useInventario() {
         marca: data.marca || ''
       };
     },
-    
+
     onAfterCreate: (createdItem) => {
       console.log('✅ Computadora creada exitosamente:', createdItem.serial);
     },
-    
+
     onBeforeUpdate: (id, data) => {
       console.log(`🔄 Actualizando computadora ID: ${id}`, data);
-      
+
       // Validar parámetros
       if (!id) {
         throw new Error('ID de computadora es requerido');
       }
-      
+
       if (!data || typeof data !== 'object') {
         throw new Error('Datos de actualización son requeridos');
       }
-      
+
       // No incluir precio_costo_total ya que se calcula automáticamente
       const cleanData = { ...data };
       delete cleanData.precio_costo_total;
-      
+
       return cleanData;
     },
-    
+
     onAfterUpdate: (updatedItem) => {
       console.log('✅ Computadora actualizada exitosamente:', updatedItem.serial);
     },
-    
+
     onAfterDelete: (id) => {
       console.log('✅ Computadora eliminada ID:', id);
     }
@@ -553,7 +553,7 @@ export function useInventario() {
   const getByCondicion = async (condicion) => {
     try {
       clearError();
-      return await customQuery((query) => 
+      return await customQuery((query) =>
         query
           .select('*')
           .eq('condicion', condicion)
@@ -568,7 +568,7 @@ export function useInventario() {
   const getByProcesador = async (procesador) => {
     try {
       clearError();
-      return await customQuery((query) => 
+      return await customQuery((query) =>
         query
           .select('*')
           .ilike('procesador', `%${procesador}%`)
@@ -586,21 +586,21 @@ export function useInventario() {
     computers,
     loading,
     error,
-    
+
     // Operaciones básicas (nombres mapeados)
     fetchComputers,
     addComputer,
     updateComputer,
     deleteComputer,
-    
+
     // Funciones específicas originales
     getComputersBySucursal,
     getEstadisticas,
-    
+
     // Funciones adicionales que usaban inventarioService
     getByCondicion,
     getByProcesador,
-    
+
     // Utilidades adicionales del hook genérico
     setComputers,
     setError,

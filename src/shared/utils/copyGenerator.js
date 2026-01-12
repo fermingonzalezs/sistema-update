@@ -289,15 +289,18 @@ const generateNotebookCopy = (comp, config) => {
   const condicion = (comp.condicion || '').toLowerCase();
   const esNueva = condicion === 'nuevo' || condicion === 'nueva';
 
-  // DEBUG: Log temporal para verificar
+  // DEBUG: Log para verificar datos de notebooks usadas
   if (!esNueva) {
     console.log('🔍 Notebook USADO detectado:', {
       modelo: comp.modelo,
       condicion: comp.condicion,
+      esNueva: esNueva,
+      bateria: comp.bateria,
+      porcentaje_de_bateria: comp.porcentaje_de_bateria,
+      duracion_bateria: comp.duracion_bateria,
       estado: comp.estado,
       observaciones: comp.observaciones,
-      configStyle: config.style,
-      esNueva: esNueva
+      configStyle: config.style
     });
   }
 
@@ -397,29 +400,35 @@ const generateNotebookCopy = (comp, config) => {
   if (!esNueva) {
     // Batería con emoji 🔋
     let bateriaInfo = '';
-    if (comp.porcentaje_de_bateria || comp.bateria) {
-      const bateria = comp.porcentaje_de_bateria || comp.bateria;
+    if (comp.bateria || comp.porcentaje_de_bateria) {
+      const bateria = comp.bateria || comp.porcentaje_de_bateria;
       const bateriaLimpio = String(bateria).replace(/%/g, '').trim();
-      bateriaInfo = `🔋${bateriaLimpio}%`;
+      if (bateriaLimpio && bateriaLimpio !== '0' && bateriaLimpio !== '') {
+        bateriaInfo = `🔋${bateriaLimpio}%`;
+      }
     }
-    if (comp.duracion_bateria && comp.duracion_bateria > 0) {
-      const duracion = comp.duracion_bateria;
+    // Campo duracion en tabla inventario (no duracion_bateria)
+    if (comp.duracion || comp.duracion_bateria) {
+      const duracion = comp.duracion || comp.duracion_bateria;
       const duracionLimpio = String(duracion).replace(/H/gi, '').trim();
-      bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `🔋${duracionLimpio}H`;
+      if (duracionLimpio && duracionLimpio !== '0' && duracionLimpio !== '') {
+        bateriaInfo += bateriaInfo ? ` ${duracionLimpio}H` : `🔋${duracionLimpio}H`;
+      }
     }
     if (bateriaInfo) {
       partes.push(bateriaInfo);
     }
   }
 
-  // 8. CONDICION - SIEMPRE (excepto en versión documento)
+  // 8. CONDICION + ESTADO ESTÉTICO - Juntos para usadas (ej: "Usado B+")
   if (comp.condicion && config.style !== 'documento') {
-    partes.push(capitalize(comp.condicion));
-  }
-
-  // 9. ESTADO ESTÉTICO - SOLO para USADAS/REFURBISHED (excepto en versión documento)
-  if (!esNueva && comp.estado && config.style !== 'documento') {
-    partes.push(comp.estado);
+    if (!esNueva && comp.estado) {
+      // Para usadas: "Usado B+" o "Reacondicionado A+"
+      partes.push(`${capitalize(comp.condicion)} ${comp.estado}`);
+    } else {
+      // Para nuevas: solo "Nuevo"
+      partes.push(capitalize(comp.condicion));
+    }
   }
 
   // 10. COLOR - SIEMPRE (antes del precio, tanto en simple como completo)
@@ -673,8 +682,8 @@ const generateOtroCopy = (otro, config) => {
     }
   }
 
-  // 3. CONDICION - SIEMPRE (excepto en versión documento)
-  if (otro.condicion && config.style !== 'documento') {
+  // 3. CONDICION - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  if (!esNuevo && otro.condicion && config.style !== 'documento') {
     partes.push(capitalize(otro.condicion));
   }
 

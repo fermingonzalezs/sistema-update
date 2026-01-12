@@ -2,6 +2,8 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer';
 import InterRegular from '../../../../public/Inter/static/Inter_18pt-Regular.ttf'
 import InterBold from '../../../../public/Inter/static/Inter_18pt-Bold.ttf'
+import InterItalic from '../../../../public/Inter/static/Inter_18pt-Italic.ttf'
+import HeligthonSignature from '../../../../public/fonts/Heligthon Signature.otf'
 
 // Registrar la fuente ANTES de los estilos
 Font.register({
@@ -14,8 +16,17 @@ Font.register({
     {
       src: InterBold,
       fontWeight: 'bold',
+    },
+    {
+      src: InterItalic,
+      fontStyle: 'italic',
     }
   ]
+});
+
+Font.register({
+  family: 'Heligthon',
+  src: HeligthonSignature,
 });
 
 // Estilos profesionales para el Remito PDF - Basado en ReciboPDF
@@ -318,6 +329,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
+  signatureText: {
+    fontSize: 32,
+    color: '#9CA3AF',
+    fontFamily: 'Heligthon',
+    textAlign: 'center',
+    marginBottom: 18,
+  },
 
   // Footer
   footer: {
@@ -453,9 +471,9 @@ const RemitoPDFDocument = ({ remito }) => {
             )}
           </View>
           <View style={styles.signatureBox}>
+            <Text style={styles.signatureText}>Update Tech</Text>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>FIRMA Y ACLARACIÓN</Text>
-            <Text style={styles.signatureLabel}>UPDATE TECH</Text>
           </View>
         </View>
 

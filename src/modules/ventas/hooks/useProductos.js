@@ -139,7 +139,7 @@ export const useProductos = () => {
         condicion: producto.condicion || 'nueva',
         sucursal: producto.ubicacion || 'la_plata',
         garantia: producto.garantia || '',
-        fallas: producto.fallas || 'Ninguna'
+        fallas: producto.fallas || ''
       };
 
       const { data, error } = await supabase

@@ -126,7 +126,7 @@ const ModalProducto = ({
           teclado_retro: 'SI',
           idioma_teclado: 'Español',
           garantia_update: '3 meses',
-          fallas: 'Ninguna'
+          fallas: ''
         },
         celular: {
           sucursal: UBICACIONES.LA_PLATA,
