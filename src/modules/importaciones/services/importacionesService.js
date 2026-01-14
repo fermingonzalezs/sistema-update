@@ -70,7 +70,7 @@ const importacionesService = {
       }
 
       // Generar número de recibo: YYYY-00X
-      const anio = new Date().getFullYear();
+      const anio = new Date(reciboData.fecha_compra).getFullYear();
 
       // Obtener el próximo número para este año
       const { data: ultimoRecibo, error: ultimoError } = await supabase

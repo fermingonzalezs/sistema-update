@@ -310,8 +310,9 @@ const ImportacionesSection = () => {
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">N°</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha Compra</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha Recepción</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
@@ -324,11 +325,17 @@ const ImportacionesSection = () => {
                 <tbody className="divide-y divide-slate-200">
                   {recibosFiltrados.map((recibo, idx) => (
                     <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
+                      <td className="px-4 py-3 text-sm font-medium text-center text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
                         {recibo.numero_recibo}
                       </td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
                         {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        {recibo.fecha_recepcion_argentina
+                          ? new Date(recibo.fecha_recepcion_argentina).toLocaleDateString('es-AR')
+                          : '-'
+                        }
                       </td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.proveedores?.nombre || '-'}>
                         {recibo.proveedores?.nombre || '-'}
