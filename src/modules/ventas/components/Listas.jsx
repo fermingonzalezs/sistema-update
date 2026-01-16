@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Copy, Monitor, Smartphone, Box, Search,
-  Check, FileText, Edit2, Save, X, Filter, Zap
+  Check, FileText, Edit2, Save, X, Filter, Zap, DollarSign
 } from 'lucide-react';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
 import { supabase } from '../../../lib/supabase';
 import { LINEAS_PROCESADOR_LABELS } from '../../../shared/constants/processorConstants';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
 
 const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [tipoActivo, setTipoActivo] = useState('computadora');
@@ -42,6 +43,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   const [editandoMensaje, setEditandoMensaje] = useState(null);
   const [mensajeTemp, setMensajeTemp] = useState('');
+
+  // Estados para moneda y cotización
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+  const [monedaPrecio, setMonedaPrecio] = useState('USD'); // 'USD' o 'ARS'
+
+  // Estados para incluir/excluir mensajes
+  const [incluirMensajeInicial, setIncluirMensajeInicial] = useState(true);
+  const [incluirMensajeFinal, setIncluirMensajeFinal] = useState(true);
 
   // Estados para filtros avanzados
   const [modoFiltros, setModoFiltros] = useState(false);
@@ -95,6 +104,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     };
 
     cargarEstadosDisponibles();
+  }, []);
+
+  // Cargar cotización del dólar
+  useEffect(() => {
+    const cargarCotizacion = async () => {
+      try {
+        const cotizacionData = await cotizacionService.obtenerCotizacionActual();
+        setCotizacionDolar(cotizacionData.valor || cotizacionData.promedio || 1000);
+      } catch (error) {
+        console.error('Error cargando cotización:', error);
+        setCotizacionDolar(1000); // Valor por defecto
+      }
+    };
+    cargarCotizacion();
   }, []);
 
   // Generar copys cuando cambien los productos o tipo activo
@@ -247,20 +270,52 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
 
 
+  // Función para convertir precio USD a ARS en un copy
+  const convertirPrecioEnCopy = (copy, producto) => {
+    if (monedaPrecio === 'USD') {
+      return copy;
+    }
+
+    // Convertir U$X.XXX a $X.XXX.XXX (formato pesos argentinos)
+    const precioUSD = producto.precio_venta_usd;
+    if (!precioUSD) return copy;
+
+    const precioARS = Math.round(precioUSD * cotizacionDolar);
+    const precioFormateadoARS = `$${precioARS.toLocaleString('es-AR')}`;
+
+    // El formato del copy es "U$1.234" - buscar ese patrón
+    // También buscar "USD X" por si acaso
+    let resultado = copy.replace(/U\$[\d.,]+/g, precioFormateadoARS);
+    resultado = resultado.replace(/USD\s*[\d.,]+/gi, precioFormateadoARS);
+
+    return resultado;
+  };
+
   // Generar lista completa con mensajes
   const generarListaCompleta = () => {
     const productosSeleccionados = productosFiltradosYOrdenados.filter(p => seleccionados.has(p.id));
-    const copysSeleccionados = productosSeleccionados.map(p => p.copy);
 
-    const lista = [
-      mensajes[tipoActivo].inicial,
-      '',
-      copysSeleccionados.join('\n'),
-      '',
-      mensajes[tipoActivo].final
-    ].join('\n');
+    // Convertir precios si es necesario
+    const copysSeleccionados = productosSeleccionados.map(p => convertirPrecioEnCopy(p.copy, p));
 
-    return lista;
+    const partes = [];
+
+    // Agregar mensaje inicial si está habilitado
+    if (incluirMensajeInicial && mensajes[tipoActivo].inicial) {
+      partes.push(mensajes[tipoActivo].inicial);
+      partes.push('');
+    }
+
+    // Agregar productos
+    partes.push(copysSeleccionados.join('\n'));
+
+    // Agregar mensaje final si está habilitado
+    if (incluirMensajeFinal && mensajes[tipoActivo].final) {
+      partes.push('');
+      partes.push(mensajes[tipoActivo].final);
+    }
+
+    return partes.join('\n');
   };
 
   // Función de fallback para copiar usando el método legacy
@@ -761,10 +816,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       <div className="bg-white rounded border border-slate-200">
         <div className="px-4 py-3 bg-slate-800 text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5" />
-              <h3 className="text-base font-semibold">Filtros y Selección</h3>
-            </div>
+            <h3 className="text-base font-semibold">Filtros</h3>
             <div className="flex space-x-2">
               <button
                 onClick={() => setModoFiltros(!modoFiltros)}
@@ -788,85 +840,62 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         </div>
 
         <div className="p-4 bg-slate-50 border-b border-slate-200">
-
-          {/* Filtros prearmados */}
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-slate-800 mb-3 flex items-center space-x-2">
-              <Zap className="w-4 h-4" />
-              <span>Filtros Rápidos</span>
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {/* Filtros para celulares */}
-              <button
-                onClick={aplicarFiltroiPhoneUsado}
-                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>iPhone Usados</span>
-              </button>
-              <button
-                onClick={aplicarFiltroiPhoneNuevo}
-                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>iPhone Nuevos</span>
-              </button>
-
-              {/* Filtros para notebooks */}
-              <button
-                onClick={aplicarFiltroMacBooksNuevas}
-                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>MacBooks Nuevas</span>
-              </button>
-              <button
-                onClick={aplicarFiltroMacBooksUsadas}
-                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>MacBooks Usadas</span>
-              </button>
-              <button
-                onClick={aplicarFiltroWindowsNuevas}
-                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>Windows Nuevas</span>
-              </button>
-              <button
-                onClick={aplicarFiltroWindowsUsadas}
-                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>Windows Usadas</span>
-              </button>
-
-              {/* Nuevos filtros para Gaming */}
-              <button
-                onClick={aplicarFiltroGamingNuevas}
-                className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>Gaming Nuevas</span>
-              </button>
-              <button
-                onClick={aplicarFiltroGamingUsadas}
-                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>Gaming Usadas</span>
-              </button>
-
-              {/* Nuevo filtro para Android */}
-              <button
-                onClick={aplicarFiltroAndroid}
-                className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors flex items-center space-x-1"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>Android</span>
-              </button>
-            </div>
+          {/* Botones de filtros rápidos */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button
+              onClick={aplicarFiltroiPhoneUsado}
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
+            >
+              iPhone Usados
+            </button>
+            <button
+              onClick={aplicarFiltroiPhoneNuevo}
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              iPhone Nuevos
+            </button>
+            <button
+              onClick={aplicarFiltroMacBooksNuevas}
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              MacBooks Nuevas
+            </button>
+            <button
+              onClick={aplicarFiltroMacBooksUsadas}
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
+            >
+              MacBooks Usadas
+            </button>
+            <button
+              onClick={aplicarFiltroWindowsNuevas}
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              Windows Nuevas
+            </button>
+            <button
+              onClick={aplicarFiltroWindowsUsadas}
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
+            >
+              Windows Usadas
+            </button>
+            <button
+              onClick={aplicarFiltroGamingNuevas}
+              className="px-3 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              Gaming Nuevas
+            </button>
+            <button
+              onClick={aplicarFiltroGamingUsadas}
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
+            >
+              Gaming Usadas
+            </button>
+            <button
+              onClick={aplicarFiltroAndroid}
+              className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
+            >
+              Android
+            </button>
           </div>
 
           {/* Filtros personalizables - Solo para computadoras y celulares */}
@@ -959,93 +988,6 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
-
-              {tipoActivo === 'computadora' && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">RAM Min (GB)</label>
-                  <input
-                    type="number"
-                    value={filtros.ramMin}
-                    onChange={(e) => handleFiltroChange('ramMin', e.target.value)}
-                    placeholder="4"
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  {tipoActivo === 'computadora' ? 'SSD Min (GB)' : 'Capacidad Min (GB)'}
-                </label>
-                <input
-                  type="number"
-                  value={filtros.almacenamientoMin}
-                  onChange={(e) => handleFiltroChange('almacenamientoMin', e.target.value)}
-                  placeholder="128"
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Pantalla</label>
-                <select
-                  value={filtros.pantalla}
-                  onChange={(e) => handleFiltroChange('pantalla', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="">Todas</option>
-                  {getUniqueValues().pantallas.map(pantalla => (
-                    <option key={pantalla} value={pantalla}>{pantalla}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Idioma</label>
-                <select
-                  value={filtros.idioma}
-                  onChange={(e) => handleFiltroChange('idioma', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="">Todos</option>
-                  {getUniqueValues().idiomas.map(idioma => (
-                    <option key={idioma} value={idioma}>{idioma}</option>
-                  ))}
-                </select>
-              </div>
-
-              {tipoActivo === 'computadora' && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Línea de Procesador</label>
-                  <select
-                    value={filtros.lineaProcesador}
-                    onChange={(e) => handleFiltroChange('lineaProcesador', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  >
-                    <option value="">Todas</option>
-                    <optgroup label="Intel">
-                      <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
-                      <option value="i5">{LINEAS_PROCESADOR_LABELS.i5}</option>
-                      <option value="i7">{LINEAS_PROCESADOR_LABELS.i7}</option>
-                      <option value="i9">{LINEAS_PROCESADOR_LABELS.i9}</option>
-                    </optgroup>
-                    <optgroup label="AMD">
-                      <option value="r3">{LINEAS_PROCESADOR_LABELS.r3}</option>
-                      <option value="r5">{LINEAS_PROCESADOR_LABELS.r5}</option>
-                      <option value="r7">{LINEAS_PROCESADOR_LABELS.r7}</option>
-                      <option value="r9">{LINEAS_PROCESADOR_LABELS.r9}</option>
-                    </optgroup>
-                    <optgroup label="Apple">
-                      <option value="m1">{LINEAS_PROCESADOR_LABELS.m1}</option>
-                      <option value="m2">{LINEAS_PROCESADOR_LABELS.m2}</option>
-                      <option value="m3">{LINEAS_PROCESADOR_LABELS.m3}</option>
-                      <option value="m4">{LINEAS_PROCESADOR_LABELS.m4}</option>
-                      <option value="m5">{LINEAS_PROCESADOR_LABELS.m5}</option>
-                    </optgroup>
-                    <option value="otro">{LINEAS_PROCESADOR_LABELS.otro}</option>
-                  </select>
-                </div>
-              )}
             </div>
           )}
 
@@ -1103,17 +1045,60 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Columna izquierda: Configuración de mensajes */}
         <div className="space-y-4">
-          {/* Mensaje inicial */}
+          {/* Selector de moneda */}
           <div className="bg-white rounded border border-slate-200">
+            <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
+              <h3 className="text-sm font-semibold">Moneda</h3>
+            </div>
+            <div className="p-4">
+              <div className="flex space-x-2">
+                  <button
+                    onClick={() => setMonedaPrecio('USD')}
+                    className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
+                      monedaPrecio === 'USD'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    USD (Dólares)
+                  </button>
+                  <button
+                    onClick={() => setMonedaPrecio('ARS')}
+                    className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
+                      monedaPrecio === 'ARS'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    ARS (Pesos)
+                  </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mensaje inicial */}
+          <div className={`bg-white rounded border border-slate-200 ${!incluirMensajeInicial ? 'opacity-50' : ''}`}>
             <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Mensaje Inicial</h3>
-                <button
-                  onClick={() => iniciarEdicionMensaje(tipoActivo, 'inicial')}
-                  className="text-white hover:text-emerald-400 transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setIncluirMensajeInicial(!incluirMensajeInicial)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      incluirMensajeInicial
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-600 text-slate-300'
+                    }`}
+                  >
+                    {incluirMensajeInicial ? 'ON' : 'OFF'}
+                  </button>
+                  <button
+                    onClick={() => iniciarEdicionMensaje(tipoActivo, 'inicial')}
+                    className="text-white hover:text-emerald-400 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="p-4">
@@ -1152,16 +1137,28 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           </div>
 
           {/* Mensaje final */}
-          <div className="bg-white rounded border border-slate-200">
+          <div className={`bg-white rounded border border-slate-200 ${!incluirMensajeFinal ? 'opacity-50' : ''}`}>
             <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Mensaje Final</h3>
-                <button
-                  onClick={() => iniciarEdicionMensaje(tipoActivo, 'final')}
-                  className="text-white hover:text-emerald-400 transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setIncluirMensajeFinal(!incluirMensajeFinal)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      incluirMensajeFinal
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-600 text-slate-300'
+                    }`}
+                  >
+                    {incluirMensajeFinal ? 'ON' : 'OFF'}
+                  </button>
+                  <button
+                    onClick={() => iniciarEdicionMensaje(tipoActivo, 'final')}
+                    className="text-white hover:text-emerald-400 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
             <div className="p-4">
@@ -1236,7 +1233,6 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             <div className="px-4 py-3 bg-slate-800 text-white border-b border-slate-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold flex items-center space-x-2">
-                  <Search className="w-5 h-5" />
                   <span>{tipoConfig.label} Disponibles</span>
                   <span className="bg-emerald-600 px-2 py-0.5 rounded text-xs">
                     {productosFiltradosYOrdenados.length}
@@ -1261,7 +1257,6 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Búsqueda */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Buscar</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                     <input
@@ -1276,16 +1271,25 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
                 {/* Ordenamiento */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Ordenar por</label>
                   <select
-                    value={ordenamiento.campo}
-                    onChange={(e) => actualizarOrdenamiento(e.target.value)}
+                    value={ordenamiento.campo === 'precio_venta_usd' ? `precio_venta_usd_${ordenamiento.direccion}` : ordenamiento.campo}
+                    onChange={(e) => {
+                      const valor = e.target.value;
+                      if (valor === 'precio_venta_usd_desc') {
+                        setOrdenamiento({ campo: 'precio_venta_usd', direccion: 'desc' });
+                      } else if (valor === 'precio_venta_usd_asc') {
+                        setOrdenamiento({ campo: 'precio_venta_usd', direccion: 'asc' });
+                      } else {
+                        actualizarOrdenamiento(valor);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Sin ordenar</option>
                     <option value="modelo">Modelo</option>
                     <option value="marca">Marca</option>
-                    <option value="precio_venta_usd">Precio</option>
+                    <option value="precio_venta_usd_desc">Precio mayor a menor</option>
+                    <option value="precio_venta_usd_asc">Precio menor a mayor</option>
                     <option value="condicion">Condición</option>
                     <option value="fecha_ingreso">Fecha Ingreso</option>
                   </select>
@@ -1300,7 +1304,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider w-12">
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-12">
                       <input
                         type="checkbox"
                         checked={seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0}
@@ -1308,16 +1312,16 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[100px]">Serial</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[150px]">Modelo</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[100px]">Serial</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[150px]">Modelo</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[80px]">Precio</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider min-w-[500px]">Copy del Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[500px]">COPY</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {productosFiltradosYOrdenados.map((producto, index) => (
                     <tr key={producto.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-emerald-50 transition-colors`}>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap text-center">
                         <input
                           type="checkbox"
                           checked={seleccionados.has(producto.id)}
@@ -1325,18 +1329,21 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                           className="rounded border-slate-300"
                         />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-700">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-700 text-center">
                         {producto.tipo === 'otro' ? producto.id : (producto.serial || 'N/A')}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-800">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-800 text-left">
                         {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-emerald-700">
-                        USD {Math.round(producto.precio_venta_usd || 0)}
+                        {monedaPrecio === 'USD'
+                          ? `USD ${Math.round(producto.precio_venta_usd || 0)}`
+                          : `$${Math.round((producto.precio_venta_usd || 0) * cotizacionDolar).toLocaleString('es-AR')}`
+                        }
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-700 font-mono">
+                      <td className="px-4 py-3 text-sm text-slate-700 font-mono text-left">
                         <div className="whitespace-pre-wrap break-words">
-                          {producto.copy}
+                          {convertirPrecioEnCopy(producto.copy, producto)}
                         </div>
                       </td>
                     </tr>
@@ -1347,7 +1354,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
             {productosFiltradosYOrdenados.length === 0 && (
               <div className="text-center py-12 bg-white">
-                <tipoConfig.icon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                {React.createElement(tipoConfig.icon, { className: "w-12 h-12 text-slate-300 mx-auto mb-4" })}
                 <p className="text-slate-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>
               </div>
             )}
