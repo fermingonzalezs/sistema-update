@@ -431,7 +431,26 @@ export function useInventario() {
         const ahora = new Date();
         return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
       })(),
-      touchscreen: data.touchscreen || false
+      touchscreen: data.touchscreen || false,
+      // Proveedor: convertir string vacío a null para evitar error de FK
+      proveedor_id: data.proveedor_id || null,
+      // Estado estético: puede ser null si es nuevo
+      estado: data.estado || null,
+      // Categoría: normalizar a minúsculas y mapear valores del formulario
+      // DB acepta: macbook, windows, 2-en-1, gaming
+      categoria: (() => {
+        if (!data.categoria) return null;
+        const cat = data.categoria.toLowerCase();
+        // Mapear valores del formulario a valores de la DB
+        const mapping = {
+          'windows': 'windows',
+          'macbook': 'macbook',
+          'gaming': 'gaming',
+          'workstation': 'windows', // Workstation se mapea a windows
+          '2-en-1': '2-en-1'
+        };
+        return mapping[cat] || null;
+      })()
     }),
 
     transformOnUpdate: (data) => ({

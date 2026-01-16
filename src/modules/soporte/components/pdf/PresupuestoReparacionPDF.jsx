@@ -655,8 +655,12 @@ export const generarYDescargarPresupuesto = async (reparacion, presupuesto) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
+
+    // Cleanup después de un tiempo para permitir que el navegador complete la descarga
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
+
     return {
       success: true,
       filename: link.download

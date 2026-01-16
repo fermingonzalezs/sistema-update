@@ -1,5 +1,6 @@
 // validacionesMasivas.js - Utilidades de validación para carga masiva
 import { isValidCondicion, isValidEstado, isValidUbicacion } from '../../../shared/constants/productConstants';
+import { CATEGORIAS_OTROS } from '../../../shared/constants/categoryConstants';
 
 /**
  * Validar datos comunes según tipo de equipo
@@ -65,7 +66,19 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
 
     // Validaciones para OTROS
     if (tipoEquipo === 'otro') {
-        if (!datos.nombre_producto?.trim()) errores.nombre_producto = 'Nombre de producto requerido';
+        // Detectar si es Desktop o Tablet
+        const isDesktop = datos.categoria === CATEGORIAS_OTROS.DESKTOP;
+        const isTablet = datos.categoria === CATEGORIAS_OTROS.TABLETS;
+
+        // Para Desktop y Tablet, se requiere modelo en lugar de nombre_producto
+        if (isDesktop || isTablet) {
+            if (!datos.modelo?.trim()) errores.modelo = 'Modelo requerido';
+            if (!datos.condicion) errores.condicion = 'Condición requerida';
+        } else {
+            // Para otros productos genéricos
+            if (!datos.nombre_producto?.trim()) errores.nombre_producto = 'Nombre de producto requerido';
+        }
+
         if (!datos.categoria) errores.categoria = 'Categoría requerida';
 
         if (!datos.precio_compra_usd || datos.precio_compra_usd <= 0) {
@@ -73,6 +86,11 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
         }
         if (!datos.precio_venta_usd || datos.precio_venta_usd <= 0) {
             errores.precio_venta_usd = 'Precio de venta inválido';
+        }
+
+        // Validar condición si está presente
+        if (datos.condicion && !isValidCondicion(datos.condicion)) {
+            errores.condicion = 'Condición inválida';
         }
     }
 

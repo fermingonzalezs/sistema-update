@@ -126,28 +126,39 @@ export const useSupabaseEntity = (tableName, options = {}) => {
 
   // CREAR (create)
   const create = useCallback(async (newData) => {
+    console.log(`📝 [useSupabaseEntity] create() llamado para tabla: ${tableName}`);
+    console.log(`📝 [useSupabaseEntity] Datos de entrada:`, newData);
+
     try {
       setError(null);
 
       // Callback antes de crear
       let dataToInsert = newData;
       if (onBeforeCreate) {
+        console.log(`📝 [useSupabaseEntity] Ejecutando onBeforeCreate...`);
         dataToInsert = await onBeforeCreate(dataToInsert);
+        console.log(`📝 [useSupabaseEntity] Datos después de onBeforeCreate:`, dataToInsert);
       }
 
       // Transformar datos si se especifica
       if (transformOnCreate) {
+        console.log(`📝 [useSupabaseEntity] Ejecutando transformOnCreate...`);
         dataToInsert = transformOnCreate(dataToInsert);
+        console.log(`📝 [useSupabaseEntity] Datos después de transformOnCreate:`, dataToInsert);
       }
 
+      console.log(`📝 [useSupabaseEntity] Insertando en Supabase...`, dataToInsert);
       const { data: result, error } = await supabase
         .from(tableName)
         .insert([dataToInsert])
         .select();
 
+      console.log(`📝 [useSupabaseEntity] Resultado Supabase:`, { result, error });
+
       if (error) throw error;
 
       const createdItem = result[0];
+      console.log(`✅ [useSupabaseEntity] Item creado:`, createdItem);
 
       // Actualizar estado local
       setData(prev => [createdItem, ...prev]);
@@ -160,6 +171,7 @@ export const useSupabaseEntity = (tableName, options = {}) => {
       return createdItem;
 
     } catch (err) {
+      console.error(`❌ [useSupabaseEntity] Error en create():`, err);
       handleError(err, 'create');
     }
   }, [tableName, onBeforeCreate, onAfterCreate, transformOnCreate, handleError]);

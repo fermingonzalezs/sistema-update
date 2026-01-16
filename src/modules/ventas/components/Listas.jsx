@@ -255,7 +255,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     const lista = [
       mensajes[tipoActivo].inicial,
       '',
-      copysSeleccionados.join('\n\n'),
+      copysSeleccionados.join('\n'),
       '',
       mensajes[tipoActivo].final
     ].join('\n');

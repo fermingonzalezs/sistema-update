@@ -9,13 +9,17 @@ export const descargarImagen = async (url, nombreArchivo) => {
     const blob = await response.blob();
     
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
+    link.href = blobUrl;
     link.download = nombreArchivo;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    URL.revokeObjectURL(link.href);
+
+    // Cleanup después de un tiempo para permitir que el navegador complete la descarga
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 10000);
   } catch (error) {
     console.error('Error descargando imagen:', error);
     alert('Error al descargar la imagen');
@@ -57,14 +61,18 @@ export const descargarFotosProducto = async (productoId, tipoProducto, nombrePro
     // Generar y descargar el ZIP
     const contenidoZip = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(contenidoZip);
+    const zipUrl = URL.createObjectURL(contenidoZip);
+    link.href = zipUrl;
     link.download = `Fotos_${tipoProducto}_${productoId}_${nombreProducto}`.replace(/[^a-zA-Z0-9_-]/g, '_') + '.zip';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    URL.revokeObjectURL(link.href);
+
+    // Cleanup después de un tiempo para permitir que el navegador complete la descarga
+    setTimeout(() => {
+      URL.revokeObjectURL(zipUrl);
+    }, 10000);
   } catch (error) {
     console.error('Error creando ZIP:', error);
     alert('Error al descargar las fotos: ' + error.message);

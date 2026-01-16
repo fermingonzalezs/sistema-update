@@ -1,6 +1,6 @@
 // CargaMasivaEquipos.jsx - Modal principal para carga masiva
 import React, { useState, useCallback, useMemo } from 'react';
-import { X, Package, Smartphone, Monitor, Box, ArrowRight, ArrowLeft, Loader2, CheckCircle, AlertTriangle, FileDown } from 'lucide-react';
+import { X, Package, Smartphone, Monitor, Box, ArrowRight, ArrowLeft, Loader2, CheckCircle, AlertTriangle, FileDown, Save } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import FormularioDatosComunes from './FormularioDatosComunes';
 import ListaSerialesEquipos from './ListaSerialesEquipos';
@@ -104,18 +104,23 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     // Confirmar y guardar
     const handleConfirmarGuardado = async () => {
         try {
+            console.log('🚀 [CargaMasiva UI] Iniciando handleConfirmarGuardado');
+            console.log('📋 [CargaMasiva UI] seriales:', seriales);
+            console.log('📋 [CargaMasiva UI] datosComunes:', datosComunes);
+
             // Obtener email del usuario para el registro
             const usuarioEmail = user?.email || user?.user_metadata?.email || 'Sistema';
 
             // Guardar equipos y registrar en ingreso_equipos
             const resultado = await guardarEquiposMasivos(datosComunes, seriales, usuarioEmail);
 
-            if (resultado.exitosos > 0) {
-                // Mostrar resultado exitoso
-                setPaso(4); // Paso de resultado
-            }
+            console.log('📊 [CargaMasiva UI] Resultado:', resultado);
+
+            // Siempre mostrar resultado, incluso si hay 0 exitosos
+            // para que el usuario vea qué pasó
+            setPaso(4);
         } catch (error) {
-            console.error('Error en guardado masivo:', error);
+            console.error('❌ [CargaMasiva UI] Error en guardado masivo:', error);
             alert('Error crítico al guardar: ' + error.message);
         }
     };
@@ -163,7 +168,11 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
         a.href = url;
         a.download = `carga-masiva-${new Date().toISOString().split('T')[0]}.txt`;
         a.click();
-        URL.revokeObjectURL(url);
+
+        // Cleanup después de un tiempo para permitir que el navegador complete la descarga
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 10000);
     };
 
     // Seriales válidos para el resumen
@@ -268,36 +277,22 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
                         />
                     )}
 
-                    {/* PASO 3: Seriales y confirmación */}
+                    {/* PASO 3: Confirmación */}
                     {paso === 3 && (
-                        <div className="space-y-6">
-                            <div className="bg-slate-50 rounded border border-slate-200 p-4 mb-4">
-                                <h4 className="font-semibold text-slate-800 mb-2">Resumen de datos comunes:</h4>
-                                <div className="text-sm text-slate-600">
-                                    {tipoEquipo === 'celular' && (
-                                        <span>{datosComunes.marca} {datosComunes.modelo} - {datosComunes.capacidad}GB {datosComunes.color}</span>
-                                    )}
-                                    {tipoEquipo === 'notebook' && (
-                                        <span>{datosComunes.marca} {datosComunes.modelo} - {datosComunes.procesador} {datosComunes.ram}GB</span>
-                                    )}
-                                    {tipoEquipo === 'otro' && (
-                                        <span>{datosComunes.nombre_producto} - {datosComunes.categoria}</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <ResumenValidacionMasiva
-                                datosComunes={datosComunes}
-                                seriales={seriales}
-                                tipoEquipo={tipoEquipo}
-                                onConfirmar={handleConfirmarGuardado}
-                                onVolver={() => setPaso(2)}
-                                guardando={guardando}
-                            />
-                        </div>
+                        <ResumenValidacionMasiva
+                            datosComunes={datosComunes}
+                            seriales={seriales}
+                            tipoEquipo={tipoEquipo}
+                        />
                     )}
 
                     {/* PASO 4: Resultado */}
+                    {paso === 4 && !resultado && (
+                        <div className="text-center py-8">
+                            <Loader2 className="animate-spin w-8 h-8 text-slate-400 mx-auto mb-4" />
+                            <p className="text-slate-600">Cargando resultado...</p>
+                        </div>
+                    )}
                     {paso === 4 && resultado && (
                         <div className="space-y-6">
                             {/* Resumen principal */}
@@ -363,16 +358,35 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
                 {/* Footer con botones */}
                 <div className="border-t border-slate-200 p-6 bg-slate-50 flex-shrink-0">
                     <div className="flex justify-between items-center">
-                        {/* Info adicional */}
+                        {/* Info adicional / Botón Volver */}
                         <div className="text-sm text-slate-600">
                             {paso === 1 && `Tipo seleccionado: ${tipoConfig[tipoEquipo].label}`}
                             {paso === 2 && '* Campos requeridos'}
-                            {paso === 3 && `${serialesValidos.length} equipos listos para guardar`}
+                            {paso === 3 && (
+                                <button
+                                    onClick={() => setPaso(2)}
+                                    disabled={guardando}
+                                    className="px-6 py-3 border border-slate-300 rounded hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <ArrowLeft size={18} />
+                                    Volver
+                                </button>
+                            )}
                             {paso === 4 && ''}
                         </div>
 
                         {/* Botones */}
                         <div className="flex gap-3">
+                            {paso === 3 && (
+                                <button
+                                    onClick={handleConfirmarGuardado}
+                                    disabled={serialesValidos.length === 0 || guardando}
+                                    className="px-6 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <Save size={18} />
+                                    {guardando ? 'Guardando...' : 'Guardar'}
+                                </button>
+                            )}
                             {paso === 1 && (
                                 <>
                                     <button

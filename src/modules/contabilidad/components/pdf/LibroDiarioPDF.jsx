@@ -370,7 +370,11 @@ export const descargarLibroDiarioPDF = async (asientos, fechaDesde, fechaHasta) 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    // Cleanup después de un tiempo para permitir que el navegador complete la descarga
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
 
     console.log('✅ PDF del Libro Diario descargado:', nombreArchivo);
   } catch (error) {

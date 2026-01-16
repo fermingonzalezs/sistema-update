@@ -5,6 +5,7 @@ import { useInventario } from '../../ventas/hooks/useInventario';
 import { useOtros } from '../../ventas/hooks/useOtros';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { CATEGORIAS_OTROS } from '../../../shared/constants/categoryConstants';
 import {
     validarFormatoSerial,
     validarUnicidadLocal,
@@ -83,15 +84,22 @@ export const useCargaMasiva = (tipoEquipo) => {
      * Validar todos los seriales de la lista
      */
     const validarTodosSeriales = useCallback(async (seriales) => {
+        console.log('🔍 [VALIDACION] Iniciando validación de seriales...');
+        console.log('🔍 [VALIDACION] Seriales a validar:', seriales);
+
         setValidando(true);
 
         const resultados = await Promise.all(
             seriales.map(async (item) => {
                 if (!item.serial.trim()) {
+                    console.log(`🔍 [VALIDACION] Serial vacío: ${item.id}`);
                     return { ...item, valido: false, error: 'Serial requerido' };
                 }
 
+                console.log(`🔍 [VALIDACION] Validando serial: ${item.serial}`);
                 const resultado = await validarSerial(item.serial, seriales);
+                console.log(`🔍 [VALIDACION] Resultado para ${item.serial}:`, resultado);
+
                 return {
                     ...item,
                     valido: resultado.valido,
@@ -100,6 +108,7 @@ export const useCargaMasiva = (tipoEquipo) => {
             })
         );
 
+        console.log('✅ [VALIDACION] Validación completada. Resultados:', resultados);
         setValidando(false);
         return resultados;
     }, [validarSerial]);
@@ -181,10 +190,17 @@ export const useCargaMasiva = (tipoEquipo) => {
      * Estrategia: Mejor esfuerzo - guarda lo que puede
      */
     const guardarEquiposMasivos = useCallback(async (datosComunes, seriales, usuario = null) => {
+        console.log('🚀 [CARGA MASIVA] Iniciando guardado masivo...');
+        console.log('📦 [CARGA MASIVA] Tipo equipo:', tipoEquipo);
+        console.log('📋 [CARGA MASIVA] Datos comunes:', datosComunes);
+        console.log('📋 [CARGA MASIVA] Seriales recibidos:', seriales);
+
         setGuardando(true);
         setResultado(null);
 
         const funcionGuardado = obtenerFuncionGuardado();
+        console.log('🔧 [CARGA MASIVA] Función de guardado obtenida:', funcionGuardado ? 'OK' : 'NULL');
+
         if (!funcionGuardado) {
             setGuardando(false);
             throw new Error('Tipo de equipo no soportado');
@@ -195,6 +211,9 @@ export const useCargaMasiva = (tipoEquipo) => {
         const idsCreados = [];
         const serialesValidos = seriales.filter(s => s.valido && !s.error);
 
+        console.log('✅ [CARGA MASIVA] Seriales válidos encontrados:', serialesValidos.length);
+        console.log('📋 [CARGA MASIVA] Detalle seriales válidos:', serialesValidos.map(s => ({ serial: s.serial, valido: s.valido, error: s.error })));
+
         setProgreso({ actual: 0, total: serialesValidos.length });
 
         // Preparar fecha de ingreso
@@ -203,10 +222,11 @@ export const useCargaMasiva = (tipoEquipo) => {
         // Iterar por cada serial válido
         for (let i = 0; i < serialesValidos.length; i++) {
             const item = serialesValidos[i];
+            console.log(`📝 [CARGA MASIVA] Procesando serial ${i + 1}/${serialesValidos.length}: ${item.serial}`);
 
             try {
                 // Preparar datos completos - merge datos comunes con valores individuales del item
-                const datosCompletos = {
+                let datosCompletos = {
                     ...datosComunes,
                     serial: item.serial.toUpperCase().trim(),
                     ingreso: fechaIngreso,
@@ -219,8 +239,64 @@ export const useCargaMasiva = (tipoEquipo) => {
                     ...(item.precio_venta_usd !== undefined && item.precio_venta_usd !== '' && { precio_venta_usd: item.precio_venta_usd })
                 };
 
+                // Para tipo "otro" con categoría DESKTOP o TABLETS, procesar especificaciones
+                if (tipoEquipo === 'otro') {
+                    const isDesktop = datosComunes.categoria === CATEGORIAS_OTROS.DESKTOP;
+                    const isTablet = datosComunes.categoria === CATEGORIAS_OTROS.TABLETS;
+
+                    if (isDesktop) {
+                        // Concatenar especificaciones de Desktop en descripcion
+                        const specs = [
+                            datosComunes.procesador && `Procesador: ${datosComunes.procesador}`,
+                            datosComunes.motherboard && `Motherboard: ${datosComunes.motherboard}`,
+                            datosComunes.memoria && `Memoria: ${datosComunes.memoria}`,
+                            datosComunes.gpu && `Placa de video: ${datosComunes.gpu}`,
+                            datosComunes.ssd && `SSD: ${datosComunes.ssd}`,
+                            datosComunes.hdd && `HDD: ${datosComunes.hdd}`,
+                            datosComunes.gabinete && `Gabinete: ${datosComunes.gabinete}`,
+                            datosComunes.fuente && `Fuente: ${datosComunes.fuente}`
+                        ].filter(Boolean);
+
+                        let descripcion = specs.join(' - ');
+                        if (datosComunes.observaciones?.trim()) {
+                            descripcion = descripcion ? `${descripcion} - ${datosComunes.observaciones}` : datosComunes.observaciones;
+                        }
+
+                        // Usar modelo como nombre_producto para Desktop
+                        datosCompletos = {
+                            ...datosCompletos,
+                            nombre_producto: `${datosComunes.marca || ''} ${datosComunes.modelo || ''}`.trim() || datosComunes.modelo,
+                            descripcion: descripcion
+                        };
+                    } else if (isTablet) {
+                        // Concatenar especificaciones de Tablet en descripcion
+                        const specs = [
+                            datosComunes.capacidad_almacenamiento && `Almacenamiento: ${datosComunes.capacidad_almacenamiento}`,
+                            datosComunes.tamano_pantalla && `Pantalla: ${datosComunes.tamano_pantalla}`,
+                            datosComunes.conectividad && `Conectividad: ${datosComunes.conectividad}`,
+                            datosComunes.color && `Color: ${datosComunes.color}`
+                        ].filter(Boolean);
+
+                        let descripcion = specs.join(' - ');
+                        if (datosComunes.observaciones?.trim()) {
+                            descripcion = descripcion ? `${descripcion} - ${datosComunes.observaciones}` : datosComunes.observaciones;
+                        }
+
+                        // Usar modelo como nombre_producto para Tablet
+                        datosCompletos = {
+                            ...datosCompletos,
+                            nombre_producto: `${datosComunes.marca || ''} ${datosComunes.modelo || ''}`.trim() || datosComunes.modelo,
+                            descripcion: descripcion
+                        };
+                    }
+                }
+
+                console.log(`💾 [CARGA MASIVA] Datos a guardar para ${item.serial}:`, datosCompletos);
+
                 // Guardar usando el servicio correspondiente
+                console.log(`🔄 [CARGA MASIVA] Llamando a función de guardado para ${item.serial}...`);
                 const nuevoEquipo = await funcionGuardado(datosCompletos);
+                console.log(`✅ [CARGA MASIVA] Resultado de guardado para ${item.serial}:`, nuevoEquipo);
 
                 // ✅ Crear registro en ingreso_equipos
                 if (nuevoEquipo?.id) {
@@ -243,7 +319,8 @@ export const useCargaMasiva = (tipoEquipo) => {
                 }
 
             } catch (error) {
-                console.error(`Error guardando ${item.serial}:`, error);
+                console.error(`❌ [CARGA MASIVA] Error guardando ${item.serial}:`, error);
+                console.error(`❌ [CARGA MASIVA] Error detalle:`, error.message, error.stack);
                 fallidos.push({
                     serial: item.serial,
                     error: formatearErrorDB(error)
@@ -252,6 +329,8 @@ export const useCargaMasiva = (tipoEquipo) => {
 
             setProgreso({ actual: i + 1, total: serialesValidos.length });
         }
+
+        console.log('📊 [CARGA MASIVA] Resumen: exitosos=', exitosos.length, 'fallidos=', fallidos.length);
 
         // Agregar seriales inválidos a fallidos
         seriales.filter(s => !s.valido || s.error).forEach(item => {
