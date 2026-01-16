@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download, Paperclip } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, AlertCircle, FileText, Calculator, Calendar, DollarSign, ChevronDown, ChevronRight, TrendingUp, Info, RefreshCw, Clock, LayoutGrid, List, Download, Paperclip, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import BuscadorCuentasImputables from './BuscadorCuentasImputables';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
@@ -14,24 +14,45 @@ const libroDiarioService = {
   async getAsientos() {
     console.log('📡 Obteniendo asientos contables...');
 
-    const { data, error } = await supabase
-      .from('asientos_contables')
-      .select(`
-        *,
-        movimientos_contables (
-          *,
-          plan_cuentas (codigo, nombre)
-        )
-      `)
-      .order('numero', { ascending: false });
+    // Usar paginación para superar el límite de 1000 filas de Supabase
+    const PAGE_SIZE = 1000;
+    let todosLosAsientos = [];
+    let offset = 0;
+    let hayMas = true;
 
-    if (error) {
-      console.error('❌ Error obteniendo asientos:', error);
-      throw error;
+    while (hayMas) {
+      const { data, error } = await supabase
+        .from('asientos_contables')
+        .select(`
+          *,
+          movimientos_contables (
+            *,
+            plan_cuentas (codigo, nombre)
+          )
+        `)
+        .order('numero', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error('❌ Error obteniendo asientos:', error);
+        throw error;
+      }
+
+      const recibidos = data?.length || 0;
+      todosLosAsientos = todosLosAsientos.concat(data || []);
+
+      console.log(`📦 Lote obtenido: ${recibidos} asientos (offset: ${offset})`);
+
+      // Si recibimos menos de PAGE_SIZE, ya no hay más datos
+      if (recibidos < PAGE_SIZE) {
+        hayMas = false;
+      } else {
+        offset += PAGE_SIZE;
+      }
     }
 
-    console.log(`✅ ${data.length} asientos obtenidos`);
-    return data;
+    console.log(`✅ ${todosLosAsientos.length} asientos obtenidos en total`);
+    return todosLosAsientos;
   },
 
   async getCuentasImputables() {
@@ -54,18 +75,18 @@ const libroDiarioService = {
           .eq('activa', true)
           .eq('imputable', true)  // Solo cuentas imputables
           .order('codigo');
-        
+
         if (errorBasico) {
           throw errorBasico;
         }
-        
+
         // Agregar valores por defecto
         const cuentasConDefecto = dataBasica.map(cuenta => ({
           ...cuenta,
           moneda_original: 'USD',
           requiere_cotizacion: false
         }));
-        
+
         console.log(`✅ ${cuentasConDefecto.length} cuentas imputables obtenidas (modo básico)`);
         return cuentasConDefecto;
       }
@@ -97,11 +118,11 @@ const libroDiarioService = {
         cuentasMap[c.id] = c;
       });
     }
-    
+
     // Calcular totales USD correctamente (convertir ARS si es necesario)
     let totalDebe = 0;
     let totalHaber = 0;
-    
+
     // Si ya tenemos totales USD calculados, usarlos
     if (asientoData.totalDebeUSD && asientoData.totalHaberUSD) {
       totalDebe = asientoData.totalDebeUSD;
@@ -111,13 +132,13 @@ const libroDiarioService = {
       for (const mov of movimientosParaGuardar) {
         let debeUSD = parseFloat(mov.debe || 0);
         let haberUSD = parseFloat(mov.haber || 0);
-        
+
         // Si el movimiento tiene cotización, significa que el monto original está en ARS
         if (mov.cotizacion && mov.cotizacion > 0) {
           debeUSD = debeUSD / mov.cotizacion;
           haberUSD = haberUSD / mov.cotizacion;
         }
-        
+
         totalDebe += debeUSD;
         totalHaber += haberUSD;
       }
@@ -143,7 +164,7 @@ const libroDiarioService = {
         total_haber: totalHaber,
         usuario: 'admin'
       };
-      
+
       // Solo agregar cotización_promedio si está disponible
       if (asientoData.cotizacionPromedio) {
         asientoDataToInsert.cotizacion_promedio = asientoData.cotizacionPromedio;
@@ -299,10 +320,10 @@ const libroDiarioService = {
       }
 
       console.log('📝 Respuesta de edición:', data);
-      
+
       // La función RPC devuelve directamente el resultado JSONB
       const resultado = data;
-      
+
       if (!resultado.success) {
         throw new Error(resultado.error || 'Error desconocido al editar asiento');
       }
@@ -459,6 +480,10 @@ const LibroDiarioSection = () => {
     descripcion: ''
   });
 
+  // Estado para paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const MOVIMIENTOS_POR_PAGINA = 100;
+
   const [formData, setFormData] = useState({
     fecha: obtenerFechaLocal(),
     descripcion: '',
@@ -466,21 +491,21 @@ const LibroDiarioSection = () => {
     tipo_asiento: 'operacion', // NUEVO: tipo de asiento (operacion o cierre)
     cotizacion_usd: 0, // Cotización única para todo el asiento
     movimientos: [
-      { 
-        cuenta_id: '', 
-        cuenta: null, 
+      {
+        cuenta_id: '',
+        cuenta: null,
         monto: 0,
         tipo: 'debe', // 'debe' o 'haber'
-        debe: '', 
-        haber: '' 
+        debe: '',
+        haber: ''
       },
-      { 
-        cuenta_id: '', 
-        cuenta: null, 
+      {
+        cuenta_id: '',
+        cuenta: null,
         monto: 0,
         tipo: 'haber', // 'debe' o 'haber'
-        debe: '', 
-        haber: '' 
+        debe: '',
+        haber: ''
       }
     ]
   });
@@ -489,7 +514,7 @@ const LibroDiarioSection = () => {
     console.log('🚀 Iniciando carga de datos...');
     fetchAsientos();
     fetchCuentasImputables();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debug: ver las cuentas cuando cambien
@@ -537,21 +562,21 @@ const LibroDiarioSection = () => {
       tipo_asiento: 'operacion',
       cotizacion_usd: 0,
       movimientos: [
-        { 
-          cuenta_id: '', 
-          cuenta: null, 
+        {
+          cuenta_id: '',
+          cuenta: null,
           monto: 0,
           tipo: 'debe',
-          debe: '', 
-          haber: '' 
+          debe: '',
+          haber: ''
         },
-        { 
-          cuenta_id: '', 
-          cuenta: null, 
+        {
+          cuenta_id: '',
+          cuenta: null,
           monto: 0,
           tipo: 'haber',
-          debe: '', 
-          haber: '' 
+          debe: '',
+          haber: ''
         }
       ]
     });
@@ -563,13 +588,13 @@ const LibroDiarioSection = () => {
   const agregarMovimiento = () => {
     setFormData(prev => ({
       ...prev,
-      movimientos: [...prev.movimientos, { 
-        cuenta_id: '', 
-        cuenta: null, 
+      movimientos: [...prev.movimientos, {
+        cuenta_id: '',
+        cuenta: null,
         monto: 0,
         tipo: 'debe',
-        debe: '', 
-        haber: '' 
+        debe: '',
+        haber: ''
       }]
     }));
   };
@@ -591,9 +616,9 @@ const LibroDiarioSection = () => {
       movimientos: prev.movimientos.map((mov, i) => {
         if (i === index) {
           if (campo === 'cuenta') {
-            return { 
-              ...mov, 
-              cuenta_id: valor?.id || '', 
+            return {
+              ...mov,
+              cuenta_id: valor?.id || '',
               cuenta: valor,
             };
           } else {
@@ -607,35 +632,35 @@ const LibroDiarioSection = () => {
 
   const calcularTotales = () => {
     const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
-    
+
     const totalDebe = formData.movimientos.reduce((sum, mov) => {
       if (mov.tipo !== 'debe') return sum;
-      
+
       let montoUSD = parseFloat(mov.monto || 0);
-      
+
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
         montoUSD = montoUSD / cotizacion;
         montoUSD = Math.round(montoUSD * 100) / 100;
       }
-      
+
       return sum + montoUSD;
     }, 0);
-    
+
     const totalHaber = formData.movimientos.reduce((sum, mov) => {
       if (mov.tipo !== 'haber') return sum;
-      
+
       let montoUSD = parseFloat(mov.monto || 0);
-      
+
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
         montoUSD = montoUSD / cotizacion;
         montoUSD = Math.round(montoUSD * 100) / 100;
       }
-      
+
       return sum + montoUSD;
     }, 0);
-    
+
     // Redondear a 2 decimales
     const totalDebeRedondeado = Math.round(totalDebe * 100) / 100;
     const totalHaberRedondeado = Math.round(totalHaber * 100) / 100;
@@ -680,7 +705,7 @@ const LibroDiarioSection = () => {
   const guardarAsiento = async () => {
     try {
       console.log('💾 Iniciando guardado de asiento con conversión USD...');
-      
+
       // Validaciones básicas
       if (!formData.fecha) {
         alert('La fecha es obligatoria');
@@ -758,7 +783,7 @@ const LibroDiarioSection = () => {
   const iniciarEdicion = async (asiento) => {
     try {
       console.log('🔄 Iniciando edición del asiento:', asiento.id);
-      
+
       // Verificar si es editable
       const esEditable = isAsientoEditable(asiento.created_at || asiento.fecha, 'admin'); // Por ahora usar admin
       if (!esEditable) {
@@ -770,13 +795,13 @@ const LibroDiarioSection = () => {
       const movimientos = await obtenerMovimientosAsiento(asiento.id);
       console.log('🔍 DEBUG iniciarEdicion - movimientos desde BD:', movimientos);
       console.log('🔍 DEBUG iniciarEdicion - asiento cotizacion_promedio:', asiento.cotizacion_promedio);
-      
+
       // Preparar datos para edición
       const datosPreparados = prepararDatosParaEdicion(asiento, movimientos);
       console.log('🔍 DEBUG iniciarEdicion - datos preparados:', datosPreparados);
-      
+
       console.log('📝 Datos preparados para edición:', datosPreparados);
-      
+
       // Configurar el formulario con los datos del asiento
       setFormData({
         fecha: datosPreparados.fecha,
@@ -813,11 +838,11 @@ const LibroDiarioSection = () => {
           };
         })
       });
-      
+
       setAsientoEditando(asiento);
       setModoEdicion(true);
       setShowModal(true);
-      
+
     } catch (error) {
       console.error('❌ Error iniciando edición:', error);
       alert('Error al cargar los datos del asiento: ' + error.message);
@@ -827,7 +852,7 @@ const LibroDiarioSection = () => {
   const guardarEdicion = async () => {
     try {
       console.log('💾 Guardando edición del asiento:', asientoEditando.id);
-      
+
       // Validaciones básicas usando la utilidad con conversión de monedas
       const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
       const validacion = validarDatosEdicion({
@@ -835,15 +860,15 @@ const LibroDiarioSection = () => {
         descripcion: formData.descripcion,
         movimientos: formData.movimientos.map(mov => {
           let montoUSD = parseFloat(mov.monto || 0);
-          
+
           // Si la cuenta requiere cotización (ARS) y hay cotización, convertir a USD
           if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
             montoUSD = montoUSD / cotizacion;
           }
-          
+
           // Aplicar el mismo redondeo que calcularTotales()
           montoUSD = Math.round(montoUSD * 100) / 100;
-          
+
           return {
             cuenta_id: mov.cuenta_id,
             debe: mov.tipo === 'debe' ? montoUSD : 0,
@@ -852,7 +877,7 @@ const LibroDiarioSection = () => {
           };
         })
       });
-      
+
       if (!validacion.valido) {
         alert('Errores de validación:\n' + validacion.errores.join('\n'));
         return;
@@ -933,13 +958,13 @@ const LibroDiarioSection = () => {
       const resultado = await editarAsiento(asientoEditando.id, datosEdicion, 'admin'); // Por ahora usar admin
 
       console.log('📥 DEBUG resultado de editarAsiento:', resultado);
-      
+
       setShowModal(false);
       setModoEdicion(false);
       setAsientoEditando(null);
-      
+
       alert(`✅ Asiento editado exitosamente.\nNuevo número: ${resultado.nuevoNumero}`);
-      
+
     } catch (error) {
       console.error('❌ Error guardando edición:', error);
       alert('❌ Error: ' + error.message);
@@ -963,6 +988,17 @@ const LibroDiarioSection = () => {
 
     return cumpleFiltros;
   });
+
+  // Calcular paginación
+  const totalPaginas = Math.ceil(asientosFiltrados.length / MOVIMIENTOS_POR_PAGINA);
+  const indiceInicio = (paginaActual - 1) * MOVIMIENTOS_POR_PAGINA;
+  const indiceFin = indiceInicio + MOVIMIENTOS_POR_PAGINA;
+  const asientosPaginados = asientosFiltrados.slice(indiceInicio, indiceFin);
+
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [filtros.fechaDesde, filtros.fechaHasta, filtros.descripcion]);
 
   const handleDescargarPDF = async () => {
     try {
@@ -989,7 +1025,7 @@ const LibroDiarioSection = () => {
     if (viewMode === 'tarjeta') {
       return (
         <div className="space-y-2 font-mono">
-          {asientosFiltrados.map(asiento => (
+          {asientosPaginados.map(asiento => (
             <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Fila principal del asiento - COLAPSADA */}
               <div
@@ -1150,7 +1186,7 @@ const LibroDiarioSection = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Mostrar notas si existen */}
                   {asiento.notas && (
                     <div className="border-t bg-slate-50 p-4">
@@ -1181,7 +1217,7 @@ const LibroDiarioSection = () => {
             <div className="col-span-5">Descripción</div>
             <div className="col-span-2 text-right">Acciones</div>
           </div>
-          {asientosFiltrados.map(asiento => (
+          {asientosPaginados.map(asiento => (
             <div key={asiento.id} className="border-b">
 
               {/* Fila del asiento */}
@@ -1246,19 +1282,19 @@ const LibroDiarioSection = () => {
               <div className="font-mono">
                 {/* Header de movimientos */}
                 <div className="flex text-sm font-semibold py-2 bg-gray-200">
-                    <div className="w-16"></div>
-                    {/* Sección de Cuentas */}
-                    <div className="w-96 grid grid-cols-2 gap-26">
-                      <div className="text-left pl-4">Debe</div>
-                      <div className="text-left pl-7">Haber</div>
-                    </div>
-                    {/* Margen central */}
-                    <div className="flex-1"></div>
-                    {/* Sección de Importes */}
-                    <div className="w-64 grid grid-cols-2 gap-6">
-                      <div className="text-left pr-3">Debe</div>
-                      <div className="text-right pr-4">Haber</div>
-                    </div>
+                  <div className="w-16"></div>
+                  {/* Sección de Cuentas */}
+                  <div className="w-96 grid grid-cols-2 gap-26">
+                    <div className="text-left pl-4">Debe</div>
+                    <div className="text-left pl-7">Haber</div>
+                  </div>
+                  {/* Margen central */}
+                  <div className="flex-1"></div>
+                  {/* Sección de Importes */}
+                  <div className="w-64 grid grid-cols-2 gap-6">
+                    <div className="text-left pr-3">Debe</div>
+                    <div className="text-right pr-4">Haber</div>
+                  </div>
                 </div>
                 {asiento.movimientos_contables.map((mov, index) => (
                   <div key={index} className="flex text-sm border-t py-1">
@@ -1321,7 +1357,7 @@ const LibroDiarioSection = () => {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Mostrar notas si existen */}
                 {asiento.notas && (
                   <div className="flex text-sm border-t py-2 bg-slate-50">
@@ -1455,7 +1491,62 @@ const LibroDiarioSection = () => {
         {/* Lista de asientos */}
         <div className="p-6">
           {asientosFiltrados.length > 0 ? (
-            renderAsientos()
+            <>
+              {renderAsientos()}
+
+              {/* Controles de paginación */}
+              {totalPaginas > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6 py-4 border-t border-gray-200">
+                  {/* Ir a primera página */}
+                  <button
+                    onClick={() => setPaginaActual(1)}
+                    disabled={paginaActual === 1}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Primera página"
+                  >
+                    <ChevronsLeft size={18} />
+                  </button>
+
+                  {/* Página anterior */}
+                  <button
+                    onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                    disabled={paginaActual === 1}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  {/* Info de página */}
+                  <div className="px-4 py-2 text-sm text-gray-700">
+                    Página <span className="font-bold">{paginaActual}</span> de <span className="font-bold">{totalPaginas}</span>
+                    <span className="text-gray-500 ml-2">
+                      (Mostrando {indiceInicio + 1}-{Math.min(indiceFin, asientosFiltrados.length)} de {asientosFiltrados.length} asientos)
+                    </span>
+                  </div>
+
+                  {/* Página siguiente */}
+                  <button
+                    onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
+                    disabled={paginaActual === totalPaginas}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Página siguiente"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+
+                  {/* Ir a última página */}
+                  <button
+                    onClick={() => setPaginaActual(totalPaginas)}
+                    disabled={paginaActual === totalPaginas}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Última página"
+                  >
+                    <ChevronsRight size={18} />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <FileText size={48} className="mx-auto mb-4 text-gray-300" />
@@ -1656,27 +1747,25 @@ const LibroDiarioSection = () => {
                             <button
                               type="button"
                               onClick={() => actualizarMovimiento(index, 'tipo', 'debe')}
-                              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                                mov.tipo === 'debe' 
-                                  ? 'bg-slate-800 text-white' 
-                                  : 'bg-white text-slate-800 hover:bg-slate-200'
-                              }`}
+                              className={`px-4 py-2 text-sm font-medium transition-colors ${mov.tipo === 'debe'
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-white text-slate-800 hover:bg-slate-200'
+                                }`}
                             >
                               DEBE
                             </button>
                             <button
                               type="button"
                               onClick={() => actualizarMovimiento(index, 'tipo', 'haber')}
-                              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                                mov.tipo === 'haber' 
-                                  ? 'bg-slate-800 text-white' 
-                                  : 'bg-white text-slate-800 hover:bg-slate-200'
-                              }`}
+                              className={`px-4 py-2 text-sm font-medium transition-colors ${mov.tipo === 'haber'
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-white text-slate-800 hover:bg-slate-200'
+                                }`}
                             >
                               HABER
                             </button>
                           </div>
-                          
+
                           {/* Botón Eliminar */}
                           {formData.movimientos.length > 2 && (
                             <button
@@ -1717,7 +1806,7 @@ const LibroDiarioSection = () => {
                                 <span>Conversión automática:</span>
                               </div>
                               <div className="mt-1 font-mono text-blue-700">
-                                ARS {parseFloat(mov.monto || 0).toFixed(2)} ÷ {formData.cotizacion_usd} = 
+                                ARS {parseFloat(mov.monto || 0).toFixed(2)} ÷ {formData.cotizacion_usd} =
                                 <strong> USD {(parseFloat(mov.monto || 0) / parseFloat(formData.cotizacion_usd)).toFixed(2)}</strong>
                               </div>
                             </div>
@@ -1734,7 +1823,7 @@ const LibroDiarioSection = () => {
                     <Calculator className="w-5 h-5 text-slate-800" />
                     <h5 className="font-medium text-slate-800">Resumen del Asiento</h5>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                     <div className="flex justify-between">
                       <span>Total Debe:</span>
@@ -1750,11 +1839,10 @@ const LibroDiarioSection = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Estado:</span>
-                      <div className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border ${
-                        totales.balanceado 
-                          ? 'bg-emerald-600 text-white border-emerald-600' 
-                          : 'bg-slate-800 text-white border-slate-800'
-                      }`}>
+                      <div className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border ${totales.balanceado
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-slate-800 text-white border-slate-800'
+                        }`}>
                         {totales.balanceado ? (
                           <>
                             <Calculator size={12} className="mr-1" />
@@ -1796,8 +1884,8 @@ const LibroDiarioSection = () => {
                 onClick={modoEdicion ? guardarEdicion : guardarAsiento}
                 disabled={!totales.balanceado || cuentasImputables.length === 0}
                 className={`px-6 py-3 rounded transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
-                    ? 'bg-slate-800 text-white hover:bg-slate-800/90'
-                    : 'bg-slate-200 text-slate-800/60 cursor-not-allowed'
+                  ? 'bg-slate-800 text-white hover:bg-slate-800/90'
+                  : 'bg-slate-200 text-slate-800/60 cursor-not-allowed'
                   }`}
               >
                 <Save size={16} />
