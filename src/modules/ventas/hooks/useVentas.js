@@ -128,7 +128,7 @@ export const ventasService = {
     }, 0)
 
     // 💰 CALCULAR MONTO REAL COBRADO
-    const montoCobrado = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0)
+    const montoCobrado = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0)
     const diferenciaPrecio = montoCobrado - totalVenta
 
     console.log(`💰 Análisis de precios:`, {
@@ -170,7 +170,7 @@ export const ventasService = {
     let transaccionCreada = null; // Para hacer rollback si falla algo
 
     try {
-      // Crear la transacción principal con soporte para doble método de pago
+      // Crear la transacción principal con soporte para triple método de pago
       const transaccionData = {
         numero_transaccion: numeroTransaccion,
         cliente_id: datosCliente.cliente_id || null,
@@ -185,13 +185,23 @@ export const ventasService = {
         observaciones: datosCliente.observaciones,
         vendedor: nombreVendedor,
         sucursal: datosCliente.sucursal,
-        fecha_venta: fechaVenta || new Date().toISOString()
+        fecha_venta: fechaVenta || new Date().toISOString(),
+        // Destinos de pago (caja ID o alias/wallet)
+        destino_pago_1: datosCliente.destino_pago_1 || null,
+        destino_pago_2: datosCliente.destino_pago_2 || null,
+        destino_pago_3: datosCliente.destino_pago_3 || null
       }
 
       // Agregar segundo método de pago si existe
       if (datosCliente.metodo_pago_2) {
         transaccionData.metodo_pago_2 = datosCliente.metodo_pago_2
         transaccionData.monto_pago_2 = datosCliente.monto_pago_2 || 0
+      }
+
+      // Agregar tercer método de pago si existe
+      if (datosCliente.metodo_pago_3) {
+        transaccionData.metodo_pago_3 = datosCliente.metodo_pago_3
+        transaccionData.monto_pago_3 = datosCliente.monto_pago_3 || 0
       }
 
       const { data: transaccion, error: errorTransaccion } = await supabase
@@ -530,7 +540,8 @@ export const ventasService = {
       // 5. Validar suma de pagos = total (tolerancia 0.01)
       const montoPago1 = datosActualizados.monto_pago_1 || 0
       const montoPago2 = datosActualizados.monto_pago_2 || 0
-      const sumaPagos = montoPago1 + montoPago2
+      const montoPago3 = datosActualizados.monto_pago_3 || 0
+      const sumaPagos = montoPago1 + montoPago2 + montoPago3
 
       if (Math.abs(sumaPagos - totalVenta) > 0.01) {
         throw new Error(
@@ -547,8 +558,13 @@ export const ventasService = {
           fecha_venta: transaccionActual.fecha_venta,
           metodo_pago: transaccionActual.metodo_pago,
           metodo_pago_2: transaccionActual.metodo_pago_2,
+          metodo_pago_3: transaccionActual.metodo_pago_3,
           monto_pago_1: transaccionActual.monto_pago_1,
           monto_pago_2: transaccionActual.monto_pago_2,
+          monto_pago_3: transaccionActual.monto_pago_3,
+          destino_pago_1: transaccionActual.destino_pago_1,
+          destino_pago_2: transaccionActual.destino_pago_2,
+          destino_pago_3: transaccionActual.destino_pago_3,
           total_venta: transaccionActual.total_venta,
           margen_total: transaccionActual.margen_total,
           observaciones: transaccionActual.observaciones
@@ -573,8 +589,13 @@ export const ventasService = {
           fecha_venta: datosActualizados.fecha_venta,
           metodo_pago: datosActualizados.metodo_pago_1,
           metodo_pago_2: datosActualizados.metodo_pago_2 || null,
+          metodo_pago_3: datosActualizados.metodo_pago_3 || null,
           monto_pago_1: montoPago1,
           monto_pago_2: montoPago2,
+          monto_pago_3: montoPago3,
+          destino_pago_1: datosActualizados.destino_pago_1 || null,
+          destino_pago_2: datosActualizados.destino_pago_2 || null,
+          destino_pago_3: datosActualizados.destino_pago_3 || null,
           total_venta: totalVenta,
           margen_total: margenTotal,
           observaciones: datosActualizados.observaciones || null
@@ -721,6 +742,9 @@ export function useVentas() {
         }
         if (datosCliente.metodo_pago_2 === 'cuenta_corriente') {
           montoCuentaCorriente += datosCliente.monto_pago_2 || 0
+        }
+        if (datosCliente.metodo_pago_3 === 'cuenta_corriente') {
+          montoCuentaCorriente += datosCliente.monto_pago_3 || 0
         }
 
         // Registrar movimiento solo si hay monto en cuenta corriente

@@ -69,6 +69,9 @@ const ListadoTotalSection = () => {
   const [cambiosMasivos, setCambiosMasivos] = useState(new Map());
   const [guardandoMasivo, setGuardandoMasivo] = useState(false);
 
+  // Estado para espaciado doble en mensaje
+  const [espaciadoDoble, setEspaciadoDoble] = useState(false);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     fetchComputers();
@@ -659,8 +662,9 @@ const ListadoTotalSection = () => {
           const precioVenta = Math.round(producto.precioVenta);
           const stock = producto.stock;
 
-          // Formato: • PRODUCTO - Stock: X - U$PRECIO
-          mensaje += `• ${nombreProducto} - Stock: ${stock} - U$${precioVenta}\n`;
+          // Formato: • PRODUCTO - Stock: X - U$PRECIO (con salto de línea simple o doble)
+          const saltoLinea = espaciadoDoble ? '\n\n' : '\n';
+          mensaje += `• ${nombreProducto} - Stock: ${stock} - U$${precioVenta}${saltoLinea}`;
         });
 
         // Agregar línea vacía entre categorías (excepto la última)
@@ -899,6 +903,24 @@ const ListadoTotalSection = () => {
               {/* Menú desplegable */}
               {mostrarMenuExportar && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded border border-slate-200 shadow-lg z-10">
+                  {/* Toggle de espaciado doble */}
+                  <div className="px-4 py-2 border-b border-slate-200">
+                    <button
+                      onClick={() => setEspaciadoDoble(!espaciadoDoble)}
+                      className={`w-full flex items-center justify-between text-sm font-medium rounded px-2 py-1 transition-colors ${espaciadoDoble
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-600'
+                        }`}
+                    >
+                      <span>Espaciado</span>
+                      <span className={`px-2 py-0.5 text-xs rounded ${espaciadoDoble
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-slate-400 text-white'
+                        }`}>
+                        {espaciadoDoble ? 'DOBLE' : 'SIMPLE'}
+                      </span>
+                    </button>
+                  </div>
                   <button
                     onClick={exportarExcel}
                     className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw, Mail, Loader } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Trash2, Monitor, Smartphone, Box, CreditCard, DollarSign, Edit2, Check, RotateCcw, Mail, Loader, Wallet } from 'lucide-react';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
+import { supabase } from '../../../lib/supabase';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,23 +38,35 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [datosCliente, setDatosCliente] = useState({
     metodo_pago_1: 'efectivo_pesos',
     metodo_pago_2: '',
+    metodo_pago_3: '',
     monto_pago_1: 0,
     monto_pago_2: 0,
+    monto_pago_3: 0,
     recargo_pago_1: 0,
     recargo_pago_2: 0,
+    recargo_pago_3: 0,
+    destino_pago_1: '',
+    destino_pago_2: '',
+    destino_pago_3: '',
     observaciones: '',
     vendedor: '',
     sucursal: 'la_plata',
     cotizacion_dolar: 1000
   });
 
+  // Estado para lista de cajas del plan de cuentas
+  const [cajas, setCajas] = useState([]);
+
   // Estados locales para inputs para evitar problema del cursor
   const [inputMontoBase1, setInputMontoBase1] = useState('');
   const [inputMontoBase2, setInputMontoBase2] = useState('');
+  const [inputMontoBase3, setInputMontoBase3] = useState('');
   const [inputMontoFinal1, setInputMontoFinal1] = useState('');
   const [inputMontoFinal2, setInputMontoFinal2] = useState('');
+  const [inputMontoFinal3, setInputMontoFinal3] = useState('');
   const [inputRecargo1, setInputRecargo1] = useState('0');
   const [inputRecargo2, setInputRecargo2] = useState('0');
+  const [inputRecargo3, setInputRecargo3] = useState('0');
 
   // Usar el hook de vendedores
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
@@ -113,10 +126,49 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }
   };
 
+  // Cargar cajas del plan de cuentas
+  const cargarCajas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('plan_cuentas')
+        .select('id, codigo, nombre')
+        .like('codigo', '1.1.01%')
+        .eq('imputable', true)
+        .order('codigo');
+
+      if (error) {
+        console.error('Error cargando cajas:', error);
+        return;
+      }
+
+      setCajas(data || []);
+      console.log('✅ Cajas cargadas:', data?.length || 0);
+    } catch (error) {
+      console.error('Error cargando cajas:', error);
+    }
+  };
+
+  // Determinar si un método necesita selector de caja (dropdown) o input de alias/wallet
+  const necesitaSelectorCaja = (metodoPago) => {
+    return ['efectivo_pesos', 'dolares_billete', 'tarjeta_credito'].includes(metodoPago);
+  };
+
+  // Determinar si un método necesita input de alias/wallet
+  const necesitaInputAlias = (metodoPago) => {
+    return ['transferencia', 'criptomonedas'].includes(metodoPago);
+  };
+
+  // Determinar si un método requiere destino (todos excepto cuenta_corriente y vacío)
+  const requiereDestino = (metodoPago) => {
+    return metodoPago && metodoPago !== 'cuenta_corriente';
+  };
+
   useEffect(() => {
     fetchVendedores();
     // Cargar cotización inicial
     cargarCotizacionInicial();
+    // Cargar cajas del plan de cuentas
+    cargarCajas();
   }, [fetchVendedores]);
 
   // Inicializar formulario cuando se abre (sin autocompletar montos)
@@ -127,17 +179,25 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         ...prev,
         monto_pago_1: 0,
         monto_pago_2: 0,
+        monto_pago_3: 0,
         recargo_pago_1: 0,
-        recargo_pago_2: 0
+        recargo_pago_2: 0,
+        recargo_pago_3: 0,
+        destino_pago_1: '',
+        destino_pago_2: '',
+        destino_pago_3: ''
       }));
 
       // Limpiar todos los inputs
       setInputMontoBase1('');
       setInputMontoBase2('');
+      setInputMontoBase3('');
       setInputMontoFinal1('');
       setInputMontoFinal2('');
+      setInputMontoFinal3('');
       setInputRecargo1('0');
       setInputRecargo2('0');
+      setInputRecargo3('0');
 
       console.log('🔄 Formulario inicializado - Usuario debe ingresar montos manualmente');
     }
@@ -190,35 +250,38 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Manejar cambio de método de pago específicamente
   const handleMetodoPagoChange = (metodo, nuevoMetodo) => {
-    // Actualizar el método de pago
+    // Actualizar el método de pago y limpiar el destino
     setDatosCliente(prev => ({
       ...prev,
-      [`metodo_pago_${metodo}`]: nuevoMetodo
+      [`metodo_pago_${metodo}`]: nuevoMetodo,
+      [`recargo_pago_${metodo}`]: 0,
+      [`destino_pago_${metodo}`]: '' // Limpiar destino al cambiar método
     }));
 
-    // Limpiar recargos al cambiar método (usuario decide si aplicar recargo)
-    setDatosCliente(prev => ({
-      ...prev,
-      [`recargo_pago_${metodo}`]: 0
-    }));
-
-    // Limpiar input local del recargo
+    // Limpiar input local del recargo y monto
     if (metodo === 1) {
       setInputRecargo1('0');
-    } else {
-      setInputRecargo2('0');
-    }
-
-    // Limpiar los campos de monto cuando cambia el método
-    if (metodo === 1) {
       setInputMontoBase1('');
       setInputMontoFinal1('');
-    } else {
+    } else if (metodo === 2) {
+      setInputRecargo2('0');
       setInputMontoBase2('');
       setInputMontoFinal2('');
+    } else if (metodo === 3) {
+      setInputRecargo3('0');
+      setInputMontoBase3('');
+      setInputMontoFinal3('');
     }
 
-    console.log(`🔄 Método de pago cambiado a ${nuevoMetodo} - Usuario puede aplicar recargos manualmente`);
+    console.log(`🔄 Método de pago ${metodo} cambiado a ${nuevoMetodo}`);
+  };
+
+  // Manejar cambio de destino de pago (caja o alias)
+  const handleDestinoPagoChange = (metodo, destino) => {
+    setDatosCliente(prev => ({
+      ...prev,
+      [`destino_pago_${metodo}`]: destino
+    }));
   };
 
   const calcularTotalPesos = () => {
@@ -251,15 +314,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Manejar cambio en monto base (sin recargo)
   const handleMontoBaseChange = (metodo, montoBase) => {
-    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
-    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
+    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : metodo === 2 ? datosCliente.metodo_pago_2 : datosCliente.metodo_pago_3;
+    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : metodo === 2 ? datosCliente.recargo_pago_2 : datosCliente.recargo_pago_3;
     const montoBaseFloat = parseFloat(montoBase) || 0;
 
     // Actualizar input local del monto base
     if (metodo === 1) {
       setInputMontoBase1(montoBase);
-    } else {
+    } else if (metodo === 2) {
       setInputMontoBase2(montoBase);
+    } else {
+      setInputMontoBase3(montoBase);
     }
 
     // Calcular monto final con recargo
@@ -270,8 +335,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // Actualizar input del monto final
     if (metodo === 1) {
       setInputMontoFinal1(montoFinalEnMonedaMetodo.toFixed(2));
-    } else {
+    } else if (metodo === 2) {
       setInputMontoFinal2(montoFinalEnMonedaMetodo.toFixed(2));
+    } else {
+      setInputMontoFinal3(montoFinalEnMonedaMetodo.toFixed(2));
     }
 
     // Convertir monto base a USD para guardar en estado
@@ -287,15 +354,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Manejar cambio en monto final (con recargo incluido)
   const handleMontoFinalChange = (metodo, montoFinal) => {
-    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : datosCliente.metodo_pago_2;
-    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : datosCliente.recargo_pago_2;
+    const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : metodo === 2 ? datosCliente.metodo_pago_2 : datosCliente.metodo_pago_3;
+    const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : metodo === 2 ? datosCliente.recargo_pago_2 : datosCliente.recargo_pago_3;
     const montoFinalFloat = parseFloat(montoFinal) || 0;
 
     // Actualizar input local del monto final
     if (metodo === 1) {
       setInputMontoFinal1(montoFinal);
-    } else {
+    } else if (metodo === 2) {
       setInputMontoFinal2(montoFinal);
+    } else {
+      setInputMontoFinal3(montoFinal);
     }
 
     // Calcular monto base (sin recargo)
@@ -306,8 +375,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // Actualizar input del monto base
     if (metodo === 1) {
       setInputMontoBase1(montoBaseEnMonedaMetodo.toFixed(2));
-    } else {
+    } else if (metodo === 2) {
       setInputMontoBase2(montoBaseEnMonedaMetodo.toFixed(2));
+    } else {
+      setInputMontoBase3(montoBaseEnMonedaMetodo.toFixed(2));
     }
 
     // Convertir monto base a USD para guardar en estado
@@ -325,8 +396,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // Actualizar input local
     if (metodo === 1) {
       setInputRecargo1(recargo);
-    } else {
+    } else if (metodo === 2) {
       setInputRecargo2(recargo);
+    } else {
+      setInputRecargo3(recargo);
     }
 
     setDatosCliente(prev => ({
@@ -335,24 +408,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }));
 
     // Recalcular monto final si hay monto base ingresado
-    const montoBaseInput = metodo === 1 ? inputMontoBase1 : inputMontoBase2;
+    const montoBaseInput = metodo === 1 ? inputMontoBase1 : metodo === 2 ? inputMontoBase2 : inputMontoBase3;
     if (montoBaseInput && parseFloat(montoBaseInput) > 0) {
       handleMontoBaseChange(metodo, montoBaseInput);
     }
   };
 
   const distribuyeMontos = () => {
-    // Solo distribuir si hay un segundo método seleccionado
-    if (!datosCliente.metodo_pago_2) return;
-
-    const totalUSD = calcularTotal();
-    const monto1USD = datosCliente.monto_pago_1;
-    const monto2USD = totalUSD - monto1USD;
-
-    setDatosCliente(prev => ({
-      ...prev,
-      monto_pago_2: Math.max(0, monto2USD)
-    }));
+    // No hacer distribución automática - el usuario ingresa los montos manualmente
   };
 
   const handleProcesarVenta = async (e) => {
@@ -405,13 +468,29 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }
 
     // ✅ VALIDACIÓN: Verificar que hay montos ingresados (sin restricciones de coincidencia exacta)
-    const totalPagadoUSD = datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0);
+    const totalPagadoUSD = datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0);
 
     if (totalPagadoUSD <= 0) {
       console.error('❌ No se ha ingresado ningún monto de pago');
       alert('⚠️ Debe ingresar al menos un monto de pago antes de procesar la venta.');
       return;
     }
+
+    // ✅ VALIDACIÓN: Verificar que los destinos están completos para métodos que lo requieren
+    const validarDestino = (metodo, metodoPago, monto, destino) => {
+      if (!metodoPago || monto <= 0) return true; // No aplica si no hay método o monto
+      if (!requiereDestino(metodoPago)) return true; // cuenta_corriente no requiere destino
+      if (!destino || destino.trim() === '') {
+        const tipoDestino = necesitaSelectorCaja(metodoPago) ? 'caja' : 'alias/wallet';
+        alert(`⚠️ Debe seleccionar ${tipoDestino} para el método de pago ${metodo}`);
+        return false;
+      }
+      return true;
+    };
+
+    if (!validarDestino(1, datosCliente.metodo_pago_1, datosCliente.monto_pago_1, datosCliente.destino_pago_1)) return;
+    if (!validarDestino(2, datosCliente.metodo_pago_2, datosCliente.monto_pago_2, datosCliente.destino_pago_2)) return;
+    if (!validarDestino(3, datosCliente.metodo_pago_3, datosCliente.monto_pago_3, datosCliente.destino_pago_3)) return;
 
     // Mostrar confirmación
     setMostrarConfirmacion(true);
@@ -515,10 +594,16 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     setDatosCliente({
       metodo_pago_1: 'efectivo_pesos',
       metodo_pago_2: '',
+      metodo_pago_3: '',
       monto_pago_1: 0,
       monto_pago_2: 0,
+      monto_pago_3: 0,
       recargo_pago_1: 0,
       recargo_pago_2: 0,
+      recargo_pago_3: 0,
+      destino_pago_1: '',
+      destino_pago_2: '',
+      destino_pago_3: '',
       observaciones: '',
       vendedor: '',
       sucursal: 'la_plata',
@@ -532,10 +617,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     // Limpiar inputs locales
     setInputMontoBase1('');
     setInputMontoBase2('');
+    setInputMontoBase3('');
     setInputMontoFinal1('');
     setInputMontoFinal2('');
+    setInputMontoFinal3('');
     setInputRecargo1('0');
     setInputRecargo2('0');
+    setInputRecargo3('0');
 
     // Limpiar estados de edición de precios
     setEditandoPrecio(null);
@@ -578,8 +666,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         cliente_telefono: clienteSeleccionado.telefono || null,
         metodo_pago_1: datosCliente.metodo_pago_1,
         metodo_pago_2: datosCliente.metodo_pago_2,
+        metodo_pago_3: datosCliente.metodo_pago_3,
         monto_pago_1: datosCliente.monto_pago_1,
         monto_pago_2: datosCliente.monto_pago_2,
+        monto_pago_3: datosCliente.monto_pago_3,
+        destino_pago_1: datosCliente.destino_pago_1,
+        destino_pago_2: datosCliente.destino_pago_2,
+        destino_pago_3: datosCliente.destino_pago_3,
         observaciones: datosCliente.observaciones,
         vendedor: datosCliente.vendedor,
         vendedor_nombre: nombreVendedor,
@@ -587,7 +680,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         numeroTransaccion,
         fecha_venta: fechaVentaCompleta,
         // ✅ NUEVO: Información para cuenta corriente
-        esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente',
+        esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente' || datosCliente.metodo_pago_3 === 'cuenta_corriente',
         total: calcularTotal(),
         // ✅ Flag para controlar envío de email (PRUEBA)
         enviarEmail: enviarEmail
@@ -1092,7 +1185,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
 
                     {/* Primer método de pago */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                           Método de Pago 1 *
@@ -1103,36 +1196,67 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                         >
-                          <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                          <option value="dolares_billete">💸 Dólares Billete</option>
-                          <option value="transferencia">🏦 Transferencia</option>
-                          <option value="criptomonedas">₿ Criptomonedas</option>
-                          <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                          <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                          <option value="efectivo_pesos">Efectivo en Pesos</option>
+                          <option value="dolares_billete">Dólares Billete</option>
+                          <option value="transferencia">Transferencia</option>
+                          <option value="criptomonedas">Criptomonedas</option>
+                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="cuenta_corriente">Cuenta Corriente</option>
                         </select>
                       </div>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                            Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
-                          </label>
-                          <input
-                            type="number"
-                            value={inputMontoBase1}
-                            onChange={(e) => handleMontoBaseChange(1, e.target.value)}
-                            onBlur={distribuyeMontos}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
+                        </label>
+                        <input
+                          type="number"
+                          value={inputMontoBase1}
+                          onChange={(e) => handleMontoBaseChange(1, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          placeholder="Monto a cobrar"
+                          step="1"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? 'Caja *' : necesitaInputAlias(datosCliente.metodo_pago_1) ? 'Alias/Wallet *' : 'Destino'}
+                        </label>
+                        {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? (
+                          <select
+                            value={datosCliente.destino_pago_1}
+                            onChange={(e) => handleDestinoPagoChange(1, e.target.value)}
                             className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                            placeholder="Ingrese el monto a cobrar"
-                            step="1"
-                            min="0"
+                          >
+                            <option value="">Seleccionar caja</option>
+                            {cajas.map((caja) => (
+                              <option key={caja.id} value={caja.nombre}>
+                                {caja.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        ) : necesitaInputAlias(datosCliente.metodo_pago_1) ? (
+                          <input
+                            type="text"
+                            value={datosCliente.destino_pago_1}
+                            onChange={(e) => handleDestinoPagoChange(1, e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder={datosCliente.metodo_pago_1 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
-                        </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value="Cuenta Corriente"
+                            disabled
+                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                          />
+                        )}
                       </div>
                     </div>
 
 
                     {/* Segundo método de pago (opcional) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                           Método de Pago 2
@@ -1144,30 +1268,134 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                         >
                           <option value="">Seleccionar método</option>
-                          <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                          <option value="dolares_billete">💸 Dólares Billete</option>
-                          <option value="transferencia">🏦 Transferencia</option>
-                          <option value="criptomonedas">₿ Criptomonedas</option>
-                          <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                          <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
+                          <option value="efectivo_pesos">Efectivo en Pesos</option>
+                          <option value="dolares_billete">Dólares Billete</option>
+                          <option value="transferencia">Transferencia</option>
+                          <option value="criptomonedas">Criptomonedas</option>
+                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="cuenta_corriente">Cuenta Corriente</option>
                         </select>
                       </div>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                            Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
-                          </label>
-                          <input
-                            type="number"
-                            value={inputMontoBase2}
-                            onChange={(e) => handleMontoBaseChange(2, e.target.value)}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                        </label>
+                        <input
+                          type="number"
+                          value={inputMontoBase2}
+                          onChange={(e) => handleMontoBaseChange(2, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          placeholder="Monto a cobrar"
+                          step="1"
+                          min="0"
+                          disabled={!datosCliente.metodo_pago_2}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? 'Caja *' : datosCliente.metodo_pago_2 && necesitaInputAlias(datosCliente.metodo_pago_2) ? 'Alias/Wallet *' : 'Destino'}
+                        </label>
+                        {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? (
+                          <select
+                            value={datosCliente.destino_pago_2}
+                            onChange={(e) => handleDestinoPagoChange(2, e.target.value)}
                             className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                            placeholder="Ingrese el monto a cobrar"
-                            step="1"
-                            min="0"
-                            disabled={!datosCliente.metodo_pago_2}
+                          >
+                            <option value="">Seleccionar caja</option>
+                            {cajas.map((caja) => (
+                              <option key={caja.id} value={caja.nombre}>
+                                {caja.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        ) : datosCliente.metodo_pago_2 && necesitaInputAlias(datosCliente.metodo_pago_2) ? (
+                          <input
+                            type="text"
+                            value={datosCliente.destino_pago_2}
+                            onChange={(e) => handleDestinoPagoChange(2, e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder={datosCliente.metodo_pago_2 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
-                        </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value={datosCliente.metodo_pago_2 === 'cuenta_corriente' ? 'Cuenta Corriente' : '-'}
+                            disabled
+                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tercer método de pago (opcional) */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Método de Pago 3
+                        </label>
+                        <select
+                          name="metodo_pago_3"
+                          value={datosCliente.metodo_pago_3}
+                          onChange={(e) => handleMetodoPagoChange(3, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        >
+                          <option value="">Seleccionar método</option>
+                          <option value="efectivo_pesos">Efectivo en Pesos</option>
+                          <option value="dolares_billete">Dólares Billete</option>
+                          <option value="transferencia">Transferencia</option>
+                          <option value="criptomonedas">Criptomonedas</option>
+                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="cuenta_corriente">Cuenta Corriente</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Monto ({datosCliente.metodo_pago_3 ? obtenerMonedaMetodo(datosCliente.metodo_pago_3) : 'N/A'})
+                        </label>
+                        <input
+                          type="number"
+                          value={inputMontoBase3}
+                          onChange={(e) => handleMontoBaseChange(3, e.target.value)}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          placeholder="Monto a cobrar"
+                          step="1"
+                          min="0"
+                          disabled={!datosCliente.metodo_pago_3}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? 'Caja *' : datosCliente.metodo_pago_3 && necesitaInputAlias(datosCliente.metodo_pago_3) ? 'Alias/Wallet *' : 'Destino'}
+                        </label>
+                        {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? (
+                          <select
+                            value={datosCliente.destino_pago_3}
+                            onChange={(e) => handleDestinoPagoChange(3, e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          >
+                            <option value="">Seleccionar caja</option>
+                            {cajas.map((caja) => (
+                              <option key={caja.id} value={caja.nombre}>
+                                {caja.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        ) : datosCliente.metodo_pago_3 && necesitaInputAlias(datosCliente.metodo_pago_3) ? (
+                          <input
+                            type="text"
+                            value={datosCliente.destino_pago_3}
+                            onChange={(e) => handleDestinoPagoChange(3, e.target.value)}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder={datosCliente.metodo_pago_3 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={datosCliente.metodo_pago_3 === 'cuenta_corriente' ? 'Cuenta Corriente' : '-'}
+                            disabled
+                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                          />
+                        )}
                       </div>
                     </div>
 
@@ -1287,21 +1515,48 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       <div className="text-center">
                         <p className="text-xs text-slate-600 font-medium uppercase mb-2">Métodos de pago</p>
                         <div className="space-y-1">
-                          <p className="text-sm text-slate-800">{datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                            parseFloat(inputMontoBase1) || 0,
-                            obtenerMonedaMetodo(datosCliente.metodo_pago_1)
-                          )}</p>
+                          <p className="text-sm text-slate-800">
+                            {datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                              parseFloat(inputMontoBase1) || 0,
+                              obtenerMonedaMetodo(datosCliente.metodo_pago_1)
+                            )}
+                            {datosCliente.destino_pago_1 && (
+                              <span className="text-slate-500 text-xs ml-1">
+                                ({datosCliente.destino_pago_1})
+                              </span>
+                            )}
+                          </p>
                           {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
-                            <p className="text-sm text-slate-800">{datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                              parseFloat(inputMontoBase2) || 0,
-                              obtenerMonedaMetodo(datosCliente.metodo_pago_2)
-                            )}</p>
+                            <p className="text-sm text-slate-800">
+                              {datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                                parseFloat(inputMontoBase2) || 0,
+                                obtenerMonedaMetodo(datosCliente.metodo_pago_2)
+                              )}
+                              {datosCliente.destino_pago_2 && (
+                                <span className="text-slate-500 text-xs ml-1">
+                                  ({datosCliente.destino_pago_2})
+                                </span>
+                              )}
+                            </p>
+                          )}
+                          {datosCliente.metodo_pago_3 && parseFloat(inputMontoBase3) > 0 && (
+                            <p className="text-sm text-slate-800">
+                              {datosCliente.metodo_pago_3.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
+                                parseFloat(inputMontoBase3) || 0,
+                                obtenerMonedaMetodo(datosCliente.metodo_pago_3)
+                              )}
+                              {datosCliente.destino_pago_3 && (
+                                <span className="text-slate-500 text-xs ml-1">
+                                  ({datosCliente.destino_pago_3})
+                                </span>
+                              )}
+                            </p>
                           )}
                         </div>
                       </div>
 
                       {/* Aviso de cuenta corriente */}
-                      {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente') && (
+                      {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente' || datosCliente.metodo_pago_3 === 'cuenta_corriente') && (
                         <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
                           💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
                         </div>
