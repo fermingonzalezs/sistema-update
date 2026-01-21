@@ -5,6 +5,7 @@ import ConversionMonedas from '../../../components/currency/ConversionMonedas';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
+import { formatearFechaDisplay } from '../../config/timezone';
 import { supabase } from '../../../lib/supabase';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
@@ -1503,7 +1504,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                         <div className="text-center">
                           <p className="text-xs text-slate-600 font-medium uppercase mb-1">Fecha</p>
-                          <p className="text-sm font-medium text-slate-800">{new Date(fechaVenta).toLocaleDateString('es-AR')}</p>
+                          <p className="text-sm font-medium text-slate-800">{formatearFechaDisplay(fechaVenta)}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>

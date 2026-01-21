@@ -236,7 +236,9 @@ export const useCargaMasiva = (tipoEquipo) => {
                     ...(item.precio_costo_usd !== undefined && item.precio_costo_usd !== '' && { precio_costo_usd: item.precio_costo_usd }),
                     ...(item.costos_adicionales !== undefined && item.costos_adicionales !== '' && { costos_adicionales: item.costos_adicionales }),
                     ...(item.envios_repuestos !== undefined && item.envios_repuestos !== '' && { envios_repuestos: item.envios_repuestos }),
-                    ...(item.precio_venta_usd !== undefined && item.precio_venta_usd !== '' && { precio_venta_usd: item.precio_venta_usd })
+                    ...(item.precio_venta_usd !== undefined && item.precio_venta_usd !== '' && { precio_venta_usd: item.precio_venta_usd }),
+                    // Para celulares: agregar porcentaje de batería (por defecto 100%)
+                    ...(tipoEquipo === 'celular' && { bateria: `${item.bateria ?? 100}%` })
                 };
 
                 // Para tipo "otro" con categoría DESKTOP o TABLETS, procesar especificaciones

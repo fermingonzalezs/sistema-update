@@ -81,6 +81,9 @@ const ListaSerialesEquipos = ({
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Total</th>
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">P. Venta</th>
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Color</th>
+                            {tipoEquipo === 'celular' && (
+                                <th className="px-2 py-2 text-center font-medium text-slate-700 w-20">Batería %</th>
+                            )}
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-8"></th>
                         </tr>
                     </thead>
@@ -185,6 +188,21 @@ const ListaSerialesEquipos = ({
                                             className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center bg-white"
                                         />
                                     </td>
+
+                                    {/* Batería % (solo celulares) */}
+                                    {tipoEquipo === 'celular' && (
+                                        <td className="px-2 py-1.5">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={item.bateria ?? 100}
+                                                onChange={(e) => onItemChange(item.id, 'bateria', Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                                                disabled={validando}
+                                                className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center bg-white"
+                                            />
+                                        </td>
+                                    )}
 
                                     {/* Eliminar */}
                                     <td className="px-1 py-1.5 text-center">

@@ -5,11 +5,11 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './shared/components/layout/Layout';
 
 // Ventas
-import { Clientes, Listas, Catalogo, RegistrarVentaSection } from './modules/ventas/components';
+import { Clientes, Listas, ListasRevendedores, Catalogo, RegistrarVentaSection } from './modules/ventas/components';
 import ListadoTotalSection from './modules/ventas/components/ListadoTotalSection';
 
 // Soporte
-import { ReparacionesMain, TesteoEquiposSection } from './modules/soporte/components';
+import { ReparacionesMain, TesteoEquiposSection, AuditPanel } from './modules/soporte/components';
 
 // Administración
 import {
@@ -44,8 +44,7 @@ import ProveedoresSection from './modules/compras/components/ProveedoresSection'
 // Importaciones
 import { ImportacionesSection } from './modules/importaciones/components';
 
-// Otros
-import EmailPreview from './pages/EmailPreview';
+
 
 // Wrappers para pasar props desde context
 import { useAppContext } from './context/AppContext';
@@ -60,6 +59,19 @@ const ListasPage = () => {
     const { computers, celulares, otros, computersLoading, celularesLoading, otrosLoading, computersError, celularesError, otrosError } = useAppContext();
     return (
         <Listas
+            computers={computers}
+            celulares={celulares}
+            otros={otros}
+            loading={computersLoading || celularesLoading || otrosLoading}
+            error={computersError || celularesError || otrosError}
+        />
+    );
+};
+
+const ListasRevendedoresPage = () => {
+    const { computers, celulares, otros, computersLoading, celularesLoading, otrosLoading, computersError, celularesError, otrosError } = useAppContext();
+    return (
+        <ListasRevendedores
             computers={computers}
             celulares={celulares}
             otros={otros}
@@ -104,6 +116,7 @@ const AppRoutes = () => {
                 <Route path="catalogo" element={<CatalogoPage />} />
                 <Route path="stock" element={<ListadoTotalSection />} />
                 <Route path="listas" element={<ListasPage />} />
+                <Route path="listas-revendedores" element={<ListasRevendedoresPage />} />
                 <Route path="clientes" element={<Clientes />} />
                 <Route path="registrar-venta" element={<RegistrarVentaSection />} />
                 <Route path="ventas" element={<VentasPage />} />
@@ -111,6 +124,7 @@ const AppRoutes = () => {
                 {/* Soporte */}
                 <Route path="reparaciones" element={<ReparacionesMain />} />
                 <Route path="testeo-equipos" element={<TesteoEquiposSection />} />
+                <Route path="auditoria" element={<AuditPanel />} />
 
                 {/* Administración */}
                 <Route path="ingreso-equipos" element={<IngresoEquiposSection />} />
@@ -140,8 +154,7 @@ const AppRoutes = () => {
                     <Route path="resultados" element={<EstadoResultadosSection />} />
                 </Route>
 
-                {/* Otros */}
-                <Route path="email-preview" element={<EmailPreview />} />
+
 
                 {/* 404 - redirect to catalogo */}
                 <Route path="*" element={<Navigate to="/catalogo" replace />} />

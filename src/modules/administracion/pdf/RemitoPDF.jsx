@@ -218,7 +218,6 @@ const styles = StyleSheet.create({
   table: {
     marginBottom: 25,
     marginHorizontal: 25,
-    backgroundColor: '#F3F4F6',
     borderWidth: 0.5,
     borderColor: '#FFFFFF',
   },

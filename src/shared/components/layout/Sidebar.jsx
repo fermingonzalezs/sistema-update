@@ -78,6 +78,13 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Generador de listas'
         },
         {
+          id: 'listas-revendedores',
+          path: '/listas-revendedores',
+          label: 'Listas Revendedores',
+          icon: Users,
+          description: 'Precios para reventa'
+        },
+        {
           id: 'clientes',
           path: '/clientes',
           label: 'Clientes',
@@ -246,11 +253,11 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Testeo de notebooks y celulares'
         },
         {
-          id: 'email-preview',
-          path: '/email-preview',
-          label: 'Preview Email',
-          icon: Mail,
-          description: 'Previsualización template de email'
+          id: 'auditoria',
+          path: '/auditoria',
+          label: 'Auditoría',
+          icon: ClipboardList,
+          description: 'Registro de operaciones del sistema'
         }
       ]
     },

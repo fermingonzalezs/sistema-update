@@ -52,6 +52,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [incluirMensajeInicial, setIncluirMensajeInicial] = useState(true);
   const [incluirMensajeFinal, setIncluirMensajeFinal] = useState(true);
 
+  // Estado para espaciado doble entre productos
+  const [espaciadoDoble, setEspaciadoDoble] = useState(false);
+
   // Estados para filtros avanzados
   const [modoFiltros, setModoFiltros] = useState(false);
   const [filtroExcluirMarca, setFiltroExcluirMarca] = useState('');
@@ -306,8 +309,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       partes.push('');
     }
 
-    // Agregar productos
-    partes.push(copysSeleccionados.join('\n'));
+    // Agregar productos con espaciado simple o doble
+    const separador = espaciadoDoble ? '\n\n' : '\n';
+    partes.push(copysSeleccionados.join(separador));
 
     // Agregar mensaje final si está habilitado
     if (incluirMensajeFinal && mensajes[tipoActivo].final) {
@@ -792,15 +796,15 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                   key={tipo}
                   onClick={() => setTipoActivo(tipo)}
                   className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${tipoActivo === tipo
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-700 hover:bg-slate-200'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-700 hover:bg-slate-200'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{config.label}</span>
                   <span className={`text-sm px-2 py-0.5 rounded ${tipoActivo === tipo
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-slate-200 text-slate-600'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-slate-200 text-slate-600'
                     }`}>
                     {tipo === 'computadora' ? computers.length :
                       tipo === 'celular' ? celulares.length : otros.length}
@@ -821,8 +825,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <button
                 onClick={() => setModoFiltros(!modoFiltros)}
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${modoFiltros
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-700 text-white hover:bg-slate-600'
                   }`}
               >
                 {modoFiltros ? 'Filtros Activos' : 'Activar Filtros'}
@@ -1052,26 +1056,53 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
             <div className="p-4">
               <div className="flex space-x-2">
-                  <button
-                    onClick={() => setMonedaPrecio('USD')}
-                    className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                      monedaPrecio === 'USD'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                <button
+                  onClick={() => setMonedaPrecio('USD')}
+                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${monedaPrecio === 'USD'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
-                  >
-                    USD (Dólares)
-                  </button>
-                  <button
-                    onClick={() => setMonedaPrecio('ARS')}
-                    className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                      monedaPrecio === 'ARS'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                >
+                  USD (Dólares)
+                </button>
+                <button
+                  onClick={() => setMonedaPrecio('ARS')}
+                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${monedaPrecio === 'ARS'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
-                  >
-                    ARS (Pesos)
-                  </button>
+                >
+                  ARS (Pesos)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Espaciado entre productos */}
+          <div className="bg-white rounded border border-slate-200">
+            <div className="px-4 py-2 bg-slate-800 text-white border-b border-slate-700">
+              <h3 className="text-sm font-semibold">Espaciado</h3>
+            </div>
+            <div className="p-4">
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setEspaciadoDoble(false)}
+                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${!espaciadoDoble
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                >
+                  Simple
+                </button>
+                <button
+                  onClick={() => setEspaciadoDoble(true)}
+                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${espaciadoDoble
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                >
+                  Doble
+                </button>
               </div>
             </div>
           </div>
@@ -1084,11 +1115,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setIncluirMensajeInicial(!incluirMensajeInicial)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      incluirMensajeInicial
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-600 text-slate-300'
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${incluirMensajeInicial
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-600 text-slate-300'
+                      }`}
                   >
                     {incluirMensajeInicial ? 'ON' : 'OFF'}
                   </button>
@@ -1144,11 +1174,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setIncluirMensajeFinal(!incluirMensajeFinal)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      incluirMensajeFinal
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-600 text-slate-300'
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${incluirMensajeFinal
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-600 text-slate-300'
+                      }`}
                   >
                     {incluirMensajeFinal ? 'ON' : 'OFF'}
                   </button>
@@ -1214,8 +1243,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <button
                   onClick={copiarListaCompleta}
                   className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 relative z-20 ${copiados.has('lista-completa')
-                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                     }`}
                 >
                   {copiados.has('lista-completa') ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -1241,8 +1270,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <button
                   onClick={seleccionarTodos}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
-                      ? 'bg-slate-700 text-white hover:bg-slate-600'
-                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    ? 'bg-slate-700 text-white hover:bg-slate-600'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                     }`}
                 >
                   {seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
