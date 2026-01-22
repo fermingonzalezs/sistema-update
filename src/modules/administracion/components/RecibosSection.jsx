@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Eye, Trash2, User, Calendar, DollarSign, Loader, FileCheck } from 'lucide-react';
+import { FileText, Plus, Eye, Trash2, User, Calendar, DollarSign, Loader, FileCheck, Calculator } from 'lucide-react';
 import { useRecibos } from '../hooks/useRecibos';
 import { generarYDescargarRecibo } from '../pdf/ReciboPDF';
 import { generarYDescargarRemito } from '../pdf/RemitoPDF';
+import { generarYDescargarPresupuesto } from '../pdf/PresupuestoPDF';
 import { formatearMonto, formatearFecha, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
 import SelectorProductosStock from './SelectorProductosStock';
 
 const RecibosSection = () => {
-  const { recibos, loading, error, crearRecibo, crearRemito, eliminarRecibo, refetch } = useRecibos();
+  const { recibos, loading, error, crearRecibo, crearRemito, crearPresupuesto, eliminarRecibo, refetch } = useRecibos();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [tipoDocumento, setTipoDocumento] = useState('recibo'); // 'recibo' o 'remito'
+  const [tipoDocumento, setTipoDocumento] = useState('recibo'); // 'recibo', 'remito', 'presupuesto'
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [procesando, setProcesando] = useState(false);
 
@@ -28,6 +29,11 @@ const RecibosSection = () => {
     // Campos de remito
     fecha_entrega: '',
     quien_retira: '',
+
+    // Campos de presupuesto
+    vigencia_horas: 72,
+    condiciones: '',
+
     observaciones: ''
   });
 
@@ -68,7 +74,7 @@ const RecibosSection = () => {
     return (item.cantidad || 0) * (item.precio_unitario || 0);
   };
 
-  // Calcular total general (solo para recibos)
+  // Calcular total general (solo para recibos y presupuestos)
   const calcularTotal = () => {
     if (tipoDocumento === 'remito') return 0;
     const subtotal = formData.items.reduce((sum, item) =>
@@ -98,11 +104,11 @@ const RecibosSection = () => {
       return false;
     }
 
-    // Validación específica para recibos
-    if (tipoDocumento === 'recibo') {
+    // Validación específica para recibos y presupuestos
+    if (tipoDocumento === 'recibo' || tipoDocumento === 'presupuesto') {
       const preciosValidos = formData.items.every(item => item.precio_unitario > 0);
       if (!preciosValidos) {
-        alert('Todos los items de un recibo deben tener precio válido');
+        alert('Todos los items deben tener precio válido');
         return false;
       }
     }
@@ -124,7 +130,7 @@ const RecibosSection = () => {
         descripcion: item.descripcion.trim(),
         cantidad: parseInt(item.cantidad),
         serial: item.serial?.trim() || null,
-        ...(tipoDocumento === 'recibo' && {
+        ...((tipoDocumento === 'recibo' || tipoDocumento === 'presupuesto') && {
           precio_unitario: parseFloat(item.precio_unitario),
           precio_total: calcularPrecioTotalItem(item)
         })
@@ -154,7 +160,7 @@ const RecibosSection = () => {
           observaciones: formData.observaciones.trim() || ''
         };
         resultado = await crearRecibo(datosRecibo);
-      } else {
+      } else if (tipoDocumento === 'remito') {
         // Crear remito
         const datosRemito = {
           ...datosBase,
@@ -163,10 +169,27 @@ const RecibosSection = () => {
           observaciones: formData.observaciones.trim() || ''
         };
         resultado = await crearRemito(datosRemito);
+      } else if (tipoDocumento === 'presupuesto') {
+        // Crear presupuesto
+        const datosPresupuesto = {
+          ...datosBase,
+          moneda: formData.moneda,
+          descuento: parseFloat(formData.descuento) || 0,
+          total: calcularTotal(),
+          vigencia_horas: parseInt(formData.vigencia_horas) || 72,
+          condiciones: formData.condiciones.trim() || '',
+          observaciones: formData.observaciones.trim() || ''
+        };
+        resultado = await crearPresupuesto(datosPresupuesto);
       }
 
       if (resultado.success) {
-        alert(`${tipoDocumento === 'recibo' ? 'Recibo' : 'Remito'} creado exitosamente`);
+        let nombreDoc = 'Documento';
+        if (tipoDocumento === 'recibo') nombreDoc = 'Recibo';
+        if (tipoDocumento === 'remito') nombreDoc = 'Remito';
+        if (tipoDocumento === 'presupuesto') nombreDoc = 'Presupuesto';
+
+        alert(`${nombreDoc} creado exitosamente`);
         // Resetear formulario
         setFormData({
           items: [{ descripcion: '', cantidad: 1, precio_unitario: 0, serial: '' }],
@@ -176,6 +199,8 @@ const RecibosSection = () => {
           descuento: 0,
           fecha_entrega: '',
           quien_retira: '',
+          vigencia_horas: 72,
+          condiciones: '',
           observaciones: ''
         });
         setClienteSeleccionado(null);
@@ -192,17 +217,19 @@ const RecibosSection = () => {
   };
 
   // Manejar generación de PDF
-  const handleGenerarPDF = async (documento, comoRemito = false) => {
-    if (comoRemito || documento.tipo_documento === 'remito') {
+  const handleGenerarPDF = async (documento, formato = null) => {
+    // Si se especifica formato, usarlo, sino usar el tipo del documento
+    const tipo = formato || documento.tipo_documento;
+
+    if (tipo === 'remito') {
       const resultado = await generarYDescargarRemito(documento);
-      if (!resultado.success) {
-        alert(`Error al generar Remito PDF: ${resultado.error}`);
-      }
+      if (!resultado.success) alert(`Error al generar Remito PDF: ${resultado.error}`);
+    } else if (tipo === 'presupuesto') {
+      const resultado = await generarYDescargarPresupuesto(documento);
+      if (!resultado.success) alert(`Error al generar Presupuesto PDF: ${resultado.error}`);
     } else {
       const resultado = await generarYDescargarRecibo(documento);
-      if (!resultado.success) {
-        alert(`Error al generar Recibo PDF: ${resultado.error}`);
-      }
+      if (!resultado.success) alert(`Error al generar Recibo PDF: ${resultado.error}`);
     }
   };
 
@@ -224,18 +251,30 @@ const RecibosSection = () => {
     // Mantener items y observaciones pero resetear campos específicos
     setFormData({
       ...formData,
-      // Resetear campos de recibo si cambio a remito
-      ...(nuevoTipo === 'remito' && {
-        metodo_pago: 'efectivo_pesos',
+      // Default vigencia
+      vigencia_horas: 72,
+      // Defaults comunes
+      ...(nuevoTipo !== 'remito' ? {
+        moneda: 'USD',
+        descuento: 0
+      } : {
         moneda: 'USD',
         descuento: 0
       }),
-      // Resetear campos de remito si cambio a recibo
-      ...(nuevoTipo === 'recibo' && {
-        fecha_entrega: '',
-        quien_retira: ''
-      })
+      // Limpiar específicos al cambiar
+      condiciones: '',
+      fecha_entrega: '',
+      quien_retira: ''
     });
+  };
+
+  const getBadgeColor = (tipo) => {
+    switch (tipo) {
+      case 'recibo': return 'bg-emerald-100 text-emerald-700';
+      case 'remito': return 'bg-blue-100 text-blue-700';
+      case 'presupuesto': return 'bg-orange-100 text-orange-700';
+      default: return 'bg-slate-100 text-slate-700';
+    }
   };
 
   return (
@@ -247,8 +286,8 @@ const RecibosSection = () => {
             <div className="flex items-center space-x-3">
               <FileText size={28} />
               <div>
-                <h2 className="text-2xl font-semibold">Recibos y Remitos</h2>
-                <p className="text-slate-300 mt-1">Generador de comprobantes con ingreso manual o desde stock</p>
+                <h2 className="text-2xl font-semibold">Recibos, Remitos y Presupuestos</h2>
+                <p className="text-slate-300 mt-1">Generación de comprobantes y cotizaciones</p>
               </div>
             </div>
             <button
@@ -276,7 +315,7 @@ const RecibosSection = () => {
               >
                 <div className="flex items-center gap-2">
                   <DollarSign size={18} />
-                  Recibo (con precios)
+                  Recibo
                 </div>
               </button>
               <button
@@ -289,13 +328,26 @@ const RecibosSection = () => {
               >
                 <div className="flex items-center gap-2">
                   <FileCheck size={18} />
-                  Remito (sin precios)
+                  Remito
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => cambiarTipoDocumento('presupuesto')}
+                className={`px-6 py-3 font-medium transition-colors ${tipoDocumento === 'presupuesto'
+                  ? 'border-b-2 border-orange-500 text-orange-600'
+                  : 'text-slate-600 hover:text-slate-800'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Calculator size={18} />
+                  Presupuesto
                 </div>
               </button>
             </div>
 
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Crear Nuevo {tipoDocumento === 'recibo' ? 'Recibo' : 'Remito'}
+              Crear Nuevo/a {tipoDocumento === 'recibo' ? 'Recibo' : tipoDocumento === 'remito' ? 'Remito' : 'Presupuesto'}
             </h3>
 
             <form onSubmit={handleSubmit}>
@@ -320,9 +372,9 @@ const RecibosSection = () => {
                   />
                 </div>
 
+                {/* Campos de Recibo */}
                 {tipoDocumento === 'recibo' && (
                   <>
-                    {/* Campos específicos de recibo */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
                       <select
@@ -365,21 +417,49 @@ const RecibosSection = () => {
                   </>
                 )}
 
-                {/* Campo de observaciones común para ambos tipos */}
-                <div className="md:col-span-5">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
-                  <textarea
-                    value={formData.observaciones}
-                    onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
-                    placeholder="Observaciones generales (opcional)"
-                    rows={2}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-                  />
-                </div>
+                {/* Campos de Presupuesto */}
+                {tipoDocumento === 'presupuesto' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Vigencia (Horas)</label>
+                      <input
+                        type="number"
+                        value={formData.vigencia_horas}
+                        onChange={(e) => setFormData({ ...formData, vigencia_horas: e.target.value })}
+                        min="1"
+                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
+                      <select
+                        value={formData.moneda}
+                        onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="USD">USD</option>
+                        <option value="ARS">ARS</option>
+                      </select>
+                    </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                      <input
+                        type="number"
+                        value={formData.descuento}
+                        onChange={(e) => setFormData({ ...formData, descuento: e.target.value })}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Campos de Remito */}
                 {tipoDocumento === 'remito' && (
                   <>
-                    {/* Campos específicos de remito */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Entrega</label>
                       <input
@@ -402,13 +482,40 @@ const RecibosSection = () => {
                     </div>
                   </>
                 )}
+
+                {/* Campo de observaciones común para todos */}
+                <div className="md:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={tipoDocumento === 'presupuesto' ? '' : 'md:col-span-2'}>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                    <textarea
+                      value={formData.observaciones}
+                      onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+                      placeholder="Observaciones generales (opcional)"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                    />
+                  </div>
+
+                  {tipoDocumento === 'presupuesto' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Condiciones / Aclaraciones</label>
+                      <textarea
+                        value={formData.condiciones}
+                        onChange={(e) => setFormData({ ...formData, condiciones: e.target.value })}
+                        placeholder="Ej: Precios sujetos a modificación..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Items */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-md font-semibold text-slate-800">
-                    Items del {tipoDocumento === 'recibo' ? 'Recibo' : 'Remito'}
+                    Items del {tipoDocumento === 'recibo' ? 'Recibo' : tipoDocumento === 'remito' ? 'Remito' : 'Presupuesto'}
                   </h4>
                   <div className="flex gap-2">
                     <SelectorProductosStock onAgregarProducto={agregarProductoDelStock} />
@@ -426,7 +533,11 @@ const RecibosSection = () => {
                 <div className="space-y-3">
                   {formData.items.map((item, index) => (
                     <div key={index} className="grid grid-cols-12 gap-3 items-end bg-slate-50 p-3 rounded">
-                      <div className={tipoDocumento === 'recibo' ? 'col-span-4' : 'col-span-5'}>
+                      <div className={
+                        tipoDocumento === 'presupuesto' ? 'col-span-7' :
+                          tipoDocumento === 'remito' ? 'col-span-5' :
+                            'col-span-4'
+                      }>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Descripción *</label>
                         <input
                           type="text"
@@ -438,16 +549,18 @@ const RecibosSection = () => {
                         />
                       </div>
 
-                      <div className="col-span-2">
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Serial</label>
-                        <input
-                          type="text"
-                          value={item.serial}
-                          onChange={(e) => actualizarItem(index, 'serial', e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                          placeholder="S/N"
-                        />
-                      </div>
+                      {tipoDocumento !== 'presupuesto' && (
+                        <div className="col-span-2">
+                          <label className="block text-xs font-medium text-slate-700 mb-1">Serial</label>
+                          <input
+                            type="text"
+                            value={item.serial}
+                            onChange={(e) => actualizarItem(index, 'serial', e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                            placeholder="S/N"
+                          />
+                        </div>
+                      )}
 
                       <div className="col-span-1">
                         <label className="block text-xs font-medium text-slate-700 mb-1">Cant. *</label>
@@ -461,9 +574,9 @@ const RecibosSection = () => {
                         />
                       </div>
 
-                      {tipoDocumento === 'recibo' && (
+                      {tipoDocumento !== 'remito' && (
                         <>
-                          <div className="col-span-2">
+                          <div className={tipoDocumento === 'presupuesto' ? 'col-span-2' : 'col-span-2'}>
                             <label className="block text-xs font-medium text-slate-700 mb-1">Precio Unit. *</label>
                             <input
                               type="number"
@@ -476,9 +589,9 @@ const RecibosSection = () => {
                             />
                           </div>
 
-                          <div className="col-span-2">
+                          <div className={tipoDocumento === 'presupuesto' ? 'col-span-1' : 'col-span-2'}>
                             <label className="block text-xs font-medium text-slate-700 mb-1">Total</label>
-                            <div className="px-3 py-2 bg-slate-100 border border-slate-200 rounded text-sm font-semibold text-slate-800">
+                            <div className="px-3 py-2 bg-slate-100 border border-slate-200 rounded text-sm font-semibold text-slate-800 truncate">
                               {formatearMonto(calcularPrecioTotalItem(item), formData.moneda)}
                             </div>
                           </div>
@@ -505,7 +618,7 @@ const RecibosSection = () => {
               {/* Total y botones */}
               <div className="flex justify-between items-center pt-4 border-t border-slate-200">
                 <div>
-                  {tipoDocumento === 'recibo' && (
+                  {tipoDocumento !== 'remito' && (
                     <div className="text-xl font-bold text-slate-800">
                       Total: {formatearMonto(calcularTotal(), formData.moneda)}
                     </div>
@@ -530,7 +643,7 @@ const RecibosSection = () => {
                         Guardando...
                       </>
                     ) : (
-                      `Crear ${tipoDocumento === 'recibo' ? 'Recibo' : 'Remito'}`
+                      `Crear ${tipoDocumento === 'recibo' ? 'Recibo' : tipoDocumento === 'remito' ? 'Remito' : 'Presupuesto'}`
                     )}
                   </button>
                 </div>
@@ -589,11 +702,8 @@ const RecibosSection = () => {
                     className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
                   >
                     <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${documento.tipo_documento === 'recibo'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-blue-100 text-blue-700'
-                        }`}>
-                        {documento.tipo_documento === 'recibo' ? 'RECIBO' : 'REMITO'}
+                      <span className={`px-2 py-1 rounded text-xs font-medium uppercase ${getBadgeColor(documento.tipo_documento)}`}>
+                        {documento.tipo_documento}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm font-mono text-slate-800">
@@ -612,27 +722,53 @@ const RecibosSection = () => {
                       {documento.items?.length || 0}
                     </td>
                     <td className="px-4 py-3 text-sm text-right font-semibold text-slate-800">
-                      {documento.tipo_documento === 'recibo'
+                      {documento.tipo_documento !== 'remito'
                         ? formatearMonto(documento.total, documento.moneda)
                         : '-'
                       }
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleGenerarPDF(documento, false)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
-                          title="Ver como Recibo"
-                        >
-                          <FileText size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleGenerarPDF(documento, true)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Ver como Remito"
-                        >
-                          <FileCheck size={18} />
-                        </button>
+                        {documento.tipo_documento === 'recibo' && (
+                          <button
+                            onClick={() => handleGenerarPDF(documento)}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                            title="Ver Recibo"
+                          >
+                            <FileText size={18} />
+                          </button>
+                        )}
+
+                        {documento.tipo_documento === 'presupuesto' && (
+                          <button
+                            onClick={() => handleGenerarPDF(documento)}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                            title="Ver Presupuesto"
+                          >
+                            <Calculator size={18} />
+                          </button>
+                        )}
+
+                        {documento.tipo_documento === 'remito' && (
+                          <button
+                            onClick={() => handleGenerarPDF(documento)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Ver Remito"
+                          >
+                            <FileCheck size={18} />
+                          </button>
+                        )}
+
+                        {/* Funcionalidad extra: Ver recibo como remito (útil para envíos) */}
+                        {documento.tipo_documento === 'recibo' && (
+                          <button
+                            onClick={() => handleGenerarPDF(documento, 'remito')}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Generar Remito de este Recibo"
+                          >
+                            <FileCheck size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">

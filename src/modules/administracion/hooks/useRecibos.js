@@ -63,7 +63,19 @@ export const useRecibos = () => {
   const generarNumeroDocumento = async (tipoDocumento) => {
     try {
       const year = new Date().getFullYear();
-      const prefijo = tipoDocumento === 'remito' ? 'REM' : 'REC';
+      let prefijo;
+
+      switch (tipoDocumento) {
+        case 'remito':
+          prefijo = 'REM';
+          break;
+        case 'presupuesto':
+          prefijo = 'PRE';
+          break;
+        case 'recibo':
+        default:
+          prefijo = 'REC';
+      }
 
       // Buscar el último número de documento del año actual y tipo
       const { data, error } = await supabase
@@ -79,7 +91,9 @@ export const useRecibos = () => {
       if (data && data.length > 0) {
         // Extraer el número y sumar 1
         const ultimoNumero = data[0].numero_recibo;
-        const numero = parseInt(ultimoNumero.split('-')[2]) + 1;
+        // El formato es PRE-2024-0001, split por - da ["PRE", "2024", "0001"]
+        const partes = ultimoNumero.split('-');
+        const numero = parseInt(partes[2]) + 1;
         return `${prefijo}-${year}-${numero.toString().padStart(4, '0')}`;
       } else {
         // Primer documento del año
@@ -91,7 +105,7 @@ export const useRecibos = () => {
     }
   };
 
-  // Crear nuevo documento (recibo o remito) con sus items
+  // Crear nuevo documento (recibo, remito o presupuesto) con sus items
   const crearDocumento = async (documentoData) => {
     try {
       setError(null);
@@ -107,7 +121,6 @@ export const useRecibos = () => {
         tipo_documento: tipoDocumento,
         fecha: documentoData.fecha || new Date().toISOString(),
         cliente_id: documentoData.cliente_id,
-        cliente_nombre: documentoData.cliente_nombre,
         cliente_nombre: documentoData.cliente_nombre,
         cliente_direccion: documentoData.cliente_direccion || '',
         cliente_telefono: documentoData.cliente_telefono || '',
@@ -126,6 +139,13 @@ export const useRecibos = () => {
         nuevoDocumento.fecha_entrega = documentoData.fecha_entrega || null;
         nuevoDocumento.quien_retira = documentoData.quien_retira || '';
         nuevoDocumento.observaciones = documentoData.observaciones || '';
+      } else if (tipoDocumento === 'presupuesto') {
+        nuevoDocumento.moneda = documentoData.moneda || 'USD';
+        nuevoDocumento.descuento = documentoData.descuento || 0;
+        nuevoDocumento.total = documentoData.total;
+        nuevoDocumento.vigencia_horas = documentoData.vigencia_horas || 72;
+        nuevoDocumento.condiciones = documentoData.condiciones || '';
+        nuevoDocumento.observaciones = documentoData.observaciones || '';
       }
 
       // Insertar documento
@@ -139,15 +159,20 @@ export const useRecibos = () => {
 
       // Insertar items
       if (documentoData.items && documentoData.items.length > 0) {
-        const itemsConDocumentoId = documentoData.items.map((item, index) => ({
-          recibo_id: documentoInsertado.id,
-          descripcion: item.descripcion,
-          cantidad: item.cantidad,
-          precio_unitario: tipoDocumento === 'recibo' ? item.precio_unitario : null,
-          precio_total: tipoDocumento === 'recibo' ? item.precio_total : null,
-          serial: item.serial || null,
-          orden: index
-        }));
+        const itemsConDocumentoId = documentoData.items.map((item, index) => {
+          // Determinar si guardamos precios (recibo y presupuesto sí, remito no)
+          const guardarPrecios = tipoDocumento === 'recibo' || tipoDocumento === 'presupuesto';
+
+          return {
+            recibo_id: documentoInsertado.id,
+            descripcion: item.descripcion,
+            cantidad: item.cantidad,
+            precio_unitario: guardarPrecios ? item.precio_unitario : null,
+            precio_total: guardarPrecios ? item.precio_total : null,
+            serial: item.serial || null,
+            orden: index
+          };
+        });
 
         const { error: itemsError } = await supabase
           .from('recibos_remitos_items')
@@ -175,6 +200,11 @@ export const useRecibos = () => {
   // Crear remito
   const crearRemito = (remitoData) => {
     return crearDocumento({ ...remitoData, tipo_documento: 'remito' });
+  };
+
+  // Crear presupuesto
+  const crearPresupuesto = (presupuestoData) => {
+    return crearDocumento({ ...presupuestoData, tipo_documento: 'presupuesto' });
   };
 
   // Eliminar documento
@@ -246,6 +276,7 @@ export const useRecibos = () => {
     error,
     crearRecibo,
     crearRemito,
+    crearPresupuesto,
     crearDocumento,
     eliminarRecibo,
     eliminarDocumento,
