@@ -290,6 +290,115 @@ const importacionesService = {
     }
   },
 
+  // ✏️ Actualizar un item individual
+  async updateItem(itemId, updateData) {
+    try {
+      const { data, error } = await supabase
+        .from('importaciones_items')
+        .update(updateData)
+        .eq('id', itemId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🗑️ Eliminar un item de un recibo
+  async deleteItem(itemId) {
+    try {
+      const { error } = await supabase
+        .from('importaciones_items')
+        .delete()
+        .eq('id', itemId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ➕ Agregar items a un recibo existente
+  async addItemsToRecibo(reciboId, items) {
+    try {
+      if (!items || items.length === 0) {
+        throw new Error('Debe proporcionar al menos un item');
+      }
+
+      const itemsParaInsertar = items.map(item => ({
+        recibo_id: reciboId,
+        item: item.item.trim(),
+        cantidad: parseInt(item.cantidad),
+        precio_unitario_usd: parseFloat(item.precio_unitario_usd),
+        peso_estimado_unitario_kg: parseFloat(item.peso_estimado_unitario_kg || 0),
+        link_producto: item.link_producto?.trim() || null,
+        observaciones: item.observaciones?.trim() || null
+      }));
+
+      const { data, error } = await supabase
+        .from('importaciones_items')
+        .insert(itemsParaInsertar)
+        .select();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🔄 Recalcular costos distribuidos para un recibo recepcionado
+  async recalcularCostosDistribuidos(reciboId) {
+    try {
+      // Obtener recibo actual con sus items
+      const recibo = await this.getById(reciboId);
+      if (!recibo) throw new Error('Recibo no encontrado');
+
+      // Solo recalcular si está recepcionado
+      if (recibo.estado !== 'recepcionado') {
+        return recibo;
+      }
+
+      // Calcular costo total de importación
+      const costoTotalImportacion =
+        (parseFloat(recibo.pago_courier_usd) || 0) +
+        (parseFloat(recibo.costo_picking_shipping_usd) || 0);
+
+      // Calcular peso total REAL
+      let totalPesoReal = 0;
+      for (const item of recibo.importaciones_items) {
+        totalPesoReal += (parseFloat(item.peso_real_unitario_kg) || 0) * item.cantidad;
+      }
+
+      // Actualizar cada item con costos distribuidos PROPORCIONALMENTE AL PESO REAL
+      for (const item of recibo.importaciones_items) {
+        const pesoRealUnitario = parseFloat(item.peso_real_unitario_kg) || 0;
+        const pesoRealTotal = pesoRealUnitario * item.cantidad;
+        const proporcionPeso = totalPesoReal > 0 ? pesoRealTotal / totalPesoReal : 0;
+        const costoAdicionalTotal = proporcionPeso * costoTotalImportacion;
+        const costoAdicionalUnitario = item.cantidad > 0 ? costoAdicionalTotal / item.cantidad : 0;
+        const precioUnitarioConCostos = parseFloat(item.precio_unitario_usd) + costoAdicionalUnitario;
+
+        const { error } = await supabase
+          .from('importaciones_items')
+          .update({
+            costos_adicionales_usd: parseFloat(costoAdicionalUnitario),
+            costo_final_unitario_usd: parseFloat(precioUnitarioConCostos)
+          })
+          .eq('id', item.id);
+
+        if (error) throw error;
+      }
+
+      // Retornar recibo actualizado
+      return await this.getById(reciboId);
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // 🛒 Pasar importación a compras
   async pasarACompras(reciboEditado, itemsEditados, reciboOriginal) {
     try {

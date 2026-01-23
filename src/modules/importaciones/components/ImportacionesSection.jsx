@@ -3,6 +3,7 @@ import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSig
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
+import { useClientes } from '../../ventas/hooks/useClientes';
 import NuevaImportacionModal from './NuevaImportacionModal';
 import RecepcionModal from './RecepcionModal';
 import DetalleRecibo from './DetalleRecibo';
@@ -37,10 +38,16 @@ const ImportacionesSection = () => {
     fetchRecibos,
     marcarEnDepositoUSA,
     avanzarEstado,
-    deleteRecibo
+    deleteRecibo,
+    actualizarRecibo,
+    actualizarItem,
+    eliminarItem,
+    agregarItemsARecibo,
+    recalcularCostos
   } = useImportaciones();
 
   const { proveedores } = useProveedores();
+  const { clientes, fetchClientes } = useClientes();
 
   // Estados para modales
   const [showNewModal, setShowNewModal] = useState(false);
@@ -59,7 +66,8 @@ const ImportacionesSection = () => {
 
   useEffect(() => {
     fetchRecibos();
-  }, [fetchRecibos]);
+    fetchClientes();
+  }, [fetchRecibos, fetchClientes]);
 
   // Filtrar recibos
   const recibosFiltrados = useMemo(() => {
@@ -484,6 +492,21 @@ const ImportacionesSection = () => {
         <DetalleRecibo
           recibo={expandedRecibo}
           onClose={() => setExpandedRecibo(null)}
+          proveedores={proveedores}
+          clientes={clientes}
+          onActualizarRecibo={actualizarRecibo}
+          onActualizarItem={actualizarItem}
+          onEliminarItem={eliminarItem}
+          onAgregarItems={agregarItemsARecibo}
+          onRecalcularCostos={recalcularCostos}
+          onRefresh={async () => {
+            const updatedRecibos = await fetchRecibos();
+            // Update the expandedRecibo with fresh data
+            const updatedRecibo = updatedRecibos.find(r => r.id === expandedRecibo.id);
+            if (updatedRecibo) {
+              setExpandedRecibo(updatedRecibo);
+            }
+          }}
         />
       )}
 

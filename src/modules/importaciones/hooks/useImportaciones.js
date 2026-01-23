@@ -173,6 +173,55 @@ export const useImportaciones = () => {
     }
   }, []);
 
+  // ✏️ Actualizar un item individual
+  const actualizarItem = useCallback(async (itemId, updateData) => {
+    setError(null);
+    try {
+      const actualizado = await importacionesService.updateItem(itemId, updateData);
+      return actualizado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  // 🗑️ Eliminar un item
+  const eliminarItem = useCallback(async (itemId) => {
+    setError(null);
+    try {
+      await importacionesService.deleteItem(itemId);
+      return true;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  // ➕ Agregar items a un recibo existente
+  const agregarItemsARecibo = useCallback(async (reciboId, items) => {
+    setError(null);
+    try {
+      const nuevosItems = await importacionesService.addItemsToRecibo(reciboId, items);
+      return nuevosItems;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  // 🔄 Recalcular costos distribuidos
+  const recalcularCostos = useCallback(async (reciboId) => {
+    setError(null);
+    try {
+      const actualizado = await importacionesService.recalcularCostosDistribuidos(reciboId);
+      setRecibos(prev => prev.map(r => r.id === reciboId ? actualizado : r));
+      return actualizado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   return {
     recibos,
     loading,
@@ -187,6 +236,10 @@ export const useImportaciones = () => {
     recepcionarEnArgentina,
     deleteRecibo,
     getEstadisticas,
-    pasarACompras
+    pasarACompras,
+    actualizarItem,
+    eliminarItem,
+    agregarItemsARecibo,
+    recalcularCostos
   };
 };
