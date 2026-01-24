@@ -143,9 +143,9 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
         {
           id: 'recibos',
           path: '/recibos',
-          label: 'Recibos',
+          label: 'Documentos',
           icon: FileText,
-          description: 'Recibos customizables'
+          description: 'Recibos, Remitos y Presupuestos'
         },
         {
           id: 'recuento-stock',

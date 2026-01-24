@@ -265,6 +265,63 @@ export const useRecibos = () => {
   // Mantener compatibilidad
   const obtenerRecibo = obtenerDocumento;
 
+  // Actualizar documento completo
+  const actualizarDocumento = async (documentoId, datosActualizados, itemsActualizados = null) => {
+    try {
+      setError(null);
+
+      // Actualizar datos del documento
+      const { error: docError } = await supabase
+        .from('recibos_remitos')
+        .update(datosActualizados)
+        .eq('id', documentoId);
+
+      if (docError) throw docError;
+
+      // Si se proporcionan items actualizados, eliminar los anteriores e insertar los nuevos
+      if (itemsActualizados !== null) {
+        // Eliminar items existentes
+        const { error: deleteError } = await supabase
+          .from('recibos_remitos_items')
+          .delete()
+          .eq('recibo_id', documentoId);
+
+        if (deleteError) throw deleteError;
+
+        // Insertar nuevos items
+        if (itemsActualizados.length > 0) {
+          const tipoDocumento = datosActualizados.tipo_documento;
+          const guardarPrecios = tipoDocumento === 'recibo' || tipoDocumento === 'presupuesto';
+
+          const itemsConDocumentoId = itemsActualizados.map((item, index) => ({
+            recibo_id: documentoId,
+            descripcion: item.descripcion,
+            cantidad: item.cantidad,
+            precio_unitario: guardarPrecios ? item.precio_unitario : null,
+            precio_total: guardarPrecios ? (item.cantidad * item.precio_unitario) : null,
+            serial: item.serial || null,
+            orden: index
+          }));
+
+          const { error: insertError } = await supabase
+            .from('recibos_remitos_items')
+            .insert(itemsConDocumentoId);
+
+          if (insertError) throw insertError;
+        }
+      }
+
+      // Recargar documentos
+      await fetchRecibos();
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error al actualizar documento:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
   // Cargar documentos al montar el componente
   useEffect(() => {
     fetchRecibos();
@@ -282,6 +339,7 @@ export const useRecibos = () => {
     eliminarDocumento,
     obtenerRecibo,
     obtenerDocumento,
+    actualizarDocumento,
     refetch: fetchRecibos
   };
 };
