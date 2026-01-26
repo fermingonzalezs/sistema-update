@@ -10,6 +10,7 @@ import {
   Search,
   CheckCircle,
   Trash2,
+  Plus,
 } from "lucide-react";
 import { useCatalogoUnificado } from "../hooks/useCatalogoUnificado";
 import { cotizacionService } from "../../../shared/services/cotizacionService";
@@ -2999,19 +3000,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                               className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
                               title="Agregar al carrito"
                             >
-                              V
-                            </button>
-
-                            {/* Botón 4: Editar */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(producto);
-                              }}
-                              className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                              title="Editar producto"
-                            >
-                              E
+                              +
                             </button>
                           </div>
                         </>
@@ -3163,19 +3152,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                               className="w-9 h-9 text-white text-lg rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center p-0"
                               title="Agregar al carrito"
                             >
-                              V
-                            </button>
-
-                            {/* Botón 4: Editar ✏️ */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(producto);
-                              }}
-                              className="w-9 h-9 text-white text-lg rounded bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center p-0"
-                              title="Editar producto"
-                            >
-                              E
+                              +
                             </button>
                           </div>
                         </>

@@ -466,16 +466,18 @@ export const useCatalogoUnificado = () => {
       });
     }
 
-    // Filtrar por búsqueda (serial o modelo)
+    // Filtrar por búsqueda (serial, modelo, marca o color)
     if (filtrosUnificados.busqueda) {
       const busquedaLower = filtrosUnificados.busqueda.toLowerCase();
       filtered = filtered.filter(item => {
         const serial = (item.serial || item.imei || '').toLowerCase();
         const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
         const marca = (item.marca || '').toLowerCase();
+        const color = (item.color || '').toLowerCase();
         return serial.includes(busquedaLower) ||
           modelo.includes(busquedaLower) ||
-          marca.includes(busquedaLower);
+          marca.includes(busquedaLower) ||
+          color.includes(busquedaLower);
       });
     }
 
@@ -755,9 +757,11 @@ export const useCatalogoUnificado = () => {
         const serial = (item.serial || item.imei || '').toLowerCase();
         const modelo = (item.modelo || item.nombre_producto || '').toLowerCase();
         const marca = (item.marca || '').toLowerCase();
+        const color = (item.color || '').toLowerCase();
         return serial.includes(busquedaLower) ||
           modelo.includes(busquedaLower) ||
-          marca.includes(busquedaLower);
+          marca.includes(busquedaLower) ||
+          color.includes(busquedaLower);
       });
     }
 

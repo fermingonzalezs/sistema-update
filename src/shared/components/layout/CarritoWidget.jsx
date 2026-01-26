@@ -100,13 +100,20 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [aperturaManual, setAperturaManual] = useState(false);
 
   // Abrir automáticamente el widget cuando se agreguen items desde RegistrarVenta
-  // Solo cuando el carrito pasa de vacío a tener elementos
+  // DESHABILITADO: El usuario prefiere que no se abra automáticamente
+  /*
   useEffect(() => {
     if (carrito && carrito.length > 0 && carritoAnterior.length === 0 && !isOpen && !procesandoVenta && !aperturaManual) {
       setIsOpen(true);
       setMostrarFormulario(true);
       console.log('🛒 CarritoWidget abierto automáticamente con', carrito.length, 'items');
     }
+    setCarritoAnterior(carrito || []);
+  }, [carrito]);
+  */
+
+  // Solo actualizamos el carritoAnterior para referencia futura si fuera necesario
+  useEffect(() => {
     setCarritoAnterior(carrito || []);
   }, [carrito]);
 
@@ -766,17 +773,26 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
       {/* Modal del carrito */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setIsOpen(false);
+            setAperturaManual(false);
+          }}
+        >
+          <div
+            className="bg-white rounded max-w-7xl w-full max-h-[95vh] overflow-y-auto border border-slate-300 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             {!mostrarFormulario ? (
               <>
                 {/* Header compacto */}
                 <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
                   <div className="flex items-center space-x-3">
                     <ShoppingCart className="w-6 h-6" />
-                    <div>
-                      <h2 className="text-xl font-semibold">CARRITO DE COMPRAS</h2>
-                      <p className="text-slate-300 text-sm mt-1">{calcularCantidadTotal()} items</p>
+                    <div className="flex items-baseline space-x-3">
+                      <h2 className="text-xl font-semibold">CARRITO</h2>
+                      <span className="text-slate-300 text-sm">({calcularCantidadTotal()} items)</span>
                     </div>
                   </div>
                   <button
@@ -803,7 +819,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       <table className="w-full text-sm">
                         <thead className="bg-slate-800 text-white">
                           <tr>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Modelo</th>
+                            <th className="px-4 py-2 text-left font-semibold uppercase w-1/3">Modelo</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Categoría</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Serial</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Color</th>
@@ -824,10 +840,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                             return (
                               <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                <td className="px-4 py-3 text-center">
-                                  <div className="flex items-center justify-center space-x-2">
+                                <td className="px-4 py-3 text-left">
+                                  <div className="flex items-center justify-start space-x-2">
                                     {getIconoTipo(item.tipo)}
-                                    <span className="text-slate-800 truncate max-w-[150px]" title={item.producto.modelo || item.producto.nombre_producto}>
+                                    <span className="text-slate-800 font-medium" title={item.producto.modelo || item.producto.nombre_producto}>
                                       {item.producto.modelo || item.producto.nombre_producto || '-'}
                                     </span>
                                   </div>
@@ -856,54 +872,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  {editandoPrecio === item.id ? (
-                                    <div className="flex items-center justify-center space-x-1">
-                                      <input
-                                        type="number"
-                                        value={precioEditado}
-                                        onChange={(e) => setPrecioEditado(e.target.value)}
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter') confirmarEdicionPrecio(item.id);
-                                          else if (e.key === 'Escape') cancelarEdicionPrecio();
-                                        }}
-                                        className="w-16 px-1 py-0.5 text-xs border border-emerald-500 rounded"
-                                        step="0.01"
-                                        min="0.01"
-                                        autoFocus
-                                      />
-                                      <button onClick={() => confirmarEdicionPrecio(item.id)} className="text-emerald-600">
-                                        <Check className="w-3 h-3" />
-                                      </button>
-                                      <button onClick={cancelarEdicionPrecio} className="text-slate-500">
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center justify-center space-x-1">
-                                      <span className={preciosModificados[item.id]?.fue_modificado ? 'text-emerald-600 font-semibold' : 'text-slate-800'}>
-                                        ${item.precio_unitario.toFixed(2)}
-                                      </span>
-                                      <button
-                                        onClick={() => iniciarEdicionPrecio(item)}
-                                        className="text-slate-400 hover:text-emerald-600"
-                                        title="Editar precio"
-                                      >
-                                        <Edit2 className="w-3 h-3" />
-                                      </button>
-                                      {preciosModificados[item.id]?.fue_modificado && (
-                                        <button
-                                          onClick={() => restaurarPrecioOriginal(item.id)}
-                                          className="text-slate-400 hover:text-slate-700"
-                                          title="Restaurar precio"
-                                        >
-                                          <RotateCcw className="w-3 h-3" />
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <span className="text-slate-800">
+                                      U${Math.round(item.precio_unitario)}
+                                    </span>
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                                  ${(item.precio_unitario * item.cantidad).toFixed(2)}
+                                  U${Math.round(item.precio_unitario * item.cantidad)}
                                 </td>
                                 <td className="px-2 py-3 text-center">
                                   <button
@@ -917,6 +893,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               </tr>
                             );
                           })}
+                          {/* Fila de Total alineada con subtotales */}
+                          <tr className="bg-slate-100 border-t-2 border-slate-300">
+                            <td colSpan="5" className="px-4 py-3 text-right font-bold text-slate-600 uppercase">
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-slate-800 uppercase">
+                              Total
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-lg text-emerald-700">
+                              U${Math.round(calcularTotal())}
+                            </td>
+                            <td></td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
@@ -924,24 +912,22 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Footer compacto */}
                     <div className="bg-slate-50 p-4 border-t border-slate-200 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-slate-800">
-                          Total USD: ${calcularTotal().toFixed(2)}
-                        </span>
                         <button
                           onClick={onLimpiar}
-                          className="text-sm text-slate-600 hover:text-slate-800 transition-colors font-medium"
+                          className="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors font-medium flex items-center space-x-1"
                         >
-                          Limpiar carrito
+                          <Trash2 className="w-4 h-4" />
+                          <span>Limpiar carrito</span>
+                        </button>
+
+                        <button
+                          onClick={() => setMostrarFormulario(true)}
+                          className="bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 shadow-sm"
+                        >
+                          <ShoppingCart className="w-5 h-5" />
+                          <span>Procesar Venta</span>
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => setMostrarFormulario(true)}
-                        className="w-full bg-emerald-600 text-white py-3 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <ShoppingCart className="w-5 h-5" />
-                        <span>Procesar Venta</span>
-                      </button>
                     </div>
                   </>
                 )}
@@ -1089,14 +1075,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                             title="Click para editar"
                                             type="button"
                                           >
-                                            ${item.precio_unitario.toFixed(2)}
+                                            U${Math.round(item.precio_unitario)}
                                           </button>
 
                                           {preciosModificados[item.id]?.fue_modificado && (
                                             <button
                                               onClick={() => restaurarPrecioOriginal(item.id)}
                                               className="p-1 text-slate-400 hover:text-slate-600"
-                                              title={`Restaurar: $${preciosModificados[item.id]?.precio_original?.toFixed(2)}`}
+                                              title={`Restaurar: U$${preciosModificados[item.id]?.precio_original ? Math.round(preciosModificados[item.id].precio_original) : 0}`}
                                               type="button"
                                             >
                                               <RotateCcw className="w-3 h-3" />
@@ -1110,7 +1096,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   {/* Subtotal */}
                                   <td className="px-4 py-3 text-center">
                                     <span className="text-sm font-semibold text-slate-800">
-                                      ${(item.precio_unitario * item.cantidad).toFixed(2)}
+                                      U${Math.round(item.precio_unitario * item.cantidad)}
                                     </span>
                                   </td>
 
@@ -1147,7 +1133,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
-                        <p className="text-lg font-bold text-slate-800">U$${calcularTotal().toFixed(2)}</p>
+                        <p className="text-lg font-bold text-slate-800">U${Math.round(calcularTotal())}</p>
                       </div>
 
                       <div className="text-center">
@@ -1508,7 +1494,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                         <div className="text-center">
                           <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
-                          <p className="text-sm font-medium text-slate-800">U$${calcularTotal().toFixed(2)}</p>
+                          <p className="text-sm font-medium text-slate-800">U${Math.round(calcularTotal())}</p>
                         </div>
                       </div>
 

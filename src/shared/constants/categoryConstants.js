@@ -25,7 +25,7 @@ export const CATEGORIAS_OTROS = {
   REPUESTOS: 'REPUESTOS'
 };
 
-export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS);
+export const CATEGORIAS_OTROS_ARRAY = Object.values(CATEGORIAS_OTROS).sort();
 
 // Labels para mostrar en la UI
 export const CATEGORIAS_OTROS_LABELS = {
