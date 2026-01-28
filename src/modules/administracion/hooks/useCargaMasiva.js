@@ -265,31 +265,33 @@ export const useCargaMasiva = (tipoEquipo) => {
                             descripcion = descripcion ? `${descripcion} - ${datosComunes.observaciones}` : datosComunes.observaciones;
                         }
 
-                        // Usar modelo como nombre_producto para Desktop
+                        // Usar solo modelo como nombre_producto para Desktop (sin marca adelante)
                         datosCompletos = {
                             ...datosCompletos,
-                            nombre_producto: `${datosComunes.marca || ''} ${datosComunes.modelo || ''}`.trim() || datosComunes.modelo,
+                            nombre_producto: datosComunes.modelo || '',
                             descripcion: descripcion
                         };
                     } else if (isTablet) {
-                        // Concatenar especificaciones de Tablet en descripcion
-                        const specs = [
-                            datosComunes.capacidad_almacenamiento && `Almacenamiento: ${datosComunes.capacidad_almacenamiento}`,
-                            datosComunes.tamano_pantalla && `Pantalla: ${datosComunes.tamano_pantalla}`,
-                            datosComunes.conectividad && `Conectividad: ${datosComunes.conectividad}`,
-                            datosComunes.color && `Color: ${datosComunes.color}`
+                        // Para Tablets: nombre_producto = MODELO PANTALLA" ALMACENAMIENTO
+                        const nombreParts = [
+                            datosComunes.modelo,
+                            datosComunes.tamano_pantalla && `${datosComunes.tamano_pantalla}"`,
+                            datosComunes.capacidad_almacenamiento
                         ].filter(Boolean);
 
-                        let descripcion = specs.join(' - ');
-                        if (datosComunes.observaciones?.trim()) {
-                            descripcion = descripcion ? `${descripcion} - ${datosComunes.observaciones}` : datosComunes.observaciones;
-                        }
+                        const nombreProducto = nombreParts.join(' ');
 
-                        // Usar modelo como nombre_producto para Tablet
+                        // Conectividad va en observaciones junto con las observaciones del usuario
+                        const obsParts = [
+                            datosComunes.conectividad,
+                            datosComunes.observaciones?.trim()
+                        ].filter(Boolean);
+
                         datosCompletos = {
                             ...datosCompletos,
-                            nombre_producto: `${datosComunes.marca || ''} ${datosComunes.modelo || ''}`.trim() || datosComunes.modelo,
-                            descripcion: descripcion
+                            nombre_producto: nombreProducto,
+                            color: datosComunes.color || '',
+                            observaciones: obsParts.join(' - ')
                         };
                     }
                 }

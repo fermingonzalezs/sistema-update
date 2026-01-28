@@ -1216,7 +1216,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             {/* Producto */}
             <div>
                 <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Producto</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
                         <input
@@ -1251,6 +1251,16 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             placeholder="Seleccionar marca..."
                         />
                         {errores.marca && <p className="text-red-500 text-xs mt-1">{errores.marca}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                        <input
+                            type="text"
+                            value={datos.color || ''}
+                            onChange={(e) => handleChange('color', e.target.value)}
+                            placeholder="Ej: Negro, Blanco"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                        />
                     </div>
                 </div>
             </div>

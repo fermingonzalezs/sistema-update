@@ -107,6 +107,7 @@ export const otrosService = {
         serial: producto.serial?.trim() || null,
 
         // Información adicional
+        color: producto.color || '',
         garantia: producto.garantia || '',
         observaciones: producto.observaciones || producto.fallas || '',
 

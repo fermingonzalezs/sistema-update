@@ -11,10 +11,11 @@ const ResumenValidacionMasiva = ({
     const serialesInvalidos = seriales.filter(s => s.error);
 
     const getModelo = () => {
+        // No poner marca adelante del modelo para ningún producto
         if (tipoEquipo === 'celular' || tipoEquipo === 'notebook') {
-            return `${datosComunes.marca || ''} ${datosComunes.modelo || ''}`.trim();
+            return datosComunes.modelo || '';
         }
-        return datosComunes.nombre_producto || '';
+        return datosComunes.nombre_producto || datosComunes.modelo || '';
     };
 
     const getPrecioCompra = () => {

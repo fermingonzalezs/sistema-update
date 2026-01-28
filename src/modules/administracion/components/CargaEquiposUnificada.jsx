@@ -1789,27 +1789,31 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
         }
       }
 
-      // Si es Tablet, concatenar especificaciones en descripcion
+      // Si es Tablet, construir nombre_producto = MODELO PANTALLA" ALMACENAMIENTO
+      let nombreProductoFinal = formData.nombre_producto;
       if (formData.categoria === CATEGORIAS_OTROS.TABLETS) {
-        const specs = [
-          formData.capacidad_almacenamiento && `Almacenamiento: ${formData.capacidad_almacenamiento}`,
-          formData.tamano_pantalla && `Pantalla: ${formData.tamano_pantalla}`,
-          formData.conectividad && `Conectividad: ${formData.conectividad}`
+        const nombreParts = [
+          formData.modelo,
+          formData.tamano_pantalla && `${formData.tamano_pantalla}"`,
+          formData.capacidad_almacenamiento
         ].filter(Boolean);
 
-        if (specs.length > 0) {
-          descripcion = specs.join(' - ');
-          if (formData.descripcion?.trim()) {
-            descripcion = `${formData.descripcion} - ${descripcion}`;
-          }
-        }
+        nombreProductoFinal = nombreParts.join(' ');
+        descripcion = '';
+
+        // Conectividad va en observaciones junto con las observaciones del usuario
+        const obsParts = [
+          formData.conectividad,
+          formData.observaciones?.trim()
+        ].filter(Boolean);
+        formData.observaciones = obsParts.join(' - ');
       }
 
       const { garantia_oficial_fecha, procesador, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, capacidad_almacenamiento, tamano_pantalla, conectividad, ...dataRest } = formData; // Excluir campos especiales
 
       const dataToSubmit = {
         ...dataRest,
-        nombre_producto: (isDesktop || isTablet) ? formData.modelo : formData.nombre_producto,
+        nombre_producto: isDesktop ? formData.modelo : (isTablet ? nombreProductoFinal : formData.nombre_producto),
         descripcion: descripcion,
         garantia: garantia,
         cantidad_la_plata: parseInt(formData.cantidad_la_plata) || 0,
@@ -2101,6 +2105,18 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                  <input
+                    type="text"
+                    name="color"
+                    value={formData.color || ''}
+                    onChange={handleChange}
+                    placeholder="Ej: Negro, Blanco"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
                   <input
                     type="date"
@@ -2362,6 +2378,20 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={(valor) => handleChange({ target: { name: 'marca', value: valor } })}
                     placeholder="Seleccionar o agregar marca"
                     className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Color
+                  </label>
+                  <input
+                    type="text"
+                    name="color"
+                    value={formData.color || ''}
+                    onChange={handleChange}
+                    placeholder="Ej: Negro, Blanco"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
 
@@ -2664,7 +2694,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isSubmitting || loading || !formData.categoria || (isDesktop ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())}
+              disabled={isSubmitting || loading || !formData.categoria || ((isDesktop || isTablet) ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())}
               className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (
