@@ -63,6 +63,7 @@ const ImportacionesSection = () => {
   const [filtroProveedor, setFiltroProveedor] = useState('todos');
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('');
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
+  const [filtroOrden, setFiltroOrden] = useState('fecha_compra_desc');
 
   useEffect(() => {
     fetchRecibos();
@@ -77,8 +78,30 @@ const ImportacionesSection = () => {
       if (filtroFechaDesde && recibo.fecha_compra < filtroFechaDesde) return false;
       if (filtroFechaHasta && recibo.fecha_compra > filtroFechaHasta) return false;
       return true;
+    }).sort((a, b) => {
+      switch (filtroOrden) {
+        case 'fecha_compra_desc':
+          return new Date(b.fecha_compra) - new Date(a.fecha_compra);
+        case 'fecha_compra_asc':
+          return new Date(a.fecha_compra) - new Date(b.fecha_compra);
+        case 'numero_pedido_desc':
+          return (b.numero_recibo || '').localeCompare(a.numero_recibo || '');
+        case 'numero_pedido_asc':
+          return (a.numero_recibo || '').localeCompare(b.numero_recibo || '');
+        case 'fecha_ingreso_desc':
+          // Si no tiene fecha, los ponemos al final
+          if (!a.fecha_recepcion_argentina) return 1;
+          if (!b.fecha_recepcion_argentina) return -1;
+          return new Date(b.fecha_recepcion_argentina) - new Date(a.fecha_recepcion_argentina);
+        case 'fecha_ingreso_asc':
+          if (!a.fecha_recepcion_argentina) return 1;
+          if (!b.fecha_recepcion_argentina) return -1;
+          return new Date(a.fecha_recepcion_argentina) - new Date(b.fecha_recepcion_argentina);
+        default:
+          return 0;
+      }
     });
-  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta]);
+  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta, filtroOrden]);
 
   // Stats
   const stats = useMemo(() => {
@@ -113,6 +136,7 @@ const ImportacionesSection = () => {
     setFiltroProveedor('todos');
     setFiltroFechaDesde('');
     setFiltroFechaHasta('');
+    setFiltroOrden('fecha_compra_desc');
   };
 
   // Avanzar al siguiente estado
@@ -225,7 +249,22 @@ const ImportacionesSection = () => {
 
       {/* FILTROS */}
       <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Orden</label>
+            <select
+              value={filtroOrden}
+              onChange={(e) => setFiltroOrden(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="fecha_compra_desc">Fecha Compra (Mas recientes)</option>
+              <option value="fecha_compra_asc">Fecha Compra (Mas antiguos)</option>
+              <option value="numero_pedido_desc">Número Pedido (Mayor a menor)</option>
+              <option value="numero_pedido_asc">Número Pedido (Menor a mayor)</option>
+              <option value="fecha_ingreso_desc">Fecha Ingreso (Mas recientes)</option>
+              <option value="fecha_ingreso_asc">Fecha Ingreso (Mas antiguos)</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
             <select

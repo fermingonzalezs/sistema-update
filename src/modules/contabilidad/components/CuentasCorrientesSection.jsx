@@ -152,6 +152,21 @@ const CuentasCorrientesSection = () => {
     }
 
     return matchSearch && matchFiltro;
+  }).sort((a, b) => {
+    const saldoA = parseFloat(a.saldo_total || 0);
+    const saldoB = parseFloat(b.saldo_total || 0);
+
+    const isZeroA = Math.abs(saldoA) < 0.01;
+    const isZeroB = Math.abs(saldoB) < 0.01;
+
+    // Si A es cero y B no, A va abajo (return 1)
+    if (isZeroA && !isZeroB) return 1;
+
+    // Si B es cero y A no, B va abajo (return -1)
+    if (!isZeroA && isZeroB) return -1;
+
+    // Ordenar por VALOR ABSOLUTO de mayor a menor (magnitud de la deuda)
+    return Math.abs(saldoB) - Math.abs(saldoA);
   });
 
   const handleCerrarMovimiento = () => {
@@ -965,8 +980,8 @@ Esta acción no se puede deshacer.`;
                       <div
                         key={cliente.cliente_id}
                         className={`p-3 cursor-pointer transition-colors ${isSelected
-                            ? 'bg-slate-100 border-l-4 border-slate-500'
-                            : 'hover:bg-slate-50'
+                          ? 'bg-slate-100 border-l-4 border-slate-500'
+                          : 'hover:bg-slate-50'
                           }`}
                         onClick={() => setClienteSeleccionadoFiltro(isSelected ? null : cliente)}
                       >

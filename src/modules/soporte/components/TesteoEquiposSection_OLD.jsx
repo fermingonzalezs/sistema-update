@@ -98,7 +98,7 @@ function TesteoEquiposSection() {
 
   const handleCrearEquipo = async (e) => {
     e.preventDefault();
-    
+
     if (!formNuevo.marca || !formNuevo.modelo) {
       alert('Marca y modelo son obligatorios');
       return;
@@ -136,17 +136,17 @@ function TesteoEquiposSection() {
 
   const abrirTesteo = (equipo) => {
     setEquipoSeleccionado(equipo);
-    
+
     // Cargar datos existentes si los hay
     const checklistExistente = equipo.checklist_data ? JSON.parse(equipo.checklist_data) : {};
-    
+
     setTesteoData({
       checklist: checklistExistente,
       estado_estetico: equipo.estado_estetico || 'bueno',
       observaciones_testeo: equipo.observaciones_testeo || '',
       resultado_general: equipo.estado_testeo || 'pendiente'
     });
-    
+
     setModalTesteo(true);
   };
 
@@ -163,7 +163,7 @@ function TesteoEquiposSection() {
   const calcularResultadoGeneral = (checklist, tipoEquipo) => {
     const checklistReferencia = tipoEquipo === 'notebook' ? checklistNotebook : checklistCelular;
     const itemsFuncionamiento = checklistReferencia.filter(item => item.categoria === 'funcionamiento');
-    
+
     let aprobados = 0;
     let totales = 0;
 
@@ -189,7 +189,7 @@ function TesteoEquiposSection() {
   const guardarTesteo = async () => {
     try {
       const resultadoCalculado = calcularResultadoGeneral(testeoData.checklist, equipoSeleccionado.tipo);
-      
+
       const updateData = {
         checklist_data: JSON.stringify(testeoData.checklist),
         estado_estetico: testeoData.estado_estetico,
@@ -251,7 +251,7 @@ function TesteoEquiposSection() {
 
   const renderChecklist = () => {
     const checklistReferencia = equipoSeleccionado?.tipo === 'notebook' ? checklistNotebook : checklistCelular;
-    
+
     const categorias = {
       funcionamiento: 'Funcionamiento',
       accesorios: 'Accesorios',
@@ -260,7 +260,7 @@ function TesteoEquiposSection() {
 
     return Object.entries(categorias).map(([categoria, titulo]) => {
       const items = checklistReferencia.filter(item => item.categoria === categoria);
-      
+
       return (
         <div key={categoria} className="mb-6">
           <h4 className="font-semibold text-slate-800 mb-3">{titulo}</h4>
@@ -271,21 +271,19 @@ function TesteoEquiposSection() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleChecklistChange(item.id, true)}
-                    className={`p-2 rounded ${
-                      testeoData.checklist[item.id] === true
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-white text-slate-400 border border-slate-200'
-                    }`}
+                    className={`p-2 rounded ${testeoData.checklist[item.id] === true
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white text-slate-400 border border-slate-200'
+                      }`}
                   >
                     <CheckCircle className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleChecklistChange(item.id, false)}
-                    className={`p-2 rounded ${
-                      testeoData.checklist[item.id] === false
-                        ? 'bg-slate-600 text-white'
-                        : 'bg-white text-slate-400 border border-slate-200'
-                    }`}
+                    className={`p-2 rounded ${testeoData.checklist[item.id] === false
+                      ? 'bg-slate-600 text-white'
+                      : 'bg-white text-slate-400 border border-slate-200'
+                      }`}
                   >
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -334,7 +332,7 @@ function TesteoEquiposSection() {
             <option value="notebook">Notebooks</option>
             <option value="celular">Celulares</option>
           </select>
-          
+
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
@@ -397,8 +395,8 @@ function TesteoEquiposSection() {
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(equipo.estado_testeo)}`}>
                         {equipo.estado_testeo === 'pendiente' ? 'Pendiente' :
-                         equipo.estado_testeo === 'aprobado' ? 'Aprobado' :
-                         equipo.estado_testeo === 'rechazado' ? 'Rechazado' : 'Sin testear'}
+                          equipo.estado_testeo === 'aprobado' ? 'Aprobado' :
+                            equipo.estado_testeo === 'rechazado' ? 'Rechazado' : 'Sin testear'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -442,7 +440,7 @@ function TesteoEquiposSection() {
 
       {/* Modal Nuevo Equipo */}
       {modalNuevo && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
@@ -470,7 +468,7 @@ function TesteoEquiposSection() {
                     <option value="celular">Celular</option>
                   </select>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Marca *</label>
@@ -552,7 +550,7 @@ function TesteoEquiposSection() {
 
       {/* Modal Testeo */}
       {modalTesteo && equipoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-slate-800">
@@ -570,7 +568,7 @@ function TesteoEquiposSection() {
               <div className="lg:col-span-2">
                 {renderChecklist()}
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <h4 className="font-semibold text-slate-800 mb-3">Estado Estético General</h4>

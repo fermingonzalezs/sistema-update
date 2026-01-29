@@ -511,6 +511,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         serial: producto.serial || "",
         categoria: producto.categoria || "",
         marca: producto.marca || "",
+        color: producto.color || "",
         descripcion: producto.descripcion || "",
         cantidad_la_plata: producto.cantidad_la_plata || 0,
         cantidad_mitre: producto.cantidad_mitre || 0,
@@ -736,6 +737,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           serial: editForm.serial,
           categoria: editForm.categoria,
           marca: editForm.marca,
+          color: editForm.color,
           descripcion: editForm.descripcion,
           cantidad_la_plata: editForm.cantidad_la_plata
             ? parseInt(editForm.cantidad_la_plata)
@@ -1281,13 +1283,15 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   Batería
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   value={editForm.bateria}
                   onChange={(e) =>
-                    handleEditFormChange("bateria", e.target.value)
+                    handleEditFormChange("bateria", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 3 celdas, 45Wh"
+                  placeholder="Ej: 85"
+                  min="0"
+                  max="100"
                 />
               </div>
               <div>
@@ -1382,7 +1386,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 URL de Fotos
               </label>
               <input
-                type="url"
+                type="text"
                 value={editForm.fotos}
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
@@ -1647,13 +1651,15 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   Batería
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   value={editForm.bateria}
                   onChange={(e) =>
-                    handleEditFormChange("bateria", e.target.value)
+                    handleEditFormChange("bateria", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Ej: 85%, Buena"
+                  placeholder="Ej: 85"
+                  min="0"
+                  max="100"
                 />
               </div>
               <div>
@@ -1735,7 +1741,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 URL de Fotos
               </label>
               <input
-                type="url"
+                type="text"
                 value={editForm.fotos}
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
@@ -1835,6 +1841,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(valor) => handleEditFormChange("marca", valor)}
                   placeholder="Seleccionar o agregar marca"
                   className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Color
+                </label>
+                <input
+                  type="text"
+                  value={editForm.color}
+                  onChange={(e) =>
+                    handleEditFormChange("color", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Ej: Negro, Blanco"
                 />
               </div>
               <div className="col-span-2">
@@ -2009,7 +2029,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 URL de Fotos
               </label>
               <input
-                type="url"
+                type="text"
                 value={editForm.fotos}
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
@@ -2479,6 +2499,27 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </select>
             </div>
 
+            {/* Color - Solo para otros */}
+            {categoriaActiva === 'otros' && valoresUnicos.colores?.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Color
+                </label>
+                <select
+                  value={filtros.color || ""}
+                  onChange={(e) => actualizarFiltro("color", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.colores?.map((color) => (
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Almacenamiento - Solo para celulares */}
             {categoriaActiva === 'celulares' && (
               <div>
@@ -2676,8 +2717,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               if (esOtros) {
                 return (
                   <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-                    <div className="col-span-5 text-start text-sm font-bold text-white uppercase">
+                    <div className="col-span-4 text-start text-sm font-bold text-white uppercase">
                       Información del Producto
+                    </div>
+                    <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
+                      Color
                     </div>
                     <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
                       Serial
@@ -2738,7 +2782,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onClick={() => setModalDetalle({ open: true, producto })}
                 >
                   {/* Información del producto */}
-                  <div className={`text-start ${esOtros ? 'col-span-5' : 'col-span-6'}`}>
+                  <div className={`text-start ${esOtros ? 'col-span-4' : 'col-span-6'}`}>
                     {esOtros ? (
                       <div>
                         <div className="text-sm truncate uppercase">
@@ -2784,6 +2828,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       return (
                         // Columnas para otros productos - mostrar stock por sucursal
                         <>
+                          {/* Color */}
+                          <div className="col-span-1 flex justify-center items-center px-2">
+                            <span className="text-xs text-slate-600 truncate" title={producto.color || ""}>
+                              {producto.color || "-"}
+                            </span>
+                          </div>
+
                           {/* Serial */}
                           <div className="col-span-1 flex justify-center items-center px-2">
                             <span className="text-xs font-mono text-slate-600 truncate" title={producto.serial || "Sin serial"}>
@@ -3230,7 +3281,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
       {/* Modal de edición */}
       {modalEdit.open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6">

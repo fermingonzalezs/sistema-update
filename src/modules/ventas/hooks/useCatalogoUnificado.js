@@ -137,7 +137,7 @@ export const useCatalogoUnificado = () => {
       fetch: fetchOtros,
       delete: deleteOtro,
       update: updateOtro,
-      filtrosDisponibles: ['marca', 'condicion', 'precio'],
+      filtrosDisponibles: ['marca', 'condicion', 'color', 'precio'],
       camposOrdenamiento: [
         { value: 'nombre_producto-asc', label: 'Nombre (A-Z)' },
         { value: 'precio_venta_usd-asc', label: 'Precio menor a mayor' },
@@ -317,6 +317,7 @@ export const useCatalogoUnificado = () => {
       })
       : [];
     const idiomasTeclado = categoriaActiva === 'notebooks' ? [...new Set(datosActuales.map(item => item.idioma_teclado).filter(Boolean))] : [];
+    const colores = [...new Set(datosActuales.map(item => item.color).filter(Boolean))];
 
     return {
       marcas: marcas.sort(),
@@ -324,6 +325,7 @@ export const useCatalogoUnificado = () => {
       estados: estados.sort(),
       sucursales: sucursales.sort(),
       categorias: categorias.sort(),
+      colores: colores.sort(),
       precioMin,
       precioMax,
       almacenamientos,
@@ -333,7 +335,7 @@ export const useCatalogoUnificado = () => {
     };
   }, [datosActuales, categoriaActiva]);
 
-  // Aplicar filtros y ordenamiento
+  // Aplicar filtros y ordenamiento (PRINCIPAL)
   const datosFilteredAndSorted = useMemo(() => {
     console.log('🔍 Iniciando filtrado. Categoría activa:', categoriaActiva);
     console.log('🔍 Filtros actuales:', filtrosUnificados);
@@ -348,6 +350,10 @@ export const useCatalogoUnificado = () => {
 
     if (filtrosUnificados.condicion) {
       filtered = filtered.filter(item => item.condicion === filtrosUnificados.condicion);
+    }
+
+    if (filtrosUnificados.color) {
+      filtered = filtered.filter(item => item.color === filtrosUnificados.color);
     }
 
     if (filtrosUnificados.estado) {
@@ -676,6 +682,10 @@ export const useCatalogoUnificado = () => {
 
     if (filtrosUnificados.condicion) {
       filtered = filtered.filter(item => item.condicion === filtrosUnificados.condicion);
+    }
+
+    if (filtrosUnificados.color) {
+      filtered = filtered.filter(item => item.color === filtrosUnificados.color);
     }
 
     if (filtrosUnificados.estado) {

@@ -9,10 +9,10 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
   const [repuestos, setRepuestos] = useState([]);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
   const [repuestosSeleccionados, setRepuestosSeleccionados] = useState([]);
-  
+
   const [servicioPersonalizado, setServicioPersonalizado] = useState({ nombre: '', precio: '' });
   const [repuestoPersonalizado, setRepuestoPersonalizado] = useState({ nombre: '', precio: '' });
-  
+
   const [tabRepuestos, setTabRepuestos] = useState('stock');
   const [observaciones, setObservaciones] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,7 +78,7 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
       }
       setLista(prev => prev.map(i => i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i));
     } else {
-      const newItem = tipo === 'repuesto' 
+      const newItem = tipo === 'repuesto'
         ? { ...item, cantidad: 1, stock_disponible: item.stock }
         : { ...item, cantidad: 1 };
       setLista(prev => [...prev, newItem]);
@@ -175,7 +175,7 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30 p-4">
       <div className="bg-white rounded shadow-xl w-full max-w-6xl max-h-[95vh] flex flex-col">
         <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
           <h2 className="text-lg font-semibold flex items-center gap-3"><FileText className="w-6 h-6 text-slate-300" />{reparacion?.presupuesto_json ? 'Editar' : 'Crear'} Presupuesto</h2>

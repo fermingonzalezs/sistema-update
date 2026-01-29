@@ -422,7 +422,7 @@ const AuditPanel = () => {
 
             {/* Modal de detalle */}
             {modalDetalle && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
                         <div className="px-6 py-4 bg-slate-800 text-white flex items-center justify-between">
                             <h3 className="text-lg font-semibold">Detalle del Registro</h3>

@@ -341,13 +341,12 @@ const CuentasAuxiliaresSection = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <span className={`font-medium ${
-                          Math.abs(cuenta.diferencia || 0) < 0.01
+                        <span className={`font-medium ${Math.abs(cuenta.diferencia || 0) < 0.01
                             ? 'text-emerald-600'
                             : cuenta.diferencia < 0
                               ? 'text-emerald-600'
                               : 'text-red-600'
-                        }`}>
+                          }`}>
                           {Math.abs(cuenta.diferencia || 0) < 0.01
                             ? 'Balanceado'
                             : `${cuenta.diferencia < 0 ? '+' : '-'} ${formatearMonto(Math.abs(cuenta.diferencia || 0), 'USD')}`
@@ -361,11 +360,10 @@ const CuentasAuxiliaresSection = () => {
                         <div className="flex justify-center space-x-2">
                           <button
                             onClick={() => handleVerDetalles(cuenta)}
-                            className={`transition-colors ${
-                              selectedCuenta && selectedCuenta.id === cuenta.id
+                            className={`transition-colors ${selectedCuenta && selectedCuenta.id === cuenta.id
                                 ? 'text-emerald-800 bg-emerald-100 p-1 rounded'
                                 : 'text-emerald-600 hover:text-emerald-800'
-                            }`}
+                              }`}
                             title={selectedCuenta && selectedCuenta.id === cuenta.id ? 'Ocultar movimientos' : 'Ver movimientos'}
                           >
                             <Eye className="w-4 h-4" />
@@ -515,28 +513,28 @@ const CuentasAuxiliaresSection = () => {
                       {selectedCuenta.items && selectedCuenta.items
                         .filter(m => m.tipo === 'egreso')
                         .map((movimiento, index) => (
-                        <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                          <td className="px-4 py-3 text-sm text-slate-800">
-                            {formatFecha(movimiento.fecha)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-800">
-                            {movimiento.descripcion}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
-                            {formatearMonto(movimiento.monto, 'USD')}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-center">
-                            <div className="flex justify-center space-x-2">
-                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                          <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                            <td className="px-4 py-3 text-sm text-slate-800">
+                              {formatFecha(movimiento.fecha)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-800">
+                              {movimiento.descripcion}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
+                              {formatearMonto(movimiento.monto, 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center">
+                              <div className="flex justify-center space-x-2">
+                                <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       {(!selectedCuenta.items || selectedCuenta.items.filter(m => m.tipo === 'egreso').length === 0) && (
                         <tr>
                           <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
@@ -579,28 +577,28 @@ const CuentasAuxiliaresSection = () => {
                       {selectedCuenta.items && selectedCuenta.items
                         .filter(m => m.tipo === 'ingreso')
                         .map((movimiento, index) => (
-                        <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                          <td className="px-4 py-3 text-sm text-slate-800">
-                            {formatFecha(movimiento.fecha)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-800">
-                            {movimiento.descripcion}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
-                            {formatearMonto(movimiento.monto, 'USD')}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-center">
-                            <div className="flex justify-center space-x-2">
-                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button className="text-slate-600 hover:text-slate-800 transition-colors">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                          <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                            <td className="px-4 py-3 text-sm text-slate-800">
+                              {formatFecha(movimiento.fecha)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-800">
+                              {movimiento.descripcion}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
+                              {formatearMonto(movimiento.monto, 'USD')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center">
+                              <div className="flex justify-center space-x-2">
+                                <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button className="text-slate-600 hover:text-slate-800 transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       {(!selectedCuenta.items || selectedCuenta.items.filter(m => m.tipo === 'ingreso').length === 0) && (
                         <tr>
                           <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
@@ -643,11 +641,10 @@ const CuentasAuxiliaresSection = () => {
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-slate-600">Saldo Neto</div>
-                    <div className={`text-xl font-semibold ${
-                      calcularTotalesMovimientos(selectedCuenta.items).saldo >= 0
+                    <div className={`text-xl font-semibold ${calcularTotalesMovimientos(selectedCuenta.items).saldo >= 0
                         ? 'text-emerald-600'
                         : 'text-red-600'
-                    }`}>
+                      }`}>
                       {formatearMonto(calcularTotalesMovimientos(selectedCuenta.items).saldo, 'USD')}
                     </div>
                   </div>
@@ -731,7 +728,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -922,7 +919,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -1031,11 +1028,10 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
           {/* Indicador visual del tipo */}
           {formData.tipo && formData.monto && (
-            <div className={`mt-4 p-4 border rounded ${
-              formData.tipo === 'ingreso'
+            <div className={`mt-4 p-4 border rounded ${formData.tipo === 'ingreso'
                 ? 'bg-emerald-50 border-emerald-200'
                 : 'bg-red-50 border-red-200'
-            }`}>
+              }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   {formData.tipo === 'ingreso' ? (
@@ -1050,9 +1046,8 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
                     </>
                   )}
                 </div>
-                <span className={`text-lg font-semibold ${
-                  formData.tipo === 'ingreso' ? 'text-emerald-700' : 'text-red-700'
-                }`}>
+                <span className={`text-lg font-semibold ${formData.tipo === 'ingreso' ? 'text-emerald-700' : 'text-red-700'
+                  }`}>
                   {formatearMonto(parseFloat(formData.monto || 0), 'USD')}
                 </span>
               </div>

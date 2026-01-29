@@ -34,8 +34,8 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
         }
 
         // Validar batería y ciclos si están presentes
-        if (datos.bateria && !/^\d+%?$/.test(datos.bateria)) {
-            errores.bateria = 'Formato: 85% o 85';
+        if (datos.bateria !== undefined && datos.bateria !== '' && (datos.bateria < 0 || datos.bateria > 100)) {
+            errores.bateria = 'Valor entre 0 y 100';
         }
         if (datos.ciclos !== undefined && datos.ciclos !== '' && (datos.ciclos < 0 || datos.ciclos > 10000)) {
             errores.ciclos = 'Ciclos entre 0 y 10000';

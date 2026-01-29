@@ -19,12 +19,12 @@ const planCuentasService = {
       .select('id, codigo, nombre, tipo, padre_id, nivel, categoria, imputable, activa, moneda_original, requiere_cotizacion, created_at, updated_at')
       .eq('activa', true)
       .order('codigo');
-    
+
     if (error) {
       console.error('❌ Error obteniendo plan de cuentas:', error);
       throw error;
     }
-    
+
     return data;
   },
 
@@ -34,7 +34,7 @@ const planCuentasService = {
     if (existing) {
       throw new Error(`Ya existe una cuenta con código: ${cuenta.codigo}`);
     }
-    
+
     const { data, error } = await supabase
       .from('plan_cuentas')
       .insert([{
@@ -42,12 +42,12 @@ const planCuentasService = {
         activa: true
       }])
       .select();
-    
+
     if (error) {
       console.error('❌ Error creando cuenta:', error);
       throw error;
     }
-    
+
     return data[0];
   },
 
@@ -60,12 +60,12 @@ const planCuentasService = {
       })
       .eq('id', id)
       .select();
-    
+
     if (error) {
       console.error('❌ Error actualizando cuenta:', error);
       throw error;
     }
-    
+
     return data[0];
   },
 
@@ -75,34 +75,34 @@ const planCuentasService = {
       { tabla: 'movimientos_contables', campo: 'cuenta_id', nombre: 'movimientos contables' },
       { tabla: 'conciliaciones_caja', campo: 'cuenta_caja_id', nombre: 'conciliaciones de caja' }
     ];
-    
+
     // Verificar cada dependencia
     for (const dep of dependencias) {
       const { data, error } = await supabase
         .from(dep.tabla)
         .select('id')
         .eq(dep.campo, id);
-      
+
       if (error) {
         console.error(`❌ Error verificando ${dep.nombre}:`, error);
         throw error;
       }
-      
+
       if (data && data.length > 0) {
         throw new Error(`No se puede eliminar la cuenta porque tiene ${data.length} ${dep.nombre} asociados. Primero debe eliminar o reasignar estos registros.`);
       }
     }
-    
+
     const { error } = await supabase
       .from('plan_cuentas')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
       console.error('❌ Error eliminando cuenta:', error);
       throw error;
     }
-    
+
     return true;
   },
 
@@ -110,18 +110,18 @@ const planCuentasService = {
   async deactivate(id, motivo = 'Desactivada por el usuario') {
     const { error } = await supabase
       .from('plan_cuentas')
-      .update({ 
-        activa: false, 
+      .update({
+        activa: false,
         observaciones: motivo,
         fecha_desactivacion: new Date().toISOString()
       })
       .eq('id', id);
-    
+
     if (error) {
       console.error('❌ Error desactivando cuenta:', error);
       throw error;
     }
-    
+
     return true;
   },
 
@@ -131,12 +131,12 @@ const planCuentasService = {
       .select('*')
       .eq('codigo', codigo)
       .maybeSingle();
-    
+
     if (error) {
       console.error('❌ Error buscando por código:', error);
       throw error;
     }
-    
+
     return data;
   },
 
@@ -148,12 +148,12 @@ const planCuentasService = {
       .lt('nivel', nivelMaximo)
       .neq('categoria', 'CUENTA')
       .order('codigo');
-    
+
     if (error) {
       console.error('❌ Error obteniendo cuentas padre:', error);
       throw error;
     }
-    
+
     return data;
   }
 };
@@ -173,7 +173,7 @@ function usePlanCuentas() {
       const data = await planCuentasService.getAll();
       const ordenadas = sortAccountsByCode(data);
       setCuentas(ordenadas);
-      
+
       // Construir árbol jerárquico
       const arbol = buildAccountTree(ordenadas);
       setCuentasArbol(arbol);
@@ -198,12 +198,12 @@ function usePlanCuentas() {
     try {
       setError(null);
       const nueva = await planCuentasService.create(cuenta);
-      
+
       // Actualizar lista y reconstruir árbol
       const nuevasCuentas = sortAccountsByCode([...cuentas, nueva]);
       setCuentas(nuevasCuentas);
       setCuentasArbol(buildAccountTree(nuevasCuentas));
-      
+
       return nueva;
     } catch (err) {
       setError(err.message);
@@ -215,13 +215,13 @@ function usePlanCuentas() {
     try {
       setError(null);
       const actualizada = await planCuentasService.update(id, updates);
-      
+
       // Actualizar lista y reconstruir árbol
       const nuevasCuentas = cuentas.map(c => c.id === id ? { ...c, ...actualizada } : c);
       const ordenadas = sortAccountsByCode(nuevasCuentas);
       setCuentas(ordenadas);
       setCuentasArbol(buildAccountTree(ordenadas));
-      
+
       return actualizada;
     } catch (err) {
       setError(err.message);
@@ -338,7 +338,7 @@ const PlanCuentasSection = () => {
       'Caja móvil Yae Pesos', 'Caja móvil Rama Pesos', 'Caja móvil Alvaro Pesos'
     ];
 
-    const esARS = cuentasARSEspecificas.some(cuentaARS => 
+    const esARS = cuentasARSEspecificas.some(cuentaARS =>
       nombre.toLowerCase().includes(cuentaARS.toLowerCase()) ||
       nombre.toLowerCase().includes('pesos')
     );
@@ -353,7 +353,7 @@ const PlanCuentasSection = () => {
     fetchCuentas();
     fetchPosiblesPadres();
   }, []);
-  
+
   // Inicializar todos los nodos colapsados para una vista más limpia
   useEffect(() => {
     if (cuentasArbol.length > 0) {
@@ -368,19 +368,17 @@ const PlanCuentasSection = () => {
     const estaExpandido = expandedNodes[cuenta.id];
     const identacion = nivel * 20;
     const esCategoria = !cuenta.imputable; // Las cuentas no imputables son categorías
-    
-    
+
+
 
     return (
       <div key={cuenta.id}>
-        <div 
-          className={`flex items-center justify-between py-3 px-4 border-b border-slate-200 transition-all duration-200 ${
-            tieneHijos ? 'cursor-pointer' : 'cursor-default'
-          } ${
-            esCategoria 
-              ? 'hover:bg-slate-100 bg-slate-50' 
+        <div
+          className={`flex items-center justify-between py-3 px-4 border-b border-slate-200 transition-all duration-200 ${tieneHijos ? 'cursor-pointer' : 'cursor-default'
+            } ${esCategoria
+              ? 'hover:bg-slate-100 bg-slate-50'
               : 'hover:bg-slate-50 bg-white'
-          }`}
+            }`}
           onClick={() => {
             if (tieneHijos) {
               toggleNode(cuenta.id);
@@ -402,39 +400,35 @@ const PlanCuentasSection = () => {
             )}
 
             {/* Código de cuenta */}
-            <code className={`text-sm font-mono font-medium min-w-[100px] ${
-              esCategoria 
-                ? 'text-slate-800 font-semibold' 
+            <code className={`text-sm font-mono font-medium min-w-[100px] ${esCategoria
+                ? 'text-slate-800 font-semibold'
                 : 'text-slate-700'
-            }`}>
+              }`}>
               {cuenta.codigo}
             </code>
 
             {/* Nombre de cuenta */}
-            <span className={`text-sm flex-1 ${
-              esCategoria 
-                ? 'text-slate-800 font-semibold' 
+            <span className={`text-sm flex-1 ${esCategoria
+                ? 'text-slate-800 font-semibold'
                 : 'text-slate-800'
-            }`}>
+              }`}>
               {cuenta.nombre}
             </span>
 
             {/* Badge de tipo de cuenta */}
-            <span className={`px-2 py-1 text-xs font-medium rounded border ${
-              esCategoria 
-                ? 'bg-slate-100 text-slate-700 border-slate-200' 
+            <span className={`px-2 py-1 text-xs font-medium rounded border ${esCategoria
+                ? 'bg-slate-100 text-slate-700 border-slate-200'
                 : 'bg-emerald-100 text-emerald-700 border-emerald-200'
-            }`}>
+              }`}>
               {esCategoria ? 'Categoría' : 'Imputable'}
             </span>
 
             {/* Badge de moneda - solo para cuentas imputables */}
             {!esCategoria && (
-              <span className={`px-2 py-1 text-xs font-medium rounded border ${
-                cuenta.moneda_original === 'USD' 
-                  ? 'bg-blue-100 text-blue-700 border-blue-200' 
+              <span className={`px-2 py-1 text-xs font-medium rounded border ${cuenta.moneda_original === 'USD'
+                  ? 'bg-blue-100 text-blue-700 border-blue-200'
                   : 'bg-amber-100 text-amber-700 border-amber-200'
-              }`}>
+                }`}>
                 {cuenta.moneda_original}
               </span>
             )}
@@ -482,10 +476,10 @@ const PlanCuentasSection = () => {
   const nuevaCuenta = () => {
     setSelectedCuenta(null);
     setCreatingSubcuenta(null);
-    
+
     // Resetear selector de tipo a automático
     setTipoSeleccionado('automatico');
-    
+
     const configMoneda = determinarConfiguracionCuenta('', '');
     setFormData({
       padre_id: null,
@@ -504,13 +498,13 @@ const PlanCuentasSection = () => {
   const crearSubcuenta = (cuentaPadre) => {
     setSelectedCuenta(null);
     setCreatingSubcuenta(cuentaPadre);
-    
+
     // Resetear selector de tipo a automático
     setTipoSeleccionado('automatico');
-    
+
     // Usar la función utilitaria para obtener la configuración (sin override por ahora)
     const subcuentaConfig = getSubcuentaConfig(cuentaPadre, cuentas);
-    
+
     setFormData({
       padre_id: subcuentaConfig.padre_id,
       codigo: subcuentaConfig.codigo,
@@ -522,21 +516,21 @@ const PlanCuentasSection = () => {
       moneda_original: subcuentaConfig.moneda_original,
       requiere_cotizacion: subcuentaConfig.requiere_cotizacion
     });
-    
+
     // Expandir el nodo padre para mostrar la nueva subcuenta una vez creada
     setExpandedNodes(prev => ({ ...prev, [cuentaPadre.id]: true }));
-    
+
     setShowModal(true);
   };
 
   // Función para manejar cambio de tipo de cuenta
   const handleTipoChange = (nuevoTipo) => {
     setTipoSeleccionado(nuevoTipo);
-    
+
     if (creatingSubcuenta && nuevoTipo !== 'automatico') {
       // Recalcular configuración con override manual
       const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas, nuevoTipo);
-      
+
       setFormData(prev => ({
         ...prev,
         categoria: subcuentaConfig.categoria,
@@ -545,7 +539,7 @@ const PlanCuentasSection = () => {
     } else if (creatingSubcuenta && nuevoTipo === 'automatico') {
       // Volver a lógica automática
       const subcuentaConfig = getSubcuentaConfig(creatingSubcuenta, cuentas);
-      
+
       setFormData(prev => ({
         ...prev,
         categoria: subcuentaConfig.categoria,
@@ -574,7 +568,7 @@ const PlanCuentasSection = () => {
   const confirmarEliminar = async (cuenta) => {
     // Validar si se puede eliminar (usando las funciones de jerarquía)
     const validacion = validateAccountDeletion(cuenta, cuentas);
-    
+
     if (!validacion.canDelete) {
       alert(`❌ No se puede eliminar: ${validacion.reason}`);
       return;
@@ -586,14 +580,14 @@ Esta acción no se puede deshacer.
 
 • CANCELAR - No hacer nada
 • OK - Eliminar definitivamente la cuenta`;
-    
+
     if (confirm(mensaje)) {
       try {
         await eliminarCuenta(cuenta.id);
         alert('✅ Cuenta eliminada exitosamente');
       } catch (error) {
         console.error('Error eliminando cuenta:', error);
-        
+
         // Si falla la eliminación, ofrecer desactivar
         const confirmarDesactivar = confirm(
           `❌ No se pudo eliminar la cuenta: ${error.message}
@@ -601,14 +595,14 @@ Esta acción no se puede deshacer.
 ¿Desea DESACTIVAR la cuenta en su lugar?
 (La cuenta no aparecerá en nuevos registros pero mantendrá el historial)`
         );
-        
+
         if (confirmarDesactivar) {
           try {
             const motivo = prompt(
               'Ingrese el motivo para desactivar la cuenta:',
               'Cuenta desactivada por tener registros asociados'
             );
-            
+
             if (motivo) {
               await desactivarCuenta(cuenta.id, motivo);
               alert('✅ Cuenta desactivada exitosamente');
@@ -658,7 +652,7 @@ Esta acción no se puede deshacer.
       } else {
         // Para cuentas normales, configurar moneda automáticamente según el nombre
         const configMoneda = determinarConfiguracionCuenta(formData.codigo, formData.nombre);
-        
+
         datosParaGuardar = {
           codigo: formData.codigo,
           nombre: formData.nombre,
@@ -677,10 +671,10 @@ Esta acción no se puede deshacer.
       } else {
         await crearCuenta(datosParaGuardar);
       }
-      
+
       setShowModal(false);
-      const mensaje = creatingSubcuenta ? 
-        '✅ Subcuenta creada exitosamente' : 
+      const mensaje = creatingSubcuenta ?
+        '✅ Subcuenta creada exitosamente' :
         '✅ Cuenta guardada exitosamente';
       alert(mensaje);
     } catch (err) {
@@ -755,7 +749,7 @@ Esta acción no se puede deshacer.
               </p>
             </div>
           )}
-          
+
           {/* Estadísticas en el footer de la tarjeta */}
           {cuentas.length > 0 && (
             <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 rounded-b">
@@ -773,7 +767,7 @@ Esta acción no se puede deshacer.
                 </div>
                 <div className="h-4 w-px bg-slate-300"></div>
                 <div>
-                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable && c.moneda_original === 'USD').length}</span> USD · 
+                  <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable && c.moneda_original === 'USD').length}</span> USD ·
                   <span className="font-semibold text-slate-800">{cuentas.filter(c => c.imputable && c.moneda_original === 'ARS').length}</span> ARS
                 </div>
               </div>
@@ -784,14 +778,14 @@ Esta acción no se puede deshacer.
 
       {/* Modal para crear/editar cuenta */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-start justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded p-8 w-full max-w-md my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
               {selectedCuenta ? <Edit2 size={20} /> : <Plus size={20} />}
-              {selectedCuenta ? 'Editar Cuenta' : 
-               creatingSubcuenta ? `Nueva Subcuenta de: ${creatingSubcuenta.codigo}` : 'Nueva Cuenta'}
+              {selectedCuenta ? 'Editar Cuenta' :
+                creatingSubcuenta ? `Nueva Subcuenta de: ${creatingSubcuenta.codigo}` : 'Nueva Cuenta'}
             </h3>
-            
+
             {/* Información contextual para subcuentas */}
             {creatingSubcuenta && (
               <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded">
@@ -807,7 +801,7 @@ Esta acción no se puede deshacer.
                 </div>
               </div>
             )}
-            
+
             <div className="space-y-6">
               {/* Cuenta Padre - solo mostrar si no estamos creando subcuenta */}
               {!creatingSubcuenta && (
@@ -820,7 +814,7 @@ Esta acción no se puede deshacer.
                     onChange={(e) => {
                       const padreId = e.target.value ? parseInt(e.target.value) : null;
                       const padre = posiblesPadres.find(p => p.id === padreId);
-                      
+
                       // Si cambia el padre, regenerar código
                       let nuevoCodigo = '';
                       if (padre) {
@@ -828,9 +822,9 @@ Esta acción no se puede deshacer.
                       } else {
                         nuevoCodigo = generateNextCode(cuentas, null);
                       }
-                      
+
                       setFormData({
-                        ...formData, 
+                        ...formData,
                         padre_id: padreId,
                         codigo: nuevoCodigo,
                         tipo: padre ? padre.tipo : 'activo',
@@ -850,7 +844,7 @@ Esta acción no se puede deshacer.
                   </select>
                 </div>
               )}
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-800 mb-3">
                   {creatingSubcuenta ? 'Código de Subcuenta (generado automáticamente)' : 'Código de Cuenta *'}
@@ -859,10 +853,9 @@ Esta acción no se puede deshacer.
                   <input
                     type="text"
                     value={formData.codigo}
-                    onChange={(e) => setFormData({...formData, codigo: e.target.value})}
-                    className={`flex-1 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 ${
-                      creatingSubcuenta ? 'bg-emerald-50' : ''
-                    }`}
+                    onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+                    className={`flex-1 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 ${creatingSubcuenta ? 'bg-emerald-50' : ''
+                      }`}
                     placeholder="Ej: 1.1.01.01 o 4.1.02"
                     readOnly={creatingSubcuenta}
                   />
@@ -873,7 +866,7 @@ Esta acción no se puede deshacer.
                         const padre = posiblesPadres.find(p => p.id === formData.padre_id);
                         if (padre) {
                           const nuevoCodigo = generateNextCode(cuentas, padre.codigo);
-                          setFormData({...formData, codigo: nuevoCodigo});
+                          setFormData({ ...formData, codigo: nuevoCodigo });
                         }
                       }}
                       className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors text-sm"
@@ -884,13 +877,13 @@ Esta acción no se puede deshacer.
                   )}
                 </div>
                 <p className="text-xs text-slate-600 mt-2">
-                  {creatingSubcuenta ? 
+                  {creatingSubcuenta ?
                     'Código generado automáticamente según la jerarquía del padre' :
                     'Ingrese el código jerárquico completo según el nivel deseado'
                   }
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-800 mb-3">
                   Nombre de la Cuenta *
@@ -898,12 +891,12 @@ Esta acción no se puede deshacer.
                 <input
                   type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   className="w-full border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
                   placeholder="Ej: Caja, Banco, Proveedores..."
                 />
               </div>
-              
+
               {/* Selector de Tipo de Cuenta - solo mostrar cuando estamos creando subcuenta */}
               {creatingSubcuenta && (
                 <div>
@@ -946,7 +939,7 @@ Esta acción no se puede deshacer.
                         <span className="ml-2 text-sm text-slate-700">Cuenta Imputable</span>
                       </label>
                     </div>
-                    
+
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded text-sm">
                       {tipoSeleccionado === 'automatico' ? (
                         <div>
@@ -982,7 +975,7 @@ Esta acción no se puede deshacer.
                   </div>
                 </div>
               )}
-              
+
               {/* Tipo - solo mostrar si no estamos creando subcuenta */}
               {!creatingSubcuenta && (
                 <div>
@@ -1005,7 +998,7 @@ Esta acción no se puede deshacer.
                 <h4 className="text-sm font-semibold text-slate-800 mb-4">
                   Configuración de Moneda
                 </h4>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-800 mb-2">
@@ -1016,7 +1009,7 @@ Esta acción no se puede deshacer.
                       onChange={(e) => {
                         const nuevaMoneda = e.target.value;
                         setFormData({
-                          ...formData, 
+                          ...formData,
                           moneda_original: nuevaMoneda,
                           // Si es ARS, automáticamente requiere cotización para convertir a USD
                           requiere_cotizacion: nuevaMoneda === 'ARS'
@@ -1039,7 +1032,7 @@ Esta acción no se puede deshacer.
                       <input
                         type="checkbox"
                         checked={formData.requiere_cotizacion}
-                        onChange={(e) => setFormData({...formData, requiere_cotizacion: e.target.checked})}
+                        onChange={(e) => setFormData({ ...formData, requiere_cotizacion: e.target.checked })}
                         disabled={formData.moneda_original === 'ARS'} // ARS siempre requiere cotización
                         className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded"
                       />
@@ -1048,7 +1041,7 @@ Esta acción no se puede deshacer.
                       </span>
                     </label>
                     <p className="text-xs text-slate-600 mt-2 ml-7">
-                      {formData.moneda_original === 'ARS' 
+                      {formData.moneda_original === 'ARS'
                         ? 'Las cuentas en ARS siempre requieren cotización para convertir a USD (moneda principal del sistema)'
                         : 'Las cuentas en USD no requieren cotización ya que es la moneda principal del sistema'
                       }
@@ -1059,11 +1052,10 @@ Esta acción no se puede deshacer.
                   <div className="bg-white p-3 rounded border border-slate-200">
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-medium text-slate-600">Vista previa:</span>
-                      <span className={`px-2 py-1 text-xs rounded font-medium border ${
-                        formData.moneda_original === 'USD' 
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                      <span className={`px-2 py-1 text-xs rounded font-medium border ${formData.moneda_original === 'USD'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
                           : 'bg-blue-100 text-blue-800 border-blue-200'
-                      }`}>
+                        }`}>
                         {formData.moneda_original}
                       </span>
                       {formData.requiere_cotizacion && (
@@ -1077,7 +1069,7 @@ Esta acción no se puede deshacer.
 
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={() => setShowModal(false)}

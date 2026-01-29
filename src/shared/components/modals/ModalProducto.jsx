@@ -897,7 +897,10 @@ const ModalProducto = ({
             <input
               type="number"
               value={formData.bateria || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, bateria: parseInt(e.target.value) || null }))}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                setFormData(prev => ({ ...prev, bateria: isNaN(val) ? null : Math.min(100, Math.max(0, val)) }));
+              }}
               className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="Ej: 85, 100"
               min="0"

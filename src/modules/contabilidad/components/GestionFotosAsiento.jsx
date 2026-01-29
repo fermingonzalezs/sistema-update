@@ -130,11 +130,10 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={subiendo}
-            className={`px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors ${
-              subiendo
+            className={`px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors ${subiendo
                 ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                 : 'bg-emerald-600 text-white hover:bg-emerald-700'
-            }`}
+              }`}
           >
             {subiendo ? (
               <>
@@ -256,7 +255,7 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
 
       {/* Modal de vista previa */}
       {vistaPrevia && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header del modal */}
             <div className="flex items-center justify-between p-4 border-b">

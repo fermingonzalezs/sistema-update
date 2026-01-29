@@ -40,7 +40,7 @@ function ModalNuevaReparacion({ open, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
       <div className="bg-white rounded shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header del Modal */}
         <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">

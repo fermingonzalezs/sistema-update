@@ -14,7 +14,7 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(valor);
-    
+
     return `US$ ${numero}`;
   };
 
@@ -45,7 +45,7 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
         {/* Header del modal */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
@@ -167,7 +167,7 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
                     <div className="col-span-2 text-right">Importe</div>
                   </div>
                 </div>
-                
+
                 {/* Servicios */}
                 {presupuestoData.servicios && presupuestoData.servicios.map((servicio, index) => (
                   <div key={`servicio-${index}`} className="border-b border-gray-200 px-3 py-3">
@@ -252,13 +252,13 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
               <div className="text-xs text-gray-500 mb-3">
                 <p>Si el equipo no fuera retirado dentro de los 90 días, a partir de la fecha de ingreso al taller, será considerado abandonado, perdiendo todo tipo de derecho de propiedad sobre el mismo y/o sobre los materiales que contiene. De ello se dispondrá en el concepto de gastos por depósito y estadía.</p>
               </div>
-              
+
               <div className="flex justify-between items-end">
                 <div className="text-xs text-gray-600">
                   <p>Email: info@updatetech.com.ar • Web: www.updatetech.com.ar</p>
                   <p>UPDATE TECH WW SRL • {formatearFecha()}</p>
                 </div>
-                
+
                 <div className="text-center">
                   <div className="w-32 border-t border-gray-400 mb-1"></div>
                   <p className="text-xs text-gray-600">Firma y aclaración</p>

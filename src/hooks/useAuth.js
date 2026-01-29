@@ -229,18 +229,29 @@ export const useAuth = () => {
     }
   };
 
+  // Mapeo de roles a secciones permitidas
+  const ROLE_SECTIONS = {
+    admin: ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras'],
+    ventas: ['ventas'],
+    soporte: ['soporte'],
+    contabilidad: ['contabilidad', 'administracion'],
+    compras: ['compras'],
+  };
+
   // Verificar si el usuario tiene acceso a una sección
   const hasAccess = (section) => {
-    // Si el usuario está autenticado, tiene acceso a todo
-    return !!user;
+    if (!user) return false;
+    const nivel = user.user_metadata?.nivel || 'user';
+    if (nivel === 'admin') return true;
+    const allowed = ROLE_SECTIONS[nivel] || [];
+    return allowed.includes(section);
   };
 
   // Obtener secciones permitidas para el usuario actual
   const getAllowedSections = () => {
     if (!user) return [];
-
-    // Usuarios autenticados tienen acceso a todas las secciones
-    return ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras'];
+    const nivel = user.user_metadata?.nivel || 'user';
+    return ROLE_SECTIONS[nivel] || [];
   };
 
   return {

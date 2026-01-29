@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   TrendingUp, ShoppingCart, DollarSign, RefreshCw, AlertCircle, LogOut,
   List, Plus, Users, FileText, Camera, BookOpen, Calculator, BarChart3,
   Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe, Menu
@@ -16,7 +16,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
       logout();
     }
   };
-  
+
   // Estado para cotización USD/ARS
   const [cotizacion, setCotizacion] = useState(null);
   const [loadingCotizacion, setLoadingCotizacion] = useState(false);
@@ -41,7 +41,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
     }
   };
 
- 
+
   const getSectionInfo = (section) => {
     const sections = {
       'inventario': { title: 'Catálogo', icon: List, description: 'Inventario de equipos disponibles para la venta.' },
@@ -67,25 +67,25 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
     };
     return sections[section] || { title: section, description: '', icon: null };
   };
-  
+
   const sectionInfo = getSectionInfo(activeSection);
-  
+
   return (
     <header className="border-b border-slate-200 bg-slate-800">
-      <div className="px-8 py-6">
+      <div className="px-8 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-8">
             <div>
               {/* Titles and subtitles removed */}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 md:space-x-6">
             {/* Tarjetas de información */}
-            <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="flex items-stretch space-x-2 md:space-x-4">
               {/* Info del usuario */}
-              <div className="bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 w-auto md:w-45 h-auto md:h-15">
-                <div className="flex items-center justify-between">
+              <div className="bg-slate-700 rounded-lg px-3 py-2 border border-slate-600">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center space-x-2 md:space-x-3">
                     <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
@@ -94,7 +94,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
                     </div>
                     <div className="hidden sm:block">
                       <div className="text-xs font-medium text-white">{user?.user_metadata?.nombre || 'Usuario'}</div>
-                      <div className="text-xs text-slate-300 capitalize">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
+                      <div className="text-[10px] text-slate-300 capitalize leading-none">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
                     </div>
                   </div>
                   <button
@@ -107,16 +107,16 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
                 </div>
               </div>
 
-             
+
               {/* Cotización USD/ARS */}
-              <div className="bg-slate-700 rounded-lg p-2 md:p-4 border border-slate-600 w-auto md:w-40 h-auto md:h-15">
+              <div className="bg-slate-700 rounded-lg px-3 py-2 border border-slate-600">
                 {cotizacion ? (
-                  <div>
-                    <div className="text-xs md:text-sm font-bold text-emerald-600 truncate">
-                      ${cotizacion.valor?.toFixed(2) || 'N/A'}
+                  <div className="flex flex-col items-center justify-center w-full">
+                    <div className="text-sm md:text-base font-bold text-emerald-500 leading-none text-center">
+                      ${cotizacion.valor || 'N/A'}
                     </div>
-                    <div className="text-xs text-slate-400 truncate hidden md:block">
-                      {cotizacion.fuente}
+                    <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wide text-center">
+                      Dolar Blue
                     </div>
                   </div>
                 ) : (
@@ -128,19 +128,19 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
             </div>
 
             {/* Fecha y hora */}
-            <div className="text-right bg-white rounded-lg p-2 md:p-4 border border-slate-200 font-semibold">
+            <div className="text-right bg-white rounded-lg px-3 py-2 border border-slate-200 font-semibold">
               <div className="text-xs md:text-sm text-slate-800">
                 <span className="hidden md:inline">
-                  {currentDate.toLocaleDateString('es-AR', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
+                  {currentDate.toLocaleDateString('es-AR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
                     day: 'numeric',
                     timeZone: 'America/Argentina/Buenos_Aires'
                   })}
                 </span>
                 <span className="md:hidden">
-                  {currentDate.toLocaleDateString('es-AR', { 
+                  {currentDate.toLocaleDateString('es-AR', {
                     day: '2-digit',
                     month: '2-digit',
                     timeZone: 'America/Argentina/Buenos_Aires'

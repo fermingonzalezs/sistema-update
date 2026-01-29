@@ -268,66 +268,66 @@ const ProveedoresSection = () => {
                 </tr>
               ) : (
                 proveedoresFiltrados.map((proveedor, idx) => (
-                <tr key={proveedor.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                  <td className="px-4 py-3 text-sm font-medium text-center text-slate-800">
-                    {proveedor.nombre}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-slate-600">
-                    {proveedor.pais}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-slate-600">
-                    {proveedor.telefono}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-slate-600">
-                    {proveedor.email}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-slate-600">
-                    {proveedor.barrio}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-center text-slate-600">
-                    {proveedor.cliente_id ? (
-                      <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-bold">
-                        #{proveedor.cliente_id}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400 text-xs">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={() => {
-                          setSelectedProveedor(proveedor);
-                          setFormProveedor(proveedor);
-                          setIsEditing(false);
-                        }}
-                        className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                        title="Ver proveedor"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedProveedor(proveedor);
-                          abrirEditarProveedor(proveedor);
-                        }}
-                        className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                        title="Editar proveedor"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleEliminarProveedor(proveedor.id)}
-                        className="text-red-600 hover:text-red-700 transition-colors"
-                        title="Eliminar proveedor"
-                        disabled={isSubmitting}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                  <tr key={proveedor.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <td className="px-4 py-3 text-sm font-medium text-center text-slate-800">
+                      {proveedor.nombre}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                      {proveedor.pais}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                      {proveedor.telefono}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                      {proveedor.email}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                      {proveedor.barrio}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                      {proveedor.cliente_id ? (
+                        <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-bold">
+                          #{proveedor.cliente_id}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedProveedor(proveedor);
+                            setFormProveedor(proveedor);
+                            setIsEditing(false);
+                          }}
+                          className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                          title="Ver proveedor"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedProveedor(proveedor);
+                            abrirEditarProveedor(proveedor);
+                          }}
+                          className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                          title="Editar proveedor"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleEliminarProveedor(proveedor.id)}
+                          className="text-red-600 hover:text-red-700 transition-colors"
+                          title="Eliminar proveedor"
+                          disabled={isSubmitting}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -336,7 +336,7 @@ const ProveedoresSection = () => {
 
       {/* MODAL: NUEVO/EDITAR PROVEEDOR */}
       {showNewModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4" style={{ zIndex: 9998 }}>
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4" style={{ zIndex: 9998 }}>
           <div className="bg-white rounded border border-slate-200 max-w-3xl w-full max-h-[95vh] flex flex-col">
             <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
               <h3 className="text-xl font-semibold">
@@ -467,7 +467,7 @@ const ProveedoresSection = () => {
 
       {/* MODAL: VER DETALLES PROVEEDOR */}
       {selectedProveedor && !isEditing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
               <h3 className="text-xl font-semibold">Detalles del Proveedor</h3>

@@ -167,7 +167,7 @@ const SelectorProductosStock = ({ onAgregarProducto }) => {
 
       {/* Modal de selector */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[85vh] flex flex-col">
             {/* Header del modal */}
             <div className="p-6 border-b border-slate-200 flex justify-between items-center">
@@ -226,11 +226,10 @@ const SelectorProductosStock = ({ onAgregarProducto }) => {
                         {/* Tipo */}
                         <div className="flex items-center justify-center gap-2 w-24 flex-shrink-0">
                           {getIconoTipo(producto._tipo)}
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                            producto._tipo === 'notebook' ? 'bg-blue-100 text-blue-700' :
-                            producto._tipo === 'celular' ? 'bg-purple-100 text-purple-700' :
-                            'bg-orange-100 text-orange-700'
-                          }`}>
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${producto._tipo === 'notebook' ? 'bg-blue-100 text-blue-700' :
+                              producto._tipo === 'celular' ? 'bg-purple-100 text-purple-700' :
+                                'bg-orange-100 text-orange-700'
+                            }`}>
                             {getLabelTipo(producto._tipo)}
                           </span>
                         </div>

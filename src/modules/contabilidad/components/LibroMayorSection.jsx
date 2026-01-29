@@ -190,7 +190,7 @@ const libroMayorService = {
     const hace30Dias = new Date(ahora);
     hace30Dias.setDate(ahora.getDate() - 30);
 
-    const movimientosRecientes = movimientos.filter(m => 
+    const movimientosRecientes = movimientos.filter(m =>
       new Date(m.asientos_contables.fecha) >= hace30Dias
     );
 
@@ -221,7 +221,7 @@ function useLibroMayor() {
       setError(null);
       const data = await libroMayorService.getCuentasConMovimientos();
       setCuentas(data);
-      
+
       // Obtener saldos para cada cuenta
       setLoadingSaldos(true);
       const cuentasConSaldosData = await Promise.all(
@@ -255,7 +255,7 @@ function useLibroMayor() {
       setError(null);
       const data = await libroMayorService.getLibroMayorCuenta(cuentaId, fechaDesde, fechaHasta);
       setLibroMayor(data);
-      
+
       // También obtener estadísticas
       const stats = await libroMayorService.getEstadisticasCuenta(cuentaId);
       setEstadisticas(stats);
@@ -427,8 +427,8 @@ const LibroMayorSection = () => {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { 
-      timeZone: 'America/Argentina/Buenos_Aires' 
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires'
     });
   };
 
@@ -502,13 +502,13 @@ const LibroMayorSection = () => {
             <div className="flex items-center space-x-3">
               <div>
                 <div className="flex items-center space-x-4">
-                                            <BookOpen size={28} className='mt-2'/>
-                
-                              <div>
-                                
-                                <p className="text-slate-200 mt-2">Seleccionar una cuenta para ver su libro mayor.</p>
-                              </div>
-                            </div>
+                  <BookOpen size={28} className='mt-2' />
+
+                  <div>
+
+                    <p className="text-slate-200 mt-2">Seleccionar una cuenta para ver su libro mayor.</p>
+                  </div>
+                </div>
               </div>
             </div>
             {cuentaSeleccionada && (
@@ -544,7 +544,7 @@ const LibroMayorSection = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cuentasFiltradas.map(cuenta => (
                   <button
@@ -743,439 +743,437 @@ const LibroMayorSection = () => {
                         </tr>
                       )}
 
-                                            {movimientosPaginados.map((mov, index) => (
+                      {movimientosPaginados.map((mov, index) => (
 
-                                              <tr key={index} onClick={() => abrirModalAsiento(mov.asiento_id)} className={`hover:bg-slate-100 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <tr key={index} onClick={() => abrirModalAsiento(mov.asiento_id)} className={`hover:bg-slate-100 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
 
-                                                <td className="py-3 px-4 text-sm text-slate-600 text-center">
+                          <td className="py-3 px-4 text-sm text-slate-600 text-center">
 
-                                                  {formatearFecha(mov.asientos_contables.fecha)}
+                            {formatearFecha(mov.asientos_contables.fecha)}
 
-                                                </td>
+                          </td>
 
-                                                <td className="py-3 px-4 text-center">
+                          <td className="py-3 px-4 text-center">
 
-                                                  <span className="text-sm font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                            <span className="text-sm font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
 
-                                                    N° {mov.asientos_contables.numero}
+                              N° {mov.asientos_contables.numero}
 
-                                                  </span>
+                            </span>
 
-                                                </td>
+                          </td>
 
-                                                <td className="py-3 px-4 text-sm text-slate-700 max-w-xs">
+                          <td className="py-3 px-4 text-sm text-slate-700 max-w-xs">
 
-                                                  <div className="truncate" title={mov.asientos_contables.descripcion}>
+                            <div className="truncate" title={mov.asientos_contables.descripcion}>
 
-                                                    {mov.asientos_contables.descripcion}
-
-                                                  </div>
-
-                                                </td>
-
-                                                <td className="text-center py-3 px-4 font-medium">
-
-                                                  {mov.debe > 0 ? (
-
-                                                    <div className="flex flex-col items-center">
-
-                                                      <span className="text-slate-800">{formatearMoneda(mov.debe, 'USD')}</span>
-
-                                                      {mov.debe_ars && (
-
-                                                        <span className="text-xs text-gray-500 mt-1">
-
-                                                          ({formatearMoneda(mov.debe_ars, 'ARS')})
-
-                                                        </span>
-
-                                                      )}
-
-                                                    </div>
-
-                                                  ) : '-'}
-
-                                                </td>
-
-                                                <td className="text-center py-3 px-4 font-medium">
-
-                                                  {mov.haber > 0 ? (
-
-                                                    <div className="flex flex-col items-center">
-
-                                                      <span className="text-slate-600">{formatearMoneda(mov.haber, 'USD')}</span>
-
-                                                      {mov.haber_ars && (
-
-                                                        <span className="text-xs text-gray-500 mt-1">
-
-                                                          ({formatearMoneda(mov.haber_ars, 'ARS')})
-
-                                                        </span>
-
-                                                      )}
-
-                                                    </div>
-
-                                                  ) : '-'}
-
-                                                </td>
-
-                                                <td className="text-center py-3 px-4 font-bold">
-
-                                                  <span className={getSaldoColor(libroMayor.cuenta.tipo)}>
-
-                                                    {formatearMoneda(Math.abs(mov.saldoActual))}
-
-                                                  </span>
-
-                                                </td>
-
-                                              </tr>
-
-                                            ))}
-
-                                          </tbody>
-
-                                          <tfoot className="bg-slate-800 text-white">
-
-                                            <tr className="font-bold">
-
-                                              <td colSpan="3" className="py-3 px-4 text-sm font-semibold">TOTALES DEL PERÍODO</td>
-
-                                              <td className="text-center py-3 px-4 text-sm font-semibold">
-
-                                                {formatearMoneda(libroMayor.totalDebe)}
-
-                                              </td>
-
-                                              <td className="text-center py-3 px-4 text-sm font-semibold">
-
-                                                {formatearMoneda(libroMayor.totalHaber)}
-
-                                              </td>
-
-                                              <td className="text-center py-3 px-4 text-sm font-semibold">
-
-                                                {formatearMoneda(Math.abs(libroMayor.saldoFinal))}
-
-                                              </td>
-
-                                            </tr>
-
-                                          </tfoot>
-
-                                        </table>
-
-                                      </div>
-
-                      
-
-                                      {/* Paginación */}
-
-                                      {totalPaginas > 1 && (
-
-                                        <div className="mt-6 flex items-center justify-between">
-
-                                          <div className="text-sm text-slate-600">
-
-                                            Mostrando {((paginaActual - 1) * movimientosPorPagina) + 1} a{
-
-                                              ' '}
-
-                                            {Math.min(paginaActual * movimientosPorPagina, libroMayor.movimientos.length)} de{
-
-                                              ' '}
-
-                                            {libroMayor.movimientos.length} movimientos
-
-                                          </div>
-
-                                          <div className="flex items-center space-x-2">
-
-                                            <button
-
-                                              onClick={() => setPaginaActual(Math.max(1, paginaActual - 1))}
-
-                                              disabled={paginaActual === 1}
-
-                                              className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-
-                                            >
-
-                                              <ChevronLeft size={16} />
-
-                                            </button>
-
-                                            <span className="px-4 py-2 text-sm font-medium text-slate-600">
-
-                                              Página {paginaActual} de {totalPaginas}
-
-                                            </span>
-
-                                            <button
-
-                                              onClick={() => setPaginaActual(Math.min(totalPaginas, paginaActual + 1))}
-
-                                              disabled={paginaActual === totalPaginas}
-
-                                              className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-
-                                            >
-
-                                              <ChevronRight size={16} />
-
-                                            </button>
-
-                                          </div>
-
-                                        </div>
-
-                                      )}
-
-                                    </div>
-
-                                  )}
-
-                                </>
-
-                              )}
+                              {mov.asientos_contables.descripcion}
 
                             </div>
 
-                            {/* Modal de detalle del asiento */}
+                          </td>
 
-                            {modalAsiento.open && modalAsiento.asiento && (
+                          <td className="text-center py-3 px-4 font-medium">
 
-                              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            {mov.debe > 0 ? (
 
-                                <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                              <div className="flex flex-col items-center">
 
-                                  {/* Header */}
+                                <span className="text-slate-800">{formatearMoneda(mov.debe, 'USD')}</span>
 
-                                  <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
+                                {mov.debe_ars && (
 
-                                    <div className="flex justify-between items-center">
+                                  <span className="text-xs text-gray-500 mt-1">
 
-                                      <div>
+                                    ({formatearMoneda(mov.debe_ars, 'ARS')})
 
-                                        <h2 className="text-xl font-semibold">Detalle del Asiento Contable</h2>
+                                  </span>
 
-                                        <p className="text-slate-300 text-sm mt-1">
-
-                                          Asiento N° {modalAsiento.asiento.numero} - {formatearFecha(modalAsiento.asiento.fecha)}
-
-                                        </p>
-
-                                      </div>
-
-                                      <button
-
-                                        onClick={() => setModalAsiento({ open: false, asiento: null })}
-
-                                        className="p-2 hover:bg-slate-700 rounded transition-colors"
-
-                                      >
-
-                                        <X size={20} />
-
-                                      </button>
-
-                                    </div>
-
-                                  </div>
-
-                      
-
-                                  {/* Contenido */}
-
-                                  <div className="p-6">
-
-                                    {/* Información del asiento */}
-
-                                    <div className="bg-slate-50 p-4 rounded border border-slate-200 mb-6">
-
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                        <div>
-
-                                          <p className="text-sm text-slate-600 mb-1">Descripción</p>
-
-                                          <p className="text-slate-800 font-medium">{modalAsiento.asiento.descripcion}</p>
-
-                                        </div>
-
-                                        <div>
-
-                                          <p className="text-sm text-slate-600 mb-1">Usuario</p>
-
-                                          <p className="text-slate-800 font-medium">{modalAsiento.asiento.usuario || 'N/A'}</p>
-
-                                        </div>
-
-                                        <div>
-
-                                          <p className="text-sm text-slate-600 mb-1">Estado</p>
-
-                                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-
-                                            modalAsiento.asiento.estado === 'registrado'
-
-                                              ? 'bg-emerald-100 text-emerald-800'
-
-                                              : 'bg-slate-100 text-slate-800'
-
-                                          }`}>
-
-                                            {modalAsiento.asiento.estado?.toUpperCase()}
-
-                                          </span>
-
-                                        </div>
-
-                                        <div>
-
-                                          <p className="text-sm text-slate-600 mb-1">Fecha</p>
-
-                                          <p className="text-slate-800 font-medium">{formatearFecha(modalAsiento.asiento.fecha)}</p>
-
-                                        </div>
-
-                                      </div>
-
-                                    </div>
-
-                      
-
-                                    {/* Tabla de movimientos */}
-
-                                    <div className="overflow-x-auto">
-
-                                      <table className="w-full">
-
-                                        <thead className="bg-slate-800 text-white">
-
-                                          <tr>
-
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
-
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cuenta</th>
-
-                                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Debe</th>
-
-                                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Haber</th>
-
-                                          </tr>
-
-                                        </thead>
-
-                                        <tbody className="divide-y divide-slate-200">
-
-                                          {modalAsiento.asiento.movimientos?.map((mov, index) => (
-
-                                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-
-                                              <td className="px-4 py-3 text-sm font-mono text-slate-600">
-
-                                                {mov.plan_cuentas?.codigo}
-
-                                              </td>
-
-                                              <td className="px-4 py-3 text-sm text-slate-800">
-
-                                                {mov.plan_cuentas?.nombre}
-
-                                              </td>
-
-                                              <td className="px-4 py-3 text-right text-sm font-medium text-emerald-600">
-
-                                                {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : '-'}
-
-                                              </td>
-
-                                              <td className="px-4 py-3 text-right text-sm font-medium text-slate-600">
-
-                                                {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : '-'}
-
-                                              </td>
-
-                                            </tr>
-
-                                          ))}
-
-                                        </tbody>
-
-                                        <tfoot className="bg-slate-800 text-white">
-
-                                          <tr>
-
-                                            <td colSpan="2" className="px-4 py-3 text-sm font-semibold">TOTALES</td>
-
-                                            <td className="px-4 py-3 text-right text-sm font-semibold">
-
-                                              {formatearMonto(modalAsiento.asiento.total_debe || 0, 'USD')}
-
-                                            </td>
-
-                                            <td className="px-4 py-3 text-right text-sm font-semibold">
-
-                                              {formatearMonto(modalAsiento.asiento.total_haber || 0, 'USD')}
-
-                                            </td>
-
-                                          </tr>
-
-                                        </tfoot>
-
-                                      </table>
-
-                                    </div>
-
-                      
-
-                                    {/* Observaciones si existen */}
-
-                                    {modalAsiento.asiento.observaciones && (
-
-                                      <div className="mt-6 bg-slate-50 p-4 rounded border border-slate-200">
-
-                                        <p className="text-sm text-slate-600 mb-2">Observaciones</p>
-
-                                        <p className="text-slate-800">{modalAsiento.asiento.observaciones}</p>
-
-                                      </div>
-
-                                    )}
-
-                                  </div>
-
-                      
-
-                                  {/* Footer */}
-
-                                  <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4 flex justify-end">
-
-                                    <button
-
-                                      onClick={() => setModalAsiento({ open: false, asiento: null })}
-
-                                      className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
-
-                                    >
-
-                                      Cerrar
-
-                                    </button>
-
-                                  </div>
-
-                                </div>
+                                )}
 
                               </div>
 
-                            )}
+                            ) : '-'}
 
-                          </div>
+                          </td>
+
+                          <td className="text-center py-3 px-4 font-medium">
+
+                            {mov.haber > 0 ? (
+
+                              <div className="flex flex-col items-center">
+
+                                <span className="text-slate-600">{formatearMoneda(mov.haber, 'USD')}</span>
+
+                                {mov.haber_ars && (
+
+                                  <span className="text-xs text-gray-500 mt-1">
+
+                                    ({formatearMoneda(mov.haber_ars, 'ARS')})
+
+                                  </span>
+
+                                )}
+
+                              </div>
+
+                            ) : '-'}
+
+                          </td>
+
+                          <td className="text-center py-3 px-4 font-bold">
+
+                            <span className={getSaldoColor(libroMayor.cuenta.tipo)}>
+
+                              {formatearMoneda(Math.abs(mov.saldoActual))}
+
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+                      ))}
+
+                    </tbody>
+
+                    <tfoot className="bg-slate-800 text-white">
+
+                      <tr className="font-bold">
+
+                        <td colSpan="3" className="py-3 px-4 text-sm font-semibold">TOTALES DEL PERÍODO</td>
+
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
+
+                          {formatearMoneda(libroMayor.totalDebe)}
+
+                        </td>
+
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
+
+                          {formatearMoneda(libroMayor.totalHaber)}
+
+                        </td>
+
+                        <td className="text-center py-3 px-4 text-sm font-semibold">
+
+                          {formatearMoneda(Math.abs(libroMayor.saldoFinal))}
+
+                        </td>
+
+                      </tr>
+
+                    </tfoot>
+
+                  </table>
+
+                </div>
+
+
+
+                {/* Paginación */}
+
+                {totalPaginas > 1 && (
+
+                  <div className="mt-6 flex items-center justify-between">
+
+                    <div className="text-sm text-slate-600">
+
+                      Mostrando {((paginaActual - 1) * movimientosPorPagina) + 1} a{
+
+                        ' '}
+
+                      {Math.min(paginaActual * movimientosPorPagina, libroMayor.movimientos.length)} de{
+
+                        ' '}
+
+                      {libroMayor.movimientos.length} movimientos
+
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+
+                      <button
+
+                        onClick={() => setPaginaActual(Math.max(1, paginaActual - 1))}
+
+                        disabled={paginaActual === 1}
+
+                        className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                      >
+
+                        <ChevronLeft size={16} />
+
+                      </button>
+
+                      <span className="px-4 py-2 text-sm font-medium text-slate-600">
+
+                        Página {paginaActual} de {totalPaginas}
+
+                      </span>
+
+                      <button
+
+                        onClick={() => setPaginaActual(Math.min(totalPaginas, paginaActual + 1))}
+
+                        disabled={paginaActual === totalPaginas}
+
+                        className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                      >
+
+                        <ChevronRight size={16} />
+
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                )}
+
+              </div>
+
+            )}
+
+          </>
+
+        )}
+
+      </div>
+
+      {/* Modal de detalle del asiento */}
+
+      {modalAsiento.open && modalAsiento.asiento && (
+
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+
+          <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+
+            {/* Header */}
+
+            <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
+
+              <div className="flex justify-between items-center">
+
+                <div>
+
+                  <h2 className="text-xl font-semibold">Detalle del Asiento Contable</h2>
+
+                  <p className="text-slate-300 text-sm mt-1">
+
+                    Asiento N° {modalAsiento.asiento.numero} - {formatearFecha(modalAsiento.asiento.fecha)}
+
+                  </p>
+
+                </div>
+
+                <button
+
+                  onClick={() => setModalAsiento({ open: false, asiento: null })}
+
+                  className="p-2 hover:bg-slate-700 rounded transition-colors"
+
+                >
+
+                  <X size={20} />
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+
+            {/* Contenido */}
+
+            <div className="p-6">
+
+              {/* Información del asiento */}
+
+              <div className="bg-slate-50 p-4 rounded border border-slate-200 mb-6">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+
+                    <p className="text-sm text-slate-600 mb-1">Descripción</p>
+
+                    <p className="text-slate-800 font-medium">{modalAsiento.asiento.descripcion}</p>
+
+                  </div>
+
+                  <div>
+
+                    <p className="text-sm text-slate-600 mb-1">Usuario</p>
+
+                    <p className="text-slate-800 font-medium">{modalAsiento.asiento.usuario || 'N/A'}</p>
+
+                  </div>
+
+                  <div>
+
+                    <p className="text-sm text-slate-600 mb-1">Estado</p>
+
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${modalAsiento.asiento.estado === 'registrado'
+
+                        ? 'bg-emerald-100 text-emerald-800'
+
+                        : 'bg-slate-100 text-slate-800'
+
+                      }`}>
+
+                      {modalAsiento.asiento.estado?.toUpperCase()}
+
+                    </span>
+
+                  </div>
+
+                  <div>
+
+                    <p className="text-sm text-slate-600 mb-1">Fecha</p>
+
+                    <p className="text-slate-800 font-medium">{formatearFecha(modalAsiento.asiento.fecha)}</p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+
+              {/* Tabla de movimientos */}
+
+              <div className="overflow-x-auto">
+
+                <table className="w-full">
+
+                  <thead className="bg-slate-800 text-white">
+
+                    <tr>
+
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
+
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cuenta</th>
+
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Debe</th>
+
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Haber</th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-200">
+
+                    {modalAsiento.asiento.movimientos?.map((mov, index) => (
+
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+
+                        <td className="px-4 py-3 text-sm font-mono text-slate-600">
+
+                          {mov.plan_cuentas?.codigo}
+
+                        </td>
+
+                        <td className="px-4 py-3 text-sm text-slate-800">
+
+                          {mov.plan_cuentas?.nombre}
+
+                        </td>
+
+                        <td className="px-4 py-3 text-right text-sm font-medium text-emerald-600">
+
+                          {mov.debe > 0 ? formatearMonto(mov.debe, 'USD') : '-'}
+
+                        </td>
+
+                        <td className="px-4 py-3 text-right text-sm font-medium text-slate-600">
+
+                          {mov.haber > 0 ? formatearMonto(mov.haber, 'USD') : '-'}
+
+                        </td>
+
+                      </tr>
+
+                    ))}
+
+                  </tbody>
+
+                  <tfoot className="bg-slate-800 text-white">
+
+                    <tr>
+
+                      <td colSpan="2" className="px-4 py-3 text-sm font-semibold">TOTALES</td>
+
+                      <td className="px-4 py-3 text-right text-sm font-semibold">
+
+                        {formatearMonto(modalAsiento.asiento.total_debe || 0, 'USD')}
+
+                      </td>
+
+                      <td className="px-4 py-3 text-right text-sm font-semibold">
+
+                        {formatearMonto(modalAsiento.asiento.total_haber || 0, 'USD')}
+
+                      </td>
+
+                    </tr>
+
+                  </tfoot>
+
+                </table>
+
+              </div>
+
+
+
+              {/* Observaciones si existen */}
+
+              {modalAsiento.asiento.observaciones && (
+
+                <div className="mt-6 bg-slate-50 p-4 rounded border border-slate-200">
+
+                  <p className="text-sm text-slate-600 mb-2">Observaciones</p>
+
+                  <p className="text-slate-800">{modalAsiento.asiento.observaciones}</p>
+
+                </div>
+
+              )}
+
+            </div>
+
+
+
+            {/* Footer */}
+
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4 flex justify-end">
+
+              <button
+
+                onClick={() => setModalAsiento({ open: false, asiento: null })}
+
+                className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+
+              >
+
+                Cerrar
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+    </div>
   );
 };
 

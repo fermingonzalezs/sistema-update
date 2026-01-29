@@ -78,13 +78,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Generador de listas'
         },
         {
-          id: 'listas-revendedores',
-          path: '/listas-revendedores',
-          label: 'Listas Revendedores',
-          icon: Users,
-          description: 'Precios para reventa'
-        },
-        {
           id: 'clientes',
           path: '/clientes',
           label: 'Clientes',
@@ -294,7 +287,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
   // Filtrar grupos según el nivel de usuario
   const allowedSections = getAllowedSections();
   const filteredMenuGroups = menuGroups.filter(group =>
-    user?.nivel === 'admin' || allowedSections.includes(group.level)
+    user?.user_metadata?.nivel === 'admin' || allowedSections.includes(group.level)
   );
 
   // Función para alternar el estado expandido de una sección
@@ -352,7 +345,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                       className={`w-full bg-emerald-600 p-3 rounded-lg mb-3 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
                         } hover:bg-emerald-600/80`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="relative flex items-center justify-center">
                         <h3 className="text-sm font-bold text-white tracking-wider flex items-center space-x-2">
                           <span>{group.title}</span>
                           {isGroupDisabled && (
@@ -364,7 +357,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                             </div>
                           )}
                         </h3>
-                        <div className="flex items-center">
+                        <div className="absolute right-0 flex items-center">
                           {isExpanded ? (
                             <ChevronDown className="w-4 h-4 text-white" />
                           ) : (
@@ -391,7 +384,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                     <div className="space-y-1 pb-2">
                       {group.items.map((item) => {
                         const Icon = item.icon;
-                        const isItemDisabled = item.disabled || isGroupDisabled || !hasAccess(item.id);
+                        const isItemDisabled = item.disabled || isGroupDisabled;
 
                         if (isItemDisabled) {
                           return (
@@ -413,12 +406,12 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                     <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
                                       <Icon className="w-4 h-4" />
                                     </div>
-                                    <div className="text-left">
+                                    <div className="text-left w-full min-w-0">
                                       <div className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
                                         <span>{item.label}</span>
-                                        <AlertCircle className="w-3 h-3 opacity-50" />
+                                        <AlertCircle className="w-3 h-3 opacity-50 flex-shrink-0" />
                                       </div>
-                                      <div className="text-xs text-slate-200/70">
+                                      <div className="text-xs text-slate-200/70 truncate" title={item.description}>
                                         {item.description}
                                       </div>
                                     </div>
@@ -459,23 +452,25 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                       }`}>
                                       <Icon className="w-4 h-4" />
                                     </div>
-                                    <div className="text-left">
+                                    <div className="text-left w-full min-w-0">
                                       <div className={`text-sm font-semibold ${isActive
                                         ? 'text-slate-800'
                                         : 'text-slate-200 group-hover:text-white'
                                         }`}>
                                         {item.label}
                                       </div>
-                                      <div className={`text-xs ${isActive
+                                      <div className={`text-xs truncate ${isActive
                                         ? 'text-slate-800/70'
                                         : 'text-slate-200/70 group-hover:text-slate-200'
-                                        }`}>
+                                        }`}
+                                        title={item.description}
+                                      >
                                         {item.description}
                                       </div>
                                     </div>
                                   </div>
                                   {isActive && (
-                                    <div className="w-2 h-2 bg-emerald-600 rounded-full shadow-sm" />
+                                    <div className="w-2 h-2 bg-emerald-600 rounded-full shadow-sm flex-shrink-0" />
                                   )}
                                 </div>
                               )

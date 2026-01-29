@@ -75,20 +75,6 @@ const AppWithAuth = () => {
     setNeedsPasswordSetup(null);
   };
 
-  // Mostrar loading mientras se verifica autenticación
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-gray-900">
-            Verificando autenticación...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Si necesita configurar contraseña
   if (needsPasswordSetup) {
     return (
@@ -101,21 +87,36 @@ const AppWithAuth = () => {
     );
   }
 
-  // Si no está autenticado, mostrar login
-  if (!isAuthenticated) {
-    return (
-      <Login
-        onLogin={handleLogin}
-        error={error}
-        loading={loading}
-      />
-    );
-  }
-
-  // Si está autenticado, mostrar la aplicación principal con AppProvider
+  // Renderizado condicional
   return (
     <AppProvider>
-      <AppContent />
+      <div className="relative h-screen w-screen overflow-hidden">
+        <div className={`h-full w-full transition-all duration-500 ease-in-out ${!isAuthenticated || loading ? 'filter blur-[8px] scale-[1.01] pointer-events-none select-none brightness-50' : 'filter-none'}`}>
+          <AppContent />
+        </div>
+
+        {/* Loading Overlay - Spinning Logo */}
+        {loading && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <div className="w-24 h-24 flex items-center justify-center bg-slate-800/50 rounded-full cursor-default border border-slate-700/50 backdrop-blur-sm shadow-lg animate-pulse">
+              <img
+                src="/logo.png"
+                alt="Cargando..."
+                className="w-16 h-16 object-contain drop-shadow-lg animate-[spin_3s_linear_infinite]"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Login Overlay */}
+        {!isAuthenticated && !loading && (
+          <Login
+            onLogin={handleLogin}
+            error={error}
+            loading={loading}
+          />
+        )}
+      </div>
     </AppProvider>
   );
 };

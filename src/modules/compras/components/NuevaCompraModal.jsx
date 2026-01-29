@@ -450,7 +450,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-200 max-w-7xl w-full max-h-[95vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
@@ -576,11 +576,10 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <button
                   onClick={() => setModoAgregar('individual')}
-                  className={`p-6 rounded border-2 transition-all ${
-                    modoAgregar === 'individual'
-                      ? 'border-emerald-600 bg-emerald-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
+                  className={`p-6 rounded border-2 transition-all ${modoAgregar === 'individual'
+                    ? 'border-emerald-600 bg-emerald-50'
+                    : 'border-slate-200 hover:border-slate-300'
+                    }`}
                   disabled={procesando}
                 >
                   <Package size={24} className="mx-auto mb-2" />
@@ -597,11 +596,10 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                     setMostrarModalMasivo(true);
                   }}
                   disabled={items.length >= 50 || procesando}
-                  className={`p-6 rounded border-2 transition-all ${
-                    items.length >= 50
-                      ? 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
-                      : 'border-slate-200 hover:border-emerald-600'
-                  }`}
+                  className={`p-6 rounded border-2 transition-all ${items.length >= 50
+                    ? 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
+                    : 'border-slate-200 hover:border-emerald-600'
+                    }`}
                 >
                   <PackageOpen size={24} className="mx-auto mb-2" />
                   <p className="font-semibold text-slate-800">Carga Masiva</p>
@@ -765,7 +763,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
       {/* MODAL DE SELECCIÓN DE DESTINO */}
       {mostrarModalDestino && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/70 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded border border-slate-200 max-w-md w-full p-6 space-y-6">
             <h3 className="text-xl font-semibold text-slate-800">Seleccionar Destino</h3>
 

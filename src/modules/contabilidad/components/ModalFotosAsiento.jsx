@@ -112,7 +112,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-slate-800 p-6 text-white flex items-center justify-between">
@@ -147,11 +147,10 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={subiendo}
-                  className={`px-4 py-2 rounded flex items-center space-x-2 transition-colors ${
-                    subiendo
+                  className={`px-4 py-2 rounded flex items-center space-x-2 transition-colors ${subiendo
                       ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
+                    }`}
                 >
                   {subiendo ? (
                     <>

@@ -19,9 +19,9 @@ class CotizacionServiceUnificado {
         name: 'DolarAPI',
         url: 'https://dolarapi.com/v1/dolares/blue',
         parseResponse: (data) => ({
-          compra: data.compra,
-          venta: data.venta,
-          promedio: (data.compra + data.venta) / 2,
+          compra: Math.floor(data.compra),
+          venta: Math.floor(data.venta),
+          promedio: Math.floor((data.compra + data.venta) / 2),
           fecha: data.fechaActualizacion
         })
       },

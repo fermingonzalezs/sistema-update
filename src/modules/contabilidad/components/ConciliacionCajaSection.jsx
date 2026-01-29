@@ -136,10 +136,10 @@ const conciliacionCajaService = {
     // Crear el asiento principal
     const { data: asiento, error: errorAsiento } = await supabase
       .from('asientos_contables')
-      .insert([{        numero: numeroAsiento,        fecha: obtenerFechaLocal(),        descripcion: descripcion,        total_debe: Math.abs(diferencia),        total_haber: Math.abs(diferencia),        estado: 'registrado',        usuario: 'admin'      }])      .select()      .single();
+      .insert([{ numero: numeroAsiento, fecha: obtenerFechaLocal(), descripcion: descripcion, total_debe: Math.abs(diferencia), total_haber: Math.abs(diferencia), estado: 'registrado', usuario: 'admin' }]).select().single();
     if (errorAsiento) throw errorAsiento;
     // Crear el movimiento de ajuste en la cuenta de caja
-    const movimiento = {      asiento_id: asiento.id,      cuenta_id: cuentaId,      debe: diferencia > 0 ? diferencia : 0,      haber: diferencia < 0 ? Math.abs(diferencia) : 0    };
+    const movimiento = { asiento_id: asiento.id, cuenta_id: cuentaId, debe: diferencia > 0 ? diferencia : 0, haber: diferencia < 0 ? Math.abs(diferencia) : 0 };
     const { error: errorMovimiento } = await supabase
       .from('movimientos_contables')
       .insert([movimiento]);
@@ -251,7 +251,7 @@ function useConciliacionCaja() {
     try {
       setLoading(true);
       setError(null);
-            
+
       const [saldo, movimientos, conciliaciones] = await Promise.all([
         conciliacionCajaService.getSaldoContableCaja(cuentaId, fechaCorte),
         conciliacionCajaService.getUltimosMovimientosCaja(cuentaId),
@@ -392,7 +392,7 @@ const ConciliacionCajaSection = () => {
 
   // Determinar si es cuenta en pesos
   const esMonedaARS = cuentaSeleccionada?.moneda_original === 'ARS' ||
-                     cuentaSeleccionada?.requiere_cotizacion;
+    cuentaSeleccionada?.requiere_cotizacion;
 
   // Calcular saldo físico en moneda nativa
   const saldoFisico = esMonedaARS
@@ -438,16 +438,16 @@ const ConciliacionCajaSection = () => {
       setMontoFisico('');
       setMontoFisicoARS('');
       setObservaciones('');
-      
+
       // Refrescar datos para mostrar el nuevo saldo
       fetchDatosCuenta(cuentaSeleccionada.id, fechaConciliacion);
-      
+
       if (diferencia === 0) {
         alert('✅ Cuenta conciliada correctamente');
       } else {
         alert(`✅ Conciliación guardada con diferencia de ${formatearMoneda(diferencia)}\n\n` +
-              `📝 IMPORTANTE: Debe crear manualmente un asiento de ajuste en el Libro Diario para registrar ` +
-              `el ${diferencia > 0 ? 'sobrante' : 'faltante'} en la cuenta.`);
+          `📝 IMPORTANTE: Debe crear manualmente un asiento de ajuste en el Libro Diario para registrar ` +
+          `el ${diferencia > 0 ? 'sobrante' : 'faltante'} en la cuenta.`);
       }
     } catch (err) {
       alert('❌ Error: ' + err.message);
@@ -502,7 +502,7 @@ const ConciliacionCajaSection = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="p-0">
       {/* Header */}
@@ -536,7 +536,7 @@ const ConciliacionCajaSection = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Tarjetas de totales */}
       {!cuentaSeleccionada && cuentasCajaConSaldos.length > 0 && (
         <div className="bg-slate-50 p-4 border-b border-slate-200">
@@ -548,9 +548,9 @@ const ConciliacionCajaSection = () => {
                 cuentasCajaConSaldos
                   .filter(c =>
                     (c.codigo.startsWith('1.1.01.01') ||
-                     c.codigo.startsWith('1.1.01.02') ||
-                     c.codigo.startsWith('1.1.01.03') ||
-                     c.codigo.startsWith('1.1.01.05')) &&
+                      c.codigo.startsWith('1.1.01.02') ||
+                      c.codigo.startsWith('1.1.01.03') ||
+                      c.codigo.startsWith('1.1.01.05')) &&
                     c.moneda_original === 'USD' &&
                     !c.requiere_cotizacion
                   )
@@ -593,41 +593,41 @@ const ConciliacionCajaSection = () => {
             {cuentasCajaConSaldos
               .filter(cuenta => (cuenta.saldoActual || 0) !== 0)
               .map(cuenta => {
-              const esARS = cuenta.moneda_original === 'ARS' || cuenta.requiere_cotizacion;
-              return (
-                <button
-                  key={cuenta.id}
-                  onClick={() => seleccionarCuenta(cuenta)}
-                  className="p-6 rounded border border-slate-200 hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center gap-4"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <div className="font-bold text-slate-800 truncate">{cuenta.nombre}</div>
-                      {esARS && (
-                        <span className="px-2 py-1 bg-slate-600 text-white text-xs rounded flex-shrink-0">ARS</span>
-                      )}
+                const esARS = cuenta.moneda_original === 'ARS' || cuenta.requiere_cotizacion;
+                return (
+                  <button
+                    key={cuenta.id}
+                    onClick={() => seleccionarCuenta(cuenta)}
+                    className="p-6 rounded border border-slate-200 hover:border-slate-800 hover:bg-slate-50 transition-colors text-left flex justify-between items-center gap-4"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <div className="font-bold text-slate-800 truncate">{cuenta.nombre}</div>
+                        {esARS && (
+                          <span className="px-2 py-1 bg-slate-600 text-white text-xs rounded flex-shrink-0">ARS</span>
+                        )}
+                      </div>
+                      <code className="text-sm text-slate-600 font-mono">
+                        {cuenta.codigo}
+                      </code>
                     </div>
-                    <code className="text-sm text-slate-600 font-mono">
-                      {cuenta.codigo}
-                    </code>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <div className="text-xs text-slate-500 mb-1 whitespace-nowrap">Saldo</div>
-                    <div className={`font-semibold text-base whitespace-nowrap ${(cuenta.saldoActual || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {loadingSaldos ? (
-                        <span className="text-slate-400">Cargando...</span>
-                      ) : (
-                        formatearMonto(Math.abs(cuenta.saldoActual || 0), cuenta.moneda_original || 'USD')
-                      )}
+                    <div className="flex flex-col items-end flex-shrink-0">
+                      <div className="text-xs text-slate-500 mb-1 whitespace-nowrap">Saldo</div>
+                      <div className={`font-semibold text-base whitespace-nowrap ${(cuenta.saldoActual || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {loadingSaldos ? (
+                          <span className="text-slate-400">Cargando...</span>
+                        ) : (
+                          formatearMonto(Math.abs(cuenta.saldoActual || 0), cuenta.moneda_original || 'USD')
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
-      
+
       {/* Vista de conciliación */}
       {cuentaSeleccionada && (
         <div className="mt-6">
@@ -677,9 +677,8 @@ const ConciliacionCajaSection = () => {
                           <tr
                             key={index}
                             onClick={() => abrirModalAsiento(mov.asiento_id)}
-                            className={`cursor-pointer hover:bg-slate-100 transition-colors ${
-                              index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
-                            }`}
+                            className={`cursor-pointer hover:bg-slate-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+                              }`}
                           >
                             <td className="px-4 py-3 text-sm text-slate-600 text-center whitespace-nowrap">
                               {formatearFecha(mov.asientos_contables.fecha)}
@@ -716,7 +715,7 @@ const ConciliacionCajaSection = () => {
               {/* Columna Derecha: Conciliación */}
               <div className="lg:col-span-1 space-y-6">
                 <div className="bg-white border border-slate-200 rounded">
-                  
+
                   <div className="p-4 space-y-4">
                     {esMonedaARS ? (
                       /* Campos para cuentas en pesos */
@@ -785,10 +784,9 @@ const ConciliacionCajaSection = () => {
                     <div className="border-t-2 border-slate-200 pt-4 mt-4">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-lg text-slate-800">Diferencia:</span>
-                        <span className={`font-bold text-2xl ${
-                          diferencia === 0 ? 'text-emerald-600' : 
-                          diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
-                        }`}>
+                        <span className={`font-bold text-2xl ${diferencia === 0 ? 'text-emerald-600' :
+                            diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
+                          }`}>
                           {diferencia > 0 ? '+' : ''}{formatearMoneda(diferencia)}
                         </span>
                       </div>
@@ -856,18 +854,16 @@ const ConciliacionCajaSection = () => {
                             <td className="py-2 px-3 text-slate-800 text-sm text-center">{formatearHora(conc.created_at)}</td>
                             <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_contable)}</td>
                             <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_fisico)}</td>
-                            <td className={`text-center py-2 px-3 font-bold ${
-                              conc.diferencia === 0 ? 'text-emerald-600' :
-                              conc.diferencia > 0 ? 'text-emerald-600' : 'text-red-600'
-                            }`}>
+                            <td className={`text-center py-2 px-3 font-bold ${conc.diferencia === 0 ? 'text-emerald-600' :
+                                conc.diferencia > 0 ? 'text-emerald-600' : 'text-red-600'
+                              }`}>
                               {conc.diferencia > 0 ? '+' : conc.diferencia < 0 ? '-' : ''}{formatearMoneda(Math.abs(conc.diferencia))}
                             </td>
                             <td className="text-center py-2 px-3">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                conc.estado === 'conciliado'
-                                   ? 'bg-emerald-100 text-emerald-800'
-                                   : 'bg-slate-100 text-slate-800'
-                              }`}>
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${conc.estado === 'conciliado'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-slate-100 text-slate-800'
+                                }`}>
                                 {conc.estado === 'conciliado' ? 'Conciliado' : 'Diferencia'}
                               </span>
                             </td>
@@ -882,7 +878,7 @@ const ConciliacionCajaSection = () => {
           )}
         </div>
       )}
-      
+
       {/* Error */}
       {error && (
         <div className="mt-6 bg-slate-50 border-l-4 border-slate-600 p-4">
@@ -893,7 +889,7 @@ const ConciliacionCajaSection = () => {
 
       {/* Modal de detalle del asiento */}
       {modalAsiento.open && modalAsiento.asiento && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
@@ -928,11 +924,10 @@ const ConciliacionCajaSection = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 mb-1">Estado</p>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      modalAsiento.asiento.estado === 'registrado'
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${modalAsiento.asiento.estado === 'registrado'
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-slate-100 text-slate-800'
-                    }`}>
+                      }`}>
                       {modalAsiento.asiento.estado?.toUpperCase()}
                     </span>
                   </div>

@@ -239,7 +239,7 @@ export const useCargaMasiva = (tipoEquipo) => {
                     ...(item.precio_venta_usd !== undefined && item.precio_venta_usd !== '' && { precio_venta_usd: item.precio_venta_usd }),
                     // Para celulares: agregar porcentaje de batería solo si NO es nuevo
                     // Los celulares nuevos no necesitan especificar batería
-                    ...(tipoEquipo === 'celular' && datosComunes.condicion !== 'nuevo' && { bateria: `${item.bateria ?? 100}%` })
+                    ...(tipoEquipo === 'celular' && datosComunes.condicion !== 'nuevo' && { bateria: item.bateria ?? 100 })
                 };
 
                 // Para tipo "otro" con categoría DESKTOP o TABLETS, procesar especificaciones

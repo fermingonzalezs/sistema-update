@@ -231,7 +231,7 @@ const CargaMasivaCompras = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-200 max-w-7xl w-full max-h-[95vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
@@ -266,11 +266,10 @@ const CargaMasivaCompras = ({
                 {/* Celulares */}
                 <button
                   onClick={() => handleTipoChange('celular')}
-                  className={`p-8 rounded border-2 transition-all text-center ${
-                    tipoEquipo === 'celular'
+                  className={`p-8 rounded border-2 transition-all text-center ${tipoEquipo === 'celular'
                       ? 'border-emerald-600 bg-emerald-50'
                       : 'border-slate-200 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
                   <Smartphone size={48} className="mx-auto mb-4 text-slate-700" />
                   <h5 className="text-lg font-semibold text-slate-800 mb-2">Celulares</h5>
@@ -282,11 +281,10 @@ const CargaMasivaCompras = ({
                 {/* Notebooks */}
                 <button
                   onClick={() => handleTipoChange('notebook')}
-                  className={`p-8 rounded border-2 transition-all text-center ${
-                    tipoEquipo === 'notebook'
+                  className={`p-8 rounded border-2 transition-all text-center ${tipoEquipo === 'notebook'
                       ? 'border-emerald-600 bg-emerald-50'
                       : 'border-slate-200 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
                   <Monitor size={48} className="mx-auto mb-4 text-slate-700" />
                   <h5 className="text-lg font-semibold text-slate-800 mb-2">Notebooks</h5>
@@ -298,11 +296,10 @@ const CargaMasivaCompras = ({
                 {/* Otros */}
                 <button
                   onClick={() => handleTipoChange('otro')}
-                  className={`p-8 rounded border-2 transition-all text-center ${
-                    tipoEquipo === 'otro'
+                  className={`p-8 rounded border-2 transition-all text-center ${tipoEquipo === 'otro'
                       ? 'border-emerald-600 bg-emerald-50'
                       : 'border-slate-200 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
                   <Package size={48} className="mx-auto mb-4 text-slate-700" />
                   <h5 className="text-lg font-semibold text-slate-800 mb-2">Otros Productos</h5>
