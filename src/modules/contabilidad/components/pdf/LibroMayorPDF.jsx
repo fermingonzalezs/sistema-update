@@ -280,7 +280,7 @@ const LibroMayorPDF = ({ libroMayor, fechaDesde, fechaHasta }) => {
   // Función para formatear monto con signo
   const formatearMontoConSigno = (valor, moneda = 'USD') => {
     const valorNum = parseFloat(valor) || 0;
-    const signo = valorNum >= 0 ? '-' : '+';
+    const signo = valorNum >= 0 ? '+' : '-';
     return `${signo} ${formatearMonto(Math.abs(valorNum), moneda)}`;
   };
 
