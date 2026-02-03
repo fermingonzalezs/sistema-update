@@ -73,6 +73,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const { vendedores, loading: loadingVendedores, fetchVendedores } = useVendedores();
   const [editandoCotizacion, setEditandoCotizacion] = useState(false);
 
+  // Debug: mostrar estado de vendedores y cajas
+  console.log('🔍 Estado actual - vendedores:', vendedores?.length || 0, 'cajas:', cajas?.length || 0, 'loadingVendedores:', loadingVendedores);
+
   // Estados para edición de precios
   const [editandoPrecio, setEditandoPrecio] = useState(null); // ID del item siendo editado
   const [precioEditado, setPrecioEditado] = useState(''); // Valor temporal del precio
@@ -136,6 +139,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Cargar cajas del plan de cuentas
   const cargarCajas = async () => {
+    console.log('🔄 Iniciando carga de cajas...');
     try {
       const { data, error } = await supabase
         .from('plan_cuentas')
@@ -145,14 +149,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         .order('codigo');
 
       if (error) {
-        console.error('Error cargando cajas:', error);
+        console.error('❌ Error cargando cajas:', error);
         return;
       }
 
+      console.log('✅ Cajas cargadas:', data?.length || 0, data);
       setCajas(data || []);
-      console.log('✅ Cajas cargadas:', data?.length || 0);
     } catch (error) {
-      console.error('Error cargando cajas:', error);
+      console.error('❌ Error cargando cajas:', error);
     }
   };
 
@@ -172,7 +176,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   };
 
   useEffect(() => {
-    fetchVendedores();
+    console.log('🚀 useEffect CarritoWidget - Cargando datos iniciales...');
+    fetchVendedores().then(v => console.log('📋 Vendedores obtenidos:', v?.length || 0, v));
     // Cargar cotización inicial
     cargarCotizacionInicial();
     // Cargar cajas del plan de cuentas
@@ -237,6 +242,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   const calcularCantidadTotal = () => {
     return carrito.reduce((total, item) => total + item.cantidad, 0);
+  };
+
+  // Calcular el monto total cobrado (suma de los montos de pago ingresados, ya convertidos a USD)
+  const calcularMontoCobrado = () => {
+    const monto1 = datosCliente.monto_pago_1 || 0;
+    const monto2 = datosCliente.monto_pago_2 || 0;
+    const monto3 = datosCliente.monto_pago_3 || 0;
+    return monto1 + monto2 + monto3;
   };
 
   const getIconoTipo = (tipo) => {
@@ -702,9 +715,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       console.log('✅ Venta procesada exitosamente en la BD');
 
       // ✅ MOSTRAR MENSAJE DE ÉXITO personalizado
+      const montoCobradoTotal = calcularMontoCobrado();
       let mensajeExito = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-        ? `✅ Venta a CUENTA CORRIENTE procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}\n\n📝 El saldo se registró en la cuenta corriente del cliente.`
-        : `✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nTotal: $${calcularTotal().toFixed(2)}`;
+        ? `✅ Venta a CUENTA CORRIENTE procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nMonto cobrado: U$${Math.round(montoCobradoTotal)}\n\n📝 El saldo se registró en la cuenta corriente del cliente.`
+        : `✅ Venta procesada exitosamente!\n\nTransacción: ${numeroTransaccion}\nCliente: ${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}\nMonto cobrado: U$${Math.round(montoCobradoTotal)}`;
 
       // ⚠️ AGREGAR ADVERTENCIA SI HAY PRODUCTOS DE OTRA SUCURSAL
       if (transaccionResultado && transaccionResultado.productosConAdvertencia && transaccionResultado.productosConAdvertencia.length > 0) {
@@ -1499,8 +1513,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           <p className="text-sm font-medium text-slate-800">{formatearFechaDisplay(fechaVenta)}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
-                          <p className="text-sm font-medium text-slate-800">U${Math.round(calcularTotal())}</p>
+                          <p className="text-xs text-slate-600 font-medium uppercase mb-1">Monto Cobrado</p>
+                          <p className="text-sm font-medium text-emerald-700 font-bold">U${Math.round(calcularMontoCobrado())}</p>
                         </div>
                       </div>
 
