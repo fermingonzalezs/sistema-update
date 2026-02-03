@@ -35,8 +35,8 @@ const Layout = () => {
           activeSection={getActiveSection()}
           isSidebarCollapsed={isCollapsed}
         />
-        <main className="flex-1 p-8 overflow-y-auto bg-slate-200">
-          <Outlet />
+        <main className="flex-1 p-8 overflow-auto bg-slate-200">
+          <Outlet context={{ isSidebarCollapsed: isCollapsed }} />
         </main>
       </div>
     </div>

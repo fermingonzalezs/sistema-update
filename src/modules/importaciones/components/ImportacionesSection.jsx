@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useImportaciones } from '../hooks/useImportaciones';
@@ -31,6 +32,7 @@ const METODOS_PAGO = [
 ];
 
 const ImportacionesSection = () => {
+  const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
   const {
     recibos,
     loading,
@@ -345,7 +347,7 @@ const ImportacionesSection = () => {
 
       {/* TABLA DE RECIBOS */}
       {!loading && !error && (
-        <div className="bg-white rounded border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded border border-slate-200">
           {recibosFiltrados.length === 0 ? (
             <div className="p-8 text-center text-slate-600">
               <AlertCircle size={32} className="mx-auto mb-3 text-slate-400" />
@@ -353,149 +355,156 @@ const ImportacionesSection = () => {
               <p className="text-sm text-slate-500 mt-1">Haz clic en "Nueva Importación" para agregar una</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1200px]">
-                <thead className="bg-slate-800 text-white">
-                  <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">N°</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha Compra</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha Recepción</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {recibosFiltrados.map((recibo, idx) => (
-                    <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-4 py-3 text-sm font-medium text-center text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.numero_recibo}>
-                        {recibo.numero_recibo}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                        {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                        {recibo.fecha_recepcion_argentina
-                          ? new Date(recibo.fecha_recepcion_argentina).toLocaleDateString('es-AR')
-                          : '-'
-                        }
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.proveedores?.nombre || '-'}>
-                        {recibo.proveedores?.nombre || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                        {recibo.importaciones_items?.length || 0}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
-                        USD ${formatNumber(
-                          (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
-                        {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
-                          `USD $${formatNumber(
-                            (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
-                          )}`
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${getEstadoColor(recibo.estado)}`}>
-                          {getEstadoLabel(recibo.estado)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap overflow-hidden text-ellipsis" title={recibo.observaciones || '-'}>
-                        {recibo.observaciones || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex justify-end gap-3">
-                          {/* Botón para retroceder al estado anterior */}
-                          {recibo.estado !== ESTADOS_IMPORTACION.EN_TRANSITO_USA && (() => {
-                            const estadoAnterior = obtenerEstadoAnterior(recibo.estado);
-                            if (!estadoAnterior) return null;
-
-                            const IconoAnterior = {
-                              'TrendingUp': TrendingUp,
-                              'Package': Package,
-                              'Plane': Plane,
-                              'Home': Home,
-                              'ArrowLeft': ArrowLeft
-                            }[obtenerIconoEstadoAnterior(recibo.estado)] || ArrowLeft;
-
-                            const labelAnterior = obtenerLabelEstadoAnterior(recibo.estado);
-
-                            return (
-                              <button
-                                onClick={() => handleRetrocederEstado(recibo)}
-                                className="text-amber-600 hover:text-amber-700 transition-colors"
-                                title={`Volver a: ${labelAnterior}`}
-                              >
-                                <IconoAnterior size={18} />
-                              </button>
-                            );
-                          })()}
-
-                          {/* Botón para avanzar al siguiente estado */}
-                          {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
-                            const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
-                            if (!siguienteEstado) return null;
-
-                            const IconoSiguiente = {
-                              'Package': Package,
-                              'Plane': Plane,
-                              'Home': Home,
-                              'Check': Check,
-                              'ArrowRight': ArrowRight
-                            }[obtenerIconoSiguienteEstado(recibo.estado)] || ArrowRight;
-
-                            const labelSiguiente = obtenerLabelSiguienteEstado(recibo.estado);
-
-                            return (
-                              <button
-                                onClick={() => handleAvanzarEstado(recibo)}
-                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                                title={`Avanzar a: ${labelSiguiente}`}
-                              >
-                                <IconoSiguiente size={18} />
-                              </button>
-                            );
-                          })()}
-
-                          <button
-                            onClick={() => setExpandedRecibo(recibo)}
-                            className="text-emerald-600 hover:text-emerald-700 transition-colors"
-                            title="Ver detalles"
-                          >
-                            <Eye size={18} />
-                          </button>
-
-                          <button
-                            onClick={async () => {
-                              if (window.confirm('¿Eliminar esta importación?')) {
-                                try {
-                                  await deleteRecibo(recibo.id);
-                                  alert('✅ Importación eliminada');
-                                } catch (err) {
-                                  alert('Error: ' + err.message);
-                                }
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-700 transition-colors"
-                            title="Eliminar"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
+            <div
+              className="relative w-full overflow-hidden"
+              style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 23rem)' }}
+            >
+              <div
+                className="overflow-auto max-h-[70vh] w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+              >
+                <table style={{ minWidth: '1200px', width: '100%' }}>
+                  <thead className="bg-slate-800 text-white sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">N°</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Compra</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Recepción</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Proveedor</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Items</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Total USD</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Costos Adic. USD</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Estado</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Descripción</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {recibosFiltrados.map((recibo, idx) => (
+                      <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="px-4 py-3 text-sm font-medium text-center text-slate-800 whitespace-nowrap" title={recibo.numero_recibo}>
+                          {recibo.numero_recibo}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                          {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                          {recibo.fecha_recepcion_argentina
+                            ? new Date(recibo.fecha_recepcion_argentina).toLocaleDateString('es-AR')
+                            : '-'
+                          }
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap" title={recibo.proveedores?.nombre || '-'}>
+                          {recibo.proveedores?.nombre || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                          {recibo.importaciones_items?.length || 0}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                          USD ${formatNumber(
+                            (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
+                            `USD $${formatNumber(
+                              (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
+                            )}`
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <span className={`inline-block px-3 py-1 rounded text-xs font-semibold ${getEstadoColor(recibo.estado)}`}>
+                            {getEstadoLabel(recibo.estado)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap" title={recibo.observaciones || '-'}>
+                          {recibo.observaciones || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <div className="flex justify-center gap-2">
+                            {/* Botón para retroceder al estado anterior */}
+                            {recibo.estado !== ESTADOS_IMPORTACION.EN_TRANSITO_USA && (() => {
+                              const estadoAnterior = obtenerEstadoAnterior(recibo.estado);
+                              if (!estadoAnterior) return null;
+
+                              const IconoAnterior = {
+                                'TrendingUp': TrendingUp,
+                                'Package': Package,
+                                'Plane': Plane,
+                                'Home': Home,
+                                'ArrowLeft': ArrowLeft
+                              }[obtenerIconoEstadoAnterior(recibo.estado)] || ArrowLeft;
+
+                              const labelAnterior = obtenerLabelEstadoAnterior(recibo.estado);
+
+                              return (
+                                <button
+                                  onClick={() => handleRetrocederEstado(recibo)}
+                                  className="text-amber-600 hover:text-amber-700 transition-colors"
+                                  title={`Volver a: ${labelAnterior}`}
+                                >
+                                  <IconoAnterior size={18} />
+                                </button>
+                              );
+                            })()}
+
+                            {/* Botón para avanzar al siguiente estado */}
+                            {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
+                              const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
+                              if (!siguienteEstado) return null;
+
+                              const IconoSiguiente = {
+                                'Package': Package,
+                                'Plane': Plane,
+                                'Home': Home,
+                                'Check': Check,
+                                'ArrowRight': ArrowRight
+                              }[obtenerIconoSiguienteEstado(recibo.estado)] || ArrowRight;
+
+                              const labelSiguiente = obtenerLabelSiguienteEstado(recibo.estado);
+
+                              return (
+                                <button
+                                  onClick={() => handleAvanzarEstado(recibo)}
+                                  className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                                  title={`Avanzar a: ${labelSiguiente}`}
+                                >
+                                  <IconoSiguiente size={18} />
+                                </button>
+                              );
+                            })()}
+
+                            <button
+                              onClick={() => setExpandedRecibo(recibo)}
+                              className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                              title="Ver detalles"
+                            >
+                              <Eye size={18} />
+                            </button>
+
+                            <button
+                              onClick={async () => {
+                                if (window.confirm('¿Eliminar esta importación?')) {
+                                  try {
+                                    await deleteRecibo(recibo.id);
+                                    alert('✅ Importación eliminada');
+                                  } catch (err) {
+                                    alert('Error: ' + err.message);
+                                  }
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                              title="Eliminar"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
