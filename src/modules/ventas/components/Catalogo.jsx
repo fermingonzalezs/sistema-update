@@ -2500,7 +2500,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
 
             {/* Color - Solo para otros */}
-            {categoriaActiva === 'otros' && valoresUnicos.colores?.length > 0 && (
+            {categoriaActiva === 'otros' && (
               <div>
                 <label className="block text-xs font-medium text-slate-200 mb-1">
                   Color
@@ -2629,24 +2629,26 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
             )}
 
-            {/* Estado */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
-                Estado
-              </label>
-              <select
-                value={filtros.estado}
-                onChange={(e) => actualizarFiltro("estado", e.target.value)}
-                className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
-              >
-                <option value="">Todos</option>
-                {valoresUnicos.estados?.map((estado) => (
-                  <option key={estado} value={estado}>
-                    {getEstadoLabel(estado)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Estado - Ocultar para "otros" */}
+            {categoriaActiva !== 'otros' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-200 mb-1">
+                  Estado
+                </label>
+                <select
+                  value={filtros.estado}
+                  onChange={(e) => actualizarFiltro("estado", e.target.value)}
+                  className="w-full p-2 border-0 rounded text-sm bg-slate-600 text-white focus:ring-0 focus:bg-slate-500"
+                >
+                  <option value="">Todos</option>
+                  {valoresUnicos.estados?.map((estado) => (
+                    <option key={estado} value={estado}>
+                      {getEstadoLabel(estado)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Sucursal/Ubicación - Ocultar para "otros" */}
             {(() => {
@@ -2913,6 +2915,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   condicion === "uso oficina"
                                 )
                                   return "bg-orange-100 text-orange-700";
+                                if (
+                                  condicion === "consignacion" ||
+                                  condicion === "consignación"
+                                )
+                                  return "bg-slate-500 text-white";
                                 return "bg-slate-100 text-slate-700";
                               })()}`}
                               title={(() => {
@@ -2920,6 +2927,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   producto.condicion || producto.estado || "N/A";
                                 if (condicion.toLowerCase() === "uso_oficina")
                                   return "USO OFICINA";
+                                if (condicion.toLowerCase() === "consignacion")
+                                  return "EN CONSIGNACIÓN";
                                 return condicion.toUpperCase();
                               })()}
                             >
@@ -2928,6 +2937,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   producto.condicion || producto.estado || "N/A";
                                 if (condicion.toLowerCase() === "uso_oficina")
                                   return "USO OFICINA";
+                                if (condicion.toLowerCase() === "consignacion")
+                                  return "CONSIGNACIÓN";
                                 return condicion.toUpperCase();
                               })()}
                             </span>
@@ -3127,6 +3138,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   condicion === "uso oficina"
                                 )
                                   return "bg-orange-100 text-orange-700";
+                                if (
+                                  condicion === "consignacion" ||
+                                  condicion === "consignación"
+                                )
+                                  return "bg-slate-500 text-white";
                                 return "bg-slate-100 text-slate-700";
                               })()}`}
                               title={(() => {
@@ -3134,6 +3150,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   producto.condicion || producto.estado || "N/A";
                                 if (condicion.toLowerCase() === "uso_oficina")
                                   return "USO OFICINA";
+                                if (condicion.toLowerCase() === "consignacion")
+                                  return "EN CONSIGNACIÓN";
                                 return condicion.toUpperCase();
                               })()}
                             >
@@ -3142,6 +3160,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                                   producto.condicion || producto.estado || "N/A";
                                 if (condicion.toLowerCase() === "uso_oficina")
                                   return "USO OFICINA";
+                                if (condicion.toLowerCase() === "consignacion")
+                                  return "CONSIGNACIÓN";
                                 return condicion.toUpperCase();
                               })()}
                             </span>

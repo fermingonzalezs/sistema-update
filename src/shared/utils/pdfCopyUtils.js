@@ -69,7 +69,7 @@ const extraerDatosDeCopy = (copy) => {
   }
 
   // Buscar condición
-  const condiciones = ['nuevo', 'usado', 'refurbished', 'reacondicionado'];
+  const condiciones = ['nuevo', 'usado', 'refurbished', 'reacondicionado', 'consignacion', 'consignación'];
   for (const condicion of condiciones) {
     const regex = new RegExp(`\\b${condicion}\\b`, 'i');
     if (regex.test(copyLimpio)) {
@@ -90,6 +90,7 @@ const normalizarCondicion = (condicion) => {
   const cond = condicion.toLowerCase();
   if (cond === 'nuevo' || cond === 'nueva') return 'NUEVO';
   if (cond === 'refurbished' || cond === 'reacondicionado') return 'REFURBISHED';
+  if (cond === 'consignacion' || cond === 'consignación') return 'CONSIGNACIÓN';
   return 'USADO';
 };
 

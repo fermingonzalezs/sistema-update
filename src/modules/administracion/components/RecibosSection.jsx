@@ -531,8 +531,10 @@ const RecibosSection = () => {
                       <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
                       <option value="dolares_billete">💸 Dólares Billete</option>
                       <option value="transferencia">🏦 Transferencia</option>
+                      <option value="transferencia_wire">🌐 Transferencia Wire</option>
                       <option value="criptomonedas">₿ Criptomonedas</option>
                       <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                      <option value="mercaderia">📦 Mercadería</option>
                       <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                     </select>
                   </div>
@@ -875,8 +877,10 @@ const RecibosSection = () => {
                         <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
                         <option value="dolares_billete">💸 Dólares Billete</option>
                         <option value="transferencia">🏦 Transferencia</option>
+                        <option value="transferencia_wire">🌐 Transferencia Wire</option>
                         <option value="criptomonedas">₿ Criptomonedas</option>
                         <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                        <option value="mercaderia">📦 Mercadería</option>
                         <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
                       </select>
                     </div>

@@ -306,7 +306,8 @@ const ListadoTotalSection = () => {
     'reservado': 'bg-purple-100 text-purple-700',
     'prestado': 'bg-cyan-100 text-cyan-700',
     'sin_reparacion': 'bg-red-100 text-red-700',
-    'uso_oficina': 'bg-slate-100 text-slate-700'
+    'uso_oficina': 'bg-slate-100 text-slate-700',
+    'consignacion': 'bg-slate-500 text-white'
   };
 
   // Labels de categorías - versión corta para gráficos (máx 7 caracteres)
@@ -374,7 +375,8 @@ const ListadoTotalSection = () => {
     'reservado': 'RESERVADO',
     'prestado': 'PRESTADO',
     'sin_reparacion': 'SIN REPARACIÓN',
-    'uso_oficina': 'USO OFICINA'
+    'uso_oficina': 'USO OFICINA',
+    'consignacion': 'EN CONSIGNACIÓN'
   };
 
   // Aplicar filtros
@@ -538,7 +540,8 @@ const ListadoTotalSection = () => {
     'reservado': '#a855f7',
     'prestado': '#06b6d4',
     'sin_reparacion': '#ef4444',
-    'uso_oficina': '#64748b'
+    'uso_oficina': '#64748b',
+    'consignacion': '#64748b'
   };
 
   // Función para exportar a Excel
@@ -1122,6 +1125,7 @@ const ListadoTotalSection = () => {
               <option value="prestado">Prestado</option>
               <option value="sin_reparacion">Sin Reparación</option>
               <option value="uso_oficina">Uso Oficina</option>
+              <option value="consignacion">En Consignación</option>
             </select>
           </div>
 

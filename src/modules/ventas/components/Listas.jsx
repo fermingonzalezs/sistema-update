@@ -178,7 +178,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
   const productosFiltradosYOrdenados = useMemo(() => {
     let productos = productosConCopy.filter(producto => {
-      const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada'];
+      const condicionesPermitidas = ['nuevo', 'nueva', 'pc_escritorio', 'reacondicionado', 'reacondicionada', 'usado', 'usada', 'consignacion', 'refurbished'];
       const condicionProducto = (producto.condicion || '').toLowerCase();
       if (!condicionesPermitidas.includes(condicionProducto)) {
         return false;

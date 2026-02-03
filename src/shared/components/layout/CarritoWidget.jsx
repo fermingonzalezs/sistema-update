@@ -163,12 +163,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
   // Determinar si un método necesita input de alias/wallet
   const necesitaInputAlias = (metodoPago) => {
-    return ['transferencia', 'criptomonedas'].includes(metodoPago);
+    return ['transferencia', 'transferencia_wire', 'criptomonedas'].includes(metodoPago);
   };
 
-  // Determinar si un método requiere destino (todos excepto cuenta_corriente y vacío)
+  // Determinar si un método requiere destino (todos excepto cuenta_corriente, mercaderia y vacío)
   const requiereDestino = (metodoPago) => {
-    return metodoPago && metodoPago !== 'cuenta_corriente';
+    return metodoPago && metodoPago !== 'cuenta_corriente' && metodoPago !== 'mercaderia';
   };
 
   useEffect(() => {
@@ -1186,8 +1186,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           <option value="efectivo_pesos">Efectivo en Pesos</option>
                           <option value="dolares_billete">Dólares Billete</option>
                           <option value="transferencia">Transferencia</option>
+                          <option value="transferencia_wire">Transferencia Wire</option>
                           <option value="criptomonedas">Criptomonedas</option>
                           <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="mercaderia">Mercadería</option>
                           <option value="cuenta_corriente">Cuenta Corriente</option>
                         </select>
                       </div>
@@ -1233,7 +1235,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         ) : (
                           <input
                             type="text"
-                            value="Cuenta Corriente"
+                            value={datosCliente.metodo_pago_1 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_1 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
                             className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
                           />
@@ -1258,8 +1260,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           <option value="efectivo_pesos">Efectivo en Pesos</option>
                           <option value="dolares_billete">Dólares Billete</option>
                           <option value="transferencia">Transferencia</option>
+                          <option value="transferencia_wire">Transferencia Wire</option>
                           <option value="criptomonedas">Criptomonedas</option>
                           <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="mercaderia">Mercadería</option>
                           <option value="cuenta_corriente">Cuenta Corriente</option>
                         </select>
                       </div>
@@ -1306,7 +1310,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         ) : (
                           <input
                             type="text"
-                            value={datosCliente.metodo_pago_2 === 'cuenta_corriente' ? 'Cuenta Corriente' : '-'}
+                            value={datosCliente.metodo_pago_2 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_2 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
                             className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
                           />
@@ -1330,8 +1334,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           <option value="efectivo_pesos">Efectivo en Pesos</option>
                           <option value="dolares_billete">Dólares Billete</option>
                           <option value="transferencia">Transferencia</option>
+                          <option value="transferencia_wire">Transferencia Wire</option>
                           <option value="criptomonedas">Criptomonedas</option>
                           <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                          <option value="mercaderia">Mercadería</option>
                           <option value="cuenta_corriente">Cuenta Corriente</option>
                         </select>
                       </div>
@@ -1378,7 +1384,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         ) : (
                           <input
                             type="text"
-                            value={datosCliente.metodo_pago_3 === 'cuenta_corriente' ? 'Cuenta Corriente' : '-'}
+                            value={datosCliente.metodo_pago_3 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_3 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
                             className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
                           />
