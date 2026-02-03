@@ -100,12 +100,27 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
                 <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                   <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago.replace(/_/g, ' ')}</p>
                   <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_1 || 0, 'USD')}</p>
+                  {transaccion.destino_pago_1 && (
+                    <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_1}</p>
+                  )}
                 </div>
               )}
               {transaccion.metodo_pago_2 && (
                 <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                   <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago_2.replace(/_/g, ' ')}</p>
                   <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_2 || 0, 'USD')}</p>
+                  {transaccion.destino_pago_2 && (
+                    <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_2}</p>
+                  )}
+                </div>
+              )}
+              {transaccion.metodo_pago_3 && (
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago_3.replace(/_/g, ' ')}</p>
+                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_3 || 0, 'USD')}</p>
+                  {transaccion.destino_pago_3 && (
+                    <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_3}</p>
+                  )}
                 </div>
               )}
             </div>
