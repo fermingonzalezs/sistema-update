@@ -308,19 +308,24 @@ export const ventasService = {
           garantiaProducto = item.producto.garantia;
         }
 
+        // Generar snapshot completo del producto (sin campos internos de Supabase)
+        const { created_at, updated_at, ...productoSnapshot } = item.producto;
+
         return {
           transaccion_id: transaccion.id,
-          tipo_producto: tipoProducto, // Ahora incluye categorías específicas normalizadas (MAYÚSCULAS)
+          tipo_producto: tipoProducto,
           producto_id: item.producto.id,
           serial_producto: item.tipo === 'otro' ? (item.producto.serial || item.producto.id) : (item.producto.serial || `${item.tipo}-${item.producto.id}`),
-          copy: copyCompleto, // Copy completo con toda la información
-          copy_documento: copyDocumento, // Copy limpio para documentos (recibos, garantías, emails)
+          copy: copyCompleto,
+          copy_documento: copyDocumento,
           cantidad: item.cantidad,
-          precio_unitario: precioUnitarioSeguro, // CRÍTICO: Usar precio validado
+          precio_unitario: precioUnitarioSeguro,
           precio_total: precioTotal,
           precio_costo: precioCosto,
           margen_item: margenItem,
-          garantia: garantiaProducto // Garantía capturada del producto al momento de la venta
+          garantia: garantiaProducto,
+          color: item.producto.color || null,
+          producto_snapshot: productoSnapshot
         }
       })
 

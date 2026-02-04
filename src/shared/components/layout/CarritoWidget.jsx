@@ -878,8 +878,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                     <span className="w-6 text-center font-semibold text-slate-800">{item.cantidad}</span>
                                     <button
                                       onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
-                                      className="p-1 text-slate-500 hover:text-emerald-600"
-                                      disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                      className="p-1 text-slate-500 hover:text-emerald-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                      disabled={(item.tipo !== 'otro' || (item.producto.serial && item.producto.serial.trim() !== '')) && item.cantidad >= 1}
+                                      title={((item.tipo !== 'otro' || (item.producto.serial && item.producto.serial.trim() !== '')) && item.cantidad >= 1) ? 'Producto con serial: cantidad fija en 1' : ''}
                                     >
                                       <Plus className="w-3 h-3" />
                                     </button>
@@ -1002,6 +1003,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             <thead className="bg-slate-600 text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Color</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-16">Cant.</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Precio Unit.</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Subtotal</th>
@@ -1018,6 +1021,16 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                     </p>
                                   </td>
 
+                                  {/* Serial */}
+                                  <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs">
+                                    {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
+                                  </td>
+
+                                  {/* Color */}
+                                  <td className="px-4 py-3 text-center text-slate-600 capitalize text-sm">
+                                    {item.producto.color || '-'}
+                                  </td>
+
                                   {/* Cantidad */}
                                   <td className="px-4 py-3">
                                     <div className="flex items-center justify-center space-x-1">
@@ -1031,8 +1044,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                       <span className="w-6 text-center text-sm font-medium text-slate-800">{item.cantidad}</span>
                                       <button
                                         onClick={() => onUpdateCantidad(item.id, item.cantidad + 1)}
-                                        className="p-1 text-slate-500 hover:text-emerald-600"
-                                        disabled={item.tipo !== 'otro' && item.cantidad >= 1}
+                                        className="p-1 text-slate-500 hover:text-emerald-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        disabled={(item.tipo !== 'otro' || (item.producto.serial && item.producto.serial.trim() !== '')) && item.cantidad >= 1}
+                                        title={((item.tipo !== 'otro' || (item.producto.serial && item.producto.serial.trim() !== '')) && item.cantidad >= 1) ? 'Producto con serial: cantidad fija en 1' : ''}
                                         type="button"
                                       >
                                         <Plus className="w-3 h-3" />
