@@ -958,13 +958,13 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios según tabla celulares
     serial: '',
-    categoria: CATEGORIAS_CELULARES.ANDROID, // Categoría por defecto
-    marca: '',
+    categoria: CATEGORIAS_CELULARES.IPHONE, // Categoría por defecto
+    marca: 'Apple',
     condicion: CONDICIONES.NUEVO,
     modelo: '',
     capacidad: '',
     color: '',
-    sim_esim: 'SIM', // Nueva opción SIM/ESIM
+    sim_esim: 'ESIM', // Nueva opción SIM/ESIM
     estado: null, // null por defecto cuando es nuevo
 
     // Proveedor
@@ -982,7 +982,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
     precio_venta_usd: '',
 
     // Garantía y observaciones
-    garantia: '3 meses',
+    garantia: 'Garantía oficial Apple (12 meses)',
     garantia_oficial_fecha: '', // Fecha para cuando se selecciona "Garantía oficial con vencimiento"
     fallas: '',
     fotos: '',
@@ -1064,13 +1064,13 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         // Reset form para permitir agregar más productos
         setFormData({
           serial: '',
-          categoria: CATEGORIAS_CELULARES.ANDROID,
-          marca: '',
+          categoria: CATEGORIAS_CELULARES.IPHONE,
+          marca: 'Apple',
           condicion: CONDICIONES.NUEVO,
           modelo: '',
           capacidad: '',
           color: '',
-          sim_esim: 'SIM',
+          sim_esim: 'ESIM',
           estado: null,
           proveedor_id: '',
           bateria: '',
@@ -1080,7 +1080,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           precio_compra_usd: '',
           costos_adicionales: '0',
           precio_venta_usd: '',
-          garantia: '3 meses',
+          garantia: 'Garantía oficial Apple (12 meses)',
           garantia_oficial_fecha: '',
           fallas: '',
           fotos: '',
@@ -1093,13 +1093,13 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         // Reset form
         setFormData({
           serial: '',
-          categoria: CATEGORIAS_CELULARES.ANDROID,
-          marca: '',
+          categoria: CATEGORIAS_CELULARES.IPHONE,
+          marca: 'Apple',
           condicion: CONDICIONES.NUEVO,
           modelo: '',
           capacidad: '',
           color: '',
-          sim_esim: 'SIM',
+          sim_esim: 'ESIM',
           estado: null,
           proveedor_id: '',
           bateria: '',
@@ -1109,7 +1109,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           precio_compra_usd: '',
           costos_adicionales: '0',
           precio_venta_usd: '',
-          garantia: '3 meses',
+          garantia: 'Garantía oficial Apple (12 meses)',
           garantia_oficial_fecha: '',
           fallas: '',
           fotos: '',
