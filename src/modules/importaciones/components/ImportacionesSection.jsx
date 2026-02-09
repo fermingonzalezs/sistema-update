@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft, Weight } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
@@ -370,6 +370,7 @@ const ImportacionesSection = () => {
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Recepción</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Proveedor</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Items</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Peso (kg)</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Total USD</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Costos Adic. USD</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Estado</th>
@@ -397,6 +398,21 @@ const ImportacionesSection = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
                           {recibo.importaciones_items?.length || 0}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800 whitespace-nowrap">
+                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && recibo.peso_sin_caja_kg ? (
+                            <span className="font-semibold">{parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg</span>
+                          ) : (
+                            (() => {
+                              const pesoEstimado = (recibo.importaciones_items || []).reduce(
+                                (sum, item) => sum + (parseFloat(item.peso_estimado_total_kg) || (parseFloat(item.peso_estimado_unitario_kg) || 0) * (item.cantidad || 0)),
+                                0
+                              );
+                              return pesoEstimado > 0 ? (
+                                <span className="text-slate-500" title="Peso estimado">~{pesoEstimado.toFixed(2)} kg</span>
+                              ) : '-';
+                            })()
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
                           USD ${formatNumber(
