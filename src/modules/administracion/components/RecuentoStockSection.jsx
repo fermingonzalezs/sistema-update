@@ -24,9 +24,10 @@ const recuentoStockService = {
     let inventario = [];
 
     // Determinar qué tipo de productos obtener según la categoría
+    // NOTA: Se excluyen productos con condición 'consignacion' del recuento
     if (categoria === 'notebooks') {
-      // Solo notebooks
-      let query = supabase.from('inventario').select('*');
+      // Solo notebooks (excluyendo consignacion)
+      let query = supabase.from('inventario').select('*').neq('condicion', 'consignacion');
       if (sucursalNormalizada) {
         query = query.eq('sucursal', sucursalNormalizada);
       }
@@ -35,8 +36,8 @@ const recuentoStockService = {
       inventario = data.map(item => ({ ...item, tipo: 'computadora' }));
 
     } else if (categoria === 'celulares') {
-      // Solo celulares
-      let query = supabase.from('celulares').select('*');
+      // Solo celulares (excluyendo consignacion)
+      let query = supabase.from('celulares').select('*').neq('condicion', 'consignacion');
       if (sucursalNormalizada) {
         query = query.eq('sucursal', sucursalNormalizada);
       }
@@ -45,12 +46,13 @@ const recuentoStockService = {
       inventario = data.map(item => ({ ...item, tipo: 'celular' }));
 
     } else if (categoria && categoria.startsWith('otros_')) {
-      // Subcategoría específica de otros (ej: 'otros_AUDIO')
+      // Subcategoría específica de otros (ej: 'otros_AUDIO') - excluyendo consignacion
       const subcategoria = categoria.replace('otros_', '');
       const { data, error } = await supabase
         .from('otros')
         .select('*')
-        .eq('categoria', subcategoria);
+        .eq('categoria', subcategoria)
+        .neq('condicion', 'consignacion');
       if (error) throw error;
 
       // Filtrar por stock en la sucursal
@@ -64,20 +66,20 @@ const recuentoStockService = {
         .map(item => ({ ...item, tipo: 'otro' }));
 
     } else {
-      // Fallback: todos los productos (comportamiento legacy)
+      // Fallback: todos los productos (comportamiento legacy) - excluyendo consignacion
       let computadoras, celulares, otros;
 
       if (sucursalNormalizada) {
         [computadoras, celulares, otros] = await Promise.all([
-          supabase.from('inventario').select('*').eq('sucursal', sucursalNormalizada),
-          supabase.from('celulares').select('*').eq('sucursal', sucursalNormalizada),
-          supabase.from('otros').select('*')
+          supabase.from('inventario').select('*').eq('sucursal', sucursalNormalizada).neq('condicion', 'consignacion'),
+          supabase.from('celulares').select('*').eq('sucursal', sucursalNormalizada).neq('condicion', 'consignacion'),
+          supabase.from('otros').select('*').neq('condicion', 'consignacion')
         ]);
       } else {
         [computadoras, celulares, otros] = await Promise.all([
-          supabase.from('inventario').select('*'),
-          supabase.from('celulares').select('*'),
-          supabase.from('otros').select('*')
+          supabase.from('inventario').select('*').neq('condicion', 'consignacion'),
+          supabase.from('celulares').select('*').neq('condicion', 'consignacion'),
+          supabase.from('otros').select('*').neq('condicion', 'consignacion')
         ]);
       }
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, Send, ThumbsUp, ExternalLink } from 'lucide-react';
+import { Wrench, Plus, FileText, Calculator, Eye, Trash2, ClipboardList, BadgeCheck, User, Phone, Mail, Laptop, ChevronDown, ChevronUp, CheckCircle, XCircle, Loader2, Send, ThumbsUp, ExternalLink, FileInput } from 'lucide-react';
 import ModalNuevaReparacion from './ModalNuevaReparacion';
 import ModalPresupuesto from './ModalPresupuesto';
 import ModalVistaPrevia from './ModalVistaPrevia';
 import { useReparaciones } from '../hooks/useReparaciones';
 import { generarYDescargarPresupuesto as abrirPresupuestoPDF } from './pdf/PresupuestoReparacionPDF.jsx';
+import { generarReciboIngreso } from './pdf/ReciboIngresoPDF.jsx';
 
 const estados = {
   ingresado: { label: 'Ingresado', color: 'bg-emerald-100 text-emerald-700' },
@@ -148,6 +149,18 @@ function ReparacionesMain() {
     } catch (error) {
       console.error('Error generando presupuesto:', error);
       alert('Error al generar el presupuesto. Intente nuevamente.');
+    }
+  };
+
+  const handleGenerarReciboIngreso = async (reparacion) => {
+    try {
+      const resultado = await generarReciboIngreso(reparacion);
+      if (!resultado.success) {
+        alert('Error al generar el recibo de ingreso: ' + resultado.error);
+      }
+    } catch (error) {
+      console.error('Error generando recibo de ingreso:', error);
+      alert('Error al generar el recibo de ingreso. Intente nuevamente.');
     }
   };
 
@@ -357,20 +370,27 @@ function ReparacionesMain() {
                       >
                         <FileText className="w-5 h-5" />
                       </button>
-                      <button 
-                        title={r.presupuesto_json ? "Ver presupuesto" : "Sin presupuesto guardado"} 
-                        onClick={() => handleGenerarPDFPresupuesto(r)} 
+                      <button
+                        title={r.presupuesto_json ? "Ver presupuesto" : "Sin presupuesto guardado"}
+                        onClick={() => handleGenerarPDFPresupuesto(r)}
                         disabled={!r.presupuesto_json}
                         className={`p-2 rounded transition-colors ${
-                          r.presupuesto_json 
-                            ? 'hover:bg-slate-200 text-slate-600 cursor-pointer' 
+                          r.presupuesto_json
+                            ? 'hover:bg-slate-200 text-slate-600 cursor-pointer'
                             : 'text-slate-400 cursor-not-allowed opacity-50'
                         }`}
                       >
                         <ExternalLink className="w-5 h-5" />
                       </button>
-                      <button 
-                        title="Eliminar reparación" 
+                      <button
+                        title="Recibo de ingreso"
+                        onClick={() => handleGenerarReciboIngreso(r)}
+                        className="p-2 rounded hover:bg-blue-200 text-blue-600 transition-colors"
+                      >
+                        <FileInput className="w-5 h-5" />
+                      </button>
+                      <button
+                        title="Eliminar reparación"
                         onClick={() => handleEliminarReparacion(r.id)}
                         className="p-2 rounded hover:bg-red-200 text-red-600 transition-colors"
                       >

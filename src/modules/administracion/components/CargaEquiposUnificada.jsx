@@ -168,8 +168,8 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
       [name]: value
     };
 
-    // Si se cambia la condición a 'nuevo', establecer estado como null
-    if (name === 'condicion' && value === CONDICIONES.NUEVO) {
+    // Si se cambia la condición a 'nuevo' o 'reservado', establecer estado como null
+    if (name === 'condicion' && (value === CONDICIONES.NUEVO || value === CONDICIONES.RESERVADO)) {
       updatedData.estado = null;
     }
 
@@ -206,8 +206,8 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
       const dataToSubmit = {
         ...dataRest,
         garantia_update: garantiaUpdate,
-        // Si condicion es 'nuevo', asegurar que estado sea null
-        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
+        // Si condicion es 'nuevo' o 'reservado', asegurar que estado sea null
+        estado: (formData.condicion === CONDICIONES.NUEVO || formData.condicion === CONDICIONES.RESERVADO) ? null : formData.estado,
         // Si slots está vacío, convertir a null
         slots: formData.slots === '' ? null : formData.slots,
         fotos: formData.fotos,
@@ -430,8 +430,8 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 />
               </div>
 
-              {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo */}
-              {formData.condicion !== CONDICIONES.NUEVO && (
+              {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo ni reservado */}
+              {formData.condicion !== CONDICIONES.NUEVO && formData.condicion !== CONDICIONES.RESERVADO && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Estado Estético
@@ -799,7 +799,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   onChange={handleChange}
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
-                  {UBICACIONES_ARRAY.map(ubicacion => (
+                  {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
                     <option key={ubicacion} value={ubicacion}>
                       {UBICACIONES_LABELS[ubicacion]}
                     </option>
@@ -1004,9 +1004,11 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
       [name]: value
     };
 
-    // Si se cambia la condición a 'nuevo', establecer estado como null
-    if (name === 'condicion' && value === CONDICIONES.NUEVO) {
+    // Si se cambia la condición a 'nuevo' o 'reservado', establecer estado, batería y ciclos como null/vacío
+    if (name === 'condicion' && (value === CONDICIONES.NUEVO || value === CONDICIONES.RESERVADO)) {
       updatedData.estado = null;
+      updatedData.bateria = '';
+      updatedData.ciclos = '';
     }
 
     // La disponibilidad ahora se maneja por eliminación directa tras venta
@@ -1042,10 +1044,12 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
       const dataToSubmit = {
         ...dataRest,
         garantia: garantia,
-        // Si condicion es 'nuevo', asegurar que estado sea null
-        estado: formData.condicion === CONDICIONES.NUEVO ? null : formData.estado,
-        // Convertir ciclos a integer si tiene valor
-        ciclos: formData.ciclos ? parseInt(formData.ciclos) : null,
+        // Si condicion es 'nuevo' o 'reservado', asegurar que estado, bateria y ciclos sean null
+        estado: (formData.condicion === CONDICIONES.NUEVO || formData.condicion === CONDICIONES.RESERVADO) ? null : formData.estado,
+        // Convertir ciclos a integer si tiene valor (null si es nuevo/reservado)
+        ciclos: (formData.condicion === CONDICIONES.NUEVO || formData.condicion === CONDICIONES.RESERVADO) ? null : (formData.ciclos ? parseInt(formData.ciclos) : null),
+        // Batería vacía si es nuevo/reservado
+        bateria: (formData.condicion === CONDICIONES.NUEVO || formData.condicion === CONDICIONES.RESERVADO) ? '' : formData.bateria,
         // Convertir precios a numeric
         precio_compra_usd: parseFloat(formData.precio_compra_usd) || null,
         precio_venta_usd: parseFloat(formData.precio_venta_usd) || null,
@@ -1312,12 +1316,12 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
             </div>
 
             {/* ESPECIFICACIONES - Solo mostrar campos si NO es nuevo */}
-            {(formData.condicion !== CONDICIONES.NUEVO || formData.categoria === CATEGORIAS_CELULARES.ANDROID) && (
+            {((formData.condicion !== CONDICIONES.NUEVO && formData.condicion !== CONDICIONES.RESERVADO) || formData.categoria === CATEGORIAS_CELULARES.ANDROID) && (
               <div className="mt-6 pt-4 border-t border-slate-200">
                 <h5 className="text-sm font-semibold text-slate-700 mb-4">Especificaciones</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo */}
-                  {formData.condicion !== CONDICIONES.NUEVO && (
+                  {/* ESTADO ESTETICO - Solo mostrar si NO es nuevo ni reservado */}
+                  {formData.condicion !== CONDICIONES.NUEVO && formData.condicion !== CONDICIONES.RESERVADO && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Estado Estético
@@ -1338,8 +1342,8 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     </div>
                   )}
 
-                  {/* BATERIA - Solo mostrar si NO es nuevo */}
-                  {formData.condicion !== CONDICIONES.NUEVO && (
+                  {/* BATERIA - Solo mostrar si NO es nuevo ni reservado */}
+                  {formData.condicion !== CONDICIONES.NUEVO && formData.condicion !== CONDICIONES.RESERVADO && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Estado de Batería
@@ -1355,8 +1359,8 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     </div>
                   )}
 
-                  {/* CICLOS DE BATERIA - Solo mostrar si NO es nuevo */}
-                  {formData.condicion !== CONDICIONES.NUEVO && (
+                  {/* CICLOS DE BATERIA - Solo mostrar si NO es nuevo ni reservado */}
+                  {formData.condicion !== CONDICIONES.NUEVO && formData.condicion !== CONDICIONES.RESERVADO && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Ciclos de Batería
@@ -1469,7 +1473,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   onChange={handleChange}
                   className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
-                  {UBICACIONES_ARRAY.map(ubicacion => (
+                  {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
                     <option key={ubicacion} value={ubicacion}>
                       {UBICACIONES_LABELS[ubicacion]}
                     </option>

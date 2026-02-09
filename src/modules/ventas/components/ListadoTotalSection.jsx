@@ -144,13 +144,18 @@ const ListadoTotalSection = () => {
     return ((precioVenta - costoTotal) / costoTotal) * 100;
   };
 
+  // Condiciones que NO deben aparecer en las listas (no están en stock)
+  const CONDICIONES_EXCLUIDAS = ['consignacion', 'reservado'];
+
   // Unificar todos los productos en un solo array
   const todosLosProductos = useMemo(() => {
     const productos = [];
 
-    // Agregar notebooks
+    // Agregar notebooks (excluyendo consignacion y reservado)
     computers.forEach(comp => {
-      // Agregar TODOS los notebooks sin filtros
+      // Excluir productos con condiciones que no están en stock
+      if (CONDICIONES_EXCLUIDAS.includes(comp.condicion)) return;
+
       const precioCompraTotal = comp.precio_costo_total || comp.precio_costo_usd || 0;
       const diasEnStock = calcularDiasEnStock(comp.ingreso);
       const margen = calcularMargen(comp.precio_venta_usd || 0, precioCompraTotal);
@@ -180,9 +185,11 @@ const ListadoTotalSection = () => {
       });
     });
 
-    // Agregar celulares
+    // Agregar celulares (excluyendo consignacion y reservado)
     celulares.forEach(cel => {
-      // Agregar TODOS los celulares sin filtros
+      // Excluir productos con condiciones que no están en stock
+      if (CONDICIONES_EXCLUIDAS.includes(cel.condicion)) return;
+
       let infoAdicional = '';
 
       if (cel.condicion === 'usado' || cel.condicion === 'refurbished') {
@@ -226,9 +233,11 @@ const ListadoTotalSection = () => {
       });
     });
 
-    // Agregar otros productos por categoría
+    // Agregar otros productos por categoría (excluyendo consignacion y reservado)
     otros.forEach(otro => {
-      // Agregar TODOS los otros productos sin filtros
+      // Excluir productos con condiciones que no están en stock
+      if (CONDICIONES_EXCLUIDAS.includes(otro.condicion)) return;
+
       const stockTotal = (otro.cantidad_la_plata || 0) + (otro.cantidad_mitre || 0);
 
       // Construir info solo con el nombre del producto (sin marca)
@@ -1121,11 +1130,9 @@ const ListadoTotalSection = () => {
               <option value="usado">Usado</option>
               <option value="refurbished">Refurbished</option>
               <option value="reparacion">Reparación</option>
-              <option value="reservado">Reservado</option>
               <option value="prestado">Prestado</option>
               <option value="sin_reparacion">Sin Reparación</option>
               <option value="uso_oficina">Uso Oficina</option>
-              <option value="consignacion">En Consignación</option>
             </select>
           </div>
 

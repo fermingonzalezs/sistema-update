@@ -151,7 +151,7 @@ export const useCatalogoUnificado = () => {
     };
 
     // Agregar categoría "Apple" que combina productos Apple de todas las tablas
-    const appleNotebooks = computers.filter(item => item.marca?.toUpperCase() === 'APPLE');
+    const appleNotebooks = computers.filter(item => item.marca?.toUpperCase() === 'APPLE' && item.categoria === 'macbook');
     const appleCelulares = celulares.filter(item => item.marca?.toUpperCase() === 'APPLE');
 
     // Para productos Apple en "otros", detectar si son realmente Macbooks o iPhones mal clasificados
@@ -162,10 +162,8 @@ export const useCatalogoUnificado = () => {
     otros.filter(item => item.marca?.toUpperCase() === 'APPLE').forEach(item => {
       const nombreProducto = (item.nombre_producto || '').toUpperCase();
 
-      if (nombreProducto.includes('MACBOOK') || nombreProducto.includes('MAC BOOK') ||
-        nombreProducto.includes('IMAC') || nombreProducto.includes('MAC MINI') ||
-        nombreProducto.includes('MAC PRO') || nombreProducto.includes('MAC STUDIO')) {
-        // Es un Macbook/Mac mal clasificado
+      if (nombreProducto.includes('MACBOOK') || nombreProducto.includes('MAC BOOK')) {
+        // Es un Macbook mal clasificado en otros
         appleOtrosMacbooks.push(item);
       } else if (nombreProducto.includes('IPHONE') || nombreProducto.includes('I PHONE')) {
         // Es un iPhone mal clasificado
