@@ -1100,7 +1100,7 @@ Esta acción no se puede deshacer.`;
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className="font-semibold text-slate-800 whitespace-nowrap">
-                            {movimiento.saldo_acumulado > 0 ? '+' : movimiento.saldo_acumulado < 0 ? '-' : ''}{formatearMonto(Math.abs(movimiento.saldo_acumulado), 'USD')}
+                            {movimiento.saldo_acumulado > 0 ? '-' : movimiento.saldo_acumulado < 0 ? '+' : ''}{formatearMonto(Math.abs(movimiento.saldo_acumulado), 'USD')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">

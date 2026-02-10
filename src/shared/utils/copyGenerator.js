@@ -497,9 +497,9 @@ const generateNotebookCopy = (comp, config) => {
  * USADOS/REFURBISHED: 📱 MODELO CAPACIDAD COLOR 🔋BATERIA% - Estética: X - (Observaciones) - PRECIO
  */
 const generateCelularCopy = (cel, config) => {
-  // Determinar si es nuevo o usado/refurbished
+  // Determinar si es nuevo o usado/refurbished (reservado usa mismo copy que nuevo)
   const condicion = (cel.condicion || '').toLowerCase();
-  const esNuevo = condicion === 'nuevo' || condicion === 'nueva';
+  const esNuevo = condicion === 'nuevo' || condicion === 'nueva' || condicion === 'reservado';
 
   // Construir la parte principal sin guiones (MODELO CAPACIDAD COLOR BATERIA%)
   let partePrincipal = [];
