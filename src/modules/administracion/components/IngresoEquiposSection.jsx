@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Package, Clock, CheckCircle, Layers, Search } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Package, Clock, CheckCircle, Layers, Search, ChevronDown } from 'lucide-react';
 import CargaEquiposUnificada from './CargaEquiposUnificada';
 import CargaMasivaEquipos from './CargaMasivaEquipos';
 import { useIngresoEquipos } from './useIngresoEquipos';
@@ -13,6 +13,7 @@ const IngresoEquiposSection = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
   const [busquedaHistorial, setBusquedaHistorial] = useState('');
+  const [ordenHistorial, setOrdenHistorial] = useState('fecha_desc');
   const { user } = useAuthContext();
 
   const {
@@ -198,23 +199,28 @@ const IngresoEquiposSection = () => {
     return usuario;
   };
 
-  // Filtrar ingresos según búsqueda
-  const ingresosFiltrados = ingresos.filter(ingreso => {
-    if (!busquedaHistorial.trim()) return true;
+  // Filtrar y ordenar ingresos
+  const ingresosFiltrados = useMemo(() => {
+    let resultado = ingresos.filter(ingreso => {
+      if (!busquedaHistorial.trim()) return true;
 
-    const busqueda = busquedaHistorial.toLowerCase().trim();
+      const busqueda = busquedaHistorial.toLowerCase().trim();
+      const modelo = (ingreso.descripcion_completa || '').toLowerCase();
+      const serial = (ingreso.serial || '').toLowerCase();
+      const proveedor = (ingreso.proveedor || '').toLowerCase();
 
-    // Buscar en modelo (descripcion_completa)
-    const modelo = (ingreso.descripcion_completa || '').toLowerCase();
+      return modelo.includes(busqueda) || serial.includes(busqueda) || proveedor.includes(busqueda);
+    });
 
-    // Buscar en serial
-    const serial = (ingreso.serial || '').toLowerCase();
+    // Ordenar por fecha
+    resultado.sort((a, b) => {
+      const fechaA = new Date(a.fecha);
+      const fechaB = new Date(b.fecha);
+      return ordenHistorial === 'fecha_asc' ? fechaA - fechaB : fechaB - fechaA;
+    });
 
-    // Buscar en proveedor
-    const proveedor = (ingreso.proveedor || '').toLowerCase();
-
-    return modelo.includes(busqueda) || serial.includes(busqueda) || proveedor.includes(busqueda);
-  });
+    return resultado;
+  }, [ingresos, busquedaHistorial, ordenHistorial]);
 
   return (
     <div className="space-y-6">
@@ -315,10 +321,10 @@ const IngresoEquiposSection = () => {
           </div>
         </div>
 
-        {/* Filtro de búsqueda */}
+        {/* Filtros */}
         <div className="bg-gray-50 p-4 border-b">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Buscar en Historial
               </label>
@@ -333,12 +339,28 @@ const IngresoEquiposSection = () => {
                 />
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ordenar por
+              </label>
+              <div className="relative">
+                <select
+                  value={ordenHistorial}
+                  onChange={(e) => setOrdenHistorial(e.target.value)}
+                  className="w-full border border-slate-200 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 appearance-none bg-white"
+                >
+                  <option value="fecha_desc">Más recientes primero</option>
+                  <option value="fecha_asc">Más antiguos primero</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
             <div className="flex items-end">
               <button
-                onClick={() => setBusquedaHistorial('')}
+                onClick={() => { setBusquedaHistorial(''); setOrdenHistorial('fecha_desc'); }}
                 className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm w-full md:w-auto"
               >
-                Limpiar Búsqueda
+                Limpiar Filtros
               </button>
             </div>
           </div>

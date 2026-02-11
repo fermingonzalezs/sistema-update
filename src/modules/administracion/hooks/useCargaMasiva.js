@@ -4,7 +4,7 @@ import { useCelulares } from '../../ventas/hooks/useCelulares';
 import { useInventario } from '../../ventas/hooks/useInventario';
 import { useOtros } from '../../ventas/hooks/useOtros';
 import { supabase } from '../../../lib/supabase';
-import { obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { obtenerTimestampActual, obtenerFechaArgentina } from '../../../shared/config/timezone';
 import { CATEGORIAS_OTROS } from '../../../shared/constants/categoryConstants';
 import {
     validarFormatoSerial,
@@ -161,7 +161,7 @@ export const useCargaMasiva = (tipoEquipo) => {
                 usuario_ingreso: usuario || 'Sistema',
                 referencia_inventario_id: equipoId,
                 estado: 'completado', // Ya está en stock
-                fecha: obtenerFechaLocal(),
+                fecha: obtenerTimestampActual(),
                 notas: `Carga masiva - Serial: ${serial}`
             };
 
@@ -217,7 +217,7 @@ export const useCargaMasiva = (tipoEquipo) => {
         setProgreso({ actual: 0, total: serialesValidos.length });
 
         // Preparar fecha de ingreso
-        const fechaIngreso = datosComunes.ingreso || obtenerFechaLocal();
+        const fechaIngreso = datosComunes.ingreso || obtenerFechaArgentina();
 
         // Iterar por cada serial válido
         for (let i = 0; i < serialesValidos.length; i++) {
