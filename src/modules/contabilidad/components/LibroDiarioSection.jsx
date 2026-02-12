@@ -306,6 +306,7 @@ const libroDiarioService = {
         p_nueva_fecha: datosEdicion.fecha,
         p_nueva_descripcion: datosEdicion.descripcion,
         p_nuevas_notas: datosEdicion.notas,
+        p_nuevo_tipo_asiento: datosEdicion.tipo_asiento || 'operacion',
         p_nuevos_movimientos: datosEdicion.movimientos,
         p_user_role: userRole
       });
