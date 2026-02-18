@@ -29,38 +29,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  
-  companyInfo: {
-    flex: 1,
-  },
-  
-  companyName: {
-    fontSize: 18,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginBottom: 5,
-  },
-  
-  companyDetails: {
-    fontSize: 9,
-    color: '#6B7280',
-    lineHeight: 1.4,
-  },
-
-  documentInfo: {
+  generatedInfo: {
     fontSize: 9,
     color: '#6B7280',
     textAlign: 'right',
-    lineHeight: 1.4,
+    marginBottom: 15,
   },
 
   titleSection: {
@@ -107,49 +80,17 @@ const styles = StyleSheet.create({
 
   resultFinal: {
     padding: 15,
+    paddingBottom: 12,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-
-  resultFinalLabel: {
-    fontSize: 11,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
+    alignItems: 'flex-start',
+    gap: 8,
   },
 
   resultFinalValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Roboto',
     color: '#1F2937',
-  },
-
-  balanceStatus: {
-    padding: 15,
-    paddingTop: 10,
-    alignItems: 'center',
-  },
-
-  balanceStatusText: {
-    fontSize: 10,
-    fontFamily: 'Roboto',
-    textAlign: 'center',
-  },
-
-  balanceOk: {
-    color: '#10B981',
-  },
-
-  balanceError: {
-    color: '#DC2626',
-  },
-
-  diferenceText: {
-    fontSize: 9,
-    color: '#DC2626',
-    marginTop: 3,
-    textAlign: 'center',
   },
 
   // Secciones principales
@@ -227,44 +168,153 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto',
     justifyContent: 'center',
   },
-  
-  // Verificación ecuación contable
-  equationSection: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-  },
-  
-  equationTitle: {
-    fontSize: 11,
-    fontFamily: 'Roboto',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  
-  equationText: {
-    fontSize: 10,
-    color: '#374151',
-    textAlign: 'center',
-    marginBottom: 3,
+
+  // Grupo nivel 3 (header de grupo)
+  groupRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    minHeight: 24,
+    backgroundColor: '#F1F5F9',
   },
 
-  equationStatus: {
+  groupCode: {
+    width: '20%',
     fontSize: 9,
+    color: '#1E293B',
     fontFamily: 'Roboto',
+    justifyContent: 'center',
+  },
+
+  groupName: {
+    width: '55%',
+    fontSize: 9,
+    color: '#1E293B',
+    fontFamily: 'Roboto',
+    justifyContent: 'center',
+  },
+
+  groupAmount: {
+    width: '25%',
+    fontSize: 9,
+    color: '#1E293B',
+    textAlign: 'right',
+    fontFamily: 'Roboto',
+    justifyContent: 'center',
+  },
+
+  // Cuentas detalle dentro de un grupo
+  detailRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    minHeight: 20,
+  },
+
+  detailRowEven: {
+    backgroundColor: '#FAFBFC',
+  },
+
+  detailCode: {
+    width: '20%',
+    fontSize: 8,
+    color: '#6B7280',
+    fontFamily: 'Roboto',
+    justifyContent: 'center',
+  },
+
+  detailName: {
+    width: '55%',
+    fontSize: 8,
+    color: '#4B5563',
+    justifyContent: 'center',
+  },
+
+  detailAmount: {
+    width: '25%',
+    fontSize: 8,
+    color: '#374151',
+    textAlign: 'right',
+    fontFamily: 'Roboto',
+    justifyContent: 'center',
+  },
+  
+  // Componentes de la ecuación
+  equationComponent: {
+    alignItems: 'center',
+  },
+
+  equationLabel: {
+    fontSize: 8,
+    color: '#6B7280',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 4,
+    fontFamily: 'Roboto',
   },
 
-  equationStatusOk: {
-    color: '#10B981',
+  equationOperator: {
+    fontSize: 16,
+    color: '#374151',
+    fontFamily: 'Roboto',
+    paddingTop: 2,
   },
 
-  equationStatusError: {
-    color: '#DC2626',
+  // Tarjeta única de balance
+  balanceCardWrap: {
+    alignItems: 'center',
+    paddingBottom: 14,
+  },
+
+  balanceSingleCardGreen: {
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    backgroundColor: '#F0FDF4',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    minWidth: 160,
+  },
+
+  balanceSingleCardRed: {
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FFF5F5',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    minWidth: 160,
+  },
+
+  balanceSingleStatusGreen: {
+    fontSize: 10,
+    fontFamily: 'Roboto',
+    color: '#166534',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+
+  balanceSingleStatusRed: {
+    fontSize: 10,
+    fontFamily: 'Roboto',
+    color: '#991B1B',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+
+  balanceSingleAmountGreen: {
+    fontSize: 12,
+    fontFamily: 'Roboto',
+    color: '#15803D',
+  },
+
+  balanceSingleAmountRed: {
+    fontSize: 12,
+    fontFamily: 'Roboto',
+    color: '#B91C1C',
   },
   
   // Footer
@@ -301,22 +351,10 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>UPDATE TECH WW SRL</Text>
-            <Text style={styles.companyDetails}>
-              44 N° 862 1/2 Piso 4, La Plata{'\n'}
-              Bartolomé Mitre 797 Piso 14 Oficina 1{'\n'}
-              CUIT: 30-71850553-2
-            </Text>
-          </View>
-          <View>
-            <Text style={styles.documentInfo}>
-              Generado: {fechaGeneracion}
-            </Text>
-          </View>
-        </View>
+        {/* Generado: fecha — arriba del contenedor principal */}
+        <Text style={styles.generatedInfo}>
+          Generado: {fechaGeneracion}
+        </Text>
 
         {/* Título y fecha con fondo slate */}
         <View style={styles.titleSection}>
@@ -332,125 +370,156 @@ const EstadoSituacionPatrimonialDocument = ({ data, fechaCorte }) => {
             <Text style={styles.summaryHeaderText}>ECUACIÓN PATRIMONIAL</Text>
           </View>
 
+          {/* Montos con labels debajo de cada componente */}
           <View style={styles.resultFinal}>
-            <Text style={styles.resultFinalLabel}>
-              {formatearMoneda(data.totalActivos)} = {formatearMoneda(data.totalPasivos)} + {formatearMoneda(data.totalPatrimonio)} =
-            </Text>
-            <Text style={styles.resultFinalValue}>
-              {formatearMoneda(data.totalPasivos + data.totalPatrimonio)}
-            </Text>
+            <View style={styles.equationComponent}>
+              <Text style={styles.resultFinalValue}>{formatearMoneda(data.totalActivos)}</Text>
+              <Text style={styles.equationLabel}>ACTIVO</Text>
+            </View>
+            <Text style={styles.equationOperator}>=</Text>
+            <View style={styles.equationComponent}>
+              <Text style={styles.resultFinalValue}>{formatearMoneda(data.totalPasivos)}</Text>
+              <Text style={styles.equationLabel}>PASIVO</Text>
+            </View>
+            <Text style={styles.equationOperator}>+</Text>
+            <View style={styles.equationComponent}>
+              <Text style={styles.resultFinalValue}>{formatearMoneda(data.totalPatrimonio)}</Text>
+              <Text style={styles.equationLabel}>PATRIMONIO NETO</Text>
+            </View>
           </View>
 
-          <View style={styles.balanceStatus}>
-            <Text style={[
-              styles.balanceStatusText,
-              ecuacionBalanceada ? styles.balanceOk : styles.balanceError
-            ]}>
-              {ecuacionBalanceada ? '✓ Balance Equilibrado' : '⚠ Balance Desequilibrado'}
-            </Text>
-            {!ecuacionBalanceada && (
-              <Text style={styles.diferenceText}>
-                Diferencia: {formatearMoneda(Math.abs(diferencia))}
+          {/* Tarjeta única de estado de balance */}
+          <View style={styles.balanceCardWrap}>
+            <View style={ecuacionBalanceada ? styles.balanceSingleCardGreen : styles.balanceSingleCardRed}>
+              <Text style={ecuacionBalanceada ? styles.balanceSingleStatusGreen : styles.balanceSingleStatusRed}>
+                {ecuacionBalanceada ? 'BALANCE EQUILIBRADO' : 'BALANCE DESEQUILIBRADO'}
               </Text>
-            )}
+              <Text style={ecuacionBalanceada ? styles.balanceSingleAmountGreen : styles.balanceSingleAmountRed}>
+                {formatearMoneda(Math.abs(diferencia))}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Layout de dos columnas para Balance */}
-        <View style={{ flexDirection: 'row', gap: 15 }}>
-          {/* COLUMNA IZQUIERDA - ACTIVOS */}
-          <View style={{ flex: 1 }}>
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>ACTIVOS</Text>
-                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalActivos)}</Text>
-              </View>
-              <View style={styles.accountsTable}>
-                {(data.activos || []).map((grupo, index) => (
-                  <View 
-                    key={index} 
-                    style={[
-                      styles.accountRow,
-                      index % 2 === 1 && styles.accountRowEven,
-                      index === data.activos.length - 1 && styles.accountRowLast
-                    ]}
-                  >
-                    <View style={styles.accountCode}>
-                      <Text>{grupo.codigoNivel3}</Text>
-                    </View>
-                    <View style={styles.accountName}>
-                      <Text>{grupo.nombre}</Text>
-                    </View>
-                    <View style={styles.accountAmount}>
-                      <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
+        {/* ACTIVOS */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader} minPresenceAhead={250}>
+            <Text style={styles.sectionTitle}>ACTIVOS</Text>
+            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalActivos)}</Text>
           </View>
-
-          {/* COLUMNA DERECHA - PASIVOS Y PATRIMONIO */}
-          <View style={{ flex: 1 }}>
-            {/* PASIVOS */}
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>PASIVOS</Text>
-                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPasivos)}</Text>
-              </View>
-              <View style={styles.accountsTable}>
-                {(data.pasivos || []).map((grupo, index) => (
-                  <View 
-                    key={index} 
+          <View style={styles.accountsTable}>
+            {(data.activos || []).map((grupo, index) => (
+              <View key={index} wrap={false}>
+                {/* Header del grupo */}
+                <View style={styles.groupRow}>
+                  <View style={styles.groupCode}>
+                    <Text>{grupo.codigoNivel3}</Text>
+                  </View>
+                  <View style={styles.groupName}>
+                    <Text>{grupo.nombre}</Text>
+                  </View>
+                  <View style={styles.groupAmount}>
+                    <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
+                  </View>
+                </View>
+                {/* Cuentas individuales del grupo */}
+                {(grupo.cuentas || []).map((cuenta, cIdx) => (
+                  <View
+                    key={cIdx}
                     style={[
-                      styles.accountRow,
-                      index % 2 === 1 && styles.accountRowEven,
-                      index === data.pasivos.length - 1 && styles.accountRowLast
+                      styles.detailRow,
+                      cIdx % 2 === 1 && styles.detailRowEven,
                     ]}
                   >
-                    <View style={styles.accountCode}>
-                      <Text>{grupo.codigoNivel3}</Text>
+                    <View style={styles.detailCode}>
+                      <Text>{cuenta.cuenta?.codigo}</Text>
                     </View>
-                    <View style={styles.accountName}>
-                      <Text>{grupo.nombre}</Text>
+                    <View style={styles.detailName}>
+                      <Text>{cuenta.cuenta?.nombre}</Text>
                     </View>
-                    <View style={styles.accountAmount}>
-                      <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
+                    <View style={styles.detailAmount}>
+                      <Text>{formatearMoneda(cuenta.saldo)}</Text>
                     </View>
                   </View>
                 ))}
               </View>
-            </View>
+            ))}
+          </View>
+        </View>
 
-            {/* PATRIMONIO NETO */}
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>PATRIMONIO NETO</Text>
-                <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPatrimonio)}</Text>
-              </View>
-              <View style={styles.accountsTable}>
-                {(data.patrimonio || []).map((item, index) => (
-                  <View 
-                    key={index} 
+        {/* PASIVOS */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader} minPresenceAhead={250}>
+            <Text style={styles.sectionTitle}>PASIVOS</Text>
+            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPasivos)}</Text>
+          </View>
+          <View style={styles.accountsTable}>
+            {(data.pasivos || []).map((grupo, index) => (
+              <View key={index} wrap={false}>
+                {/* Header del grupo */}
+                <View style={styles.groupRow}>
+                  <View style={styles.groupCode}>
+                    <Text>{grupo.codigoNivel3}</Text>
+                  </View>
+                  <View style={styles.groupName}>
+                    <Text>{grupo.nombre}</Text>
+                  </View>
+                  <View style={styles.groupAmount}>
+                    <Text>{formatearMoneda(grupo.saldoTotal)}</Text>
+                  </View>
+                </View>
+                {/* Cuentas individuales del grupo */}
+                {(grupo.cuentas || []).map((cuenta, cIdx) => (
+                  <View
+                    key={cIdx}
                     style={[
-                      styles.accountRow,
-                      index % 2 === 1 && styles.accountRowEven,
-                      index === data.patrimonio.length - 1 && styles.accountRowLast
+                      styles.detailRow,
+                      cIdx % 2 === 1 && styles.detailRowEven,
                     ]}
                   >
-                    <View style={styles.accountCode}>
-                      <Text>{item.cuenta.codigo}</Text>
+                    <View style={styles.detailCode}>
+                      <Text>{cuenta.cuenta?.codigo}</Text>
                     </View>
-                    <View style={styles.accountName}>
-                      <Text>{item.cuenta.nombre}</Text>
+                    <View style={styles.detailName}>
+                      <Text>{cuenta.cuenta?.nombre}</Text>
                     </View>
-                    <View style={styles.accountAmount}>
-                      <Text>{formatearMoneda(item.saldo)}</Text>
+                    <View style={styles.detailAmount}>
+                      <Text>{formatearMoneda(cuenta.saldo)}</Text>
                     </View>
                   </View>
                 ))}
               </View>
-            </View>
+            ))}
+          </View>
+        </View>
+
+        {/* PATRIMONIO NETO */}
+        <View style={styles.sectionContainer} wrap={false}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>PATRIMONIO NETO</Text>
+            <Text style={styles.sectionTotal}>{formatearMoneda(data.totalPatrimonio)}</Text>
+          </View>
+          <View style={styles.accountsTable}>
+            {(data.patrimonio || []).map((item, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.accountRow,
+                  index % 2 === 1 && styles.accountRowEven,
+                  index === data.patrimonio.length - 1 && styles.accountRowLast
+                ]}
+              >
+                <View style={styles.accountCode}>
+                  <Text>{item.cuenta.codigo}</Text>
+                </View>
+                <View style={styles.accountName}>
+                  <Text>{item.cuenta.nombre}</Text>
+                </View>
+                <View style={styles.accountAmount}>
+                  <Text>{formatearMoneda(item.saldo)}</Text>
+                </View>
+              </View>
+            ))}
           </View>
         </View>
       </Page>
