@@ -87,11 +87,21 @@ const conciliacionCajaService = {
     };
   },
 
-  async getUltimosMovimientosCaja(cuentaId, limite = 10) {
-    console.log('📋 Obteniendo últimos movimientos de caja...');
+  async getMovimientosCajaPaginados(cuentaId, pagina = 1, porPagina = 50) {
+    console.log(`📋 Obteniendo movimientos de caja (página ${pagina})...`);
 
-    // Primero obtenemos los movimientos con sus asientos
-    // Ordenamos por ID descendente para obtener los más recientes primero
+    // Obtener el total de movimientos para calcular páginas
+    const { count, error: errorCount } = await supabase
+      .from('movimientos_contables')
+      .select('id', { count: 'exact', head: true })
+      .eq('cuenta_id', cuentaId);
+
+    if (errorCount) throw errorCount;
+
+    // Calcular offset - traemos más registros para compensar filtrado
+    const offset = (pagina - 1) * porPagina;
+    const fetchLimit = porPagina * 3; // Traemos extra por si hay movimientos sin asiento
+
     const { data, error } = await supabase
       .from('movimientos_contables')
       .select(`
@@ -104,22 +114,29 @@ const conciliacionCajaService = {
         )
       `)
       .eq('cuenta_id', cuentaId)
-      .order('id', { ascending: false }) // Ordenar por ID descendente (más recientes primero)
-      .limit(limite * 3); // Obtenemos más movimientos para luego ordenar y limitar
+      .order('id', { ascending: false })
+      .range(offset, offset + fetchLimit - 1);
 
     if (error) throw error;
 
-    // Ordenar por fecha del asiento (más reciente primero) en JavaScript
+    // Filtrar movimientos sin asiento y ordenar por fecha
     const movimientosOrdenados = data
-      .filter(mov => mov.asientos_contables) // Filtrar movimientos sin asiento
+      .filter(mov => mov.asientos_contables)
       .sort((a, b) => {
         const fechaA = new Date(a.asientos_contables.fecha);
         const fechaB = new Date(b.asientos_contables.fecha);
-        return fechaB - fechaA; // Orden descendente (más reciente primero)
+        return fechaB - fechaA;
       })
-      .slice(0, limite); // Tomar solo el límite solicitado
+      .slice(0, porPagina);
 
-    return movimientosOrdenados;
+    const totalPaginas = Math.ceil(count / porPagina);
+
+    return {
+      movimientos: movimientosOrdenados,
+      totalMovimientos: count,
+      paginaActual: pagina,
+      totalPaginas
+    };
   },
 
   // Función mantenida para uso manual futuro, pero no se llama automáticamente
@@ -189,14 +206,13 @@ const conciliacionCajaService = {
     return data[0];
   },
 
-  async getConciliacionesAnteriores(cuentaId, limite = 5) {
+  async getConciliacionesAnteriores(cuentaId) {
     console.log('📊 Obteniendo conciliaciones anteriores...');
     const { data, error } = await supabase
       .from('conciliaciones_caja')
       .select('*, created_at')
       .eq('cuenta_caja_id', cuentaId)
-      .order('fecha_conciliacion', { ascending: false })
-      .limit(limite);
+      .order('fecha_conciliacion', { ascending: false });
     if (error) throw error;
     return data;
   }
@@ -210,6 +226,9 @@ function useConciliacionCaja() {
   const [saldoContable, setSaldoContable] = useState(null);
   const [ultimosMovimientos, setUltimosMovimientos] = useState([]);
   const [conciliacionesAnteriores, setConciliacionesAnteriores] = useState([]);
+  const [paginaMovimientos, setPaginaMovimientos] = useState(1);
+  const [totalPaginasMovimientos, setTotalPaginasMovimientos] = useState(1);
+  const [loadingMovimientos, setLoadingMovimientos] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingSaldos, setLoadingSaldos] = useState(false);
   const [error, setError] = useState(null);
@@ -251,19 +270,35 @@ function useConciliacionCaja() {
     try {
       setLoading(true);
       setError(null);
+      setPaginaMovimientos(1);
 
-      const [saldo, movimientos, conciliaciones] = await Promise.all([
+      const [saldo, resultadoMovimientos, conciliaciones] = await Promise.all([
         conciliacionCajaService.getSaldoContableCaja(cuentaId, fechaCorte),
-        conciliacionCajaService.getUltimosMovimientosCaja(cuentaId),
+        conciliacionCajaService.getMovimientosCajaPaginados(cuentaId, 1),
         conciliacionCajaService.getConciliacionesAnteriores(cuentaId)
       ]);
       setSaldoContable(saldo);
-      setUltimosMovimientos(movimientos);
+      setUltimosMovimientos(resultadoMovimientos.movimientos);
+      setTotalPaginasMovimientos(resultadoMovimientos.totalPaginas);
       setConciliacionesAnteriores(conciliaciones);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cambiarPaginaMovimientos = async (cuentaId, nuevaPagina) => {
+    try {
+      setLoadingMovimientos(true);
+      const resultado = await conciliacionCajaService.getMovimientosCajaPaginados(cuentaId, nuevaPagina);
+      setUltimosMovimientos(resultado.movimientos);
+      setPaginaMovimientos(nuevaPagina);
+      setTotalPaginasMovimientos(resultado.totalPaginas);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingMovimientos(false);
     }
   };
 
@@ -287,12 +322,16 @@ function useConciliacionCaja() {
     saldoContable,
     ultimosMovimientos,
     conciliacionesAnteriores,
+    paginaMovimientos,
+    totalPaginasMovimientos,
+    loadingMovimientos,
     loading,
     loadingSaldos,
     error,
     fetchCuentasCaja,
     fetchDatosCuenta,
     setCuentaSeleccionada,
+    cambiarPaginaMovimientos,
     guardarConciliacion
   };
 }
@@ -306,12 +345,16 @@ const ConciliacionCajaSection = () => {
     saldoContable,
     ultimosMovimientos,
     conciliacionesAnteriores,
+    paginaMovimientos,
+    totalPaginasMovimientos,
+    loadingMovimientos,
     loading,
     loadingSaldos,
     error,
     fetchCuentasCaja,
     fetchDatosCuenta,
     setCuentaSeleccionada,
+    cambiarPaginaMovimientos,
     guardarConciliacion
   } = useConciliacionCaja();
 
@@ -655,13 +698,23 @@ const ConciliacionCajaSection = () => {
                 </div>
                 {/* Últimos movimientos */}
                 <div className="bg-white border border-slate-200 rounded">
-                  <div className="p-4 bg-slate-50 border-b border-slate-200">
+                  <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h5 className="font-semibold text-slate-800 flex items-center">
                       <History size={18} className="mr-2" />
-                      Últimos Movimientos
+                      Movimientos
                     </h5>
+                    {totalPaginasMovimientos > 1 && (
+                      <span className="text-xs text-slate-500">
+                        Página {paginaMovimientos} de {totalPaginasMovimientos}
+                      </span>
+                    )}
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto relative">
+                    {loadingMovimientos && (
+                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                        <span className="text-sm text-slate-500">Cargando...</span>
+                      </div>
+                    )}
                     <table className="w-full">
                       <thead className="bg-slate-800 text-white">
                         <tr>
@@ -710,6 +763,41 @@ const ConciliacionCajaSection = () => {
                       </tbody>
                     </table>
                   </div>
+                  {totalPaginasMovimientos > 1 && (
+                    <div className="p-3 border-t border-slate-200 flex justify-center items-center gap-2">
+                      <button
+                        onClick={() => cambiarPaginaMovimientos(cuentaSeleccionada.id, 1)}
+                        disabled={paginaMovimientos === 1 || loadingMovimientos}
+                        className="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        «
+                      </button>
+                      <button
+                        onClick={() => cambiarPaginaMovimientos(cuentaSeleccionada.id, paginaMovimientos - 1)}
+                        disabled={paginaMovimientos === 1 || loadingMovimientos}
+                        className="px-3 py-1 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        ‹ Anterior
+                      </button>
+                      <span className="px-3 py-1 text-sm font-semibold text-slate-800">
+                        {paginaMovimientos} / {totalPaginasMovimientos}
+                      </span>
+                      <button
+                        onClick={() => cambiarPaginaMovimientos(cuentaSeleccionada.id, paginaMovimientos + 1)}
+                        disabled={paginaMovimientos === totalPaginasMovimientos || loadingMovimientos}
+                        className="px-3 py-1 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        Siguiente ›
+                      </button>
+                      <button
+                        onClick={() => cambiarPaginaMovimientos(cuentaSeleccionada.id, totalPaginasMovimientos)}
+                        disabled={paginaMovimientos === totalPaginasMovimientos || loadingMovimientos}
+                        className="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        »
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               {/* Columna Derecha: Conciliación */}
@@ -785,7 +873,7 @@ const ConciliacionCajaSection = () => {
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-lg text-slate-800">Diferencia:</span>
                         <span className={`font-bold text-2xl ${diferencia === 0 ? 'text-emerald-600' :
-                            diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
+                          diferencia > 0 ? 'text-emerald-600' : 'text-slate-600'
                           }`}>
                           {diferencia > 0 ? '+' : ''}{formatearMoneda(diferencia)}
                         </span>
@@ -855,14 +943,14 @@ const ConciliacionCajaSection = () => {
                             <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_contable)}</td>
                             <td className="text-center py-2 px-3 font-mono text-slate-800">{formatearMoneda(conc.saldo_fisico)}</td>
                             <td className={`text-center py-2 px-3 font-bold ${conc.diferencia === 0 ? 'text-emerald-600' :
-                                conc.diferencia > 0 ? 'text-emerald-600' : 'text-red-600'
+                              conc.diferencia > 0 ? 'text-emerald-600' : 'text-red-600'
                               }`}>
                               {conc.diferencia > 0 ? '+' : conc.diferencia < 0 ? '-' : ''}{formatearMoneda(Math.abs(conc.diferencia))}
                             </td>
                             <td className="text-center py-2 px-3">
                               <span className={`px-2 py-1 rounded text-xs font-semibold ${conc.estado === 'conciliado'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-slate-100 text-slate-800'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-slate-100 text-slate-800'
                                 }`}>
                                 {conc.estado === 'conciliado' ? 'Conciliado' : 'Diferencia'}
                               </span>
@@ -925,8 +1013,8 @@ const ConciliacionCajaSection = () => {
                   <div>
                     <p className="text-sm text-slate-600 mb-1">Estado</p>
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${modalAsiento.asiento.estado === 'registrado'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-slate-100 text-slate-800'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-100 text-slate-800'
                       }`}>
                       {modalAsiento.asiento.estado?.toUpperCase()}
                     </span>

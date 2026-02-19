@@ -16,9 +16,12 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     // Estado del wizard (3 pasos)
     const [paso, setPaso] = useState(1);
     const [tipoEquipo, setTipoEquipo] = useState(tipoDefault || 'celular');
-    const [datosComunes, setDatosComunes] = useState({
-        ingreso: obtenerFechaLocal()
-    });
+    const defaultsDatosPorTipo = (tipo) => {
+        const base = { ingreso: obtenerFechaLocal() };
+        if (tipo === 'celular') return { ...base, categoria: 'iphone', marca: 'Apple' };
+        return base;
+    };
+    const [datosComunes, setDatosComunes] = useState(defaultsDatosPorTipo(tipoDefault || 'celular'));
     const [erroresDatos, setErroresDatos] = useState({});
     const [seriales, setSeriales] = useState([
         { id: uuidv4(), serial: '', valido: false, error: null }
@@ -38,7 +41,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     // Reiniciar al cambiar tipo
     const handleTipoChange = (nuevoTipo) => {
         setTipoEquipo(nuevoTipo);
-        setDatosComunes({ ingreso: obtenerFechaLocal() });
+        setDatosComunes(defaultsDatosPorTipo(nuevoTipo));
         setErroresDatos({});
         setSeriales([{ id: uuidv4(), serial: '', valido: false, error: null }]);
         resetear();
@@ -128,8 +131,9 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     // Cerrar y resetear
     const handleCerrar = () => {
         setPaso(1);
-        setTipoEquipo(tipoDefault || 'celular');
-        setDatosComunes({ ingreso: obtenerFechaLocal() });
+        const tipoReset = tipoDefault || 'celular';
+        setTipoEquipo(tipoReset);
+        setDatosComunes(defaultsDatosPorTipo(tipoReset));
         setErroresDatos({});
         setSeriales([{ id: uuidv4(), serial: '', valido: false, error: null }]);
         resetear();
@@ -139,7 +143,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     // Nueva carga
     const handleNuevaCarga = () => {
         setPaso(1);
-        setDatosComunes({ ingreso: obtenerFechaLocal() });
+        setDatosComunes(defaultsDatosPorTipo(tipoEquipo));
         setErroresDatos({});
         setSeriales([{ id: uuidv4(), serial: '', valido: false, error: null }]);
         resetear();

@@ -192,7 +192,7 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
     return (
         <div className={`relative ${className}`} ref={wrapperRef}>
             <div
-                className="w-full px-3 py-2 border border-slate-300 rounded bg-white flex items-center justify-between cursor-pointer focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 select-none"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white flex items-center justify-between cursor-pointer select-none"
                 onClick={(e) => {
                     e.preventDefault();
                     setIsOpen(!isOpen);
