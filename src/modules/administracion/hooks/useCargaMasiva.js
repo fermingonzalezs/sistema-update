@@ -124,8 +124,19 @@ export const useCargaMasiva = (tipoEquipo) => {
                 descripcion = `${datosComunes.marca || ''} ${datosComunes.modelo || ''} - ${datosComunes.procesador || ''}, RAM ${datosComunes.ram || 0}GB, SSD ${datosComunes.ssd || 0}GB`.trim();
             } else if (tipoProducto === 'celular') {
                 descripcion = `${datosComunes.marca || ''} ${datosComunes.modelo || ''} - ${datosComunes.capacidad || 0}GB, ${datosComunes.color || ''}`.trim();
+            } else if (datosComunes.categoria === CATEGORIAS_OTROS.TABLETS) {
+                const partes = [
+                    datosComunes.marca,
+                    datosComunes.modelo,
+                    datosComunes.tamano_pantalla && `${datosComunes.tamano_pantalla}"`,
+                    datosComunes.capacidad_almacenamiento,
+                    datosComunes.color
+                ].filter(Boolean);
+                descripcion = partes.join(' ') || '';
+            } else if (datosComunes.categoria === CATEGORIAS_OTROS.DESKTOP) {
+                descripcion = datosComunes.modelo || '';
             } else {
-                descripcion = `${datosComunes.nombre_producto || ''} - ${datosComunes.descripcion || ''}`.trim();
+                descripcion = `${datosComunes.nombre_producto || ''} - ${datosComunes.descripcion || ''}`.trim().replace(/^-\s*|-\s*$/, '').trim();
             }
 
             // Obtener precio de compra según tipo de producto
@@ -290,7 +301,6 @@ export const useCargaMasiva = (tipoEquipo) => {
                         datosCompletos = {
                             ...datosCompletos,
                             nombre_producto: nombreProducto,
-                            color: datosComunes.color || '',
                             observaciones: obsParts.join(' - ')
                         };
                     }

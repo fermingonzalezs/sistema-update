@@ -9,6 +9,7 @@ import {
   CATEGORIAS_OTROS_ARRAY,
   getCategoriaLabel
 } from '../../../shared/constants/categoryConstants';
+import { CONDICIONES_ARRAY } from '../../../shared/constants/productConstants';
 
 export const useCatalogoUnificado = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('notebooks');
@@ -485,9 +486,36 @@ export const useCatalogoUnificado = () => {
       });
     }
 
-    // Aplicar ordenamiento
-    if (ordenamiento.campo) {
-      filtered.sort((a, b) => {
+    // Aplicar ordenamiento: SIEMPRE ordenar por condición primero
+    filtered.sort((a, b) => {
+      const condicionA = (a.condicion || '').toLowerCase();
+      const condicionB = (b.condicion || '').toLowerCase();
+
+      const indexA = CONDICIONES_ARRAY.indexOf(condicionA);
+      const indexB = CONDICIONES_ARRAY.indexOf(condicionB);
+
+      const prioridadA = indexA !== -1 ? indexA : 100;
+      const prioridadB = indexB !== -1 ? indexB : 100;
+
+      // 1. Orden primario: Condición
+      if (prioridadA !== prioridadB || condicionA !== condicionB) {
+        if (ordenamiento.campo === 'condicion') {
+          // Si el usuario eligió específicamente ordenar por condición, respetamos su dirección (asc/desc)
+          if (prioridadA !== prioridadB) {
+            return ordenamiento.direccion === 'asc' ? prioridadA - prioridadB : prioridadB - prioridadA;
+          }
+          return ordenamiento.direccion === 'asc' ? condicionA.localeCompare(condicionB) : condicionB.localeCompare(condicionA);
+        } else {
+          // Orden por defecto: agrupar por condición según la prioridad definida (Nuevo -> Usado, etc.)
+          if (prioridadA !== prioridadB) {
+            return prioridadA - prioridadB;
+          }
+          return condicionA.localeCompare(condicionB);
+        }
+      }
+
+      // 2. Orden secundario o primario (si ya tienen misma condicion)
+      if (ordenamiento.campo && ordenamiento.campo !== 'condicion') {
         // Mapear 'almacenamiento' a 'capacidad' para celulares
         const campoReal = ordenamiento.campo === 'almacenamiento' ? 'capacidad' : ordenamiento.campo;
 
@@ -531,9 +559,9 @@ export const useCatalogoUnificado = () => {
 
         if (valorA < valorB) return ordenamiento.direccion === 'asc' ? -1 : 1;
         if (valorA > valorB) return ordenamiento.direccion === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
+      }
+      return 0;
+    });
 
     return filtered;
   }, [datosActuales, filtrosUnificados, ordenamiento, categoriaActiva]);

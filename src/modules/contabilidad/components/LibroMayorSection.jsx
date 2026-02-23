@@ -79,7 +79,7 @@ const libroMayorService = {
         )
       `)
       .eq('cuenta_id', cuentaId)
-      .order('asientos_contables(fecha)', { ascending: false })
+      .order('asientos_contables(fecha)', { ascending: true })
       .limit(10000); // Límite alto para evitar restricción por defecto de 1000
 
     // Aplicar filtros de fecha directamente en el join
@@ -118,39 +118,34 @@ const libroMayorService = {
       }
     }
 
-    // Calcular saldos acumulados (como vienen en orden descendente, calculamos desde el final)
-    // Primero calcular el saldo final usando función utilitaria
+    // Calcular totales del período
     const totalDebe = movimientos.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
     const totalHaber = movimientos.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
 
-    // Calcular saldo de los movimientos del período
+    // Calcular saldo final
     const saldoMovimientos = calcularSaldoCuenta(totalDebe, totalHaber, cuenta.tipo);
     const saldoFinalCalculado = saldoInicial + saldoMovimientos;
 
-    // Ahora calculamos hacia atrás desde el saldo final
-    let saldoAcumulado = saldoFinalCalculado;
+    // Calcular saldos acumulados hacia adelante (orden ascendente: más antiguo primero)
+    // Cada fila muestra el saldo acumulado DESPUÉS de ese movimiento
+    let saldoAcumulado = saldoInicial;
     const movimientosConSaldo = movimientos.map(mov => {
       const debe = parseFloat(mov.debe || 0);
       const haber = parseFloat(mov.haber || 0);
 
-      const saldoActual = saldoAcumulado;
-
-      // Para el siguiente (que es anterior en el tiempo), restamos/sumamos según naturaleza
-      // Calculamos el delta del movimiento según la naturaleza de la cuenta
       const deltaMovimiento = calcularSaldoCuenta(debe, haber, cuenta.tipo);
-      saldoAcumulado = saldoAcumulado - deltaMovimiento;
+      saldoAcumulado = saldoAcumulado + deltaMovimiento;
 
       return {
         ...mov,
-        saldoAnterior: saldoAcumulado,
-        saldoActual: saldoActual
+        saldoActual: saldoAcumulado
       };
     });
 
     return {
       cuenta,
       saldoInicial,
-      movimientos: movimientosConSaldo,
+      movimientos: [...movimientosConSaldo].reverse(),
       saldoFinal: saldoFinalCalculado,
       totalDebe: movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0),
       totalHaber: movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0)
