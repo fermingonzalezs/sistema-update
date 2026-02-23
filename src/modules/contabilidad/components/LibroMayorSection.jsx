@@ -145,7 +145,7 @@ const libroMayorService = {
     return {
       cuenta,
       saldoInicial,
-      movimientos: [...movimientosConSaldo].reverse(),
+      movimientos: movimientosConSaldo,
       saldoFinal: saldoFinalCalculado,
       totalDebe: movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0),
       totalHaber: movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0)
@@ -409,6 +409,18 @@ const LibroMayorSection = () => {
     return `${simbolo}${formatter.format(numero)}`;
   };
 
+  const formatearMonedaConSigno = (valor, moneda = 'USD') => {
+    const numero = parseFloat(valor || 0);
+    const formatter = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const simbolo = moneda === 'USD' ? 'U$' : '$';
+    const signo = numero >= 0 ? '+' : '-';
+    return `${signo} ${simbolo}${formatter.format(Math.abs(numero))}`;
+  };
+
   const formatearMonedaSinDecimales = (valor, moneda = 'USD') => {
     // Formatear sin decimales para las tarjetas
     const numero = Math.round(parseFloat(valor || 0));
@@ -432,20 +444,12 @@ const LibroMayorSection = () => {
     return 'text-white bg-slate-600 border-slate-300';
   };
 
-  // Color de saldos según tipo de cuenta
-  const getSaldoColor = (tipo) => {
-    switch (tipo) {
-      case 'activo':
-      case 'resultado positivo':
-        return 'text-emerald-600';
-      case 'pasivo':
-      case 'resultado negativo':
-        return 'text-red-600';
-      case 'patrimonio':
-        return 'text-blue-600';
-      default:
-        return 'text-slate-800';
-    }
+  // Color de saldos según signo del valor
+  const getSaldoColor = (valor) => {
+    const numero = Math.round(parseFloat(valor || 0) * 100) / 100;
+    if (numero > 0) return 'text-emerald-600';
+    if (numero < 0) return 'text-red-600';
+    return 'text-slate-800';
   };
 
   const getTipoTexto = (tipo) => {
@@ -476,13 +480,19 @@ const LibroMayorSection = () => {
     );
   });
 
-  // Paginación
-  const movimientosPaginados = libroMayor?.movimientos?.slice(
-    (paginaActual - 1) * movimientosPorPagina,
-    paginaActual * movimientosPorPagina
-  ) || [];
+  // Paginación invertida: página 1 = movimientos más recientes
+  const totalMovimientos = libroMayor?.movimientos?.length || 0;
+  const totalPaginas = Math.ceil(totalMovimientos / movimientosPorPagina);
 
-  const totalPaginas = Math.ceil((libroMayor?.movimientos?.length || 0) / movimientosPorPagina);
+  const movimientosPaginados = (() => {
+    if (!libroMayor?.movimientos) return [];
+    const total = libroMayor.movimientos.length;
+    // Página 1 = últimos 20 movimientos, página 2 = anteriores 20, etc.
+    // El sobrante queda en la última página (la más antigua)
+    const fin = total - (paginaActual - 1) * movimientosPorPagina;
+    const inicio = fin - movimientosPorPagina;
+    return libroMayor.movimientos.slice(Math.max(0, inicio), fin);
+  })();
 
   if (loading) {
     return <LoadingSpinner text="Cargando libro mayor..." size="medium" />;
@@ -564,12 +574,12 @@ const LibroMayorSection = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-slate-500 mb-1">Saldo actual</div>
-                            <div className={`font-semibold text-sm ${getSaldoColor(cuenta.tipo)}`}>
+                            <div className={`font-semibold text-sm ${getSaldoColor(cuenta.saldoActual)}`}>
                               {loadingSaldos ? (
                                 <span className="text-slate-400">Cargando...</span>
                               ) : (
                                 <>
-                                  {formatearMoneda(Math.abs(cuenta.saldoActual || 0))}
+                                  {formatearMonedaConSigno(cuenta.saldoActual || 0)}
                                 </>
                               )}
                             </div>
@@ -670,7 +680,7 @@ const LibroMayorSection = () => {
                   <Tarjeta
                     icon={TrendingUp}
                     titulo={`Saldo actual ${estadisticas.saldoActual >= 0 ? '(Deudor)' : '(Acreedor)'}`}
-                    valor={formatearMonedaSinDecimales(Math.abs(estadisticas.saldoActual))}
+                    valor={`${estadisticas.saldoActual >= 0 ? '+' : '-'} ${formatearMonedaSinDecimales(Math.abs(estadisticas.saldoActual))}`}
                     className={estadisticas.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}
                   />
 
@@ -701,8 +711,8 @@ const LibroMayorSection = () => {
                     {filtros.fechaDesde && (
                       <span className="ml-4">
                         | Saldo inicial:
-                        <span className={`font-medium ml-1 ${libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {formatearMoneda(Math.abs(libroMayor.saldoInicial))}
+                        <span className={`font-medium ml-1 ${getSaldoColor(libroMayor.saldoInicial)}`}>
+                          {formatearMonedaConSigno(libroMayor.saldoInicial)}
                         </span>
                       </span>
                     )}
@@ -731,8 +741,8 @@ const LibroMayorSection = () => {
                           <td className="py-3 px-4 text-center"></td>
                           <td className="py-3 px-4 text-center"></td>
                           <td className="text-center py-3 px-4 font-bold">
-                            <span className={libroMayor.saldoInicial >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                              {formatearMoneda(Math.abs(libroMayor.saldoInicial))}
+                            <span className={getSaldoColor(libroMayor.saldoInicial)}>
+                              {formatearMonedaConSigno(libroMayor.saldoInicial)}
                             </span>
                           </td>
                         </tr>
@@ -818,9 +828,9 @@ const LibroMayorSection = () => {
 
                           <td className="text-center py-3 px-4 font-bold">
 
-                            <span className={getSaldoColor(libroMayor.cuenta.tipo)}>
+                            <span className={getSaldoColor(mov.saldoActual)}>
 
-                              {formatearMoneda(Math.abs(mov.saldoActual))}
+                              {formatearMonedaConSigno(mov.saldoActual)}
 
                             </span>
 
@@ -852,7 +862,7 @@ const LibroMayorSection = () => {
 
                         <td className="text-center py-3 px-4 text-sm font-semibold">
 
-                          {formatearMoneda(Math.abs(libroMayor.saldoFinal))}
+                          {formatearMonedaConSigno(libroMayor.saldoFinal)}
 
                         </td>
 
@@ -874,15 +884,7 @@ const LibroMayorSection = () => {
 
                     <div className="text-sm text-slate-600">
 
-                      Mostrando {((paginaActual - 1) * movimientosPorPagina) + 1} a{
-
-                        ' '}
-
-                      {Math.min(paginaActual * movimientosPorPagina, libroMayor.movimientos.length)} de{
-
-                        ' '}
-
-                      {libroMayor.movimientos.length} movimientos
+                      Página {paginaActual} de {totalPaginas} ({libroMayor.movimientos.length} movimientos)
 
                     </div>
 
@@ -895,6 +897,7 @@ const LibroMayorSection = () => {
                         disabled={paginaActual === 1}
 
                         className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Más recientes"
 
                       >
 
@@ -915,6 +918,7 @@ const LibroMayorSection = () => {
                         disabled={paginaActual === totalPaginas}
 
                         className="px-3 py-2 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Más antiguos"
 
                       >
 
@@ -1014,9 +1018,9 @@ const LibroMayorSection = () => {
 
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${modalAsiento.asiento.estado === 'registrado'
 
-                        ? 'bg-emerald-100 text-emerald-800'
+                      ? 'bg-emerald-100 text-emerald-800'
 
-                        : 'bg-slate-100 text-slate-800'
+                      : 'bg-slate-100 text-slate-800'
 
                       }`}>
 
