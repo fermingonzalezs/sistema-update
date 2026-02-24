@@ -50,6 +50,7 @@ import {
 // Compras
 import ComprasSection from './modules/compras/components/ComprasSection';
 import ProveedoresSection from './modules/compras/components/ProveedoresSection';
+import TablaPesajesSection from './modules/compras/components/TablaPesajesSection';
 
 // Importaciones
 import { ImportacionesSection } from './modules/importaciones/components';
@@ -123,10 +124,14 @@ const AppRoutes = () => {
                 <Route path="auditoria" element={<ProtectedRoute section="soporte"><AuditPanel /></ProtectedRoute>} />
 
                 {/* Administración */}
-                <Route path="ingreso-equipos" element={<ProtectedRoute section="administracion"><IngresoEquiposSection /></ProtectedRoute>} />
                 <Route path="recuento-stock" element={<ProtectedRoute section="administracion"><RecuentoStockSection /></ProtectedRoute>} />
                 <Route path="garantias" element={<ProtectedRoute section="administracion"><GarantiasSection /></ProtectedRoute>} />
-                <Route path="recibos" element={<ProtectedRoute section="administracion"><RecibosSection /></ProtectedRoute>} />
+
+                {/* Ventas - Documentos */}
+                <Route path="recibos" element={<ProtectedRoute section="ventas"><RecibosSection /></ProtectedRoute>} />
+
+                {/* Compras - Ingreso de Equipos */}
+                <Route path="ingreso-equipos" element={<ProtectedRoute section="compras"><IngresoEquiposSection /></ProtectedRoute>} />
                 <Route path="comisiones" element={<ProtectedRoute section="administracion"><ComisionesPage /></ProtectedRoute>} />
                 <Route path="tablero" element={<ProtectedRoute section="administracion"><TableroGeneralSection /></ProtectedRoute>} />
                 <Route path="reportes" element={<ProtectedRoute section="administracion"><DashboardReportesSection /></ProtectedRoute>} />
@@ -135,6 +140,7 @@ const AppRoutes = () => {
                 <Route path="compras" element={<ProtectedRoute section="compras"><ComprasSection /></ProtectedRoute>} />
                 <Route path="proveedores" element={<ProtectedRoute section="compras"><ProveedoresSection /></ProtectedRoute>} />
                 <Route path="importaciones" element={<ProtectedRoute section="compras"><ImportacionesSection /></ProtectedRoute>} />
+                <Route path="tabla-pesajes" element={<ProtectedRoute section="compras"><TablaPesajesSection /></ProtectedRoute>} />
 
                 {/* Contabilidad */}
                 <Route path="cuentas-corrientes" element={<ProtectedRoute section="contabilidad"><CuentasCorrientesSection /></ProtectedRoute>} />

@@ -5,6 +5,7 @@ import { useProveedores } from '../hooks/useProveedores';
 import { calculosImportacion } from '../utils/calculosImportacion';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import NuevoProveedorModal from './NuevoProveedorModal';
+import PesajeCombobox from '../../compras/components/PesajeCombobox';
 
 const METODOS_PAGO = [
   { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
@@ -34,8 +35,8 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
   const [formItem, setFormItem] = useState({
     item: '',
     cantidad: 1,
-    precio_unitario_usd: 0,
-    peso_estimado_unitario_kg: 0,
+    precio_unitario_usd: '',
+    peso_estimado_unitario_kg: '',
     link_producto: '',
     observaciones: ''
   });
@@ -49,8 +50,20 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
   };
 
   const agregarItem = () => {
-    if (!formItem.item.trim() || !formItem.cantidad || !formItem.precio_unitario_usd || !formItem.peso_estimado_unitario_kg) {
-      alert('Completa todos los campos obligatorios del item');
+    if (!formItem.item.trim()) {
+      alert('Ingresa el nombre del producto');
+      return;
+    }
+    if (!formItem.cantidad || parseFloat(formItem.cantidad) <= 0) {
+      alert('Ingresa una cantidad válida');
+      return;
+    }
+    if (formItem.precio_unitario_usd === '' || formItem.precio_unitario_usd === null || parseFloat(formItem.precio_unitario_usd) < 0) {
+      alert('Ingresa el precio unitario en USD');
+      return;
+    }
+    if (formItem.peso_estimado_unitario_kg === '' || formItem.peso_estimado_unitario_kg === null || parseFloat(formItem.peso_estimado_unitario_kg) <= 0) {
+      alert('Ingresa el peso estimado unitario');
       return;
     }
 
@@ -68,8 +81,8 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     setFormItem({
       item: '',
       cantidad: 1,
-      precio_unitario_usd: 0,
-      peso_estimado_unitario_kg: 0,
+      precio_unitario_usd: '',
+      peso_estimado_unitario_kg: '',
       link_producto: '',
       observaciones: ''
     });
@@ -255,16 +268,17 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
             </div>
             <div className="border border-slate-300 border-t-0 rounded-b p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Producto/Descripción *</label>
-                  <input
-                    type="text"
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Producto *</label>
+                  <PesajeCombobox
                     value={formItem.item}
-                    onChange={(e) => setFormItem({ ...formItem, item: e.target.value })}
-                    placeholder="Ej: iPhones 15 Pro Max"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    onSelect={({ nombre, peso_kg }) =>
+                      setFormItem({ ...formItem, item: nombre, peso_estimado_unitario_kg: peso_kg || formItem.peso_estimado_unitario_kg })
+                    }
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Cantidad *</label>
                   <input
@@ -275,13 +289,13 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Precio Unitario (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    placeholder="0.00"
                     value={formItem.precio_unitario_usd}
                     onChange={(e) => setFormItem({ ...formItem, precio_unitario_usd: e.target.value })}
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -291,7 +305,9 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Peso Est. Unit. (kg) *</label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="0.001"
+                    min="0.001"
+                    placeholder="0.000"
                     value={formItem.peso_estimado_unitario_kg}
                     onChange={(e) => setFormItem({ ...formItem, peso_estimado_unitario_kg: e.target.value })}
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"

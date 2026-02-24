@@ -50,18 +50,18 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
       level: 'ventas',
       items: [
         {
-          id: 'registrar-venta',
-          path: '/registrar-venta',
-          label: 'Registrar Venta',
-          icon: Plus,
-          description: 'Seleccionar productos y carrito'
-        },
-        {
           id: 'inventario',
           path: '/catalogo',
           label: 'Catálogo',
           icon: List,
           description: 'Listado total de productos'
+        },
+        {
+          id: 'copys',
+          path: '/listas',
+          label: 'Listas',
+          icon: FileText,
+          description: 'Generador de listas'
         },
         {
           id: 'listado-total',
@@ -71,11 +71,18 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Vista unificada de inventario'
         },
         {
-          id: 'copys',
-          path: '/listas',
-          label: 'Listas',
+          id: 'registrar-venta',
+          path: '/registrar-venta',
+          label: 'Registrar Venta',
+          icon: Plus,
+          description: 'Seleccionar productos y carrito'
+        },
+        {
+          id: 'recibos',
+          path: '/recibos',
+          label: 'Documentos',
           icon: FileText,
-          description: 'Generador de listas'
+          description: 'Recibos, Remitos y Presupuestos'
         },
         {
           id: 'clientes',
@@ -99,9 +106,23 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Resumen financiero mensual'
         },
         {
+          id: 'dashboard-reportes',
+          path: '/reportes',
+          label: 'Dashboard',
+          icon: BarChart3,
+          description: 'Reportes visuales'
+        },
+        {
+          id: 'cuentas-corrientes',
+          path: '/cuentas-corrientes',
+          label: 'Cuentas Corrientes',
+          icon: CreditCard,
+          description: 'Deudas y saldos'
+        },
+        {
           id: 'ventas',
           path: '/ventas',
-          label: 'Historial Ventas',
+          label: 'Historial de Ventas',
           icon: BarChart3,
           description: 'Registro de ventas'
         },
@@ -113,20 +134,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Calc. de comisiones'
         },
         {
-          id: 'dashboard-reportes',
-          path: '/reportes',
-          label: 'Dashboard',
-          icon: BarChart3,
-          description: 'Reportes visuales'
-        },
-        {
-          id: 'ingreso-equipos',
-          path: '/ingreso-equipos',
-          label: 'Ingreso de Equipos',
-          icon: Plus,
-          description: 'Cargar productos'
-        },
-        {
           id: 'garantias',
           path: '/garantias',
           label: 'Garantías',
@@ -134,25 +141,11 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Gestión de garantías'
         },
         {
-          id: 'recibos',
-          path: '/recibos',
-          label: 'Documentos',
-          icon: FileText,
-          description: 'Recibos, Remitos y Presupuestos'
-        },
-        {
           id: 'recuento-stock',
           path: '/recuento-stock',
-          label: 'Recuento Stock',
+          label: 'Recuento de Stock',
           icon: Package,
           description: 'Contar inventario'
-        },
-        {
-          id: 'cuentas-corrientes',
-          path: '/cuentas-corrientes',
-          label: 'Cuentas Corrientes',
-          icon: CreditCard,
-          description: 'Deudas y saldos'
         }
       ]
     },
@@ -161,20 +154,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
       color: 'from-indigo-500 to-purple-600',
       level: 'contabilidad',
       items: [
-        {
-          id: 'ratios',
-          path: '/contabilidad/ratios',
-          label: 'Ratios Financieros',
-          icon: TrendingUp,
-          description: 'Indicadores de liquidez'
-        },
-        {
-          id: 'plan-cuentas',
-          path: '/contabilidad/plan-cuentas',
-          label: 'Plan de Cuentas',
-          icon: BookOpen,
-          description: 'Estructura contable'
-        },
         {
           id: 'libro-diario',
           path: '/contabilidad/libro-diario',
@@ -192,14 +171,21 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
         {
           id: 'conciliacion-caja',
           path: '/contabilidad/conciliacion',
-          label: 'Conciliación Caja',
+          label: 'Conciliación de Caja',
           icon: DollarSign,
           description: 'Verificar efectivo'
         },
         {
+          id: 'plan-cuentas',
+          path: '/contabilidad/plan-cuentas',
+          label: 'Plan de Cuentas',
+          icon: BookOpen,
+          description: 'Estructura contable'
+        },
+        {
           id: 'estado-situacion-patrimonial',
           path: '/contabilidad/situacion-patrimonial',
-          label: 'Estado Situación Patrimonial',
+          label: 'Estado de Situación Patrimonial',
           icon: BarChart3,
           description: 'Balance patrimonial'
         },
@@ -211,9 +197,16 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Ingresos y gastos'
         },
         {
+          id: 'ratios',
+          path: '/contabilidad/ratios',
+          label: 'Ratios Financieros',
+          icon: TrendingUp,
+          description: 'Indicadores de liquidez'
+        },
+        {
           id: 'balance-sumas-saldos',
           path: '/contabilidad/balance',
-          label: 'Balance de Sumas y Saldos',
+          label: 'Balance de Saldos',
           icon: ArrowUpDown,
           description: 'Verificación contable'
         },
@@ -224,6 +217,48 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           icon: Calculator,
           description: 'Control detallado de inventarios'
         },
+      ]
+    },
+    {
+      title: 'COMPRAS',
+      color: 'from-cyan-600 to-blue-600',
+      level: 'compras',
+      items: [
+        {
+          id: 'ingreso-equipos',
+          path: '/ingreso-equipos',
+          label: 'Ingreso de Equipos',
+          icon: Plus,
+          description: 'Cargar productos al inventario'
+        },
+        {
+          id: 'compras',
+          path: '/compras',
+          label: 'Compras Locales',
+          icon: ShoppingCart,
+          description: 'Registro de compras locales'
+        },
+        {
+          id: 'importaciones',
+          path: '/importaciones',
+          label: 'Compras Internacionales',
+          icon: Plane,
+          description: 'Gestión de compras internacionales'
+        },
+        {
+          id: 'proveedores-compras',
+          path: '/proveedores',
+          label: 'Proveedores',
+          icon: Users,
+          description: 'Gestión de proveedores'
+        },
+        {
+          id: 'tabla-pesajes',
+          path: '/tabla-pesajes',
+          label: 'Tabla de Pesajes',
+          icon: Box,
+          description: 'Pesos unitarios de productos'
+        }
       ]
     },
     {
@@ -251,34 +286,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           label: 'Auditoría',
           icon: ClipboardList,
           description: 'Registro de operaciones del sistema'
-        }
-      ]
-    },
-    {
-      title: 'COMPRAS',
-      color: 'from-cyan-600 to-blue-600',
-      level: 'compras',
-      items: [
-        {
-          id: 'compras',
-          path: '/compras',
-          label: 'Compras Locales',
-          icon: ShoppingCart,
-          description: 'Registro de compras locales'
-        },
-        {
-          id: 'importaciones',
-          path: '/importaciones',
-          label: 'Compras Internacionales',
-          icon: Plane,
-          description: 'Gestión de compras internacionales'
-        },
-        {
-          id: 'proveedores-compras',
-          path: '/proveedores',
-          label: 'Proveedores',
-          icon: Users,
-          description: 'Gestión de proveedores'
         }
       ]
     }

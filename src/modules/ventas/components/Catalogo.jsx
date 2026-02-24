@@ -2308,7 +2308,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   {contarPorSubcategoria("")}
                 </span>
               </button>
-              {CATEGORIAS_OTROS_ARRAY.map((categoria) => (
+              {CATEGORIAS_OTROS_ARRAY.filter((categoria) => contarPorSubcategoria(categoria) > 0).map((categoria) => (
                 <button
                   key={categoria}
                   onClick={() => actualizarFiltro("categoria", categoria)}
