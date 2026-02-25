@@ -363,15 +363,12 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
       </div>
 
       <div className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Sección: Información del Equipo */}
-          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información del Equipo
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Sección: Información Básica */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* SERIAL */}
               <div>
@@ -517,20 +514,69 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   <button
                     type="button"
                     onClick={() => setShowNuevoProveedorModal(true)}
-                    className="px-3 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
                     title="Nuevo Proveedor"
                     disabled={proveedoresLoading}
                   >
-                    <Plus size={18} />
+                    <Plus size={16} />
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* ESPECIFICACIONES TÉCNICAS */}
-            <div className="mt-6 pt-4 border-t border-slate-200">
-              <h5 className="text-sm font-semibold text-slate-700 mb-4">Especificaciones Técnicas</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* SUCURSAL */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                <select name="sucursal" value={formData.sucursal} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm">
+                  {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
+                    <option key={ubicacion} value={ubicacion}>{UBICACIONES_LABELS[ubicacion]}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* FECHA INGRESO */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
+                <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" required />
+              </div>
+            </div>
+          </div>
+
+          {/* Precios y Costos */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Precios y Costos</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio de Costo *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-slate-500 font-medium text-sm">U$</span>
+                  <input type="number" name="precio_costo_usd" value={formData.precio_costo_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Gastos Adicionales</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-slate-500 font-medium text-sm">U$</span>
+                  <input type="number" name="envios_repuestos" value={formData.envios_repuestos} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
+                <input type="text" value={`U$${((parseFloat(formData.precio_costo_usd) || 0) + (parseFloat(formData.envios_repuestos) || 0)).toFixed(2)}`} disabled className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Precio de Venta *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-slate-500 font-medium text-sm">U$</span>
+                  <input type="number" name="precio_venta_usd" value={formData.precio_venta_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" required />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Especificaciones Técnicas */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Especificaciones Técnicas</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
                   <input
@@ -653,311 +699,107 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla (pulgadas)</label>
-                  <input
-                    type="number"
-                    name="pantalla"
-                    value={formData.pantalla}
-                    onChange={handleChange}
-                    placeholder="Ej: 15.6"
-                    min="10"
-                    max="20"
-                    step="0.1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
-                  <ResolucionSelect
-                    value={formData.resolucion}
-                    onChange={(val) => setFormData(prev => ({ ...prev, resolucion: val }))}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Refresh Rate</label>
-                  <input
-                    type="text"
-                    name="refresh"
-                    value={formData.refresh}
-                    onChange={handleChange}
-                    placeholder="Ej: 60Hz, 120Hz"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Teclado Retroiluminado</label>
-                  <select
-                    name="teclado_retro"
-                    value={formData.teclado_retro}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  >
-                    <option value="SI">Sí</option>
-                    <option value="NO">No</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Idioma</label>
-                  <select
-                    name="idioma_teclado"
-                    value={formData.idioma_teclado}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="Español">Español</option>
-                    <option value="Inglés">Inglés</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center space-x-2 pt-6">
-                  <input
-                    type="checkbox"
-                    id="touchscreen"
-                    name="touchscreen"
-                    checked={formData.touchscreen}
-                    onChange={handleChange}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-slate-300"
-                  />
-                  <label htmlFor="touchscreen" className="text-sm font-medium text-slate-700">
-                    Pantalla Táctil
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* INFORMACIÓN DE BATERÍA - Solo mostrar si NO es nuevo */}
-            {formData.condicion !== CONDICIONES.NUEVO && (
-              <div className="mt-6 pt-4 border-t border-slate-200">
-                <h5 className="text-sm font-semibold text-slate-700 mb-4">Información de Batería</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Batería</label>
-                    <input
-                      type="text"
-                      name="bateria"
-                      value={formData.bateria}
-                      onChange={handleChange}
-                      placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Duración de Batería</label>
-                    <input
-                      type="text"
-                      name="duracion"
-                      value={formData.duracion}
-                      onChange={handleChange}
-                      placeholder="Ej: 6-8 horas, 10 horas"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* GARANTÍAS Y OBSERVACIONES */}
-            <div className="mt-6 pt-4 border-t border-slate-200">
-              <h5 className="text-sm font-semibold text-slate-700 mb-4">Garantía y Observaciones</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
-                  <select
-                    name="garantia_update"
-                    value={formData.garantia_update}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  >
-                    <option value="1 mes">1 mes</option>
-                    <option value="3 meses">3 meses</option>
-                    <option value="6 meses">6 meses</option>
-                    <option value="12 meses">12 meses</option>
-                    <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
-                    <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
-                    <option value="Sin garantía">Sin garantía</option>
-                  </select>
-                </div>
-
-                {formData.garantia_update === 'Garantía oficial con vencimiento' && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Fecha de vencimiento
-                    </label>
-                    <input
-                      type="date"
-                      name="garantia_oficial_fecha"
-                      value={formData.garantia_oficial_fecha}
-                      onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                    />
-                  </div>
-                )}
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
-                  <textarea
-                    name="fallas"
-                    value={formData.fallas}
-                    onChange={handleChange}
-                    placeholder="Ej: Ninguna, batería agotada, tecla space pegajosa, etc."
-                    rows={3}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Sección: Información Comercial */}
-          <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
-              Información Comercial
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+          {/* Pantalla y Display */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Pantalla y Display</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Sucursal
-                </label>
-                <select
-                  name="sucursal"
-                  value={formData.sucursal}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                >
-                  {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
-                    <option key={ubicacion} value={ubicacion}>
-                      {UBICACIONES_LABELS[ubicacion]}
-                    </option>
-                  ))}
+                <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño (pulgadas)</label>
+                <input type="number" name="pantalla" value={formData.pantalla} onChange={handleChange} placeholder="Ej: 15.6" min="10" max="20" step="0.1" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
+                <ResolucionSelect value={formData.resolucion} onChange={(val) => setFormData(prev => ({ ...prev, resolucion: val }))} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Refresh Rate</label>
+                <input type="text" name="refresh" value={formData.refresh} onChange={handleChange} placeholder="Ej: 60Hz, 120Hz" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Touchscreen</label>
+                <select name="touchscreen" value={formData.touchscreen ? 'si' : 'no'} onChange={(e) => setFormData(prev => ({ ...prev, touchscreen: e.target.value === 'si' }))} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm">
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
                 </select>
               </div>
+            </div>
+          </div>
 
+          {/* Características Adicionales */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Características Adicionales</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Fecha de Ingreso *
-                </label>
-                <input
-                  type="date"
-                  name="ingreso"
-                  value={formData.ingreso}
-                  onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  required
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Teclado Retroiluminado</label>
+                <select name="teclado_retro" value={formData.teclado_retro} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm">
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Precio de Costo *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
-                  <input
-                    type="number"
-                    name="precio_costo_usd"
-                    value={formData.precio_costo_usd}
-                    onChange={handleChange}
-                    step="0.01"
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                    required
-                  />
-                </div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Idioma Teclado</label>
+                <select name="idioma_teclado" value={formData.idioma_teclado} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm">
+                  <option value="">Seleccionar...</option>
+                  <option value="Español">Español</option>
+                  <option value="Inglés">Inglés</option>
+                </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Gastos Adicionales
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
-                  <input
-                    type="number"
-                    name="envios_repuestos"
-                    value={formData.envios_repuestos}
-                    onChange={handleChange}
-                    step="0.01"
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                  />
-                </div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>
+                <input type="text" name="bateria" value={formData.bateria} onChange={handleChange} placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Precio de Venta *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-slate-500 font-medium">U$</span>
-                  <input
-                    type="number"
-                    name="precio_venta_usd"
-                    value={formData.precio_venta_usd}
-                    onChange={handleChange}
-                    step="0.01"
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Costo Total USD
-                </label>
-                <input
-                  type="text"
-                  value={`U$${((parseFloat(formData.precio_costo_usd) || 0) + (parseFloat(formData.envios_repuestos) || 0)).toFixed(2)}`}
-                  disabled
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed font-medium"
-                  title="Campo calculado automáticamente"
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Duración de Batería</label>
+                <input type="text" name="duracion" value={formData.duracion} onChange={handleChange} placeholder="Ej: 6-8 horas, 10 horas" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
               </div>
             </div>
           </div>
 
-          {/* Sección: Fotos */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-              Link de Fotos
-            </h4>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                URL de Fotos (Opcional)
-              </label>
-              <input
-                type="url"
-                name="fotos"
-                value={formData.fotos}
-                onChange={handleChange}
-                placeholder="https://drive.google.com/... o cualquier enlace"
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
-              </p>
+          {/* Garantía y Observaciones */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Garantía y Observaciones</h3>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                <select name="garantia_update" value={formData.garantia_update} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm">
+                  <option value="1 mes">1 mes</option>
+                  <option value="3 meses">3 meses</option>
+                  <option value="6 meses">6 meses</option>
+                  <option value="12 meses">12 meses</option>
+                  <option value="Garantía oficial Apple (12 meses)">Garantía oficial Apple (12 meses)</option>
+                  <option value="Garantía oficial con vencimiento">Garantía oficial con vencimiento</option>
+                  <option value="Sin garantía">Sin garantía</option>
+                </select>
+              </div>
+              {formData.garantia_update === 'Garantía oficial con vencimiento' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
+                  <input type="date" name="garantia_oficial_fecha" value={formData.garantia_oficial_fecha} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+                </div>
+              )}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                <textarea name="fallas" value={formData.fallas} onChange={handleChange} placeholder="Ej: Ninguna, batería agotada, tecla space pegajosa, etc." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+              </div>
+            </div>
+          </div>
+
+          {/* Link de Fotos */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Link de Fotos</h3>
+            <div className="p-5">
+              <label className="block text-sm font-medium text-slate-700 mb-2">URL de Fotos (Opcional)</label>
+              <input type="url" name="fotos" value={formData.fotos} onChange={handleChange} placeholder="https://drive.google.com/... o cualquier enlace" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
+              <p className="text-xs text-slate-500 mt-1">Google Drive, Dropbox, OneDrive o cualquier servicio en la nube</p>
             </div>
           </div>
 
           {/* Botón de envío */}
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting || loading}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-1 focus:ring-slate-300  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
-            >
+            <button type="submit" disabled={isSubmitting || loading} className="bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2">
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
