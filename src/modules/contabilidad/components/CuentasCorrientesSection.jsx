@@ -1,5 +1,6 @@
 // src/components/CuentasCorrientesSection.jsx
 import React, { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import {
   CreditCard,
   TrendingUp,
@@ -25,6 +26,7 @@ import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { generarYDescargarResumenCuenta } from './pdf/CuentaCorrientePDF';
 
 const CuentasCorrientesSection = () => {
+  const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroSaldo, setFiltroSaldo] = useState('todos'); // 'todos', 'deudores', 'acreedores'
   const [estadisticas, setEstadisticas] = useState(null);
@@ -1048,84 +1050,89 @@ Esta acción no se puede deshacer.`;
             </div>
 
             {/* Tabla de Movimientos */}
-            <div className="overflow-x-auto">
-              {loadingMovimientos ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-                  <p className="text-slate-500">Cargando movimientos...</p>
-                </div>
-              ) : movimientosFiltrados.length === 0 ? (
-                <div className="p-8 text-center">
-                  <CreditCard className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                  <p className="text-slate-500">
-                    {clienteSeleccionadoFiltro
-                      ? 'No hay movimientos para este cliente'
-                      : 'No hay movimientos registrados'
-                    }
-                  </p>
-                </div>
-              ) : (
-                <table className="w-full border-separate" style={{ borderSpacing: 0 }}>
-                  <thead className="bg-slate-800 text-white">
-                    <tr>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Cliente</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Fecha</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Concepto</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Débito</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Crédito</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Saldo</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {movimientosConSaldo.map((movimiento, index) => (
-                      <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-4 py-3 text-center text-sm">
-                          <div className="font-medium text-slate-800">{movimiento.nombre_cliente} {movimiento.apellido_cliente}</div>
-                          {movimiento.observaciones && (
-                            <div className="text-xs text-slate-500 mt-1">{movimiento.observaciones}</div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
-                          {formatFecha(movimiento.fecha_operacion)}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-800">
-                          {movimiento.concepto}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
-                          {movimiento.tipo_movimiento === 'debe' ? formatearMonto(movimiento.monto, 'USD') : '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap">
-                          {movimiento.tipo_movimiento === 'haber' ? formatearMonto(movimiento.monto, 'USD') : '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="font-semibold text-slate-800 whitespace-nowrap">
-                            {movimiento.saldo_acumulado > 0 ? '-' : movimiento.saldo_acumulado < 0 ? '+' : ''}{formatearMonto(Math.abs(movimiento.saldo_acumulado), 'USD')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex justify-center space-x-2">
-                            <button
-                              onClick={() => handleEditarMovimiento(movimiento)}
-                              className="text-emerald-600 hover:text-emerald-800 transition-colors p-1"
-                              title="Editar movimiento"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEliminarMovimiento(movimiento)}
-                              className="text-red-600 hover:text-red-800 transition-colors p-1"
-                              title="Eliminar movimiento"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+            <div
+              className="relative w-full overflow-hidden"
+              style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 18rem)' }}
+            >
+              <div className="overflow-auto max-h-[70vh] w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                {loadingMovimientos ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+                    <p className="text-slate-500">Cargando movimientos...</p>
+                  </div>
+                ) : movimientosFiltrados.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <CreditCard className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                    <p className="text-slate-500">
+                      {clienteSeleccionadoFiltro
+                        ? 'No hay movimientos para este cliente'
+                        : 'No hay movimientos registrados'
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <table className="w-full border-separate" style={{ borderSpacing: 0, minWidth: '700px' }}>
+                    <thead className="bg-slate-800 text-white">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Cliente</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Fecha</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Concepto</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Débito</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Crédito</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Saldo</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {movimientosConSaldo.map((movimiento, index) => (
+                        <tr key={movimiento.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                          <td className="px-4 py-3 text-center text-sm">
+                            <div className="font-medium text-slate-800">{movimiento.nombre_cliente} {movimiento.apellido_cliente}</div>
+                            {movimiento.observaciones && (
+                              <div className="text-xs text-slate-500 mt-1">{movimiento.observaciones}</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
+                            {formatFecha(movimiento.fecha_operacion)}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-800">
+                            {movimiento.concepto}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
+                            {movimiento.tipo_movimiento === 'debe' ? formatearMonto(movimiento.monto, 'USD') : '-'}
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm font-semibold text-slate-600 whitespace-nowrap">
+                            {movimiento.tipo_movimiento === 'haber' ? formatearMonto(movimiento.monto, 'USD') : '-'}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="font-semibold text-slate-800 whitespace-nowrap">
+                              {movimiento.saldo_acumulado > 0 ? '-' : movimiento.saldo_acumulado < 0 ? '+' : ''}{formatearMonto(Math.abs(movimiento.saldo_acumulado), 'USD')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex justify-center space-x-2">
+                              <button
+                                onClick={() => handleEditarMovimiento(movimiento)}
+                                className="text-emerald-600 hover:text-emerald-800 transition-colors p-1"
+                                title="Editar movimiento"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleEliminarMovimiento(movimiento)}
+                                className="text-red-600 hover:text-red-800 transition-colors p-1"
+                                title="Eliminar movimiento"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
           </div>
         </div>

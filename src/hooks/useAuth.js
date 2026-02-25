@@ -231,11 +231,11 @@ export const useAuth = () => {
 
   // Mapeo de roles a secciones permitidas
   const ROLE_SECTIONS = {
-    admin: ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras'],
-    ventas: ['ventas'],
+    admin: ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras', 'ingreso-equipos'],
+    ventas: ['ventas', 'ingreso-equipos'],
     soporte: ['soporte'],
     contabilidad: ['contabilidad', 'administracion'],
-    compras: ['compras'],
+    compras: ['compras', 'ingreso-equipos'],
   };
 
   // Verificar si el usuario tiene acceso a una sección

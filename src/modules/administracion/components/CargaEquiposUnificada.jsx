@@ -28,6 +28,48 @@ import {
   RESOLUCIONES_LABELS
 } from '../../../shared/constants/resolutionConstants';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
+
+// Select de resolución con opción "Otro" para valor libre
+const ResolucionSelect = ({ value, onChange, className }) => {
+  const esPersonalizado = value && !RESOLUCIONES_ARRAY.includes(value);
+  const [modo, setModo] = useState(esPersonalizado ? 'otro' : 'lista');
+
+  const handleSelectChange = (e) => {
+    if (e.target.value === '__otro__') {
+      setModo('otro');
+      onChange('');
+    } else {
+      setModo('lista');
+      onChange(e.target.value);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <select
+        value={modo === 'otro' ? '__otro__' : (value || '')}
+        onChange={handleSelectChange}
+        className={className}
+      >
+        <option value="">Seleccionar resolución</option>
+        {RESOLUCIONES_ARRAY.map(res => (
+          <option key={res} value={res}>{RESOLUCIONES_LABELS[res]}</option>
+        ))}
+        <option value="__otro__">Otro...</option>
+      </select>
+      {modo === 'otro' && (
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Ej: 2560x1600"
+          className={className}
+          autoFocus
+        />
+      )}
+    </div>
+  );
+};
 import { useProveedores } from '../../importaciones/hooks/useProveedores';
 import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
 
@@ -125,7 +167,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     ram: '',
     ssd: '',
     hdd: '',
-    so: 'WIN11',
+    so: '',
     pantalla: '',
     resolucion: 'FHD',
     refresh: '',
@@ -135,7 +177,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
 
     // Características físicas
     teclado_retro: 'SI',
-    idioma_teclado: 'Español',
+    idioma_teclado: '',
     color: '',
 
     // Batería
@@ -238,7 +280,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           ram: '',
           ssd: '',
           hdd: '',
-          so: 'WIN11',
+          so: '',
           pantalla: '',
           resolucion: 'FHD',
           refresh: '',
@@ -246,7 +288,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           placa_video: '',
           vram: '',
           teclado_retro: 'SI',
-          idioma_teclado: 'Español',
+          idioma_teclado: '',
           color: '',
           bateria: '',
           duracion: '',
@@ -280,7 +322,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           ram: '',
           ssd: '',
           hdd: '',
-          so: 'WIN11',
+          so: '',
           pantalla: '',
           resolucion: 'FHD',
           refresh: '',
@@ -288,7 +330,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           placa_video: '',
           vram: '',
           teclado_retro: 'SI',
-          idioma_teclado: 'Español',
+          idioma_teclado: '',
           color: '',
           bateria: '',
           duracion: '',
@@ -342,7 +384,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.serial}
                   onChange={handleChange}
                   placeholder="Ej: ABC123456789"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -356,7 +398,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 >
                   {CATEGORIAS_NOTEBOOKS_ARRAY.map(categoria => (
@@ -389,7 +431,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="condicion"
                   value={formData.condicion}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {CONDICIONES_ARRAY.map(condicion => (
                     <option key={condicion} value={condicion}>
@@ -410,7 +452,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.modelo}
                   onChange={handleChange}
                   placeholder="Ej: ThinkPad X1 Carbon"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -426,7 +468,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.color}
                   onChange={handleChange}
                   placeholder="Ej: Negro, Plata, Gris"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -440,7 +482,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="estado"
                     value={formData.estado || ''}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Seleccionar...</option>
                     {ESTADOS_ARRAY.map(estado => (
@@ -463,7 +505,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.proveedor_id}
                     onChange={handleChange}
                     disabled={proveedoresLoading}
-                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Sin especificar</option>
                     {proveedores.map(prov => (
@@ -497,7 +539,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.procesador}
                     onChange={handleChange}
                     placeholder="Ej: Intel i5-12400H"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -511,7 +553,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     placeholder="Ej: 8, 16, 32"
                     min="0"
                     step="1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -521,7 +563,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="tipo_ram"
                     value={formData.tipo_ram}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="DDR3">DDR3</option>
                     <option value="DDR4">DDR4</option>
@@ -538,7 +580,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     placeholder="Ej: 2"
                     min="1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -552,7 +594,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     placeholder="Ej: 256, 512, 1024"
                     min="0"
                     step="1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -566,7 +608,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     placeholder="Ej: 1000, 2000 o vacío"
                     min="0"
                     step="1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -576,8 +618,9 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="so"
                     value={formData.so}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
+                    <option value="">Seleccionar...</option>
                     <option value="WIN11">Windows 11</option>
                     <option value="WIN10">Windows 10</option>
                     <option value="Linux">Linux</option>
@@ -594,7 +637,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.placa_video}
                     onChange={handleChange}
                     placeholder="Ej: RTX 4060, Integrada"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -606,7 +649,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.vram}
                     onChange={handleChange}
                     placeholder="Ej: 4GB, 8GB, 16GB"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -621,25 +664,17 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     min="10"
                     max="20"
                     step="0.1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
-                  <select
-                    name="resolucion"
+                  <ResolucionSelect
                     value={formData.resolucion}
-                    onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
-                  >
-                    <option value="">Seleccionar resolución</option>
-                    {RESOLUCIONES_ARRAY.map(resolucion => (
-                      <option key={resolucion} value={resolucion}>
-                        {RESOLUCIONES_LABELS[resolucion]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData(prev => ({ ...prev, resolucion: val }))}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  />
                 </div>
 
                 <div>
@@ -650,7 +685,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.refresh}
                     onChange={handleChange}
                     placeholder="Ej: 60Hz, 120Hz"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -660,7 +695,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="teclado_retro"
                     value={formData.teclado_retro}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="SI">Sí</option>
                     <option value="NO">No</option>
@@ -668,16 +703,16 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Idioma del Teclado</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Idioma</label>
                   <select
                     name="idioma_teclado"
                     value={formData.idioma_teclado}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
+                    <option value="">Seleccionar...</option>
                     <option value="Español">Español</option>
                     <option value="Inglés">Inglés</option>
-                    <option value="Internacional">Internacional</option>
                   </select>
                 </div>
 
@@ -688,7 +723,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="touchscreen"
                     checked={formData.touchscreen}
                     onChange={handleChange}
-                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-slate-300"
                   />
                   <label htmlFor="touchscreen" className="text-sm font-medium text-slate-700">
                     Pantalla Táctil
@@ -710,7 +745,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                       value={formData.bateria}
                       onChange={handleChange}
                       placeholder="Ej: Li-ion 53Wh, 4-cell 56Wh"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
 
@@ -722,7 +757,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                       value={formData.duracion}
                       onChange={handleChange}
                       placeholder="Ej: 6-8 horas, 10 horas"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                 </div>
@@ -739,7 +774,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="garantia_update"
                     value={formData.garantia_update}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="1 mes">1 mes</option>
                     <option value="3 meses">3 meses</option>
@@ -761,7 +796,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                       name="garantia_oficial_fecha"
                       value={formData.garantia_oficial_fecha}
                       onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                 )}
@@ -774,7 +809,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     placeholder="Ej: Ninguna, batería agotada, tecla space pegajosa, etc."
                     rows={3}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               </div>
@@ -797,7 +832,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="sucursal"
                   value={formData.sucursal}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
                     <option key={ubicacion} value={ubicacion}>
@@ -816,7 +851,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="ingreso"
                   value={formData.ingreso}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -834,7 +869,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -853,7 +888,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               </div>
@@ -871,7 +906,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -908,7 +943,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 value={formData.fotos}
                 onChange={handleChange}
                 placeholder="https://drive.google.com/... o cualquier enlace"
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
               />
               <p className="text-xs text-slate-500 mt-1">
                 Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
@@ -921,7 +956,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
+              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-1 focus:ring-slate-300  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>
@@ -1162,7 +1197,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.serial}
                   onChange={handleChange}
                   placeholder="Ej: A12BC34567DEF"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -1176,7 +1211,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 >
                   {CATEGORIAS_CELULARES_ARRAY.map(categoria => (
@@ -1209,7 +1244,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="condicion"
                   value={formData.condicion}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {CONDICIONES_ARRAY.map(condicion => (
                     <option key={condicion} value={condicion}>
@@ -1230,7 +1265,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.modelo}
                   onChange={handleChange}
                   placeholder="Ej: iPhone 14 Pro"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -1246,7 +1281,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.capacidad}
                   onChange={handleChange}
                   placeholder="Ej: 128GB, 256GB, 1TB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -1261,7 +1296,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.color}
                   onChange={handleChange}
                   placeholder="Ej: Negro, Blanco, Azul"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -1274,7 +1309,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="sim_esim"
                   value={formData.sim_esim}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   <option value="SIM">SIM Físico</option>
                   <option value="ESIM">eSIM</option>
@@ -1293,7 +1328,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     value={formData.proveedor_id}
                     onChange={handleChange}
                     disabled={proveedoresLoading}
-                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Sin especificar</option>
                     {proveedores.map(prov => (
@@ -1330,7 +1365,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                         name="estado"
                         value={formData.estado || ''}
                         onChange={handleChange}
-                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                       >
                         <option value="">Seleccionar...</option>
                         {ESTADOS_ARRAY.map(estado => (
@@ -1354,7 +1389,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                         value={formData.bateria}
                         onChange={handleChange}
                         placeholder="Ej: 85%, 92%"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                       />
                     </div>
                   )}
@@ -1371,7 +1406,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                         value={formData.ciclos}
                         onChange={handleChange}
                         placeholder="Ej: 150, 300"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                       />
                     </div>
                   )}
@@ -1390,7 +1425,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                         placeholder="Ej: 4, 6, 8, 12"
                         min="0"
                         step="1"
-                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                       />
                     </div>
                   )}
@@ -1410,7 +1445,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     name="garantia"
                     value={formData.garantia}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="1 mes">1 mes</option>
                     <option value="3 meses">3 meses</option>
@@ -1433,7 +1468,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                       name="garantia_oficial_fecha"
                       value={formData.garantia_oficial_fecha}
                       onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                 )}
@@ -1448,7 +1483,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     placeholder="Ej: Ninguna, pantalla con rayones menores, etc."
                     rows={3}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               </div>
@@ -1471,7 +1506,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="sucursal"
                   value={formData.sucursal}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {UBICACIONES_ARRAY.filter(ubicacion => ubicacion !== UBICACIONES.SERVICIO_TECNICO).map(ubicacion => (
                     <option key={ubicacion} value={ubicacion}>
@@ -1490,7 +1525,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="ingreso"
                   value={formData.ingreso}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -1508,7 +1543,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -1527,7 +1562,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               </div>
@@ -1545,7 +1580,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -1582,7 +1617,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                 value={formData.fotos}
                 onChange={handleChange}
                 placeholder="https://drive.google.com/... o cualquier enlace"
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
               />
               <p className="text-xs text-slate-500 mt-1">
                 Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
@@ -1595,7 +1630,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
+              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-1 focus:ring-slate-300  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>
@@ -1951,7 +1986,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.serial}
                     onChange={handleChange}
                     placeholder="Ej: SN123456"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -1962,7 +1997,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="categoria"
                     value={formData.categoria}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     <option value="">Seleccionar...</option>
@@ -1988,7 +2023,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="condicion"
                     value={formData.condicion}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     {CONDICIONES_ARRAY.map(condicion => (
@@ -2007,7 +2042,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.modelo}
                     onChange={handleChange}
                     placeholder="Ej: Pavilion 15"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2020,7 +2055,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.procesador}
                     onChange={handleChange}
                     placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2032,7 +2067,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.motherboard}
                     onChange={handleChange}
                     placeholder="Ej: ASUS ROG STRIX B550"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2044,7 +2079,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.memoria}
                     onChange={handleChange}
                     placeholder="Ej: 16GB DDR4"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2056,7 +2091,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.gpu}
                     onChange={handleChange}
                     placeholder="Ej: RTX 3060 Ti, Integrada"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2068,7 +2103,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.ssd}
                     onChange={handleChange}
                     placeholder="Ej: 500GB NVMe"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2080,7 +2115,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.hdd}
                     onChange={handleChange}
                     placeholder="Ej: 1TB, Sin HDD"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2092,7 +2127,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.gabinete}
                     onChange={handleChange}
                     placeholder="Ej: NZXT H510 Flow"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2104,7 +2139,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.fuente}
                     onChange={handleChange}
                     placeholder="Ej: 650W Modular"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2116,7 +2151,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.color || ''}
                     onChange={handleChange}
                     placeholder="Ej: Negro, Blanco"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2127,7 +2162,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="ingreso"
                     value={formData.ingreso}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2140,7 +2175,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                       name="estado"
                       value={formData.estado || ''}
                       onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     >
                       <option value="">Seleccionar...</option>
                       {ESTADOS_ARRAY.map(estado => (
@@ -2159,7 +2194,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="observaciones"
                     value={formData.observaciones}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     rows="3"
                     placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc."
                   />
@@ -2182,7 +2217,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.serial}
                     onChange={handleChange}
                     placeholder="Ej: SN123456"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2192,7 +2227,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="categoria"
                     value={formData.categoria}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     <option value="">Seleccionar...</option>
@@ -2216,7 +2251,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="condicion"
                     value={formData.condicion}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     {CONDICIONES_ARRAY.map(condicion => (
@@ -2234,7 +2269,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.modelo}
                     onChange={handleChange}
                     placeholder="Ej: iPad Pro 11, Galaxy Tab S9"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2246,7 +2281,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.color}
                     onChange={handleChange}
                     placeholder="Ej: Space Gray, Silver, Black"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
                 <div>
@@ -2255,7 +2290,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="capacidad_almacenamiento"
                     value={formData.capacidad_almacenamiento}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Seleccionar...</option>
                     <option value="64GB">64GB</option>
@@ -2274,7 +2309,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.tamano_pantalla}
                     onChange={handleChange}
                     placeholder='Ej: 10.2", 11", 12.9"'
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
                 <div>
@@ -2283,7 +2318,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="conectividad"
                     value={formData.conectividad}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="WiFi only">WiFi only</option>
                     <option value="WiFi + Cellular">WiFi + Cellular</option>
@@ -2297,7 +2332,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="ingreso"
                     value={formData.ingreso}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2308,7 +2343,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                       name="estado"
                       value={formData.estado || ''}
                       onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     >
                       <option value="">Seleccionar...</option>
                       {ESTADOS_ARRAY.map(estado => (
@@ -2325,7 +2360,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="observaciones"
                     value={formData.observaciones}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     rows="3"
                     placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc."
                   />
@@ -2350,7 +2385,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.nombre_producto}
                     onChange={handleChange}
                     placeholder="Ej: Mouse Logitech MX Master 3"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2363,7 +2398,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="categoria"
                     value={formData.categoria}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     <option value="">Seleccionar...</option>
@@ -2395,7 +2430,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.color || ''}
                     onChange={handleChange}
                     placeholder="Ej: Negro, Blanco"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
 
@@ -2407,7 +2442,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="condicion"
                     value={formData.condicion}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   >
                     {CONDICIONES_ARRAY.map(condicion => (
@@ -2427,7 +2462,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     name="ingreso"
                     value={formData.ingreso}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2442,7 +2477,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     value={formData.serial}
                     onChange={handleChange}
                     placeholder="Ej: SN123456 (solo para productos únicos)"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                   <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
                 </div>
@@ -2458,7 +2493,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                       value={formData.proveedor_id}
                       onChange={handleChange}
                       disabled={proveedoresLoading}
-                      className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     >
                       <option value="">Sin especificar</option>
                       {proveedores.map(prov => (
@@ -2489,7 +2524,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     placeholder="Descripción adicional del producto..."
                     rows={2}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               </div>
@@ -2506,7 +2541,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                       name="garantia"
                       value={formData.garantia}
                       onChange={handleChange}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     >
                       <option value="1 mes">1 mes</option>
                       <option value="3 meses">3 meses</option>
@@ -2529,7 +2564,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                         name="garantia_oficial_fecha"
                         value={formData.garantia_oficial_fecha}
                         onChange={handleChange}
-                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                        className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                       />
                     </div>
                   )}
@@ -2544,7 +2579,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                       onChange={handleChange}
                       placeholder="Comentarios adicionales sobre el producto..."
                       rows={2}
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                 </div>
@@ -2570,7 +2605,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   onChange={handleChange}
                   min="0"
                   placeholder="0"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -2585,7 +2620,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   onChange={handleChange}
                   min="0"
                   placeholder="0"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
             </div>
@@ -2611,7 +2646,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2630,7 +2665,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     required
                   />
                 </div>
@@ -2649,7 +2684,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Envíos, reparaciones u otros costos adicionales</p>
@@ -2686,7 +2721,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 value={formData.fotos}
                 onChange={handleChange}
                 placeholder="https://drive.google.com/... o cualquier enlace"
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
               />
               <p className="text-xs text-slate-500 mt-1">
                 Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
@@ -2699,7 +2734,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
             <button
               type="submit"
               disabled={isSubmitting || loading || !formData.categoria || ((isDesktop || isTablet) ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
+              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-1 focus:ring-slate-300  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>

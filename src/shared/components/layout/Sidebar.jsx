@@ -64,13 +64,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           description: 'Generador de listas'
         },
         {
-          id: 'listado-total',
-          path: '/stock',
-          label: 'Listado Total',
-          icon: Package,
-          description: 'Vista unificada de inventario'
-        },
-        {
           id: 'registrar-venta',
           path: '/registrar-venta',
           label: 'Registrar Venta',
@@ -139,6 +132,13 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           label: 'Garantías',
           icon: Shield,
           description: 'Gestión de garantías'
+        },
+        {
+          id: 'listado-total',
+          path: '/stock',
+          label: 'Listado Total',
+          icon: Package,
+          description: 'Vista unificada de inventario'
         },
         {
           id: 'recuento-stock',
@@ -229,7 +229,8 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           path: '/ingreso-equipos',
           label: 'Ingreso de Equipos',
           icon: Plus,
-          description: 'Cargar productos al inventario'
+          description: 'Cargar productos al inventario',
+          section: 'ingreso-equipos'
         },
         {
           id: 'compras',
@@ -293,9 +294,23 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
 
   // Filtrar grupos según el nivel de usuario
   const allowedSections = getAllowedSections();
-  const filteredMenuGroups = menuGroups.filter(group =>
-    user?.user_metadata?.nivel === 'admin' || allowedSections.includes(group.level)
-  );
+  const isAdmin = user?.user_metadata?.nivel === 'admin';
+
+  const filteredMenuGroups = menuGroups
+    .filter(group => {
+      if (isAdmin) return true;
+      if (allowedSections.includes(group.level)) return true;
+      // Mostrar grupo si el usuario tiene acceso a algún item específico del grupo
+      return group.items.some(item => item.section && allowedSections.includes(item.section));
+    })
+    .map(group => {
+      if (isAdmin || allowedSections.includes(group.level)) return group;
+      // Filtrar items a solo los que el usuario tiene sección específica permitida
+      return {
+        ...group,
+        items: group.items.filter(item => item.section && allowedSections.includes(item.section))
+      };
+    });
 
   // Función para alternar el estado expandido de una sección
   const toggleSection = (sectionTitle) => {
@@ -311,7 +326,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
   };
 
   return (
-    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 ${isCollapsed ? 'w-16' : 'w-70'
+    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 ${isCollapsed ? 'w-16' : 'w-60'
       }`}>
       {/* Header con Logo y Toggle */}
       <div className={`flex flex-col items-center justify-center ${isCollapsed ? "p-2 py-4 gap-4" : "p-4 relative"} border-b border-slate-700 bg-slate-800 z-10`}>
@@ -413,7 +428,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                     <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
                                       <Icon className="w-4 h-4" />
                                     </div>
-                                    <div className="text-left w-full min-w-0">
+                                    <div className="text-left w-full min-w-0 overflow-hidden">
                                       <div className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
                                         <span>{item.label}</span>
                                         <AlertCircle className="w-3 h-3 opacity-50 flex-shrink-0" />
@@ -459,7 +474,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                       }`}>
                                       <Icon className="w-4 h-4" />
                                     </div>
-                                    <div className="text-left w-full min-w-0">
+                                    <div className="text-left w-full min-w-0 overflow-hidden">
                                       <div className={`text-sm font-semibold ${isActive
                                         ? 'text-slate-800'
                                         : 'text-slate-200 group-hover:text-white'

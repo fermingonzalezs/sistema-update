@@ -84,9 +84,15 @@ button {
 }
 
 
+/* Foco global sutil para todos los campos */
+input:focus,
+select:focus,
+textarea:focus,
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 1px solid #cbd5e1;
+  outline-offset: 0;
+  box-shadow: none;
 }
 
 /* Media query simplificada */

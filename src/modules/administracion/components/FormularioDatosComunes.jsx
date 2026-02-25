@@ -3,10 +3,53 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { CONDICIONES, CONDICIONES_ARRAY, CONDICIONES_LABELS, ESTADOS_ARRAY, ESTADOS_LABELS, UBICACIONES_ARRAY, UBICACIONES_LABELS } from '../../../shared/constants/productConstants';
 import { CATEGORIAS_OTROS, CATEGORIAS_OTROS_ARRAY, CATEGORIAS_OTROS_LABELS } from '../../../shared/constants/categoryConstants';
+import { RESOLUCIONES_ARRAY, RESOLUCIONES_LABELS } from '../../../shared/constants/resolutionConstants';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 import { useProveedores } from '../../importaciones/hooks/useProveedores';
 import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorModal';
+
+// Select de resolución con opción "Otro" para valor libre
+const ResolucionSelect = ({ value, onChange, className }) => {
+    const esPersonalizado = value && !RESOLUCIONES_ARRAY.includes(value);
+    const [modo, setModo] = useState(esPersonalizado ? 'otro' : 'lista');
+
+    const handleSelectChange = (e) => {
+        if (e.target.value === '__otro__') {
+            setModo('otro');
+            onChange('');
+        } else {
+            setModo('lista');
+            onChange(e.target.value);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <select
+                value={modo === 'otro' ? '__otro__' : (value || '')}
+                onChange={handleSelectChange}
+                className={className}
+            >
+                <option value="">Seleccionar...</option>
+                {RESOLUCIONES_ARRAY.map(res => (
+                    <option key={res} value={res}>{RESOLUCIONES_LABELS[res]}</option>
+                ))}
+                <option value="__otro__">Otro...</option>
+            </select>
+            {modo === 'otro' && (
+                <input
+                    type="text"
+                    value={value || ''}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="Ej: 2560x1600"
+                    className={className}
+                    autoFocus
+                />
+            )}
+        </div>
+    );
+};
 
 // Opciones de garantía (igual que en CargaEquiposUnificada)
 const GARANTIAS_OPTIONS = [
@@ -89,7 +132,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 type="date"
                                 value={datos.ingreso || obtenerFechaLocal()}
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -99,7 +142,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                     value={datos.proveedor_id || ''}
                                     onChange={(e) => handleChange('proveedor_id', e.target.value)}
                                     disabled={proveedoresLoading}
-                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 >
                                     <option value="">Sin especificar</option>
                                     {proveedores.map(prov => (
@@ -134,7 +177,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.capacidad || ''}
                                 onChange={(e) => handleIntegerChange('capacidad', e.target.value)}
                                 placeholder="Ej: 256"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -144,7 +187,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.color || ''}
                                 onChange={(e) => handleChange('color', e.target.value)}
                                 placeholder="Ej: Titanio Natural"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -155,7 +198,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.ram || ''}
                                 onChange={(e) => handleIntegerChange('ram', e.target.value)}
                                 placeholder="Ej: 8"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -163,7 +206,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.sim_esim || ''}
                                 onChange={(e) => handleChange('sim_esim', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 <option value="SIM">SIM</option>
@@ -230,12 +273,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.costos_adicionales || ''}
                                 onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
                                 placeholder="Ej: 50"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-700 font-medium">
+                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
                                 ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
                             </div>
                         </div>
@@ -293,7 +336,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.sucursal || ''}
                                 onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
@@ -313,7 +356,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.garantia || '3 meses'}
                                 onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -327,7 +370,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                     type="date"
                                     value={datos.garantia_oficial_fecha || ''}
                                     onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 />
                             </div>
                         )}
@@ -338,7 +381,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.fallas || ''}
                                 onChange={(e) => handleChange('fallas', e.target.value)}
                                 placeholder="Ej: Ninguna, batería agotada, etc."
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                     </div>
@@ -381,7 +424,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.categoria || ''}
                                 onChange={(e) => handleChange('categoria', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 <option value="windows">Windows</option>
@@ -396,7 +439,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 type="date"
                                 value={datos.ingreso || obtenerFechaLocal()}
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -406,7 +449,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                     value={datos.proveedor_id || ''}
                                     onChange={(e) => handleChange('proveedor_id', e.target.value)}
                                     disabled={proveedoresLoading}
-                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 >
                                     <option value="">Sin especificar</option>
                                     {proveedores.map(prov => (
@@ -440,7 +483,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.procesador || ''}
                                 onChange={(e) => handleChange('procesador', e.target.value)}
                                 placeholder="Ej: Intel i7-12700H"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -460,7 +503,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.tipo_ram || ''}
                                 onChange={(e) => handleChange('tipo_ram', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 <option value="DDR4">DDR4</option>
@@ -478,7 +521,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.slots || ''}
                                 onChange={(e) => handleIntegerChange('slots', e.target.value)}
                                 placeholder="Ej: 2"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                     </div>
@@ -496,7 +539,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.ssd || ''}
                                 onChange={(e) => handleIntegerChange('ssd', e.target.value)}
                                 placeholder="Ej: 512"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -507,7 +550,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.hdd || ''}
                                 onChange={(e) => handleIntegerChange('hdd', e.target.value)}
                                 placeholder="Ej: 1000"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                     </div>
@@ -525,29 +568,23 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.pantalla || ''}
                                 onChange={(e) => handleNumeroChange('pantalla', e.target.value)}
                                 placeholder="Ej: 15.6"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Resolución</label>
-                            <select
+                            <ResolucionSelect
                                 value={datos.resolucion || ''}
-                                onChange={(e) => handleChange('resolucion', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
-                            >
-                                <option value="">Seleccionar...</option>
-                                <option value="FHD">FHD (1920x1080)</option>
-                                <option value="QHD">QHD (2560x1440)</option>
-                                <option value="4K">4K (3840x2160)</option>
-                                <option value="Retina">Retina</option>
-                            </select>
+                                onChange={(val) => handleChange('resolucion', val)}
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Refresh Rate</label>
                             <select
                                 value={datos.refresh || ''}
                                 onChange={(e) => handleChange('refresh', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 <option value="60">60Hz</option>
@@ -562,7 +599,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.touchscreen ? 'si' : 'no'}
                                 onChange={(e) => handleChange('touchscreen', e.target.value === 'si')}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="no">No</option>
                                 <option value="si">Sí</option>
@@ -595,12 +632,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.envios_repuestos || ''}
                                 onChange={(e) => handleNumeroChange('envios_repuestos', e.target.value)}
                                 placeholder="Ej: 50"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-700 font-medium">
+                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
                                 ${((parseFloat(datos.precio_costo_usd) || 0) + (parseFloat(datos.envios_repuestos) || 0)).toFixed(0)}
                             </div>
                         </div>
@@ -642,7 +679,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 <select
                                     value={datos.estado || ''}
                                     onChange={(e) => handleChange('estado', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 >
                                     <option value="">Seleccionar...</option>
                                     {ESTADOS_ARRAY.map(est => (
@@ -656,7 +693,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.sucursal || ''}
                                 onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
@@ -671,8 +708,20 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.color || ''}
                                 onChange={(e) => handleChange('color', e.target.value)}
                                 placeholder="Ej: Space Gray"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Idioma</label>
+                            <select
+                                value={datos.idioma_teclado || ''}
+                                onChange={(e) => handleChange('idioma_teclado', e.target.value)}
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            >
+                                <option value="">Seleccionar...</option>
+                                <option value="Español">Español</option>
+                                <option value="Inglés">Inglés</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -762,7 +811,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.procesador || ''}
                                 onChange={(e) => handleChange('procesador', e.target.value)}
                                 placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -772,7 +821,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.motherboard || ''}
                                 onChange={(e) => handleChange('motherboard', e.target.value)}
                                 placeholder="Ej: ASUS ROG STRIX B550"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -782,7 +831,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.memoria || ''}
                                 onChange={(e) => handleChange('memoria', e.target.value)}
                                 placeholder="Ej: 16GB DDR4"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -792,7 +841,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.gpu || ''}
                                 onChange={(e) => handleChange('gpu', e.target.value)}
                                 placeholder="Ej: RTX 3060 Ti, Integrada"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -802,7 +851,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.ssd || ''}
                                 onChange={(e) => handleChange('ssd', e.target.value)}
                                 placeholder="Ej: 500GB NVMe"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -812,7 +861,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.hdd || ''}
                                 onChange={(e) => handleChange('hdd', e.target.value)}
                                 placeholder="Ej: 1TB, Sin HDD"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -822,7 +871,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.gabinete || ''}
                                 onChange={(e) => handleChange('gabinete', e.target.value)}
                                 placeholder="Ej: NZXT H510 Flow"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -832,7 +881,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.fuente || ''}
                                 onChange={(e) => handleChange('fuente', e.target.value)}
                                 placeholder="Ej: 650W Modular"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                     </div>
@@ -862,12 +911,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.costos_adicionales || ''}
                                 onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
                                 placeholder="Ej: 50"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-700 font-medium">
+                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
                                 ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
                             </div>
                         </div>
@@ -895,7 +944,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.sucursal || ''}
                                 onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
@@ -909,7 +958,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 type="date"
                                 value={datos.ingreso || obtenerFechaLocal()}
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         {!esNuevo && (
@@ -918,7 +967,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 <select
                                     value={datos.estado || ''}
                                     onChange={(e) => handleChange('estado', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 >
                                     <option value="">Seleccionar...</option>
                                     {ESTADOS_ARRAY.map(est => (
@@ -932,7 +981,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.garantia || '3 meses'}
                                 onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -949,7 +998,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         value={datos.observaciones || ''}
                         onChange={(e) => handleChange('observaciones', e.target.value)}
                         placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc."
-                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         rows="3"
                     />
                 </div>
@@ -1037,7 +1086,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.color || ''}
                                 onChange={(e) => handleChange('color', e.target.value)}
                                 placeholder="Ej: Space Gray, Silver, Black"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -1045,7 +1094,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.capacidad_almacenamiento || ''}
                                 onChange={(e) => handleChange('capacidad_almacenamiento', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 <option value="64GB">64GB</option>
@@ -1063,7 +1112,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.tamano_pantalla || ''}
                                 onChange={(e) => handleChange('tamano_pantalla', e.target.value)}
                                 placeholder='Ej: 10.2", 11", 12.9"'
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
@@ -1071,7 +1120,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.conectividad || 'WiFi'}
                                 onChange={(e) => handleChange('conectividad', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="WiFi">WiFi</option>
                                 <option value="WiFi + Datos">WiFi + Datos</option>
@@ -1104,12 +1153,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 value={datos.costos_adicionales || ''}
                                 onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
                                 placeholder="Ej: 30"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-700 font-medium">
+                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
                                 ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
                             </div>
                         </div>
@@ -1137,7 +1186,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.sucursal || ''}
                                 onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
@@ -1151,7 +1200,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 type="date"
                                 value={datos.ingreso || obtenerFechaLocal()}
                                 onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                         {!esNuevo && (
@@ -1160,7 +1209,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 <select
                                     value={datos.estado || ''}
                                     onChange={(e) => handleChange('estado', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                                 >
                                     <option value="">Seleccionar...</option>
                                     {ESTADOS_ARRAY.map(est => (
@@ -1174,7 +1223,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             <select
                                 value={datos.garantia || '3 meses'}
                                 onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             >
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1191,7 +1240,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         value={datos.observaciones || ''}
                         onChange={(e) => handleChange('observaciones', e.target.value)}
                         placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc."
-                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         rows="3"
                     />
                 </div>
@@ -1218,17 +1267,6 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Producto</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
-                        <input
-                            type="text"
-                            value={datos.nombre_producto || ''}
-                            onChange={(e) => handleChange('nombre_producto', e.target.value)}
-                            placeholder="Ej: Cable USB-C a Lightning"
-                            className={`w-full border rounded px-3 py-2 text-sm ${errores.nombre_producto ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                        />
-                        {errores.nombre_producto && <p className="text-red-500 text-xs mt-1">{errores.nombre_producto}</p>}
-                    </div>
-                    <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
                         <select
                             value={datos.categoria || ''}
@@ -1241,6 +1279,17 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             ))}
                         </select>
                         {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
+                        <input
+                            type="text"
+                            value={datos.nombre_producto || ''}
+                            onChange={(e) => handleChange('nombre_producto', e.target.value)}
+                            placeholder="Ej: Cable USB-C a Lightning"
+                            className={`w-full border rounded px-3 py-2 text-sm ${errores.nombre_producto ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
+                        />
+                        {errores.nombre_producto && <p className="text-red-500 text-xs mt-1">{errores.nombre_producto}</p>}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
@@ -1259,7 +1308,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             value={datos.color || ''}
                             onChange={(e) => handleChange('color', e.target.value)}
                             placeholder="Ej: Negro, Blanco"
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         />
                     </div>
                 </div>
@@ -1289,12 +1338,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             value={datos.costos_adicionales || ''}
                             onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
                             placeholder="Ej: 2"
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                        <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-700 font-medium">
+                        <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
                             ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
                         </div>
                     </div>
@@ -1322,7 +1371,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         <select
                             value={datos.condicion || ''}
                             onChange={(e) => handleChange('condicion', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         >
                             <option value="">Seleccionar...</option>
                             {CONDICIONES_ARRAY.map(cond => (
@@ -1335,7 +1384,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         <select
                             value={datos.sucursal || ''}
                             onChange={(e) => handleChange('sucursal', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         >
                             <option value="">Seleccionar...</option>
                             {UBICACIONES_ARRAY.map(ub => (
@@ -1349,7 +1398,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             type="date"
                             value={datos.ingreso || obtenerFechaLocal()}
                             onChange={(e) => handleChange('ingreso', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         />
                     </div>
                 </div>
@@ -1364,7 +1413,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         <select
                             value={datos.garantia || '3 meses'}
                             onChange={(e) => handleChange('garantia', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         >
                             {GARANTIAS_OPTIONS.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1378,7 +1427,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 type="date"
                                 value={datos.garantia_oficial_fecha || ''}
                                 onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                             />
                         </div>
                     )}
@@ -1389,7 +1438,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             value={datos.observaciones || ''}
                             onChange={(e) => handleChange('observaciones', e.target.value)}
                             placeholder="Notas adicionales..."
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm"
+                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
                         />
                     </div>
                 </div>

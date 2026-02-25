@@ -16,7 +16,7 @@ const ProtectedRoute = ({ section, children }) => {
 
 // Ventas
 import { Clientes, Listas, Catalogo, RegistrarVentaSection } from './modules/ventas/components';
-import ListadoTotalSection from './modules/ventas/components/ListadoTotalSection';
+import ListadoTotalSection from './modules/administracion/components/ListadoTotalSection';
 
 // Soporte
 import { ReparacionesMain, TesteoEquiposSection, AuditPanel } from './modules/soporte/components';
@@ -131,7 +131,7 @@ const AppRoutes = () => {
                 <Route path="recibos" element={<ProtectedRoute section="ventas"><RecibosSection /></ProtectedRoute>} />
 
                 {/* Compras - Ingreso de Equipos */}
-                <Route path="ingreso-equipos" element={<ProtectedRoute section="compras"><IngresoEquiposSection /></ProtectedRoute>} />
+                <Route path="ingreso-equipos" element={<ProtectedRoute section="ingreso-equipos"><IngresoEquiposSection /></ProtectedRoute>} />
                 <Route path="comisiones" element={<ProtectedRoute section="administracion"><ComisionesPage /></ProtectedRoute>} />
                 <Route path="tablero" element={<ProtectedRoute section="administracion"><TableroGeneralSection /></ProtectedRoute>} />
                 <Route path="reportes" element={<ProtectedRoute section="administracion"><DashboardReportesSection /></ProtectedRoute>} />

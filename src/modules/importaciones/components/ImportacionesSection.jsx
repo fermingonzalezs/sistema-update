@@ -357,7 +357,7 @@ const ImportacionesSection = () => {
           ) : (
             <div
               className="relative w-full overflow-hidden"
-              style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 23rem)' }}
+              style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 18rem)' }}
             >
               <div
                 className="overflow-auto max-h-[70vh] w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"

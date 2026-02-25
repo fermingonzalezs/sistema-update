@@ -23,7 +23,8 @@ const ProductModal = ({
   onCopyPesos = null, // Callback para copiar info en Pesos
   onVender = null, // Callback para agregar al carrito
   onEditar = null, // Callback para editar producto
-  onCopyMarketplace = null // Callback para copiar texto de marketplace
+  onCopyMarketplace = null, // Callback para copiar texto de marketplace
+  onMarcarReservado = null // Callback para marcar producto como reservado
 }) => {
   if (!isOpen || !producto) return null;
 
@@ -105,7 +106,9 @@ const ProductModal = ({
 
     // Renderizado personalizado para memoria (RAM + tipo_ram + slots)
     if (campo.key === 'ram' && campo.custom && tipoProducto === 'notebook') {
-      const ram = producto.ram || 'N/A';
+      const ramRaw = producto.ram;
+      const ramLimpio = ramRaw ? String(ramRaw).replace(/GB/gi, '').trim() : null;
+      const ram = ramLimpio ? `${ramLimpio}GB` : 'N/A';
       const tipoRam = producto.tipo_ram;
       const slots = producto.slots;
 
@@ -135,6 +138,14 @@ const ProductModal = ({
           'MacBook Pro 16"': '3456x2234'
         };
         displayValue = RESOLUCIONES_NUMEROS[valor] || valor;
+      }
+    }
+
+    // Agregar GB a SSD y HDD si el valor es solo un número
+    if ((campo.key === 'ssd' || campo.key === 'hdd') && valor) {
+      const strVal = String(valor).trim();
+      if (/^\d+$/.test(strVal)) {
+        displayValue = `${strVal}GB`;
       }
     }
 
@@ -244,9 +255,20 @@ const ProductModal = ({
 
             </div>
 
-            {/* Ver Fotos */}
-            {producto.fotos && (
-              <div className="mt-auto">
+            {/* Botones inferiores barra lateral */}
+            <div className="mt-auto space-y-2">
+              {onMarcarReservado && producto.condicion !== 'reservado' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarcarReservado(producto);
+                  }}
+                  className="w-full px-4 py-3 text-white text-sm font-medium rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                >
+                  Reservar
+                </button>
+              )}
+              {producto.fotos && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -256,8 +278,8 @@ const ProductModal = ({
                 >
                   Fotos
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Panel derecho - Detalles y precios */}

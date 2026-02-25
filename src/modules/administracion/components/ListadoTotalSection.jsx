@@ -3,9 +3,9 @@ import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown, Pencil,
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
-import { useInventario } from '../hooks/useInventario';
-import { useCelulares } from '../hooks/useCelulares';
-import { useOtros } from '../hooks/useOtros';
+import { useInventario } from '../../ventas/hooks/useInventario';
+import { useCelulares } from '../../ventas/hooks/useCelulares';
+import { useOtros } from '../../ventas/hooks/useOtros';
 import * as XLSX from 'xlsx-js-style';
 
 // Cotización mock (en producción vendría de una API)
@@ -877,9 +877,9 @@ const ListadoTotalSection = () => {
   }
 
   return (
-    <div className="p-0">
+    <div className="bg-slate-50 h-[calc(100vh-6rem)] w-full flex flex-col p-0">
       {/* Header */}
-      <div className="bg-slate-800 p-4 text-white rounded border border-slate-200 mb-4">
+      <div className="flex-shrink-0 bg-slate-800 p-4 text-white rounded-t border border-slate-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Package className="w-5 h-5" />
@@ -934,497 +934,507 @@ const ListadoTotalSection = () => {
         </div>
       </div>
 
-      {/* Resumen de Totales */}
-      <div className="mt-4 bg-slate-800 text-white p-4 rounded border border-slate-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-          <div>
-            <p className="text-sm text-slate-300">Total Productos</p>
-            <p className="text-xl font-bold">{estadisticas.totalProductos}</p>
-          </div>
-          <div>
-            <p className="text-sm text-slate-300">Stock Total</p>
-            <p className="text-xl font-bold">{estadisticas.totalStock} unidades</p>
-          </div>
-          <div>
-            <p className="text-sm text-slate-300">Valor Total Compra USD</p>
-            <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalCompraUSD, 'USD')}</p>
-          </div>
-          <div>
-            <p className="text-sm text-slate-300">Valor Total Venta USD</p>
-            <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalVentaUSD, 'USD')}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Gráficos de Torta */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Gráfico de Stock por Categoría */}
-        <div className="bg-white border border-slate-200 rounded">
-          <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Stock por Categoría</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={datosGraficoStock}
-                cx="35%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {datosGraficoStock.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORES_GRAFICOS[entry.categoria]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend
-                layout="vertical"
-                align="right"
-                verticalAlign="middle"
-                wrapperStyle={{
-                  fontSize: '9px',
-                  lineHeight: '14px',
-                  width: '180px',
-                  columnCount: 2,
-                  columnGap: '8px'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Gráfico de Precio USD por Categoría */}
-        <div className="bg-white border border-slate-200 rounded">
-          <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Valor USD por Categoría</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={datosGraficoPrecio}
-                cx="35%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {datosGraficoPrecio.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORES_GRAFICOS[entry.categoria]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              <Legend
-                layout="vertical"
-                align="right"
-                verticalAlign="middle"
-                wrapperStyle={{
-                  fontSize: '9px',
-                  lineHeight: '14px',
-                  width: '180px',
-                  columnCount: 2,
-                  columnGap: '8px'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Gráfico de Distribución por Condición */}
-        <div className="bg-white border border-slate-200 rounded">
-          <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Distribución por Condición</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={datosGraficoCondicion}
-                cx="40%"
-                cy="50%"
-                outerRadius={85}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {datosGraficoCondicion.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORES_CONDICIONES[entry.condicion]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend
-                layout="vertical"
-                align="right"
-                verticalAlign="middle"
-                wrapperStyle={{ fontSize: '11px', lineHeight: '18px' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      <div className="mt-4 bg-gray-50 p-4 border border-slate-200 rounded">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Búsqueda */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Búsqueda
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                type="text"
-                value={filtros.busqueda}
-                onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
-                placeholder="Buscar producto..."
-                className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
+      <div className="flex-1 overflow-y-auto min-h-0 bg-white border-l border-r border-b border-slate-200 p-4 rounded-b">
+        {/* Resumen de Totales */}
+        <div className="bg-slate-800 text-white p-4 rounded border border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-sm text-slate-300">Total Productos</p>
+              <p className="text-xl font-bold">{estadisticas.totalProductos}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-300">Stock Total</p>
+              <p className="text-xl font-bold">{estadisticas.totalStock} unidades</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-300">Valor Total Compra USD</p>
+              <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalCompraUSD, 'USD')}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-300">Valor Total Venta USD</p>
+              <p className="text-xl font-bold">{formatearMonto(estadisticas.valorTotalVentaUSD, 'USD')}</p>
             </div>
           </div>
+        </div>
 
-          {/* Categoría */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Categoría
-            </label>
-            <select
-              value={filtros.categoria}
-              onChange={(e) => setFiltros(prev => ({ ...prev, categoria: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="">Todas las categorías</option>
-              <option value="NOTEBOOKS">Notebooks</option>
-              <option value="CELULARES">Celulares</option>
-              <option value="DESKTOP">Desktop</option>
-              <option value="OTROS_TOTAL">Otros productos total</option>
-              <option disabled>───────────────</option>
-              <option value="ACCESORIOS">Accesorios</option>
-              <option value="ALMACENAMIENTO">Almacenamiento</option>
-              <option value="AUDIO">Audio</option>
-              <option value="BAGS_CASES">Bags/Cases</option>
-              <option value="CABLES_CARGADORES">Cables/Cargadores</option>
-              <option value="CAMARAS">Cámaras</option>
-              <option value="COMPONENTES">Componentes</option>
-              <option value="CONSOLAS">Consolas</option>
-              <option value="DRONES">Drones</option>
-              <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
-              <option value="GAMING">Gaming</option>
-              <option value="MEMORIA">Memoria</option>
-              <option value="MONITORES">Monitores</option>
-              <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
-              <option value="OTROS">Otros</option>
-              <option value="PLACAS_VIDEO">Placas de Video</option>
-              <option value="REDES">Redes</option>
-              <option value="REPUESTOS">Repuestos</option>
-              <option value="STREAMING">Streaming</option>
-              <option value="TABLETS">Tablets</option>
-              <option value="WATCHES">Watches</option>
-            </select>
+        {/* Gráficos de Torta */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Gráfico de Stock por Categoría */}
+          <div className="bg-white border border-slate-200 rounded">
+            <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Stock por Categoría</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={datosGraficoStock}
+                  cx="35%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {datosGraficoStock.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORES_GRAFICOS[entry.categoria]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  wrapperStyle={{
+                    fontSize: '9px',
+                    lineHeight: '14px',
+                    width: '180px',
+                    columnCount: 2,
+                    columnGap: '8px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Condición */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Condición
-            </label>
-            <select
-              value={filtros.condicion}
-              onChange={(e) => setFiltros(prev => ({ ...prev, condicion: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="">Todas las condiciones</option>
-              <option value="nuevo">Nuevo</option>
-              <option value="usado">Usado</option>
-              <option value="refurbished">Refurbished</option>
-              <option value="reparacion">Reparación</option>
-              <option value="prestado">Prestado</option>
-              <option value="sin_reparacion">Sin Reparación</option>
-              <option value="uso_oficina">Uso Oficina</option>
-            </select>
+          {/* Gráfico de Precio USD por Categoría */}
+          <div className="bg-white border border-slate-200 rounded">
+            <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Valor USD por Categoría</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={datosGraficoPrecio}
+                  cx="35%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {datosGraficoPrecio.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORES_GRAFICOS[entry.categoria]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  wrapperStyle={{
+                    fontSize: '9px',
+                    lineHeight: '14px',
+                    width: '180px',
+                    columnCount: 2,
+                    columnGap: '8px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Ordenamiento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ordenar por
-            </label>
-            <select
-              value={filtros.ordenamiento}
-              onChange={(e) => setFiltros(prev => ({ ...prev, ordenamiento: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="categoria-asc">Categoría (A-Z)</option>
-              <option value="categoria-desc">Categoría (Z-A)</option>
-              <option value="nombre-asc">Nombre (A-Z)</option>
-              <option value="nombre-desc">Nombre (Z-A)</option>
-              <option value="precio-asc">Precio (menor a mayor)</option>
-              <option value="precio-desc">Precio (mayor a menor)</option>
-              <option value="condicion-asc">Condición (A-Z)</option>
-              <option value="condicion-desc">Condición (Z-A)</option>
-            </select>
+          {/* Gráfico de Distribución por Condición */}
+          <div className="bg-white border border-slate-200 rounded">
+            <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Distribución por Condición</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={datosGraficoCondicion}
+                  cx="40%"
+                  cy="50%"
+                  outerRadius={85}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {datosGraficoCondicion.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORES_CONDICIONES[entry.condicion]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  wrapperStyle={{ fontSize: '11px', lineHeight: '18px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      </div>
 
-      {/* Tabla */}
-      <div className="mt-4 bg-white border border-slate-200 rounded overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-800 text-white">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                  Información del Producto
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Serial
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Categoría
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Condición
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Días
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  PC
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Costos
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  PC Total
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Margen %
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  PV
-                </th>
-                {modoEdicionMasiva && (
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-emerald-700">
-                    Nuevo Precio
+        {/* Filtros */}
+        <div className="mt-4 bg-gray-50 p-4 border border-slate-200 rounded">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Búsqueda */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Búsqueda
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={filtros.busqueda}
+                  onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
+                  placeholder="Buscar producto..."
+                  className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Categoría */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Categoría
+              </label>
+              <select
+                value={filtros.categoria}
+                onChange={(e) => setFiltros(prev => ({ ...prev, categoria: e.target.value }))}
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Todas las categorías</option>
+                <option value="NOTEBOOKS">Notebooks</option>
+                <option value="CELULARES">Celulares</option>
+                <option value="DESKTOP">Desktop</option>
+                <option value="OTROS_TOTAL">Otros productos total</option>
+                <option disabled>───────────────</option>
+                <option value="ACCESORIOS">Accesorios</option>
+                <option value="ALMACENAMIENTO">Almacenamiento</option>
+                <option value="AUDIO">Audio</option>
+                <option value="BAGS_CASES">Bags/Cases</option>
+                <option value="CABLES_CARGADORES">Cables/Cargadores</option>
+                <option value="CAMARAS">Cámaras</option>
+                <option value="COMPONENTES">Componentes</option>
+                <option value="CONSOLAS">Consolas</option>
+                <option value="DRONES">Drones</option>
+                <option value="FUNDAS_TEMPLADOS">Fundas/Templados</option>
+                <option value="GAMING">Gaming</option>
+                <option value="MEMORIA">Memoria</option>
+                <option value="MONITORES">Monitores</option>
+                <option value="MOUSE_TECLADOS">Mouse/Teclados</option>
+                <option value="OTROS">Otros</option>
+                <option value="PLACAS_VIDEO">Placas de Video</option>
+                <option value="REDES">Redes</option>
+                <option value="REPUESTOS">Repuestos</option>
+                <option value="STREAMING">Streaming</option>
+                <option value="TABLETS">Tablets</option>
+                <option value="WATCHES">Watches</option>
+              </select>
+            </div>
+
+            {/* Condición */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Condición
+              </label>
+              <select
+                value={filtros.condicion}
+                onChange={(e) => setFiltros(prev => ({ ...prev, condicion: e.target.value }))}
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Todas las condiciones</option>
+                <option value="nuevo">Nuevo</option>
+                <option value="usado">Usado</option>
+                <option value="refurbished">Refurbished</option>
+                <option value="reparacion">Reparación</option>
+                <option value="prestado">Prestado</option>
+                <option value="sin_reparacion">Sin Reparación</option>
+                <option value="uso_oficina">Uso Oficina</option>
+              </select>
+            </div>
+
+            {/* Ordenamiento */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ordenar por
+              </label>
+              <select
+                value={filtros.ordenamiento}
+                onChange={(e) => setFiltros(prev => ({ ...prev, ordenamiento: e.target.value }))}
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="categoria-asc">Categoría (A-Z)</option>
+                <option value="categoria-desc">Categoría (Z-A)</option>
+                <option value="nombre-asc">Nombre (A-Z)</option>
+                <option value="nombre-desc">Nombre (Z-A)</option>
+                <option value="precio-asc">Precio (menor a mayor)</option>
+                <option value="precio-desc">Precio (mayor a menor)</option>
+                <option value="condicion-asc">Condición (A-Z)</option>
+                <option value="condicion-desc">Condición (Z-A)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="mt-4 border border-slate-200 rounded overflow-hidden flex flex-col min-h-0 bg-white shadow flex-1 relative min-h-[500px]">
+          <div className="overflow-x-auto overflow-y-auto absolute inset-0">
+            <table className="w-full min-w-[1400px]">
+              <thead className="bg-slate-800 text-white whitespace-nowrap sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                    Información del Producto
                   </th>
-                )}
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {productosFiltrados.map((producto, index) => {
-                const estaEditando = filaEditando === producto.id;
-                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Serial
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Categoría
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Condición
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Días
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Stock
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Costo
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Envio/Repu
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    PC Unitario
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    PC Total
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Margen %
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    PV
+                  </th>
+                  {modoEdicionMasiva && (
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-emerald-700">
+                      Nuevo Precio
+                    </th>
+                  )}
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {productosFiltrados.map((producto, index) => {
+                  const estaEditando = filaEditando === producto.id;
+                  const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
 
-                return (
-                  <tr
-                    key={producto.id}
-                    className={rowClass}
-                  >
-                    {/* Información del Producto */}
-                    <td className="px-4 py-2 text-sm text-slate-800 max-w-md truncate">
-                      {producto.info}
-                    </td>
-
-                    {/* Número de Serie */}
-                    <td className="px-4 py-2 text-center text-xs text-slate-600">
-                      {producto.serial || '-'}
-                    </td>
-
-                    {/* Categoría */}
-                    <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCategorias[producto.categoria]}`}>
-                        {labelsCategoriaTabla[producto.categoria]}
-                      </span>
-                    </td>
-
-                    {/* Condición */}
-                    <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCondiciones[producto.condicion]}`}>
-                        {labelsCondiciones[producto.condicion]}
-                      </span>
-                    </td>
-
-                    {/* Días en Stock */}
-                    <td className="px-4 py-2 text-center">
-                      {producto.diasEnStock !== null ? (
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${getColorDias(producto.diasEnStock)}`}>
-                          {producto.diasEnStock}d
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-xs">-</span>
-                      )}
-                    </td>
-
-                    {/* Stock */}
-                    <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-sm font-medium ${producto.stock > 5 ? 'bg-green-100 text-green-700' :
-                        producto.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                        {producto.stock}
-                      </span>
-                    </td>
-
-                    {/* Precio Compra (PC) */}
-                    <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-                      {estaEditando ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={valoresEdicion.precioCompra}
-                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioCompra: e.target.value })}
-                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                      ) : (
-                        producto.precioCompra !== null ? formatearMonto(producto.precioCompra, 'USD') : '-'
-                      )}
-                    </td>
-
-                    {/* Costos Extras (Envío/Repuestos) */}
-                    <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-                      {estaEditando ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={valoresEdicion.envioRepuestos}
-                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, envioRepuestos: e.target.value })}
-                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                      ) : (
-                        producto.envioRepuestos !== null ? formatearMonto(producto.envioRepuestos, 'USD') : '-'
-                      )}
-                    </td>
-
-                    {/* PC Total */}
-                    <td className="px-4 py-2 text-center text-sm font-medium text-slate-700">
-                      {formatearMonto(producto.precioCompraTotal, 'USD')}
-                    </td>
-
-                    {/* Margen % */}
-                    <td className="px-4 py-2 text-center">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${producto.margen > 30 ? 'bg-green-100 text-green-700' :
-                        producto.margen > 15 ? 'bg-yellow-100 text-yellow-700' :
-                          producto.margen > 0 ? 'bg-orange-100 text-orange-700' :
-                            'bg-red-100 text-red-700'
-                        }`}>
-                        {producto.margen.toFixed(1)}%
-                      </span>
-                    </td>
-
-                    {/* PV (Precio Venta) */}
-                    <td className="px-4 py-2 text-center text-sm font-semibold text-slate-800" onClick={(e) => e.stopPropagation()}>
-                      {estaEditando ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={valoresEdicion.precioVenta}
-                          onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioVenta: e.target.value })}
-                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                      ) : (
-                        formatearMonto(producto.precioVenta, 'USD')
-                      )}
-                    </td>
-
-                    {/* Columna Nuevo Precio (Edición Masiva) */}
-                    {modoEdicionMasiva && (
-                      <td className="px-4 py-2 text-center bg-emerald-50" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          placeholder={Math.round(producto.precioVenta)}
-                          value={cambiosMasivos.get(producto.id) || ''}
-                          onChange={(e) => actualizarCambioMasivo(producto.id, e.target.value)}
-                          className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
+                  return (
+                    <tr
+                      key={producto.id}
+                      className={rowClass}
+                    >
+                      {/* Información del Producto */}
+                      <td className="px-4 py-2 text-sm text-slate-800 max-w-md truncate">
+                        {producto.info}
                       </td>
-                    )}
 
-                    {/* Columna Acciones */}
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex gap-1 justify-center">
-                        {estaEditando ? (
-                          <>
-                            {/* Botones cuando está editando - todos 32x32px */}
-                            <button
-                              onClick={() => guardarEdicionFila(producto)}
-                              className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
-                              title="Guardar cambios"
-                            >
-                              G
-                            </button>
-                            <button
-                              onClick={cancelarEdicionFila}
-                              className="w-8 h-8 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
-                              title="Cancelar"
-                            >
-                              C
-                            </button>
-                          </>
+                      {/* Número de Serie */}
+                      <td className="px-4 py-2 text-center text-xs text-slate-600">
+                        {producto.serial || '-'}
+                      </td>
+
+                      {/* Categoría */}
+                      <td className="px-4 py-2 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCategorias[producto.categoria]}`}>
+                          {labelsCategoriaTabla[producto.categoria]}
+                        </span>
+                      </td>
+
+                      {/* Condición */}
+                      <td className="px-4 py-2 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${coloresCondiciones[producto.condicion]}`}>
+                          {labelsCondiciones[producto.condicion]}
+                        </span>
+                      </td>
+
+                      {/* Días en Stock */}
+                      <td className="px-4 py-2 text-center">
+                        {producto.diasEnStock !== null ? (
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${getColorDias(producto.diasEnStock)}`}>
+                            {producto.diasEnStock}d
+                          </span>
                         ) : (
-                          <>
-                            {/* Botón E de editar cuando NO está editando - 32x32px */}
-                            <button
-                              onClick={() => iniciarEdicionFila(producto)}
-                              className={`w-8 h-8 rounded transition-colors font-bold text-sm flex items-center justify-center ${modoEdicionMasiva
-                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                : 'bg-slate-600 hover:bg-slate-700 text-white'
-                                }`}
-                              title="Editar producto"
-                              disabled={modoEdicionMasiva}
-                            >
-                              E
-                            </button>
-                          </>
+                          <span className="text-slate-400 text-xs">-</span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+
+                      {/* Stock */}
+                      <td className="px-4 py-2 text-center">
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${producto.stock > 5 ? 'bg-green-100 text-green-700' :
+                          producto.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                          {producto.stock}
+                        </span>
+                      </td>
+
+                      {/* Precio Compra (PC) */}
+                      <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
+                        {estaEditando ? (
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={valoresEdicion.precioCompra}
+                            onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioCompra: e.target.value })}
+                            className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        ) : (
+                          producto.precioCompra !== null ? formatearMonto(producto.precioCompra, 'USD') : '-'
+                        )}
+                      </td>
+
+                      {/* Costos Extras (Envío/Repuestos) */}
+                      <td className="px-4 py-2 text-center text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
+                        {estaEditando ? (
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={valoresEdicion.envioRepuestos}
+                            onChange={(e) => setValoresEdicion({ ...valoresEdicion, envioRepuestos: e.target.value })}
+                            className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        ) : (
+                          producto.envioRepuestos !== null ? formatearMonto(producto.envioRepuestos, 'USD') : '-'
+                        )}
+                      </td>
+
+                      {/* PC Total */}
+                      <td className="px-4 py-2 text-center text-sm font-medium text-slate-700">
+                        {formatearMonto(producto.precioCompraTotal, 'USD')}
+                      </td>
+
+                      {/* PC Total * Cantidad */}
+                      <td className="px-4 py-2 text-center text-sm font-medium text-slate-700">
+                        {formatearMonto(producto.precioCompraTotal * producto.stock, 'USD')}
+                      </td>
+
+                      {/* Margen % */}
+                      <td className="px-4 py-2 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${producto.margen > 30 ? 'bg-green-100 text-green-700' :
+                          producto.margen > 15 ? 'bg-yellow-100 text-yellow-700' :
+                            producto.margen > 0 ? 'bg-orange-100 text-orange-700' :
+                              'bg-red-100 text-red-700'
+                          }`}>
+                          {producto.margen.toFixed(1)}%
+                        </span>
+                      </td>
+
+                      {/* PV (Precio Venta) */}
+                      <td className="px-4 py-2 text-center text-sm font-semibold text-slate-800" onClick={(e) => e.stopPropagation()}>
+                        {estaEditando ? (
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={valoresEdicion.precioVenta}
+                            onChange={(e) => setValoresEdicion({ ...valoresEdicion, precioVenta: e.target.value })}
+                            className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        ) : (
+                          formatearMonto(producto.precioVenta, 'USD')
+                        )}
+                      </td>
+
+                      {/* Columna Nuevo Precio (Edición Masiva) */}
+                      {modoEdicionMasiva && (
+                        <td className="px-4 py-2 text-center bg-emerald-50" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder={Math.round(producto.precioVenta)}
+                            value={cambiosMasivos.get(producto.id) || ''}
+                            onChange={(e) => actualizarCambioMasivo(producto.id, e.target.value)}
+                            className="w-full px-2 py-1 border border-emerald-500 rounded text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </td>
+                      )}
+
+                      {/* Columna Acciones */}
+                      <td className="px-4 py-2 text-center">
+                        <div className="flex gap-1 justify-center">
+                          {estaEditando ? (
+                            <>
+                              {/* Botones cuando está editando - todos 32x32px */}
+                              <button
+                                onClick={() => guardarEdicionFila(producto)}
+                                className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
+                                title="Guardar cambios"
+                              >
+                                G
+                              </button>
+                              <button
+                                onClick={cancelarEdicionFila}
+                                className="w-8 h-8 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors flex items-center justify-center font-bold text-sm"
+                                title="Cancelar"
+                              >
+                                C
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {/* Botón E de editar cuando NO está editando - 32x32px */}
+                              <button
+                                onClick={() => iniciarEdicionFila(producto)}
+                                className={`w-8 h-8 rounded transition-colors font-bold text-sm flex items-center justify-center ${modoEdicionMasiva
+                                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                  : 'bg-slate-600 hover:bg-slate-700 text-white'
+                                  }`}
+                                title="Editar producto"
+                                disabled={modoEdicionMasiva}
+                              >
+                                E
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mensaje cuando no hay productos */}
+          {productosFiltrados.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              No se encontraron productos con los filtros aplicados
+            </div>
+          )}
         </div>
 
-        {/* Mensaje cuando no hay productos */}
-        {productosFiltrados.length === 0 && (
-          <div className="text-center py-8 text-slate-500">
-            No se encontraron productos con los filtros aplicados
+        {/* Botón Guardar Cambios Masivos */}
+        {modoEdicionMasiva && cambiosMasivos.size > 0 && (
+          <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-emerald-800">
+                <strong>{cambiosMasivos.size}</strong> productos con cambios pendientes
+              </div>
+              <button
+                onClick={guardarEdicionesMasivas}
+                disabled={guardandoMasivo}
+                className={`px-6 py-3 rounded flex items-center gap-2 font-medium text-white ${guardandoMasivo
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+              >
+                {guardandoMasivo ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    💾 Guardar cambios
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Botón Guardar Cambios Masivos */}
-      {modoEdicionMasiva && cambiosMasivos.size > 0 && (
-        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-emerald-800">
-              <strong>{cambiosMasivos.size}</strong> productos con cambios pendientes
-            </div>
-            <button
-              onClick={guardarEdicionesMasivas}
-              disabled={guardandoMasivo}
-              className={`px-6 py-3 rounded flex items-center gap-2 font-medium text-white ${guardandoMasivo
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700'
-                }`}
-            >
-              {guardandoMasivo ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  💾 Guardar cambios
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

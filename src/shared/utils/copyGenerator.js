@@ -2,6 +2,7 @@
 // Unifica la lógica de Listas.jsx y Catalogo.jsx con múltiples versiones
 
 import { formatearMonto } from './formatters';
+import { getResolucionNumeros } from '../constants/resolutionConstants';
 
 /**
  * Tipos de copys disponibles:
@@ -325,20 +326,8 @@ const generateNotebookCopy = (comp, config) => {
   if (comp.resolucion || comp.hz || comp.frecuencia) {
     let resolucionCompleta = '';
     if (comp.resolucion) {
-      // Para MacBooks, mostrar solo los números de resolución
-      if (comp.resolucion.toLowerCase().includes('macbook')) {
-        // Extraer números de resolución de RESOLUCIONES_LABELS
-        const RESOLUCIONES_NUMEROS = {
-          'MacBook Air 13"': '2560x1664',
-          'MacBook Air 15"': '2880x1864',
-          'MacBook Pro 14"': '3024x1964',
-          'MacBook Pro 16"': '3456x2234'
-        };
-        resolucionCompleta = RESOLUCIONES_NUMEROS[comp.resolucion] || comp.resolucion;
-      } else {
-        // Para Windows, mantener la etiqueta (FHD, QHD, etc.)
-        resolucionCompleta = comp.resolucion;
-      }
+      const numerosResolucion = getResolucionNumeros(comp.resolucion);
+      resolucionCompleta = `(${numerosResolucion})`;
     }
     if (comp.hz || comp.frecuencia) {
       const hz = comp.hz || comp.frecuencia;
@@ -359,10 +348,9 @@ const generateNotebookCopy = (comp, config) => {
   // 4. MEMORIA
   if (comp.memoria_ram || comp.ram) {
     const ram = comp.memoria_ram || comp.ram;
-    const tipoRam = comp.tipo_ram || 'DDR4';
-    // Limpiar duplicaciones: quitar "GB" si ya viene en el valor
+    const tipoRam = comp.tipo_ram || '';
     const ramLimpio = String(ram).replace(/GB/gi, '');
-    partes.push(`${ramLimpio}GB ${tipoRam}`);
+    partes.push(tipoRam ? `${ramLimpio}GB ${tipoRam}` : `${ramLimpio}GB`);
   }
 
   // 5. ALMACENAMIENTO
