@@ -556,6 +556,33 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     </div>
                 </div>
 
+                {/* GPU / Placa de Video */}
+                <div>
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">GPU / Placa de Video</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Placa de Video</label>
+                            <input
+                                type="text"
+                                value={datos.placa_video || ''}
+                                onChange={(e) => handleChange('placa_video', e.target.value)}
+                                placeholder="Ej: RTX 4060, Integrada"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">VRAM</label>
+                            <input
+                                type="text"
+                                value={datos.vram || ''}
+                                onChange={(e) => handleChange('vram', e.target.value)}
+                                placeholder="Ej: 4GB, 8GB, 16GB"
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Pantalla */}
                 <div>
                     <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Pantalla</h4>
@@ -721,6 +748,32 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                 <option value="">Seleccionar...</option>
                                 <option value="Español">Español</option>
                                 <option value="Inglés">Inglés</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Sistema Operativo</label>
+                            <select
+                                value={datos.so || ''}
+                                onChange={(e) => handleChange('so', e.target.value)}
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            >
+                                <option value="">Seleccionar...</option>
+                                <option value="WIN11">Windows 11</option>
+                                <option value="WIN10">Windows 10</option>
+                                <option value="Linux">Linux</option>
+                                <option value="macOS">macOS</option>
+                                <option value="Sin SO">Sin SO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Teclado Retroiluminado</label>
+                            <select
+                                value={datos.teclado_retro || 'SI'}
+                                onChange={(e) => handleChange('teclado_retro', e.target.value)}
+                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
+                            >
+                                <option value="SI">Sí</option>
+                                <option value="NO">No</option>
                             </select>
                         </div>
                     </div>
