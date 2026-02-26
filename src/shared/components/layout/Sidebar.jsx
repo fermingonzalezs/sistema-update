@@ -423,9 +423,9 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="relative flex items-center justify-between">
-                                  <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
+                                <div className="relative flex items-center justify-between w-full min-w-0">
+                                  <div className="flex items-center space-x-3 w-full min-w-0">
+                                    <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200 flex-shrink-0">
                                       <Icon className="w-4 h-4" />
                                     </div>
                                     <div className="text-left w-full min-w-0 overflow-hidden">
@@ -466,16 +466,16 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="relative flex items-center justify-between">
-                                  <div className="flex items-center space-x-3">
-                                    <div className={`p-2 rounded-lg ${isActive
+                                <div className="relative flex items-center justify-between w-full min-w-0">
+                                  <div className="flex items-center space-x-3 w-full min-w-0">
+                                    <div className={`p-2 rounded-lg flex-shrink-0 ${isActive
                                       ? 'bg-emerald-600 text-white shadow-sm'
                                       : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                       }`}>
                                       <Icon className="w-4 h-4" />
                                     </div>
                                     <div className="text-left w-full min-w-0 overflow-hidden">
-                                      <div className={`text-sm font-semibold ${isActive
+                                      <div className={`text-sm font-semibold truncate ${isActive
                                         ? 'text-slate-800'
                                         : 'text-slate-200 group-hover:text-white'
                                         }`}>
@@ -491,9 +491,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                                       </div>
                                     </div>
                                   </div>
-                                  {isActive && (
-                                    <div className="w-2 h-2 bg-emerald-600 rounded-full shadow-sm flex-shrink-0" />
-                                  )}
                                 </div>
                               )
                             )}

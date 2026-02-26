@@ -185,7 +185,8 @@ const IngresoEquiposSection = () => {
     const traducciones = {
       'updatenotebooksadmi@gmail.com': 'Álvaro',
       'yaelmarich@gmail.com': 'Yael',
-      'soporte.updatenotebooks@gmail.com': 'Fermin'
+      'soporte.updatenotebooks@gmail.com': 'Fermin',
+      'moreparramon@gmail.com': 'Morena'
     };
 
     // Buscar traducción exacta o parcial (por si viene con mayúsculas diferentes)

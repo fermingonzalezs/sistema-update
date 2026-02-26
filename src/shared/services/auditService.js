@@ -53,13 +53,6 @@ export const setAuditContext = async (user) => {
 
     if (hasErrors) {
       console.warn('⚠️ Algunos parámetros de auditoría no se configuraron correctamente');
-    } else {
-      console.log('✅ Contexto de auditoría configurado:', {
-        email: user.email,
-        role: user.role || user.nivel,
-        branch: user.branch || user.sucursal,
-        sessionId
-      });
     }
 
     return !hasErrors;
@@ -93,8 +86,6 @@ export const clearAuditContext = async () => {
         }).catch(() => {}) // Ignorar errores en limpieza
       )
     );
-
-    console.log('🧹 Contexto de auditoría limpiado');
 
   } catch (error) {
     console.error('Error limpiando contexto de auditoría:', error);
@@ -141,10 +132,6 @@ export const setOperationContext = async (razon, referenciaId = null) => {
 
     const hasErrors = results.some(r => r.error);
 
-    if (!hasErrors) {
-      console.log('✅ Contexto de operación configurado:', { razon, referenciaId });
-    }
-
     return !hasErrors;
 
   } catch (error) {
@@ -164,7 +151,6 @@ export const clearOperationContext = async () => {
       supabase.rpc('set_config', { setting: 'app.referencia_id', value: '' })
     ]);
 
-    console.log('🧹 Contexto de operación limpiado');
   } catch (error) {
     console.error('Error limpiando contexto de operación:', error);
   }

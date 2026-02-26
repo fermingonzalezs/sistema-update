@@ -84,42 +84,31 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
     // Determinar si es nuevo para mostrar/ocultar estado estético
     const esNuevo = datos.condicion === 'nuevo' || datos.condicion === 'nueva';
 
+    // Clases comunes para inputs y headers de sección
+    const ic = "w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm transition-colors";
+    const sh = "bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center";
+
     // ===== FORMULARIO CELULARES =====
     if (tipoEquipo === 'celular') {
         return (
-            <div className="space-y-6">
-                {/* Identificación */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Identificación</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-4">
+                {/* Información Básica */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Información Básica</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
-                            <input
-                                type="text"
-                                value={datos.modelo || ''}
-                                onChange={(e) => handleChange('modelo', e.target.value)}
-                                placeholder="Ej: iPhone 15 Pro"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.modelo ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                            <input type="text" value={datos.modelo || ''} onChange={(e) => handleChange('modelo', e.target.value)} placeholder="Ej: iPhone 15 Pro" className={`${ic} ${errores.modelo ? 'border-red-500 bg-red-50' : ''}`} />
                             {errores.modelo && <p className="text-red-500 text-xs mt-1">{errores.modelo}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Marca *</label>
-                            <MarcaSelector
-                                value={datos.marca || ''}
-                                onChange={(value) => handleChange('marca', value)}
-                                className={`w-full ${errores.marca ? 'border-red-500' : ''}`}
-                                placeholder="Seleccionar marca..."
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Marca *</label>
+                            <MarcaSelector value={datos.marca || ''} onChange={(value) => handleChange('marca', value)} className={`w-full ${errores.marca ? 'border-red-500' : ''}`} placeholder="Seleccionar marca..." />
                             {errores.marca && <p className="text-red-500 text-xs mt-1">{errores.marca}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
-                            <select
-                                value={datos.categoria || ''}
-                                onChange={(e) => handleChange('categoria', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.categoria ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                            <select value={datos.categoria || ''} onChange={(e) => handleChange('categoria', e.target.value)} className={`${ic} ${errores.categoria ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 <option value="iphone">iPhone</option>
                                 <option value="android">Android</option>
@@ -127,187 +116,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
-                            <input
-                                type="date"
-                                value={datos.ingreso || obtenerFechaLocal()}
-                                onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                            <input type="text" value={datos.color || ''} onChange={(e) => handleChange('color', e.target.value)} placeholder="Ej: Titanio Natural" className={ic} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor</label>
-                            <div className="flex gap-2">
-                                <select
-                                    value={datos.proveedor_id || ''}
-                                    onChange={(e) => handleChange('proveedor_id', e.target.value)}
-                                    disabled={proveedoresLoading}
-                                    className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                                >
-                                    <option value="">Sin especificar</option>
-                                    {proveedores.map(prov => (
-                                        <option key={prov.id} value={prov.id}>
-                                            {prov.nombre}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowNuevoProveedorModal(true)}
-                                    className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-                                    title="Nuevo Proveedor"
-                                    disabled={proveedoresLoading}
-                                >
-                                    <Plus size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Especificaciones */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Especificaciones</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Capacidad (GB)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={datos.capacidad || ''}
-                                onChange={(e) => handleIntegerChange('capacidad', e.target.value)}
-                                placeholder="Ej: 256"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
-                            <input
-                                type="text"
-                                value={datos.color || ''}
-                                onChange={(e) => handleChange('color', e.target.value)}
-                                placeholder="Ej: Titanio Natural"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">RAM (GB)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={datos.ram || ''}
-                                onChange={(e) => handleIntegerChange('ram', e.target.value)}
-                                placeholder="Ej: 8"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">SIM/ESIM</label>
-                            <select
-                                value={datos.sim_esim || ''}
-                                onChange={(e) => handleChange('sim_esim', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
-                                <option value="">Seleccionar...</option>
-                                <option value="SIM">SIM</option>
-                                <option value="ESIM">ESIM</option>
-                                <option value="Dual">Dual (SIM + ESIM)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Batería */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Batería</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Batería (%)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={datos.bateria || ''}
-                                onChange={(e) => handleIntegerChange('bateria', e.target.value)}
-                                placeholder="Ej: 95"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.bateria ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.bateria && <p className="text-red-500 text-xs mt-1">{errores.bateria}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Ciclos</label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={datos.ciclos || ''}
-                                onChange={(e) => handleIntegerChange('ciclos', e.target.value)}
-                                placeholder="Ej: 150"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.ciclos ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.ciclos && <p className="text-red-500 text-xs mt-1">{errores.ciclos}</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Precios */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Precios (USD)</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_compra_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)}
-                                placeholder="Ej: 800"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costos Adicionales</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.costos_adicionales || ''}
-                                onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
-                                placeholder="Ej: 50"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
-                                ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_venta_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)}
-                                placeholder="Ej: 1099"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Condición y ubicación */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Condición y Ubicación</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Condición *</label>
-                            <select
-                                value={datos.condicion || ''}
-                                onChange={(e) => handleChange('condicion', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.condicion ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
+                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
@@ -317,12 +131,8 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         {!esNuevo && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Estado Estético</label>
-                                <select
-                                    value={datos.estado || ''}
-                                    onChange={(e) => handleChange('estado', e.target.value)}
-                                    className={`w-full border rounded px-3 py-2 text-sm ${errores.estado ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                                >
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
+                                <select value={datos.estado || ''} onChange={(e) => handleChange('estado', e.target.value)} className={`${ic} ${errores.estado ? 'border-red-500 bg-red-50' : ''}`}>
                                     <option value="">Seleccionar...</option>
                                     {ESTADOS_ARRAY.map(est => (
                                         <option key={est} value={est}>{ESTADOS_LABELS[est]}</option>
@@ -332,32 +142,110 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             </div>
                         )}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
-                            <select
-                                value={datos.sucursal || ''}
-                                onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                            <select value={datos.sucursal || ''} onChange={(e) => handleChange('sucursal', e.target.value)} className={ic}>
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
                                     <option key={ub} value={ub}>{UBICACIONES_LABELS[ub]}</option>
                                 ))}
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
+                            <div className="flex gap-2">
+                                <select value={datos.proveedor_id || ''} onChange={(e) => handleChange('proveedor_id', e.target.value)} disabled={proveedoresLoading} className={`flex-1 ${ic}`}>
+                                    <option value="">Sin especificar</option>
+                                    {proveedores.map(prov => (
+                                        <option key={prov.id} value={prov.id}>{prov.nombre}</option>
+                                    ))}
+                                </select>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                    <Plus size={16} />
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                            <input type="date" value={datos.ingreso || obtenerFechaLocal()} onChange={(e) => handleChange('ingreso', e.target.value)} className={ic} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Precios y Costos */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Precios y Costos</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_compra_usd || ''} onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales USD</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.costos_adicionales || ''} onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)} placeholder="0.00" className={`pl-10 ${ic}`} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_venta_usd || ''} onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Especificaciones Técnicas */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Especificaciones Técnicas</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad (GB)</label>
+                            <input type="number" min="0" value={datos.capacidad || ''} onChange={(e) => handleIntegerChange('capacidad', e.target.value)} placeholder="Ej: 256" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">RAM (GB)</label>
+                            <input type="number" min="0" value={datos.ram || ''} onChange={(e) => handleIntegerChange('ram', e.target.value)} placeholder="Ej: 8" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">SIM/ESIM</label>
+                            <select value={datos.sim_esim || ''} onChange={(e) => handleChange('sim_esim', e.target.value)} className={ic}>
+                                <option value="">Seleccionar...</option>
+                                <option value="SIM">SIM</option>
+                                <option value="ESIM">ESIM</option>
+                                <option value="Dual">Dual (SIM + ESIM)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Batería (%)</label>
+                            <input type="number" min="0" max="100" value={datos.bateria || ''} onChange={(e) => handleIntegerChange('bateria', e.target.value)} placeholder="Ej: 95" className={`${ic} ${errores.bateria ? 'border-red-500 bg-red-50' : ''}`} />
+                            {errores.bateria && <p className="text-red-500 text-xs mt-1">{errores.bateria}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Ciclos</label>
+                            <input type="number" min="0" value={datos.ciclos || ''} onChange={(e) => handleIntegerChange('ciclos', e.target.value)} placeholder="Ej: 150" className={`${ic} ${errores.ciclos ? 'border-red-500 bg-red-50' : ''}`} />
+                            {errores.ciclos && <p className="text-red-500 text-xs mt-1">{errores.ciclos}</p>}
+                        </div>
                     </div>
                 </div>
 
                 {/* Garantía y Observaciones */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Garantía y Observaciones</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Garantía y Observaciones</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
-                            <select
-                                value={datos.garantia || '3 meses'}
-                                onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                            <select value={datos.garantia || '3 meses'} onChange={(e) => handleChange('garantia', e.target.value)} className={ic}>
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
@@ -365,35 +253,33 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         {datos.garantia === 'Garantía oficial con vencimiento' && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
-                                <input
-                                    type="date"
-                                    value={datos.garantia_oficial_fecha || ''}
-                                    onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                                />
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
+                                <input type="date" value={datos.garantia_oficial_fecha || ''} onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)} className={ic} />
                             </div>
                         )}
-                        <div className={datos.garantia === 'Garantía oficial con vencimiento' ? 'md:col-span-2' : ''}>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fallas/Observaciones</label>
-                            <input
-                                type="text"
-                                value={datos.fallas || ''}
-                                onChange={(e) => handleChange('fallas', e.target.value)}
-                                placeholder="Ej: Ninguna, batería agotada, etc."
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fallas/Observaciones</label>
+                            <textarea value={datos.fallas || ''} onChange={(e) => handleChange('fallas', e.target.value)} placeholder="Ej: Ninguna, detalles estéticos, etc." rows={3} className={`${ic} resize-none`} />
                         </div>
                     </div>
                 </div>
+
+                {/* Modal para crear nuevo proveedor */}
+                {showNuevoProveedorModal && (
+                    <NuevoProveedorModal
+                        onClose={() => setShowNuevoProveedorModal(false)}
+                        onSuccess={(nuevoProveedor) => {
+                            setShowNuevoProveedorModal(false);
+                            handleChange('proveedor_id', nuevoProveedor.id);
+                        }}
+                    />
+                )}
             </div>
         );
     }
 
     // ===== FORMULARIO NOTEBOOKS =====
     if (tipoEquipo === 'notebook') {
-        const ic = "w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm";
-        const sh = "bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center";
         return (
             <div className="space-y-4">
 
@@ -667,18 +553,23 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
     // ===== FORMULARIO DESKTOP =====
     if (isDesktop) {
         return (
-            <div className="space-y-6">
-                {/* Información del Equipo */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Información del Equipo</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-4">
+                {/* Información Básica */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Información Básica</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
-                            <select
-                                value={datos.categoria || ''}
-                                onChange={(e) => handleChange('categoria', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.categoria ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                            <input type="text" value={datos.modelo || ''} onChange={(e) => handleChange('modelo', e.target.value)} placeholder="Ej: Gaming PC, Workstation" className={`${ic} ${errores.modelo ? 'border-red-500 bg-red-50' : ''}`} />
+                            {errores.modelo && <p className="text-red-500 text-xs mt-1">{errores.modelo}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                            <MarcaSelector value={datos.marca || ''} onChange={(value) => handleChange('marca', value)} placeholder="Seleccionar marca..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                            <select value={datos.categoria || ''} onChange={(e) => handleChange('categoria', e.target.value)} className={`${ic} ${errores.categoria ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {opcionesCategorias.map(cat => (
                                     <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -687,31 +578,8 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
-                            <input
-                                type="text"
-                                value={datos.modelo || ''}
-                                onChange={(e) => handleChange('modelo', e.target.value)}
-                                placeholder="Ej: Gaming PC, Workstation"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.modelo ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.modelo && <p className="text-red-500 text-xs mt-1">{errores.modelo}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
-                            <MarcaSelector
-                                value={datos.marca || ''}
-                                onChange={(value) => handleChange('marca', value)}
-                                placeholder="Seleccionar marca..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Condición *</label>
-                            <select
-                                value={datos.condicion || ''}
-                                onChange={(e) => handleChange('condicion', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.condicion ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
+                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
@@ -719,155 +587,21 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
                         </div>
-                    </div>
-                </div>
-
-                {/* Especificaciones Técnicas */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Especificaciones Técnicas</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Procesador</label>
-                            <input
-                                type="text"
-                                value={datos.procesador || ''}
-                                onChange={(e) => handleChange('procesador', e.target.value)}
-                                placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Motherboard</label>
-                            <input
-                                type="text"
-                                value={datos.motherboard || ''}
-                                onChange={(e) => handleChange('motherboard', e.target.value)}
-                                placeholder="Ej: ASUS ROG STRIX B550"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Memoria RAM</label>
-                            <input
-                                type="text"
-                                value={datos.memoria || ''}
-                                onChange={(e) => handleChange('memoria', e.target.value)}
-                                placeholder="Ej: 16GB DDR4"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Placa de video</label>
-                            <input
-                                type="text"
-                                value={datos.gpu || ''}
-                                onChange={(e) => handleChange('gpu', e.target.value)}
-                                placeholder="Ej: RTX 3060 Ti, Integrada"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">SSD</label>
-                            <input
-                                type="text"
-                                value={datos.ssd || ''}
-                                onChange={(e) => handleChange('ssd', e.target.value)}
-                                placeholder="Ej: 500GB NVMe"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">HDD</label>
-                            <input
-                                type="text"
-                                value={datos.hdd || ''}
-                                onChange={(e) => handleChange('hdd', e.target.value)}
-                                placeholder="Ej: 1TB, Sin HDD"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Gabinete</label>
-                            <input
-                                type="text"
-                                value={datos.gabinete || ''}
-                                onChange={(e) => handleChange('gabinete', e.target.value)}
-                                placeholder="Ej: NZXT H510 Flow"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fuente</label>
-                            <input
-                                type="text"
-                                value={datos.fuente || ''}
-                                onChange={(e) => handleChange('fuente', e.target.value)}
-                                placeholder="Ej: 650W Modular"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Precios */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Precios (USD)</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_compra_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)}
-                                placeholder="Ej: 800"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costos Adicionales</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.costos_adicionales || ''}
-                                onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
-                                placeholder="Ej: 50"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
-                                ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
+                        {!esNuevo && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
+                                <select value={datos.estado || ''} onChange={(e) => handleChange('estado', e.target.value)} className={`${ic} ${errores.estado ? 'border-red-500 bg-red-50' : ''}`}>
+                                    <option value="">Seleccionar...</option>
+                                    {ESTADOS_ARRAY.map(est => (
+                                        <option key={est} value={est}>{ESTADOS_LABELS[est]}</option>
+                                    ))}
+                                </select>
+                                {errores.estado && <p className="text-red-500 text-xs mt-1">{errores.estado}</p>}
                             </div>
-                        </div>
+                        )}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_venta_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)}
-                                placeholder="Ej: 1200"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Condición y Ubicación */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Ubicación y Extras</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
-                            <select
-                                value={datos.sucursal || ''}
-                                onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                            <select value={datos.sucursal || ''} onChange={(e) => handleChange('sucursal', e.target.value)} className={ic}>
                                 <option value="">Seleccionar...</option>
                                 {UBICACIONES_ARRAY.map(ub => (
                                     <option key={ub} value={ub}>{UBICACIONES_LABELS[ub]}</option>
@@ -875,54 +609,122 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
-                            <input
-                                type="date"
-                                value={datos.ingreso || obtenerFechaLocal()}
-                                onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        {!esNuevo && (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Estado Estético</label>
-                                <select
-                                    value={datos.estado || ''}
-                                    onChange={(e) => handleChange('estado', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                                >
-                                    <option value="">Seleccionar...</option>
-                                    {ESTADOS_ARRAY.map(est => (
-                                        <option key={est} value={est}>{ESTADOS_LABELS[est]}</option>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
+                            <div className="flex gap-2">
+                                <select value={datos.proveedor_id || ''} onChange={(e) => handleChange('proveedor_id', e.target.value)} disabled={proveedoresLoading} className={`flex-1 ${ic}`}>
+                                    <option value="">Sin especificar</option>
+                                    {proveedores.map(prov => (
+                                        <option key={prov.id} value={prov.id}>{prov.nombre}</option>
                                     ))}
                                 </select>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                    <Plus size={16} />
+                                </button>
                             </div>
-                        )}
+                        </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
-                            <select
-                                value={datos.garantia || '3 meses'}
-                                onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                            <input type="date" value={datos.ingreso || obtenerFechaLocal()} onChange={(e) => handleChange('ingreso', e.target.value)} className={ic} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Precios y Costos */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Precios y Costos</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_compra_usd || ''} onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales USD</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.costos_adicionales || ''} onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)} placeholder="0.00" className={`pl-10 ${ic}`} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_venta_usd || ''} onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Especificaciones Técnicas */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Especificaciones Técnicas</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
+                            <input type="text" value={datos.procesador || ''} onChange={(e) => handleChange('procesador', e.target.value)} placeholder="Ej: Intel i5-12400" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Motherboard</label>
+                            <input type="text" value={datos.motherboard || ''} onChange={(e) => handleChange('motherboard', e.target.value)} placeholder="Ej: ASUS ROG STRIX B550" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
+                            <input type="text" value={datos.memoria || ''} onChange={(e) => handleChange('memoria', e.target.value)} placeholder="Ej: 16GB DDR4" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Placa de video</label>
+                            <input type="text" value={datos.gpu || ''} onChange={(e) => handleChange('gpu', e.target.value)} placeholder="Ej: RTX 3060 Ti" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
+                            <input type="text" value={datos.ssd || ''} onChange={(e) => handleChange('ssd', e.target.value)} placeholder="Ej: 500GB NVMe" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
+                            <input type="text" value={datos.hdd || ''} onChange={(e) => handleChange('hdd', e.target.value)} placeholder="Ej: 1TB" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Gabinete</label>
+                            <input type="text" value={datos.gabinete || ''} onChange={(e) => handleChange('gabinete', e.target.value)} placeholder="Ej: NZXT H510" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fuente</label>
+                            <input type="text" value={datos.fuente || ''} onChange={(e) => handleChange('fuente', e.target.value)} placeholder="Ej: 650W Modular" className={ic} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Garantía y Observaciones */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Garantía y Observaciones</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                            <select value={datos.garantia || '3 meses'} onChange={(e) => handleChange('garantia', e.target.value)} className={ic}>
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
                             </select>
                         </div>
+                        {datos.garantia === 'Garantía oficial con vencimiento' && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
+                                <input type="date" value={datos.garantia_oficial_fecha || ''} onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)} className={ic} />
+                            </div>
+                        )}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                            <textarea value={datos.observaciones || ''} onChange={(e) => handleChange('observaciones', e.target.value)} placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc." rows={3} className={`${ic} resize-none`} />
+                        </div>
                     </div>
-                </div>
-
-                {/* Observaciones */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
-                    <textarea
-                        value={datos.observaciones || ''}
-                        onChange={(e) => handleChange('observaciones', e.target.value)}
-                        placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc."
-                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        rows="3"
-                    />
                 </div>
 
                 {/* Modal para crear nuevo proveedor */}
@@ -942,18 +744,23 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
     // ===== FORMULARIO TABLETS =====
     if (isTablet) {
         return (
-            <div className="space-y-6">
-                {/* Información de la Tablet */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Información de la Tablet</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-4">
+                {/* Información Básica */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Información Básica</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
-                            <select
-                                value={datos.categoria || ''}
-                                onChange={(e) => handleChange('categoria', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.categoria ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
+                            <input type="text" value={datos.modelo || ''} onChange={(e) => handleChange('modelo', e.target.value)} placeholder="Ej: iPad Pro 11, Galaxy Tab S9" className={`${ic} ${errores.modelo ? 'border-red-500 bg-red-50' : ''}`} />
+                            {errores.modelo && <p className="text-red-500 text-xs mt-1">{errores.modelo}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                            <MarcaSelector value={datos.marca || ''} onChange={(value) => handleChange('marca', value)} placeholder="Seleccionar marca..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                            <select value={datos.categoria || ''} onChange={(e) => handleChange('categoria', e.target.value)} className={`${ic} ${errores.categoria ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {opcionesCategorias.map(cat => (
                                     <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -962,31 +769,8 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
-                            <input
-                                type="text"
-                                value={datos.modelo || ''}
-                                onChange={(e) => handleChange('modelo', e.target.value)}
-                                placeholder="Ej: iPad Pro 11, Galaxy Tab S9"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.modelo ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.modelo && <p className="text-red-500 text-xs mt-1">{errores.modelo}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
-                            <MarcaSelector
-                                value={datos.marca || ''}
-                                onChange={(value) => handleChange('marca', value)}
-                                placeholder="Seleccionar marca..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Condición *</label>
-                            <select
-                                value={datos.condicion || ''}
-                                onChange={(e) => handleChange('condicion', e.target.value)}
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.condicion ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
+                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
@@ -994,30 +778,93 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
                         </div>
+                        {!esNuevo && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
+                                <select value={datos.estado || ''} onChange={(e) => handleChange('estado', e.target.value)} className={`${ic} ${errores.estado ? 'border-red-500 bg-red-50' : ''}`}>
+                                    <option value="">Seleccionar...</option>
+                                    {ESTADOS_ARRAY.map(est => (
+                                        <option key={est} value={est}>{ESTADOS_LABELS[est]}</option>
+                                    ))}
+                                </select>
+                                {errores.estado && <p className="text-red-500 text-xs mt-1">{errores.estado}</p>}
+                            </div>
+                        )}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                            <select value={datos.sucursal || ''} onChange={(e) => handleChange('sucursal', e.target.value)} className={ic}>
+                                <option value="">Seleccionar...</option>
+                                {UBICACIONES_ARRAY.map(ub => (
+                                    <option key={ub} value={ub}>{UBICACIONES_LABELS[ub]}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
+                            <div className="flex gap-2">
+                                <select value={datos.proveedor_id || ''} onChange={(e) => handleChange('proveedor_id', e.target.value)} disabled={proveedoresLoading} className={`flex-1 ${ic}`}>
+                                    <option value="">Sin especificar</option>
+                                    {proveedores.map(prov => (
+                                        <option key={prov.id} value={prov.id}>{prov.nombre}</option>
+                                    ))}
+                                </select>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                    <Plus size={16} />
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                            <input type="date" value={datos.ingreso || obtenerFechaLocal()} onChange={(e) => handleChange('ingreso', e.target.value)} className={ic} />
+                        </div>
                     </div>
                 </div>
 
-                {/* Especificaciones */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Especificaciones</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Precios y Costos */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Precios y Costos</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
-                            <input
-                                type="text"
-                                value={datos.color || ''}
-                                onChange={(e) => handleChange('color', e.target.value)}
-                                placeholder="Ej: Space Gray, Silver, Black"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_compra_usd || ''} onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Capacidad/Almacenamiento</label>
-                            <select
-                                value={datos.capacidad_almacenamiento || ''}
-                                onChange={(e) => handleChange('capacidad_almacenamiento', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales USD</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.costos_adicionales || ''} onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)} placeholder="0.00" className={`pl-10 ${ic}`} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                                <input type="number" step="0.01" value={datos.precio_venta_usd || ''} onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                            </div>
+                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Especificaciones Técnicas */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Especificaciones Técnicas</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                            <input type="text" value={datos.color || ''} onChange={(e) => handleChange('color', e.target.value)} placeholder="Ej: Space Gray, Silver, Black" className={ic} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Almacenamiento</label>
+                            <select value={datos.capacidad_almacenamiento || ''} onChange={(e) => handleChange('capacidad_almacenamiento', e.target.value)} className={ic}>
                                 <option value="">Seleccionar...</option>
                                 <option value="64GB">64GB</option>
                                 <option value="128GB">128GB</option>
@@ -1028,22 +875,12 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Tamaño de Pantalla</label>
-                            <input
-                                type="text"
-                                value={datos.tamano_pantalla || ''}
-                                onChange={(e) => handleChange('tamano_pantalla', e.target.value)}
-                                placeholder='Ej: 10.2", 11", 12.9"'
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla</label>
+                            <input type="text" value={datos.tamano_pantalla || ''} onChange={(e) => handleChange('tamano_pantalla', e.target.value)} placeholder='Ej: 10.2", 11", 12.9"' className={ic} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Conectividad</label>
-                            <select
-                                value={datos.conectividad || 'WiFi'}
-                                onChange={(e) => handleChange('conectividad', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Conectividad</label>
+                            <select value={datos.conectividad || 'WiFi'} onChange={(e) => handleChange('conectividad', e.target.value)} className={ic}>
                                 <option value="WiFi">WiFi</option>
                                 <option value="WiFi + Datos">WiFi + Datos</option>
                             </select>
@@ -1051,120 +888,29 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     </div>
                 </div>
 
-                {/* Precios */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Precios (USD)</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Garantía y Observaciones */}
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                    <h3 className={sh}>Garantía y Observaciones</h3>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_compra_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)}
-                                placeholder="Ej: 600"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costos Adicionales</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.costos_adicionales || ''}
-                                onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
-                                placeholder="Ej: 30"
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                            <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
-                                ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={datos.precio_venta_usd || ''}
-                                onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)}
-                                placeholder="Ej: 899"
-                                className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                            />
-                            {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Condición y Ubicación */}
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Ubicación y Extras</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
-                            <select
-                                value={datos.sucursal || ''}
-                                onChange={(e) => handleChange('sucursal', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
-                                <option value="">Seleccionar...</option>
-                                {UBICACIONES_ARRAY.map(ub => (
-                                    <option key={ub} value={ub}>{UBICACIONES_LABELS[ub]}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
-                            <input
-                                type="date"
-                                value={datos.ingreso || obtenerFechaLocal()}
-                                onChange={(e) => handleChange('ingreso', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
-                        </div>
-                        {!esNuevo && (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Estado Estético</label>
-                                <select
-                                    value={datos.estado || ''}
-                                    onChange={(e) => handleChange('estado', e.target.value)}
-                                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                                >
-                                    <option value="">Seleccionar...</option>
-                                    {ESTADOS_ARRAY.map(est => (
-                                        <option key={est} value={est}>{ESTADOS_LABELS[est]}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
-                            <select
-                                value={datos.garantia || '3 meses'}
-                                onChange={(e) => handleChange('garantia', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                            <select value={datos.garantia || '3 meses'} onChange={(e) => handleChange('garantia', e.target.value)} className={ic}>
                                 {GARANTIAS_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
                             </select>
                         </div>
+                        {datos.garantia === 'Garantía oficial con vencimiento' && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
+                                <input type="date" value={datos.garantia_oficial_fecha || ''} onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)} className={ic} />
+                            </div>
+                        )}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                            <textarea value={datos.observaciones || ''} onChange={(e) => handleChange('observaciones', e.target.value)} placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc." rows={3} className={`${ic} resize-none`} />
+                        </div>
                     </div>
-                </div>
-
-                {/* Observaciones */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
-                    <textarea
-                        value={datos.observaciones || ''}
-                        onChange={(e) => handleChange('observaciones', e.target.value)}
-                        placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc."
-                        className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        rows="3"
-                    />
                 </div>
 
                 {/* Modal para crear nuevo proveedor */}
@@ -1183,18 +929,14 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
 
     // ===== FORMULARIO OTROS GENÉRICO =====
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Producto */}
-            <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Producto</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <h3 className={sh}>Producto</h3>
+                <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Categoría *</label>
-                        <select
-                            value={datos.categoria || ''}
-                            onChange={(e) => handleChange('categoria', e.target.value)}
-                            className={`w-full border rounded px-3 py-2 text-sm ${errores.categoria ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                        >
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                        <select value={datos.categoria || ''} onChange={(e) => handleChange('categoria', e.target.value)} className={`${ic} ${errores.categoria ? 'border-red-500 bg-red-50' : ''}`}>
                             <option value="">Seleccionar...</option>
                             {opcionesCategorias.map(cat => (
                                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -1203,98 +945,62 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         {errores.categoria && <p className="text-red-500 text-xs mt-1">{errores.categoria}</p>}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Producto *</label>
-                        <input
-                            type="text"
-                            value={datos.nombre_producto || ''}
-                            onChange={(e) => handleChange('nombre_producto', e.target.value)}
-                            placeholder="Ej: Cable USB-C a Lightning"
-                            className={`w-full border rounded px-3 py-2 text-sm ${errores.nombre_producto ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                        />
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Producto *</label>
+                        <input type="text" value={datos.nombre_producto || ''} onChange={(e) => handleChange('nombre_producto', e.target.value)} placeholder="Ej: Cable USB-C a Lightning" className={`${ic} ${errores.nombre_producto ? 'border-red-500 bg-red-50' : ''}`} />
                         {errores.nombre_producto && <p className="text-red-500 text-xs mt-1">{errores.nombre_producto}</p>}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
-                        <MarcaSelector
-                            value={datos.marca || ''}
-                            onChange={(value) => handleChange('marca', value)}
-                            className={`w-full ${errores.marca ? 'border-red-500' : ''}`}
-                            placeholder="Seleccionar marca..."
-                        />
-                        {errores.marca && <p className="text-red-500 text-xs mt-1">{errores.marca}</p>}
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+                        <MarcaSelector value={datos.marca || ''} onChange={(value) => handleChange('marca', value)} placeholder="Seleccionar marca..." />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
-                        <input
-                            type="text"
-                            value={datos.color || ''}
-                            onChange={(e) => handleChange('color', e.target.value)}
-                            placeholder="Ej: Negro, Blanco"
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        />
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+                        <input type="text" value={datos.color || ''} onChange={(e) => handleChange('color', e.target.value)} placeholder="Ej: Negro, Blanco" className={ic} />
                     </div>
                 </div>
             </div>
 
-            {/* Precios */}
-            <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Precios (USD)</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Precios y Costos */}
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <h3 className={sh}>Precios y Costos</h3>
+                <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Precio Compra *</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={datos.precio_compra_usd || ''}
-                            onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)}
-                            placeholder="Ej: 10"
-                            className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                        />
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Precio Compra USD *</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                            <input type="number" step="0.01" value={datos.precio_compra_usd || ''} onChange={(e) => handleNumeroChange('precio_compra_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_compra_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                        </div>
                         {errores.precio_compra_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_compra_usd}</p>}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Costos Adicionales</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={datos.costos_adicionales || ''}
-                            onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)}
-                            placeholder="Ej: 2"
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Costo Total</label>
-                        <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300 bg-slate-100 text-slate-700 font-medium">
-                            ${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(0)}
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales USD</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                            <input type="number" step="0.01" value={datos.costos_adicionales || ''} onChange={(e) => handleNumeroChange('costos_adicionales', e.target.value)} placeholder="0.00" className={`pl-10 ${ic}`} />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Precio Venta *</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={datos.precio_venta_usd || ''}
-                            onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)}
-                            placeholder="Ej: 25"
-                            className={`w-full border rounded px-3 py-2 text-sm ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}
-                        />
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
+                        <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
+                            <input type="number" step="0.01" value={datos.precio_venta_usd || ''} onChange={(e) => handleNumeroChange('precio_venta_usd', e.target.value)} placeholder="0.00" className={`pl-10 ${ic} ${errores.precio_venta_usd ? 'border-red-500 bg-red-50' : ''}`} />
+                        </div>
                         {errores.precio_venta_usd && <p className="text-red-500 text-xs mt-1">{errores.precio_venta_usd}</p>}
                     </div>
                 </div>
             </div>
 
-            {/* Condición */}
-            <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Condición y Ubicación</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Condición y Ubicación */}
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <h3 className={sh}>Condición y Ubicación</h3>
+                <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Condición</label>
-                        <select
-                            value={datos.condicion || ''}
-                            onChange={(e) => handleChange('condicion', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        >
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Condición</label>
+                        <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={ic}>
                             <option value="">Seleccionar...</option>
                             {CONDICIONES_ARRAY.map(cond => (
                                 <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
@@ -1302,12 +1008,8 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Sucursal</label>
-                        <select
-                            value={datos.sucursal || ''}
-                            onChange={(e) => handleChange('sucursal', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        >
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sucursal</label>
+                        <select value={datos.sucursal || ''} onChange={(e) => handleChange('sucursal', e.target.value)} className={ic}>
                             <option value="">Seleccionar...</option>
                             {UBICACIONES_ARRAY.map(ub => (
                                 <option key={ub} value={ub}>{UBICACIONES_LABELS[ub]}</option>
@@ -1315,28 +1017,19 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Fecha Ingreso</label>
-                        <input
-                            type="date"
-                            value={datos.ingreso || obtenerFechaLocal()}
-                            onChange={(e) => handleChange('ingreso', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        />
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Fecha Ingreso</label>
+                        <input type="date" value={datos.ingreso || obtenerFechaLocal()} onChange={(e) => handleChange('ingreso', e.target.value)} className={ic} />
                     </div>
                 </div>
             </div>
 
             {/* Garantía y Observaciones */}
-            <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 uppercase tracking-wider">Garantía y Observaciones</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <h3 className={sh}>Garantía y Observaciones</h3>
+                <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Garantía</label>
-                        <select
-                            value={datos.garantia || '3 meses'}
-                            onChange={(e) => handleChange('garantia', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        >
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+                        <select value={datos.garantia || '3 meses'} onChange={(e) => handleChange('garantia', e.target.value)} className={ic}>
                             {GARANTIAS_OPTIONS.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
@@ -1344,24 +1037,13 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     </div>
                     {datos.garantia === 'Garantía oficial con vencimiento' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
-                            <input
-                                type="date"
-                                value={datos.garantia_oficial_fecha || ''}
-                                onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)}
-                                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
+                            <input type="date" value={datos.garantia_oficial_fecha || ''} onChange={(e) => handleChange('garantia_oficial_fecha', e.target.value)} className={ic} />
                         </div>
                     )}
-                    <div className={datos.garantia === 'Garantía oficial con vencimiento' ? 'md:col-span-2' : ''}>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
-                        <input
-                            type="text"
-                            value={datos.observaciones || ''}
-                            onChange={(e) => handleChange('observaciones', e.target.value)}
-                            placeholder="Notas adicionales..."
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-300"
-                        />
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                        <textarea value={datos.observaciones || ''} onChange={(e) => handleChange('observaciones', e.target.value)} placeholder="Notas adicionales..." rows={3} className={`${ic} resize-none`} />
                     </div>
                 </div>
             </div>

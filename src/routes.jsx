@@ -112,11 +112,11 @@ const AppRoutes = () => {
 
                 {/* Ventas */}
                 <Route path="catalogo" element={<CatalogoPage />} />
-                <Route path="stock" element={<ListadoTotalSection />} />
-                <Route path="listas" element={<ListasPage />} />
-                <Route path="clientes" element={<Clientes />} />
-                <Route path="registrar-venta" element={<RegistrarVentaSection />} />
-                <Route path="ventas" element={<VentasPage />} />
+                <Route path="stock" element={<ProtectedRoute section="ventas"><ListadoTotalSection /></ProtectedRoute>} />
+                <Route path="listas" element={<ProtectedRoute section="ventas"><ListasPage /></ProtectedRoute>} />
+                <Route path="clientes" element={<ProtectedRoute section="ventas"><Clientes /></ProtectedRoute>} />
+                <Route path="registrar-venta" element={<ProtectedRoute section="ventas"><RegistrarVentaSection /></ProtectedRoute>} />
+                <Route path="ventas" element={<ProtectedRoute section="administracion"><VentasPage /></ProtectedRoute>} />
 
                 {/* Soporte */}
                 <Route path="reparaciones" element={<ProtectedRoute section="soporte"><ReparacionesMain /></ProtectedRoute>} />

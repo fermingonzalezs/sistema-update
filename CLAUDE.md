@@ -236,6 +236,18 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 - Error handling with user-friendly messages
 - Loading states throughout the application
 
+### Security - RLS (Row Level Security) - MANDATORY
+**CRITICAL RULE**: Every new table created in Supabase MUST have Row Level Security enabled. No exceptions.
+
+```sql
+-- ALWAYS run this immediately after creating any new table
+ALTER TABLE public.nueva_tabla ENABLE ROW LEVEL SECURITY;
+```
+
+- All 40 existing tables in the `public` schema have RLS enabled.
+- Never create a table and leave it without RLS, even for temporary or test tables.
+- After enabling RLS, define the appropriate policies so that authenticated users can access the data they need.
+
 ### Key Database Tables
 - `inventario_computadoras` - Computer inventory
 - `inventario_celulares` - Smartphone inventory
