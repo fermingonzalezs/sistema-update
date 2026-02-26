@@ -9,7 +9,7 @@ import { getResolucionNumeros } from '../constants/resolutionConstants';
  * VERSIONES COMERCIALES (para Listas y botones copy):
  * - 'notebook_comercial': 💻 MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - GPU VRAM - [🔋BATERIA% DURACION] - CONDICION - [ESTADO] - COLOR - IDIOMA - [(Observaciones)] - PRECIO
  * - 'celular_comercial': 📱 MODELO CAPACIDAD COLOR [🔋BATERIA%] - [Estética: X] - [(Observaciones)] - PRECIO
- * - 'otro_comercial': 📦 MODELO - CONDICION - [ESTADO] - [(Observaciones)] - PRECIO
+ * - 'otro_comercial': 📦 MODELO - COLOR - [CONDICION] - [ESTADO] - [(Observaciones)] - PRECIO
  *
  * VERSIONES COMPLETAS (para Catálogo - uso interno):
  * - 'notebook_completo': MODELO - PANTALLA - PROCESADOR - MEMORIA TIPO - SSD - HDD - RESOLUCION HZ - GPU VRAM - BATERIA DURACION - SO - Observaciones (sin emoji, sin precio)
@@ -19,7 +19,7 @@ import { getResolucionNumeros } from '../constants/resolutionConstants';
  * VERSIONES DOCUMENTOS (para Recibos, Garantías, Emails - SIN observaciones/notas):
  * - 'notebook_documento': MODELO - PANTALLA - PROCESADOR - RAM - SSD/HDD - GPU - BATERIA - ESTADO - COLOR - IDIOMA
  * - 'celular_documento': MODELO - COLOR - CAPACIDAD - BATERIA - ESTADO
- * - 'otro_documento': NOMBRE_PRODUCTO - DESCRIPCION (sin observaciones ni notas)
+ * - 'otro_documento': NOMBRE_PRODUCTO - DESCRIPCION - COLOR (sin observaciones ni notas)
  *
  * NOTAS:
  * - [Campo] = Solo para productos USADOS/REFURBISHED
@@ -660,9 +660,9 @@ const generateOtroCopy = (otro, config) => {
   }
   partes.push(nombreProducto);
 
-  // Para versión SIMPLE: solo EMOJI - NOMBRE - PRECIO (sin descripción, sin especificaciones)
+  // Para versión SIMPLE: solo EMOJI - NOMBRE - COLOR - PRECIO (sin descripción, sin especificaciones)
   // Para versión COMPLETA: agregar campos adicionales
-  // Para versión DOCUMENTO: NOMBRE + DESCRIPCION (sin color, estado, notas, observaciones)
+  // Para versión DOCUMENTO: NOMBRE + DESCRIPCION + COLOR (sin estado, notas, observaciones)
   if (config.style === 'completo' || config.style === 'documento') {
     // 2. DESCRIPCION (solo si es diferente del nombre)
     if (otro.descripcion && otro.descripcion !== otro.nombre_producto) {
@@ -670,17 +670,22 @@ const generateOtroCopy = (otro, config) => {
     }
   }
 
-  // 3. CONDICION - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  // 3. COLOR - Siempre (todas las versiones)
+  if (otro.color) {
+    partes.push(otro.color);
+  }
+
+  // 4. CONDICION - SOLO para USADOS/REFURBISHED (excepto en versión documento)
   if (!esNuevo && otro.condicion && config.style !== 'documento') {
     partes.push(capitalize(otro.condicion));
   }
 
-  // 4. ESTADO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
+  // 5. ESTADO - SOLO para USADOS/REFURBISHED (excepto en versión documento)
   if (!esNuevo && otro.estado && config.style !== 'documento') {
     partes.push(otro.estado);
   }
 
-  // 5. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento)
+  // 6. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento)
   if (!esNuevo && config.style !== 'documento') {
     if (otro.observaciones || otro.notas || otro.comentarios) {
       const obs = otro.observaciones || otro.notas || otro.comentarios;
@@ -690,22 +695,15 @@ const generateOtroCopy = (otro, config) => {
 
   // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
   if (config.style === 'completo') {
-    // 6. COLOR
-    if (otro.color) {
-      partes.push(otro.color);
-    }
-
-    // 7. NOTAS - Removidas según requerimientos
-
-    // 8. OBSERVACIONES para productos nuevos en versión completa
+    // 7. OBSERVACIONES para productos nuevos en versión completa
     if (esNuevo && (otro.observaciones || otro.notas || otro.comentarios)) {
       const obs = otro.observaciones || otro.notas || otro.comentarios;
       partes.push(`Observaciones: ${obs}`);
     }
 
-    // 9. GARANTIA - Removida del copy según requerimientos
+    // 8. GARANTIA - Removida del copy según requerimientos
 
-    // 10. SUCURSAL - Removida del copy, ahora se muestra en columna separada
+    // 9. SUCURSAL - Removida del copy, ahora se muestra en columna separada
   }
 
   // VERSIÓN DOCUMENTO: NOMBRE_PRODUCTO + DESCRIPCION
