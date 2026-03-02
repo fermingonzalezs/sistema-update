@@ -55,6 +55,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   // Estado para espaciado doble entre productos
   const [espaciadoDoble, setEspaciadoDoble] = useState(false);
 
+  // Estado para lista única
+  const [condicionesUnicas, setCondicionesUnicas] = useState(new Set(['nuevo']));
+  const [copiandoListaUnica, setCopiandoListaUnica] = useState(false);
+  const [subcategoriaUnica, setSubcategoriaUnica] = useState('');
+
   // Estados para filtros avanzados
   const [modoFiltros, setModoFiltros] = useState(false);
   const [filtroExcluirMarca, setFiltroExcluirMarca] = useState('');
@@ -153,6 +158,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
     // Limpiar filtro de estado al cambiar tipo
     setFiltros(prev => ({ ...prev, estado: '' }));
+    setSubcategoriaUnica('');
   }, [tipoActivo, computers, celulares, otros]);
 
   // Las funciones de generación de copy ahora están unificadas en copyGenerator.js
@@ -251,6 +257,60 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
     return productos;
   }, [productosConCopy, busqueda, modoFiltros, filtros, filtroExcluirMarca, ordenamiento, tipoActivo]);
+
+  // Lista única: agrupa equipos con mismo modelo y precio
+  const listaUnica = useMemo(() => {
+    const condicionesNuevo = ['nuevo', 'nueva'];
+    const condicionesUsado = ['usado', 'usada', 'refurbished', 'reacondicionado', 'reacondicionada', 'consignacion'];
+
+    const condicionesActivas = [];
+    if (condicionesUnicas.has('nuevo')) condicionesActivas.push(...condicionesNuevo);
+    if (condicionesUnicas.has('usado')) condicionesActivas.push(...condicionesUsado);
+
+    const filtrados = productosFiltradosYOrdenados.filter(p => {
+      const cond = (p.condicion || '').toLowerCase();
+      return condicionesActivas.includes(cond);
+    });
+
+    const grupos = new Map();
+    filtrados.forEach(producto => {
+      const precio = Math.round(producto.precio_venta_usd || 0);
+      let clave;
+      if (producto.tipo === 'celular') {
+        // Celulares: separar por color
+        clave = `${producto.modelo}|${producto.capacidad || ''}|${producto.color || ''}|${precio}`;
+      } else if (producto.tipo === 'computadora') {
+        // Computadoras: NO separar por color
+        clave = `${producto.modelo}|${precio}`;
+      } else {
+        // Otros: NO separar por color
+        clave = `${producto.nombre_producto || producto.modelo || ''}|${precio}`;
+      }
+      if (!grupos.has(clave)) {
+        grupos.set(clave, { ...producto, count: 1 });
+      } else {
+        grupos.get(clave).count++;
+      }
+    });
+
+    return Array.from(grupos.values());
+  }, [productosFiltradosYOrdenados, condicionesUnicas]);
+
+  // Subcategorías disponibles para "otros" en lista única
+  const subcategoriasOtros = useMemo(() => {
+    if (tipoActivo !== 'otro') return [];
+    return [...new Set(
+      productosFiltradosYOrdenados.map(p => p.categoria).filter(Boolean)
+    )].sort();
+  }, [productosFiltradosYOrdenados, tipoActivo]);
+
+  // Lista única filtrada por subcategoría (solo para otros)
+  const listaUnicaFiltrada = useMemo(() => {
+    if (tipoActivo !== 'otro' || !subcategoriaUnica) return listaUnica;
+    return listaUnica.filter(p =>
+      (p.categoria || '').toLowerCase() === subcategoriaUnica.toLowerCase()
+    );
+  }, [listaUnica, subcategoriaUnica, tipoActivo]);
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -474,6 +534,128 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         textArea.focus();
         textArea.select();
       }
+    }
+  };
+
+  // Funciones para Lista Única
+  const toggleCondicionUnica = (condicion) => {
+    setCondicionesUnicas(prev => {
+      const next = new Set(prev);
+      if (next.has(condicion)) {
+        next.delete(condicion);
+      } else {
+        next.add(condicion);
+      }
+      return next;
+    });
+  };
+
+  const generarCopyUnicoItem = (producto) => {
+    const precio = producto.precio_venta_usd || 0;
+    const precioStr = monedaPrecio === 'USD'
+      ? `U$${Math.round(precio).toLocaleString('es-AR')}`
+      : `$${Math.round(precio * cotizacionDolar).toLocaleString('es-AR')}`;
+
+    const condicion = (producto.condicion || '').toLowerCase();
+    const esNuevo = condicion === 'nuevo' || condicion === 'nueva';
+
+    if (producto.tipo === 'celular') {
+      // Parte principal sin guiones: 📱 MODELO CAPACIDAD COLOR [🔋BATERIA%]
+      const partePrincipal = ['📱', producto.modelo];
+      if (producto.capacidad) {
+        const capStr = String(producto.capacidad);
+        partePrincipal.push(capStr.toUpperCase().includes('GB') ? capStr : `${capStr}GB`);
+      }
+      if (producto.color) partePrincipal.push(producto.color);
+      if (!esNuevo && (producto.bateria || producto.porcentaje_de_bateria)) {
+        const bat = String(producto.bateria || producto.porcentaje_de_bateria).replace(/%/g, '').trim();
+        if (bat && bat !== '0') partePrincipal.push(`🔋${bat}%`);
+      }
+      let copyFinal = partePrincipal.join(' ');
+      const partesGuion = [];
+      if (!esNuevo && producto.estado) partesGuion.push(`Estética: ${producto.estado}`);
+      partesGuion.push(precioStr);
+      return copyFinal + ' - ' + partesGuion.join(' - ');
+
+    } else if (producto.tipo === 'computadora') {
+      // 💻 MODELO - PROCESADOR - PANTALLA - MEMORIA - ALMACENAMIENTO [- BATERIA - CONDICION ESTADO] - PRECIO
+      const partes = ['💻', producto.modelo];
+      if (producto.procesador) partes.push(producto.procesador);
+      if (producto.pantalla) {
+        const p = String(producto.pantalla);
+        partes.push(p.includes('"') ? p : `${p}"`);
+      }
+      const ram = producto.memoria_ram || producto.ram;
+      if (ram) {
+        const ramStr = String(ram).replace(/GB/gi, '').trim();
+        partes.push(`${ramStr}GB`);
+      }
+      if (producto.ssd) {
+        const ssdStr = String(producto.ssd);
+        const isTB = /tb/i.test(ssdStr);
+        const cleanSsd = ssdStr.replace(/gb/gi, '').replace(/tb/gi, '').trim();
+        partes.push(`${cleanSsd}${isTB ? 'TB' : 'GB'} SSD`);
+      }
+      if (!esNuevo) {
+        let bateriaInfo = '';
+        if (producto.bateria || producto.porcentaje_de_bateria) {
+          const bat = String(producto.bateria || producto.porcentaje_de_bateria).replace(/%/g, '').trim();
+          if (bat && bat !== '0') bateriaInfo = `🔋${bat}%`;
+        }
+        if (producto.duracion || producto.duracion_bateria) {
+          const dur = String(producto.duracion || producto.duracion_bateria).replace(/H/gi, '').trim();
+          if (dur && dur !== '0') bateriaInfo += bateriaInfo ? ` ${dur}H` : `🔋${dur}H`;
+        }
+        if (bateriaInfo) partes.push(bateriaInfo);
+        if (producto.condicion) {
+          const condCap = producto.condicion.charAt(0).toUpperCase() + producto.condicion.slice(1);
+          partes.push(producto.estado ? `${condCap} ${producto.estado}` : condCap);
+        }
+      }
+      return partes.join(' - ') + ' - ' + precioStr;
+
+    } else {
+      const nombre = producto.nombre_producto || producto.modelo || 'Producto';
+      return `📦 ${nombre} - ${precioStr}`;
+    }
+  };
+
+  const getTextoListaUnica = () => {
+    if (listaUnicaFiltrada.length === 0) return '';
+    const partes = [];
+    if (incluirMensajeInicial && mensajes[tipoActivo]?.inicial) {
+      partes.push(mensajes[tipoActivo].inicial);
+      partes.push('');
+    }
+    const copys = listaUnicaFiltrada.map(p => generarCopyUnicoItem(p));
+    partes.push(copys.join(espaciadoDoble ? '\n\n' : '\n'));
+    if (incluirMensajeFinal && mensajes[tipoActivo]?.final) {
+      partes.push('');
+      partes.push(mensajes[tipoActivo].final);
+    }
+    return partes.join('\n');
+  };
+
+  const copiarListaUnica = async () => {
+    if (listaUnicaFiltrada.length === 0) {
+      alert('No hay productos para generar la lista');
+      return;
+    }
+    const texto = getTextoListaUnica();
+    let copiado = false;
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(texto);
+        copiado = true;
+      } catch {
+        copiado = copiarTextoFallback(texto);
+      }
+    } else {
+      copiado = copiarTextoFallback(texto);
+    }
+    if (copiado) {
+      setCopiandoListaUnica(true);
+      setTimeout(() => setCopiandoListaUnica(false), 2000);
     }
   };
 
@@ -1329,9 +1511,9 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
           {/* Tabla de productos */}
           <div className="bg-white rounded border border-slate-200 overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
               <table className="w-full">
-                <thead className="bg-slate-800 text-white">
+                <thead className="bg-slate-800 text-white sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-12">
                       <input
@@ -1390,7 +1572,120 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           </div>
         </div>
       </div>
+
+    {/* Lista Única - Sección automática */}
+    <div className="bg-white rounded border border-slate-200">
+      <div className="px-4 py-3 bg-slate-800 text-white">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center space-x-3">
+            <Zap className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-base font-semibold">Lista Única</h3>
+          </div>
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="text-xs text-slate-400">Incluir:</span>
+            <button
+              onClick={() => toggleCondicionUnica('nuevo')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                condicionesUnicas.has('nuevo')
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
+              }`}
+            >
+              Nuevo
+            </button>
+            <button
+              onClick={() => toggleCondicionUnica('usado')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                condicionesUnicas.has('usado')
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
+              }`}
+            >
+              Usado
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {listaUnicaFiltrada.length === 0 ? (
+        <div className="p-8 text-center text-slate-500">
+          <Zap className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+          <p className="text-sm">No hay productos con los filtros seleccionados</p>
+        </div>
+      ) : (
+        <div className="p-4">
+          {/* Selector de subcategoría para Otros */}
+          {tipoActivo === 'otro' && subcategoriasOtros.length > 0 && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs font-medium text-slate-500">Categoría:</span>
+              <select
+                value={subcategoriaUnica}
+                onChange={(e) => setSubcategoriaUnica(e.target.value)}
+                className="px-3 py-1.5 bg-slate-100 text-slate-800 rounded text-sm outline-none border border-slate-200 focus:outline-none focus:ring-0"
+              >
+                <option value="">Todas</option>
+                {subcategoriasOtros.map(cat => (
+                  <option key={cat} value={cat}>
+                    {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Preview */}
+            <div className="lg:col-span-2">
+              <div className="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-y-auto">
+                <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
+                  {getTextoListaUnica()}
+                </pre>
+              </div>
+            </div>
+
+            {/* Acción */}
+            <div className="space-y-3">
+              <div className="bg-slate-50 border border-slate-200 rounded p-3 text-sm">
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Modelos únicos</span>
+                    <span className="font-semibold text-slate-800">{listaUnicaFiltrada.length}</span>
+                  </div>
+                  {condicionesUnicas.has('nuevo') && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Nuevos</span>
+                      <span className="font-semibold text-emerald-600">
+                        {listaUnicaFiltrada.filter(p => ['nuevo', 'nueva'].includes((p.condicion || '').toLowerCase())).length}
+                      </span>
+                    </div>
+                  )}
+                  {condicionesUnicas.has('usado') && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Usados/Ref.</span>
+                      <span className="font-semibold text-slate-600">
+                        {listaUnicaFiltrada.filter(p => !['nuevo', 'nueva'].includes((p.condicion || '').toLowerCase())).length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={copiarListaUnica}
+                className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  copiandoListaUnica
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
+              >
+                {copiandoListaUnica ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                <span>{copiandoListaUnica ? '¡Lista Copiada!' : 'Copiar Lista Única'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  </div>
   );
 };
 

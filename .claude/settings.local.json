@@ -37,7 +37,9 @@
       "Skill(frontend-design)",
       "Bash(npx supabase:*)",
       "Bash(pkill:*)",
-      "mcp__supabase__list_extensions"
+      "mcp__supabase__list_extensions",
+      "Bash(node:*)",
+      "Bash(npx vite:*)"
     ],
     "deny": [],
     "ask": []

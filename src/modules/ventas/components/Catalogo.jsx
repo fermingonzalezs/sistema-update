@@ -80,7 +80,8 @@ const GARANTIAS_OPTIONS = [
 const Catalogo = ({ onAddToCart, onNavigate }) => {
   const { user } = useAuthContext();
   const nivelUsuario = user?.user_metadata?.nivel;
-  const puedeEditar = nivelUsuario !== 'ventas';
+  const puedeEditar = true;
+  const puedeEliminar = nivelUsuario === 'admin';
 
   const {
     categoriaActiva,
@@ -3392,14 +3393,18 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             {/* Footer */}
             <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 flex justify-between items-center rounded-b-xl">
               {/* Botón de eliminar a la izquierda */}
-              <button
-                onClick={handleDelete}
-                disabled={editLoading}
-                className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium shadow-sm"
-              >
-                <Trash2 size={15} />
-                <span>Eliminar</span>
-              </button>
+              {puedeEliminar ? (
+                <button
+                  onClick={handleDelete}
+                  disabled={editLoading}
+                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium shadow-sm"
+                >
+                  <Trash2 size={15} />
+                  <span>Eliminar</span>
+                </button>
+              ) : (
+                <div />
+              )}
 
               {/* Botones de acción a la derecha */}
               <div className="flex space-x-3">
