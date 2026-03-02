@@ -236,6 +236,68 @@ const recuentoStockService = {
 
     if (error) throw error;
     return true;
+  },
+
+  // Obtener cantidad de stock por categoría y sucursal
+  // para saber qué categorías tienen stock real (>0 items)
+  async getStockPorCategoriaSucursal() {
+    console.log('📊 Obteniendo stock por categoría/sucursal...');
+
+    const sucursales = ['la_plata', 'mitre'];
+    const resultado = {}; // { 'LA PLATA_notebooks': 5, 'LA PLATA_celulares': 3, ... }
+
+    // Notebooks por sucursal (excluyendo consignacion)
+    for (const suc of sucursales) {
+      const { count, error } = await supabase
+        .from('inventario')
+        .select('id', { count: 'exact', head: true })
+        .eq('sucursal', suc)
+        .neq('condicion', 'consignacion');
+      if (!error) {
+        const sucLabel = suc === 'la_plata' ? 'LA PLATA' : 'MITRE';
+        resultado[`${sucLabel}_notebooks`] = count || 0;
+      }
+    }
+
+    // Celulares por sucursal (excluyendo consignacion)
+    for (const suc of sucursales) {
+      const { count, error } = await supabase
+        .from('celulares')
+        .select('id', { count: 'exact', head: true })
+        .eq('sucursal', suc)
+        .neq('condicion', 'consignacion');
+      if (!error) {
+        const sucLabel = suc === 'la_plata' ? 'LA PLATA' : 'MITRE';
+        resultado[`${sucLabel}_celulares`] = count || 0;
+      }
+    }
+
+    // Otros por subcategoría y sucursal
+    const { data: otrosData, error: otrosError } = await supabase
+      .from('otros')
+      .select('categoria, cantidad_la_plata, cantidad_mitre')
+      .neq('condicion', 'consignacion');
+
+    if (!otrosError && otrosData) {
+      // Agrupar por categoría y sumar cantidades
+      const porCategoria = {};
+      for (const item of otrosData) {
+        if (!item.categoria) continue;
+        if (!porCategoria[item.categoria]) {
+          porCategoria[item.categoria] = { la_plata: 0, mitre: 0 };
+        }
+        porCategoria[item.categoria].la_plata += (item.cantidad_la_plata || 0);
+        porCategoria[item.categoria].mitre += (item.cantidad_mitre || 0);
+      }
+
+      for (const [cat, cantidades] of Object.entries(porCategoria)) {
+        resultado[`LA PLATA_otros_${cat}`] = cantidades.la_plata;
+        resultado[`MITRE_otros_${cat}`] = cantidades.mitre;
+      }
+    }
+
+    console.log('✅ Stock por categoría/sucursal:', resultado);
+    return resultado;
   }
 };
 
@@ -244,6 +306,7 @@ function useRecuentoStock() {
   const [inventario, setInventario] = useState([]);
   const [recuentosAnteriores, setRecuentosAnteriores] = useState([]);
   const [estadoRecuentos, setEstadoRecuentos] = useState([]); // NUEVO
+  const [stockPorCategoria, setStockPorCategoria] = useState({}); // Stock real por categoría/sucursal
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -276,6 +339,16 @@ function useRecuentoStock() {
       setEstadoRecuentos(data);
     } catch (err) {
       console.error('Error cargando estado de recuentos:', err);
+    }
+  };
+
+  // Cargar stock real por categoría/sucursal
+  const fetchStockPorCategoria = async () => {
+    try {
+      const data = await recuentoStockService.getStockPorCategoriaSucursal();
+      setStockPorCategoria(data);
+    } catch (err) {
+      console.error('Error cargando stock por categoría:', err);
     }
   };
 
@@ -330,11 +403,13 @@ function useRecuentoStock() {
     inventario,
     recuentosAnteriores,
     estadoRecuentos,
+    stockPorCategoria,
     loading,
     error,
     fetchInventario,
     fetchRecuentosAnteriores,
     fetchEstadoRecuentos,
+    fetchStockPorCategoria,
     guardarRecuento,
     aplicarAjustes,
     actualizarComentario,
@@ -348,11 +423,13 @@ export const RecuentoStockSection = () => {
     inventario,
     recuentosAnteriores,
     estadoRecuentos,
+    stockPorCategoria,
     loading,
     error,
     fetchInventario,
     fetchRecuentosAnteriores,
     fetchEstadoRecuentos,
+    fetchStockPorCategoria,
     guardarRecuento,
     aplicarAjustes,
     actualizarComentario,
@@ -367,13 +444,14 @@ export const RecuentoStockSection = () => {
   const [stockContado, setStockContado] = useState({});
   const [observaciones, setObservaciones] = useState('');
   const [mostrarSoloDiferencias, setMostrarSoloDiferencias] = useState(false);
-  const [mostrarHistorial, setMostrarHistorial] = useState(false);
+
   const [recuentoIniciado, setRecuentoIniciado] = useState(false);
   const [recuentoExpandido, setRecuentoExpandido] = useState(null);
   const [editandoComentario, setEditandoComentario] = useState(null);
   const [nuevoComentario, setNuevoComentario] = useState('');
   const [mostrarEstadoRecuentos, setMostrarEstadoRecuentos] = useState(true);
   const [modalProductos, setModalProductos] = useState(null); // {productos: [], titulo: string}
+  const [modalDiferencias, setModalDiferencias] = useState(null); // {diferencias: [], titulo: string}
 
   // Generar lista de categorías disponibles
   const categoriasDisponibles = [
@@ -390,6 +468,7 @@ export const RecuentoStockSection = () => {
     console.log('🚀 Iniciando recuento de stock...');
     fetchRecuentosAnteriores();
     fetchEstadoRecuentos(); // Cargar estado de recuentos
+    fetchStockPorCategoria(); // Cargar stock por categoría/sucursal
   }, []);
 
   // Cargar inventario cuando se selecciona sucursal Y categoría
@@ -1074,533 +1153,388 @@ export const RecuentoStockSection = () => {
         </div>
       )}
 
-      {/* Historial de recuentos */}
-      <div className="bg-white rounded border border-slate-200 mt-6 p-6">
-        <button
-          onClick={() => setMostrarHistorial(!mostrarHistorial)}
-          className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 mb-4"
-        >
-          <Eye size={16} />
-          <span>Ver historial de recuentos ({recuentosAnteriores.length})</span>
-        </button>
 
-        {mostrarHistorial && recuentosAnteriores.length > 0 && (
-          <div className="bg-slate-50 rounded p-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-800 text-white">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-xs font-medium uppercase tracking-wider">Fecha</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Sucursal</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Categoría</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Productos</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium uppercase tracking-wider">Diferencias</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Estado</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium uppercase tracking-wider">Usuario</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {recuentosAnteriores.map((recuento, index) => {
-                    const productos = JSON.parse(recuento.productos_contados || '[]');
-                    const diferencias = JSON.parse(recuento.diferencias_encontradas || '[]');
-                    const totalFaltantes = diferencias.filter(d => d.diferencia_cantidad < 0).length;
-                    const totalSobrantes = diferencias.filter(d => d.diferencia_cantidad > 0).length;
-                    const impactoUSD = diferencias.reduce((sum, d) => sum + (d.diferencia_usd || 0), 0);
+      {/* Panel de Recuentos por Mes */}
+      <div className="bg-white rounded border border-slate-200 mt-6">
+        <div className="bg-slate-800 text-white py-3 px-6 rounded-t flex items-center justify-center space-x-2">
+          <BarChart3 className="w-5 h-5" />
+          <h3 className="font-semibold text-sm tracking-wider uppercase">RECUENTOS POR MES</h3>
+        </div>
+        <div className="p-6">
 
-                    // Formatear categoría para mostrar
-                    const formatearCategoria = (cat) => {
-                      if (!cat) return 'Todas';
-                      if (cat === 'notebooks') return '💻 Notebooks';
-                      if (cat === 'celulares') return '📱 Celulares';
-                      if (cat.startsWith('otros_')) return `📦 ${getCategoriaLabel(cat.replace('otros_', ''))}`;
-                      return cat;
-                    };
+          {(() => {
+            const sucursalesValidas = ['LA PLATA', 'MITRE'];
+            const todasLasCategorias = [
+              { value: 'notebooks', label: '💻 Notebooks' },
+              { value: 'celulares', label: '📱 Celulares' },
+              ...CATEGORIAS_OTROS_ARRAY.map(cat => ({
+                value: `otros_${cat}`,
+                label: `📦 ${getCategoriaLabel(cat)}`
+              }))
+            ];
+            const totalCategorias = todasLasCategorias.length;
 
-                    return (
-                      <React.Fragment key={index}>
-                        <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                          <td className="text-center py-3 px-4 text-sm text-slate-800">{formatearFecha(recuento.fecha_recuento)}</td>
-                          <td className="text-center py-3 px-4">
-                            <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs capitalize">
-                              {recuento.sucursal === 'la_plata' ? 'La Plata' : recuento.sucursal === 'LA PLATA' ? 'La Plata' : recuento.sucursal === 'MITRE' ? 'Mitre' : recuento.sucursal}
-                            </span>
-                          </td>
-                          <td className="text-center py-3 px-4 text-sm text-slate-800">{formatearCategoria(recuento.categoria)}</td>
-                          <td className="text-center py-3 px-4 text-sm text-slate-800 font-medium">{productos.length}</td>
-                          <td className="text-center py-3 px-4 text-sm font-medium">
-                            {diferencias.length > 0 ? (
-                              <span className="text-slate-600">{diferencias.length}</span>
-                            ) : (
-                              <span className="text-emerald-600">0</span>
-                            )}
-                          </td>
-                          <td className="text-center py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs ${recuento.estado === 'sin_diferencias'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-100 text-slate-800'
-                              }`}>
-                              {recuento.estado === 'sin_diferencias' ? 'OK' : 'Diferencias'}
-                            </span>
-                          </td>
-                          <td className="text-center py-3 px-4 text-sm text-slate-800">{recuento.usuario_recuento}</td>
-                          <td className="text-center py-3 px-4">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => setRecuentoExpandido(recuentoExpandido === index ? null : index)}
-                                className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1"
-                              >
-                                {recuentoExpandido === index ? (
-                                  <>
-                                    <ChevronUp size={14} />
-                                    Ocultar
-                                  </>
+            // Agrupar recuentos por mes
+            const recuentosPorMes = {};
+            (recuentosAnteriores || []).forEach(recuento => {
+              if (!recuento.fecha_recuento) return;
+              const fecha = new Date(recuento.fecha_recuento);
+              const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+              const mesLabel = fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+
+              if (!recuentosPorMes[mesKey]) {
+                recuentosPorMes[mesKey] = { label: mesLabel, key: mesKey, recuentos: [] };
+              }
+              recuentosPorMes[mesKey].recuentos.push(recuento);
+            });
+
+            const mesesOrdenados = Object.keys(recuentosPorMes).sort((a, b) => b.localeCompare(a));
+
+            if (mesesOrdenados.length === 0) {
+              return (
+                <div className="text-center py-8 text-slate-500">
+                  <Package size={32} className="mx-auto mb-2 text-slate-300" />
+                  <p>No hay recuentos registrados aún</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-xs font-medium uppercase">Mes</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium uppercase">Sucursal</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium uppercase">Productos</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium uppercase">Diferencias</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium uppercase">Completado</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium uppercase">Detalle</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {mesesOrdenados.slice(0, 6).flatMap(mesKey => {
+                      const mesData = recuentosPorMes[mesKey];
+
+                      return sucursalesValidas.map((sucursal, sucIdx) => {
+                        // Filtrar recuentos de esta sucursal en este mes
+                        const recuentosSucursal = mesData.recuentos.filter(r =>
+                          r.sucursal?.toUpperCase() === sucursal
+                        );
+
+                        // Calcular métricas
+                        const categoriasContadas = new Set(recuentosSucursal.map(r => r.categoria).filter(Boolean));
+                        const totalProductos = recuentosSucursal.reduce((sum, r) => {
+                          const prods = JSON.parse(r.productos_contados || '[]');
+                          return sum + prods.length;
+                        }, 0);
+                        const totalDiferencias = recuentosSucursal.reduce((sum, r) => {
+                          const difs = JSON.parse(r.diferencias_encontradas || '[]');
+                          return sum + difs.length;
+                        }, 0);
+
+                        // Categorías sin stock: no se contabilizan para el porcentaje
+                        const categoriasSinStock = todasLasCategorias.filter(cat => {
+                          const stockKey = `${sucursal}_${cat.value}`;
+                          return (stockPorCategoria[stockKey] || 0) === 0;
+                        });
+                        const categoriasConStock = totalCategorias - categoriasSinStock.length;
+                        const porcentaje = categoriasConStock > 0
+                          ? Math.round((categoriasContadas.size / categoriasConStock) * 100)
+                          : 100; // Si no hay stock en ninguna categoría, se considera 100%
+                        const expandKey = `${mesKey}_${sucursal}`;
+                        const isExpanded = recuentoExpandido === expandKey;
+
+                        return (
+                          <React.Fragment key={expandKey}>
+                            <tr className={`${sucIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 cursor-pointer`}
+                              onClick={() => setRecuentoExpandido(isExpanded ? null : expandKey)}>
+                              <td className="py-3 px-4 font-medium text-slate-700 capitalize">
+                                {sucIdx === 0 ? mesData.label : ''}
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
+                                  {sucursal}
+                                </span>
+                              </td>
+                              <td className="text-center py-3 px-4 font-medium text-slate-800">
+                                {totalProductos}
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                {totalDiferencias > 0 ? (
+                                  <span
+                                    className="text-amber-600 font-medium cursor-pointer hover:underline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Recopilar todas las diferencias de todas las categorías
+                                      const todasDiferencias = [];
+                                      recuentosSucursal.forEach(r => {
+                                        const difs = JSON.parse(r.diferencias_encontradas || '[]');
+                                        const catLabel = todasLasCategorias.find(c => c.value === r.categoria)?.label || r.categoria;
+                                        difs.forEach(d => todasDiferencias.push({ ...d, categoriaLabel: catLabel, categoriaValue: r.categoria }));
+                                      });
+                                      setModalDiferencias({
+                                        diferencias: todasDiferencias,
+                                        titulo: `Diferencias - ${sucursal} - ${mesData.label}`,
+                                        sucursal,
+                                        mes: mesData.label
+                                      });
+                                    }}
+                                  >{totalDiferencias}</span>
                                 ) : (
-                                  <>
-                                    <ChevronDown size={14} />
-                                    Ver
-                                  </>
+                                  <span className="text-emerald-600">0</span>
                                 )}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(`¿Seguro que querés eliminar el recuento de ${recuento.sucursal} del ${formatearFecha(recuento.fecha_recuento)}?`)) {
-                                    eliminarRecuento(recuento.id);
-                                  }
-                                }}
-                                className="p-1 bg-red-600 text-white rounded hover:bg-red-700"
-                                title="Eliminar recuento"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Tabla expandible con detalle de recuento */}
-                        {recuentoExpandido === index && (
-                          <tr>
-                            <td colSpan="8" className="py-4 px-4 bg-slate-100">
-                              <div className="max-w-6xl mx-auto">
-                                <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                                  Detalle de Recuento - {formatearFecha(recuento.fecha_recuento)} - {recuento.sucursal}
-                                </h4>
-
-                                {/* Resumen */}
-                                <div className="grid grid-cols-4 gap-4 mb-4">
-                                  <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Total Productos</div>
-                                    <div className="text-lg font-semibold text-slate-800">{productos.length}</div>
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full ${porcentaje === 100 ? 'bg-emerald-500' : porcentaje > 50 ? 'bg-amber-500' : 'bg-slate-400'}`}
+                                      style={{ width: `${porcentaje}%` }}
+                                    />
                                   </div>
-                                  <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Notebooks</div>
-                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'computadora').length}</div>
-                                  </div>
-                                  <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Celulares</div>
-                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'celular').length}</div>
-                                  </div>
-                                  <div className="bg-white border border-slate-200 rounded p-3">
-                                    <div className="text-xs text-slate-500 mb-1">Otros</div>
-                                    <div className="text-lg font-semibold text-slate-600">{productos.filter(p => p.tipo === 'otro').length}</div>
-                                  </div>
+                                  <span className="text-xs font-medium text-slate-600">{porcentaje}%</span>
                                 </div>
+                              </td>
+                              <td className="text-center py-3 px-4">
+                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                              </td>
+                            </tr>
+                            {isExpanded && (
+                              <tr>
+                                <td colSpan={6} className="bg-slate-50 p-4">
+                                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                    {todasLasCategorias.map(cat => {
+                                      const recuentoCategoria = recuentosSucursal.find(r => r.categoria === cat.value);
+                                      const contada = !!recuentoCategoria;
+                                      const stockKey = `${sucursal}_${cat.value}`;
+                                      const sinStock = (stockPorCategoria[stockKey] || 0) === 0;
 
-                                {/* Resumen de diferencias (si hay) */}
-                                {diferencias.length > 0 && (
-                                  <div className="grid grid-cols-3 gap-4 mb-4">
-                                    <div className="bg-white border border-slate-200 rounded p-3">
-                                      <div className="text-xs text-slate-500 mb-1">Faltantes</div>
-                                      <div className="text-lg font-semibold text-red-600">{totalFaltantes}</div>
-                                    </div>
-                                    <div className="bg-white border border-slate-200 rounded p-3">
-                                      <div className="text-xs text-slate-500 mb-1">Sobrantes</div>
-                                      <div className="text-lg font-semibold text-emerald-600">{totalSobrantes}</div>
-                                    </div>
-                                    <div className="bg-white border border-slate-200 rounded p-3">
-                                      <div className="text-xs text-slate-500 mb-1">Impacto Total USD</div>
-                                      <div className={`text-lg font-semibold ${impactoUSD < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                        ${Math.abs(impactoUSD).toFixed(2)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
+                                      const handleClickCategoria = (e) => {
+                                        e.stopPropagation();
+                                        if (recuentoCategoria) {
+                                          const productos = JSON.parse(recuentoCategoria.productos_contados || '[]');
+                                          setModalProductos({
+                                            productos,
+                                            titulo: `${cat.label} - ${sucursal} - ${mesData.label}`,
+                                            fecha: recuentoCategoria.fecha_recuento
+                                          });
+                                        }
+                                      };
 
-                                {/* Tabla de todos los productos */}
-                                <div className="bg-white border border-slate-200 rounded overflow-hidden">
-                                  <table className="w-full">
-                                    <thead className="bg-slate-800 text-white">
-                                      <tr>
-                                        <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Producto</th>
-                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Tipo</th>
-                                        <th className="text-left py-2 px-3 text-xs font-medium uppercase tracking-wider">Serial</th>
-                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Stock Sistema</th>
-                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Stock Real</th>
-                                        <th className="text-center py-2 px-3 text-xs font-medium uppercase tracking-wider">Diferencia</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200">
-                                      {productos
-                                        .sort((a, b) => {
-                                          // Orden: computadora (1), celular (2), otro (3)
-                                          const ordenTipo = { computadora: 1, celular: 2, otro: 3 };
-                                          return (ordenTipo[a.tipo] || 999) - (ordenTipo[b.tipo] || 999);
-                                        })
-                                        .map((prod, prodIndex) => {
-                                          const diferencia = prod.stockReal - prod.stockSistema;
-                                          return (
-                                            <tr key={prodIndex} className={prodIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                              <td className="py-2 px-3 text-sm text-slate-800">{prod.descripcion}</td>
-                                              <td className="text-center py-2 px-3">
-                                                <span className={`px-2 py-1 rounded text-xs ${prod.tipo === 'computadora' ? 'bg-blue-100 text-blue-800' :
-                                                  prod.tipo === 'celular' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-slate-100 text-slate-800'
-                                                  }`}>
-                                                  {prod.tipo === 'computadora' ? 'Notebook' :
-                                                    prod.tipo === 'celular' ? 'Celular' : 'Otro'}
-                                                </span>
-                                              </td>
-                                              <td className="py-2 px-3 text-sm text-slate-600">
-                                                <span className="font-mono text-xs">{prod.serial}</span>
-                                              </td>
-                                              <td className="text-center py-2 px-3 text-sm font-medium text-slate-700">
-                                                {prod.stockSistema}
-                                              </td>
-                                              <td className="text-center py-2 px-3 text-sm font-medium text-slate-700">
-                                                {prod.stockReal}
-                                              </td>
-                                              <td className="text-center py-2 px-3">
-                                                {diferencia === 0 ? (
-                                                  <span className="text-emerald-600 font-medium text-sm">✓</span>
-                                                ) : (
-                                                  <span className={`text-sm font-medium ${diferencia < 0 ? 'text-red-600' : 'text-blue-600'
-                                                    }`}>
-                                                    {diferencia > 0 ? '+' : ''}{diferencia}
-                                                  </span>
-                                                )}
-                                              </td>
-                                            </tr>
-                                          );
-                                        })
+                                      // Determinar estilo: verde=contada, amarillo=sin stock, gris=pendiente
+                                      let badgeClass, badgeIcon;
+                                      if (contada) {
+                                        badgeClass = 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200';
+                                        badgeIcon = <CheckCircle size={12} />;
+                                      } else if (sinStock) {
+                                        badgeClass = 'bg-amber-100 text-amber-600 border border-amber-200';
+                                        badgeIcon = <span className="text-[10px]">—</span>;
+                                      } else {
+                                        badgeClass = 'bg-slate-100 text-slate-400';
+                                        badgeIcon = <X size={12} />;
                                       }
-                                    </tbody>
-                                    <tfoot className="bg-slate-800 text-white">
-                                      <tr>
-                                        <td colSpan="3" className="py-2 px-3 text-sm font-semibold">TOTAL PRODUCTOS</td>
-                                        <td className="text-center py-2 px-3 text-sm font-semibold">
-                                          {productos.reduce((sum, p) => sum + p.stockSistema, 0)}
-                                        </td>
-                                        <td className="text-center py-2 px-3 text-sm font-semibold">
-                                          {productos.reduce((sum, p) => sum + p.stockReal, 0)}
-                                        </td>
-                                        <td className="text-center py-2 px-3 text-sm font-semibold">
-                                          {productos.reduce((sum, p) => sum + (p.stockReal - p.stockSistema), 0)}
-                                        </td>
-                                      </tr>
-                                    </tfoot>
-                                  </table>
-                                </div>
 
-                                {/* Observaciones - editables */}
-                                <div className="mt-3 bg-white border border-slate-200 rounded p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="text-xs font-medium text-slate-700">Observaciones:</div>
-                                    {editandoComentario !== recuento.id && (
-                                      <button
-                                        onClick={() => iniciarEdicionComentario(recuento.id, recuento.observaciones)}
-                                        className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 text-xs"
-                                      >
-                                        <Edit2 size={12} />
-                                        {recuento.observaciones ? 'Editar' : 'Agregar'}
-                                      </button>
-                                    )}
+                                      return (
+                                        <div key={cat.value}
+                                          onClick={handleClickCategoria}
+                                          title={sinStock && !contada ? 'Sin stock en esta sucursal' : ''}
+                                          className={`flex items-center gap-1 text-xs p-2 rounded cursor-pointer transition-colors ${badgeClass}`}>
+                                          {badgeIcon}
+                                          <span className="truncate">{cat.label}</span>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-
-                                  {editandoComentario === recuento.id ? (
-                                    <div className="space-y-2">
-                                      <textarea
-                                        value={nuevoComentario}
-                                        onChange={(e) => setNuevoComentario(e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        rows="3"
-                                        placeholder="Agregar comentarios sobre las diferencias..."
-                                      />
-                                      <div className="flex gap-2">
-                                        <button
-                                          onClick={() => guardarComentario(recuento.id)}
-                                          className="px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-xs flex items-center gap-1"
-                                        >
-                                          <Save size={12} />
-                                          Guardar
-                                        </button>
-                                        <button
-                                          onClick={cancelarEdicionComentario}
-                                          className="px-3 py-1 bg-slate-600 text-white rounded hover:bg-slate-700 text-xs flex items-center gap-1"
-                                        >
-                                          <X size={12} />
-                                          Cancelar
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-sm text-slate-600">
-                                      {recuento.observaciones || <span className="text-slate-400 italic">Sin observaciones</span>}
+                                  {/* Botón Ver Todas las Diferencias */}
+                                  {totalDiferencias > 0 && (
+                                    <div className="mt-3 flex justify-end">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const todasDiferencias = [];
+                                          recuentosSucursal.forEach(r => {
+                                            const difs = JSON.parse(r.diferencias_encontradas || '[]');
+                                            const catLabel = todasLasCategorias.find(c => c.value === r.categoria)?.label || r.categoria;
+                                            difs.forEach(d => todasDiferencias.push({ ...d, categoriaLabel: catLabel, categoriaValue: r.categoria }));
+                                          });
+                                          setModalDiferencias({
+                                            diferencias: todasDiferencias,
+                                            titulo: `Diferencias - ${sucursal} - ${mesData.label}`,
+                                            sucursal,
+                                            mes: mesData.label
+                                          });
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded hover:bg-slate-200 transition-colors text-xs font-medium"
+                                      >
+                                        <AlertTriangle size={14} />
+                                        Ver todas las diferencias ({totalDiferencias})
+                                      </button>
                                     </div>
                                   )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      });
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Modal de Diferencias Consolidadas del Mes */}
+        {modalDiferencias && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b bg-slate-800 text-white rounded-t-lg">
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <AlertTriangle size={20} />
+                    {modalDiferencias.titulo}
+                  </h3>
+                  <p className="text-sm text-slate-300">{modalDiferencias.diferencias.length} diferencias encontradas</p>
+                </div>
+                <button onClick={() => setModalDiferencias(null)} className="p-2 hover:bg-slate-700 rounded">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="overflow-auto flex-1 p-4">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 sticky top-0">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-medium">Categoría</th>
+                      <th className="text-left py-2 px-3 font-medium">Producto</th>
+                      <th className="text-left py-2 px-3 font-medium">Serial</th>
+                      <th className="text-center py-2 px-3 font-medium">Sistema</th>
+                      <th className="text-center py-2 px-3 font-medium">Real</th>
+                      <th className="text-center py-2 px-3 font-medium">Diferencia</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {modalDiferencias.diferencias.map((dif, idx) => {
+                      const difCantidad = (dif.stockReal || 0) - (dif.stockSistema || 0);
+                      return (
+                        <tr key={idx} className={difCantidad < 0 ? 'bg-red-50' : 'bg-amber-50'}>
+                          <td className="py-2 px-3">
+                            <span className="text-xs px-2 py-0.5 bg-slate-200 text-slate-700 rounded">
+                              {dif.categoriaLabel || '-'}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 font-medium text-slate-800">{dif.nombre || '-'}</td>
+                          <td className="py-2 px-3 text-xs text-slate-500 font-mono">{dif.serial || '-'}</td>
+                          <td className="text-center py-2 px-3">{dif.stockSistema ?? '-'}</td>
+                          <td className="text-center py-2 px-3">{dif.stockReal ?? '-'}</td>
+                          <td className={`text-center py-2 px-3 font-bold ${difCantidad < 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                            {difCantidad > 0 ? '+' : ''}{difCantidad}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {modalDiferencias.diferencias.length === 0 && (
+                  <div className="text-center py-8 text-slate-500">
+                    <CheckCircle size={32} className="mx-auto mb-2 text-emerald-400" />
+                    <p>No se encontraron diferencias</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
+                <div className="text-sm text-slate-600">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 bg-red-100 border border-red-300 rounded"></span> Faltante
+                  </span>
+                  <span className="inline-flex items-center gap-1 ml-4">
+                    <span className="w-3 h-3 bg-amber-100 border border-amber-300 rounded"></span> Sobrante
+                  </span>
+                </div>
+                <button onClick={() => setModalDiferencias(null)} className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-800">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="bg-slate-100 border-l-4 border-slate-400 p-4 mt-6 rounded">
+            <span className="text-slate-800">{error}</span>
+          </div>
+        )}
+
+        {/* Modal de Productos del Recuento */}
+        {modalProductos && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b bg-slate-800 text-white rounded-t-lg">
+                <div>
+                  <h3 className="text-lg font-semibold">{modalProductos.titulo}</h3>
+                  <p className="text-sm text-slate-300">{modalProductos.productos.length} productos • {modalProductos.fecha}</p>
+                </div>
+                <button onClick={() => setModalProductos(null)} className="p-2 hover:bg-slate-700 rounded">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="overflow-auto flex-1 p-4">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 sticky top-0">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-medium">Producto</th>
+                      <th className="text-right py-2 px-3 font-medium">P. Compra</th>
+                      <th className="text-right py-2 px-3 font-medium">+ Costos</th>
+                      <th className="text-right py-2 px-3 font-medium">Costo Total</th>
+                      <th className="text-right py-2 px-3 font-medium">P. Venta</th>
+                      <th className="text-center py-2 px-3 font-medium">F. Ingreso</th>
+                      <th className="text-left py-2 px-3 font-medium">Proveedor</th>
+                      <th className="text-center py-2 px-3 font-medium">Sist.</th>
+                      <th className="text-center py-2 px-3 font-medium">Real</th>
+                      <th className="text-center py-2 px-3 font-medium">Dif.</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {modalProductos.productos.map((prod, idx) => {
+                      const costoTotal = (prod.precioCompraUSD || 0) + (prod.costosAdicionales || 0);
+                      const dif = (prod.stockReal || 0) - (prod.stockSistema || 0);
+                      return (
+                        <tr key={idx} className={dif !== 0 ? 'bg-amber-50' : ''}>
+                          <td className="py-2 px-3">
+                            <div className="font-medium text-slate-800">{prod.nombre || prod.copyCompleto?.split('\n')[0] || 'Sin nombre'}</div>
+                            <div className="text-xs text-slate-500">Serial: {prod.serial}</div>
+                          </td>
+                          <td className="text-right py-2 px-3 text-slate-700">${prod.precioCompraUSD || 0}</td>
+                          <td className="text-right py-2 px-3 text-slate-500">{prod.costosAdicionales > 0 ? `+$${prod.costosAdicionales}` : '-'}</td>
+                          <td className="text-right py-2 px-3 font-medium text-slate-800">${costoTotal}</td>
+                          <td className="text-right py-2 px-3 text-emerald-600 font-medium">${prod.precioVentaUSD || 0}</td>
+                          <td className="text-center py-2 px-3 text-xs text-slate-600">{prod.fechaIngreso || '-'}</td>
+                          <td className="text-left py-2 px-3 text-xs text-slate-600 max-w-[100px] truncate">{prod.proveedor || '-'}</td>
+                          <td className="text-center py-2 px-3">{prod.stockSistema}</td>
+                          <td className="text-center py-2 px-3">{prod.stockReal}</td>
+                          <td className={`text-center py-2 px-3 font-medium ${dif === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {dif > 0 ? '+' : ''}{dif}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
+                <div className="text-sm text-slate-600">
+                  <span className="font-medium">{modalProductos.productos.filter(p => p.stockReal !== p.stockSistema).length}</span> diferencias encontradas
+                </div>
+                <button onClick={() => setModalProductos(null)} className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-800">
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Panel de Estado Mensual de Recuentos - Versión Compacta */}
-      <div className="bg-white rounded border border-slate-200 mt-6 p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-slate-600" />
-          <h3 className="font-semibold text-slate-800">Estado de Recuentos por Mes</h3>
-        </div>
-
-        {(() => {
-          const sucursalesValidas = ['LA PLATA', 'MITRE'];
-          const todasLasCategorias = [
-            { value: 'notebooks', label: '💻 Notebooks' },
-            { value: 'celulares', label: '📱 Celulares' },
-            ...CATEGORIAS_OTROS_ARRAY.map(cat => ({
-              value: `otros_${cat}`,
-              label: `📦 ${getCategoriaLabel(cat)}`
-            }))
-          ];
-          const totalCategorias = todasLasCategorias.length;
-
-          // Agrupar recuentos por mes
-          const recuentosPorMes = {};
-          (recuentosAnteriores || []).forEach(recuento => {
-            if (!recuento.fecha_recuento) return;
-            const fecha = new Date(recuento.fecha_recuento);
-            const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
-            const mesLabel = fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-
-            if (!recuentosPorMes[mesKey]) {
-              recuentosPorMes[mesKey] = { label: mesLabel, key: mesKey, recuentos: [] };
-            }
-            recuentosPorMes[mesKey].recuentos.push(recuento);
-          });
-
-          const mesesOrdenados = Object.keys(recuentosPorMes).sort((a, b) => b.localeCompare(a));
-
-          if (mesesOrdenados.length === 0) {
-            return (
-              <div className="text-center py-8 text-slate-500">
-                <Package size={32} className="mx-auto mb-2 text-slate-300" />
-                <p>No hay recuentos registrados aún</p>
-              </div>
-            );
-          }
-
-          return (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-800 text-white">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-xs font-medium uppercase">Mes</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Sucursal</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Productos</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Diferencias</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Completado</th>
-                    <th className="text-center py-3 px-4 text-xs font-medium uppercase">Detalle</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {mesesOrdenados.slice(0, 6).flatMap(mesKey => {
-                    const mesData = recuentosPorMes[mesKey];
-
-                    return sucursalesValidas.map((sucursal, sucIdx) => {
-                      // Filtrar recuentos de esta sucursal en este mes
-                      const recuentosSucursal = mesData.recuentos.filter(r =>
-                        r.sucursal?.toUpperCase() === sucursal
-                      );
-
-                      // Calcular métricas
-                      const categoriasContadas = new Set(recuentosSucursal.map(r => r.categoria).filter(Boolean));
-                      const totalProductos = recuentosSucursal.reduce((sum, r) => {
-                        const prods = JSON.parse(r.productos_contados || '[]');
-                        return sum + prods.length;
-                      }, 0);
-                      const totalDiferencias = recuentosSucursal.reduce((sum, r) => {
-                        const difs = JSON.parse(r.diferencias_encontradas || '[]');
-                        return sum + difs.length;
-                      }, 0);
-                      const porcentaje = Math.round((categoriasContadas.size / totalCategorias) * 100);
-                      const expandKey = `${mesKey}_${sucursal}`;
-                      const isExpanded = recuentoExpandido === expandKey;
-
-                      return (
-                        <React.Fragment key={expandKey}>
-                          <tr className={`${sucIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 cursor-pointer`}
-                            onClick={() => setRecuentoExpandido(isExpanded ? null : expandKey)}>
-                            <td className="py-3 px-4 font-medium text-slate-700 capitalize">
-                              {sucIdx === 0 ? mesData.label : ''}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded text-xs">
-                                {sucursal}
-                              </span>
-                            </td>
-                            <td className="text-center py-3 px-4 font-medium text-slate-800">
-                              {totalProductos}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {totalDiferencias > 0 ? (
-                                <span className="text-amber-600 font-medium">{totalDiferencias}</span>
-                              ) : (
-                                <span className="text-emerald-600">0</span>
-                              )}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="w-16 bg-slate-200 rounded-full h-2">
-                                  <div
-                                    className={`h-2 rounded-full ${porcentaje === 100 ? 'bg-emerald-500' : porcentaje > 50 ? 'bg-amber-500' : 'bg-slate-400'}`}
-                                    style={{ width: `${porcentaje}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs font-medium text-slate-600">{porcentaje}%</span>
-                              </div>
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </td>
-                          </tr>
-                          {isExpanded && (
-                            <tr>
-                              <td colSpan={6} className="bg-slate-50 p-4">
-                                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                                  {todasLasCategorias.map(cat => {
-                                    const recuentoCategoria = recuentosSucursal.find(r => r.categoria === cat.value);
-                                    const contada = !!recuentoCategoria;
-
-                                    const handleClickCategoria = (e) => {
-                                      e.stopPropagation();
-                                      if (recuentoCategoria) {
-                                        const productos = JSON.parse(recuentoCategoria.productos_contados || '[]');
-                                        setModalProductos({
-                                          productos,
-                                          titulo: `${cat.label} - ${sucursal} - ${mesData.label}`,
-                                          fecha: recuentoCategoria.fecha_recuento
-                                        });
-                                      }
-                                    };
-
-                                    return (
-                                      <div key={cat.value}
-                                        onClick={handleClickCategoria}
-                                        className={`flex items-center gap-1 text-xs p-2 rounded cursor-pointer transition-colors ${contada
-                                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                          : 'bg-slate-100 text-slate-400'
-                                          }`}>
-                                        {contada ? <CheckCircle size={12} /> : <X size={12} />}
-                                        <span className="truncate">{cat.label}</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    });
-                  })}
-                </tbody>
-              </table>
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-slate-100 border-l-4 border-slate-400 p-4 mt-6 rounded">
-          <span className="text-slate-800">{error}</span>
-        </div>
-      )}
-
-      {/* Modal de Productos del Recuento */}
-      {modalProductos && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b bg-slate-800 text-white rounded-t-lg">
-              <div>
-                <h3 className="text-lg font-semibold">{modalProductos.titulo}</h3>
-                <p className="text-sm text-slate-300">{modalProductos.productos.length} productos • {modalProductos.fecha}</p>
-              </div>
-              <button onClick={() => setModalProductos(null)} className="p-2 hover:bg-slate-700 rounded">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="overflow-auto flex-1 p-4">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-100 sticky top-0">
-                  <tr>
-                    <th className="text-left py-2 px-3 font-medium">Producto</th>
-                    <th className="text-right py-2 px-3 font-medium">P. Compra</th>
-                    <th className="text-right py-2 px-3 font-medium">+ Costos</th>
-                    <th className="text-right py-2 px-3 font-medium">Costo Total</th>
-                    <th className="text-right py-2 px-3 font-medium">P. Venta</th>
-                    <th className="text-center py-2 px-3 font-medium">F. Ingreso</th>
-                    <th className="text-left py-2 px-3 font-medium">Proveedor</th>
-                    <th className="text-center py-2 px-3 font-medium">Sist.</th>
-                    <th className="text-center py-2 px-3 font-medium">Real</th>
-                    <th className="text-center py-2 px-3 font-medium">Dif.</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {modalProductos.productos.map((prod, idx) => {
-                    const costoTotal = (prod.precioCompraUSD || 0) + (prod.costosAdicionales || 0);
-                    const dif = (prod.stockReal || 0) - (prod.stockSistema || 0);
-                    return (
-                      <tr key={idx} className={dif !== 0 ? 'bg-amber-50' : ''}>
-                        <td className="py-2 px-3">
-                          <div className="font-medium text-slate-800">{prod.nombre || prod.copyCompleto?.split('\n')[0] || 'Sin nombre'}</div>
-                          <div className="text-xs text-slate-500">Serial: {prod.serial}</div>
-                        </td>
-                        <td className="text-right py-2 px-3 text-slate-700">${prod.precioCompraUSD || 0}</td>
-                        <td className="text-right py-2 px-3 text-slate-500">{prod.costosAdicionales > 0 ? `+$${prod.costosAdicionales}` : '-'}</td>
-                        <td className="text-right py-2 px-3 font-medium text-slate-800">${costoTotal}</td>
-                        <td className="text-right py-2 px-3 text-emerald-600 font-medium">${prod.precioVentaUSD || 0}</td>
-                        <td className="text-center py-2 px-3 text-xs text-slate-600">{prod.fechaIngreso || '-'}</td>
-                        <td className="text-left py-2 px-3 text-xs text-slate-600 max-w-[100px] truncate">{prod.proveedor || '-'}</td>
-                        <td className="text-center py-2 px-3">{prod.stockSistema}</td>
-                        <td className="text-center py-2 px-3">{prod.stockReal}</td>
-                        <td className={`text-center py-2 px-3 font-medium ${dif === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                          {dif > 0 ? '+' : ''}{dif}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
-              <div className="text-sm text-slate-600">
-                <span className="font-medium">{modalProductos.productos.filter(p => p.stockReal !== p.stockSistema).length}</span> diferencias encontradas
-              </div>
-              <button onClick={() => setModalProductos(null)} className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-800">
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

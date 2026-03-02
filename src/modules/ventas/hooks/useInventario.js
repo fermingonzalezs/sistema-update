@@ -404,54 +404,80 @@ export function useInventario() {
     defaultOrder: 'desc',
 
     // Transformaciones específicas para inventario
-    transformOnCreate: (data) => ({
-      ...data,
-      // Asegurar tipos correctos para precios
-      precio_costo_usd: parseFloat(data.precio_costo_usd) || 0,
-      envios_repuestos: parseFloat(data.envios_repuestos) || 0,
-      precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
-      // Convertir especificaciones numéricas
-      ram: parseInt(data.ram) || 0,
-      ssd: parseInt(data.ssd) || 0,
-      hdd: parseInt(data.hdd) || 0,
-      pantalla: parseFloat(data.pantalla) || null,
-      // Validaciones y defaults
-      sucursal: data.sucursal || 'la_plata',
-      condicion: data.condicion || 'usado',
-      linea_procesador: data.linea_procesador || 'otro',
-      slots: data.slots || '2',
-      tipo_ram: data.tipo_ram || '',
-      so: data.so || 'WIN11',
-      resolucion: data.resolucion || 'FHD',
-      teclado_retro: data.teclado_retro || 'SI',
-      idioma_teclado: data.idioma_teclado || 'Español',
-      garantia_update: data.garantia_update || '6 meses',
-      fallas: data.fallas || '',
-      ingreso: data.ingreso || (() => {
-        const ahora = new Date();
-        return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
-      })(),
-      touchscreen: data.touchscreen || false,
-      // Proveedor: convertir string vacío a null para evitar error de FK
-      proveedor_id: data.proveedor_id || null,
-      // Estado estético: puede ser null si es nuevo
-      estado: data.estado || null,
-      // Categoría: normalizar a minúsculas y mapear valores del formulario
-      // DB acepta: macbook, windows, 2-en-1, gaming
-      categoria: (() => {
-        if (!data.categoria) return null;
-        const cat = data.categoria.toLowerCase();
-        // Mapear valores del formulario a valores de la DB
-        const mapping = {
-          'windows': 'windows',
-          'macbook': 'macbook',
-          'gaming': 'gaming',
-          'workstation': 'windows', // Workstation se mapea a windows
-          '2-en-1': '2-en-1'
-        };
-        return mapping[cat] || null;
-      })()
-    }),
+    transformOnCreate: (data) => {
+      // Extraer campos que NO existen en la tabla inventario para evitar errores de schema
+      // El formulario de carga masiva envía 'garantia' pero la columna se llama 'garantia_update'
+      const {
+        garantia, // Campo del formulario → se mapea a garantia_update
+        garantia_oficial_fecha, // Campo auxiliar del formulario, no es columna directa
+        nombre_producto, // Campo de 'otros', no existe en inventario
+        descripcion, // Campo de 'otros', no existe en inventario
+        observaciones, // Campo de 'otros', no existe en inventario
+        capacidad_almacenamiento, // Campo de tablets, no existe en inventario
+        tamano_pantalla, // Campo de tablets, no existe en inventario
+        conectividad, // Campo de tablets, no existe en inventario
+        motherboard, // Campo de desktop, no existe en inventario
+        gpu, // Campo de desktop, no existe en inventario
+        gabinete, // Campo de desktop, no existe en inventario
+        fuente, // Campo de desktop, no existe en inventario
+        memoria, // Campo de desktop, no existe en inventario
+        capacidad, // Campo de celulares, no existe en inventario
+        precio_compra_usd, // Alias alternativo, no existe en inventario
+        costos_adicionales, // Campo de otros hooks
+        ...safeData
+      } = data;
+
+      return {
+        ...safeData,
+        // Asegurar tipos correctos para precios
+        precio_costo_usd: parseFloat(data.precio_costo_usd) || 0,
+        envios_repuestos: parseFloat(data.envios_repuestos) || 0,
+        precio_venta_usd: parseFloat(data.precio_venta_usd) || 0,
+        // Convertir especificaciones numéricas
+        ram: parseInt(data.ram) || 0,
+        ssd: parseInt(data.ssd) || 0,
+        hdd: parseInt(data.hdd) || 0,
+        pantalla: parseFloat(data.pantalla) || null,
+        // Validaciones y defaults
+        sucursal: data.sucursal || 'la_plata',
+        condicion: data.condicion || 'usado',
+        linea_procesador: data.linea_procesador || 'otro',
+        slots: data.slots || '2',
+        tipo_ram: data.tipo_ram || '',
+        so: data.so || 'WIN11',
+        resolucion: data.resolucion || 'FHD',
+        teclado_retro: data.teclado_retro || 'SI',
+        idioma_teclado: data.idioma_teclado || 'Español',
+        // Mapear 'garantia' del formulario a 'garantia_update' de la DB
+        garantia_update: data.garantia_update || garantia || '6 meses',
+        garantia_oficial: data.garantia_oficial || (garantia === 'Garantía oficial con vencimiento' ? garantia_oficial_fecha : '') || '',
+        fallas: data.fallas || '',
+        ingreso: data.ingreso || (() => {
+          const ahora = new Date();
+          return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+        })(),
+        touchscreen: data.touchscreen || false,
+        // Proveedor: convertir string vacío a null para evitar error de FK
+        proveedor_id: data.proveedor_id || null,
+        // Estado estético: puede ser null si es nuevo
+        estado: data.estado || null,
+        // Categoría: normalizar a minúsculas y mapear valores del formulario
+        // DB acepta: macbook, windows, 2-en-1, gaming
+        categoria: (() => {
+          if (!data.categoria) return null;
+          const cat = data.categoria.toLowerCase();
+          // Mapear valores del formulario a valores de la DB
+          const mapping = {
+            'windows': 'windows',
+            'macbook': 'macbook',
+            'gaming': 'gaming',
+            'workstation': 'windows', // Workstation se mapea a windows
+            '2-en-1': '2-en-1'
+          };
+          return mapping[cat] || null;
+        })()
+      };
+    },
 
     transformOnUpdate: (data) => ({
       ...data,
