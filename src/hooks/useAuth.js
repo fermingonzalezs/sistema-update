@@ -14,14 +14,13 @@ export const useAuth = () => {
 
     const getSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Forzar refresh del token para obtener el metadata más actualizado
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        const session = refreshData?.session || (await supabase.auth.getSession()).data?.session;
 
         if (!isComponentMounted) return;
 
-        if (error) {
-          console.error('Error obteniendo sesión:', error);
-          setError(error.message);
-        } else if (session?.user) {
+        if (session?.user) {
           setUser(session.user);
         }
       } catch (err) {

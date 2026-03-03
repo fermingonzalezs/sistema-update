@@ -9,9 +9,23 @@ import Layout from './shared/components/layout/Layout';
 const ProtectedRoute = ({ section, children }) => {
     const { hasAccess } = useAuthContext();
     if (!hasAccess(section)) {
-        return <Navigate to="/catalogo" replace />;
+        return <DefaultRedirect />;
     }
     return children;
+};
+
+// Redirect al home correcto según el rol del usuario
+const DefaultRedirect = () => {
+    const { user } = useAuthContext();
+    const nivel = user?.user_metadata?.nivel || 'user';
+    const redirects = {
+        admin:         '/catalogo',
+        ventas:        '/catalogo',
+        soporte:       '/reparaciones',
+        contabilidad:  '/contabilidad/libro-diario',
+        compras:       '/ingreso-equipos',
+    };
+    return <Navigate to={redirects[nivel] || '/contabilidad/libro-diario'} replace />;
 };
 
 // Ventas
@@ -108,10 +122,10 @@ const AppRoutes = () => {
         <Routes>
             <Route path="/" element={<Layout />}>
                 {/* Default redirect */}
-                <Route index element={<Navigate to="/catalogo" replace />} />
+                <Route index element={<DefaultRedirect />} />
 
                 {/* Ventas */}
-                <Route path="catalogo" element={<CatalogoPage />} />
+                <Route path="catalogo" element={<ProtectedRoute section="ventas"><CatalogoPage /></ProtectedRoute>} />
                 <Route path="stock" element={<ProtectedRoute section="ventas"><ListadoTotalSection /></ProtectedRoute>} />
                 <Route path="listas" element={<ProtectedRoute section="ventas"><ListasPage /></ProtectedRoute>} />
                 <Route path="clientes" element={<ProtectedRoute section="ventas"><Clientes /></ProtectedRoute>} />

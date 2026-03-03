@@ -41,7 +41,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
   const { user, hasAccess, getAllowedSections } = useAuthContext();
 
   // Estado para controlar qué secciones están expandidas
-  const [expandedSections, setExpandedSections] = useState(new Set(['VENTAS']));
+  const [expandedSections, setExpandedSections] = useState(new Set(['VENTAS', 'ADMINISTRACIÓN', 'CONTABILIDAD', 'SOPORTE', 'COMPRAS']));
 
   const menuGroups = [
     {
@@ -96,14 +96,16 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           path: '/tablero',
           label: 'Tablero General',
           icon: LayoutDashboard,
-          description: 'Resumen financiero mensual'
+          description: 'Resumen financiero mensual',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'dashboard-reportes',
           path: '/reportes',
           label: 'Dashboard',
           icon: BarChart3,
-          description: 'Reportes visuales'
+          description: 'Reportes visuales',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'cuentas-corrientes',
@@ -124,28 +126,32 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           path: '/comisiones',
           label: 'Comisiones',
           icon: Calculator,
-          description: 'Calc. de comisiones'
+          description: 'Calc. de comisiones',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'garantias',
           path: '/garantias',
           label: 'Garantías',
           icon: Shield,
-          description: 'Gestión de garantías'
+          description: 'Gestión de garantías',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'listado-total',
           path: '/stock',
           label: 'Listado Total',
           icon: Package,
-          description: 'Vista unificada de inventario'
+          description: 'Vista unificada de inventario',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'recuento-stock',
           path: '/recuento-stock',
           label: 'Recuento de Stock',
           icon: Package,
-          description: 'Contar inventario'
+          description: 'Contar inventario',
+          excludeRoles: ['contabilidad']
         }
       ]
     },
@@ -187,28 +193,32 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           path: '/contabilidad/situacion-patrimonial',
           label: 'Estado de Situación Patrimonial',
           icon: BarChart3,
-          description: 'Balance patrimonial'
+          description: 'Balance patrimonial',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'estado-resultados',
           path: '/contabilidad/resultados',
           label: 'Estado de Resultados',
           icon: TrendingUp,
-          description: 'Ingresos y gastos'
+          description: 'Ingresos y gastos',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'ratios',
           path: '/contabilidad/ratios',
           label: 'Ratios Financieros',
           icon: TrendingUp,
-          description: 'Indicadores de liquidez'
+          description: 'Indicadores de liquidez',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'balance-sumas-saldos',
           path: '/contabilidad/balance',
           label: 'Balance de Saldos',
           icon: ArrowUpDown,
-          description: 'Verificación contable'
+          description: 'Verificación contable',
+          excludeRoles: ['contabilidad']
         },
         {
           id: 'cuentas-auxiliares',
@@ -294,7 +304,8 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
 
   // Filtrar grupos según el nivel de usuario
   const allowedSections = getAllowedSections();
-  const isAdmin = user?.user_metadata?.nivel === 'admin';
+  const userNivel = user?.user_metadata?.nivel || 'user';
+  const isAdmin = userNivel === 'admin';
 
   const filteredMenuGroups = menuGroups
     .filter(group => {
@@ -405,6 +416,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
                     }`}>
                     <div className="space-y-1 pb-2">
                       {group.items.map((item) => {
+                        if (!isAdmin && item.excludeRoles?.includes(userNivel)) return null;
                         const Icon = item.icon;
                         const isItemDisabled = item.disabled || isGroupDisabled;
 
