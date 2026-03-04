@@ -37,6 +37,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     cantidad: 1,
     precio_unitario_usd: '',
     peso_estimado_unitario_kg: '',
+    color: '',
     link_producto: '',
     observaciones: ''
   });
@@ -83,6 +84,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
       cantidad: 1,
       precio_unitario_usd: '',
       peso_estimado_unitario_kg: '',
+      color: '',
       link_producto: '',
       observaciones: ''
     });
@@ -278,7 +280,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Cantidad *</label>
                   <input
@@ -290,7 +292,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Precio Unitario (USD) *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Precio Unit. (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -310,6 +312,16 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     placeholder="0.000"
                     value={formItem.peso_estimado_unitario_kg}
                     onChange={(e) => setFormItem({ ...formItem, peso_estimado_unitario_kg: e.target.value })}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Negro, Plata..."
+                    value={formItem.color}
+                    onChange={(e) => setFormItem({ ...formItem, color: e.target.value })}
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
@@ -345,6 +357,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   <thead className="bg-slate-800 text-white">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Color</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
@@ -357,6 +370,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     {items.map((item, idx) => (
                       <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                         <td className="px-4 py-3 text-slate-800">{item.item}</td>
+                        <td className="px-4 py-3 text-center text-slate-600">{item.color || '-'}</td>
                         <td className="px-4 py-3 text-center text-slate-600">{item.cantidad}</td>
                         <td className="px-4 py-3 text-center text-slate-600">${formatNumber(item.precio_unitario_usd)}</td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-800">${formatNumber(item.precio_total_usd)}</td>
@@ -375,7 +389,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   </tbody>
                   <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="3" className="px-4 py-3 text-sm font-semibold text-right">
+                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">
                         TOTAL:
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-center">

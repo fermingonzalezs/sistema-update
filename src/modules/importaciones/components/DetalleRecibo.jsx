@@ -107,6 +107,7 @@ const DetalleRecibo = ({
     const nuevoItem = {
       tempId: Date.now(),
       item: '',
+      color: '',
       cantidad: 1,
       precio_unitario_usd: 0,
       peso_estimado_unitario_kg: 0
@@ -236,6 +237,7 @@ const DetalleRecibo = ({
           const cambios = {};
 
           if (item.item !== itemOriginal.item) cambios.item = item.item.trim();
+          if ((item.color?.trim() || null) !== (itemOriginal.color || null)) cambios.color = item.color?.trim() || null;
           if (parseInt(item.cantidad) !== itemOriginal.cantidad) cambios.cantidad = parseInt(item.cantidad);
           if (parseFloat(item.precio_unitario_usd) !== itemOriginal.precio_unitario_usd) {
             cambios.precio_unitario_usd = parseFloat(item.precio_unitario_usd);
@@ -607,6 +609,7 @@ const DetalleRecibo = ({
                 <thead className="bg-slate-800 text-white">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Color</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-20">Cant.</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">P. Unit. USD</th>
                     {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? (
@@ -675,6 +678,20 @@ const DetalleRecibo = ({
                                 </a>
                               )}
                             </div>
+                          )}
+                        </td>
+                        {/* Color */}
+                        <td className="px-4 py-3 text-center text-slate-600">
+                          {modoEdicion && !estaEliminado ? (
+                            <input
+                              type="text"
+                              value={item.color || ''}
+                              onChange={(e) => handleItemChange(item.id, 'color', e.target.value)}
+                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                              placeholder="-"
+                            />
+                          ) : (
+                            item.color || '-'
                           )}
                         </td>
                         <td className="px-4 py-3 text-center text-slate-600">
@@ -793,6 +810,16 @@ const DetalleRecibo = ({
                           placeholder="Nombre del producto *"
                         />
                       </td>
+                      {/* Color */}
+                      <td className="px-4 py-3 text-center">
+                        <input
+                          type="text"
+                          value={item.color || ''}
+                          onChange={(e) => handleItemNuevoChange(item.tempId, 'color', e.target.value)}
+                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                          placeholder="-"
+                        />
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <input
                           type="number"
@@ -858,7 +885,7 @@ const DetalleRecibo = ({
                       NO recepcionado: 5 cols (Producto, Cant, P.Unit, Peso Est, Total) + 1 si edición
                       Recepcionado: 8 cols (Producto, Cant, P.Unit, Peso Est, Peso Real, Costo Adic, P.Unit Total, Total) + 1 si edición
                     */}
-                    <td className="px-4 py-3 text-sm font-semibold" colSpan={recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? 4 : 7}>
+                    <td className="px-4 py-3 text-sm font-semibold" colSpan={recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? 5 : 8}>
                       TOTAL PRODUCTOS
                     </td>
                     <td className="px-4 py-3 text-center font-semibold">

@@ -179,6 +179,13 @@ export const ventasService = {
         cliente_telefono: datosCliente.cliente_telefono,
         metodo_pago: datosCliente.metodo_pago_1 || datosCliente.metodo_pago,
         monto_pago_1: datosCliente.monto_pago_1 || montoCobrado,
+        monto_pago_1_usd: datosCliente.monto_pago_1_usd || null,
+        monto_pago_1_ars: datosCliente.monto_pago_1_ars || null,
+        monto_pago_2_usd: datosCliente.monto_pago_2_usd || null,
+        monto_pago_2_ars: datosCliente.monto_pago_2_ars || null,
+        monto_pago_3_usd: datosCliente.monto_pago_3_usd || null,
+        monto_pago_3_ars: datosCliente.monto_pago_3_ars || null,
+        cotizacion_dolar: datosCliente.cotizacion_dolar || null,
         total_venta: montoCobrado,
         total_costo: totalCosto,
         margen_total: margenTotal,
@@ -325,6 +332,7 @@ export const ventasService = {
           margen_item: margenItem,
           garantia: garantiaProducto,
           color: item.producto.color || null,
+          condicion: item.producto.condicion || null,
           producto_snapshot: productoSnapshot
         }
       })

@@ -59,6 +59,7 @@ const ImportacionesSection = () => {
   const [showFechaDepositoModal, setShowFechaDepositoModal] = useState(false);
   const [reciboToMarkDeposito, setReciboToMarkDeposito] = useState(null);
   const [isMarkingDeposito, setIsMarkingDeposito] = useState(false);
+  const [dropdownEstadoAbierto, setDropdownEstadoAbierto] = useState(null);
 
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -184,6 +185,29 @@ const ImportacionesSection = () => {
         await fetchRecibos();
       } catch (err) {
         alert(`Error al retroceder estado: ${err.message}`);
+      }
+    }
+  };
+
+  // Cambiar a cualquier estado desde el dropdown
+  const handleCambiarEstado = async (recibo, nuevoEstado) => {
+    setDropdownEstadoAbierto(null);
+    if (nuevoEstado === recibo.estado) return;
+
+    if (nuevoEstado === ESTADOS_IMPORTACION.EN_DEPOSITO_USA) {
+      setReciboToMarkDeposito(recibo);
+      setShowFechaDepositoModal(true);
+    } else if (nuevoEstado === ESTADOS_IMPORTACION.RECEPCIONADO) {
+      setReciboToReceive(recibo);
+      setShowReceiveModal(true);
+    } else {
+      if (window.confirm(`¿Cambiar al estado "${LABELS_ESTADOS[nuevoEstado]}"?`)) {
+        try {
+          await avanzarEstado(recibo.id, nuevoEstado);
+          await fetchRecibos();
+        } catch (err) {
+          alert(`Error al cambiar estado: ${err.message}`);
+        }
       }
     }
   };
@@ -429,9 +453,44 @@ const ImportacionesSection = () => {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <span className={`inline-block px-3 py-1 rounded text-xs font-semibold ${getEstadoColor(recibo.estado)}`}>
-                            {getEstadoLabel(recibo.estado)}
-                          </span>
+                          <div className="relative inline-block">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDropdownEstadoAbierto(dropdownEstadoAbierto === recibo.id ? null : recibo.id);
+                              }}
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded text-xs font-semibold cursor-pointer ${getEstadoColor(recibo.estado)}`}
+                            >
+                              {getEstadoLabel(recibo.estado)}
+                              <ChevronDown size={11} />
+                            </button>
+                            {dropdownEstadoAbierto === recibo.id && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setDropdownEstadoAbierto(null)}
+                                />
+                                <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded shadow-lg min-w-[210px]">
+                                  {Object.values(ESTADOS_IMPORTACION).map((estado) => (
+                                    <button
+                                      key={estado}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCambiarEstado(recibo, estado);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors flex items-center gap-2 ${recibo.estado === estado ? 'bg-slate-50' : ''}`}
+                                    >
+                                      {recibo.estado === estado && <Check size={12} className="text-emerald-600 shrink-0" />}
+                                      {recibo.estado !== estado && <span className="w-3 shrink-0" />}
+                                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getEstadoColor(estado)}`}>
+                                        {getEstadoLabel(estado)}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap" title={recibo.observaciones || '-'}>
                           {recibo.observaciones || '-'}

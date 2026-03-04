@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Monitor, Smartphone, Box, CreditCard, User, Calendar, MapPin, Edit, Trash2 } from 'lucide-react';
 import { formatearMonto, formatearFecha } from '../../../shared/utils/formatters';
+import { CONDICIONES_LABELS } from '../../../shared/constants/productConstants';
 import { generarYDescargarRecibo as abrirReciboPDF } from '../../ventas/components/pdf/ReciboVentaPDF_NewTab';
 
 const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
@@ -14,8 +15,15 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
     }
   };
 
-  const montoTotal = (parseFloat(transaccion.monto_pago_1 || 0) + parseFloat(transaccion.monto_pago_2 || 0));
+  const montoTotal = parseFloat(transaccion.total_venta || 0);
   const margenPorcentaje = montoTotal > 0 ? Math.round((parseFloat(transaccion.margen_total || 0) / montoTotal) * 100) : 0;
+
+  // Mostrar el valor real en su moneda original (usd o ars según método)
+  const formatearMontoPago = (usd, ars) => {
+    if (ars != null) return `$${Math.round(ars).toLocaleString('es-AR')} ARS`;
+    if (usd != null) return formatearMonto(usd, 'USD');
+    return null;
+  };
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
@@ -44,6 +52,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
                     <th className="px-4 py-2 text-center font-semibold uppercase">PRODUCTO</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">SERIAL</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">COLOR</th>
+                    <th className="px-4 py-2 text-center font-semibold uppercase">CONDICIÓN</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">CANT.</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">COSTO UNIT.</th>
                     <th className="px-4 py-2 text-center font-semibold uppercase">PRECIO UNIT.</th>
@@ -61,6 +70,11 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
                       </td>
                       <td className="px-4 py-3 text-slate-800 font-mono text-xs text-center">{item.serial_producto || '-'}</td>
                       <td className="px-4 py-3 text-center text-slate-600 capitalize">{item.color || item.producto_snapshot?.color || '-'}</td>
+                      <td className="px-4 py-3 text-center text-slate-600 text-xs">
+                        {item.condicion
+                          ? (CONDICIONES_LABELS[item.condicion] || item.condicion)
+                          : '-'}
+                      </td>
                       <td className="px-4 py-3 text-center text-slate-800">{item.cantidad}</td>
                       <td className="px-4 py-3 text-center text-slate-600">{formatearMonto(item.precio_costo, 'USD')}</td>
                       <td className="px-4 py-3 text-center text-slate-800">{formatearMonto(item.precio_unitario, 'USD')}</td>
@@ -97,11 +111,22 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
                 </p>
               </div>
 
+              {/* Cotización */}
+              {transaccion.cotizacion_dolar && (
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[140px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cotización USD</p>
+                  <p className="text-lg font-semibold text-slate-800">${Math.round(transaccion.cotizacion_dolar).toLocaleString('es-AR')}</p>
+                </div>
+              )}
+
               {/* Pagos */}
               {transaccion.metodo_pago && (
                 <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                   <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago.replace(/_/g, ' ')}</p>
-                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_1 || 0, 'USD')}</p>
+                  <p className="text-lg font-semibold text-slate-800">
+                    {formatearMontoPago(transaccion.monto_pago_1_usd, transaccion.monto_pago_1_ars)
+                      ?? formatearMonto(transaccion.monto_pago_1 || 0, 'USD')}
+                  </p>
                   {transaccion.destino_pago_1 && (
                     <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_1}</p>
                   )}
@@ -110,7 +135,10 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
               {transaccion.metodo_pago_2 && (
                 <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                   <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago_2.replace(/_/g, ' ')}</p>
-                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_2 || 0, 'USD')}</p>
+                  <p className="text-lg font-semibold text-slate-800">
+                    {formatearMontoPago(transaccion.monto_pago_2_usd, transaccion.monto_pago_2_ars)
+                      ?? formatearMonto(transaccion.monto_pago_2 || 0, 'USD')}
+                  </p>
                   {transaccion.destino_pago_2 && (
                     <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_2}</p>
                   )}
@@ -119,7 +147,10 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
               {transaccion.metodo_pago_3 && (
                 <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
                   <p className="text-xs text-slate-600 font-medium uppercase mb-1">{transaccion.metodo_pago_3.replace(/_/g, ' ')}</p>
-                  <p className="text-lg font-semibold text-slate-800">{formatearMonto(transaccion.monto_pago_3 || 0, 'USD')}</p>
+                  <p className="text-lg font-semibold text-slate-800">
+                    {formatearMontoPago(transaccion.monto_pago_3_usd, transaccion.monto_pago_3_ars)
+                      ?? formatearMonto(transaccion.monto_pago_3 || 0, 'USD')}
+                  </p>
                   {transaccion.destino_pago_3 && (
                     <p className="text-xs text-slate-500 mt-1">→ {transaccion.destino_pago_3}</p>
                   )}

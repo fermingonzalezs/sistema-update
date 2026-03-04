@@ -120,18 +120,16 @@ const BuscadorCuentasImputables = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <label className="block text-sm font-medium text-slate-800 mb-2">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
         Cuenta {required && '*'}
       </label>
-      
+
       {/* Input principal */}
-      <div 
-        className={`relative border border-slate-200 rounded cursor-pointer transition-colors ${
-          isOpen ? 'ring-2 ring-emerald-600 border-emerald-600' : 'hover:border-slate-300'
-        }`}
+      <div
+        className="relative border border-slate-300 rounded cursor-pointer transition-colors hover:border-slate-400"
         onClick={handleInputClick}
       >
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center flex-1">
             <Search size={16} className="text-slate-400 mr-3" />
             

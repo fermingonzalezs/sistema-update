@@ -449,6 +449,24 @@ const formatearMonto = (valor, moneda = 'USD') => {
   return `${simbolo}${formatter.format(numero)}`;
 };
 
+// Parsear string formateado (con puntos de miles y coma decimal) a número
+const parsearMonto = (valor) => {
+  if (!valor && valor !== 0) return 0;
+  if (typeof valor === 'number') return valor;
+  const str = String(valor).replace(/\./g, '').replace(',', '.');
+  return parseFloat(str) || 0;
+};
+
+// Formatear número para mostrar en input (con puntos de miles y coma decimal)
+const formatearMontoInput = (valor) => {
+  const num = parsearMonto(valor);
+  if (!num) return '';
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num);
+};
+
 // Componente Principal del Libro Diario
 const LibroDiarioSection = () => {
   const {
@@ -490,12 +508,12 @@ const LibroDiarioSection = () => {
     descripcion: '',
     notas: '', // Campo para notas adicionales del asiento
     tipo_asiento: 'operacion', // NUEVO: tipo de asiento (operacion o cierre)
-    cotizacion_usd: 0, // Cotización única para todo el asiento
+    cotizacion_usd: '', // Cotización única para todo el asiento
     movimientos: [
       {
         cuenta_id: '',
         cuenta: null,
-        monto: 0,
+        monto: '',
         tipo: 'debe', // 'debe' o 'haber'
         debe: '',
         haber: ''
@@ -503,7 +521,7 @@ const LibroDiarioSection = () => {
       {
         cuenta_id: '',
         cuenta: null,
-        monto: 0,
+        monto: '',
         tipo: 'haber', // 'debe' o 'haber'
         debe: '',
         haber: ''
@@ -561,12 +579,12 @@ const LibroDiarioSection = () => {
       descripcion: '',
       notas: '',
       tipo_asiento: 'operacion',
-      cotizacion_usd: 0,
+      cotizacion_usd: '',
       movimientos: [
         {
           cuenta_id: '',
           cuenta: null,
-          monto: 0,
+          monto: '',
           tipo: 'debe',
           debe: '',
           haber: ''
@@ -574,7 +592,7 @@ const LibroDiarioSection = () => {
         {
           cuenta_id: '',
           cuenta: null,
-          monto: 0,
+          monto: '',
           tipo: 'haber',
           debe: '',
           haber: ''
@@ -592,7 +610,7 @@ const LibroDiarioSection = () => {
       movimientos: [...prev.movimientos, {
         cuenta_id: '',
         cuenta: null,
-        monto: 0,
+        monto: '',
         tipo: 'debe',
         debe: '',
         haber: ''
@@ -637,7 +655,7 @@ const LibroDiarioSection = () => {
     const totalDebe = formData.movimientos.reduce((sum, mov) => {
       if (mov.tipo !== 'debe') return sum;
 
-      let montoUSD = parseFloat(mov.monto || 0);
+      let montoUSD = parsearMonto(mov.monto);
 
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
@@ -651,7 +669,7 @@ const LibroDiarioSection = () => {
     const totalHaber = formData.movimientos.reduce((sum, mov) => {
       if (mov.tipo !== 'haber') return sum;
 
-      let montoUSD = parseFloat(mov.monto || 0);
+      let montoUSD = parsearMonto(mov.monto);
 
       // Si la cuenta requiere cotización (ARS) y hay cotización, convertir
       if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
@@ -673,8 +691,8 @@ const LibroDiarioSection = () => {
       diferencia,
       balanceado: Math.abs(diferencia) < 0.01,
       movimientosConvertidos: formData.movimientos.map(mov => {
-        let montoUSD = parseFloat(mov.monto || 0);
-        const montoOriginalARS = parseFloat(mov.monto || 0);
+        let montoUSD = parsearMonto(mov.monto);
+        const montoOriginalARS = parsearMonto(mov.monto);
 
         // Convertir si es cuenta ARS
         if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
@@ -809,7 +827,7 @@ const LibroDiarioSection = () => {
         descripcion: datosPreparados.descripcion,
         notas: asiento.notas || '',
         tipo_asiento: asiento.tipo_asiento || 'operacion', // NUEVO: cargar tipo_asiento
-        cotizacion_usd: asiento.cotizacion_promedio || 0,
+        cotizacion_usd: asiento.cotizacion_promedio || '',
         movimientos: datosPreparados.movimientos.map(mov => {
           const montoUSD = mov.debe > 0 ? mov.debe : mov.haber;
           const cotizacion = asiento.cotizacion_promedio || 0;
@@ -830,7 +848,7 @@ const LibroDiarioSection = () => {
           return {
             cuenta_id: mov.cuenta_id,
             cuenta: mov.cuenta,
-            monto: montoMostrar,
+            monto: montoMostrar ? formatearMontoInput(montoMostrar) : '',
             tipo: mov.debe > 0 ? 'debe' : 'haber',
             debe: mov.debe,
             haber: mov.haber,
@@ -1792,23 +1810,48 @@ const LibroDiarioSection = () => {
                             Monto {mov.cuenta?.requiere_cotizacion ? '(ARS)' : '(USD)'}
                           </label>
                           <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="0,00"
                             value={mov.monto}
-                            onChange={(e) => actualizarMovimiento(index, 'monto', e.target.value)}
-                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500"
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              // Quitar puntos de miles existentes, separar por coma decimal
+                              const stripped = raw.replace(/\./g, '');
+                              const parts = stripped.split(',');
+                              const intStr = parts[0].replace(/\D/g, '');
+                              const intNum = parseInt(intStr, 10);
+                              const intFormatted = intStr && !isNaN(intNum)
+                                ? intNum.toLocaleString('es-AR')
+                                : '';
+                              // Reconstruir con parte decimal si existe
+                              if (parts.length > 1) {
+                                const dec = parts[1].replace(/\D/g, '').slice(0, 2);
+                                actualizarMovimiento(index, 'monto', `${intFormatted},${dec}`);
+                              } else if (raw.endsWith(',')) {
+                                actualizarMovimiento(index, 'monto', `${intFormatted},`);
+                              } else {
+                                actualizarMovimiento(index, 'monto', intFormatted);
+                              }
+                            }}
+                            onBlur={() => {
+                              const num = parsearMonto(mov.monto);
+                              if (num > 0) {
+                                actualizarMovimiento(index, 'monto', formatearMontoInput(num));
+                              }
+                            }}
+                            className="w-full border border-slate-300 rounded px-3 py-2 hover:border-slate-400 transition-colors"
                           />
                           {/* Mostrar conversión automática para cuentas ARS */}
-                          {mov.cuenta?.requiere_cotizacion && mov.monto > 0 && formData.cotizacion_usd > 0 && (
+                          {mov.cuenta?.requiere_cotizacion && parsearMonto(mov.monto) > 0 && formData.cotizacion_usd > 0 && (
                             <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
                               <div className="flex items-center space-x-1 text-blue-800">
                                 <Calculator className="w-3 h-3" />
                                 <span>Conversión automática:</span>
                               </div>
                               <div className="mt-1 font-mono text-blue-700">
-                                ARS {parseFloat(mov.monto || 0).toFixed(2)} ÷ {formData.cotizacion_usd} =
-                                <strong> USD {(parseFloat(mov.monto || 0) / parseFloat(formData.cotizacion_usd)).toFixed(2)}</strong>
+                                ARS {parsearMonto(mov.monto).toFixed(2)} ÷ {formData.cotizacion_usd} =
+                                <strong> USD {(parsearMonto(mov.monto) / parseFloat(formData.cotizacion_usd)).toFixed(2)}</strong>
                               </div>
                             </div>
                           )}

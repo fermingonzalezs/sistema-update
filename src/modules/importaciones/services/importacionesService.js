@@ -115,6 +115,7 @@ const importacionesService = {
         cantidad: parseInt(item.cantidad),
         precio_unitario_usd: parseFloat(item.precio_unitario_usd),
         peso_estimado_unitario_kg: parseFloat(item.peso_estimado_unitario_kg),
+        color: item.color?.trim() || null,
         link_producto: item.link_producto?.trim() || null,
         observaciones: item.observaciones?.trim() || null
       }));
@@ -333,6 +334,7 @@ const importacionesService = {
         cantidad: parseInt(item.cantidad),
         precio_unitario_usd: parseFloat(item.precio_unitario_usd),
         peso_estimado_unitario_kg: parseFloat(item.peso_estimado_unitario_kg || 0),
+        color: item.color?.trim() || null,
         link_producto: item.link_producto?.trim() || null,
         observaciones: item.observaciones?.trim() || null
       }));

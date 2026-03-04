@@ -54,7 +54,7 @@ const TYPE_DEFAULTS = {
     style: 'simple'
   },
 
-  // VERSIONES COMPLETAS - Para Catálogo información interna
+  // VERSIONES COMPLETAS - Para uso interno completo
   notebook_completo: {
     includeEmojis: false,
     includePrice: false,
@@ -62,6 +62,16 @@ const TYPE_DEFAULTS = {
     separator: ' - ',
     maxLength: null,
     style: 'completo'
+  },
+
+  // VERSIÓN CATÁLOGO - Para la columna info del catálogo (sin condición, color ni observaciones)
+  notebook_catalogo: {
+    includeEmojis: false,
+    includePrice: false,
+    includeTechnicalDetails: true,
+    separator: ' - ',
+    maxLength: null,
+    style: 'catalogo'
   },
   celular_completo: {
     includeEmojis: false,
@@ -154,6 +164,7 @@ export const generateCopy = (producto, options = {}) => {
     case 'notebook_simple': // Retrocompatibilidad
     case 'notebook_comercial':
     case 'notebook_completo':
+    case 'notebook_catalogo':
     case 'notebook_documento':
       copy = generateNotebookCopy(producto, config);
       break;
@@ -409,7 +420,8 @@ const generateNotebookCopy = (comp, config) => {
   }
 
   // 8. CONDICION + ESTADO ESTÉTICO - Juntos para usadas (ej: "Usado B+")
-  if (comp.condicion && config.style !== 'documento') {
+  // No se incluye en catalogo (se muestra en columna separada)
+  if (comp.condicion && config.style !== 'documento' && config.style !== 'catalogo') {
     if (!esNueva && comp.estado) {
       // Para usadas: "Usado B+" o "Reacondicionado A+"
       partes.push(`${capitalize(comp.condicion)} ${comp.estado}`);
@@ -419,8 +431,8 @@ const generateNotebookCopy = (comp, config) => {
     }
   }
 
-  // 10. COLOR - SIEMPRE (antes del precio, tanto en simple como completo)
-  if (comp.color) {
+  // 10. COLOR - No se incluye en catalogo (se muestra en columna separada)
+  if (comp.color && config.style !== 'catalogo') {
     partes.push(comp.color);
   }
 
@@ -430,15 +442,15 @@ const generateNotebookCopy = (comp, config) => {
     partes.push(idioma);
   }
 
-  // 12. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento)
-  if (!esNueva && config.style !== 'documento') {
+  // 12. OBSERVACIONES - Para productos usados en versión comercial y completa (NO en documento ni catalogo)
+  if (!esNueva && config.style !== 'documento' && config.style !== 'catalogo') {
     if (comp.observaciones || comp.notas || comp.comentarios) {
       const obs = comp.observaciones || comp.notas || comp.comentarios;
       partes.push(`(${obs})`);
     }
   }
 
-  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento)
+  // CAMPOS ADICIONALES SOLO EN VERSIÓN COMPLETA (NO en documento ni catalogo)
   if (config.style === 'completo') {
     // 13. SISTEMA OPERATIVO
     if (comp.sistema_operativo || comp.so) {

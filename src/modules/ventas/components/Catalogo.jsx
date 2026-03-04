@@ -2774,8 +2774,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               } else {
                 return (
                   <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-                    <div className="col-span-6 text-start text-sm font-bold text-white uppercase">
+                    <div className="col-span-5 text-start text-sm font-bold text-white uppercase">
                       Información del Producto
+                    </div>
+                    <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
+                      Color
                     </div>
                     <div className="col-span-2 text-center text-sm font-bold text-white uppercase">
                       Serial
@@ -2810,7 +2813,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onClick={() => setModalDetalle({ open: true, producto })}
                 >
                   {/* Información del producto */}
-                  <div className={`text-start ${esOtros ? 'col-span-4' : 'col-span-6'}`}>
+                  <div className={`text-start ${esOtros ? 'col-span-4' : 'col-span-5'}`}>
                     {esOtros ? (
                       <div>
                         <div className="text-sm truncate uppercase">
@@ -2830,7 +2833,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                         {generateCopy(producto, {
                           tipo: (() => {
                             // Para notebooks y celulares (incluyendo Apple notebooks y celulares)
-                            let tipoProducto = "notebook_completo";
+                            let tipoProducto = "notebook_catalogo";
                             if (categoriaActiva === "celulares") {
                               tipoProducto = "celular_completo";
                             } else if (
@@ -3097,6 +3100,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       // Columnas para notebooks y celulares (incluyendo Apple notebooks y celulares)
                       return (
                         <>
+                          {/* Color para notebooks y celulares */}
+                          <div className="col-span-1 flex justify-center items-center px-2">
+                            <span className="text-xs text-slate-600 truncate" title={producto.color || ""}>
+                              {producto.color || "-"}
+                            </span>
+                          </div>
+
                           {/* Serial para notebooks y celulares */}
                           <div className="col-span-2 text-center">
                             <div className="text-sm text-slate-700">

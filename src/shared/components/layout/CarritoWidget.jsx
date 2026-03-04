@@ -319,6 +319,34 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     return esMetodoEnPesos(metodoPago) ? 'ARS' : 'USD';
   };
 
+  // Formatear string de input con puntos de miles (es-AR) mientras se escribe
+  const formatearInputMiles = (raw) => {
+    const stripped = raw.replace(/\./g, '');
+    const parts = stripped.split(',');
+    const intStr = parts[0].replace(/\D/g, '');
+    const intNum = parseInt(intStr, 10);
+    const intFormatted = intStr && !isNaN(intNum) ? intNum.toLocaleString('es-AR') : '';
+    if (parts.length > 1) {
+      const dec = parts[1].replace(/\D/g, '').slice(0, 2);
+      return `${intFormatted},${dec}`;
+    } else if (raw.endsWith(',')) {
+      return `${intFormatted},`;
+    }
+    return intFormatted;
+  };
+
+  // Parsear string formateado con puntos de miles a número
+  const parsearInputMiles = (valor) => {
+    if (!valor) return 0;
+    return parseFloat(String(valor).replace(/\./g, '').replace(',', '.')) || 0;
+  };
+
+  // Formatear número calculado para mostrar en input
+  const formatearNumeroParaInput = (num) => {
+    if (!num) return '';
+    return Math.round(num).toLocaleString('es-AR');
+  };
+
   // FUNCIONES COMENTADAS - Ya no se usan con el nuevo sistema de inputs separados
   // convertirMontoAUSD y obtenerMontoBaseParaInput fueron reemplazadas por handleMontoBaseChange y handleMontoFinalChange
 
@@ -337,15 +365,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const handleMontoBaseChange = (metodo, montoBase) => {
     const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : metodo === 2 ? datosCliente.metodo_pago_2 : datosCliente.metodo_pago_3;
     const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : metodo === 2 ? datosCliente.recargo_pago_2 : datosCliente.recargo_pago_3;
-    const montoBaseFloat = parseFloat(montoBase) || 0;
 
-    // Actualizar input local del monto base
+    // Formatear con puntos de miles mientras se escribe
+    const formateado = formatearInputMiles(montoBase);
+    const montoBaseFloat = parsearInputMiles(formateado);
+
+    // Actualizar input local del monto base (formateado)
     if (metodo === 1) {
-      setInputMontoBase1(montoBase);
+      setInputMontoBase1(formateado);
     } else if (metodo === 2) {
-      setInputMontoBase2(montoBase);
+      setInputMontoBase2(formateado);
     } else {
-      setInputMontoBase3(montoBase);
+      setInputMontoBase3(formateado);
     }
 
     // Calcular monto final con recargo
@@ -353,13 +384,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       ? montoBaseFloat * (1 + recargo / 100)
       : montoBaseFloat;
 
-    // Actualizar input del monto final
+    // Actualizar input del monto final (formateado)
     if (metodo === 1) {
-      setInputMontoFinal1(montoFinalEnMonedaMetodo.toFixed(2));
+      setInputMontoFinal1(formatearNumeroParaInput(montoFinalEnMonedaMetodo));
     } else if (metodo === 2) {
-      setInputMontoFinal2(montoFinalEnMonedaMetodo.toFixed(2));
+      setInputMontoFinal2(formatearNumeroParaInput(montoFinalEnMonedaMetodo));
     } else {
-      setInputMontoFinal3(montoFinalEnMonedaMetodo.toFixed(2));
+      setInputMontoFinal3(formatearNumeroParaInput(montoFinalEnMonedaMetodo));
     }
 
     // Convertir monto base a USD para guardar en estado
@@ -377,15 +408,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const handleMontoFinalChange = (metodo, montoFinal) => {
     const metodoPago = metodo === 1 ? datosCliente.metodo_pago_1 : metodo === 2 ? datosCliente.metodo_pago_2 : datosCliente.metodo_pago_3;
     const recargo = metodo === 1 ? datosCliente.recargo_pago_1 : metodo === 2 ? datosCliente.recargo_pago_2 : datosCliente.recargo_pago_3;
-    const montoFinalFloat = parseFloat(montoFinal) || 0;
 
-    // Actualizar input local del monto final
+    // Formatear con puntos de miles mientras se escribe
+    const formateado = formatearInputMiles(montoFinal);
+    const montoFinalFloat = parsearInputMiles(formateado);
+
+    // Actualizar input local del monto final (formateado)
     if (metodo === 1) {
-      setInputMontoFinal1(montoFinal);
+      setInputMontoFinal1(formateado);
     } else if (metodo === 2) {
-      setInputMontoFinal2(montoFinal);
+      setInputMontoFinal2(formateado);
     } else {
-      setInputMontoFinal3(montoFinal);
+      setInputMontoFinal3(formateado);
     }
 
     // Calcular monto base (sin recargo)
@@ -393,13 +427,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       ? montoFinalFloat / (1 + recargo / 100)
       : montoFinalFloat;
 
-    // Actualizar input del monto base
+    // Actualizar input del monto base (formateado)
     if (metodo === 1) {
-      setInputMontoBase1(montoBaseEnMonedaMetodo.toFixed(2));
+      setInputMontoBase1(formatearNumeroParaInput(montoBaseEnMonedaMetodo));
     } else if (metodo === 2) {
-      setInputMontoBase2(montoBaseEnMonedaMetodo.toFixed(2));
+      setInputMontoBase2(formatearNumeroParaInput(montoBaseEnMonedaMetodo));
     } else {
-      setInputMontoBase3(montoBaseEnMonedaMetodo.toFixed(2));
+      setInputMontoBase3(formatearNumeroParaInput(montoBaseEnMonedaMetodo));
     }
 
     // Convertir monto base a USD para guardar en estado
@@ -430,7 +464,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
     // Recalcular monto final si hay monto base ingresado
     const montoBaseInput = metodo === 1 ? inputMontoBase1 : metodo === 2 ? inputMontoBase2 : inputMontoBase3;
-    if (montoBaseInput && parseFloat(montoBaseInput) > 0) {
+    if (montoBaseInput && parsearInputMiles(montoBaseInput) > 0) {
       handleMontoBaseChange(metodo, montoBaseInput);
     }
   };
@@ -691,6 +725,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         monto_pago_1: datosCliente.monto_pago_1,
         monto_pago_2: datosCliente.monto_pago_2,
         monto_pago_3: datosCliente.monto_pago_3,
+        monto_pago_1_usd: !esMetodoEnPesos(datosCliente.metodo_pago_1) ? datosCliente.monto_pago_1 : null,
+        monto_pago_1_ars: esMetodoEnPesos(datosCliente.metodo_pago_1) ? datosCliente.monto_pago_1 * datosCliente.cotizacion_dolar : null,
+        monto_pago_2_usd: datosCliente.metodo_pago_2 && !esMetodoEnPesos(datosCliente.metodo_pago_2) ? (datosCliente.monto_pago_2 || 0) : null,
+        monto_pago_2_ars: datosCliente.metodo_pago_2 && esMetodoEnPesos(datosCliente.metodo_pago_2) ? (datosCliente.monto_pago_2 || 0) * datosCliente.cotizacion_dolar : null,
+        monto_pago_3_usd: datosCliente.metodo_pago_3 && !esMetodoEnPesos(datosCliente.metodo_pago_3) ? (datosCliente.monto_pago_3 || 0) : null,
+        monto_pago_3_ars: datosCliente.metodo_pago_3 && esMetodoEnPesos(datosCliente.metodo_pago_3) ? (datosCliente.monto_pago_3 || 0) * datosCliente.cotizacion_dolar : null,
+        cotizacion_dolar: datosCliente.cotizacion_dolar,
         destino_pago_1: datosCliente.destino_pago_1,
         destino_pago_2: datosCliente.destino_pago_2,
         destino_pago_3: datosCliente.destino_pago_3,
@@ -1226,13 +1267,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={inputMontoBase1}
                           onChange={(e) => handleMontoBaseChange(1, e.target.value)}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           placeholder="Monto a cobrar"
-                          step="1"
-                          min="0"
                         />
                       </div>
                       <div>
@@ -1300,13 +1340,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={inputMontoBase2}
                           onChange={(e) => handleMontoBaseChange(2, e.target.value)}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           placeholder="Monto a cobrar"
-                          step="1"
-                          min="0"
                           disabled={!datosCliente.metodo_pago_2}
                         />
                       </div>
@@ -1374,13 +1413,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           Monto ({datosCliente.metodo_pago_3 ? obtenerMonedaMetodo(datosCliente.metodo_pago_3) : 'N/A'})
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={inputMontoBase3}
                           onChange={(e) => handleMontoBaseChange(3, e.target.value)}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
                           placeholder="Monto a cobrar"
-                          step="1"
-                          min="0"
                           disabled={!datosCliente.metodo_pago_3}
                         />
                       </div>
@@ -1538,7 +1576,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <div className="space-y-1">
                           <p className="text-sm text-slate-800">
                             {datosCliente.metodo_pago_1.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                              parseFloat(inputMontoBase1) || 0,
+                              parsearInputMiles(inputMontoBase1),
                               obtenerMonedaMetodo(datosCliente.metodo_pago_1)
                             )}
                             {datosCliente.destino_pago_1 && (
@@ -1547,10 +1585,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               </span>
                             )}
                           </p>
-                          {datosCliente.metodo_pago_2 && parseFloat(inputMontoBase2) > 0 && (
+                          {datosCliente.metodo_pago_2 && parsearInputMiles(inputMontoBase2) > 0 && (
                             <p className="text-sm text-slate-800">
                               {datosCliente.metodo_pago_2.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                                parseFloat(inputMontoBase2) || 0,
+                                parsearInputMiles(inputMontoBase2),
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_2)
                               )}
                               {datosCliente.destino_pago_2 && (
@@ -1560,10 +1598,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               )}
                             </p>
                           )}
-                          {datosCliente.metodo_pago_3 && parseFloat(inputMontoBase3) > 0 && (
+                          {datosCliente.metodo_pago_3 && parsearInputMiles(inputMontoBase3) > 0 && (
                             <p className="text-sm text-slate-800">
                               {datosCliente.metodo_pago_3.replace(/_/g, ' ').toUpperCase()}: {formatearMonto(
-                                parseFloat(inputMontoBase3) || 0,
+                                parsearInputMiles(inputMontoBase3),
                                 obtenerMonedaMetodo(datosCliente.metodo_pago_3)
                               )}
                               {datosCliente.destino_pago_3 && (
