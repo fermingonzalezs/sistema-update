@@ -641,25 +641,21 @@ Esta acción no se puede deshacer.`;
       <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-200">
           {/* Header */}
-          <div className="p-6 border-b border-slate-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-slate-100 rounded">
-                  <Icon className="w-6 h-6 text-slate-800" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-800">{config.titulo}</h3>
-                  <p className="text-sm text-slate-500">{config.descripcion}</p>
-                </div>
+          <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
+            <div className="flex items-center space-x-3">
+              <Icon className="w-6 h-6" />
+              <div>
+                <h3 className="text-lg font-semibold">{config.titulo}</h3>
+                <p className="text-sm text-slate-300">{config.descripcion}</p>
               </div>
-              <button
-                onClick={onClose}
-                className="text-slate-500 hover:text-slate-700"
-                disabled={loading}
-              >
-                <X className="w-6 h-6" />
-              </button>
             </div>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-slate-700 rounded transition-colors"
+              disabled={loading}
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Form */}
@@ -751,19 +747,30 @@ Esta acción no se puede deshacer.`;
                 />
               </div>
 
-              {/* Información de conversión - Solo para tipos con métodos de pago en pesos */}
-              {(tipo === 'cobro' || tipo === 'pago_realizado') && cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && formData.monto && (
-                <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Cotización USD:</span>
-                    <span className="font-medium">${cotizacionDolar.toLocaleString()}</span>
+              {/* Cotización y conversión - Solo para tipos con métodos de pago en pesos */}
+              {(tipo === 'cobro' || tipo === 'pago_realizado') && cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && (
+                <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm text-slate-600 whitespace-nowrap">Cotización USD:</label>
+                    <div className="relative flex-1">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                      <input
+                        type="number"
+                        step="1"
+                        value={cotizacionDolar}
+                        onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 1)}
+                        className="w-full pl-6 pr-3 py-1.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-slate-600">Equivalente en USD:</span>
-                    <span className="font-medium text-emerald-600">
-                      ${convertirMontoAUSD(formData.monto, cuentaSeleccionada).toFixed(2)}
-                    </span>
-                  </div>
+                  {formData.monto && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">Equivalente en USD:</span>
+                      <span className="font-medium text-emerald-600">
+                        ${convertirMontoAUSD(formData.monto, cuentaSeleccionada).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1255,19 +1262,20 @@ Esta acción no se puede deshacer.`;
       {showEditarMovimiento && movimientoAEditar && (
         <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded max-w-md w-full border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-800">Editar Movimiento</h3>
-                <button
-                  onClick={() => {
-                    setShowEditarMovimiento(false);
-                    setMovimientoAEditar(null);
-                  }}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+            <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
+              <div className="flex items-center space-x-3">
+                <Edit3 className="w-5 h-5" />
+                <h3 className="text-lg font-semibold">Editar Movimiento</h3>
               </div>
+              <button
+                onClick={() => {
+                  setShowEditarMovimiento(false);
+                  setMovimientoAEditar(null);
+                }}
+                className="p-1 hover:bg-slate-700 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <EditarMovimientoForm
