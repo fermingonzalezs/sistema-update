@@ -24,6 +24,7 @@ import { formatearMonto, obtenerFechaLocal, formatearFechaReporte } from '../../
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { generarYDescargarResumenCuenta } from './pdf/CuentaCorrientePDF';
+import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const CuentasCorrientesSection = () => {
   const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
@@ -444,16 +445,8 @@ Esta acción no se puede deshacer.`;
 
     });
 
-    // Métodos de pago disponibles (igual que en CarritoWidget)
-    const metodosPagoDisponibles = [
-      { id: 'efectivo_pesos', nombre: '💵 Efectivo en Pesos' },
-      { id: 'dolares_billete', nombre: '💸 Dólares Billete' },
-      { id: 'transferencia', nombre: '🏦 Transferencia' },
-      { id: 'criptomonedas', nombre: '₿ Criptomonedas' },
-      { id: 'tarjeta_credito', nombre: '💳 Tarjeta de Crédito' },
-      { id: 'cuenta_corriente', nombre: '🏷️ Cuenta Corriente' },
-      { id: 'mercaderia', nombre: '📦 Pagar con Mercadería' }
-    ];
+    // Métodos de pago disponibles (desde constantes compartidas)
+    const metodosPagoDisponibles = METODOS_PAGO.filter(m => m.value !== 'cliente_abona');
 
     const tipoConfig = {
       cobro: {
@@ -717,8 +710,8 @@ Esta acción no se puede deshacer.`;
                 >
                   <option value="">Seleccionar método de pago...</option>
                   {metodosPagoDisponibles.map(metodo => (
-                    <option key={metodo.id} value={metodo.id}>
-                      {metodo.nombre}
+                    <option key={metodo.value} value={metodo.value}>
+                      {metodo.label}
                     </option>
                   ))}
                 </select>

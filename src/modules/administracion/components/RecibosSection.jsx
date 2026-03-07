@@ -8,6 +8,7 @@ import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatt
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 import ClienteSelector from '../../ventas/components/ClienteSelector';
 import SelectorProductosStock from './SelectorProductosStock';
+import MetodoPagoSelector from '../../../shared/components/ui/MetodoPagoSelector';
 
 const RecibosSection = () => {
   const { recibos, loading, error, crearRecibo, crearRemito, crearPresupuesto, eliminarRecibo, actualizarDocumento, refetch } = useRecibos();
@@ -523,20 +524,12 @@ const RecibosSection = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
-                    <select
+                    <MetodoPagoSelector
                       value={editData.metodo_pago}
                       onChange={(e) => setEditData({ ...editData, metodo_pago: e.target.value })}
+                      exclude={['cliente_abona']}
                       className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                      <option value="dolares_billete">💸 Dólares Billete</option>
-                      <option value="transferencia">🏦 Transferencia</option>
-                      <option value="transferencia_wire">🌐 Transferencia Wire</option>
-                      <option value="criptomonedas">₿ Criptomonedas</option>
-                      <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                      <option value="mercaderia">📦 Mercadería</option>
-                      <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
-                    </select>
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
@@ -869,20 +862,12 @@ const RecibosSection = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
-                      <select
+                      <MetodoPagoSelector
                         value={formData.metodo_pago}
                         onChange={(e) => setFormData({ ...formData, metodo_pago: e.target.value })}
+                        exclude={['cliente_abona']}
                         className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      >
-                        <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                        <option value="dolares_billete">💸 Dólares Billete</option>
-                        <option value="transferencia">🏦 Transferencia</option>
-                        <option value="transferencia_wire">🌐 Transferencia Wire</option>
-                        <option value="criptomonedas">₿ Criptomonedas</option>
-                        <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                        <option value="mercaderia">📦 Mercadería</option>
-                        <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
-                      </select>
+                      />
                     </div>
 
                     <div>

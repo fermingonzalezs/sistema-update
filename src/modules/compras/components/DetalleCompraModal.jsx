@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Edit2, Trash2 } from 'lucide-react';
+import { getMetodoPagoLabel } from '../../../shared/constants/paymentMethods';
 
 const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, isLoading = false }) => {
   if (!isOpen || !recibo) return null;
@@ -11,20 +12,6 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
   const formatDate = (date) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('es-AR');
-  };
-
-  const METODOS_PAGO_LABELS = {
-    'efectivo_pesos': '💵 Efectivo en Pesos',
-    'dolares_billete': '💸 Dólares Billete',
-    'transferencia': '🏦 Transferencia',
-    'criptomonedas': '₿ Criptomonedas',
-    'tarjeta_credito': '💳 Tarjeta de Crédito',
-    'cuenta_corriente': '🏷️ Cuenta Corriente',
-    'cliente_abona': '👤 Cliente Abona'
-  };
-
-  const getMetodoPagoLabel = (metodo) => {
-    return METODOS_PAGO_LABELS[metodo] || metodo;
   };
 
   const getEstadoColor = (estado) => {

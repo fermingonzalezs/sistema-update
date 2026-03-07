@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { usePesajes } from '../hooks/usePesajes';
 
-const NuevoPesajeModal = ({ nombreInicial = '', onClose, onSuccess }) => {
-  const { crearPesaje } = usePesajes();
+const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nombre: nombreInicial,

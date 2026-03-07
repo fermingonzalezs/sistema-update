@@ -6,19 +6,10 @@ import CargaEquiposUnificada from '../../administracion/components/CargaEquiposU
 import CargaMasivaCompras from './CargaMasivaCompras';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditing = false, reciboInicial = null }) => {
   const { proveedores } = useProveedores();
-
-  const METODOS_PAGO = [
-    { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
-    { value: 'dolares_billete', label: '💸 Dólares Billete' },
-    { value: 'transferencia', label: '🏦 Transferencia' },
-    { value: 'criptomonedas', label: '₿ Criptomonedas' },
-    { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-    { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' },
-    { value: 'cliente_abona', label: '👤 Cliente Abona' }
-  ];
 
   const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
   const [mostrarModalDestino, setMostrarModalDestino] = useState(false);

@@ -4,6 +4,7 @@ import { formatearMonto, formatearFechaParaInput, parseFechaLocal } from '../../
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { useVentas } from '../../../modules/ventas/hooks/useVentas';
+import MetodoPagoSelector from '../../../shared/components/ui/MetodoPagoSelector';
 
 const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   if (!transaccion) return null;
@@ -28,14 +29,6 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   const [totalCosto, setTotalCosto] = useState(0);
   const [margenTotal, setMargenTotal] = useState(0);
   const [margenPct, setMargenPct] = useState(0);
-
-  const metodosPago = [
-    { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
-    { value: 'dolares_billete', label: '💸 Dólares Billete' },
-    { value: 'transferencia', label: '🏦 Transferencia' },
-    { value: 'cuenta_corriente', label: '📋 Cuenta Corriente' },
-    { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' }
-  ];
 
   // Cargar vendedores
   useEffect(() => {
@@ -266,15 +259,12 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Método 1 *</label>
-                <select
+                <MetodoPagoSelector
                   value={metodoPago1}
                   onChange={(e) => setMetodoPago1(e.target.value)}
+                  exclude={['cliente_abona']}
                   className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                >
-                  {metodosPago.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Monto 1 (USD) *</label>
@@ -288,16 +278,14 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Método 2</label>
-                <select
+                <MetodoPagoSelector
                   value={metodoPago2}
                   onChange={(e) => setMetodoPago2(e.target.value)}
+                  exclude={['cliente_abona']}
+                  showEmpty={true}
+                  emptyLabel="Sin segundo método"
                   className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="">Sin segundo método</option>
-                  {metodosPago.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Monto 2 (USD)</label>

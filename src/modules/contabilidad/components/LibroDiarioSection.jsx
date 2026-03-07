@@ -878,7 +878,7 @@ const LibroDiarioSection = () => {
         fecha: formData.fecha,
         descripcion: formData.descripcion,
         movimientos: formData.movimientos.map(mov => {
-          let montoUSD = parseFloat(mov.monto || 0);
+          let montoUSD = parsearMonto(mov.monto || 0);
 
           // Si la cuenta requiere cotización (ARS) y hay cotización, convertir a USD
           if (mov.cuenta?.requiere_cotizacion && cotizacion > 0) {
@@ -925,7 +925,7 @@ const LibroDiarioSection = () => {
         tipo_asiento: formData.tipo_asiento, // NUEVO: incluir tipo_asiento en edición
         movimientos: formData.movimientos.map(mov => {
           const cotizacion = parseFloat(formData.cotizacion_usd) || 0;
-          const montoIngresado = parseFloat(mov.monto || 0);
+          const montoIngresado = parsearMonto(mov.monto || 0);
           let montoUSD = montoIngresado;
           let montoARS = montoIngresado;
 

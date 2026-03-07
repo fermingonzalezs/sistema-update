@@ -101,6 +101,7 @@ const importacionesService = {
           empresa_logistica: reciboData.empresa_logistica?.trim() || null,
           fecha_estimada_ingreso: reciboData.fecha_estimada_ingreso || null,
           observaciones: reciboData.observaciones?.trim() || null,
+          porcentaje_financiero: reciboData.porcentaje_financiero ? parseFloat(reciboData.porcentaje_financiero) : null,
           estado: 'en_transito_usa'
         }])
         .select()
@@ -116,6 +117,7 @@ const importacionesService = {
         precio_unitario_usd: parseFloat(item.precio_unitario_usd),
         peso_estimado_unitario_kg: parseFloat(item.peso_estimado_unitario_kg),
         color: item.color?.trim() || null,
+        almacenamiento: item.almacenamiento?.trim() || null,
         link_producto: item.link_producto?.trim() || null,
         observaciones: item.observaciones?.trim() || null
       }));
@@ -221,14 +223,26 @@ const importacionesService = {
         };
       });
 
+      // Calcular costo financiero por item (% del precio FOB unitario)
+      const porcentajeFinanciero = parseFloat(recibo.porcentaje_financiero) || 0;
+
       // Actualizar items en BD
       for (const itemActualizado of itemsActualizados) {
+        const itemOriginal = recibo.importaciones_items.find(i => i.id === itemActualizado.id);
+        const costoFinancieroUnitario = parseFloat(itemOriginal.precio_unitario_usd) * porcentajeFinanciero / 100;
+        const costoEnvioUnitario = itemOriginal.cantidad > 0
+          ? parseFloat(itemActualizado.costos_adicionales_usd)
+          : 0;
+        const costoTotalUnitario = costoEnvioUnitario + costoFinancieroUnitario;
+
         const { error } = await supabase
           .from('importaciones_items')
           .update({
             peso_real_unitario_kg: itemActualizado.peso_real_unitario_kg,
-            costos_adicionales_usd: itemActualizado.costos_adicionales_usd,
-            costo_final_unitario_usd: itemActualizado.costo_final_unitario_usd
+            costo_envio_usd: costoEnvioUnitario,
+            costo_financiero_usd: costoFinancieroUnitario,
+            costos_adicionales_usd: costoTotalUnitario,
+            costo_final_unitario_usd: parseFloat(itemOriginal.precio_unitario_usd) + costoTotalUnitario
           })
           .eq('id', itemActualizado.id);
 
@@ -335,6 +349,7 @@ const importacionesService = {
         precio_unitario_usd: parseFloat(item.precio_unitario_usd),
         peso_estimado_unitario_kg: parseFloat(item.peso_estimado_unitario_kg || 0),
         color: item.color?.trim() || null,
+        almacenamiento: item.almacenamiento?.trim() || null,
         link_producto: item.link_producto?.trim() || null,
         observaciones: item.observaciones?.trim() || null
       }));
@@ -374,19 +389,25 @@ const importacionesService = {
         totalPesoReal += (parseFloat(item.peso_real_unitario_kg) || 0) * item.cantidad;
       }
 
+      const porcentajeFinanciero = parseFloat(recibo.porcentaje_financiero) || 0;
+
       // Actualizar cada item con costos distribuidos PROPORCIONALMENTE AL PESO REAL
       for (const item of recibo.importaciones_items) {
         const pesoRealUnitario = parseFloat(item.peso_real_unitario_kg) || 0;
         const pesoRealTotal = pesoRealUnitario * item.cantidad;
         const proporcionPeso = totalPesoReal > 0 ? pesoRealTotal / totalPesoReal : 0;
-        const costoAdicionalTotal = proporcionPeso * costoTotalImportacion;
-        const costoAdicionalUnitario = item.cantidad > 0 ? costoAdicionalTotal / item.cantidad : 0;
-        const precioUnitarioConCostos = parseFloat(item.precio_unitario_usd) + costoAdicionalUnitario;
+        const costoEnvioTotal = proporcionPeso * costoTotalImportacion;
+        const costoEnvioUnitario = item.cantidad > 0 ? costoEnvioTotal / item.cantidad : 0;
+        const costoFinancieroUnitario = parseFloat(item.precio_unitario_usd) * porcentajeFinanciero / 100;
+        const costoTotalUnitario = costoEnvioUnitario + costoFinancieroUnitario;
+        const precioUnitarioConCostos = parseFloat(item.precio_unitario_usd) + costoTotalUnitario;
 
         const { error } = await supabase
           .from('importaciones_items')
           .update({
-            costos_adicionales_usd: parseFloat(costoAdicionalUnitario),
+            costo_envio_usd: parseFloat(costoEnvioUnitario),
+            costo_financiero_usd: parseFloat(costoFinancieroUnitario),
+            costos_adicionales_usd: parseFloat(costoTotalUnitario),
             costo_final_unitario_usd: parseFloat(precioUnitarioConCostos)
           })
           .eq('id', item.id);

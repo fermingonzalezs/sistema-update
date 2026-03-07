@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink } from 'lucide-react';
 import { ESTADOS_IMPORTACION, LABELS_ESTADOS, COLORES_ESTADOS } from '../constants/estadosImportacion';
-
-const METODOS_PAGO = [
-  { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
-  { value: 'dolares_billete', label: '💸 Dólares Billete' },
-  { value: 'transferencia', label: '🏦 Transferencia' },
-  { value: 'criptomonedas', label: '₿ Criptomonedas' },
-  { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-  { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' },
-  { value: 'cliente_abona', label: '👤 Cliente Abona' }
-];
+import { formatearFechaDisplay } from '../../../shared/config/timezone';
+import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const DetalleRecibo = ({
   recibo,
@@ -44,6 +36,7 @@ const DetalleRecibo = ({
         tracking_number: recibo.tracking_number || '',
         empresa_logistica: recibo.empresa_logistica || '',
         fecha_estimada_ingreso: recibo.fecha_estimada_ingreso || '',
+        fecha_ingreso_deposito_usa: recibo.fecha_ingreso_deposito_usa || '',
         observaciones: recibo.observaciones || '',
         // Campos de recepción (solo si está recepcionado)
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
@@ -66,7 +59,7 @@ const DetalleRecibo = ({
 
   const formatDate = (date) => {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('es-AR');
+    return formatearFechaDisplay(date);
   };
 
   const getMetodoPagoLabel = (metodo) => {
@@ -108,6 +101,7 @@ const DetalleRecibo = ({
       tempId: Date.now(),
       item: '',
       color: '',
+      almacenamiento: '',
       cantidad: 1,
       precio_unitario_usd: 0,
       peso_estimado_unitario_kg: 0
@@ -213,6 +207,7 @@ const DetalleRecibo = ({
         tracking_number: datosEditados.tracking_number?.trim() || null,
         empresa_logistica: datosEditados.empresa_logistica?.trim() || null,
         fecha_estimada_ingreso: datosEditados.fecha_estimada_ingreso || null,
+        fecha_ingreso_deposito_usa: datosEditados.fecha_ingreso_deposito_usa || null,
         observaciones: datosEditados.observaciones?.trim() || null
       };
 
@@ -238,6 +233,7 @@ const DetalleRecibo = ({
 
           if (item.item !== itemOriginal.item) cambios.item = item.item.trim();
           if ((item.color?.trim() || null) !== (itemOriginal.color || null)) cambios.color = item.color?.trim() || null;
+          if ((item.almacenamiento?.trim() || null) !== (itemOriginal.almacenamiento || null)) cambios.almacenamiento = item.almacenamiento?.trim() || null;
           if (parseInt(item.cantidad) !== itemOriginal.cantidad) cambios.cantidad = parseInt(item.cantidad);
           if (parseFloat(item.precio_unitario_usd) !== itemOriginal.precio_unitario_usd) {
             cambios.precio_unitario_usd = parseFloat(item.precio_unitario_usd);
@@ -315,6 +311,7 @@ const DetalleRecibo = ({
         tracking_number: recibo.tracking_number || '',
         empresa_logistica: recibo.empresa_logistica || '',
         fecha_estimada_ingreso: recibo.fecha_estimada_ingreso || '',
+        fecha_ingreso_deposito_usa: recibo.fecha_ingreso_deposito_usa || '',
         observaciones: recibo.observaciones || '',
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
@@ -526,16 +523,33 @@ const DetalleRecibo = ({
                   )}
                 </div>
 
-                {/* Fecha Ingreso Depósito USA (no editable) */}
+                {/* Fecha Ingreso Depósito USA */}
                 <div className="text-center">
                   <label className="text-xs font-semibold text-slate-500 uppercase block">F. Ingreso Depósito USA</label>
-                  <p className="font-medium text-slate-800 mt-1">{formatDate(recibo.fecha_ingreso_deposito_usa)}</p>
+                  {modoEdicion ? (
+                    <input
+                      type="date"
+                      value={datosEditados.fecha_ingreso_deposito_usa || ''}
+                      onChange={(e) => handleDatoChange('fecha_ingreso_deposito_usa', e.target.value)}
+                      className="w-full border border-slate-200 rounded px-2 py-1 text-sm mt-1"
+                    />
+                  ) : (
+                    <p className="font-medium text-slate-800 mt-1">{formatDate(recibo.fecha_ingreso_deposito_usa)}</p>
+                  )}
                 </div>
 
                 {/* Fecha Recepción Argentina (no editable) */}
                 <div className="text-center">
                   <label className="text-xs font-semibold text-slate-500 uppercase block">F. Recepción Argentina</label>
                   <p className="font-medium text-slate-800 mt-1">{formatDate(recibo.fecha_recepcion_argentina)}</p>
+                </div>
+
+                {/* Costo Financiero */}
+                <div className="text-center">
+                  <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero</label>
+                  <p className="font-medium text-slate-800 mt-1">
+                    {recibo.porcentaje_financiero != null ? `${recibo.porcentaje_financiero}%` : '-'}
+                  </p>
                 </div>
 
                 {/* Cliente */}
@@ -610,6 +624,7 @@ const DetalleRecibo = ({
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Color</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Almacenamiento</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-20">Cant.</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">P. Unit. USD</th>
                     {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? (
@@ -621,7 +636,9 @@ const DetalleRecibo = ({
                       <>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Peso Est.</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Peso Real</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Costo Adic.</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Envío</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Financiero</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Total</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">P. Unit. Total</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Total USD</th>
                       </>
@@ -694,6 +711,20 @@ const DetalleRecibo = ({
                             item.color || '-'
                           )}
                         </td>
+                        {/* Almacenamiento */}
+                        <td className="px-4 py-3 text-center text-slate-600">
+                          {modoEdicion && !estaEliminado ? (
+                            <input
+                              type="text"
+                              value={item.almacenamiento || ''}
+                              onChange={(e) => handleItemChange(item.id, 'almacenamiento', e.target.value)}
+                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                              placeholder="-"
+                            />
+                          ) : (
+                            item.almacenamiento || '-'
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-center text-slate-600">
                           {modoEdicion && !estaEliminado ? (
                             <input
@@ -761,8 +792,14 @@ const DetalleRecibo = ({
                                 item.peso_real_unitario_kg ? item.peso_real_unitario_kg.toFixed(2) : '-'
                               )}
                             </td>
-                            <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                              {item.costos_adicionales_usd ? `$${formatNumber(item.costos_adicionales_usd)}` : '-'}
+                            <td className="px-4 py-3 text-center text-slate-600">
+                              {item.costo_envio_usd != null ? `$${formatNumber(item.costo_envio_usd)}` : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-600">
+                              {item.costo_financiero_usd != null ? `$${formatNumber(item.costo_financiero_usd)}` : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-center font-semibold text-emerald-700">
+                              {item.costos_adicionales_usd != null ? `$${formatNumber(item.costos_adicionales_usd)}` : '-'}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-slate-800">
                               ${formatNumber(parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0))}
@@ -820,6 +857,16 @@ const DetalleRecibo = ({
                           placeholder="-"
                         />
                       </td>
+                      {/* Almacenamiento */}
+                      <td className="px-4 py-3 text-center">
+                        <input
+                          type="text"
+                          value={item.almacenamiento || ''}
+                          onChange={(e) => handleItemNuevoChange(item.tempId, 'almacenamiento', e.target.value)}
+                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                          placeholder="-"
+                        />
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <input
                           type="number"
@@ -861,6 +908,8 @@ const DetalleRecibo = ({
                           <td className="px-4 py-3 text-center text-slate-400">-</td>
                           <td className="px-4 py-3 text-center text-slate-400">-</td>
                           <td className="px-4 py-3 text-center text-slate-400">-</td>
+                          <td className="px-4 py-3 text-center text-slate-400">-</td>
+                          <td className="px-4 py-3 text-center text-slate-400">-</td>
                           <td className="px-4 py-3 text-center font-semibold text-slate-800">
                             ${formatNumber((parseFloat(item.precio_unitario_usd) || 0) * (parseInt(item.cantidad) || 0))}
                           </td>
@@ -882,10 +931,10 @@ const DetalleRecibo = ({
                 <tfoot className="bg-slate-800 text-white">
                   <tr>
                     {/*
-                      NO recepcionado: 5 cols (Producto, Cant, P.Unit, Peso Est, Total) + 1 si edición
-                      Recepcionado: 8 cols (Producto, Cant, P.Unit, Peso Est, Peso Real, Costo Adic, P.Unit Total, Total) + 1 si edición
+                      NO recepcionado: 6 cols (Producto, Color, Almacenamiento, Cant, P.Unit, Peso Est) + Total + 1 si edición
+                      Recepcionado: 11 cols (Producto, Color, Almacenamiento, Cant, P.Unit, Peso Est, Peso Real, C.Envío, C.Financiero, C.Total, P.Unit Total) + Total + 1 si edición
                     */}
-                    <td className="px-4 py-3 text-sm font-semibold" colSpan={recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? 5 : 8}>
+                    <td className="px-4 py-3 text-sm font-semibold" colSpan={recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? 6 : 11}>
                       TOTAL PRODUCTOS
                     </td>
                     <td className="px-4 py-3 text-center font-semibold">

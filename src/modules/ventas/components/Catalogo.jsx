@@ -2774,7 +2774,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               } else {
                 return (
                   <div className="rounded p-2 grid grid-cols-12 gap-2 bg-slate-800 min-w-[950px]">
-                    <div className="col-span-5 text-start text-sm font-bold text-white uppercase">
+                    <div className="col-span-4 text-start text-sm font-bold text-white uppercase">
                       Información del Producto
                     </div>
                     <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
@@ -2782,6 +2782,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     </div>
                     <div className="col-span-2 text-center text-sm font-bold text-white uppercase">
                       Serial
+                    </div>
+                    <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
+                      Ubicación
                     </div>
                     <div className="col-span-1 text-center text-sm font-bold text-white uppercase">
                       Precio
@@ -2813,7 +2816,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onClick={() => setModalDetalle({ open: true, producto })}
                 >
                   {/* Información del producto */}
-                  <div className={`text-start ${esOtros ? 'col-span-4' : 'col-span-5'}`}>
+                  <div className={`text-start ${esOtros ? 'col-span-4' : 'col-span-4'}`}>
                     {esOtros ? (
                       <div>
                         <div className="text-sm truncate uppercase">
@@ -3112,6 +3115,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                             <div className="text-sm text-slate-700">
                               {producto.serial || producto.imei || "N/A"}
                             </div>
+                          </div>
+
+                          {/* Ubicación */}
+                          <div className="col-span-1 flex justify-center items-center px-2">
+                            <span className="text-xs text-slate-600 truncate" title={getUbicacionLabel(producto.sucursal) || producto.sucursal || ""}>
+                              {getUbicacionLabel(producto.sucursal) || producto.sucursal || "-"}
+                            </span>
                           </div>
 
                           {/* Precio */}

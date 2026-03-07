@@ -39,7 +39,9 @@
       "Bash(pkill:*)",
       "mcp__supabase__list_extensions",
       "Bash(node:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__apply_migration"
     ],
     "deny": [],
     "ask": []

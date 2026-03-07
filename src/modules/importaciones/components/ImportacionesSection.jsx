@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { formatearFechaDisplay } from '../../../shared/config/timezone';
 import { useOutletContext } from 'react-router-dom';
 import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft, Weight } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -21,15 +22,7 @@ import {
   obtenerIconoEstadoAnterior,
   obtenerLabelEstadoAnterior
 } from '../constants/estadosImportacion';
-
-const METODOS_PAGO = [
-  { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
-  { value: 'dolares_billete', label: '💸 Dólares Billete' },
-  { value: 'transferencia', label: '🏦 Transferencia' },
-  { value: 'criptomonedas', label: '₿ Criptomonedas' },
-  { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-  { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' }
-];
+import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const ImportacionesSection = () => {
   const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
@@ -409,11 +402,11 @@ const ImportacionesSection = () => {
                           {recibo.numero_recibo}
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
-                          {new Date(recibo.fecha_compra).toLocaleDateString('es-AR')}
+                          {formatearFechaDisplay(recibo.fecha_compra)}
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
                           {recibo.fecha_recepcion_argentina
-                            ? new Date(recibo.fecha_recepcion_argentina).toLocaleDateString('es-AR')
+                            ? formatearFechaDisplay(recibo.fecha_recepcion_argentina)
                             : '-'
                           }
                         </td>

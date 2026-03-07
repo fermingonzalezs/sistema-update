@@ -7,6 +7,7 @@ import { cotizacionService } from '../../services/cotizacionService';
 import { formatearMonto } from '../../utils/formatters';
 import { formatearFechaDisplay } from '../../config/timezone';
 import { supabase } from '../../../lib/supabase';
+import MetodoPagoSelector from '../ui/MetodoPagoSelector';
 
 const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, onLimpiar, onProcesarVenta, clienteInicial = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -1246,21 +1247,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                           Método de Pago 1 *
                         </label>
-                        <select
+                        <MetodoPagoSelector
                           name="metodo_pago_1"
                           value={datosCliente.metodo_pago_1}
                           onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
+                          exclude={['cliente_abona']}
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                        >
-                          <option value="efectivo_pesos">Efectivo en Pesos</option>
-                          <option value="dolares_billete">Dólares Billete</option>
-                          <option value="transferencia">Transferencia</option>
-                          <option value="transferencia_wire">Transferencia Wire</option>
-                          <option value="criptomonedas">Criptomonedas</option>
-                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                          <option value="mercaderia">Mercadería</option>
-                          <option value="cuenta_corriente">Cuenta Corriente</option>
-                        </select>
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
@@ -1318,22 +1311,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                           Método de Pago 2
                         </label>
-                        <select
+                        <MetodoPagoSelector
                           name="metodo_pago_2"
                           value={datosCliente.metodo_pago_2}
                           onChange={(e) => handleMetodoPagoChange(2, e.target.value)}
+                          exclude={['cliente_abona']}
+                          showEmpty={true}
+                          emptyLabel="Seleccionar método"
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                        >
-                          <option value="">Seleccionar método</option>
-                          <option value="efectivo_pesos">Efectivo en Pesos</option>
-                          <option value="dolares_billete">Dólares Billete</option>
-                          <option value="transferencia">Transferencia</option>
-                          <option value="transferencia_wire">Transferencia Wire</option>
-                          <option value="criptomonedas">Criptomonedas</option>
-                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                          <option value="mercaderia">Mercadería</option>
-                          <option value="cuenta_corriente">Cuenta Corriente</option>
-                        </select>
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
@@ -1391,22 +1377,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
                           Método de Pago 3
                         </label>
-                        <select
+                        <MetodoPagoSelector
                           name="metodo_pago_3"
                           value={datosCliente.metodo_pago_3}
                           onChange={(e) => handleMetodoPagoChange(3, e.target.value)}
+                          exclude={['cliente_abona']}
+                          showEmpty={true}
+                          emptyLabel="Seleccionar método"
                           className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
-                        >
-                          <option value="">Seleccionar método</option>
-                          <option value="efectivo_pesos">Efectivo en Pesos</option>
-                          <option value="dolares_billete">Dólares Billete</option>
-                          <option value="transferencia">Transferencia</option>
-                          <option value="transferencia_wire">Transferencia Wire</option>
-                          <option value="criptomonedas">Criptomonedas</option>
-                          <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                          <option value="mercaderia">Mercadería</option>
-                          <option value="cuenta_corriente">Cuenta Corriente</option>
-                        </select>
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">

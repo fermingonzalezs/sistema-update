@@ -48,25 +48,30 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
     }, 0);
   }, [pesosReales, recibo.importaciones_items]);
 
-  const costoTotalAdicional = calculosImportacion.calcularCostoTotalImportacion(
+  const costoTotalEnvio = calculosImportacion.calcularCostoTotalImportacion(
     formDatos.pago_courier_usd,
     formDatos.costo_picking_shipping_usd
   );
+
+  const porcentajeFinanciero = parseFloat(recibo.porcentaje_financiero) || 0;
 
   // Proyección de distribución de costos POR PESO
   const costosPorItem = useMemo(() => {
     return (recibo.importaciones_items || []).map(item => {
       const pesoEstimado = item.peso_estimado_total_kg || 0;
       const proporcionPeso = totalPesoEstimado > 0 ? pesoEstimado / totalPesoEstimado : 0;
-      const costoAdicional = proporcionPeso * costoTotalAdicional;
-      const costoFinalUnitario = item.precio_unitario_usd + (costoAdicional / item.cantidad);
+      const costoEnvioTotal = proporcionPeso * costoTotalEnvio;
+      const costoEnvioUnitario = item.cantidad > 0 ? costoEnvioTotal / item.cantidad : 0;
+      const costoFinancieroUnitario = parseFloat(item.precio_unitario_usd) * porcentajeFinanciero / 100;
+      const costoTotalUnitario = costoEnvioUnitario + costoFinancieroUnitario;
       return {
         item_id: item.id,
-        costoAdicional: costoAdicional,
-        costoFinalUnitario: costoFinalUnitario
+        costoEnvioUnitario,
+        costoFinancieroUnitario,
+        costoTotalUnitario,
       };
     });
-  }, [recibo.importaciones_items, totalPesoEstimado, costoTotalAdicional]);
+  }, [recibo.importaciones_items, totalPesoEstimado, costoTotalEnvio, porcentajeFinanciero]);
 
   const guardarRecepcion = async () => {
     // Validaciones
@@ -157,11 +162,12 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Total USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Unit. (kg)</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Total (kg)</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costo Adic. Unit. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costo Adic. Total USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Envío Unit.</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Financiero Unit.</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Total Unit.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -185,10 +191,13 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                         </td>
                         <td className="px-4 py-3 text-center text-slate-600">{pesoTotalReal.toFixed(2)} kg</td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                          ${formatNumber((costosPorItem[idx]?.costoAdicional || 0) / item.cantidad)}
+                          ${formatNumber(costosPorItem[idx]?.costoEnvioUnitario || 0)}
                         </td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                          ${formatNumber(costosPorItem[idx]?.costoAdicional || 0)}
+                          ${formatNumber(costosPorItem[idx]?.costoFinancieroUnitario || 0)}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold text-emerald-700">
+                          ${formatNumber(costosPorItem[idx]?.costoTotalUnitario || 0)}
                         </td>
                       </tr>
                     );
@@ -296,18 +305,32 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 <span className="font-semibold text-slate-800">USD ${formatNumber(parseFloat(formDatos.costo_picking_shipping_usd || 0))}</span>
               </div>
               <div className="flex justify-between text-slate-600 pb-3 border-b border-slate-200">
-                <span>Costo Total Adicional (USD):</span>
-                <span className="font-semibold text-slate-800">USD ${formatNumber(costoTotalAdicional)}</span>
+                <span>Total Costos de Envío (USD):</span>
+                <span className="font-semibold text-slate-800">USD ${formatNumber(costoTotalEnvio)}</span>
               </div>
+              {porcentajeFinanciero > 0 && (
+                <div className="flex justify-between text-slate-600 pb-3 border-b border-slate-200">
+                  <span>Costos Financieros ({porcentajeFinanciero}% FOB) (USD):</span>
+                  <span className="font-semibold text-slate-800">
+                    USD ${formatNumber(costosPorItem.reduce((sum, c) => {
+                      const item = (recibo.importaciones_items || []).find(i => i.id === c.item_id);
+                      return sum + (c.costoFinancieroUnitario * (item?.cantidad || 1));
+                    }, 0))}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-600 pb-3 border-b border-slate-200">
-                <span>Costo Productos (USD):</span>
+                <span>Costo Productos FOB (USD):</span>
                 <span className="font-semibold text-slate-800">USD ${formatNumber(totalPreciosItems)}</span>
               </div>
 
               <div className="bg-slate-100 border border-slate-300 rounded p-3 mt-3">
                 <div className="flex justify-between font-semibold text-slate-800">
                   <span>COSTO TOTAL IMPORTACIÓN:</span>
-                  <span>USD ${formatNumber(totalPreciosItems + costoTotalAdicional)}</span>
+                  <span>USD ${formatNumber(totalPreciosItems + costoTotalEnvio + costosPorItem.reduce((sum, c) => {
+                    const item = (recibo.importaciones_items || []).find(i => i.id === c.item_id);
+                    return sum + (c.costoFinancieroUnitario * (item?.cantidad || 1));
+                  }, 0))}</span>
                 </div>
               </div>
             </div>

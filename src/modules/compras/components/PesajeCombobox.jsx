@@ -12,7 +12,7 @@ import NuevoPesajeModal from './NuevoPesajeModal';
  *  - onSelect: ({ nombre, peso_kg }) => void
  */
 const PesajeCombobox = ({ value, onSelect }) => {
-  const { pesajes } = usePesajes();
+  const { pesajes, crearPesaje } = usePesajes();
 
   const [query, setQuery] = useState(value || '');
   const [open, setOpen] = useState(false);
@@ -125,6 +125,7 @@ const PesajeCombobox = ({ value, onSelect }) => {
       {showModal && (
         <NuevoPesajeModal
           nombreInicial={query.trim()}
+          crearPesaje={crearPesaje}
           onClose={() => setShowModal(false)}
           onSuccess={handleModalSuccess}
         />

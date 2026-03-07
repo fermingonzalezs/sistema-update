@@ -6,16 +6,7 @@ import { calculosImportacion } from '../utils/calculosImportacion';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import NuevoProveedorModal from './NuevoProveedorModal';
 import PesajeCombobox from '../../compras/components/PesajeCombobox';
-
-const METODOS_PAGO = [
-  { value: 'efectivo_pesos', label: '💵 Efectivo en Pesos' },
-  { value: 'dolares_billete', label: '💸 Dólares Billete' },
-  { value: 'transferencia', label: '🏦 Transferencia' },
-  { value: 'criptomonedas', label: '₿ Criptomonedas' },
-  { value: 'tarjeta_credito', label: '💳 Tarjeta de Crédito' },
-  { value: 'cuenta_corriente', label: '🏷️ Cuenta Corriente' },
-  { value: 'cliente_abona', label: '👤 Cliente Abona' }
-];
+import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const NuevaImportacionModal = ({ onClose, onSuccess }) => {
   const { crearRecibo } = useImportaciones();
@@ -29,6 +20,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     tracking_number: '',
     empresa_logistica: '',
     fecha_estimada_ingreso: '',
+    porcentaje_financiero: '',
     observaciones: ''
   });
 
@@ -38,6 +30,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     precio_unitario_usd: '',
     peso_estimado_unitario_kg: '',
     color: '',
+    almacenamiento: '',
     link_producto: '',
     observaciones: ''
   });
@@ -85,6 +78,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
       precio_unitario_usd: '',
       peso_estimado_unitario_kg: '',
       color: '',
+      almacenamiento: '',
       link_producto: '',
       observaciones: ''
     });
@@ -144,9 +138,9 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded border border-slate-200 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
-        <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
+        <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
           <h3 className="text-xl font-semibold">Nueva Importación</h3>
           <button onClick={onClose} className="text-slate-300 hover:text-white">
             <X size={24} />
@@ -249,6 +243,22 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   />
                 </div>
 
+                {/* COSTO FINANCIERO */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Costo Financiero (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="Ej: 1.5"
+                    value={formRecibo.porcentaje_financiero}
+                    onChange={(e) => setFormRecibo({ ...formRecibo, porcentaje_financiero: e.target.value })}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">% sobre el precio FOB de cada equipo</p>
+                </div>
+
                 {/* DESCRIPCIÓN */}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
@@ -325,6 +335,16 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Almacenamiento</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: 256GB, 1TB..."
+                    value={formItem.almacenamiento}
+                    onChange={(e) => setFormItem({ ...formItem, almacenamiento: e.target.value })}
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Link del Producto (opcional)</label>
@@ -358,6 +378,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Color</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Almacenamiento</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
@@ -371,6 +392,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                       <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                         <td className="px-4 py-3 text-slate-800">{item.item}</td>
                         <td className="px-4 py-3 text-center text-slate-600">{item.color || '-'}</td>
+                        <td className="px-4 py-3 text-center text-slate-600">{item.almacenamiento || '-'}</td>
                         <td className="px-4 py-3 text-center text-slate-600">{item.cantidad}</td>
                         <td className="px-4 py-3 text-center text-slate-600">${formatNumber(item.precio_unitario_usd)}</td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-800">${formatNumber(item.precio_total_usd)}</td>
@@ -389,7 +411,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   </tbody>
                   <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="4" className="px-4 py-3 text-sm font-semibold text-right">
+                      <td colSpan="5" className="px-4 py-3 text-sm font-semibold text-right">
                         TOTAL:
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-center">

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useProveedores } from '../hooks/useProveedores';
+import MetodoPagoSelector from '../../../shared/components/ui/MetodoPagoSelector';
 
 const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
   const { proveedores } = useProveedores();
@@ -126,22 +127,13 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
-                    <select
+                    <MetodoPagoSelector
                       value={reciboEditado.metodo_pago}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, metodo_pago: e.target.value })}
                       disabled={isSubmitting}
+                      showEmpty={true}
                       className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    >
-                      <option value="">Seleccionar método</option>
-                      <option value="efectivo_pesos">💵 Efectivo en Pesos</option>
-                      <option value="dolares_billete">💸 Dólares Billete</option>
-                      <option value="transferencia">🏦 Transferencia</option>
-                      <option value="transferencia_wire">🌐 Transferencia Wire</option>
-                      <option value="criptomonedas">₿ Criptomonedas</option>
-                      <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                      <option value="mercaderia">📦 Mercadería</option>
-                      <option value="cuenta_corriente">🏷️ Cuenta Corriente</option>
-                    </select>
+                    />
                   </div>
 
                   <div>

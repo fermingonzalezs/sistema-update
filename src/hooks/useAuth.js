@@ -185,9 +185,9 @@ export const useAuth = () => {
   // Mapeo de roles a secciones permitidas
   const ROLE_SECTIONS = {
     admin: ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras', 'ingreso-equipos'],
-    ventas: ['ventas', 'ingreso-equipos'],
+    ventas: ['ventas', 'ingreso-equipos', 'compras'],
     soporte: ['soporte'],
-    contabilidad: ['contabilidad', 'administracion'],
+    contabilidad: ['contabilidad', 'administracion', 'compras'],
     compras: ['compras', 'ingreso-equipos'],
   };
 
