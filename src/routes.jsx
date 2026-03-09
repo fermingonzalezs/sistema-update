@@ -7,7 +7,8 @@ import Layout from './shared/components/layout/Layout';
 
 // Ruta protegida por sección
 const ProtectedRoute = ({ section, children }) => {
-    const { hasAccess } = useAuthContext();
+    const { hasAccess, loading } = useAuthContext();
+    if (loading) return null;
     if (!hasAccess(section)) {
         return <DefaultRedirect />;
     }

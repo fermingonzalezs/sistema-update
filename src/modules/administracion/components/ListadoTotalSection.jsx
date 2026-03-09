@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown, Pencil, Check, X } from 'lucide-react';
+import { Search, Package, DollarSign, TrendingUp, Download, ChevronDown, Pencil, Check, X, FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
@@ -7,6 +7,7 @@ import { useInventario } from '../../ventas/hooks/useInventario';
 import { useCelulares } from '../../ventas/hooks/useCelulares';
 import { useOtros } from '../../ventas/hooks/useOtros';
 import * as XLSX from 'xlsx-js-style';
+import { generarStockTotalPDF } from '../pdf/StockTotalPDF';
 
 // Cotización mock (en producción vendría de una API)
 const COTIZACION_MOCK = 1200;
@@ -55,6 +56,7 @@ const ListadoTotalSection = () => {
   // Estado para el menú desplegable de exportar
   const [mostrarMenuExportar, setMostrarMenuExportar] = useState(false);
   const menuExportarRef = useRef(null);
+  const [generandoPDF, setGenerandoPDF] = useState(false);
 
   // Estados para edición inline
   const [filaEditando, setFilaEditando] = useState(null);
@@ -698,6 +700,22 @@ const ListadoTotalSection = () => {
     }
   };
 
+  // Función para exportar PDF de stock gerencial
+  const exportarPDF = async () => {
+    setMostrarMenuExportar(false);
+    setGenerandoPDF(true);
+    try {
+      const result = await generarStockTotalPDF(computers, celulares, otros);
+      if (!result.success) {
+        alert('Error al generar el PDF: ' + result.error);
+      }
+    } catch (error) {
+      alert('Error al generar el PDF: ' + error.message);
+    } finally {
+      setGenerandoPDF(false);
+    }
+  };
+
   // Funciones para edición inline
   const iniciarEdicionFila = (producto) => {
     setFilaEditando(producto.id);
@@ -912,7 +930,7 @@ const ListadoTotalSection = () => {
 
               {/* Menú desplegable */}
               {mostrarMenuExportar && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded border border-slate-200 shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded border border-slate-200 shadow-lg z-10">
                   <button
                     onClick={exportarExcel}
                     className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
@@ -926,6 +944,14 @@ const ListadoTotalSection = () => {
                   >
                     <Download className="w-4 h-4" />
                     Mensaje
+                  </button>
+                  <button
+                    onClick={exportarPDF}
+                    disabled={generandoPDF}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-200 disabled:opacity-50"
+                  >
+                    <FileText className="w-4 h-4" />
+                    {generandoPDF ? 'Generando...' : 'Reporte interno'}
                   </button>
                 </div>
               )}
