@@ -1,10 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { X, Monitor, Smartphone, Box, AlertTriangle, Save, Loader } from 'lucide-react';
-import { formatearMonto, formatearFechaParaInput, parseFechaLocal } from '../../../shared/utils/formatters';
+import { formatearMonto } from '../../../shared/utils/formatters';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
 import { useVentas } from '../../../modules/ventas/hooks/useVentas';
 import MetodoPagoSelector from '../../../shared/components/ui/MetodoPagoSelector';
+
+// Parsear string formateado (con puntos de miles y coma decimal) a número
+const parsearMonto = (valor) => {
+  if (!valor && valor !== 0) return 0;
+  if (typeof valor === 'number') return valor;
+  const str = String(valor).replace(/\./g, '').replace(',', '.');
+  return parseFloat(str) || 0;
+};
+
+// Formatear número para mostrar en input (puntos de miles, sin decimales salvo que existan)
+const formatearMontoInput = (valor) => {
+  const num = parsearMonto(valor);
+  if (!num) return '';
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(num);
+};
+
+// Métodos que se ingresan en pesos ARS
+const esMetodoEnPesos = (metodo) =>
+  ['efectivo_pesos', 'transferencia', 'tarjeta_credito'].includes(metodo);
 
 const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   if (!transaccion) return null;
@@ -14,14 +36,19 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
 
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [items, setItems] = useState([]);
+
+  // 3 métodos de pago — montos almacenados en moneda nativa del método (ARS o USD)
   const [metodoPago1, setMetodoPago1] = useState('');
-  const [montoPago1, setMontoPago1] = useState(0);
+  const [montoPago1, setMontoPago1] = useState('');
   const [metodoPago2, setMetodoPago2] = useState('');
-  const [montoPago2, setMontoPago2] = useState(0);
+  const [montoPago2, setMontoPago2] = useState('');
+  const [metodoPago3, setMetodoPago3] = useState('');
+  const [montoPago3, setMontoPago3] = useState('');
+
+  const [cotizacion, setCotizacion] = useState(1000);
   const [vendedor, setVendedor] = useState('');
   const [fechaVenta, setFechaVenta] = useState('');
   const [observaciones, setObservaciones] = useState('');
-  const [advertenciaCC, setAdvertenciaCC] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   // Totales calculados
@@ -30,60 +57,87 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   const [margenTotal, setMargenTotal] = useState(0);
   const [margenPct, setMargenPct] = useState(0);
 
-  // Cargar vendedores
-  useEffect(() => {
-    fetchVendedores();
-  }, []);
+  useEffect(() => { fetchVendedores(); }, []);
 
   // Inicializar datos
   useEffect(() => {
-    if (transaccion) {
-      // Cliente inicial (simulado, el selector lo manejará)
-      setClienteSeleccionado({
-        id: transaccion.cliente_id,
-        nombre: transaccion.cliente_nombre?.split(' ')[0] || '',
-        apellido: transaccion.cliente_nombre?.split(' ').slice(1).join(' ') || '',
-        email: transaccion.cliente_email,
-        telefono: transaccion.cliente_telefono
-      });
+    if (!transaccion) return;
 
-      // Items
-      setItems(transaccion.venta_items || []);
+    setClienteSeleccionado({
+      id: transaccion.cliente_id,
+      nombre: transaccion.cliente_nombre?.split(' ')[0] || '',
+      apellido: transaccion.cliente_nombre?.split(' ').slice(1).join(' ') || '',
+      email: transaccion.cliente_email,
+      telefono: transaccion.cliente_telefono
+    });
 
-      // Métodos de pago
-      setMetodoPago1(transaccion.metodo_pago || 'efectivo_pesos');
-      setMontoPago1(parseFloat(transaccion.monto_pago_1 || 0));
-      setMetodoPago2(transaccion.metodo_pago_2 || '');
-      setMontoPago2(parseFloat(transaccion.monto_pago_2 || 0));
+    setItems((transaccion.venta_items || []).map(item => ({
+      ...item,
+      precio_unitario: formatearMontoInput(item.precio_unitario)
+    })));
 
-      // Vendedor
-      setVendedor(transaccion.vendedor || '');
+    const cotiz = transaccion.cotizacion_dolar || 1000;
+    setCotizacion(cotiz);
 
-      // Fecha (formato YYYY-MM-DD) - usar split para evitar problemas de timezone
-      const fechaStr = transaccion.fecha_venta.split('T')[0];
-      setFechaVenta(fechaStr);
+    // Método 1: si era en pesos, mostrar el monto en ARS almacenado
+    const m1 = transaccion.metodo_pago || 'efectivo_pesos';
+    setMetodoPago1(m1);
+    const monto1 = esMetodoEnPesos(m1)
+      ? (transaccion.monto_pago_1_ars || (transaccion.monto_pago_1 || 0) * cotiz)
+      : (transaccion.monto_pago_1 || 0);
+    setMontoPago1(formatearMontoInput(monto1));
 
-      // Observaciones
-      setObservaciones(transaccion.observaciones || '');
+    // Método 2
+    const m2 = transaccion.metodo_pago_2 || '';
+    setMetodoPago2(m2);
+    if (m2) {
+      const monto2 = esMetodoEnPesos(m2)
+        ? (transaccion.monto_pago_2_ars || (transaccion.monto_pago_2 || 0) * cotiz)
+        : (transaccion.monto_pago_2 || 0);
+      setMontoPago2(formatearMontoInput(monto2));
     }
+
+    // Método 3
+    const m3 = transaccion.metodo_pago_3 || '';
+    setMetodoPago3(m3);
+    if (m3) {
+      const monto3 = esMetodoEnPesos(m3)
+        ? (transaccion.monto_pago_3_ars || (transaccion.monto_pago_3 || 0) * cotiz)
+        : (transaccion.monto_pago_3 || 0);
+      setMontoPago3(formatearMontoInput(monto3));
+    }
+
+    setVendedor(transaccion.vendedor || '');
+    setFechaVenta(transaccion.fecha_venta.split('T')[0]);
+    setObservaciones(transaccion.observaciones || '');
   }, [transaccion]);
 
   // Recalcular totales cuando cambian items
   useEffect(() => {
     const total = items.reduce((sum, item) =>
-      sum + (parseFloat(item.precio_unitario) * item.cantidad), 0
+      sum + (parsearMonto(item.precio_unitario) * item.cantidad), 0
     );
     const costo = items.reduce((sum, item) =>
       sum + (parseFloat(item.precio_costo) * item.cantidad), 0
     );
     const margen = total - costo;
     const pct = total > 0 ? (margen / total) * 100 : 0;
-
     setTotalVenta(total);
     setTotalCosto(costo);
     setMargenTotal(margen);
     setMargenPct(pct);
   }, [items]);
+
+  // Convertir monto nativo a USD según método
+  const aUSD = (monto, metodo) => {
+    const num = parsearMonto(monto);
+    return esMetodoEnPesos(metodo) ? num / cotizacion : num;
+  };
+
+  const sumaPagosUSD =
+    aUSD(montoPago1, metodoPago1) +
+    (metodoPago2 ? aUSD(montoPago2, metodoPago2) : 0) +
+    (metodoPago3 ? aUSD(montoPago3, metodoPago3) : 0);
 
   const getIconoProducto = (tipo) => {
     switch (tipo) {
@@ -93,39 +147,41 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
     }
   };
 
-  const handlePrecioChange = (itemId, nuevoPrecio) => {
+  const handlePrecioChange = (itemId, valor) => {
     setItems(prev => prev.map(item =>
-      item.id === itemId
-        ? { ...item, precio_unitario: parseFloat(nuevoPrecio) || 0 }
-        : item
+      item.id === itemId ? { ...item, precio_unitario: valor } : item
     ));
   };
 
+  const handlePrecioBlur = (itemId, valor) => {
+    const num = parsearMonto(valor);
+    if (num > 0) handlePrecioChange(itemId, formatearMontoInput(num));
+  };
+
+  const handleMontoBlur = (setter, valor) => {
+    const num = parsearMonto(valor);
+    if (num > 0) setter(formatearMontoInput(num));
+  };
+
+  // Cuando cambia el método, resetear el monto
+  const handleMetodoChange = (setMetodo, setMonto, nuevoMetodo) => {
+    setMetodo(nuevoMetodo);
+    setMonto('');
+  };
+
   const handleGuardar = async () => {
-    // Validaciones
-    if (!clienteSeleccionado) {
-      alert('Debes seleccionar un cliente');
-      return;
-    }
-
-    if (!vendedor) {
-      alert('Debes seleccionar un vendedor');
-      return;
-    }
-
-    const sumaPagos = montoPago1 + montoPago2;
-    if (Math.abs(sumaPagos - totalVenta) > 0.01) {
-      alert(`La suma de pagos ($${sumaPagos.toFixed(2)}) no coincide con el total ($${totalVenta.toFixed(2)})`);
-      return;
-    }
-
-    if (items.some(i => parseFloat(i.precio_unitario) <= 0)) {
+    if (!clienteSeleccionado) { alert('Debes seleccionar un cliente'); return; }
+    if (!vendedor) { alert('Debes seleccionar un vendedor'); return; }
+    if (items.some(i => parsearMonto(i.precio_unitario) <= 0)) {
       alert('Todos los precios deben ser mayores a 0');
+      return;
+    }
+    if (Math.abs(sumaPagosUSD - totalVenta) > 0.01) {
+      alert(`La suma de pagos (U$ ${sumaPagosUSD.toFixed(2)}) no coincide con el total (U$ ${totalVenta.toFixed(2)})`);
       return;
     }
 
     setGuardando(true);
-
     try {
       const result = await actualizarVenta(transaccion.id, {
         cliente_id: clienteSeleccionado.id,
@@ -135,13 +191,16 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
         vendedor,
         fecha_venta: fechaVenta,
         metodo_pago_1: metodoPago1,
-        monto_pago_1: montoPago1,
+        monto_pago_1: aUSD(montoPago1, metodoPago1),
         metodo_pago_2: metodoPago2 || null,
-        monto_pago_2: montoPago2 || 0,
+        monto_pago_2: metodoPago2 ? aUSD(montoPago2, metodoPago2) : 0,
+        metodo_pago_3: metodoPago3 || null,
+        monto_pago_3: metodoPago3 ? aUSD(montoPago3, metodoPago3) : 0,
+        cotizacion_dolar: cotizacion,
         observaciones,
         items: items.map(i => ({
           id: i.id,
-          precio_unitario: parseFloat(i.precio_unitario)
+          precio_unitario: parsearMonto(i.precio_unitario)
         }))
       });
 
@@ -160,22 +219,64 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
     }
   };
 
+  const renderFilaPago = (num, metodo, setMetodo, monto, setMonto) => {
+    const enPesos = esMetodoEnPesos(metodo);
+    const monedaLabel = enPesos ? 'ARS' : 'USD';
+    const esOpcional = num > 1;
+
+    return (
+      <div key={num} className="grid grid-cols-2 gap-4 items-end">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Método {num}{!esOpcional ? ' *' : ''}
+          </label>
+          <MetodoPagoSelector
+            value={metodo}
+            onChange={(e) => handleMetodoChange(setMetodo, setMonto, e.target.value)}
+            exclude={['cliente_abona']}
+            showEmpty={esOpcional}
+            emptyLabel={`Sin método ${num}`}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Monto ({monedaLabel}){!esOpcional ? ' *' : ''}
+            {enPesos && cotizacion > 0 && parsearMonto(monto) > 0 && (
+              <span className="text-xs text-slate-500 ml-2">
+                = U$ {(parsearMonto(monto) / cotizacion).toFixed(2)}
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+            onBlur={(e) => handleMontoBlur(setMonto, e.target.value)}
+            disabled={esOpcional && !metodo}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
+            placeholder={enPesos ? '0' : '0'}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const diferencia = Math.abs(sumaPagosUSD - totalVenta);
+
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-slate-800 p-6 text-white flex items-center justify-between sticky top-0 z-10">
           <h2 className="text-xl font-semibold">EDITAR TRANSACCIÓN {transaccion.numero_transaccion}</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-700 rounded transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Sección Cliente */}
+          {/* Cliente */}
           <div className="border border-slate-200 rounded p-4">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">CLIENTE</h3>
             <ClienteSelector
@@ -185,7 +286,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             />
           </div>
 
-          {/* Sección Items */}
+          {/* Productos */}
           <div className="border border-slate-200 rounded p-4">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">PRODUCTOS</h3>
             <div className="overflow-x-auto mb-4">
@@ -194,7 +295,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase">Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase">Cant</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Precio Unit</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Precio Unit (USD)</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase">Subtotal</th>
                   </tr>
                 </thead>
@@ -207,20 +308,18 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                           <span className="text-slate-800">{item.copy_documento || item.copy}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-slate-800">
-                        {item.cantidad}
-                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">{item.cantidad}</td>
                       <td className="px-4 py-3 text-center">
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
                           value={item.precio_unitario}
                           onChange={(e) => handlePrecioChange(item.id, e.target.value)}
-                          className="w-24 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 text-center"
+                          onBlur={(e) => handlePrecioBlur(item.id, e.target.value)}
+                          className="w-28 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 text-center"
                         />
                       </td>
                       <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
-                        {formatearMonto(item.precio_unitario * item.cantidad, 'USD')}
+                        {formatearMonto(parsearMonto(item.precio_unitario) * item.cantidad, 'USD')}
                       </td>
                     </tr>
                   ))}
@@ -228,7 +327,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
               </table>
             </div>
 
-            {/* Vista previa totales */}
+            {/* Totales */}
             <div className="grid grid-cols-4 gap-4 mt-4">
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
                 <div className="text-xs text-slate-600 uppercase">Total Venta</div>
@@ -253,60 +352,35 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Sección Métodos de Pago */}
+          {/* Métodos de Pago */}
           <div className="border border-slate-200 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-800 mb-3">MÉTODOS DE PAGO</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Método 1 *</label>
-                <MetodoPagoSelector
-                  value={metodoPago1}
-                  onChange={(e) => setMetodoPago1(e.target.value)}
-                  exclude={['cliente_abona']}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Monto 1 (USD) *</label>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-800">MÉTODOS DE PAGO</h3>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-600">Cotización U$:</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={montoPago1}
-                  onChange={(e) => setMontoPago1(parseFloat(e.target.value) || 0)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Método 2</label>
-                <MetodoPagoSelector
-                  value={metodoPago2}
-                  onChange={(e) => setMetodoPago2(e.target.value)}
-                  exclude={['cliente_abona']}
-                  showEmpty={true}
-                  emptyLabel="Sin segundo método"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Monto 2 (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={montoPago2}
-                  onChange={(e) => setMontoPago2(parseFloat(e.target.value) || 0)}
-                  disabled={!metodoPago2}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
+                  type="text"
+                  value={cotizacion}
+                  onChange={(e) => setCotizacion(parseFloat(e.target.value) || 0)}
+                  className="w-24 border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 text-center"
                 />
               </div>
             </div>
-            {Math.abs((montoPago1 + montoPago2) - totalVenta) > 0.01 && (
-              <div className="mt-3 text-sm text-amber-600 bg-amber-50 border border-amber-200 p-2 rounded">
-                ⚠️ La suma de pagos (${(montoPago1 + montoPago2).toFixed(2)}) no coincide con el total (${totalVenta.toFixed(2)})
+
+            <div className="space-y-4">
+              {renderFilaPago(1, metodoPago1, setMetodoPago1, montoPago1, setMontoPago1)}
+              {renderFilaPago(2, metodoPago2, setMetodoPago2, montoPago2, setMontoPago2)}
+              {renderFilaPago(3, metodoPago3, setMetodoPago3, montoPago3, setMontoPago3)}
+            </div>
+
+            {diferencia > 0.01 && (
+              <div className="mt-4 text-sm text-amber-600 bg-amber-50 border border-amber-200 p-2 rounded">
+                ⚠️ Suma de pagos (U$ {sumaPagosUSD.toFixed(2)}) ≠ total venta (U$ {totalVenta.toFixed(2)})
               </div>
             )}
           </div>
 
-          {/* Sección Vendedor y Fecha */}
+          {/* Vendedor y Fecha */}
           <div className="border border-slate-200 rounded p-4">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">INFORMACIÓN ADICIONAL</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -337,7 +411,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Sección Observaciones */}
+          {/* Observaciones */}
           <div className="border border-slate-200 rounded p-4">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">OBSERVACIONES</h3>
             <textarea
@@ -350,7 +424,9 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
           </div>
 
           {/* Advertencia CC */}
-          {advertenciaCC && (
+          {(transaccion.metodo_pago === 'cuenta_corriente' ||
+            transaccion.metodo_pago_2 === 'cuenta_corriente' ||
+            transaccion.metodo_pago_3 === 'cuenta_corriente') && (
             <div className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded">
               <div className="flex items-start">
                 <AlertTriangle className="w-5 h-5 text-amber-600 mr-3 flex-shrink-0 mt-0.5" />
@@ -358,7 +434,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                   <h4 className="text-amber-800 font-semibold mb-1">Advertencia: Cuenta Corriente</h4>
                   <p className="text-amber-700 text-sm">
                     Esta venta tiene un movimiento en Cuenta Corriente. Los cambios NO se reflejarán automáticamente.
-                    Deberás actualizar manualmente el movimiento en Cuenta Corriente si es necesario.
+                    Deberás actualizar manualmente el movimiento si es necesario.
                   </p>
                 </div>
               </div>
@@ -381,15 +457,9 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             className="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {guardando ? (
-              <>
-                <Loader className="w-4 h-4 animate-spin" />
-                Guardando...
-              </>
+              <><Loader className="w-4 h-4 animate-spin" />Guardando...</>
             ) : (
-              <>
-                <Save className="w-4 h-4" />
-                Guardar Cambios
-              </>
+              <><Save className="w-4 h-4" />Guardar Cambios</>
             )}
           </button>
         </div>
