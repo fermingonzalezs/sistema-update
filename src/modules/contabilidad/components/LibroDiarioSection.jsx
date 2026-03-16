@@ -1072,7 +1072,7 @@ const LibroDiarioSection = () => {
                     N°{asiento.numero}
                   </div>
 
-                  <div className="flex items-center space-x-2 text-md text-gray-600">
+                  <div className="flex items-center space-x-2 text-md text-gray-600 w-28 shrink-0">
                     <Calendar size={14} />
                     <span>{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
                   </div>
