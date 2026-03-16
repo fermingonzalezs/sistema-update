@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Eye, CheckCircle, ShoppingBag, DollarSign, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, CheckCircle, Circle, Loader, ShoppingBag, DollarSign, Package } from 'lucide-react';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { supabase } from '../../../lib/supabase';
 import { useComprasLocales } from '../hooks/useComprasLocales';
 import NuevaCompraModal from './NuevaCompraModal';
 import DetalleCompraModal from './DetalleCompraModal';
@@ -14,6 +15,7 @@ const ComprasSection = () => {
   const [showDetalle, setShowDetalle] = useState(false);
   const [reciboEnDetalle, setReciboEnDetalle] = useState(null);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
+  const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
 
   // Filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -106,6 +108,22 @@ const ComprasSection = () => {
       alert('Error procesando compra: ' + err.message);
     } finally {
       setIsLoadingAction(false);
+    }
+  };
+
+  // Toggle contabilizado
+  const toggleContabilizado = async (reciboId, valorActual) => {
+    try {
+      setActualizandoContabilizado(prev => ({ ...prev, [reciboId]: true }));
+      const { error } = await supabase.from('compras_recibos').update({ contabilizado: !valorActual }).eq('id', reciboId);
+      if (error) throw error;
+      const recibo = recibos.find(r => r.id === reciboId);
+      if (recibo) recibo.contabilizado = !valorActual;
+    } catch (err) {
+      console.error('Error al actualizar contabilizado:', err);
+      alert('Error al actualizar el estado de contabilizado');
+    } finally {
+      setActualizandoContabilizado(prev => ({ ...prev, [reciboId]: false }));
     }
   };
 
@@ -253,16 +271,18 @@ const ComprasSection = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <colgroup>
+                <col style={{ width: '6%' }} />
                 <col style={{ width: '12%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '18%' }} />
-                <col style={{ width: '10%' }} />
-                <col style={{ width: '15%' }} />
-                <col style={{ width: '15%' }} />
-                <col style={{ width: '18%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '17%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '19%' }} />
               </colgroup>
               <thead className="bg-slate-800 text-white">
                 <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cont.</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
@@ -284,7 +304,23 @@ const ComprasSection = () => {
                     : <span className="px-3 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">INGRESADO</span>;
 
                   return (
-                    <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <tr key={recibo.id} className={`transition-colors ${recibo.contabilizado ? 'bg-emerald-50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => toggleContabilizado(recibo.id, recibo.contabilizado)}
+                          disabled={actualizandoContabilizado[recibo.id]}
+                          className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                          title={recibo.contabilizado ? 'Marcar como no contabilizado' : 'Marcar como contabilizado'}
+                        >
+                          {actualizandoContabilizado[recibo.id] ? (
+                            <Loader className="w-4 h-4 text-slate-400 animate-spin" />
+                          ) : recibo.contabilizado ? (
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800">{recibo.numero_recibo}</td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.proveedores?.nombre || '-'}</td>

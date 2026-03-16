@@ -127,8 +127,8 @@ export const ventasService = {
       return sum + (costo * item.cantidad)
     }, 0)
 
-    // 💰 CALCULAR MONTO REAL COBRADO
-    const montoCobrado = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0)
+    // 💰 CALCULAR MONTO REAL COBRADO (pagos + seña - vuelto)
+    const montoCobrado = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0) + (datosCliente.sena_monto || 0) - (datosCliente.vuelto_monto || 0)
     const diferenciaPrecio = montoCobrado - totalVenta
 
     console.log(`💰 Análisis de precios:`, {
@@ -196,7 +196,15 @@ export const ventasService = {
         // Destinos de pago (caja ID o alias/wallet)
         destino_pago_1: datosCliente.destino_pago_1 || null,
         destino_pago_2: datosCliente.destino_pago_2 || null,
-        destino_pago_3: datosCliente.destino_pago_3 || null
+        destino_pago_3: datosCliente.destino_pago_3 || null,
+        sena_monto: datosCliente.sena_monto || 0,
+        sena_monto_ars: datosCliente.sena_monto_ars || null,
+        sena_metodo: datosCliente.sena_metodo || null,
+        sena_caja: datosCliente.sena_caja || null,
+        vuelto_monto: datosCliente.vuelto_monto || 0,
+        vuelto_monto_ars: datosCliente.vuelto_monto_ars || null,
+        vuelto_metodo: datosCliente.vuelto_metodo || null,
+        vuelto_caja: datosCliente.vuelto_caja || null
       }
 
       // Agregar segundo método de pago si existe
@@ -554,7 +562,9 @@ export const ventasService = {
       const montoPago1 = datosActualizados.monto_pago_1 || 0
       const montoPago2 = datosActualizados.monto_pago_2 || 0
       const montoPago3 = datosActualizados.monto_pago_3 || 0
-      const sumaPagos = montoPago1 + montoPago2 + montoPago3
+      const senaMonto = datosActualizados.sena_monto || 0
+      const vueltoMonto = datosActualizados.vuelto_monto || 0
+      const sumaPagos = montoPago1 + montoPago2 + montoPago3 + senaMonto - vueltoMonto
 
       if (Math.abs(sumaPagos - totalVenta) > 0.01) {
         throw new Error(
@@ -609,6 +619,14 @@ export const ventasService = {
           destino_pago_1: datosActualizados.destino_pago_1 || null,
           destino_pago_2: datosActualizados.destino_pago_2 || null,
           destino_pago_3: datosActualizados.destino_pago_3 || null,
+          sena_monto: senaMonto,
+          sena_monto_ars: datosActualizados.sena_monto_ars || null,
+          sena_metodo: datosActualizados.sena_metodo || null,
+          sena_caja: datosActualizados.sena_caja || null,
+          vuelto_monto: vueltoMonto,
+          vuelto_monto_ars: datosActualizados.vuelto_monto_ars || null,
+          vuelto_metodo: datosActualizados.vuelto_metodo || null,
+          vuelto_caja: datosActualizados.vuelto_caja || null,
           total_venta: totalVenta,
           margen_total: margenTotal,
           observaciones: datosActualizados.observaciones || null

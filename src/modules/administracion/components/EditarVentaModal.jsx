@@ -45,6 +45,12 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   const [metodoPago3, setMetodoPago3] = useState('');
   const [montoPago3, setMontoPago3] = useState('');
 
+  // Seña y vuelto
+  const [metodoPagoSena, setMetodoPagoSena] = useState('');
+  const [montoPagoSena, setMontoPagoSena] = useState('');
+  const [metodoPagoVuelto, setMetodoPagoVuelto] = useState('');
+  const [montoPagoVuelto, setMontoPagoVuelto] = useState('');
+
   const [cotizacion, setCotizacion] = useState(1000);
   const [vendedor, setVendedor] = useState('');
   const [fechaVenta, setFechaVenta] = useState('');
@@ -107,6 +113,26 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
       setMontoPago3(formatearMontoInput(monto3));
     }
 
+    // Seña
+    const ms = transaccion.sena_metodo || '';
+    setMetodoPagoSena(ms);
+    if (ms && parseFloat(transaccion.sena_monto) > 0) {
+      const montoSena = esMetodoEnPesos(ms)
+        ? (transaccion.sena_monto_ars || (transaccion.sena_monto || 0) * cotiz)
+        : (transaccion.sena_monto || 0);
+      setMontoPagoSena(formatearMontoInput(montoSena));
+    }
+
+    // Vuelto
+    const mv = transaccion.vuelto_metodo || '';
+    setMetodoPagoVuelto(mv);
+    if (mv && parseFloat(transaccion.vuelto_monto) > 0) {
+      const montoVuelto = esMetodoEnPesos(mv)
+        ? (transaccion.vuelto_monto_ars || (transaccion.vuelto_monto || 0) * cotiz)
+        : (transaccion.vuelto_monto || 0);
+      setMontoPagoVuelto(formatearMontoInput(montoVuelto));
+    }
+
     setVendedor(transaccion.vendedor || '');
     setFechaVenta(transaccion.fecha_venta.split('T')[0]);
     setObservaciones(transaccion.observaciones || '');
@@ -137,7 +163,9 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   const sumaPagosUSD =
     aUSD(montoPago1, metodoPago1) +
     (metodoPago2 ? aUSD(montoPago2, metodoPago2) : 0) +
-    (metodoPago3 ? aUSD(montoPago3, metodoPago3) : 0);
+    (metodoPago3 ? aUSD(montoPago3, metodoPago3) : 0) +
+    (metodoPagoSena ? aUSD(montoPagoSena, metodoPagoSena) : 0) -
+    (metodoPagoVuelto ? aUSD(montoPagoVuelto, metodoPagoVuelto) : 0);
 
   const getIconoProducto = (tipo) => {
     switch (tipo) {
@@ -196,6 +224,14 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
         monto_pago_2: metodoPago2 ? aUSD(montoPago2, metodoPago2) : 0,
         metodo_pago_3: metodoPago3 || null,
         monto_pago_3: metodoPago3 ? aUSD(montoPago3, metodoPago3) : 0,
+        sena_metodo: metodoPagoSena || null,
+        sena_monto: metodoPagoSena ? aUSD(montoPagoSena, metodoPagoSena) : 0,
+        sena_monto_ars: metodoPagoSena && esMetodoEnPesos(metodoPagoSena) ? parsearMonto(montoPagoSena) : null,
+        sena_caja: transaccion.sena_caja || null,
+        vuelto_metodo: metodoPagoVuelto || null,
+        vuelto_monto: metodoPagoVuelto ? aUSD(montoPagoVuelto, metodoPagoVuelto) : 0,
+        vuelto_monto_ars: metodoPagoVuelto && esMetodoEnPesos(metodoPagoVuelto) ? parsearMonto(montoPagoVuelto) : null,
+        vuelto_caja: transaccion.vuelto_caja || null,
         cotizacion_dolar: cotizacion,
         observaciones,
         items: items.map(i => ({
@@ -256,6 +292,46 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             disabled={esOpcional && !metodo}
             className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
             placeholder={enPesos ? '0' : '0'}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderFilaSenaVuelto = (label, metodo, setMetodo, monto, setMonto) => {
+    const enPesos = esMetodoEnPesos(metodo);
+    const monedaLabel = metodo ? (enPesos ? 'ARS' : 'USD') : '';
+
+    return (
+      <div className="grid grid-cols-2 gap-4 items-end">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+          <MetodoPagoSelector
+            value={metodo}
+            onChange={(e) => handleMetodoChange(setMetodo, setMonto, e.target.value)}
+            exclude={['cliente_abona']}
+            showEmpty={true}
+            emptyLabel={`Sin ${label.toLowerCase()}`}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Monto{monedaLabel ? ` (${monedaLabel})` : ''}
+            {enPesos && cotizacion > 0 && parsearMonto(monto) > 0 && (
+              <span className="text-xs text-slate-500 ml-2">
+                = U$ {(parsearMonto(monto) / cotizacion).toFixed(2)}
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+            onBlur={(e) => handleMontoBlur(setMonto, e.target.value)}
+            disabled={!metodo}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
+            placeholder="0"
           />
         </div>
       </div>
@@ -371,6 +447,10 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
               {renderFilaPago(1, metodoPago1, setMetodoPago1, montoPago1, setMontoPago1)}
               {renderFilaPago(2, metodoPago2, setMetodoPago2, montoPago2, setMontoPago2)}
               {renderFilaPago(3, metodoPago3, setMetodoPago3, montoPago3, setMontoPago3)}
+              <div className="border-t border-slate-200 pt-4 space-y-4">
+                {renderFilaSenaVuelto('Seña', metodoPagoSena, setMetodoPagoSena, montoPagoSena, setMontoPagoSena)}
+                {renderFilaSenaVuelto('Vuelto', metodoPagoVuelto, setMetodoPagoVuelto, montoPagoVuelto, setMontoPagoVuelto)}
+              </div>
             </div>
 
             {diferencia > 0.01 && (

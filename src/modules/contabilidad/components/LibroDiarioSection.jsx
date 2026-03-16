@@ -498,6 +498,7 @@ const LibroDiarioSection = () => {
     fechaHasta: '',
     descripcion: ''
   });
+  const [ordenarPor, setOrdenarPor] = useState('numero_desc');
 
   // Estado para paginación
   const [paginaActual, setPaginaActual] = useState(1);
@@ -990,23 +991,31 @@ const LibroDiarioSection = () => {
     }
   };
 
-  const asientosFiltrados = asientos.filter(asiento => {
-    let cumpleFiltros = true;
+  const asientosFiltrados = asientos
+    .filter(asiento => {
+      let cumpleFiltros = true;
 
-    // Filtro de fecha desde (mayor o igual)
-    if (filtros.fechaDesde && asiento.fecha < filtros.fechaDesde) {
-      cumpleFiltros = false;
-    }
-    // Filtro de fecha hasta (menor o igual)
-    if (filtros.fechaHasta && asiento.fecha > filtros.fechaHasta) {
-      cumpleFiltros = false;
-    }
-    if (filtros.descripcion && !asiento.descripcion.toLowerCase().includes(filtros.descripcion.toLowerCase())) {
-      cumpleFiltros = false;
-    }
+      if (filtros.fechaDesde && asiento.fecha < filtros.fechaDesde) {
+        cumpleFiltros = false;
+      }
+      if (filtros.fechaHasta && asiento.fecha > filtros.fechaHasta) {
+        cumpleFiltros = false;
+      }
+      if (filtros.descripcion && !asiento.descripcion.toLowerCase().includes(filtros.descripcion.toLowerCase())) {
+        cumpleFiltros = false;
+      }
 
-    return cumpleFiltros;
-  });
+      return cumpleFiltros;
+    })
+    .sort((a, b) => {
+      switch (ordenarPor) {
+        case 'numero_desc': return (b.numero || 0) - (a.numero || 0);
+        case 'numero_asc':  return (a.numero || 0) - (b.numero || 0);
+        case 'fecha_desc':  return (b.fecha || '').localeCompare(a.fecha || '');
+        case 'fecha_asc':   return (a.fecha || '').localeCompare(b.fecha || '');
+        default: return 0;
+      }
+    });
 
   // Calcular paginación
   const totalPaginas = Math.ceil(asientosFiltrados.length / MOVIMIENTOS_POR_PAGINA);
@@ -1014,10 +1023,10 @@ const LibroDiarioSection = () => {
   const indiceFin = indiceInicio + MOVIMIENTOS_POR_PAGINA;
   const asientosPaginados = asientosFiltrados.slice(indiceInicio, indiceFin);
 
-  // Resetear página cuando cambian los filtros
+  // Resetear página cuando cambian los filtros u ordenamiento
   useEffect(() => {
     setPaginaActual(1);
-  }, [filtros.fechaDesde, filtros.fechaHasta, filtros.descripcion]);
+  }, [filtros.fechaDesde, filtros.fechaHasta, filtros.descripcion, ordenarPor]);
 
   const handleDescargarPDF = async () => {
     try {
@@ -1451,7 +1460,7 @@ const LibroDiarioSection = () => {
 
         {/* Filtros */}
         <div className="bg-gray-50 p-4 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Desde
@@ -1486,9 +1495,24 @@ const LibroDiarioSection = () => {
                 className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ordenar por
+              </label>
+              <select
+                value={ordenarPor}
+                onChange={(e) => setOrdenarPor(e.target.value)}
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              >
+                <option value="numero_desc">N° Asiento (mayor a menor)</option>
+                <option value="numero_asc">N° Asiento (menor a mayor)</option>
+                <option value="fecha_desc">Fecha (más reciente)</option>
+                <option value="fecha_asc">Fecha (más antigua)</option>
+              </select>
+            </div>
             <div className="flex items-end">
               <button
-                onClick={() => setFiltros({ fechaDesde: '', fechaHasta: '', descripcion: '' })}
+                onClick={() => { setFiltros({ fechaDesde: '', fechaHasta: '', descripcion: '' }); setOrdenarPor('numero_desc'); }}
                 className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
               >
                 Limpiar Filtros

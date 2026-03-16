@@ -53,11 +53,23 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     observaciones: '',
     vendedor: '',
     sucursal: 'la_plata',
-    cotizacion_dolar: 1000
+    cotizacion_dolar: 1000,
+    sena_monto: 0,
+    sena_monto_ars: null,
+    sena_metodo: '',
+    sena_caja: '',
+    vuelto_monto: 0,
+    vuelto_monto_ars: null,
+    vuelto_metodo: '',
+    vuelto_caja: ''
   });
 
   // Estado para lista de cajas del plan de cuentas
   const [cajas, setCajas] = useState([]);
+
+  // Estados locales para inputs de seña y vuelto
+  const [inputSena, setInputSena] = useState('');
+  const [inputVuelto, setInputVuelto] = useState('');
 
   // Estados locales para inputs para evitar problema del cursor
   const [inputMontoBase1, setInputMontoBase1] = useState('');
@@ -245,12 +257,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     return carrito.reduce((total, item) => total + item.cantidad, 0);
   };
 
-  // Calcular el monto total cobrado (suma de los montos de pago ingresados, ya convertidos a USD)
+  // Calcular el monto total cobrado (suma de pagos + seña - vuelto, en USD)
   const calcularMontoCobrado = () => {
     const monto1 = datosCliente.monto_pago_1 || 0;
     const monto2 = datosCliente.monto_pago_2 || 0;
     const monto3 = datosCliente.monto_pago_3 || 0;
-    return monto1 + monto2 + monto3;
+    const sena = datosCliente.sena_monto || 0;
+    const vuelto = datosCliente.vuelto_monto || 0;
+    return monto1 + monto2 + monto3 + sena - vuelto;
   };
 
   const getIconoTipo = (tipo) => {
@@ -304,6 +318,42 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       ...prev,
       [`destino_pago_${metodo}`]: destino
     }));
+  };
+
+  const handleSenaMetodoChange = (metodo) => {
+    const montoFloat = parsearInputMiles(inputSena);
+    const enPesos = esMetodoEnPesos(metodo);
+    const montoUSD = enPesos ? montoFloat / datosCliente.cotizacion_dolar : montoFloat;
+    const montoARS = enPesos ? montoFloat : null;
+    setDatosCliente(prev => ({ ...prev, sena_metodo: metodo, sena_caja: '', sena_monto: montoUSD, sena_monto_ars: montoARS }));
+  };
+
+  const handleSenaMontoChange = (valor) => {
+    const formateado = formatearInputMiles(valor);
+    const montoFloat = parsearInputMiles(formateado);
+    setInputSena(formateado);
+    const enPesos = esMetodoEnPesos(datosCliente.sena_metodo);
+    const montoUSD = enPesos ? montoFloat / datosCliente.cotizacion_dolar : montoFloat;
+    const montoARS = enPesos ? montoFloat : null;
+    setDatosCliente(prev => ({ ...prev, sena_monto: montoUSD, sena_monto_ars: montoARS }));
+  };
+
+  const handleVueltoMetodoChange = (metodo) => {
+    const montoFloat = parsearInputMiles(inputVuelto);
+    const enPesos = esMetodoEnPesos(metodo);
+    const montoUSD = enPesos ? montoFloat / datosCliente.cotizacion_dolar : montoFloat;
+    const montoARS = enPesos ? montoFloat : null;
+    setDatosCliente(prev => ({ ...prev, vuelto_metodo: metodo, vuelto_caja: '', vuelto_monto: montoUSD, vuelto_monto_ars: montoARS }));
+  };
+
+  const handleVueltoMontoChange = (valor) => {
+    const formateado = formatearInputMiles(valor);
+    const montoFloat = parsearInputMiles(formateado);
+    setInputVuelto(formateado);
+    const enPesos = esMetodoEnPesos(datosCliente.vuelto_metodo);
+    const montoUSD = enPesos ? montoFloat / datosCliente.cotizacion_dolar : montoFloat;
+    const montoARS = enPesos ? montoFloat : null;
+    setDatosCliente(prev => ({ ...prev, vuelto_monto: montoUSD, vuelto_monto_ars: montoARS }));
   };
 
   const calcularTotalPesos = () => {
@@ -523,8 +573,8 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       return;
     }
 
-    // ✅ VALIDACIÓN: Verificar que hay montos ingresados (sin restricciones de coincidencia exacta)
-    const totalPagadoUSD = datosCliente.monto_pago_1 + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0);
+    // ✅ VALIDACIÓN: Verificar que hay montos ingresados (incluyendo seña, restando vuelto)
+    const totalPagadoUSD = (datosCliente.monto_pago_1 || 0) + (datosCliente.monto_pago_2 || 0) + (datosCliente.monto_pago_3 || 0) + (datosCliente.sena_monto || 0) - (datosCliente.vuelto_monto || 0);
 
     if (totalPagadoUSD <= 0) {
       console.error('❌ No se ha ingresado ningún monto de pago');
@@ -548,8 +598,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     if (!validarDestino(2, datosCliente.metodo_pago_2, datosCliente.monto_pago_2, datosCliente.destino_pago_2)) return;
     if (!validarDestino(3, datosCliente.metodo_pago_3, datosCliente.monto_pago_3, datosCliente.destino_pago_3)) return;
 
-    // Mostrar confirmación
-    setMostrarConfirmacion(true);
+    // Confirmar con alert nativo
+    const mensaje = (datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+      ? `¿Confirmar venta a CUENTA CORRIENTE para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
+      : `¿Confirmar venta para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`;
+
+    if (window.confirm(mensaje)) {
+      confirmarVenta();
+    }
   };
 
   // Funciones para edición de precios
@@ -663,12 +719,24 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       observaciones: '',
       vendedor: '',
       sucursal: 'la_plata',
-      cotizacion_dolar: datosCliente.cotizacion_dolar
+      cotizacion_dolar: datosCliente.cotizacion_dolar,
+      sena_monto: 0,
+      sena_monto_ars: null,
+      sena_metodo: '',
+      sena_caja: '',
+      vuelto_monto: 0,
+      vuelto_monto_ars: null,
+      vuelto_metodo: '',
+      vuelto_caja: ''
     });
     setMostrarFormulario(false);
     setIsOpen(false);
     setAperturaManual(false);
     setCarritoAnterior([]);
+
+    // Limpiar inputs de seña y vuelto
+    setInputSena('');
+    setInputVuelto('');
 
     // Limpiar inputs locales
     setInputMontoBase1('');
@@ -697,7 +765,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     }
 
     setProcesandoVenta(true);
-    setMostrarConfirmacion(false);
 
     try {
       console.log('🚀 Iniciando procesamiento de venta...');
@@ -742,6 +809,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         sucursal: datosCliente.sucursal,
         numeroTransaccion,
         fecha_venta: fechaVentaCompleta,
+        sena_monto: datosCliente.sena_monto || 0,
+        sena_monto_ars: datosCliente.sena_monto_ars || null,
+        sena_metodo: datosCliente.sena_metodo || null,
+        sena_caja: datosCliente.sena_caja || null,
+        vuelto_monto: datosCliente.vuelto_monto || 0,
+        vuelto_monto_ars: datosCliente.vuelto_monto_ars || null,
+        vuelto_metodo: datosCliente.vuelto_metodo || null,
+        vuelto_caja: datosCliente.vuelto_caja || null,
         // ✅ NUEVO: Información para cuenta corriente
         esCuentaCorriente: datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente' || datosCliente.metodo_pago_3 === 'cuenta_corriente',
         total: calcularTotal(),
@@ -1245,7 +1320,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                          Método de Pago 1 *
+                          Pago 1 *
                         </label>
                         <MetodoPagoSelector
                           name="metodo_pago_1"
@@ -1309,7 +1384,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                          Método de Pago 2
+                          Pago 2
                         </label>
                         <MetodoPagoSelector
                           name="metodo_pago_2"
@@ -1323,7 +1398,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                          Monto ({datosCliente.metodo_pago_2 ? obtenerMonedaMetodo(datosCliente.metodo_pago_2) : 'N/A'})
+                          Monto {datosCliente.metodo_pago_2 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_2)})` : ''}
                         </label>
                         <input
                           type="text"
@@ -1375,7 +1450,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                          Método de Pago 3
+                          Pago 3
                         </label>
                         <MetodoPagoSelector
                           name="metodo_pago_3"
@@ -1389,7 +1464,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
-                          Monto ({datosCliente.metodo_pago_3 ? obtenerMonedaMetodo(datosCliente.metodo_pago_3) : 'N/A'})
+                          Monto {datosCliente.metodo_pago_3 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_3)})` : ''}
                         </label>
                         <input
                           type="text"
@@ -1433,6 +1508,118 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             disabled
                             className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
                           />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Seña ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Método seña</label>
+                        <MetodoPagoSelector
+                          value={datosCliente.sena_metodo}
+                          onChange={(e) => handleSenaMetodoChange(e.target.value)}
+                          exclude={['cliente_abona']}
+                          showEmpty={true}
+                          emptyLabel="Sin seña"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Monto {datosCliente.sena_metodo ? `(${obtenerMonedaMetodo(datosCliente.sena_metodo)})` : ''}
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={inputSena}
+                          onChange={(e) => handleSenaMontoChange(e.target.value)}
+                          disabled={!datosCliente.sena_metodo}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-100"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? 'Caja *' : datosCliente.sena_metodo && necesitaInputAlias(datosCliente.sena_metodo) ? 'Alias/Wallet *' : 'Destino'}
+                        </label>
+                        {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? (
+                          <select
+                            value={datosCliente.sena_caja}
+                            onChange={(e) => setDatosCliente(prev => ({ ...prev, sena_caja: e.target.value }))}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          >
+                            <option value="">Seleccionar caja</option>
+                            {cajas.map((caja) => (
+                              <option key={caja.id} value={caja.nombre}>{caja.nombre}</option>
+                            ))}
+                          </select>
+                        ) : datosCliente.sena_metodo && necesitaInputAlias(datosCliente.sena_metodo) ? (
+                          <input
+                            type="text"
+                            value={datosCliente.sena_caja}
+                            onChange={(e) => setDatosCliente(prev => ({ ...prev, sena_caja: e.target.value }))}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder={datosCliente.sena_metodo === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
+                          />
+                        ) : (
+                          <input type="text" disabled value="-" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Vuelto ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Método vuelto</label>
+                        <MetodoPagoSelector
+                          value={datosCliente.vuelto_metodo}
+                          onChange={(e) => handleVueltoMetodoChange(e.target.value)}
+                          exclude={['cliente_abona']}
+                          showEmpty={true}
+                          emptyLabel="Sin vuelto"
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          Monto {datosCliente.vuelto_metodo ? `(${obtenerMonedaMetodo(datosCliente.vuelto_metodo)})` : ''}
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={inputVuelto}
+                          onChange={(e) => handleVueltoMontoChange(e.target.value)}
+                          disabled={!datosCliente.vuelto_metodo}
+                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-100"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                          {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? 'Caja *' : datosCliente.vuelto_metodo && necesitaInputAlias(datosCliente.vuelto_metodo) ? 'Alias/Wallet *' : 'Destino'}
+                        </label>
+                        {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? (
+                          <select
+                            value={datosCliente.vuelto_caja}
+                            onChange={(e) => setDatosCliente(prev => ({ ...prev, vuelto_caja: e.target.value }))}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          >
+                            <option value="">Seleccionar caja</option>
+                            {cajas.map((caja) => (
+                              <option key={caja.id} value={caja.nombre}>{caja.nombre}</option>
+                            ))}
+                          </select>
+                        ) : datosCliente.vuelto_metodo && necesitaInputAlias(datosCliente.vuelto_metodo) ? (
+                          <input
+                            type="text"
+                            value={datosCliente.vuelto_caja}
+                            onChange={(e) => setDatosCliente(prev => ({ ...prev, vuelto_caja: e.target.value }))}
+                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            placeholder={datosCliente.vuelto_metodo === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
+                          />
+                        ) : (
+                          <input type="text" disabled value="-" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-400" />
                         )}
                       </div>
                     </div>
@@ -1593,6 +1780,28 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         </div>
                       </div>
 
+                      {/* Seña y Vuelto en resumen */}
+                      {(datosCliente.sena_monto > 0 || datosCliente.vuelto_monto > 0) && (
+                        <div className="text-center mt-2 space-y-1">
+                          {datosCliente.sena_monto > 0 && (
+                            <p className="text-sm text-emerald-700 font-medium">
+                              + SEÑA ({datosCliente.sena_metodo?.replace(/_/g, ' ').toUpperCase()}): {formatearMonto(parsearInputMiles(inputSena), obtenerMonedaMetodo(datosCliente.sena_metodo))}
+                              {datosCliente.sena_caja && (
+                                <span className="text-slate-500 text-xs ml-1">({datosCliente.sena_caja})</span>
+                              )}
+                            </p>
+                          )}
+                          {datosCliente.vuelto_monto > 0 && (
+                            <p className="text-sm text-slate-600 font-medium">
+                              - VUELTO ({datosCliente.vuelto_metodo?.replace(/_/g, ' ').toUpperCase()}): {formatearMonto(parsearInputMiles(inputVuelto), obtenerMonedaMetodo(datosCliente.vuelto_metodo))}
+                              {datosCliente.vuelto_caja && (
+                                <span className="text-slate-500 text-xs ml-1">({datosCliente.vuelto_caja})</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       {/* Aviso de cuenta corriente */}
                       {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente' || datosCliente.metodo_pago_3 === 'cuenta_corriente') && (
                         <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
@@ -1659,55 +1868,6 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
           </div>
         </div>
       )}
-      {/* Modal de confirmación */}
-      {mostrarConfirmacion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-md w-full">
-            <div className="bg-slate-800 p-6 text-white">
-              <h3 className="text-xl font-semibold">
-                {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                  ? 'CONFIRMAR VENTA'
-                  : 'CONFIRMAR VENTA'
-                }
-              </h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <p className="text-slate-800">
-                {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
-                  ? `¿Confirmar venta a CUENTA CORRIENTE para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?\n\nEsto quedará registrado como deuda pendiente del cliente.`
-                  : `¿Confirmar venta para ${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apellido}?`
-                }
-              </p>
-            </div>
-            <div className="bg-slate-50 p-4 flex justify-end gap-4 border-t border-slate-200">
-              <button
-                onClick={() => setMostrarConfirmacion(false)}
-                className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmarVenta}
-                disabled={procesandoVenta}
-                className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 ${procesandoVenta
-                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
-              >
-                {procesandoVenta ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin"></div>
-                    <span>Procesando...</span>
-                  </>
-                ) : (
-                  <span>Confirmar</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </>
   );
 };

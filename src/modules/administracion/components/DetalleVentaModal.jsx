@@ -156,6 +156,40 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
                   )}
                 </div>
               )}
+
+              {/* Seña */}
+              {parseFloat(transaccion.sena_monto) > 0 && (
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">
+                    {transaccion.sena_metodo ? transaccion.sena_metodo.replace(/_/g, ' ') : 'seña'}
+                  </p>
+                  <p className="text-lg font-semibold text-slate-800">
+                    {formatearMontoPago(transaccion.sena_monto, transaccion.sena_monto_ars)
+                      ?? formatearMonto(transaccion.sena_monto || 0, 'USD')}
+                  </p>
+                  {transaccion.sena_caja && (
+                    <p className="text-xs text-slate-500 mt-1">→ {transaccion.sena_caja}</p>
+                  )}
+                  <p className="text-xs text-slate-400 mt-1">seña</p>
+                </div>
+              )}
+
+              {/* Vuelto */}
+              {parseFloat(transaccion.vuelto_monto) > 0 && (
+                <div className="bg-slate-50 p-3 rounded text-center min-w-[160px]">
+                  <p className="text-xs text-slate-600 font-medium uppercase mb-1">
+                    {transaccion.vuelto_metodo ? transaccion.vuelto_metodo.replace(/_/g, ' ') : 'vuelto'}
+                  </p>
+                  <p className="text-lg font-semibold text-slate-800">
+                    {formatearMontoPago(transaccion.vuelto_monto, transaccion.vuelto_monto_ars)
+                      ?? formatearMonto(transaccion.vuelto_monto || 0, 'USD')}
+                  </p>
+                  {transaccion.vuelto_caja && (
+                    <p className="text-xs text-slate-500 mt-1">→ {transaccion.vuelto_caja}</p>
+                  )}
+                  <p className="text-xs text-slate-400 mt-1">vuelto</p>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 import { useOutletContext } from 'react-router-dom';
-import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, ArrowRight, ArrowLeft, Weight } from 'lucide-react';
+import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, CheckCircle, Circle, Loader, ArrowRight, ArrowLeft, Weight } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
+import { supabase } from '../../../lib/supabase';
 import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
 import { useClientes } from '../../ventas/hooks/useClientes';
@@ -53,6 +54,7 @@ const ImportacionesSection = () => {
   const [reciboToMarkDeposito, setReciboToMarkDeposito] = useState(null);
   const [isMarkingDeposito, setIsMarkingDeposito] = useState(false);
   const [dropdownEstadoAbierto, setDropdownEstadoAbierto] = useState(null);
+  const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
 
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -202,6 +204,21 @@ const ImportacionesSection = () => {
           alert(`Error al cambiar estado: ${err.message}`);
         }
       }
+    }
+  };
+
+  const toggleContabilizado = async (reciboId, valorActual) => {
+    try {
+      setActualizandoContabilizado(prev => ({ ...prev, [reciboId]: true }));
+      const { error } = await supabase.from('importaciones_recibos').update({ contabilizado: !valorActual }).eq('id', reciboId);
+      if (error) throw error;
+      const recibo = recibos.find(r => r.id === reciboId);
+      if (recibo) recibo.contabilizado = !valorActual;
+    } catch (err) {
+      console.error('Error al actualizar contabilizado:', err);
+      alert('Error al actualizar el estado de contabilizado');
+    } finally {
+      setActualizandoContabilizado(prev => ({ ...prev, [reciboId]: false }));
     }
   };
 
@@ -382,6 +399,7 @@ const ImportacionesSection = () => {
                 <table style={{ minWidth: '1200px', width: '100%' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
                     <tr>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Cont.</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">N°</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Compra</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Recepción</th>
@@ -397,7 +415,23 @@ const ImportacionesSection = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {recibosFiltrados.map((recibo, idx) => (
-                      <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <tr key={recibo.id} className={`transition-colors ${recibo.contabilizado ? 'bg-emerald-50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <button
+                            onClick={() => toggleContabilizado(recibo.id, recibo.contabilizado)}
+                            disabled={actualizandoContabilizado[recibo.id]}
+                            className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                            title={recibo.contabilizado ? 'Marcar como no contabilizado' : 'Marcar como contabilizado'}
+                          >
+                            {actualizandoContabilizado[recibo.id] ? (
+                              <Loader className="w-4 h-4 text-slate-400 animate-spin" />
+                            ) : recibo.contabilizado ? (
+                              <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-slate-400" />
+                            )}
+                          </button>
+                        </td>
                         <td className="px-4 py-3 text-sm font-medium text-center text-slate-800 whitespace-nowrap" title={recibo.numero_recibo}>
                           {recibo.numero_recibo}
                         </td>
