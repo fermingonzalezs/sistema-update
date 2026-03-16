@@ -1840,8 +1840,13 @@ const LibroDiarioSection = () => {
                             value={mov.monto}
                             onChange={(e) => {
                               const raw = e.target.value;
+                              // Si el usuario acaba de tipear un punto (termina en '.'), tratarlo como decimal
+                              let normalized = raw;
+                              if (!normalized.includes(',') && normalized.endsWith('.')) {
+                                normalized = normalized.slice(0, -1) + ',';
+                              }
                               // Quitar puntos de miles existentes, separar por coma decimal
-                              const stripped = raw.replace(/\./g, '');
+                              const stripped = normalized.replace(/\./g, '');
                               const parts = stripped.split(',');
                               const intStr = parts[0].replace(/\D/g, '');
                               const intNum = parseInt(intStr, 10);
@@ -1852,7 +1857,7 @@ const LibroDiarioSection = () => {
                               if (parts.length > 1) {
                                 const dec = parts[1].replace(/\D/g, '').slice(0, 2);
                                 actualizarMovimiento(index, 'monto', `${intFormatted},${dec}`);
-                              } else if (raw.endsWith(',')) {
+                              } else if (normalized.endsWith(',')) {
                                 actualizarMovimiento(index, 'monto', `${intFormatted},`);
                               } else {
                                 actualizarMovimiento(index, 'monto', intFormatted);
