@@ -139,7 +139,7 @@ const AppRoutes = () => {
                 <Route path="auditoria" element={<ProtectedRoute section="soporte"><AuditPanel /></ProtectedRoute>} />
 
                 {/* Administración */}
-                <Route path="recuento-stock" element={<ProtectedRoute section="administracion"><RecuentoStockSection /></ProtectedRoute>} />
+                <Route path="recuento-stock" element={<ProtectedRoute section="recuento-stock"><RecuentoStockSection /></ProtectedRoute>} />
                 <Route path="garantias" element={<ProtectedRoute section="administracion"><GarantiasSection /></ProtectedRoute>} />
 
                 {/* Ventas - Documentos */}
