@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Monitor, Smartphone, Box, AlertTriangle, Save, Loader } from 'lucide-react';
+import { X, Monitor, Smartphone, Box, AlertTriangle, Save, Loader, Trash2 } from 'lucide-react';
 import { formatearMonto } from '../../../shared/utils/formatters';
 import ClienteSelector from '../../../modules/ventas/components/ClienteSelector';
 import { useVendedores } from '../../../modules/ventas/hooks/useVendedores';
@@ -173,6 +173,15 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
       case 'celular': return <Smartphone className="w-4 h-4 text-slate-600" />;
       default: return <Box className="w-4 h-4 text-slate-600" />;
     }
+  };
+
+  const handleEliminarItem = (itemId) => {
+    if (items.length <= 1) {
+      alert('La venta debe tener al menos un producto.');
+      return;
+    }
+    if (!window.confirm('¿Eliminar este producto de la venta?')) return;
+    setItems(prev => prev.filter(item => item.id !== itemId));
   };
 
   const handlePrecioChange = (itemId, valor) => {
@@ -373,6 +382,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase">Cant</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase">Precio Unit (USD)</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase">Subtotal</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Eliminar</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -396,6 +406,16 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                       </td>
                       <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
                         {formatearMonto(parsearMonto(item.precio_unitario) * item.cantidad, 'USD')}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleEliminarItem(item.id)}
+                          disabled={items.length <= 1}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Eliminar producto de la venta"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}

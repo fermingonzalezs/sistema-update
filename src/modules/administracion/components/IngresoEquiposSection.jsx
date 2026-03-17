@@ -55,6 +55,7 @@ const IngresoEquiposSection = () => {
         garantias: datos.garantia || datos.garantias || '',
         destino: destinoSeleccionado,
         usuario_ingreso: username,
+        color: datos.color || null,
         notas: `${tipoEquipo.toUpperCase()} - Serial: ${datos.serial || 'N/A'} | Precio Venta: ${datos.precio_venta_usd || 0} | Modelo: ${datos.modelo || datos.nombre_producto || 'N/A'} | Categoria: ${datos.categoria || ''}`
       };
 
@@ -378,6 +379,9 @@ const IngresoEquiposSection = () => {
                   Serial
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Color
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                   Producto
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
@@ -397,13 +401,13 @@ const IngresoEquiposSection = () => {
             <tbody className="divide-y divide-slate-200">
               {ingresosLoading ? (
                 <tr>
-                  <td colSpan="7" className="px-4 py-3 text-center text-slate-500">
+                  <td colSpan="8" className="px-4 py-3 text-center text-slate-500">
                     Cargando historial...
                   </td>
                 </tr>
               ) : ingresosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-4 py-3 text-center text-slate-500">
+                  <td colSpan="8" className="px-4 py-3 text-center text-slate-500">
                     {ingresos.length === 0 ? 'No hay ingresos registrados' : 'No se encontraron ingresos con esos criterios de búsqueda'}
                   </td>
                 </tr>
@@ -419,6 +423,9 @@ const IngresoEquiposSection = () => {
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800">
                         {ingreso.serial && ingreso.serial.trim() !== '' ? ingreso.serial : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-slate-800">
+                        {ingreso.color && ingreso.color.trim() !== '' ? ingreso.color : '-'}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-slate-800">
                         {ingreso.descripcion_completa}

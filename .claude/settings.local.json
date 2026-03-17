@@ -42,7 +42,8 @@
       "Bash(npx vite:*)",
       "mcp__claude_ai_Supabase__list_projects",
       "mcp__claude_ai_Supabase__apply_migration",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "mcp__claude_ai_Supabase__execute_sql"
     ],
     "deny": [],
     "ask": []

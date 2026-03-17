@@ -253,11 +253,32 @@ const ProductModal = ({
                 </div>
               )}
 
+              {/* Tarjeta de reserva/consignación */}
+              {producto.reservado_para && (
+                <div className='text-center bg-emerald-700 p-3 rounded'>
+                  <h3 className="text-sm font-semibold bg-emerald-600 rounded-full p-1 mb-2 text-white text-center uppercase tracking-wider">
+                    {(producto.condicion === 'consignacion') ? 'Consignación' : 'Reservado'}
+                  </h3>
+                  <p className="text-white font-semibold text-sm">{producto.reservado_para}</p>
+                  {producto.reservado_por && (
+                    <p className="text-emerald-200 text-xs mt-1">por {producto.reservado_por}</p>
+                  )}
+                  {producto.reservado_at && (
+                    <p className="text-emerald-200 text-xs mt-0.5">
+                      {new Date(producto.reservado_at).toLocaleDateString('es-AR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                </div>
+              )}
+
             </div>
 
             {/* Botones inferiores barra lateral */}
             <div className="mt-auto space-y-2">
-              {onMarcarReservado && producto.condicion !== 'reservado' && (
+              {onMarcarReservado && producto.condicion !== 'reservado' && producto.condicion !== 'consignacion' && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

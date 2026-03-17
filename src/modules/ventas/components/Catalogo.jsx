@@ -121,6 +121,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [editForm, setEditForm] = useState({});
   const [categoriasOtros, setCategoriasOtros] = useState([]);
   const [garantiaOficialFecha, setGarantiaOficialFecha] = useState('');
+  const [modalReservar, setModalReservar] = useState({ open: false, producto: null, nombre: '', tipo: '' });
 
   // Función para contar productos por subcategoría
   // Usa datosSinFiltroSubcategoria que tiene todos los filtros aplicados
@@ -481,6 +482,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         garantia_oficial: producto.garantia_oficial || "",
         fallas: producto.fallas || "",
         fotos: producto.fotos || "",
+        reservado_para: producto.reservado_para || "",
       });
     } else if (tipo === "celular") {
       setEditForm({
@@ -509,6 +511,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         garantia: producto.garantia || "",
         fallas: producto.fallas || "",
         fotos: producto.fotos || "",
+        reservado_para: producto.reservado_para || "",
       });
     } else {
       setEditForm({
@@ -532,6 +535,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         garantia: producto.garantia || "",
         observaciones: producto.observaciones || "",
         fotos: producto.fotos || "",
+        reservado_para: producto.reservado_para || "",
       });
     }
 
@@ -612,23 +616,55 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
   //   }
   // };
 
-  const handleMarcarReservado = async () => {
-    setEditLoading(true);
-    setEditError(null);
-    setEditSuccess(null);
+  const handleMarcarReservado = () => {
+    setModalReservar({
+      open: true,
+      producto: modalEdit.producto,
+      nombre: '',
+      tipo: 'reservado',
+      origen: 'editModal'
+    });
+  };
+
+  const confirmarReserva = async () => {
+    if (!modalReservar.nombre.trim()) return;
+    const usuarioActual = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
+
+    if (modalReservar.origen === 'editModal') {
+      setEditLoading(true);
+      setEditError(null);
+    }
 
     try {
       await actualizarProducto(
-        modalEdit.producto.id,
-        { condicion: 'reservado', updated_at: new Date().toISOString() },
-        modalEdit.producto._tipoProducto
+        modalReservar.producto.id,
+        {
+          condicion: modalReservar.tipo,
+          reservado_para: modalReservar.nombre.trim(),
+          reservado_por: usuarioActual,
+          reservado_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        modalReservar.producto._tipoProducto
       );
-      setEditSuccess('Producto marcado como reservado');
-      setTimeout(() => closeEditModal(), 1500);
+
+      setModalReservar({ open: false, producto: null, nombre: '', tipo: '' });
+
+      if (modalReservar.origen === 'editModal') {
+        setEditSuccess('Producto marcado como reservado');
+        setTimeout(() => closeEditModal(), 1500);
+      } else {
+        setModalDetalle({ open: false, producto: null });
+      }
     } catch (error) {
-      setEditError(error.message || 'Error al marcar como reservado');
+      if (modalReservar.origen === 'editModal') {
+        setEditError(error.message || 'Error al marcar como reservado');
+      }
+      setModalReservar({ open: false, producto: null, nombre: '', tipo: '' });
     } finally {
-      setEditLoading(false);
+      if (modalReservar.origen === 'editModal') {
+        setEditLoading(false);
+      }
     }
   };
 
@@ -654,6 +690,24 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       if (!editForm.precio_venta_usd || editForm.precio_venta_usd <= 0) {
         throw new Error("El precio debe ser mayor a 0");
       }
+
+      const condicionNormalizada = normalizeCondicion(editForm.condicion);
+      const requiereReserva = condicionNormalizada === 'reservado' || condicionNormalizada === 'consignacion';
+      if (requiereReserva && !editForm.reservado_para?.trim()) {
+        throw new Error(`Debe indicar a nombre de quién se ${condicionNormalizada === 'reservado' ? 'reserva' : 'pone en consignación'}`);
+      }
+
+      const productoOriginal = modalEdit.producto;
+      const eraReservado = productoOriginal.condicion === 'reservado' || productoOriginal.condicion === 'consignacion';
+      const usuarioActual = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
+
+      const camposReserva = requiereReserva
+        ? {
+            reservado_para: editForm.reservado_para.trim(),
+            reservado_por: eraReservado ? (productoOriginal.reservado_por || usuarioActual) : usuarioActual,
+            reservado_at: eraReservado ? (productoOriginal.reservado_at || new Date().toISOString()) : new Date().toISOString(),
+          }
+        : { reservado_para: null, reservado_por: null, reservado_at: null };
 
       // Preparar datos para actualización según el tipo
       let datosActualizados = {
@@ -716,6 +770,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           garantia_oficial: editForm.garantia_oficial,
           fallas: editForm.fallas,
           fotos: editForm.fotos,
+          ...camposReserva,
         };
       } else if (modalEdit.tipo === "celular") {
         const costosAdicionales = parseFloat(editForm.costos_adicionales) || 0;
@@ -751,6 +806,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             : editForm.garantia,
           fallas: editForm.fallas,
           fotos: editForm.fotos,
+          ...camposReserva,
         };
       } else {
         // Productos "otros"
@@ -787,6 +843,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             : editForm.garantia,
           observaciones: editForm.observaciones,
           fotos: editForm.fotos,
+          ...camposReserva,
         };
       }
 
@@ -966,6 +1023,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange("condicion", nuevaCondicion);
+                    if (nuevaCondicion !== 'reservado' && nuevaCondicion !== 'consignacion') {
+                      handleEditFormChange("reservado_para", "");
+                    }
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
                 >
@@ -976,6 +1036,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     </option>
                   ))}
                 </select>
+                {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.reservado_para || ''}
+                      onChange={(e) => handleEditFormChange('reservado_para', e.target.value)}
+                      placeholder="Nombre de la persona..."
+                      className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1535,6 +1609,9 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) => {
                     const nuevaCondicion = e.target.value;
                     handleEditFormChange("condicion", nuevaCondicion);
+                    if (nuevaCondicion !== 'reservado' && nuevaCondicion !== 'consignacion') {
+                      handleEditFormChange("reservado_para", "");
+                    }
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
                 >
@@ -1545,6 +1622,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     </option>
                   ))}
                 </select>
+                {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.reservado_para || ''}
+                      onChange={(e) => handleEditFormChange('reservado_para', e.target.value)}
+                      placeholder="Nombre de la persona..."
+                      className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1933,9 +2024,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </label>
                 <select
                   value={editForm.condicion}
-                  onChange={(e) =>
-                    handleEditFormChange("condicion", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const nuevaCondicion = e.target.value;
+                    handleEditFormChange("condicion", nuevaCondicion);
+                    if (nuevaCondicion !== 'reservado' && nuevaCondicion !== 'consignacion') {
+                      handleEditFormChange("reservado_para", "");
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
                 >
                   <option value="">Seleccionar...</option>
@@ -1945,6 +2040,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     </option>
                   ))}
                 </select>
+                {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.reservado_para || ''}
+                      onChange={(e) => handleEditFormChange('reservado_para', e.target.value)}
+                      placeholder="Nombre de la persona..."
+                      className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -3343,17 +3452,14 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           openEditModal(producto);
           setModalDetalle({ open: false, producto: null });
         } : null}
-        onMarcarReservado={async (producto) => {
-          try {
-            await actualizarProducto(
-              producto.id,
-              { condicion: 'reservado', updated_at: new Date().toISOString() },
-              producto._tipoProducto
-            );
-            setModalDetalle({ open: false, producto: null });
-          } catch (error) {
-            console.error('Error al marcar como reservado:', error);
-          }
+        onMarcarReservado={(producto) => {
+          setModalReservar({
+            open: true,
+            producto,
+            nombre: '',
+            tipo: 'reservado',
+            origen: 'detalleModal'
+          });
         }}
       />
 
@@ -3454,6 +3560,48 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mini modal de reserva/consignación */}
+      {modalReservar.open && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm bg-black/50">
+          <div className="bg-white rounded shadow-xl w-full max-w-sm mx-4">
+            <div className="bg-slate-800 text-white px-5 py-4 rounded-t">
+              <h3 className="font-semibold text-base">
+                {modalReservar.tipo === 'reservado' ? 'Reservar producto' : 'Consignación'}
+              </h3>
+            </div>
+            <div className="p-5">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                {modalReservar.tipo === 'reservado' ? 'A nombre de quién se reserva *' : 'A nombre de quién se pone en consignación *'}
+              </label>
+              <input
+                type="text"
+                value={modalReservar.nombre}
+                onChange={(e) => setModalReservar(prev => ({ ...prev, nombre: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && modalReservar.nombre.trim() && confirmarReserva()}
+                placeholder="Nombre de la persona..."
+                autoFocus
+                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+            <div className="px-5 pb-5 flex justify-end gap-3">
+              <button
+                onClick={() => setModalReservar({ open: false, producto: null, nombre: '', tipo: '' })}
+                className="px-4 py-2 text-sm border border-slate-200 rounded text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarReserva}
+                disabled={!modalReservar.nombre.trim()}
+                className="px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                Confirmar
+              </button>
             </div>
           </div>
         </div>

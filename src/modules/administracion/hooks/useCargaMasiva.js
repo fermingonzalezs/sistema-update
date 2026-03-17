@@ -6,6 +6,7 @@ import { useOtros } from '../../ventas/hooks/useOtros';
 import { supabase } from '../../../lib/supabase';
 import { obtenerTimestampActual, obtenerFechaArgentina } from '../../../shared/config/timezone';
 import { CATEGORIAS_OTROS } from '../../../shared/constants/categoryConstants';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 import {
     validarFormatoSerial,
     validarUnicidadLocal,
@@ -116,27 +117,16 @@ export const useCargaMasiva = (tipoEquipo) => {
     /**
      * Crear registro de ingreso en ingreso_equipos
      */
-    const crearRegistroIngreso = useCallback(async (tipoProducto, equipoId, datosComunes, serial, usuario) => {
+    const crearRegistroIngreso = useCallback(async (tipoProducto, equipoId, datosComunes, serial, usuario, colorItem = null) => {
         try {
-            // Generar descripción del equipo según tipo
+            // Generar descripción del equipo usando el copyGenerator centralizado
             let descripcion = '';
             if (tipoProducto === 'notebook') {
-                descripcion = `${datosComunes.marca || ''} ${datosComunes.modelo || ''} - ${datosComunes.procesador || ''}, RAM ${datosComunes.ram || 0}GB, SSD ${datosComunes.ssd || 0}GB`.trim();
+                descripcion = generateCopy(datosComunes, { tipo: 'notebook_completo' });
             } else if (tipoProducto === 'celular') {
-                descripcion = `${datosComunes.marca || ''} ${datosComunes.modelo || ''} - ${datosComunes.capacidad || 0}GB, ${datosComunes.color || ''}`.trim();
-            } else if (datosComunes.categoria === CATEGORIAS_OTROS.TABLETS) {
-                const partes = [
-                    datosComunes.marca,
-                    datosComunes.modelo,
-                    datosComunes.tamano_pantalla && `${datosComunes.tamano_pantalla}"`,
-                    datosComunes.capacidad_almacenamiento,
-                    datosComunes.color
-                ].filter(Boolean);
-                descripcion = partes.join(' ') || '';
-            } else if (datosComunes.categoria === CATEGORIAS_OTROS.DESKTOP) {
-                descripcion = datosComunes.modelo || '';
+                descripcion = generateCopy(datosComunes, { tipo: 'celular_completo' });
             } else {
-                descripcion = `${datosComunes.nombre_producto || ''} - ${datosComunes.descripcion || ''}`.trim().replace(/^-\s*|-\s*$/, '').trim();
+                descripcion = generateCopy(datosComunes, { tipo: 'otro_completo' });
             }
 
             // Obtener precio de compra según tipo de producto
@@ -173,6 +163,7 @@ export const useCargaMasiva = (tipoEquipo) => {
                 referencia_inventario_id: equipoId,
                 estado: 'completado', // Ya está en stock
                 fecha: obtenerTimestampActual(),
+                color: colorItem || datosComunes.color || null,
                 notas: `Carga masiva - Serial: ${serial}`
             };
 
@@ -320,7 +311,8 @@ export const useCargaMasiva = (tipoEquipo) => {
                         nuevoEquipo.id,
                         datosComunes,
                         item.serial,
-                        usuario
+                        usuario,
+                        datosCompletos.color || null
                     );
                 }
 

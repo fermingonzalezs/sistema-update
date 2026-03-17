@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 
 export const useIngresoEquipos = () => {
   const [ingresos, setIngresos] = useState([]);
@@ -27,6 +28,7 @@ export const useIngresoEquipos = () => {
         (data || []).map(async (ingreso) => {
           let subcategoria = null;
           let serial = null;
+          const color = ingreso.color || null;
 
           if (ingreso.referencia_inventario_id) {
             try {
@@ -72,6 +74,7 @@ export const useIngresoEquipos = () => {
             ...ingreso,
             subcategoria,
             serial,
+            color,
             // Si no hay proveedor en el campo (legacy), usar el nombre del JOIN
             proveedor: ingreso.proveedor || ingreso.proveedores?.nombre || null
           };
@@ -147,31 +150,17 @@ export const useIngresoEquipos = () => {
     );
   };
 
-  // Función helper para generar descripción completa
+  // Función helper para generar descripción completa usando el copyGenerator centralizado
   const generarDescripcionCompleta = (tipoProducto, datos) => {
     switch (tipoProducto) {
       case 'notebook':
-        let modeloNotebook = datos.modelo || '';
-        if (datos.marca && modeloNotebook.toLowerCase().startsWith(datos.marca.toLowerCase())) {
-          modeloNotebook = modeloNotebook.substring(datos.marca.length).trim();
-        }
-        return `${modeloNotebook} - ${datos.pantalla || ''}" - ${datos.procesador || ''} - ${datos.ram || ''}GB RAM - ${datos.ssd || ''}GB SSD${datos.hdd ? ` + ${datos.hdd}GB HDD` : ''}`;
-
+        return generateCopy(datos, { tipo: 'notebook_completo' });
       case 'celular':
-        let modeloCelular = datos.modelo || '';
-        if (datos.marca && modeloCelular.toLowerCase().startsWith(datos.marca.toLowerCase())) {
-          modeloCelular = modeloCelular.substring(datos.marca.length).trim();
-        }
-        return `${modeloCelular} - ${datos.color || ''} - ${datos.capacidad || ''} - Batería: ${datos.porcentaje_bateria || datos.bateria || ''}%`;
-
+        return generateCopy(datos, { tipo: 'celular_completo' });
       case 'otro':
-        const nombre = datos.nombre_producto || datos.descripcion_producto || 'Sin nombre';
-        const descripcion = datos.descripcion ? ` - ${datos.descripcion}` : '';
-        const cantidadTotal = (parseInt(datos.cantidad_la_plata) || 0) + (parseInt(datos.cantidad_mitre) || 0);
-        return `${nombre}${descripcion} - Cantidad: ${cantidadTotal}`;
-
+        return generateCopy(datos, { tipo: 'otro_completo' });
       default:
-        return JSON.stringify(datos);
+        return generateCopy(datos, { tipo: 'otro_completo' });
     }
   };
 

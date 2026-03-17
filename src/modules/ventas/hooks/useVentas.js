@@ -659,6 +659,21 @@ export const ventasService = {
       await Promise.all(itemsUpdatePromises)
       console.log('✅ Items actualizados')
 
+      // 7b. DELETE venta_items eliminados
+      const idsActualizados = new Set(itemsActualizados.map(i => i.id))
+      const idsEliminados = transaccionActual.venta_items
+        .filter(i => !idsActualizados.has(i.id))
+        .map(i => i.id)
+
+      if (idsEliminados.length > 0) {
+        const { error: errorDelete } = await supabase
+          .from('venta_items')
+          .delete()
+          .in('id', idsEliminados)
+        if (errorDelete) throw errorDelete
+        console.log('✅ Items eliminados:', idsEliminados)
+      }
+
       // 8. INSERT audit_log
       const changedFields = []
       if (oldValues.transaccion.cliente_id !== datosActualizados.cliente_id) changedFields.push('cliente_id')
