@@ -14,7 +14,8 @@ export const CONDICIONES = {
   PRESTADO: 'prestado',
   SIN_REPARACION: 'sin_reparacion',
   USO_OFICINA: 'uso_oficina',
-  CONSIGNACION: 'consignacion'
+  CONSIGNACION: 'consignacion',
+  PERDIDO: 'perdido'
 };
 
 export const CONDICIONES_ARRAY = Object.values(CONDICIONES);
@@ -28,7 +29,8 @@ export const CONDICIONES_LABELS = {
   [CONDICIONES.PRESTADO]: 'PRESTADO',
   [CONDICIONES.SIN_REPARACION]: 'SIN REPARACIÓN',
   [CONDICIONES.USO_OFICINA]: 'USO OFICINA',
-  [CONDICIONES.CONSIGNACION]: 'EN CONSIGNACIÓN'
+  [CONDICIONES.CONSIGNACION]: 'EN CONSIGNACIÓN',
+  [CONDICIONES.PERDIDO]: 'PERDIDO'
 };
 
 export const CONDICIONES_COLORES = {
@@ -40,7 +42,8 @@ export const CONDICIONES_COLORES = {
   [CONDICIONES.PRESTADO]: 'bg-cyan-100 text-cyan-700',
   [CONDICIONES.SIN_REPARACION]: 'bg-gray-100 text-gray-700',
   [CONDICIONES.USO_OFICINA]: 'bg-orange-100 text-orange-700',
-  [CONDICIONES.CONSIGNACION]: 'bg-slate-500 text-white'
+  [CONDICIONES.CONSIGNACION]: 'bg-slate-500 text-white',
+  [CONDICIONES.PERDIDO]: 'bg-red-900 text-white'
 };
 
 // ===== ESTADO (Estado Estético) =====

@@ -2,13 +2,42 @@ import React, { useState, useEffect } from 'react';
 import {
   TrendingUp, ShoppingCart, DollarSign, RefreshCw, AlertCircle, LogOut,
   List, Plus, Users, FileText, Camera, BookOpen, Calculator, BarChart3,
-  Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe, Menu
+  Wrench, Package, Monitor, Shield, CreditCard, Truck, Globe, Menu,
+  X, Check
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { cotizacionService } from '../../services/cotizacionService';
 
 const Header = ({ activeSection, isSidebarCollapsed }) => {
-  const { user, logout } = useAuthContext();
+  const { user, logout, updateNombre } = useAuthContext();
+
+  const [modalPerfil, setModalPerfil] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
+  const [errorNombre, setErrorNombre] = useState('');
+
+  const abrirModalPerfil = () => {
+    setNuevoNombre(user?.user_metadata?.nombre || '');
+    setErrorNombre('');
+    setModalPerfil(true);
+  };
+
+  const guardarNombre = async () => {
+    if (!nuevoNombre.trim()) {
+      setErrorNombre('El nombre no puede estar vacío.');
+      return;
+    }
+    setGuardandoNombre(true);
+    setErrorNombre('');
+    try {
+      await updateNombre(nuevoNombre.trim());
+      setModalPerfil(false);
+    } catch (e) {
+      setErrorNombre('Error al guardar. Intentá de nuevo.');
+    } finally {
+      setGuardandoNombre(false);
+    }
+  };
   const currentDate = new Date();
 
   const handleLogout = () => {
@@ -71,6 +100,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
   const sectionInfo = getSectionInfo(activeSection);
 
   return (
+    <>
     <header className="border-b border-slate-200 bg-slate-800">
       <div className="px-8 py-3">
         <div className="flex justify-between items-center">
@@ -86,17 +116,23 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
               {/* Info del usuario */}
               <div className="bg-slate-700 rounded-lg px-3 py-2 border border-slate-600">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center space-x-2 md:space-x-3">
+                  <button
+                    onClick={abrirModalPerfil}
+                    className="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity"
+                    title="Editar perfil"
+                  >
                     <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
                         {user?.user_metadata?.nombre?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <div className="hidden sm:block">
-                      <div className="text-xs font-medium text-white">{user?.user_metadata?.nombre || 'Usuario'}</div>
+                    <div className="hidden sm:block text-left">
+                      <div className="text-xs font-medium text-white">
+                        {user?.user_metadata?.nombre || 'Usuario'}
+                      </div>
                       <div className="text-[10px] text-slate-300 capitalize leading-none">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
                     </div>
-                  </div>
+                  </button>
                   <button
                     onClick={handleLogout}
                     className="p-1 hover:bg-slate-600 rounded transition-colors text-slate-300 hover:text-white"
@@ -159,6 +195,63 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
         </div>
       </div>
     </header>
+
+    {/* Modal editar perfil */}
+    {modalPerfil && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded border border-slate-200 w-full max-w-sm mx-4">
+          <div className="bg-slate-800 text-white px-5 py-4 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Editar nombre de usuario</h3>
+            <button onClick={() => setModalPerfil(false)} className="text-slate-400 hover:text-white transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="p-5 space-y-4">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-white text-base font-bold">
+                    {nuevoNombre?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">{user?.email}</p>
+                  <p className="text-xs text-slate-500 capitalize">{user?.user_metadata?.nivel || 'Sin nivel'}</p>
+                </div>
+              </div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+              <input
+                type="text"
+                value={nuevoNombre}
+                onChange={e => setNuevoNombre(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && guardarNombre()}
+                autoFocus
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Tu nombre"
+              />
+              {errorNombre && <p className="text-xs text-red-600 mt-1">{errorNombre}</p>}
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => setModalPerfil(false)}
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded text-sm font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={guardarNombre}
+                disabled={guardandoNombre}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+                {guardandoNombre ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 

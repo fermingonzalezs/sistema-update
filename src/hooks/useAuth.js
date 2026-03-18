@@ -207,6 +207,14 @@ export const useAuth = () => {
     return ROLE_SECTIONS[nivel] || [];
   };
 
+  const updateNombre = async (nuevoNombre) => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { nombre: nuevoNombre.trim() }
+    });
+    if (error) throw error;
+    if (data?.user) setUser(data.user);
+  };
+
   return {
     user,
     loading,
@@ -215,6 +223,7 @@ export const useAuth = () => {
     logout,
     hasAccess,
     getAllowedSections,
+    updateNombre,
     isAuthenticated: !!user
   };
 };
