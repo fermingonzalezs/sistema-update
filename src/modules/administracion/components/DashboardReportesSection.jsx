@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box, UserPlus, Trophy } from 'lucide-react';
+import { BarChart3, Calendar, DollarSign, Package, TrendingUp, ShoppingCart, Monitor, Smartphone, Box, Trophy } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
@@ -804,7 +804,6 @@ const dashboardService = {
 const useDashboardReportes = () => {
   const [ventasData, setVentasData] = useState(null);
   const [inventarioData, setInventarioData] = useState(null);
-  const [datosAdquisicion, setDatosAdquisicion] = useState([]);
   const [topClientes, setTopClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -815,19 +814,11 @@ const useDashboardReportes = () => {
       setLoading(true);
       setError(null);
 
-      const [ventas, inventario, adquisicion, clientes] = await Promise.all([
+      const [ventas, inventario, clientes] = await Promise.all([
         dashboardService.getVentasEnPeriodo(fechaInicio, fechaFin),
         dashboardService.getInventarioActual(),
-        dashboardService.analizarAdquisicionClientes(fechaInicio, fechaFin),
         dashboardService.obtenerTopClientes(fechaInicio, fechaFin, 10)
       ]);
-
-      console.log('📊 Datos cargados:', {
-        ventasCount: ventas?.length || 0,
-        inventarioKeys: Object.keys(inventario || {}),
-        adquisicionCount: adquisicion?.length || 0,
-        topClientesCount: clientes?.length || 0
-      });
 
       const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventas);
       const inventarioProcessed = dashboardService.procesarInventario(inventario);
@@ -840,7 +831,6 @@ const useDashboardReportes = () => {
 
       setVentasData(ventasProcessed);
       setInventarioData(inventarioProcessed);
-      setDatosAdquisicion(adquisicion);
       setTopClientes(clientes);
 
     } catch (err) {
@@ -851,12 +841,12 @@ const useDashboardReportes = () => {
     }
   };
 
-  return { ventasData, inventarioData, datosAdquisicion, topClientes, loading, error, cargarDatos };
+  return { ventasData, inventarioData, topClientes, loading, error, cargarDatos };
 };
 
 // Componente principal
 const DashboardReportesSection = () => {
-  const { ventasData, inventarioData, datosAdquisicion, topClientes, loading, error, cargarDatos } = useDashboardReportes();
+  const { ventasData, inventarioData, topClientes, loading, error, cargarDatos } = useDashboardReportes();
 
   // Colores por categoría
   const COLORES_CATEGORIAS = {
@@ -890,53 +880,46 @@ const DashboardReportesSection = () => {
     return COLORES_VENDEDORES[index % COLORES_VENDEDORES.length];
   };
 
-  // Filtros de fecha (últimos 30 días por defecto)
-  const [fechaInicio, setFechaInicio] = useState(() => {
-    const fecha = new Date();
-    fecha.setDate(fecha.getDate() - 30);
-    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-  });
+  const calcularPeriodo = (periodo) => {
+    const hoy = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    if (periodo === 'este_mes') {
+      return { inicio: fmt(new Date(hoy.getFullYear(), hoy.getMonth(), 1)), fin: fmt(hoy) };
+    }
+    if (periodo === 'ultimo_mes') {
+      const primerDia = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+      const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+      return { inicio: fmt(primerDia), fin: fmt(ultimoDia) };
+    }
+    if (periodo === 'ultimos_6_meses') {
+      const desde = new Date(hoy.getFullYear(), hoy.getMonth() - 5, 1);
+      return { inicio: fmt(desde), fin: fmt(hoy) };
+    }
+    return null;
+  };
 
-  const [fechaFin, setFechaFin] = useState(() => obtenerFechaLocal());
-
-  // Estados para debugging de nuevos clientes
-  const [procedenciaSeleccionada, setProcedenciaSeleccionada] = useState('todas');
-  const [detalleNuevosClientes, setDetalleNuevosClientes] = useState([]);
-  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+  const [periodoActivo, setPeriodoActivo] = useState('este_mes');
+  const [fechaInicio, setFechaInicio] = useState(() => calcularPeriodo('este_mes').inicio);
+  const [fechaFin, setFechaFin] = useState(() => calcularPeriodo('este_mes').fin);
 
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatos(fechaInicio, fechaFin);
   }, []);
 
+  const seleccionarPeriodo = (periodo) => {
+    const rango = calcularPeriodo(periodo);
+    setPeriodoActivo(periodo);
+    setFechaInicio(rango.inicio);
+    setFechaFin(rango.fin);
+    cargarDatos(rango.inicio, rango.fin);
+  };
+
   const aplicarFiltros = () => {
+    setPeriodoActivo('personalizado');
     cargarDatos(fechaInicio, fechaFin);
   };
-
-  // Función para cargar detalle de nuevos clientes por procedencia
-  const cargarDetalleNuevosClientes = async (procedencia) => {
-    setCargandoDetalle(true);
-    try {
-      const detalle = await dashboardService.obtenerDetalleNuevosClientesPorProcedencia(
-        fechaInicio,
-        fechaFin,
-        procedencia
-      );
-      setDetalleNuevosClientes(detalle);
-    } catch (error) {
-      console.error('Error cargando detalle de nuevos clientes:', error);
-      setDetalleNuevosClientes([]);
-    } finally {
-      setCargandoDetalle(false);
-    }
-  };
-
-  // Cargar detalle cuando cambia la procedencia seleccionada
-  useEffect(() => {
-    if (procedenciaSeleccionada) {
-      cargarDetalleNuevosClientes(procedenciaSeleccionada);
-    }
-  }, [procedenciaSeleccionada, fechaInicio, fechaFin]);
 
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -987,36 +970,55 @@ const DashboardReportesSection = () => {
         </div>
 
         {/* Filtros de fecha */}
-        <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Calendar size={16} className="text-slate-600" />
-              <span className="text-sm font-medium text-slate-700">Período:</span>
+        <div className="p-4 border-t border-slate-200 bg-slate-50">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex items-center gap-2 mr-2 self-end pb-2">
+              <Calendar size={15} className="text-slate-500" />
+              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Período</span>
             </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Fecha inicio</label>
-              <input
-                type="date"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-                className="border border-slate-200 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
+            {[
+              { key: 'este_mes', label: 'ESTE MES' },
+              { key: 'ultimo_mes', label: 'ÚLTIMO MES' },
+              { key: 'ultimos_6_meses', label: 'ÚLTIMOS 6 MESES' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => seleccionarPeriodo(key)}
+                className={`px-4 py-2 text-xs font-semibold rounded border transition-colors ${
+                  periodoActivo === key
+                    ? 'bg-slate-800 text-white border-slate-800'
+                    : 'bg-white text-slate-600 border-slate-300 hover:border-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            <div className="flex items-end gap-2 ml-2 pl-2 border-l border-slate-300">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1 uppercase tracking-wider text-center">Desde</label>
+                <input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => { setFechaInicio(e.target.value); setPeriodoActivo('personalizado'); }}
+                  className="border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1 uppercase tracking-wider text-center">Hasta</label>
+                <input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => { setFechaFin(e.target.value); setPeriodoActivo('personalizado'); }}
+                  className="border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                />
+              </div>
+              <button
+                onClick={aplicarFiltros}
+                className="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded hover:bg-emerald-700 transition-colors"
+              >
+                APLICAR
+              </button>
             </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Fecha fin</label>
-              <input
-                type="date"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-                className="border border-slate-200 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-            </div>
-            <button
-              onClick={aplicarFiltros}
-              className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 text-sm"
-            >
-              Aplicar Filtros
-            </button>
           </div>
         </div>
 
@@ -1068,8 +1070,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="categoria" />
-                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1091,8 +1093,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="sucursal" />
-                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <XAxis dataKey="sucursal" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1118,10 +1120,11 @@ const DashboardReportesSection = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ categoria, cantidad }) => `${categoria}: ${cantidad}`}
+                        label={({ categoria, cantidad }) => `${String(categoria).toUpperCase()}: ${cantidad}`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="cantidad"
+                        nameKey="categoria"
                       >
                         {ventasData?.ventasPorCategoria.map((entry, index) => (
                           <Cell key={'cell-' + index} fill={getColorPorCategoria(entry.categoria)} />
@@ -1132,6 +1135,7 @@ const DashboardReportesSection = () => {
                         layout="vertical"
                         align="right"
                         verticalAlign="middle"
+                        formatter={(value) => String(value).toUpperCase()}
                         wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
                       />
                     </PieChart>
@@ -1150,7 +1154,7 @@ const DashboardReportesSection = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ procedencia, cantidad }) => `${procedencia}: ${cantidad}`}
+                        label={({ procedencia, cantidad }) => `${String(procedencia).toUpperCase()}: ${cantidad}`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="cantidad"
@@ -1165,6 +1169,7 @@ const DashboardReportesSection = () => {
                         layout="vertical"
                         align="right"
                         verticalAlign="middle"
+                        formatter={(value) => String(value).toUpperCase()}
                         wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
                       />
                     </PieChart>
@@ -1179,8 +1184,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorSucursal}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="sucursal" />
-                      <YAxis tickFormatter={(value) => String(value)} />
+                      <XAxis dataKey="sucursal" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => String(value)} />
                       <Tooltip
                         formatter={(value) => [value, 'Transacciones']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1202,8 +1207,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorVendedor}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="vendedor" angle={-45} textAnchor="end" height={80} />
-                      <YAxis tickFormatter={(value) => String(value)} />
+                      <XAxis dataKey="vendedor" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => String(value)} />
                       <Tooltip
                         formatter={(value) => [value, 'Transacciones']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1225,8 +1230,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="categoria" />
-                      <YAxis tickFormatter={(value) => `$${value.toFixed(0)}`} />
+                      <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `$${value.toFixed(0)}`} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ganancia']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1248,8 +1253,8 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="categoria" />
-                      <YAxis tickFormatter={(value) => `${value.toFixed(0)}%`} />
+                      <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `${value.toFixed(0)}%`} />
                       <Tooltip
                         formatter={(value) => [`${value.toFixed(1)}%`, 'Margen']}
                         labelStyle={{ color: '#1e293b' }}
@@ -1273,17 +1278,18 @@ const DashboardReportesSection = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="semana"
+                        tick={{ fontSize: 11, fill: '#64748b' }}
                         tickFormatter={(fecha) => {
                           const [y, m, d] = fecha.split('-');
                           return `${d}/${m}`;
                         }}
                       />
-                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Legend />
+                      <Legend formatter={(value) => String(value).toUpperCase()} wrapperStyle={{ fontSize: '11px' }} />
                       <Bar dataKey="mitre" name="Mitre" fill={COLORES_SUCURSALES['Mitre']} />
                       <Bar dataKey="la_plata" name="La Plata" fill={COLORES_SUCURSALES['La Plata']} />
                     </BarChart>
@@ -1298,13 +1304,13 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={ventasData?.ventasPorDiaSemana}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="dia" />
-                      <YAxis tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <XAxis dataKey="dia" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
                         formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas']}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Legend />
+                      <Legend formatter={(value) => String(value).toUpperCase()} wrapperStyle={{ fontSize: '11px' }} />
                       <Bar dataKey="mitre" name="Mitre" fill={COLORES_SUCURSALES['Mitre']} />
                       <Bar dataKey="la_plata" name="La Plata" fill={COLORES_SUCURSALES['La Plata']} />
                     </BarChart>
@@ -1319,9 +1325,9 @@ const DashboardReportesSection = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <ComposedChart data={ventasData?.ventasPorCategoria}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="categoria" />
-                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" tickFormatter={(value) => `${value.toFixed(1)}%`} />
+                      <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `${value.toFixed(1)}%`} />
                       <Tooltip
                         formatter={(value, name) => {
                           if (name === 'Ventas Totales') return [formatearMonto(value, 'USD'), name];
@@ -1329,7 +1335,7 @@ const DashboardReportesSection = () => {
                           return [value, name];
                         }}
                       />
-                      <Legend />
+                      <Legend formatter={(value) => String(value).toUpperCase()} wrapperStyle={{ fontSize: '11px' }} />
                       <Bar yAxisId="left" dataKey="ventas" name="Ventas Totales" fill="#8884d8" barSize={20} />
                       <Line yAxisId="right" type="monotone" dataKey="margen" name="Margen %" stroke="#82ca9d" strokeWidth={3} />
                     </ComposedChart>
@@ -1337,214 +1343,6 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
-              {/* Análisis de Adquisición de Clientes por Procedencia */}
-              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
-                <div className="p-4 bg-slate-800 text-white border-b">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <UserPlus className="w-5 h-5" />
-                    Nuevos Clientes por Procedencia
-                  </h3>
-                  <p className="text-slate-300 text-sm mt-1">
-                    Clientes que realizaron su primera compra en el período
-                  </p>
-                </div>
-
-                {datosAdquisicion && datosAdquisicion.length > 0 ? (
-                  <>
-                    {/* Gráfico de barras horizontal */}
-                    <div className="p-6">
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={datosAdquisicion} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis dataKey="procedencia" type="category" width={120} />
-                          <Tooltip
-                            formatter={(value, name) => {
-                              if (name === 'nuevosClientes') return [value, 'Nuevos Clientes'];
-                              if (name === 'gastoTotal') return [formatearMonto(value, 'USD'), 'Gasto Total'];
-                              if (name === 'gananciaTotal') return [formatearMonto(value, 'USD'), 'Ganancia'];
-                              return [value, name];
-                            }}
-                            labelStyle={{ color: '#1e293b' }}
-                          />
-                          <Legend />
-                          <Bar dataKey="nuevosClientes" fill="#10b981" name="Nuevos Clientes" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Tabla detallada debajo del gráfico */}
-                    <div className="px-6 pb-6">
-                      <table className="w-full">
-                        <thead className="bg-slate-800 text-white">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                              Procedencia
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                              Nuevos Clientes
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                              Gasto Total
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                              Ganancia
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                              Ventas
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                          {datosAdquisicion.map((item, index) => (
-                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                              <td className="px-4 py-3 text-sm text-slate-800 font-medium">
-                                {item.procedencia}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-center text-slate-800">
-                                {item.nuevosClientes}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right text-slate-800">
-                                {formatearMonto(item.gastoTotal, 'USD')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-medium">
-                                {formatearMonto(item.gananciaTotal, 'USD')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-center text-slate-800">
-                                {item.cantidadVentas}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot className="bg-slate-800 text-white">
-                          <tr>
-                            <td className="px-4 py-3 text-sm font-semibold">TOTALES</td>
-                            <td className="px-4 py-3 text-sm text-center font-semibold">
-                              {datosAdquisicion.reduce((sum, item) => sum + item.nuevosClientes, 0)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold">
-                              {formatearMonto(datosAdquisicion.reduce((sum, item) => sum + item.gastoTotal, 0), 'USD')}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold">
-                              {formatearMonto(datosAdquisicion.reduce((sum, item) => sum + item.gananciaTotal, 0), 'USD')}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center font-semibold">
-                              {datosAdquisicion.reduce((sum, item) => sum + item.cantidadVentas, 0)}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-6 text-center text-slate-500">
-                    No hay nuevos clientes en el período seleccionado
-                  </div>
-                )}
-              </div>
-
-              {/* DEBUG: Detalle de Nuevos Clientes por Procedencia */}
-              <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
-                <div className="p-4 bg-slate-800 text-white border-b">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    🔍 DEBUG: Detalle de Nuevos Clientes por Procedencia
-                  </h3>
-                  <p className="text-slate-300 text-sm mt-1">
-                    Verifica qué clientes se contaron como nuevos en cada procedencia
-                  </p>
-                </div>
-
-                <div className="p-6">
-                  {/* Selector de procedencia */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Seleccionar Procedencia:
-                    </label>
-                    <select
-                      value={procedenciaSeleccionada}
-                      onChange={(e) => setProcedenciaSeleccionada(e.target.value)}
-                      className="w-full md:w-auto border border-slate-200 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    >
-                      <option value="todas">Todas las procedencias</option>
-                      {datosAdquisicion && datosAdquisicion.map((item) => (
-                        <option key={item.procedencia} value={item.procedencia}>
-                          {item.procedencia} ({item.nuevosClientes} clientes)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Tabla de clientes */}
-                  {cargandoDetalle ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-                      <span className="ml-3 text-slate-600">Cargando detalles...</span>
-                    </div>
-                  ) : detalleNuevosClientes && detalleNuevosClientes.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-slate-800 text-white">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                              Cliente
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                              Fecha Primera Compra
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                              Compras en Período
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                              Total Gastado
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                          {detalleNuevosClientes.map((cliente, index) => (
-                            <tr key={cliente.clienteId} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                              <td className="px-4 py-3 text-sm text-slate-800 font-medium">
-                                {cliente.clienteNombre}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-center text-slate-600">
-                                {new Date(cliente.fechaPrimeraCompra).toLocaleDateString('es-ES')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-center text-slate-800">
-                                {cliente.cantidadCompras}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-medium">
-                                {formatearMonto(cliente.totalGastado, 'USD')}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot className="bg-slate-800 text-white">
-                          <tr>
-                            <td className="px-4 py-3 text-sm font-semibold">
-                              TOTAL: {detalleNuevosClientes.length} clientes nuevos
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center font-semibold">
-                              -
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center font-semibold">
-                              {detalleNuevosClientes.reduce((sum, c) => sum + c.cantidadCompras, 0)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold">
-                              {formatearMonto(detalleNuevosClientes.reduce((sum, c) => sum + c.totalGastado, 0), 'USD')}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center text-slate-500">
-                      {procedenciaSeleccionada === 'todas'
-                        ? 'Selecciona una procedencia para ver el detalle'
-                        : `No hay nuevos clientes en la procedencia: ${procedenciaSeleccionada}`
-                      }
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Ranking: Top 10 Clientes */}
               <div className="bg-white border border-slate-200 rounded col-span-1 lg:col-span-2">
