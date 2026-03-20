@@ -102,6 +102,8 @@ const importacionesService = {
           fecha_estimada_ingreso: reciboData.fecha_estimada_ingreso || null,
           observaciones: reciboData.observaciones?.trim() || null,
           porcentaje_financiero: reciboData.porcentaje_financiero ? parseFloat(reciboData.porcentaje_financiero) : null,
+          numero_invoice: reciboData.numero_invoice?.trim() || null,
+          factura_pdf_url: reciboData.factura_pdf_url || null,
           estado: 'en_transito_usa'
         }])
         .select()
@@ -260,6 +262,75 @@ const importacionesService = {
         costo_picking_shipping_usd: parseFloat(datosRecepcion.costo_picking_shipping_usd || 0),
         costo_total_importacion_usd: costoTotalImportacion
       });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 📎 Subir PDF de factura a Storage
+  async subirFacturaPdf(reciboId, archivo) {
+    try {
+      if (archivo.type !== 'application/pdf') {
+        throw new Error('Solo se permiten archivos PDF');
+      }
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (archivo.size > maxSize) {
+        throw new Error('El archivo no puede superar los 10MB');
+      }
+
+      const timestamp = Date.now();
+      const nombreArchivo = `factura_${reciboId}_${timestamp}.pdf`;
+      const rutaStorage = `facturas/${nombreArchivo}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('importaciones-facturas')
+        .upload(rutaStorage, archivo, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw new Error('Error al subir el PDF: ' + uploadError.message);
+
+      const { data: urlData } = supabase.storage
+        .from('importaciones-facturas')
+        .getPublicUrl(rutaStorage);
+
+      await this.updateRecibo(reciboId, { factura_pdf_url: urlData.publicUrl });
+      return urlData.publicUrl;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🗑️ Eliminar PDF de factura de Storage
+  async eliminarFacturaPdf(reciboId, facturaPdfUrl) {
+    try {
+      // Extraer la ruta del storage desde la URL
+      const url = new URL(facturaPdfUrl);
+      const rutaStorage = url.pathname.split('/importaciones-facturas/')[1];
+
+      if (rutaStorage) {
+        await supabase.storage.from('importaciones-facturas').remove([rutaStorage]);
+      }
+
+      await this.updateRecibo(reciboId, { factura_pdf_url: null });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🔄 Reemplazar PDF de factura (elimina el anterior y sube el nuevo)
+  async reemplazarFacturaPdf(reciboId, archivo, facturaPdfUrlActual) {
+    try {
+      // Eliminar el archivo anterior del Storage si existe
+      if (facturaPdfUrlActual) {
+        try {
+          const url = new URL(facturaPdfUrlActual);
+          const rutaStorage = url.pathname.split('/importaciones-facturas/')[1];
+          if (rutaStorage) {
+            await supabase.storage.from('importaciones-facturas').remove([rutaStorage]);
+          }
+        } catch (_) { /* ignorar errores al eliminar el anterior */ }
+      }
+
+      return await this.subirFacturaPdf(reciboId, archivo);
     } catch (error) {
       throw error;
     }

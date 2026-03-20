@@ -111,8 +111,8 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
             console.log('📋 [CargaMasiva UI] seriales:', seriales);
             console.log('📋 [CargaMasiva UI] datosComunes:', datosComunes);
 
-            // Obtener email del usuario para el registro
-            const usuarioEmail = user?.email || user?.user_metadata?.email || 'Sistema';
+            // Obtener nombre del usuario para el registro
+            const usuarioEmail = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
 
             // Guardar equipos y registrar en ingreso_equipos
             const resultado = await guardarEquiposMasivos(datosComunes, seriales, usuarioEmail);

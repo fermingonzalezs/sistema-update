@@ -112,7 +112,12 @@ export const otrosService = {
         observaciones: producto.observaciones || producto.fallas || '',
 
         // Proveedor
-        proveedor_id: producto.proveedor_id || null
+        proveedor_id: producto.proveedor_id || null,
+
+        // Reserva / Consignación
+        reservado_para: producto.reservado_para || null,
+        reservado_por: producto.reservado_por || null,
+        reservado_at: producto.reservado_at || null
       }])
       .select()
 

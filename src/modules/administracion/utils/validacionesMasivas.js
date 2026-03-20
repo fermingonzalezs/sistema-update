@@ -33,6 +33,13 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
             }
         }
 
+        // Validar reservado_para cuando aplica
+        if (datos.condicion === 'reservado' || datos.condicion === 'consignacion') {
+            if (!datos.reservado_para?.trim()) {
+                errores.reservado_para = datos.condicion === 'reservado' ? 'Indica a quién se reserva' : 'Indica a quién se pone en consignación';
+            }
+        }
+
         // Validar batería y ciclos si están presentes
         if (datos.bateria !== undefined && datos.bateria !== '' && (datos.bateria < 0 || datos.bateria > 100)) {
             errores.bateria = 'Valor entre 0 y 100';
@@ -56,6 +63,13 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
 
         if (datos.condicion && !isValidCondicion(datos.condicion)) {
             errores.condicion = 'Condición inválida';
+        }
+
+        // Validar reservado_para cuando aplica
+        if (datos.condicion === 'reservado' || datos.condicion === 'consignacion') {
+            if (!datos.reservado_para?.trim()) {
+                errores.reservado_para = datos.condicion === 'reservado' ? 'Indica a quién se reserva' : 'Indica a quién se pone en consignación';
+            }
         }
 
         // RAM debe ser numérico positivo
@@ -91,6 +105,13 @@ export const validarDatosComunes = (datos, tipoEquipo) => {
         // Validar condición si está presente
         if (datos.condicion && !isValidCondicion(datos.condicion)) {
             errores.condicion = 'Condición inválida';
+        }
+
+        // Validar reservado_para cuando aplica
+        if (datos.condicion === 'reservado' || datos.condicion === 'consignacion') {
+            if (!datos.reservado_para?.trim()) {
+                errores.reservado_para = datos.condicion === 'reservado' ? 'Indica a quién se reserva' : 'Indica a quién se pone en consignación';
+            }
         }
     }
 

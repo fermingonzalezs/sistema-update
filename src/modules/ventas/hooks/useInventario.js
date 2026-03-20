@@ -118,7 +118,7 @@ export const inventarioService = {
 
         // Características físicas
         teclado_retro: computadora.teclado_retro || 'SI',
-        idioma_teclado: computadora.idioma_teclado || 'Español',
+        idioma_teclado: computadora.idioma_teclado || '',
         color: computadora.color || '',
 
         // Batería
@@ -132,6 +132,11 @@ export const inventarioService = {
 
         // Proveedor
         proveedor_id: computadora.proveedor_id || null,
+
+        // Reserva / Consignación
+        reservado_para: computadora.reservado_para || null,
+        reservado_por: computadora.reservado_por || null,
+        reservado_at: computadora.reservado_at || null,
 
         // Fecha de ingreso
         ingreso: computadora.ingreso || (() => {
@@ -397,7 +402,7 @@ export function useInventario() {
     clearError,
     customQuery
   } = useSupabaseEntity('inventario', {
-    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, categoria, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, linea_procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso',
+    defaultSelect: 'id, created_at, updated_at, serial, modelo, marca, categoria, precio_costo_usd, envios_repuestos, precio_venta_usd, precio_costo_total, sucursal, condicion, estado, procesador, linea_procesador, slots, tipo_ram, ram, ssd, hdd, so, pantalla, resolucion, refresh, touchscreen, placa_video, vram, teclado_retro, idioma_teclado, color, bateria, duracion, garantia_update, garantia_oficial, fallas, ingreso, reservado_para, reservado_por, reservado_at',
     // Configuración específica para inventario
     defaultFilters: {},
     defaultOrderBy: 'created_at',
@@ -447,7 +452,7 @@ export function useInventario() {
         so: data.so || 'WIN11',
         resolucion: data.resolucion || 'FHD',
         teclado_retro: data.teclado_retro || 'SI',
-        idioma_teclado: data.idioma_teclado || 'Español',
+        idioma_teclado: data.idioma_teclado || '',
         // Mapear 'garantia' del formulario a 'garantia_update' de la DB
         garantia_update: data.garantia_update || garantia || '6 meses',
         garantia_oficial: data.garantia_oficial || (garantia === 'Garantía oficial con vencimiento' ? garantia_oficial_fecha : '') || '',

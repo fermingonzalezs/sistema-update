@@ -81,6 +81,14 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
         handleChange(campo, numero);
     };
 
+    const handleCondicionChange = (valor) => {
+        if (valor !== 'reservado' && valor !== 'consignacion') {
+            onChange({ ...datos, condicion: valor, reservado_para: '' });
+        } else {
+            handleChange('condicion', valor);
+        }
+    };
+
     // Determinar si es nuevo para mostrar/ocultar estado estético
     const esNuevo = datos.condicion === 'nuevo' || datos.condicion === 'nueva';
 
@@ -121,13 +129,28 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
+                            <select value={datos.condicion || ''} onChange={(e) => handleCondicionChange(e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
                                 ))}
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
+                            {(datos.condicion === 'reservado' || datos.condicion === 'consignacion') && (
+                                <div className="mt-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                                        {datos.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={datos.reservado_para || ''}
+                                        onChange={(e) => handleChange('reservado_para', e.target.value)}
+                                        placeholder="Nombre de la persona..."
+                                        className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                                    />
+                                    {errores.reservado_para && <p className="text-red-500 text-xs mt-1">{errores.reservado_para}</p>}
+                                </div>
+                            )}
                         </div>
                         {!esNuevo && (
                             <div>
@@ -313,13 +336,28 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
+                            <select value={datos.condicion || ''} onChange={(e) => handleCondicionChange(e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
                                 ))}
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
+                            {(datos.condicion === 'reservado' || datos.condicion === 'consignacion') && (
+                                <div className="mt-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                                        {datos.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={datos.reservado_para || ''}
+                                        onChange={(e) => handleChange('reservado_para', e.target.value)}
+                                        placeholder="Nombre de la persona..."
+                                        className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                                    />
+                                    {errores.reservado_para && <p className="text-red-500 text-xs mt-1">{errores.reservado_para}</p>}
+                                </div>
+                            )}
                         </div>
                         {!esNuevo && (
                             <div>
@@ -579,13 +617,28 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
+                            <select value={datos.condicion || ''} onChange={(e) => handleCondicionChange(e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
                                 ))}
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
+                            {(datos.condicion === 'reservado' || datos.condicion === 'consignacion') && (
+                                <div className="mt-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                                        {datos.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={datos.reservado_para || ''}
+                                        onChange={(e) => handleChange('reservado_para', e.target.value)}
+                                        placeholder="Nombre de la persona..."
+                                        className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                                    />
+                                    {errores.reservado_para && <p className="text-red-500 text-xs mt-1">{errores.reservado_para}</p>}
+                                </div>
+                            )}
                         </div>
                         {!esNuevo && (
                             <div>
@@ -770,13 +823,28 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                            <select value={datos.condicion || ''} onChange={(e) => handleChange('condicion', e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
+                            <select value={datos.condicion || ''} onChange={(e) => handleCondicionChange(e.target.value)} className={`${ic} ${errores.condicion ? 'border-red-500 bg-red-50' : ''}`}>
                                 <option value="">Seleccionar...</option>
                                 {CONDICIONES_ARRAY.map(cond => (
                                     <option key={cond} value={cond}>{CONDICIONES_LABELS[cond]}</option>
                                 ))}
                             </select>
                             {errores.condicion && <p className="text-red-500 text-xs mt-1">{errores.condicion}</p>}
+                            {(datos.condicion === 'reservado' || datos.condicion === 'consignacion') && (
+                                <div className="mt-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                                        {datos.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={datos.reservado_para || ''}
+                                        onChange={(e) => handleChange('reservado_para', e.target.value)}
+                                        placeholder="Nombre de la persona..."
+                                        className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                                    />
+                                    {errores.reservado_para && <p className="text-red-500 text-xs mt-1">{errores.reservado_para}</p>}
+                                </div>
+                            )}
                         </div>
                         {!esNuevo && (
                             <div>

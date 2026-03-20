@@ -222,6 +222,16 @@ const ProductModal = ({
                 </div>
               )}
 
+              {/* IMEI - Solo para celulares */}
+              {tipoProducto === 'celular' && producto.imei && (
+                <div className='text-center bg-slate-700 p-3 rounded'>
+                  <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">IMEI</h3>
+                  <span className="font-semibold text-white text-sm break-all">
+                    {producto.imei}
+                  </span>
+                </div>
+              )}
+
               {/* Ubicación (Oculto para 'otro') */}
               {tipoProducto !== 'otro' && (
                 <div className='text-center bg-slate-700 p-3 rounded'>

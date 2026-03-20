@@ -28,6 +28,7 @@ import {
   RESOLUCIONES_LABELS
 } from '../../../shared/constants/resolutionConstants';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
+import { useAuthContext } from '../../../context/AuthContext';
 
 // Select de resolución con opción "Otro" para valor libre
 const ResolucionSelect = ({ value, onChange, className }) => {
@@ -140,6 +141,7 @@ const NuevoCargaEquipos = ({ onAddComputer, onAddCelular, onAddOtro, loading, mo
 
 // Formulario para Notebook renovado y organizado
 const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
+  const { user } = useAuthContext();
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios
     serial: '',
@@ -156,6 +158,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     sucursal: UBICACIONES.LA_PLATA,
     condicion: CONDICIONES.NUEVO,
     estado: null, // null por defecto cuando es nuevo
+    reservado_para: '',
 
     // Proveedor
     proveedor_id: '',
@@ -215,8 +218,10 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
       updatedData.estado = null;
     }
 
-    // La disponibilidad ahora se maneja por eliminación directa tras venta
-    // No es necesario actualizar el campo 'disponible'
+    // Limpiar reservado_para si la condición deja de ser reservado/consignacion
+    if (name === 'condicion' && value !== 'reservado' && value !== 'consignacion') {
+      updatedData.reservado_para = '';
+    }
 
     setFormData(updatedData);
   };
@@ -225,6 +230,11 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     e.preventDefault();
     if (!formData.serial || !formData.modelo || !formData.precio_costo_usd || !formData.precio_venta_usd) {
       alert('Serial, Modelo, Precio de Compra y Precio de Venta son campos obligatorios');
+      return;
+    }
+
+    if ((formData.condicion === 'reservado' || formData.condicion === 'consignacion') && !formData.reservado_para?.trim()) {
+      alert(`Debe indicar a nombre de quién se ${formData.condicion === 'reservado' ? 'reserva' : 'pone en consignación'}`);
       return;
     }
 
@@ -245,6 +255,9 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
 
       const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
 
+      const requiereReserva = formData.condicion === 'reservado' || formData.condicion === 'consignacion';
+      const usuarioActual = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
+
       const dataToSubmit = {
         ...dataRest,
         garantia_update: garantiaUpdate,
@@ -254,7 +267,11 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
         slots: formData.slots === '' ? null : formData.slots,
         fotos: formData.fotos,
         // Agregar proveedor_id (nullable)
-        proveedor_id: formData.proveedor_id || null
+        proveedor_id: formData.proveedor_id || null,
+        // Campos de reserva/consignación
+        reservado_para: requiereReserva ? formData.reservado_para.trim() : null,
+        reservado_por: requiereReserva ? usuarioActual : null,
+        reservado_at: requiereReserva ? new Date().toISOString() : null,
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -273,6 +290,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          reservado_para: '',
           proveedor_id: '',
           procesador: '',
           slots: '',
@@ -315,6 +333,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           sucursal: UBICACIONES.LA_PLATA,
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          reservado_para: '',
           proveedor_id: '',
           procesador: '',
           slots: '',
@@ -436,6 +455,21 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     </option>
                   ))}
                 </select>
+                {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      {formData.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                    </label>
+                    <input
+                      type="text"
+                      name="reservado_para"
+                      value={formData.reservado_para || ''}
+                      onChange={handleChange}
+                      placeholder="Nombre de la persona..."
+                      className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* MODELO */}
@@ -832,12 +866,15 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
 
 // Formulario para Celular actualizado
 const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
+  const { user } = useAuthContext();
   const [formData, setFormData] = useState({
     // Campos básicos obligatorios según tabla celulares
     serial: '',
+    imei: '',
     categoria: CATEGORIAS_CELULARES.IPHONE, // Categoría por defecto
     marca: 'Apple',
     condicion: CONDICIONES.NUEVO,
+    reservado_para: '',
     modelo: '',
     capacidad: '',
     color: '',
@@ -888,8 +925,10 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
       updatedData.ciclos = '';
     }
 
-    // La disponibilidad ahora se maneja por eliminación directa tras venta
-    // No es necesario actualizar el campo 'disponible'
+    // Limpiar reservado_para si la condición deja de ser reservado/consignacion
+    if (name === 'condicion' && value !== 'reservado' && value !== 'consignacion') {
+      updatedData.reservado_para = '';
+    }
 
     setFormData(updatedData);
   };
@@ -898,6 +937,11 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
     e.preventDefault();
     if (!formData.serial || !formData.modelo || !formData.precio_compra_usd || !formData.precio_venta_usd) {
       alert('Serial, Modelo, Precio de Compra y Precio de Venta son campos obligatorios');
+      return;
+    }
+
+    if ((formData.condicion === 'reservado' || formData.condicion === 'consignacion') && !formData.reservado_para?.trim()) {
+      alert(`Debe indicar a nombre de quién se ${formData.condicion === 'reservado' ? 'reserva' : 'pone en consignación'}`);
       return;
     }
 
@@ -918,6 +962,9 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
 
       const { garantia_oficial_fecha, ...dataRest } = formData; // Excluir campo que no existe en BD
 
+      const requiereReservaCelular = formData.condicion === 'reservado' || formData.condicion === 'consignacion';
+      const usuarioActualCelular = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
+
       const dataToSubmit = {
         ...dataRest,
         garantia: garantia,
@@ -935,7 +982,11 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         sim_esim: formData.sim_esim || null,
         fotos: formData.fotos,
         // Agregar proveedor_id (nullable)
-        proveedor_id: formData.proveedor_id || null
+        proveedor_id: formData.proveedor_id || null,
+        // Campos de reserva/consignación
+        reservado_para: requiereReservaCelular ? formData.reservado_para.trim() : null,
+        reservado_por: requiereReservaCelular ? usuarioActualCelular : null,
+        reservado_at: requiereReservaCelular ? new Date().toISOString() : null,
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -945,9 +996,11 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         // Reset form para permitir agregar más productos
         setFormData({
           serial: '',
+          imei: '',
           categoria: CATEGORIAS_CELULARES.IPHONE,
           marca: 'Apple',
           condicion: CONDICIONES.NUEVO,
+          reservado_para: '',
           modelo: '',
           capacidad: '',
           color: '',
@@ -974,9 +1027,11 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         // Reset form
         setFormData({
           serial: '',
+          imei: '',
           categoria: CATEGORIAS_CELULARES.IPHONE,
           marca: 'Apple',
           condicion: CONDICIONES.NUEVO,
+          reservado_para: '',
           modelo: '',
           capacidad: '',
           color: '',
@@ -1041,6 +1096,21 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                 />
               </div>
 
+              {/* IMEI */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  IMEI
+                </label>
+                <input
+                  type="text"
+                  name="imei"
+                  value={formData.imei}
+                  onChange={handleChange}
+                  placeholder="Ej: 123456789012345"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                />
+              </div>
+
               {/* CATEGORIA */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1091,6 +1161,21 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     </option>
                   ))}
                 </select>
+                {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      {formData.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                    </label>
+                    <input
+                      type="text"
+                      name="reservado_para"
+                      value={formData.reservado_para || ''}
+                      onChange={handleChange}
+                      placeholder="Nombre de la persona..."
+                      className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* MODELO */}
@@ -1430,6 +1515,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
 
 // Formulario para Otro Producto actualizado
 const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) => {
+  const { user } = useAuthContext();
   const [formData, setFormData] = useState({
     // Información básica del producto
     nombre_producto: '',
@@ -1442,6 +1528,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
     // Condición del producto
     condicion: CONDICIONES.NUEVO,
     estado: null,
+    reservado_para: '',
 
     // Proveedor
     proveedor_id: '',
@@ -1510,6 +1597,11 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
       [name]: value
     };
 
+    // Limpiar reservado_para si la condición deja de ser reservado/consignacion
+    if (name === 'condicion' && value !== 'reservado' && value !== 'consignacion') {
+      updatedData.reservado_para = '';
+    }
+
     setFormData(updatedData);
   };
 
@@ -1539,6 +1631,10 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
       return;
     }
 
+    if ((formData.condicion === 'reservado' || formData.condicion === 'consignacion') && !formData.reservado_para?.trim()) {
+      alert(`Debe indicar a nombre de quién se ${formData.condicion === 'reservado' ? 'reserva' : 'pone en consignación'}`);
+      return;
+    }
 
     if ((formData.cantidad_la_plata || 0) + (formData.cantidad_mitre || 0) < 1) {
       alert('Debe ingresar al menos 1 unidad en alguna sucursal');
@@ -1616,6 +1712,9 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
 
       const { garantia_oficial_fecha, procesador, motherboard, memoria, gpu, ssd, hdd, gabinete, fuente, capacidad_almacenamiento, tamano_pantalla, conectividad, ...dataRest } = formData; // Excluir campos especiales
 
+      const requiereReservaOtro = formData.condicion === 'reservado' || formData.condicion === 'consignacion';
+      const usuarioActualOtro = user?.user_metadata?.nombre || user?.user_metadata?.username || user?.email || 'Sistema';
+
       const dataToSubmit = {
         ...dataRest,
         nombre_producto: isDesktop ? formData.modelo : (isTablet ? nombreProductoFinal : formData.nombre_producto),
@@ -1629,7 +1728,11 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
         serial: formData.serial?.trim() || null,
         fotos: formData.fotos,
         // Agregar proveedor_id (nullable)
-        proveedor_id: formData.proveedor_id || null
+        proveedor_id: formData.proveedor_id || null,
+        // Campos de reserva/consignación
+        reservado_para: requiereReservaOtro ? formData.reservado_para.trim() : null,
+        reservado_por: requiereReservaOtro ? usuarioActualOtro : null,
+        reservado_at: requiereReservaOtro ? new Date().toISOString() : null,
       };
 
       // Si está en modo compra, solo retornar los datos sin guardar en BD
@@ -1646,6 +1749,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           color: '',
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          reservado_para: '',
           proveedor_id: '',
           precio_compra_usd: '',
           precio_venta_usd: '',
@@ -1684,6 +1788,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           color: '',
           condicion: CONDICIONES.NUEVO,
           estado: null,
+          reservado_para: '',
           proveedor_id: '',
           precio_compra_usd: '',
           precio_venta_usd: '',
@@ -1762,6 +1867,21 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
+                    {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
+                      <div className="mt-2">
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          {formData.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                        </label>
+                        <input
+                          type="text"
+                          name="reservado_para"
+                          value={formData.reservado_para || ''}
+                          onChange={handleChange}
+                          placeholder="Nombre de la persona..."
+                          className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
@@ -1858,6 +1978,21 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
+                    {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
+                      <div className="mt-2">
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          {formData.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                        </label>
+                        <input
+                          type="text"
+                          name="reservado_para"
+                          value={formData.reservado_para || ''}
+                          onChange={handleChange}
+                          placeholder="Nombre de la persona..."
+                          className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
@@ -1950,6 +2085,21 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                     <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
+                    {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
+                      <div className="mt-2">
+                        <label className="block text-xs font-medium text-slate-600 mb-1">
+                          {formData.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
+                        </label>
+                        <input
+                          type="text"
+                          name="reservado_para"
+                          value={formData.reservado_para || ''}
+                          onChange={handleChange}
+                          placeholder="Nombre de la persona..."
+                          className="w-full px-3 py-2 border border-emerald-400 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-emerald-50"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>

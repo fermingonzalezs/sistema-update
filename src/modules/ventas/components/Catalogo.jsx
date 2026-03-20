@@ -62,6 +62,48 @@ import {
   RESOLUCIONES_LABELS
 } from "../../../shared/constants/resolutionConstants";
 
+// Select de resolución con opción "Otro" para valor libre
+const ResolucionSelect = ({ value, onChange, className }) => {
+  const esPersonalizado = value && !RESOLUCIONES_ARRAY.includes(value);
+  const [modo, setModo] = useState(esPersonalizado ? 'otro' : 'lista');
+
+  const handleSelectChange = (e) => {
+    if (e.target.value === '__otro__') {
+      setModo('otro');
+      onChange('');
+    } else {
+      setModo('lista');
+      onChange(e.target.value);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <select
+        value={modo === 'otro' ? '__otro__' : (value || '')}
+        onChange={handleSelectChange}
+        className={className}
+      >
+        <option value="">Seleccionar resolución</option>
+        {RESOLUCIONES_ARRAY.map(res => (
+          <option key={res} value={res}>{RESOLUCIONES_LABELS[res]}</option>
+        ))}
+        <option value="__otro__">Otro...</option>
+      </select>
+      {modo === 'otro' && (
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Ej: 2560x1600"
+          className={className}
+          autoFocus
+        />
+      )}
+    </div>
+  );
+};
+
 // La función generateUnifiedCopy ahora está unificada en copyGenerator.js
 
 // Opciones de garantía estándar
@@ -489,6 +531,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         // Campos básicos
         modelo: producto.modelo || "",
         serial: producto.serial || "",
+        imei: producto.imei || "",
         marca: producto.marca || "",
         categoria: producto.categoria || "",
         color: producto.color || "",
@@ -780,6 +823,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           // Campos básicos
           modelo: editForm.modelo,
           serial: editForm.serial,
+          imei: editForm.imei || null,
           marca: editForm.marca,
           categoria: editForm.categoria,
           color: editForm.color,
@@ -1294,20 +1338,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Resolución
                 </label>
-                <select
+                <ResolucionSelect
                   value={editForm.resolucion}
-                  onChange={(e) =>
-                    handleEditFormChange("resolucion", e.target.value)
-                  }
+                  onChange={(val) => handleEditFormChange("resolucion", val)}
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
-                >
-                  <option value="">Seleccionar resolución</option>
-                  {RESOLUCIONES_ARRAY.map(resolucion => (
-                    <option key={resolucion} value={resolucion}>
-                      {RESOLUCIONES_LABELS[resolucion]}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1553,6 +1588,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   }
                   className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
                   placeholder="Número de serie"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  IMEI
+                </label>
+                <input
+                  type="text"
+                  value={editForm.imei || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("imei", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  placeholder="IMEI del celular"
                 />
               </div>
               <div>

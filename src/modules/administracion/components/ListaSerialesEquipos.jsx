@@ -82,6 +82,9 @@ const ListaSerialesEquipos = ({
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">P. Venta</th>
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Color</th>
                             {tipoEquipo === 'celular' && (
+                                <th className="px-2 py-2 text-center font-medium text-slate-700 w-32">IMEI</th>
+                            )}
+                            {tipoEquipo === 'celular' && (
                                 <th className="px-2 py-2 text-center font-medium text-slate-700 w-20">Batería %</th>
                             )}
                             <th className="px-2 py-2 text-center font-medium text-slate-700 w-8"></th>
@@ -188,6 +191,20 @@ const ListaSerialesEquipos = ({
                                             className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center bg-white"
                                         />
                                     </td>
+
+                                    {/* IMEI (solo celulares) */}
+                                    {tipoEquipo === 'celular' && (
+                                        <td className="px-2 py-1.5">
+                                            <input
+                                                type="text"
+                                                value={item.imei ?? ''}
+                                                onChange={(e) => onItemChange(item.id, 'imei', e.target.value)}
+                                                placeholder="IMEI..."
+                                                disabled={validando}
+                                                className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center font-mono bg-white"
+                                            />
+                                        </td>
+                                    )}
 
                                     {/* Batería % (solo celulares) */}
                                     {tipoEquipo === 'celular' && (

@@ -228,10 +228,22 @@ export const useCargaMasiva = (tipoEquipo) => {
 
             try {
                 // Preparar datos completos - merge datos comunes con valores individuales del item
+                const requiereReserva = datosComunes.condicion === 'reservado' || datosComunes.condicion === 'consignacion';
+
                 let datosCompletos = {
                     ...datosComunes,
                     serial: item.serial.toUpperCase().trim(),
                     ingreso: fechaIngreso,
+                    // Campos de reserva/consignación (reservado_para viene de datosComunes, completar por/at)
+                    ...(requiereReserva && {
+                        reservado_por: usuario || 'Sistema',
+                        reservado_at: new Date().toISOString(),
+                    }),
+                    ...(!requiereReserva && {
+                        reservado_para: null,
+                        reservado_por: null,
+                        reservado_at: null,
+                    }),
                     // Sobrescribir con valores individuales si existen
                     ...(item.color !== undefined && item.color !== '' && { color: item.color }),
                     ...(item.precio_compra_usd !== undefined && item.precio_compra_usd !== '' && { precio_compra_usd: item.precio_compra_usd }),
@@ -239,6 +251,8 @@ export const useCargaMasiva = (tipoEquipo) => {
                     ...(item.costos_adicionales !== undefined && item.costos_adicionales !== '' && { costos_adicionales: item.costos_adicionales }),
                     ...(item.envios_repuestos !== undefined && item.envios_repuestos !== '' && { envios_repuestos: item.envios_repuestos }),
                     ...(item.precio_venta_usd !== undefined && item.precio_venta_usd !== '' && { precio_venta_usd: item.precio_venta_usd }),
+                    // Para celulares: agregar IMEI si está presente
+                    ...(tipoEquipo === 'celular' && item.imei !== undefined && item.imei !== '' && { imei: item.imei }),
                     // Para celulares: agregar porcentaje de batería solo si NO es nuevo
                     // Los celulares nuevos no necesitan especificar batería
                     ...(tipoEquipo === 'celular' && datosComunes.condicion !== 'nuevo' && { bateria: item.bateria ?? 100 })

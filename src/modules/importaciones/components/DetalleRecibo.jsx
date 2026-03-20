@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink, FileText, Upload, Trash } from 'lucide-react';
+import importacionesService from '../services/importacionesService';
 import { ESTADOS_IMPORTACION, LABELS_ESTADOS, COLORES_ESTADOS } from '../constants/estadosImportacion';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
@@ -25,6 +26,10 @@ const DetalleRecibo = ({
   const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState({});
 
+  // Estados para factura PDF
+  const [gestionandoPdf, setGestionandoPdf] = useState(false);
+  const fileInputPdfRef = useRef(null);
+
   // Inicializar datos cuando cambia el recibo o se activa edición
   useEffect(() => {
     if (recibo) {
@@ -38,6 +43,7 @@ const DetalleRecibo = ({
         fecha_estimada_ingreso: recibo.fecha_estimada_ingreso || '',
         fecha_ingreso_deposito_usa: recibo.fecha_ingreso_deposito_usa || '',
         observaciones: recibo.observaciones || '',
+        numero_invoice: recibo.numero_invoice || '',
         // Campos de recepción (solo si está recepcionado)
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
@@ -208,7 +214,8 @@ const DetalleRecibo = ({
         empresa_logistica: datosEditados.empresa_logistica?.trim() || null,
         fecha_estimada_ingreso: datosEditados.fecha_estimada_ingreso || null,
         fecha_ingreso_deposito_usa: datosEditados.fecha_ingreso_deposito_usa || null,
-        observaciones: datosEditados.observaciones?.trim() || null
+        observaciones: datosEditados.observaciones?.trim() || null,
+        numero_invoice: datosEditados.numero_invoice?.trim() || null
       };
 
       // Si está recepcionado, incluir datos de recepción
@@ -313,6 +320,7 @@ const DetalleRecibo = ({
         fecha_estimada_ingreso: recibo.fecha_estimada_ingreso || '',
         fecha_ingreso_deposito_usa: recibo.fecha_ingreso_deposito_usa || '',
         observaciones: recibo.observaciones || '',
+        numero_invoice: recibo.numero_invoice || '',
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
         precio_por_kg_usd: recibo.precio_por_kg_usd || '',
@@ -323,6 +331,43 @@ const DetalleRecibo = ({
       setItemsNuevos([]);
       setItemsEliminados([]);
       setErrores({});
+    }
+  };
+
+  // Handlers para PDF de factura
+  const handleSubirPdf = async (e) => {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+    if (archivo.type !== 'application/pdf') { alert('Solo se permiten archivos PDF'); return; }
+    if (archivo.size > 10 * 1024 * 1024) { alert('El archivo no puede superar los 10MB'); return; }
+
+    setGestionandoPdf(true);
+    try {
+      if (recibo.factura_pdf_url) {
+        await importacionesService.reemplazarFacturaPdf(recibo.id, archivo, recibo.factura_pdf_url);
+      } else {
+        await importacionesService.subirFacturaPdf(recibo.id, archivo);
+      }
+      if (onRefresh) await onRefresh();
+      alert('✅ Factura PDF actualizada correctamente');
+    } catch (err) {
+      alert('❌ Error: ' + err.message);
+    } finally {
+      setGestionandoPdf(false);
+      if (fileInputPdfRef.current) fileInputPdfRef.current.value = '';
+    }
+  };
+
+  const handleEliminarPdf = async () => {
+    if (!window.confirm('¿Eliminar el PDF de factura adjunto?')) return;
+    setGestionandoPdf(true);
+    try {
+      await importacionesService.eliminarFacturaPdf(recibo.id, recibo.factura_pdf_url);
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      alert('❌ Error: ' + err.message);
+    } finally {
+      setGestionandoPdf(false);
     }
   };
 
@@ -493,7 +538,7 @@ const DetalleRecibo = ({
                 </div>
 
                 {/* Tracking Number */}
-                <div className="text-center md:col-span-3">
+                <div className="text-center">
                   <label className="text-xs font-semibold text-slate-500 uppercase block">Tracking Number</label>
                   {modoEdicion ? (
                     <input
@@ -505,6 +550,22 @@ const DetalleRecibo = ({
                     />
                   ) : (
                     <p className="font-medium text-slate-800 mt-1">{recibo.tracking_number || '-'}</p>
+                  )}
+                </div>
+
+                {/* Número de Invoice */}
+                <div className="text-center">
+                  <label className="text-xs font-semibold text-slate-500 uppercase block">Número de Invoice</label>
+                  {modoEdicion ? (
+                    <input
+                      type="text"
+                      value={datosEditados.numero_invoice || ''}
+                      onChange={(e) => handleDatoChange('numero_invoice', e.target.value)}
+                      className="w-full border border-slate-200 rounded px-2 py-1 text-sm mt-1"
+                      placeholder="Ej: INV-2024-001"
+                    />
+                  ) : (
+                    <p className="font-medium text-slate-800 mt-1">{recibo.numero_invoice || '-'}</p>
                   )}
                 </div>
 
@@ -597,6 +658,72 @@ const DetalleRecibo = ({
                   ) : (
                     <p className="text-sm text-slate-400">Sin observaciones</p>
                   )
+                )}
+              </div>
+
+              {/* Factura PDF */}
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Factura PDF</label>
+                <input
+                  ref={fileInputPdfRef}
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleSubirPdf}
+                  className="hidden"
+                />
+                {recibo.factura_pdf_url ? (
+                  <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded p-3">
+                    <FileText size={20} className="text-emerald-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-emerald-800 truncate">Factura adjunta</p>
+                      {recibo.numero_invoice && (
+                        <p className="text-xs text-emerald-600">Invoice: {recibo.numero_invoice}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center flex-shrink-0" style={{ gap: '28px' }}>
+                      <a
+                        href={recibo.factura_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center text-emerald-600 hover:text-emerald-800 transition-colors"
+                        title="Ver PDF"
+                        style={{ width: 18, height: 18 }}
+                      >
+                        <ExternalLink size={18} />
+                      </a>
+                      <button
+                        onClick={() => fileInputPdfRef.current?.click()}
+                        disabled={gestionandoPdf}
+                        className="flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50"
+                        title="Reemplazar PDF"
+                        style={{ width: 18, height: 18, margin: 0, padding: 0, background: 'none', border: 'none' }}
+                      >
+                        <Upload size={18} />
+                      </button>
+                      <button
+                        onClick={handleEliminarPdf}
+                        disabled={gestionandoPdf}
+                        className="flex items-center justify-center text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                        title="Eliminar PDF"
+                        style={{ width: 18, height: 18, margin: 0, padding: 0, background: 'none', border: 'none' }}
+                      >
+                        <Trash size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => !gestionandoPdf && fileInputPdfRef.current?.click()}
+                    className="border border-dashed border-slate-300 rounded p-4 flex items-center gap-3 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
+                  >
+                    <Upload size={20} className="text-slate-400" />
+                    <div>
+                      <p className="text-sm text-slate-600 font-medium">
+                        {gestionandoPdf ? 'Procesando...' : 'Adjuntar factura PDF'}
+                      </p>
+                      <p className="text-xs text-slate-400">PDF, máx. 10MB</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Plus, Trash2, FileText, Upload } from 'lucide-react';
 import { useImportaciones } from '../hooks/useImportaciones';
+import importacionesService from '../services/importacionesService';
 import { useProveedores } from '../hooks/useProveedores';
 import { calculosImportacion } from '../utils/calculosImportacion';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
@@ -21,8 +22,12 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     empresa_logistica: '',
     fecha_estimada_ingreso: '',
     porcentaje_financiero: '',
-    observaciones: ''
+    observaciones: '',
+    numero_invoice: ''
   });
+
+  const [facturaFile, setFacturaFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [formItem, setFormItem] = useState({
     item: '',
@@ -96,6 +101,22 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     return calculosImportacion.calcularPesoTotalEstimado(items);
   };
 
+  const handleFacturaChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Solo se permiten archivos PDF');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('El archivo no puede superar los 10MB');
+      e.target.value = '';
+      return;
+    }
+    setFacturaFile(file);
+  };
+
   const guardarImportacion = async () => {
     if (!formRecibo.proveedor_id) {
       alert('Selecciona un proveedor');
@@ -109,7 +130,19 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
 
     setIsSubmitting(true);
     try {
-      await crearRecibo(formRecibo, items);
+      // 1. Crear el recibo
+      const nuevoRecibo = await crearRecibo(formRecibo, items);
+
+      // 2. Si hay PDF, subirlo y vincular
+      if (facturaFile && nuevoRecibo?.id) {
+        try {
+          await importacionesService.subirFacturaPdf(nuevoRecibo.id, facturaFile);
+        } catch (pdfErr) {
+          // No bloqueamos el flujo principal si falla el PDF
+          console.warn('Importación creada pero falló la carga del PDF:', pdfErr.message);
+        }
+      }
+
       alert('✅ Importación creada exitosamente');
       onSuccess();
     } catch (err) {
@@ -257,6 +290,49 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                   <p className="text-xs text-slate-500 mt-1">% sobre el precio FOB de cada equipo</p>
+                </div>
+
+                {/* NÚMERO DE INVOICE */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Invoice</label>
+                  <input
+                    type="text"
+                    value={formRecibo.numero_invoice}
+                    onChange={(e) => setFormRecibo({ ...formRecibo, numero_invoice: e.target.value })}
+                    placeholder="Ej: INV-2024-001"
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* FACTURA PDF */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Factura PDF (opcional)</label>
+                  <div
+                    className="border border-dashed border-slate-300 rounded px-3 py-2 flex items-center gap-2 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <FileText size={16} className={facturaFile ? 'text-emerald-600' : 'text-slate-400'} />
+                    <span className={`text-sm truncate ${facturaFile ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
+                      {facturaFile ? facturaFile.name : 'Seleccionar PDF...'}
+                    </span>
+                    <Upload size={14} className="text-slate-400 ml-auto flex-shrink-0" />
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFacturaChange}
+                    className="hidden"
+                  />
+                  {facturaFile && (
+                    <button
+                      type="button"
+                      onClick={() => { setFacturaFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                      className="text-xs text-red-500 hover:text-red-700 mt-1"
+                    >
+                      Quitar archivo
+                    </button>
+                  )}
                 </div>
 
                 {/* DESCRIPCIÓN */}
