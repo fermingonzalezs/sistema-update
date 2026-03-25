@@ -336,6 +336,90 @@ const importacionesService = {
     }
   },
 
+  // 📂 Obtener archivos adjuntos de un recibo
+  async obtenerArchivos(reciboId) {
+    try {
+      const { data, error } = await supabase
+        .from('importaciones_archivos')
+        .select('*')
+        .eq('recibo_id', reciboId)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 📤 Subir archivo (PDF, imagen u otro) y registrar en tabla
+  async subirArchivo(reciboId, archivo) {
+    try {
+      const maxSize = 20 * 1024 * 1024; // 20MB
+      if (archivo.size > maxSize) {
+        throw new Error('El archivo no puede superar los 20MB');
+      }
+
+      const tiposPermitidos = [
+        'application/pdf',
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
+        'image/bmp', 'image/tiff'
+      ];
+      if (!tiposPermitidos.includes(archivo.type) && !archivo.type.startsWith('image/')) {
+        throw new Error('Solo se permiten PDFs e imágenes');
+      }
+
+      const timestamp = Date.now();
+      const extension = archivo.name.split('.').pop();
+      const nombreStorage = `${timestamp}_${archivo.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const rutaStorage = `archivos/${reciboId}/${nombreStorage}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('importaciones-facturas')
+        .upload(rutaStorage, archivo, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw new Error('Error al subir el archivo: ' + uploadError.message);
+
+      const { data: urlData } = supabase.storage
+        .from('importaciones-facturas')
+        .getPublicUrl(rutaStorage);
+
+      const { data, error: insertError } = await supabase
+        .from('importaciones_archivos')
+        .insert({
+          recibo_id: reciboId,
+          nombre_original: archivo.name,
+          url: urlData.publicUrl,
+          tipo_mime: archivo.type,
+          tamano_bytes: archivo.size
+        })
+        .select()
+        .single();
+
+      if (insertError) throw new Error('Error al registrar el archivo: ' + insertError.message);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🗑️ Eliminar archivo adjunto
+  async eliminarArchivo(archivoId, url) {
+    try {
+      const urlObj = new URL(url);
+      const rutaStorage = urlObj.pathname.split('/importaciones-facturas/')[1];
+      if (rutaStorage) {
+        await supabase.storage.from('importaciones-facturas').remove([rutaStorage]);
+      }
+      const { error } = await supabase
+        .from('importaciones_archivos')
+        .delete()
+        .eq('id', archivoId);
+      if (error) throw error;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // 🗑️ Eliminar recibo y sus items
   async deleteRecibo(id) {
     try {

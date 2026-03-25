@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { X, Plus, Trash2, FileText, Upload } from 'lucide-react';
+import { X, Plus, Trash2, FileText, Upload, Image, File } from 'lucide-react';
+import EmpresaLogisticaSelector from './EmpresaLogisticaSelector';
 import { useImportaciones } from '../hooks/useImportaciones';
 import importacionesService from '../services/importacionesService';
 import { useProveedores } from '../hooks/useProveedores';
@@ -26,7 +27,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     numero_invoice: ''
   });
 
-  const [facturaFile, setFacturaFile] = useState(null);
+  const [archivosSeleccionados, setArchivosSeleccionados] = useState([]);
   const fileInputRef = useRef(null);
 
   const [formItem, setFormItem] = useState({
@@ -101,20 +102,28 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     return calculosImportacion.calcularPesoTotalEstimado(items);
   };
 
-  const handleFacturaChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf') {
-      alert('Solo se permiten archivos PDF');
-      e.target.value = '';
-      return;
+  const handleArchivosChange = (e) => {
+    const nuevos = Array.from(e.target.files);
+    const tiposPermitidos = ['application/pdf', 'image/'];
+    const maxSize = 20 * 1024 * 1024;
+    const validos = [];
+    for (const file of nuevos) {
+      if (!tiposPermitidos.some(t => file.type.startsWith(t))) {
+        alert(`"${file.name}": Solo se permiten PDFs e imágenes`);
+        continue;
+      }
+      if (file.size > maxSize) {
+        alert(`"${file.name}": El archivo no puede superar los 20MB`);
+        continue;
+      }
+      validos.push(file);
     }
-    if (file.size > 10 * 1024 * 1024) {
-      alert('El archivo no puede superar los 10MB');
-      e.target.value = '';
-      return;
-    }
-    setFacturaFile(file);
+    setArchivosSeleccionados(prev => [...prev, ...validos]);
+    e.target.value = '';
+  };
+
+  const quitarArchivo = (index) => {
+    setArchivosSeleccionados(prev => prev.filter((_, i) => i !== index));
   };
 
   const guardarImportacion = async () => {
@@ -133,13 +142,14 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
       // 1. Crear el recibo
       const nuevoRecibo = await crearRecibo(formRecibo, items);
 
-      // 2. Si hay PDF, subirlo y vincular
-      if (facturaFile && nuevoRecibo?.id) {
-        try {
-          await importacionesService.subirFacturaPdf(nuevoRecibo.id, facturaFile);
-        } catch (pdfErr) {
-          // No bloqueamos el flujo principal si falla el PDF
-          console.warn('Importación creada pero falló la carga del PDF:', pdfErr.message);
+      // 2. Si hay archivos, subirlos
+      if (archivosSeleccionados.length > 0 && nuevoRecibo?.id) {
+        for (const archivo of archivosSeleccionados) {
+          try {
+            await importacionesService.subirArchivo(nuevoRecibo.id, archivo);
+          } catch (err) {
+            console.warn(`Importación creada pero falló la carga de "${archivo.name}":`, err.message);
+          }
         }
       }
 
@@ -241,6 +251,28 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   </select>
                 </div>
 
+                {/* NÚMERO DE INVOICE */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Invoice</label>
+                  <input
+                    type="text"
+                    value={formRecibo.numero_invoice}
+                    onChange={(e) => setFormRecibo({ ...formRecibo, numero_invoice: e.target.value })}
+                    placeholder="Ej: INV-2024-001"
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* EMPRESA LOGÍSTICA */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Empresa Logística</label>
+                  <EmpresaLogisticaSelector
+                    value={formRecibo.empresa_logistica}
+                    onChange={(valor) => setFormRecibo({ ...formRecibo, empresa_logistica: valor })}
+                    placeholder="Seleccionar empresa..."
+                  />
+                </div>
+
                 {/* TRACKING */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Número de Tracking</label>
@@ -249,18 +281,6 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     value={formRecibo.tracking_number}
                     onChange={(e) => setFormRecibo({ ...formRecibo, tracking_number: e.target.value })}
                     placeholder="Ej: SZ123456789CN"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-
-                {/* EMPRESA LOGÍSTICA */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Empresa Logística</label>
-                  <input
-                    type="text"
-                    value={formRecibo.empresa_logistica}
-                    onChange={(e) => setFormRecibo({ ...formRecibo, empresa_logistica: e.target.value })}
-                    placeholder="DHL, FedEx, etc."
                     className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
                 </div>
@@ -292,46 +312,45 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                   <p className="text-xs text-slate-500 mt-1">% sobre el precio FOB de cada equipo</p>
                 </div>
 
-                {/* NÚMERO DE INVOICE */}
+                {/* ARCHIVOS ADJUNTOS */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Invoice</label>
-                  <input
-                    type="text"
-                    value={formRecibo.numero_invoice}
-                    onChange={(e) => setFormRecibo({ ...formRecibo, numero_invoice: e.target.value })}
-                    placeholder="Ej: INV-2024-001"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                </div>
-
-                {/* FACTURA PDF */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Factura PDF (opcional)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Archivos adjuntos (opcional)</label>
                   <div
                     className="border border-dashed border-slate-300 rounded px-3 py-2 flex items-center gap-2 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <FileText size={16} className={facturaFile ? 'text-emerald-600' : 'text-slate-400'} />
-                    <span className={`text-sm truncate ${facturaFile ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
-                      {facturaFile ? facturaFile.name : 'Seleccionar PDF...'}
-                    </span>
-                    <Upload size={14} className="text-slate-400 ml-auto flex-shrink-0" />
+                    <Upload size={16} className="text-slate-400" />
+                    <span className="text-sm text-slate-500">Agregar PDFs o imágenes...</span>
+                    <span className="text-xs text-slate-400 ml-auto">máx. 20MB c/u</span>
                   </div>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="application/pdf"
-                    onChange={handleFacturaChange}
+                    accept="application/pdf,image/*"
+                    multiple
+                    onChange={handleArchivosChange}
                     className="hidden"
                   />
-                  {facturaFile && (
-                    <button
-                      type="button"
-                      onClick={() => { setFacturaFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                      className="text-xs text-red-500 hover:text-red-700 mt-1"
-                    >
-                      Quitar archivo
-                    </button>
+                  {archivosSeleccionados.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {archivosSeleccionados.map((archivo, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                          {archivo.type === 'application/pdf'
+                            ? <FileText size={14} className="text-emerald-600 flex-shrink-0" />
+                            : <Image size={14} className="text-blue-500 flex-shrink-0" />
+                          }
+                          <span className="text-xs text-slate-700 truncate flex-1">{archivo.name}</span>
+                          <span className="text-xs text-slate-400 flex-shrink-0">{(archivo.size / 1024).toFixed(0)}KB</span>
+                          <button
+                            type="button"
+                            onClick={() => quitarArchivo(idx)}
+                            className="text-red-400 hover:text-red-600 flex-shrink-0"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 

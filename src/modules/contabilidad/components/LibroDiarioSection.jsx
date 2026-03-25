@@ -1135,16 +1135,16 @@ const LibroDiarioSection = () => {
                 <div className="border-t bg-white">
                   <div className="overflow-x-auto">
                     {/* Headers */}
-                    <div className="flex">
-                      <div className="w-1/2 max-w-md text-lg">
-                        <div className="grid grid-cols-2 gap-6 bg-gray-100 p-1">
+                    <div className="flex bg-gray-100">
+                      <div className="w-[55%] text-lg">
+                        <div className="grid grid-cols-2 gap-6 p-1">
                           <div className="text-center font-medium text-gray-700">Debe</div>
                           <div className="text-center font-medium text-gray-700">Haber</div>
                         </div>
                       </div>
                       <div className="flex-1"></div>
                       <div className="w-1/3">
-                        <div className="grid grid-cols-2 gap-6 bg-gray-100 text-lg p-1">
+                        <div className="grid grid-cols-2 gap-6 text-lg p-1">
                           <div className="text-center font-medium text-gray-700">Debe</div>
                           <div className="text-center font-medium text-gray-700">Haber</div>
                         </div>
@@ -1152,10 +1152,12 @@ const LibroDiarioSection = () => {
                     </div>
                     {/* Rows */}
                     <div>
-                      {asiento.movimientos_contables.map((mov, index) => (
+                      {[...asiento.movimientos_contables]
+                        .sort((a, b) => (b.debe > 0 ? 1 : 0) - (a.debe > 0 ? 1 : 0))
+                        .map((mov, index) => (
                         <div key={index} className="flex hover:bg-gray-50 py-3">
                           {/* Cuentas */}
-                          <div className="w-1/2 max-w-md text-lg px-2">
+                          <div className="w-[55%] text-lg px-2">
                             <div className="grid grid-cols-2 gap-6 h-full items-center">
                               <div className="text-center">
                                 {mov.debe > 0 && (
@@ -1163,7 +1165,7 @@ const LibroDiarioSection = () => {
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs truncate max-w-32 text-center">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -1173,7 +1175,7 @@ const LibroDiarioSection = () => {
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs truncate max-w-32 text-center">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-gray-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -1312,9 +1314,9 @@ const LibroDiarioSection = () => {
                 <div className="flex text-sm font-semibold py-2 bg-gray-200">
                   <div className="w-16"></div>
                   {/* Sección de Cuentas */}
-                  <div className="w-96 grid grid-cols-2 gap-26">
+                  <div className="w-120 grid grid-cols-2 gap-10">
                     <div className="text-left pl-4">Debe</div>
-                    <div className="text-left pl-7">Haber</div>
+                    <div className="text-left pl-4">Haber</div>
                   </div>
                   {/* Margen central */}
                   <div className="flex-1"></div>
@@ -1324,13 +1326,15 @@ const LibroDiarioSection = () => {
                     <div className="text-right pr-4">Haber</div>
                   </div>
                 </div>
-                {asiento.movimientos_contables.map((mov, index) => (
+                {[...asiento.movimientos_contables]
+                  .sort((a, b) => (b.debe > 0 ? 1 : 0) - (a.debe > 0 ? 1 : 0))
+                  .map((mov, index) => (
                   <div key={index} className="flex text-sm border-t py-1">
                     <div className="w-16"></div>
                     {/* Sección de Cuentas */}
                     <div className="w-120 grid grid-cols-2 gap-10">
                       {/* Cuenta Debe */}
-                      <div className="pl-4">
+                      <div className="pl-4 pr-2">
                         {mov.debe > 0 ? (
                           <div>
                             <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
@@ -1339,7 +1343,7 @@ const LibroDiarioSection = () => {
                         ) : ''}
                       </div>
                       {/* Cuenta Haber */}
-                      <div className="pl-4">
+                      <div className="pl-4 pr-2">
                         {mov.haber > 0 ? (
                           <div>
                             <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>

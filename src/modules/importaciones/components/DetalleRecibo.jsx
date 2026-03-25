@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink, FileText, Upload, Trash } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink, FileText, Upload, Trash, Image, Paperclip } from 'lucide-react';
+import EmpresaLogisticaSelector from './EmpresaLogisticaSelector';
 import importacionesService from '../services/importacionesService';
 import { ESTADOS_IMPORTACION, LABELS_ESTADOS, COLORES_ESTADOS } from '../constants/estadosImportacion';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
@@ -26,7 +27,13 @@ const DetalleRecibo = ({
   const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState({});
 
-  // Estados para factura PDF
+  // Estados para archivos adjuntos
+  const [archivos, setArchivos] = useState([]);
+  const [cargandoArchivos, setCargandoArchivos] = useState(false);
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Estados para factura PDF (legacy)
   const [gestionandoPdf, setGestionandoPdf] = useState(false);
   const fileInputPdfRef = useRef(null);
 
@@ -57,6 +64,61 @@ const DetalleRecibo = ({
       setErrores({});
     }
   }, [recibo]);
+
+  // Cargar archivos adjuntos
+  const cargarArchivos = useCallback(async () => {
+    if (!recibo?.id) return;
+    setCargandoArchivos(true);
+    try {
+      const data = await importacionesService.obtenerArchivos(recibo.id);
+      setArchivos(data);
+    } catch (err) {
+      console.error('Error cargando archivos:', err);
+    } finally {
+      setCargandoArchivos(false);
+    }
+  }, [recibo?.id]);
+
+  useEffect(() => {
+    cargarArchivos();
+  }, [cargarArchivos]);
+
+  const handleAgregarArchivos = async (e) => {
+    const nuevos = Array.from(e.target.files);
+    e.target.value = '';
+    if (!nuevos.length) return;
+
+    const tiposPermitidos = ['application/pdf', 'image/'];
+    const maxSize = 20 * 1024 * 1024;
+    setSubiendoArchivo(true);
+    for (const archivo of nuevos) {
+      if (!tiposPermitidos.some(t => archivo.type.startsWith(t))) {
+        alert(`"${archivo.name}": Solo se permiten PDFs e imágenes`);
+        continue;
+      }
+      if (archivo.size > maxSize) {
+        alert(`"${archivo.name}": El archivo no puede superar los 20MB`);
+        continue;
+      }
+      try {
+        await importacionesService.subirArchivo(recibo.id, archivo);
+      } catch (err) {
+        alert(`Error al subir "${archivo.name}": ${err.message}`);
+      }
+    }
+    await cargarArchivos();
+    setSubiendoArchivo(false);
+  };
+
+  const handleEliminarArchivo = async (archivo) => {
+    if (!window.confirm(`¿Eliminar "${archivo.nombre_original}"?`)) return;
+    try {
+      await importacionesService.eliminarArchivo(archivo.id, archivo.url);
+      setArchivos(prev => prev.filter(a => a.id !== archivo.id));
+    } catch (err) {
+      alert('Error al eliminar: ' + err.message);
+    }
+  };
 
   const formatNumber = (num) => {
     if (num === null || num === undefined || num === '') return '-';
@@ -525,31 +587,15 @@ const DetalleRecibo = ({
                 <div className="text-center">
                   <label className="text-xs font-semibold text-slate-500 uppercase block">Empresa Logística</label>
                   {modoEdicion ? (
-                    <input
-                      type="text"
-                      value={datosEditados.empresa_logistica || ''}
-                      onChange={(e) => handleDatoChange('empresa_logistica', e.target.value)}
-                      className="w-full border border-slate-200 rounded px-2 py-1 text-sm mt-1"
-                      placeholder="Ej: FedEx, DHL..."
-                    />
+                    <div className="mt-1">
+                      <EmpresaLogisticaSelector
+                        value={datosEditados.empresa_logistica || ''}
+                        onChange={(valor) => handleDatoChange('empresa_logistica', valor)}
+                        placeholder="Seleccionar empresa..."
+                      />
+                    </div>
                   ) : (
                     <p className="font-medium text-slate-800 mt-1">{recibo.empresa_logistica || '-'}</p>
-                  )}
-                </div>
-
-                {/* Tracking Number */}
-                <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Tracking Number</label>
-                  {modoEdicion ? (
-                    <input
-                      type="text"
-                      value={datosEditados.tracking_number || ''}
-                      onChange={(e) => handleDatoChange('tracking_number', e.target.value)}
-                      className="w-full border border-slate-200 rounded px-2 py-1 text-sm mt-1"
-                      placeholder="Número de seguimiento"
-                    />
-                  ) : (
-                    <p className="font-medium text-slate-800 mt-1">{recibo.tracking_number || '-'}</p>
                   )}
                 </div>
 
@@ -566,6 +612,22 @@ const DetalleRecibo = ({
                     />
                   ) : (
                     <p className="font-medium text-slate-800 mt-1">{recibo.numero_invoice || '-'}</p>
+                  )}
+                </div>
+
+                {/* Tracking Number */}
+                <div className="text-center">
+                  <label className="text-xs font-semibold text-slate-500 uppercase block">Tracking Number</label>
+                  {modoEdicion ? (
+                    <input
+                      type="text"
+                      value={datosEditados.tracking_number || ''}
+                      onChange={(e) => handleDatoChange('tracking_number', e.target.value)}
+                      className="w-full border border-slate-200 rounded px-2 py-1 text-sm mt-1"
+                      placeholder="Número de seguimiento"
+                    />
+                  ) : (
+                    <p className="font-medium text-slate-800 mt-1">{recibo.tracking_number || '-'}</p>
                   )}
                 </div>
 
@@ -661,69 +723,112 @@ const DetalleRecibo = ({
                 )}
               </div>
 
-              {/* Factura PDF */}
+              {/* Archivos adjuntos */}
               <div className="mt-4 pt-4 border-t border-slate-200">
-                <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Factura PDF</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                    <Paperclip size={12} />
+                    Archivos adjuntos {archivos.length > 0 && `(${archivos.length})`}
+                  </label>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={subiendoArchivo}
+                    className="text-xs text-emerald-600 hover:text-emerald-800 font-medium flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <Plus size={12} />
+                    Agregar
+                  </button>
+                </div>
                 <input
-                  ref={fileInputPdfRef}
+                  ref={fileInputRef}
                   type="file"
-                  accept="application/pdf"
-                  onChange={handleSubirPdf}
+                  accept="application/pdf,image/*"
+                  multiple
+                  onChange={handleAgregarArchivos}
                   className="hidden"
                 />
-                {recibo.factura_pdf_url ? (
-                  <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded p-3">
-                    <FileText size={20} className="text-emerald-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-emerald-800 truncate">Factura adjunta</p>
-                      {recibo.numero_invoice && (
-                        <p className="text-xs text-emerald-600">Invoice: {recibo.numero_invoice}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center flex-shrink-0" style={{ gap: '28px' }}>
-                      <a
-                        href={recibo.factura_pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center text-emerald-600 hover:text-emerald-800 transition-colors"
-                        title="Ver PDF"
-                        style={{ width: 18, height: 18 }}
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                      <button
-                        onClick={() => fileInputPdfRef.current?.click()}
-                        disabled={gestionandoPdf}
-                        className="flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50"
-                        title="Reemplazar PDF"
-                        style={{ width: 18, height: 18, margin: 0, padding: 0, background: 'none', border: 'none' }}
-                      >
-                        <Upload size={18} />
-                      </button>
-                      <button
-                        onClick={handleEliminarPdf}
-                        disabled={gestionandoPdf}
-                        className="flex items-center justify-center text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                        title="Eliminar PDF"
-                        style={{ width: 18, height: 18, margin: 0, padding: 0, background: 'none', border: 'none' }}
-                      >
-                        <Trash size={18} />
-                      </button>
-                    </div>
-                  </div>
+                {cargandoArchivos ? (
+                  <p className="text-xs text-slate-400 py-2">Cargando archivos...</p>
                 ) : (
-                  <div
-                    onClick={() => !gestionandoPdf && fileInputPdfRef.current?.click()}
-                    className="border border-dashed border-slate-300 rounded p-4 flex items-center gap-3 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
-                  >
-                    <Upload size={20} className="text-slate-400" />
-                    <div>
-                      <p className="text-sm text-slate-600 font-medium">
-                        {gestionandoPdf ? 'Procesando...' : 'Adjuntar factura PDF'}
-                      </p>
-                      <p className="text-xs text-slate-400">PDF, máx. 10MB</p>
-                    </div>
+                  <div className="space-y-2">
+                    {/* Archivo PDF legacy */}
+                    {recibo.factura_pdf_url && (
+                      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded px-3 py-2">
+                        <FileText size={16} className="text-emerald-600 flex-shrink-0" />
+                        <span className="text-sm text-slate-700 truncate flex-1">Factura adjunta</span>
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                          <a
+                            href={recibo.factura_pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-600 hover:text-emerald-800 transition-colors"
+                            title="Ver PDF"
+                          >
+                            <ExternalLink size={18} />
+                          </a>
+                          <button
+                            onClick={handleEliminarPdf}
+                            disabled={gestionandoPdf}
+                            className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                            title="Eliminar PDF"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {/* Archivos nuevos */}
+                    {archivos.map(archivo => (
+                      <div key={archivo.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded px-3 py-2">
+                        {archivo.tipo_mime === 'application/pdf'
+                          ? <FileText size={16} className="text-emerald-600 flex-shrink-0" />
+                          : <Image size={16} className="text-blue-500 flex-shrink-0" />
+                        }
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-slate-700 truncate">{archivo.nombre_original}</p>
+                          {archivo.tamano_bytes && (
+                            <p className="text-xs text-slate-400">{(archivo.tamano_bytes / 1024).toFixed(0)} KB</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                          <a
+                            href={archivo.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-600 hover:text-emerald-800 transition-colors"
+                            title="Ver archivo"
+                          >
+                            <ExternalLink size={18} />
+                          </a>
+                          <button
+                            onClick={() => handleEliminarArchivo(archivo)}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Eliminar"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Estado vacío */}
+                    {archivos.length === 0 && !recibo.factura_pdf_url && (
+                      <div
+                        onClick={() => !subiendoArchivo && fileInputRef.current?.click()}
+                        className="border border-dashed border-slate-300 rounded p-4 flex items-center gap-3 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
+                      >
+                        <Upload size={18} className="text-slate-400" />
+                        <div>
+                          <p className="text-sm text-slate-600 font-medium">
+                            {subiendoArchivo ? 'Subiendo...' : 'Adjuntar archivos'}
+                          </p>
+                          <p className="text-xs text-slate-400">PDFs e imágenes, máx. 20MB c/u</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                )}
+                {subiendoArchivo && (
+                  <p className="text-xs text-emerald-600 mt-1">Subiendo archivos...</p>
                 )}
               </div>
             </div>
