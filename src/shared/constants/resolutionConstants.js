@@ -11,6 +11,7 @@ export const RESOLUCIONES = {
   MBA_15: 'MacBook Air 15"',
   MBP_14: 'MacBook Pro 14"',
   MBP_16: 'MacBook Pro 16"',
+  MBA_13_NEO: 'MacBook Neo 13"',
   '3K': '3K'
 };
 
@@ -25,6 +26,7 @@ export const RESOLUCIONES_ARRAY = [
   'MacBook Air 15"',
   'MacBook Pro 14"',
   'MacBook Pro 16"',
+  'MacBook Neo 13"',
   '3K'
 ];
 
@@ -39,6 +41,7 @@ export const RESOLUCIONES_LABELS = {
   'MacBook Air 15"': 'MacBook Air 15" (2880x1864)',
   'MacBook Pro 14"': 'MacBook Pro 14" (3024x1964)',
   'MacBook Pro 16"': 'MacBook Pro 16" (3456x2234)',
+  'MacBook Neo 13"': 'MacBook Neo 13" (2408x1506)',
   '3K': '3K (3000x2000)'
 };
 

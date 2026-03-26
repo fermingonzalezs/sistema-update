@@ -172,7 +172,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     hdd: '',
     so: '',
     pantalla: '',
-    resolucion: 'FHD',
+    resolucion: '',
     refresh: '',
     touchscreen: false,
     placa_video: '',
@@ -230,6 +230,21 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
     e.preventDefault();
     if (!formData.serial || !formData.modelo || !formData.precio_costo_usd || !formData.precio_venta_usd) {
       alert('Serial, Modelo, Precio de Compra y Precio de Venta son campos obligatorios');
+      return;
+    }
+
+    if (!formData.so) {
+      alert('El Sistema Operativo es obligatorio');
+      return;
+    }
+
+    if (!formData.resolucion) {
+      alert('La Resolución es obligatoria');
+      return;
+    }
+
+    if (!formData.placa_video?.trim()) {
+      alert('La Placa de Video es obligatoria');
       return;
     }
 
@@ -300,7 +315,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           hdd: '',
           so: '',
           pantalla: '',
-          resolucion: 'FHD',
+          resolucion: '',
           refresh: '',
           touchscreen: false,
           placa_video: '',
@@ -343,7 +358,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           hdd: '',
           so: '',
           pantalla: '',
-          resolucion: 'FHD',
+          resolucion: '',
           refresh: '',
           touchscreen: false,
           placa_video: '',
@@ -693,7 +708,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Sistema Operativo</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Sistema Operativo <span className="text-red-500">*</span></label>
                 <select
                   name="so"
                   value={formData.so}
@@ -710,7 +725,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Placa de Video</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Placa de Video <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="placa_video"
@@ -745,7 +760,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                 <input type="number" name="pantalla" value={formData.pantalla} onChange={handleChange} placeholder="Ej: 15.6" min="10" max="20" step="0.1" className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Resolución <span className="text-red-500">*</span></label>
                 <ResolucionSelect value={formData.resolucion} onChange={(val) => setFormData(prev => ({ ...prev, resolucion: val }))} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm" />
               </div>
               <div>

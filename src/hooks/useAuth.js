@@ -187,7 +187,7 @@ export const useAuth = () => {
     admin: ['ventas', 'soporte', 'administracion', 'contabilidad', 'compras', 'ingreso-equipos'],
     ventas: ['ventas', 'ingreso-equipos', 'compras', 'recuento-stock'],
     soporte: ['soporte'],
-    contabilidad: ['contabilidad', 'administracion', 'compras'],
+    contabilidad: ['contabilidad', 'administracion', 'compras', 'ingreso-equipos'],
     compras: ['compras', 'ingreso-equipos'],
   };
 
