@@ -435,7 +435,8 @@ const DetalleRecibo = ({
 
   const totalProductos = (recibo.importaciones_items || []).reduce((sum, item) => sum + (item.precio_total_usd || 0), 0);
   const totalCostos = (recibo.costo_total_importacion_usd || 0);
-  const totalGeneral = totalProductos + totalCostos;
+  const totalFinanciero = (recibo.importaciones_items || []).reduce((sum, item) => sum + (parseFloat(item.costo_financiero_usd) || 0), 0);
+  const totalGeneral = totalProductos + totalCostos + totalFinanciero;
 
   // Calcular totales para edición
   const itemsVisibles = itemsEditados.filter(i => !itemsEliminados.includes(i.id));
@@ -445,7 +446,7 @@ const DetalleRecibo = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded border border-slate-200 max-w-[78vw] w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
           <div>
@@ -854,7 +855,7 @@ const DetalleRecibo = ({
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ minWidth: '220px' }}>Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Color</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Almacenamiento</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-20">Cant.</th>
@@ -890,7 +891,7 @@ const DetalleRecibo = ({
                         key={item.id}
                         className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${estaEliminado ? 'opacity-40 line-through' : ''}`}
                       >
-                        <td className="px-4 py-3 text-slate-800">
+                        <td className="px-4 py-3 text-slate-800" style={{ minWidth: '220px' }}>
                           {modoEdicion && !estaEliminado ? (
                             <div>
                               <input
@@ -936,7 +937,7 @@ const DetalleRecibo = ({
                               type="text"
                               value={item.color || ''}
                               onChange={(e) => handleItemChange(item.id, 'color', e.target.value)}
-                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               placeholder="-"
                             />
                           ) : (
@@ -950,7 +951,7 @@ const DetalleRecibo = ({
                               type="text"
                               value={item.almacenamiento || ''}
                               onChange={(e) => handleItemChange(item.id, 'almacenamiento', e.target.value)}
-                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               placeholder="-"
                             />
                           ) : (
@@ -964,7 +965,7 @@ const DetalleRecibo = ({
                               min="1"
                               value={item.cantidad || ''}
                               onChange={(e) => handleItemChange(item.id, 'cantidad', e.target.value)}
-                              className={`w-full border rounded px-2 py-1 text-sm text-center ${errores[`item_${item.id}_cantidad`] ? 'border-red-500' : 'border-slate-200'}`}
+                              className={`w-full border rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errores[`item_${item.id}_cantidad`] ? 'border-red-500' : 'border-slate-200'}`}
                             />
                           ) : (
                             item.cantidad
@@ -978,7 +979,7 @@ const DetalleRecibo = ({
                               step="0.01"
                               value={item.precio_unitario_usd || ''}
                               onChange={(e) => handleItemChange(item.id, 'precio_unitario_usd', e.target.value)}
-                              className={`w-full border rounded px-2 py-1 text-sm text-center ${errores[`item_${item.id}_precio`] ? 'border-red-500' : 'border-slate-200'}`}
+                              className={`w-full border rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errores[`item_${item.id}_precio`] ? 'border-red-500' : 'border-slate-200'}`}
                             />
                           ) : (
                             `$${formatNumber(item.precio_unitario_usd)}`
@@ -995,7 +996,7 @@ const DetalleRecibo = ({
                                   step="0.01"
                                   value={item.peso_estimado_unitario_kg || ''}
                                   onChange={(e) => handleItemChange(item.id, 'peso_estimado_unitario_kg', e.target.value)}
-                                  className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                                  className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               ) : (
                                 item.peso_estimado_total_kg ? item.peso_estimado_total_kg.toFixed(2) : '-'
@@ -1018,7 +1019,7 @@ const DetalleRecibo = ({
                                   step="0.01"
                                   value={item.peso_real_unitario_kg || ''}
                                   onChange={(e) => handleItemChange(item.id, 'peso_real_unitario_kg', e.target.value)}
-                                  className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                                  className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               ) : (
                                 item.peso_real_unitario_kg ? item.peso_real_unitario_kg.toFixed(2) : '-'
@@ -1034,10 +1035,10 @@ const DetalleRecibo = ({
                               {item.costos_adicionales_usd != null ? `$${formatNumber(item.costos_adicionales_usd)}` : '-'}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                              ${formatNumber(parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0))}
+                              ${formatNumber(parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0) + (parseFloat(item.costo_financiero_usd) || 0))}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                              ${formatNumber((parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0)) * item.cantidad)}
+                              ${formatNumber((parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0) + (parseFloat(item.costo_financiero_usd) || 0)) * item.cantidad)}
                             </td>
                           </>
                         )}
@@ -1085,7 +1086,7 @@ const DetalleRecibo = ({
                           type="text"
                           value={item.color || ''}
                           onChange={(e) => handleItemNuevoChange(item.tempId, 'color', e.target.value)}
-                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="-"
                         />
                       </td>
@@ -1095,7 +1096,7 @@ const DetalleRecibo = ({
                           type="text"
                           value={item.almacenamiento || ''}
                           onChange={(e) => handleItemNuevoChange(item.tempId, 'almacenamiento', e.target.value)}
-                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="-"
                         />
                       </td>
@@ -1105,7 +1106,7 @@ const DetalleRecibo = ({
                           min="1"
                           value={item.cantidad || ''}
                           onChange={(e) => handleItemNuevoChange(item.tempId, 'cantidad', e.target.value)}
-                          className={`w-full border rounded px-2 py-1 text-sm text-center ${errores[`nuevo_${item.tempId}_cantidad`] ? 'border-red-500' : 'border-slate-200'}`}
+                          className={`w-full border rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errores[`nuevo_${item.tempId}_cantidad`] ? 'border-red-500' : 'border-slate-200'}`}
                         />
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -1115,7 +1116,7 @@ const DetalleRecibo = ({
                           step="0.01"
                           value={item.precio_unitario_usd || ''}
                           onChange={(e) => handleItemNuevoChange(item.tempId, 'precio_unitario_usd', e.target.value)}
-                          className={`w-full border rounded px-2 py-1 text-sm text-center ${errores[`nuevo_${item.tempId}_precio`] ? 'border-red-500' : 'border-slate-200'}`}
+                          className={`w-full border rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errores[`nuevo_${item.tempId}_precio`] ? 'border-red-500' : 'border-slate-200'}`}
                         />
                       </td>
                       {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO ? (
@@ -1127,7 +1128,7 @@ const DetalleRecibo = ({
                               step="0.01"
                               value={item.peso_estimado_unitario_kg || ''}
                               onChange={(e) => handleItemNuevoChange(item.tempId, 'peso_estimado_unitario_kg', e.target.value)}
-                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center"
+                              className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                           </td>
                           <td className="px-4 py-3 text-center font-semibold text-slate-800">
@@ -1200,7 +1201,7 @@ const DetalleRecibo = ({
                           className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center mt-1"
                         />
                       ) : (
-                        <p className="font-medium text-slate-800 mt-1">{formatNumber(recibo.peso_total_con_caja_kg)} kg</p>
+                        <p className="font-medium text-slate-800 mt-1">{recibo.peso_total_con_caja_kg != null ? parseFloat(recibo.peso_total_con_caja_kg).toFixed(2) : '-'} kg</p>
                       )}
                     </div>
 
@@ -1216,7 +1217,7 @@ const DetalleRecibo = ({
                           className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center mt-1"
                         />
                       ) : (
-                        <p className="font-medium text-slate-800 mt-1">{formatNumber(recibo.peso_sin_caja_kg)} kg</p>
+                        <p className="font-medium text-slate-800 mt-1">{recibo.peso_sin_caja_kg != null ? parseFloat(recibo.peso_sin_caja_kg).toFixed(2) : '-'} kg</p>
                       )}
                     </div>
 
@@ -1237,7 +1238,7 @@ const DetalleRecibo = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Pago Courier</label>
                       {modoEdicion ? (
@@ -1271,12 +1272,17 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
+                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero Total</label>
+                      <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(totalFinanciero)}</p>
+                    </div>
+
+                    <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Total Adicional</label>
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber(
                           modoEdicion
-                            ? (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0)
-                            : totalCostos
+                            ? (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
+                            : totalCostos + totalFinanciero
                         )}
                       </p>
                     </div>
@@ -1293,7 +1299,7 @@ const DetalleRecibo = ({
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber(
                           modoEdicion
-                            ? totalProductosEdicion + (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0)
+                            ? totalProductosEdicion + (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
                             : totalGeneral
                         )}
                       </p>

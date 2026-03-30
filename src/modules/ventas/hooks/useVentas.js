@@ -29,7 +29,8 @@ export const ventasService = {
           precio_total,
           precio_costo,
           margen_item,
-          garantia
+          garantia,
+          producto_snapshot
         )
       `)
       .order('fecha_venta', { ascending: false })

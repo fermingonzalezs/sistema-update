@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Package, Clock, CheckCircle, Layers, Search, ChevronDown } from 'lucide-react';
+import { Plus, Package, Layers, Search, ChevronDown } from 'lucide-react';
 import CargaEquiposUnificada from './CargaEquiposUnificada';
 import CargaMasivaEquipos from './CargaMasivaEquipos';
 import { useIngresoEquipos } from './useIngresoEquipos';
@@ -9,7 +9,6 @@ import { useOtros } from '../../ventas/hooks/useOtros';
 import { useAuthContext } from '../../../context/AuthContext';
 
 const IngresoEquiposSection = () => {
-  const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [modalCargaMasiva, setModalCargaMasiva] = useState(false);
   const [busquedaHistorial, setBusquedaHistorial] = useState('');
@@ -53,37 +52,22 @@ const IngresoEquiposSection = () => {
         proveedor: datos.proveedor || '',
         proveedor_id: datos.proveedor_id || null,
         garantias: datos.garantia || datos.garantias || '',
-        destino: destinoSeleccionado,
+        destino: 'stock',
         usuario_ingreso: username,
         color: datos.color || null,
         notas: `${tipoEquipo.toUpperCase()} - Serial: ${datos.serial || 'N/A'} | Precio Venta: ${datos.precio_venta_usd || 0} | Modelo: ${datos.modelo || datos.nombre_producto || 'N/A'} | Categoria: ${datos.categoria || ''}`
       };
 
-      if (destinoSeleccionado === 'stock') {
-        // Enviar directo al stock
-        const resultado = await funcionOriginal(datos);
-        if (resultado) {
-          // Registrar en historial como completado
-          await registrarIngreso({
-            ...ingresoData,
-            estado: 'completado',
-            referencia_inventario_id: resultado.id || null
-          });
-          setMostrarFormulario(false);
-        }
-      } else {
-        // Enviar a testeo - solo registrar en historial
-        const resultado = await registrarIngreso({
+      // Enviar directo al stock
+      const resultado = await funcionOriginal(datos);
+      if (resultado) {
+        // Registrar en historial como completado
+        await registrarIngreso({
           ...ingresoData,
-          estado: 'pendiente'
+          estado: 'completado',
+          referencia_inventario_id: resultado.id || null
         });
-
-        if (resultado.success) {
-          alert('Equipo enviado a testeo. Aparecerá en la sección de Testeo de Equipos en Soporte.');
-          setMostrarFormulario(false);
-        } else {
-          alert('Error al registrar el equipo: ' + resultado.error);
-        }
+        setMostrarFormulario(false);
       }
     } catch (error) {
       console.error('Error en handleAddEquipo:', error);
@@ -134,9 +118,6 @@ const IngresoEquiposSection = () => {
     }
   };
 
-  const getDestinoIcon = (destino) => {
-    return destino === 'stock' ? Package : Clock;
-  };
 
   const normalizarCategoria = (categoria) => {
     if (!categoria) return '';
@@ -262,45 +243,7 @@ const IngresoEquiposSection = () => {
       {/* Formulario de ingreso */}
       {mostrarFormulario && (
         <div className="bg-white rounded border border-slate-200 p-6">
-          {/* Selector de destino */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Destino del Equipo</h3>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setDestinoSeleccionado('stock')}
-                className={`flex-1 p-4 rounded border transition-all ${destinoSeleccionado === 'stock'
-                  ? 'border-emerald-600 bg-emerald-600 text-white'
-                  : 'border-slate-200 bg-white hover:border-emerald-600 hover:bg-emerald-50'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-3">
-                  <Package className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-base">Agregar al Stock</div>
-                    <div className="text-sm opacity-80">Disponible para venta</div>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setDestinoSeleccionado('testeo')}
-                className={`flex-1 p-4 rounded border transition-all ${destinoSeleccionado === 'testeo'
-                  ? 'border-slate-800 bg-slate-800 text-white'
-                  : 'border-slate-200 bg-white hover:border-slate-800 hover:bg-slate-50'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-3">
-                  <Clock className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-base">Enviar a Testeo</div>
-                    <div className="text-sm opacity-80">Revisión técnica</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Formulario de carga */}
+            {/* Formulario de carga */}
           <CargaEquiposUnificada
             onAddComputer={onAddComputer}
             onAddCelular={onAddCelular}

@@ -7,13 +7,12 @@ import CargaMasivaCompras from './CargaMasivaCompras';
 import { supabase } from '../../../lib/supabase';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
+import { comprasLocalesService } from '../services/comprasLocalesService';
 
 const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditing = false, reciboInicial = null }) => {
   const { proveedores } = useProveedores();
 
   const [showNuevoProveedorModal, setShowNuevoProveedorModal] = useState(false);
-  const [mostrarModalDestino, setMostrarModalDestino] = useState(false);
-  const [destinoSeleccionado, setDestinoSeleccionado] = useState('stock');
   const [procesando, setProcesando] = useState(false);
   const [mostrarModalMasivo, setMostrarModalMasivo] = useState(false);
   const [modoAgregar, setModoAgregar] = useState('individual');
@@ -198,7 +197,11 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
         touchscreen: datos.touchscreen,
         estado: datos.estado,
         categoria: datos.categoria,
-        fotos: datos.fotos
+        fotos: datos.fotos,
+        proveedor_id: datos.proveedor_id || null,
+        reservado_para: datos.reservado_para || null,
+        reservado_por: datos.reservado_por || null,
+        reservado_at: datos.reservado_at || null
       })
       .select()
       .single();
@@ -236,7 +239,12 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
         costos_adicionales: parseFloat(datos.costos_adicionales || 0) + costosAdicionales,
         fotos: datos.fotos,
         sim_esim: datos.sim_esim,
-        ram: datos.ram
+        ram: datos.ram,
+        imei: datos.imei || null,
+        proveedor_id: datos.proveedor_id || null,
+        reservado_para: datos.reservado_para || null,
+        reservado_por: datos.reservado_por || null,
+        reservado_at: datos.reservado_at || null
       })
       .select()
       .single();
@@ -316,10 +324,10 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
       precio_compra: item.precio_final,
       proveedor: formRecibo.proveedor,
       garantias: item.datos_completos.garantia_update || item.datos_completos.garantia || '3 meses',
-      destino: destinoSeleccionado,
+      destino: 'stock',
       usuario_ingreso: 'admin', // TODO: Obtener de contexto de autenticación
       notas: `Ingreso desde Compra Nacional (Recibo ID: ${reciboId})`,
-      estado: destinoSeleccionado === 'stock' ? 'completado' : 'pendiente',
+      estado: 'completado',
       referencia_compra_id: reciboId,
       referencia_inventario_id: productosCreados[index]?.productoCreado?.id || null,
       fecha: new Date()
@@ -334,6 +342,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
   // Función principal para procesar compra completa
   const procesarCompraCompleta = async () => {
+    if (procesando) return;
     try {
       setProcesando(true);
 
@@ -341,15 +350,17 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
       const itemsConCostos = calcularCostosProrrateados();
 
       // 2. Crear recibo en compras_recibos
+      const numeroRecibo = await comprasLocalesService.generarNumeroRecibo();
       const reciboData = {
+        numero_recibo: numeroRecibo,
         proveedor_id: formRecibo.proveedor_id,
         proveedor: formRecibo.proveedor,
         fecha: formRecibo.fecha_compra,
         metodo_pago: formRecibo.metodo_pago,
         descripcion: formRecibo.observaciones,
-        estado: destinoSeleccionado === 'stock' ? 'ingresado' : 'en_camino',
+        estado: 'ingresado',
         costos_adicionales: parseFloat(formRecibo.costos_adicionales) || 0,
-        fecha_procesamiento: destinoSeleccionado === 'stock' ? new Date().toISOString() : null
+        fecha_procesamiento: new Date().toISOString()
       };
 
       const { data: recibo, error: errorRecibo } = await supabase
@@ -379,16 +390,13 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
       if (errorItems) throw errorItems;
 
-      // 4. Crear productos en inventario (si destino = stock)
-      let productosCreados = [];
-      if (destinoSeleccionado === 'stock') {
-        productosCreados = await crearProductosEnInventario(itemsConCostos, recibo.id);
-      }
+      // 4. Crear productos en inventario
+      const productosCreados = await crearProductosEnInventario(itemsConCostos, recibo.id);
 
       // 5. Registrar en ingresos_equipos
       await registrarIngresosEquipos(itemsConCostos, recibo.id, productosCreados);
 
-      alert(`✅ Compra procesada exitosamente!\n${destinoSeleccionado === 'stock' ? 'Productos agregados al stock.' : 'Productos enviados a testeo.'}`);
+      alert(`✅ Compra procesada exitosamente! Productos agregados al stock.`);
 
       // Cerrar modal y refrescar
       onClose();
@@ -402,7 +410,6 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
       alert('❌ Error al procesar la compra: ' + error.message);
     } finally {
       setProcesando(false);
-      setMostrarModalDestino(false);
     }
   };
 
@@ -418,8 +425,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
       return;
     }
 
-    // Mostrar modal de destino
-    setMostrarModalDestino(true);
+    procesarCompraCompleta();
   };
 
   if (!isOpen) return null;
@@ -751,64 +757,6 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
           </div>
         </div>
       </div>
-
-      {/* MODAL DE SELECCIÓN DE DESTINO */}
-      {mostrarModalDestino && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/70 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded border border-slate-200 max-w-md w-full p-6 space-y-6">
-            <h3 className="text-xl font-semibold text-slate-800">Seleccionar Destino</h3>
-
-            <div className="space-y-3">
-              <label className="flex items-start gap-3 p-4 border-2 border-slate-300 rounded cursor-pointer hover:border-emerald-600 transition-colors">
-                <input
-                  type="radio"
-                  name="destino"
-                  value="stock"
-                  checked={destinoSeleccionado === 'stock'}
-                  onChange={(e) => setDestinoSeleccionado(e.target.value)}
-                  className="mt-1"
-                />
-                <div>
-                  <p className="font-semibold text-slate-800">Stock</p>
-                  <p className="text-sm text-slate-600">Los productos quedarán disponibles para venta inmediatamente</p>
-                </div>
-              </label>
-
-              <label className="flex items-start gap-3 p-4 border-2 border-slate-300 rounded cursor-pointer hover:border-emerald-600 transition-colors">
-                <input
-                  type="radio"
-                  name="destino"
-                  value="testeo"
-                  checked={destinoSeleccionado === 'testeo'}
-                  onChange={(e) => setDestinoSeleccionado(e.target.value)}
-                  className="mt-1"
-                />
-                <div>
-                  <p className="font-semibold text-slate-800">Testeo</p>
-                  <p className="text-sm text-slate-600">Los productos irán a la sección de Testeo para revisión técnica</p>
-                </div>
-              </label>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-              <button
-                onClick={() => setMostrarModalDestino(false)}
-                className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors font-medium"
-                disabled={procesando}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={procesarCompraCompleta}
-                className="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors font-medium"
-                disabled={procesando}
-              >
-                {procesando ? 'Procesando...' : 'Confirmar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL NUEVO PROVEEDOR */}
       {showNuevoProveedorModal && (

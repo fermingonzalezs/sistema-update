@@ -47,9 +47,31 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
             <h3 className="text-xl font-semibold">Detalle de Compra Local</h3>
             <p className="text-slate-300 text-sm mt-1">{recibo.numero_recibo}</p>
           </div>
-          <button onClick={onClose} className="text-slate-300 hover:text-white">
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEdit(recibo)}
+              disabled={isLoading}
+              title="Editar"
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded transition-colors disabled:opacity-50"
+            >
+              <Edit2 size={18} />
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('¿Eliminar esta compra?')) {
+                  onDelete(recibo.id);
+                }
+              }}
+              disabled={isLoading}
+              title="Eliminar"
+              className="p-2 text-slate-300 hover:text-red-400 hover:bg-slate-700 rounded transition-colors disabled:opacity-50"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button onClick={onClose} className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded transition-colors">
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
@@ -147,35 +169,6 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
           </div>
         </div>
 
-        {/* FOOTER CON ACCIONES */}
-        <div className="bg-slate-50 p-6 flex justify-end gap-3 border-t border-slate-200">
-          <button
-            onClick={() => {
-              if (window.confirm('¿Eliminar esta compra?')) {
-                onDelete(recibo.id);
-              }
-            }}
-            disabled={isLoading}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
-          >
-            <Trash2 size={18} />
-            Eliminar
-          </button>
-          <button
-            onClick={() => onEdit(recibo)}
-            disabled={isLoading}
-            className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
-          >
-            <Edit2 size={18} />
-            Editar
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors font-medium"
-          >
-            Cerrar
-          </button>
-        </div>
       </div>
     </div>
   );

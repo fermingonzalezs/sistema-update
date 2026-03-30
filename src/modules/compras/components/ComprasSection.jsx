@@ -271,21 +271,23 @@ const ComprasSection = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <colgroup>
-                <col style={{ width: '6%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '11%' }} />
-                <col style={{ width: '17%' }} />
+                <col style={{ width: '5%' }} />
+                <col style={{ width: '8%' }} />
                 <col style={{ width: '9%' }} />
                 <col style={{ width: '13%' }} />
-                <col style={{ width: '13%' }} />
-                <col style={{ width: '19%' }} />
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '16%' }} />
               </colgroup>
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cont.</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Recibo</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Recibo</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
@@ -321,14 +323,15 @@ const ComprasSection = () => {
                           )}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-800">{recibo.numero_recibo}</td>
+                      <td className="px-4 py-3 text-sm text-center font-medium text-slate-800">{recibo.numero_recibo || '-'}</td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.proveedores?.nombre || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.proveedores?.nombre || recibo.proveedor || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.descripcion || <span className="italic text-slate-400">-</span>}</td>
                       <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.compras_items?.length || 0}</td>
                       <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">U$ {Math.round(total).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
                       <td className="px-4 py-3 text-center">{estadoBadge}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-3">
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center gap-3">
                           <button
                             onClick={() => {
                               setReciboEnDetalle(recibo);

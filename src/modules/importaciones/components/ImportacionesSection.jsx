@@ -396,27 +396,26 @@ const ImportacionesSection = () => {
               <div
                 className="overflow-auto max-h-[70vh] w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
               >
-                <table style={{ minWidth: '1200px', width: '100%' }}>
+                <table style={{ minWidth: '820px', width: '100%', tableLayout: 'fixed' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Cont.</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">N°</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Compra</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Fecha Recepción</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Proveedor</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Items</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Peso (kg)</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Total USD</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Costos Adic. USD</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Estado</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Descripción</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap bg-slate-800">Acciones</th>
+                      <th className="py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '28px' }}>Cont.</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recepción</th>
+                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '220px' }}>Descripción</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '85px' }}>Proveedor</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '45px' }}>Items</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '65px' }}>Peso</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>FOB</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Cost. Adic.</th>
+                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '170px' }}>Estado</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '120px' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {recibosFiltrados.map((recibo, idx) => (
                       <tr key={recibo.id} className={`transition-colors ${recibo.contabilizado ? 'bg-emerald-50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                        <td className="py-3 text-center">
                           <button
                             onClick={() => toggleContabilizado(recibo.id, recibo.contabilizado)}
                             disabled={actualizandoContabilizado[recibo.id]}
@@ -432,27 +431,27 @@ const ImportacionesSection = () => {
                             )}
                           </button>
                         </td>
-                        <td className="px-4 py-3 text-sm font-medium text-center text-slate-800 whitespace-nowrap" title={recibo.numero_recibo}>
-                          {recibo.numero_recibo}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        <td className="px-1 py-3 text-[15px] text-center text-slate-600 whitespace-nowrap">
                           {formatearFechaDisplay(recibo.fecha_compra)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        <td className="px-1 py-3 text-[15px] text-center text-slate-600 whitespace-nowrap">
                           {recibo.fecha_recepcion_argentina
                             ? formatearFechaDisplay(recibo.fecha_recepcion_argentina)
                             : '-'
                           }
                         </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap" title={recibo.proveedores?.nombre || '-'}>
-                          {recibo.proveedores?.nombre || '-'}
+                        <td className="px-2 py-3 text-[15px] text-slate-600 overflow-hidden" title={recibo.observaciones || '-'}>
+                          <span className="block truncate">{recibo.observaciones || '-'}</span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap">
+                        <td className="px-1 py-3 text-[15px] text-center text-slate-600 overflow-hidden" title={recibo.proveedores?.nombre || '-'}>
+                          <span className="block truncate">{recibo.proveedores?.nombre || '-'}</span>
+                        </td>
+                        <td className="px-0 py-3 text-[15px] text-center text-slate-600">
                           {recibo.importaciones_items?.length || 0}
                         </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-800 whitespace-nowrap">
-                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && recibo.peso_sin_caja_kg ? (
-                            <span className="font-semibold">{parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg</span>
+                        <td className="px-1 py-3 text-[15px] text-center text-slate-800 whitespace-nowrap">
+                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && recibo.peso_total_con_caja_kg ? (
+                            <span className="font-semibold">{parseFloat(recibo.peso_total_con_caja_kg).toFixed(2)} kg</span>
                           ) : (
                             (() => {
                               const pesoEstimado = (recibo.importaciones_items || []).reduce(
@@ -465,31 +464,32 @@ const ImportacionesSection = () => {
                             })()
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
-                          USD ${formatNumber(
+                        <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                          ${formatNumber(
                             (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800 whitespace-nowrap">
+                        <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
                           {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
-                            `USD $${formatNumber(
+                            `$${formatNumber(
                               (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
                             )}`
                           ) : (
                             '-'
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                        <td className="px-1 py-3 text-center whitespace-nowrap">
                           <div className="relative inline-block">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setDropdownEstadoAbierto(dropdownEstadoAbierto === recibo.id ? null : recibo.id);
                               }}
-                              className={`inline-flex items-center gap-1 px-3 py-1 rounded text-xs font-semibold cursor-pointer ${getEstadoColor(recibo.estado)}`}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-semibold cursor-pointer w-[155px] ${getEstadoColor(recibo.estado)}`}
+                              style={{ fontSize: '12px' }}
                             >
-                              {getEstadoLabel(recibo.estado)}
-                              <ChevronDown size={11} />
+                              <span className="truncate flex-1 text-center">{getEstadoLabel(recibo.estado)}</span>
+                              <ChevronDown size={10} className="shrink-0" />
                             </button>
                             {dropdownEstadoAbierto === recibo.id && (
                               <>
@@ -519,11 +519,8 @@ const ImportacionesSection = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-600 whitespace-nowrap" title={recibo.observaciones || '-'}>
-                          {recibo.observaciones || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <div className="flex justify-center gap-2">
+                        <td className="px-1 py-3 text-center whitespace-nowrap">
+                          <div className="flex justify-center gap-1">
                             {/* Botón para retroceder al estado anterior */}
                             {recibo.estado !== ESTADOS_IMPORTACION.EN_TRANSITO_USA && (() => {
                               const estadoAnterior = obtenerEstadoAnterior(recibo.estado);
