@@ -62,6 +62,7 @@ const ImportacionesSection = () => {
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('');
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
   const [filtroOrden, setFiltroOrden] = useState('fecha_compra_desc');
+  const [filtroProducto, setFiltroProducto] = useState('');
 
   useEffect(() => {
     fetchRecibos();
@@ -75,6 +76,13 @@ const ImportacionesSection = () => {
       if (filtroProveedor !== 'todos' && recibo.proveedor_id !== filtroProveedor) return false;
       if (filtroFechaDesde && recibo.fecha_compra < filtroFechaDesde) return false;
       if (filtroFechaHasta && recibo.fecha_compra > filtroFechaHasta) return false;
+      if (filtroProducto.trim()) {
+        const busqueda = filtroProducto.trim().toLowerCase();
+        const tieneProducto = (recibo.importaciones_items || []).some(item =>
+          (item.item || '').toLowerCase().includes(busqueda)
+        );
+        if (!tieneProducto) return false;
+      }
       return true;
     }).sort((a, b) => {
       switch (filtroOrden) {
@@ -99,7 +107,7 @@ const ImportacionesSection = () => {
           return 0;
       }
     });
-  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta, filtroOrden]);
+  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta, filtroOrden, filtroProducto]);
 
   // Stats
   const stats = useMemo(() => {
@@ -135,6 +143,7 @@ const ImportacionesSection = () => {
     setFiltroFechaDesde('');
     setFiltroFechaHasta('');
     setFiltroOrden('fecha_compra_desc');
+    setFiltroProducto('');
   };
 
   // Avanzar al siguiente estado
@@ -285,7 +294,7 @@ const ImportacionesSection = () => {
 
       {/* FILTROS */}
       <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Orden</label>
             <select
@@ -351,6 +360,16 @@ const ImportacionesSection = () => {
               type="date"
               value={filtroFechaHasta}
               onChange={(e) => setFiltroFechaHasta(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Producto</label>
+            <input
+              type="text"
+              value={filtroProducto}
+              onChange={(e) => setFiltroProducto(e.target.value)}
+              placeholder="Buscar producto..."
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
