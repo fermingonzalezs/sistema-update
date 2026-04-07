@@ -41,6 +41,7 @@ const RecibosSection = () => {
     // Campos de presupuesto
     vigencia_horas: 72,
     condiciones: '',
+    iva_porcentaje: null,
 
     observaciones: ''
   });
@@ -72,6 +73,7 @@ const RecibosSection = () => {
       quien_retira: documento.quien_retira || '',
       vigencia_horas: documento.vigencia_horas || 72,
       condiciones: documento.condiciones || '',
+      iva_porcentaje: documento.iva_porcentaje || null,
       observaciones: documento.observaciones || '',
       items: documento.items?.map(item => ({
         descripcion: item.descripcion || '',
@@ -105,7 +107,9 @@ const RecibosSection = () => {
         const subtotal = editData.items.reduce((sum, item) =>
           sum + (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0), 0
         );
-        total = subtotal - (parseFloat(editData.descuento) || 0);
+        const afterDescuento = subtotal - (parseFloat(editData.descuento) || 0);
+        const iva = editData.iva_porcentaje ? afterDescuento * (editData.iva_porcentaje / 100) : 0;
+        total = afterDescuento + iva;
       }
 
       // Preparar datos para actualizar
@@ -134,6 +138,7 @@ const RecibosSection = () => {
         datosActualizados.total = total;
         datosActualizados.vigencia_horas = parseInt(editData.vigencia_horas) || 72;
         datosActualizados.condiciones = editData.condiciones;
+        datosActualizados.iva_porcentaje = editData.iva_porcentaje ? parseFloat(editData.iva_porcentaje) : null;
       }
 
       // Preparar items
@@ -236,7 +241,13 @@ const RecibosSection = () => {
     const subtotal = formData.items.reduce((sum, item) =>
       sum + calcularPrecioTotalItem(item), 0
     );
-    return subtotal - (formData.descuento || 0);
+    const afterDescuento = subtotal - (formData.descuento || 0);
+    const iva = formData.iva_porcentaje ? afterDescuento * (formData.iva_porcentaje / 100) : 0;
+    return afterDescuento + iva;
+  };
+
+  const calcularSubtotalFormulario = () => {
+    return formData.items.reduce((sum, item) => sum + calcularPrecioTotalItem(item), 0);
   };
 
   // Validar formulario
@@ -334,7 +345,8 @@ const RecibosSection = () => {
           total: calcularTotal(),
           vigencia_horas: parseInt(formData.vigencia_horas) || 72,
           condiciones: formData.condiciones.trim() || '',
-          observaciones: formData.observaciones.trim() || ''
+          observaciones: formData.observaciones.trim() || '',
+          iva_porcentaje: formData.iva_porcentaje ? parseFloat(formData.iva_porcentaje) : null
         };
         resultado = await crearPresupuesto(datosPresupuesto);
       }
@@ -357,6 +369,7 @@ const RecibosSection = () => {
           quien_retira: '',
           vigencia_horas: 72,
           condiciones: '',
+          iva_porcentaje: null,
           observaciones: ''
         });
         setClienteSeleccionado(null);
@@ -933,6 +946,19 @@ const RecibosSection = () => {
                         className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">IVA</label>
+                      <select
+                        value={formData.iva_porcentaje ?? ''}
+                        onChange={(e) => setFormData({ ...formData, iva_porcentaje: e.target.value === '' ? null : parseFloat(e.target.value) })}
+                        className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="">Sin IVA</option>
+                        <option value="10.5">IVA 10,5%</option>
+                        <option value="21">IVA 21%</option>
+                      </select>
+                    </div>
                   </>
                 )}
 
@@ -1098,8 +1124,28 @@ const RecibosSection = () => {
               <div className="flex justify-between items-center pt-4 border-t border-slate-200">
                 <div>
                   {tipoDocumento !== 'remito' && (
-                    <div className="text-xl font-bold text-slate-800">
-                      Total: {formatearMonto(calcularTotal(), formData.moneda)}
+                    <div className="space-y-1">
+                      {(formData.descuento > 0 || formData.iva_porcentaje) && (
+                        <div className="text-sm text-slate-500">
+                          Subtotal: {formatearMonto(calcularSubtotalFormulario(), formData.moneda)}
+                        </div>
+                      )}
+                      {formData.descuento > 0 && (
+                        <div className="text-sm text-red-500">
+                          Descuento: -{formatearMonto(parseFloat(formData.descuento) || 0, formData.moneda)}
+                        </div>
+                      )}
+                      {formData.iva_porcentaje && (
+                        <div className="text-sm text-slate-600">
+                          IVA {formData.iva_porcentaje}%: {formatearMonto(
+                            (calcularSubtotalFormulario() - (parseFloat(formData.descuento) || 0)) * (formData.iva_porcentaje / 100),
+                            formData.moneda
+                          )}
+                        </div>
+                      )}
+                      <div className="text-xl font-bold text-slate-800">
+                        Total: {formatearMonto(calcularTotal(), formData.moneda)}
+                      </div>
                     </div>
                   )}
                 </div>

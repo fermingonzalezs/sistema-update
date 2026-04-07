@@ -164,7 +164,50 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           equiposDetalle.push({
             fecha_venta: venta.fecha_venta,
             vendedor: venta.vendedor,
-            nombre_equipo: item.copy || 'Equipo sin descripción',
+            nombre_equipo: (() => {
+              const snap = item.producto_snapshot;
+              const tipo = item.tipo_producto;
+              if (snap) {
+                if (tipo === 'computadora') {
+                  return [
+                    snap.modelo,
+                    snap.procesador,
+                    snap.ram ? `${snap.ram}GB` : null,
+                    snap.ssd ? `${snap.ssd}GB` : null,
+                    snap.hdd ? `${snap.hdd}GB` : null,
+                    snap.pantalla ? `${snap.pantalla}"` : null,
+                    snap.color || null,
+                  ].filter(Boolean).join(' · ');
+                } else if (tipo === 'celular') {
+                  return [
+                    snap.modelo,
+                    snap.capacidad ? `${snap.capacidad}GB` : null,
+                    snap.ram ? `${snap.ram}GB RAM` : null,
+                    snap.color || null,
+                    (snap.bateria || snap.porcentaje_de_bateria) ? `🔋${snap.bateria || snap.porcentaje_de_bateria}%` : null,
+                  ].filter(Boolean).join(' · ');
+                } else {
+                  return [
+                    snap.nombre_producto || snap.modelo,
+                    snap.color || null,
+                  ].filter(Boolean).join(' · ');
+                }
+              }
+              // Fallback para ítems sin snapshot: parsear copy
+              if (!item.copy) return 'Equipo sin descripción';
+              const partes = item.copy.split(' - ');
+              if (partes.length < 3) return item.copy;
+              const excluir = (s) => {
+                const t = s.trim();
+                if (/^\d+(\.\d+)?$/.test(t)) return true;
+                if (/^(true|false)$/i.test(t)) return true;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return true;
+                if (/garantia|garantía|meses/i.test(t)) return true;
+                if (/^(la_plata|mitre|servicio_tecnico)$/i.test(t)) return true;
+                return false;
+              };
+              return partes.slice(2).filter(s => !excluir(s)).join(' · ') || 'Equipo sin descripción';
+            })(),
             serial: item.serial_producto || 'N/A',
             tipo_producto: item.tipo_producto,
             condicion: extraerCondicion(item.copy),
@@ -553,17 +596,16 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-800">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Equipo</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Serial/IMEI</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Tipo</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Condición</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Cant.</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">P. Costo</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">P. Venta</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Ganancia</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase">Comisión</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Vendedor</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Equipo</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Serial/IMEI</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Tipo</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Condición</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Cant.</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">P. Venta</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Ganancia</th>
+                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Comisión</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
@@ -581,7 +623,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="text-sm font-medium text-slate-900 max-w-[200px] truncate">
+                      <div className="text-sm font-medium text-slate-900">
                         {equipo.nombre_equipo}
                       </div>
                     </td>
@@ -611,9 +653,6 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm text-center text-slate-700 font-medium">
                       {equipo.cantidad}
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-700">
-                      {formatearMonto(equipo.precio_costo * equipo.cantidad, 'USD')}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
                       {formatearMonto(equipo.precio_total, 'USD')}

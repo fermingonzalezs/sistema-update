@@ -432,9 +432,14 @@ const PresupuestoDocument = ({ data }) => {
         return data.discount || 0;
     };
 
-    const calcularTotal = () => {
-        return calcularSubtotal() - calcularDescuento();
+    const calcularAfterDescuento = () => calcularSubtotal() - calcularDescuento();
+
+    const calcularIva = () => {
+        if (!data.ivaPorcentaje) return 0;
+        return calcularAfterDescuento() * (data.ivaPorcentaje / 100);
     };
+
+    const calcularTotal = () => calcularAfterDescuento() + calcularIva();
 
     const calcularVencimiento = () => {
         // Si la fecha es string, convertirla
@@ -524,7 +529,7 @@ const PresupuestoDocument = ({ data }) => {
                 {/* Totales */}
                 <View style={styles.totalsSection} wrap={false}>
                     <View style={styles.totalsContainer}>
-                        {data.discount > 0 && (
+                        {(data.discount > 0 || data.ivaPorcentaje) && (
                             <View style={styles.totalRow}>
                                 <Text style={styles.totalLabel}>Subtotal</Text>
                                 <Text style={styles.totalValue}>
@@ -538,6 +543,15 @@ const PresupuestoDocument = ({ data }) => {
                                 <Text style={styles.totalLabel}>Descuento</Text>
                                 <Text style={[styles.totalValue, { color: '#EF4444' }]}>
                                     -{formatearMoneda(data.discount, data.moneda)}
+                                </Text>
+                            </View>
+                        )}
+
+                        {data.ivaPorcentaje > 0 && (
+                            <View style={styles.totalRow}>
+                                <Text style={styles.totalLabel}>IVA {data.ivaPorcentaje}%</Text>
+                                <Text style={styles.totalValue}>
+                                    {formatearMoneda(calcularIva(), data.moneda)}
                                 </Text>
                             </View>
                         )}
@@ -630,7 +644,8 @@ export const convertirPresupuestoADocumento = (presupuesto) => {
         moneda: presupuesto.moneda || 'USD',
         condiciones: presupuesto.condiciones || '',
         observaciones: presupuesto.observaciones || '',
-        vigenciaHoras: presupuesto.vigencia_horas || 72
+        vigenciaHoras: presupuesto.vigencia_horas || 72,
+        ivaPorcentaje: presupuesto.iva_porcentaje || null
     };
 };
 
