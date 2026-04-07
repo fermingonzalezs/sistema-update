@@ -409,11 +409,11 @@ const ImportacionesSection = () => {
             </div>
           ) : (
             <div
-              className="relative w-full overflow-hidden"
+              className="relative w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
               style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 18rem)' }}
             >
               <div
-                className="overflow-auto max-h-[70vh] w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+                className="w-full"
               >
                 <table style={{ minWidth: '820px', width: '100%', tableLayout: 'fixed' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
