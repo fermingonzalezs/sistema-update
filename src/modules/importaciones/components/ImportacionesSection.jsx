@@ -410,23 +410,24 @@ const ImportacionesSection = () => {
           ) : (
             <div
               className="relative w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-              style={{ maxWidth: isSidebarCollapsed ? 'calc(100vw - 9rem)' : 'calc(100vw - 18rem)' }}
             >
               <div
                 className="w-full"
               >
-                <table style={{ minWidth: '820px', width: '100%', tableLayout: 'fixed' }}>
+                <table style={{ minWidth: '1000px', width: '100%', tableLayout: 'fixed' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
                     <tr>
                       <th className="py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '28px' }}>Cont.</th>
                       <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
                       <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recepción</th>
-                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '220px' }}>Descripción</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '85px' }}>Proveedor</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '45px' }}>Items</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '65px' }}>Peso</th>
+                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '200px' }}>Descripción</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Proveedor</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '40px' }}>Items</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '60px' }}>Peso</th>
                       <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>FOB</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Cost. Adic.</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>C. Financiero</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>C. Courier</th>
+                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Total</th>
                       <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '170px' }}>Estado</th>
                       <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '120px' }}>Acciones</th>
                     </tr>
@@ -483,20 +484,35 @@ const ImportacionesSection = () => {
                             })()
                           )}
                         </td>
-                        <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
-                          ${formatNumber(
-                            (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0)
-                          )}
-                        </td>
-                        <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
-                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
-                            `$${formatNumber(
-                              (recibo.importaciones_items || []).reduce((sum, i) => sum + ((i.costos_adicionales_usd || 0) * i.cantidad), 0)
-                            )}`
-                          ) : (
-                            '-'
-                          )}
-                        </td>
+                        {(() => {
+                          const fob = (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0);
+                          const costoFinancieroItems = (recibo.importaciones_items || []).reduce((sum, i) => sum + (parseFloat(i.costo_financiero_usd) || 0), 0);
+                          const tieneCostoFinanciero = (recibo.importaciones_items || []).some(i => i.costo_financiero_usd != null);
+                          const costoCourier = recibo.costo_total_importacion_usd != null ? parseFloat(recibo.costo_total_importacion_usd) : null;
+                          const total = fob + costoFinancieroItems + (costoCourier || 0);
+                          return (
+                            <>
+                              <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                ${formatNumber(fob)}
+                              </td>
+                              <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                {tieneCostoFinanciero
+                                  ? `$${formatNumber(costoFinancieroItems)}`
+                                  : <span className="text-slate-400">-</span>
+                                }
+                              </td>
+                              <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                {costoCourier !== null
+                                  ? `$${formatNumber(costoCourier)}`
+                                  : <span className="text-slate-400">-</span>
+                                }
+                              </td>
+                              <td className="px-1 py-3 text-[15px] text-center font-semibold text-emerald-700 whitespace-nowrap">
+                                ${formatNumber(total)}
+                              </td>
+                            </>
+                          );
+                        })()}
                         <td className="px-1 py-3 text-center whitespace-nowrap">
                           <div className="relative inline-block">
                             <button
