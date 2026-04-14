@@ -194,8 +194,21 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   };
 
   const manejarEnviarEmail = async (transaccion) => {
+    // Obtener email actualizado del cliente si tiene cliente_id
+    let emailDestino = transaccion.cliente_email || '';
+    if (transaccion.cliente_id) {
+      const { data: clienteActual } = await supabase
+        .from('clientes')
+        .select('email')
+        .eq('id', transaccion.cliente_id)
+        .single();
+      if (clienteActual?.email) {
+        emailDestino = clienteActual.email;
+      }
+    }
+
     // Pedir confirmación antes de enviar
-    const clienteEmail = transaccion.cliente_email || 'sin email';
+    const clienteEmail = emailDestino || 'sin email';
     const confirmar = window.confirm(
       `¿Enviar email con recibo y garantías?\n\n` +
       `Cliente: ${transaccion.cliente_nombre}\n` +
@@ -208,38 +221,24 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
 
     try {
       setEnviandoEmail(prev => ({ ...prev, [transaccion.id]: true }));
-      console.log('📧 Iniciando envío de email para venta:', transaccion.numero_transaccion);
-      console.log('📦 Datos transacción:', {
-        cliente: transaccion.cliente_nombre,
-        email: transaccion.cliente_email,
-        items: transaccion.venta_items?.length || 0,
-        ubicacion: transaccion.ubicacion || transaccion.sucursal
-      });
 
       // Generar PDFs
-      console.log('📄 Generando PDFs...');
       const { reciboPDF, garantiasPDF } = await generarPDFsVenta(
         transaccion,
         {
           cliente_nombre: transaccion.cliente_nombre,
-          cliente_email: transaccion.cliente_email,
+          cliente_email: emailDestino,
           cliente_telefono: transaccion.cliente_telefono,
           dni: transaccion.cliente_dni || ''
         }
       );
-      console.log('✅ PDFs generados:', {
-        recibo: !!reciboPDF,
-        garantias: garantiasPDF?.length || 0
-      });
 
       // Extraer info de productos para el mensaje
       const productosInfo = extraerInfoProductosParaEmail(transaccion.venta_items);
-      console.log('📦 Productos extraídos:', productosInfo?.length || 0);
 
       // Enviar email
-      console.log('📧 Enviando email a Edge Function...');
       const resultadoEmail = await enviarVentaPorEmail({
-        destinatario: transaccion.cliente_email || 'soporte.updatenotebooks@gmail.com',
+        destinatario: emailDestino || 'soporte.updatenotebooks@gmail.com',
         nombreCliente: transaccion.cliente_nombre,
         reciboPDF,
         garantiasPDF,
