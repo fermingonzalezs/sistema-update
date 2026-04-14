@@ -69,24 +69,17 @@ const importacionesService = {
         throw new Error('Proveedor, método de pago e items son obligatorios');
       }
 
-      // Generar número de recibo: YYYY-00X
+      // Generar número de recibo de forma ATÓMICA usando función SQL
       const anio = new Date(reciboData.fecha_compra).getFullYear();
 
-      // Obtener el próximo número para este año
-      const { data: ultimoRecibo, error: ultimoError } = await supabase
-        .from('importaciones_recibos')
-        .select('numero_recibo')
-        .like('numero_recibo', `${anio}-%`)
-        .order('numero_recibo', { ascending: false })
-        .limit(1);
+      // Llamar función SQL que maneja la secuencia de forma atómica
+      const { data: numeroRecibos, error: fnError } = await supabase
+        .rpc('obtener_proximo_numero_recibo', { p_ano: anio });
 
-      let proximoNumero = 1;
-      if (ultimoRecibo && ultimoRecibo.length > 0) {
-        const ultimoNumeroStr = ultimoRecibo[0].numero_recibo.split('-')[1];
-        proximoNumero = parseInt(ultimoNumeroStr) + 1;
-      }
+      if (fnError) throw fnError;
+      if (!numeroRecibos) throw new Error('No se pudo generar el número de recibo');
 
-      const numeroRecibo = `${anio}-${String(proximoNumero).padStart(2, '0')}`;
+      const numeroRecibo = numeroRecibos;
 
       // Crear recibo
       const { data: reciboCreado, error: reciboError } = await supabase
