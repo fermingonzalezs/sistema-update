@@ -7,10 +7,9 @@ export default defineConfig(({ mode }) => ({
     tailwindcss(),
     react()
   ],
-  // En producción elimina console.log/debug/info; conserva console.error y console.warn
+  // En producción elimina todos los console.* y debugger del bundle
   esbuild: {
-    pure: mode === 'production' ? ['console.log', 'console.debug', 'console.info'] : [],
-    drop: mode === 'production' ? ['debugger'] : [],
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
   server: {
     host: '0.0.0.0',
