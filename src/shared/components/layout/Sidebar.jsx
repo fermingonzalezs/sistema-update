@@ -151,7 +151,6 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           label: 'Recuento de Stock',
           icon: Package,
           description: 'Contar inventario',
-          excludeRoles: ['contabilidad'],
           section: 'recuento-stock'
         }
       ]
