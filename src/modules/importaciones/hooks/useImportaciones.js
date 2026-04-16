@@ -52,6 +52,22 @@ export const useImportaciones = () => {
     }
   }, []);
 
+  // 🚚 Crear servicio de courier a cargo del cliente
+  const crearCourierCliente = useCallback(async (data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const nuevoRecibo = await importacionesService.crearCourierCliente(data);
+      setRecibos(prev => [nuevoRecibo, ...prev]);
+      return nuevoRecibo;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // ➕ Crear nuevo recibo
   const crearRecibo = useCallback(async (reciboData, items) => {
     setLoading(true);
@@ -229,6 +245,7 @@ export const useImportaciones = () => {
     fetchRecibos,
     fetchRecibo,
     fetchPorEstado,
+    crearCourierCliente,
     crearRecibo,
     actualizarRecibo,
     marcarEnDepositoUSA,

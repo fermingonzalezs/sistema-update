@@ -8,9 +8,12 @@ import { useImportaciones } from '../hooks/useImportaciones';
 import { useProveedores } from '../hooks/useProveedores';
 import { useClientes } from '../../ventas/hooks/useClientes';
 import NuevaImportacionModal from './NuevaImportacionModal';
+import NuevoTipoModal from './NuevoTipoModal';
+import NuevoCourierClienteModal from './NuevoCourierClienteModal';
 import RecepcionModal from './RecepcionModal';
 import DetalleRecibo from './DetalleRecibo';
 import FechaDepositoUSAModal from './FechaDepositoUSAModal';
+import IngresosSection from './IngresosSection';
 import { calculosImportacion } from '../utils/calculosImportacion';
 import {
   ESTADOS_IMPORTACION,
@@ -45,8 +48,14 @@ const ImportacionesSection = () => {
   const { proveedores } = useProveedores();
   const { clientes, fetchClientes } = useClientes();
 
+  // Tabs
+  const [vistaActiva, setVistaActiva] = useState('pedidos');
+
   // Estados para modales
+  const [showTipoModal, setShowTipoModal] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [tipoCourierModal, setTipoCourierModal] = useState(null);
+  const [showCourierClienteModal, setShowCourierClienteModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [expandedRecibo, setExpandedRecibo] = useState(null);
   const [reciboToReceive, setReciboToReceive] = useState(null);
@@ -63,6 +72,8 @@ const ImportacionesSection = () => {
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
   const [filtroOrden, setFiltroOrden] = useState('fecha_compra_desc');
   const [filtroProducto, setFiltroProducto] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [filtroDestino, setFiltroDestino] = useState('todos');
 
   useEffect(() => {
     fetchRecibos();
@@ -76,6 +87,8 @@ const ImportacionesSection = () => {
       if (filtroProveedor !== 'todos' && recibo.proveedor_id !== filtroProveedor) return false;
       if (filtroFechaDesde && recibo.fecha_compra < filtroFechaDesde) return false;
       if (filtroFechaHasta && recibo.fecha_compra > filtroFechaHasta) return false;
+      if (filtroTipo !== 'todos' && recibo.tipo !== filtroTipo) return false;
+      if (filtroDestino !== 'todos' && recibo.destino !== filtroDestino) return false;
       if (filtroProducto.trim()) {
         const busqueda = filtroProducto.trim().toLowerCase();
         const tieneProducto = (recibo.importaciones_items || []).some(item =>
@@ -144,6 +157,8 @@ const ImportacionesSection = () => {
     setFiltroFechaHasta('');
     setFiltroOrden('fecha_compra_desc');
     setFiltroProducto('');
+    setFiltroTipo('todos');
+    setFiltroDestino('todos');
   };
 
   // Avanzar al siguiente estado
@@ -249,19 +264,51 @@ const ImportacionesSection = () => {
               <Plane className="w-8 h-8" />
               <div>
                 <h2 className="text-2xl font-semibold">Importaciones</h2>
-                <p className="text-slate-300 mt-1">Gestión de importaciones de productos</p>
+                <p className="text-slate-300 mt-1">Gestión de importaciones y servicios de courier</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowNewModal(true)}
-              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={18} />
-              Nueva Importación
-            </button>
+            {vistaActiva === 'pedidos' && (
+              <button
+                onClick={() => setShowTipoModal(true)}
+                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Plus size={18} />
+                Nuevo
+              </button>
+            )}
           </div>
         </div>
+
+        {/* TABS */}
+        <div className="bg-white px-6 py-3 flex gap-2 border-b border-slate-200">
+          {[
+            { key: 'pedidos', label: 'Pedidos' },
+            { key: 'ingresos', label: 'Ingresos' }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setVistaActiva(tab.key)}
+              className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
+                vistaActiva === tab.key
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* VISTA INGRESOS */}
+      {vistaActiva === 'ingresos' && (
+        <div className="bg-white rounded border border-slate-200">
+          <IngresosSection />
+        </div>
+      )}
+
+      {/* VISTA PEDIDOS — solo visible en tab pedidos */}
+      {vistaActiva === 'pedidos' && (<>
 
       {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -294,7 +341,7 @@ const ImportacionesSection = () => {
 
       {/* FILTROS */}
       <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Orden</label>
             <select
@@ -373,6 +420,31 @@ const ImportacionesSection = () => {
               className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="importacion">Importaciones</option>
+              <option value="courier_empresa">Courier (empresa)</option>
+              <option value="courier_cliente">Courier (cliente)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Destino</label>
+            <select
+              value={filtroDestino}
+              onChange={(e) => setFiltroDestino(e.target.value)}
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="reventa">Reventa</option>
+              <option value="empresa">Empresa</option>
+            </select>
+          </div>
           <div className="flex items-end">
             <button
               onClick={limpiarFiltros}
@@ -408,28 +480,24 @@ const ImportacionesSection = () => {
               <p className="text-sm text-slate-500 mt-1">Haz clic en "Nueva Importación" para agregar una</p>
             </div>
           ) : (
-            <div
-              className="relative w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-            >
-              <div
-                className="w-full"
-              >
-                <table style={{ minWidth: '1000px', width: '100%', tableLayout: 'fixed' }}>
+            <div className="w-full overflow-x-auto">
+                <table style={{ minWidth: '1280px', width: '100%', tableLayout: 'fixed' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
                     <tr>
-                      <th className="py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '28px' }}>Cont.</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recepción</th>
-                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '200px' }}>Descripción</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Proveedor</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '40px' }}>Items</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '60px' }}>Peso</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>FOB</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>C. Financiero</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>C. Courier</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '80px' }}>Total</th>
-                      <th className="px-2 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '170px' }}>Estado</th>
-                      <th className="px-1 py-3 text-center text-sm font-medium uppercase bg-slate-800" style={{ width: '120px' }}>Acciones</th>
+                      <th className="py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '30px' }}>Cont.</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '70px' }}>Tipo</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recep.</th>
+                      <th className="px-2 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '160px' }}>Descripción</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Prov.</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '35px' }}>Its.</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '60px' }}>Peso</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>FOB</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>C. Fin.</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Courier</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '75px' }}>Total</th>
+                      <th className="px-2 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '200px' }}>Estado</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '185px' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -451,6 +519,19 @@ const ImportacionesSection = () => {
                             )}
                           </button>
                         </td>
+                        <td className="px-1 py-3 text-center">
+                          <div className="flex flex-col gap-0.5 items-center">
+                            {recibo.tipo === 'courier_cliente' && (
+                              <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>CLIENTE</span>
+                            )}
+                            {recibo.tipo === 'courier_empresa' && (
+                              <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>EMPRESA</span>
+                            )}
+                            {(!recibo.tipo || recibo.tipo === 'importacion') && (
+                              <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded font-medium">IMPORT</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-1 py-3 text-[15px] text-center text-slate-600 whitespace-nowrap">
                           {formatearFechaDisplay(recibo.fecha_compra)}
                         </td>
@@ -467,7 +548,20 @@ const ImportacionesSection = () => {
                           <span className="block truncate">{recibo.proveedores?.nombre || '-'}</span>
                         </td>
                         <td className="px-0 py-3 text-[15px] text-center text-slate-600">
-                          {recibo.importaciones_items?.length || 0}
+                          {(() => {
+                            const items = recibo.importaciones_items || [];
+                            const total = items.length;
+                            const ingresados = items.filter(i => i.caja_id).length;
+                            if (total === 0) return 0;
+                            if (ingresados === 0) return total;
+                            if (ingresados === total) return total;
+                            return (
+                              <span title={`${ingresados} de ${total} items ingresados`}>
+                                <span className="text-emerald-700 font-semibold">{ingresados}</span>
+                                <span className="text-slate-400">/{total}</span>
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-1 py-3 text-[15px] text-center text-slate-800 whitespace-nowrap">
                           {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && recibo.peso_total_con_caja_kg ? (
@@ -493,22 +587,22 @@ const ImportacionesSection = () => {
                           return (
                             <>
                               <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
-                                ${formatNumber(fob)}
+                                U$ {formatNumber(fob)}
                               </td>
                               <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
                                 {tieneCostoFinanciero
-                                  ? `$${formatNumber(costoFinancieroItems)}`
+                                  ? `U$ ${formatNumber(costoFinancieroItems)}`
                                   : <span className="text-slate-400">-</span>
                                 }
                               </td>
                               <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
                                 {costoCourier !== null
-                                  ? `$${formatNumber(costoCourier)}`
+                                  ? `U$ ${formatNumber(costoCourier)}`
                                   : <span className="text-slate-400">-</span>
                                 }
                               </td>
                               <td className="px-1 py-3 text-[15px] text-center font-semibold text-emerald-700 whitespace-nowrap">
-                                ${formatNumber(total)}
+                                U$ {formatNumber(total)}
                               </td>
                             </>
                           );
@@ -638,18 +732,51 @@ const ImportacionesSection = () => {
                     ))}
                   </tbody>
                 </table>
-              </div>
             </div>
           )}
         </div>
       )}
 
+      </>)}
+
       {/* MODALES */}
+      {showTipoModal && (
+        <NuevoTipoModal
+          onClose={() => setShowTipoModal(false)}
+          onSelectImportacion={() => {
+            setShowTipoModal(false);
+            setTipoCourierModal(null);
+            setShowNewModal(true);
+          }}
+          onSelectCourierCliente={() => {
+            setShowTipoModal(false);
+            setShowCourierClienteModal(true);
+          }}
+          onSelectCourierEmpresa={() => {
+            setShowTipoModal(false);
+            setTipoCourierModal('courier_empresa');
+            setShowNewModal(true);
+          }}
+        />
+      )}
+
+      {showCourierClienteModal && (
+        <NuevoCourierClienteModal
+          onClose={() => setShowCourierClienteModal(false)}
+          onSuccess={() => {
+            setShowCourierClienteModal(false);
+            fetchRecibos();
+          }}
+        />
+      )}
+
       {showNewModal && (
         <NuevaImportacionModal
-          onClose={() => setShowNewModal(false)}
+          tipoCourier={tipoCourierModal}
+          onClose={() => { setShowNewModal(false); setTipoCourierModal(null); }}
           onSuccess={() => {
             setShowNewModal(false);
+            setTipoCourierModal(null);
             fetchRecibos();
           }}
         />

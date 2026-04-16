@@ -11,7 +11,7 @@ const importacionesService = {
           *,
           proveedores (id, nombre, email, telefono),
           clientes (id, nombre, apellido, email),
-          importaciones_items (*)
+          importaciones_items (*, importaciones_cajas(id, numero_caja))
         `)
         .order('fecha_compra', { ascending: false });
       if (error) throw error;
@@ -30,7 +30,7 @@ const importacionesService = {
           *,
           proveedores (id, nombre, email, telefono),
           clientes (id, nombre, apellido, email),
-          importaciones_items (*)
+          importaciones_items (*, importaciones_cajas(id, numero_caja))
         `)
         .eq('id', id)
         .single();
@@ -50,7 +50,7 @@ const importacionesService = {
           *,
           proveedores (id, nombre, email, telefono),
           clientes (id, nombre, apellido, email),
-          importaciones_items (*)
+          importaciones_items (*, importaciones_cajas(id, numero_caja))
         `)
         .eq('estado', estado)
         .order('fecha_compra', { ascending: false });
@@ -97,6 +97,8 @@ const importacionesService = {
           porcentaje_financiero: reciboData.porcentaje_financiero ? parseFloat(reciboData.porcentaje_financiero) : null,
           numero_invoice: reciboData.numero_invoice?.trim() || null,
           factura_pdf_url: reciboData.factura_pdf_url || null,
+          tipo: reciboData.tipo || 'importacion',
+          destino: reciboData.destino || 'reventa',
           estado: 'en_transito_usa'
         }])
         .select()
@@ -565,6 +567,44 @@ const importacionesService = {
 
       // Retornar recibo actualizado
       return await this.getById(reciboId);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 🚚 Crear servicio de courier a cargo del cliente (sin items)
+  async crearCourierCliente(data) {
+    try {
+      if (!data.cliente_id && !data.descripcion) {
+        throw new Error('Cliente o descripción son obligatorios');
+      }
+
+      const anio = new Date(data.fecha).getFullYear();
+      const { data: numeroRecibos, error: fnError } = await supabase
+        .rpc('obtener_proximo_numero_recibo', { p_ano: anio });
+      if (fnError) throw fnError;
+      if (!numeroRecibos) throw new Error('No se pudo generar el número de recibo');
+
+      const { data: reciboCreado, error } = await supabase
+        .from('importaciones_recibos')
+        .insert([{
+          numero_recibo: numeroRecibos,
+          proveedor_id: null,
+          cliente_id: data.cliente_id || null,
+          fecha_compra: data.fecha,
+          metodo_pago: data.metodo_pago || 'transferencia',
+          tracking_number: data.tracking_number?.trim() || null,
+          empresa_logistica: data.empresa_logistica?.trim() || null,
+          observaciones: data.descripcion?.trim() || null,
+          monto_cobrado_usd: data.monto_cobrado_usd ? parseFloat(data.monto_cobrado_usd) : null,
+          tipo: 'courier_cliente',
+          destino: 'reventa',
+          estado: 'en_transito_usa'
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+      return await this.getById(reciboCreado.id);
     } catch (error) {
       throw error;
     }

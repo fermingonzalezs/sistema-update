@@ -1,4 +1,12 @@
 export { default as ImportacionesSection } from './ImportacionesSection';
 export { default as NuevaImportacionModal } from './NuevaImportacionModal';
+export { default as NuevoTipoModal } from './NuevoTipoModal';
+export { default as NuevoCourierClienteModal } from './NuevoCourierClienteModal';
+export { default as NuevaCajaModal } from './NuevaCajaModal';
+export { default as NuevoIngresoModal } from './NuevoIngresoModal';
+export { default as AsignarCajaModal } from './AsignarCajaModal';
+export { default as CajasSection } from './CajasSection';
+export { default as IngresosSection } from './IngresosSection';
 export { default as RecepcionModal } from './RecepcionModal';
+export { default as RecepcionCajaModal } from './RecepcionCajaModal';
 export { default as DetalleRecibo } from './DetalleRecibo';

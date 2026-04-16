@@ -9,10 +9,14 @@ import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import NuevoProveedorModal from './NuevoProveedorModal';
 import PesajeCombobox from '../../compras/components/PesajeCombobox';
 import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
+import ClienteSelector from '../../ventas/components/ClienteSelector';
 
-const NuevaImportacionModal = ({ onClose, onSuccess }) => {
+const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
   const { crearRecibo } = useImportaciones();
   const { proveedores, crearProveedor } = useProveedores();
+
+  // tipoCourier: 'courier_empresa' si viene del NuevoTipoModal
+  const tipoRegistro = tipoCourier || 'importacion';
 
   const [formRecibo, setFormRecibo] = useState({
     proveedor_id: '',
@@ -24,9 +28,12 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
     fecha_estimada_ingreso: '',
     porcentaje_financiero: '',
     observaciones: '',
-    numero_invoice: ''
+    numero_invoice: '',
+    destino: tipoCourier === 'courier_empresa' ? 'empresa' : 'reventa',
+    tipo: tipoRegistro
   });
 
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [archivosSeleccionados, setArchivosSeleccionados] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -132,6 +139,11 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
       return;
     }
 
+    if (tipoRegistro === 'courier_empresa' && !clienteSeleccionado) {
+      alert('Seleccioná un cliente para el servicio de courier');
+      return;
+    }
+
     if (items.length === 0) {
       alert('Agrega al menos un item a la importación');
       return;
@@ -139,8 +151,12 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
 
     setIsSubmitting(true);
     try {
-      // 1. Crear el recibo
-      const nuevoRecibo = await crearRecibo(formRecibo, items);
+      // 1. Crear el recibo (incluir cliente_id si aplica)
+      const datosRecibo = {
+        ...formRecibo,
+        cliente_id: clienteSeleccionado?.id || null
+      };
+      const nuevoRecibo = await crearRecibo(datosRecibo, items);
 
       // 2. Si hay archivos, subirlos
       if (archivosSeleccionados.length > 0 && nuevoRecibo?.id) {
@@ -184,7 +200,14 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
       <div className="bg-white rounded border border-slate-200 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
-          <h3 className="text-xl font-semibold">Nueva Importación</h3>
+          <div>
+            <h3 className="text-xl font-semibold">
+              {tipoRegistro === 'courier_empresa' ? 'Nuevo Servicio de Courier — A cargo de Update' : 'Nueva Importación'}
+            </h3>
+            {tipoRegistro === 'courier_empresa' && (
+              <span className="mt-1 inline-block bg-purple-500 text-white text-xs font-medium px-2 py-0.5 rounded">COURIER EMPRESA</span>
+            )}
+          </div>
           <button onClick={onClose} className="text-slate-300 hover:text-white">
             <X size={24} />
           </button>
@@ -223,6 +246,18 @@ const NuevaImportacionModal = ({ onClose, onSuccess }) => {
                     </button>
                   </div>
                 </div>
+
+                {/* CLIENTE — solo para courier_empresa */}
+                {tipoRegistro === 'courier_empresa' && (
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Cliente <span className="text-red-500">*</span></label>
+                    <ClienteSelector
+                      selectedCliente={clienteSeleccionado}
+                      onSelectCliente={setClienteSeleccionado}
+                      required={true}
+                    />
+                  </div>
+                )}
 
                 {/* FECHA */}
                 <div>

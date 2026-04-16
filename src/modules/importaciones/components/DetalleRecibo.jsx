@@ -839,7 +839,24 @@ const DetalleRecibo = ({
           <div className="space-y-3">
             <div className="bg-slate-200 p-4 rounded-t border border-slate-300 flex justify-between items-center">
               <h4 className="font-semibold text-slate-800 uppercase">
-                Productos ({modoEdicion ? itemsVisibles.length + itemsNuevos.length : (recibo.importaciones_items || []).length})
+                {(() => {
+                  if (modoEdicion) {
+                    return `Productos (${itemsVisibles.length + itemsNuevos.length})`;
+                  }
+                  const items = recibo.importaciones_items || [];
+                  const total = items.length;
+                  const ingresados = items.filter(i => i.caja_id).length;
+                  if (ingresados > 0 && ingresados < total) {
+                    return (
+                      <span>
+                        Productos ({total}) —{' '}
+                        <span className="text-emerald-700">{ingresados}</span>
+                        <span className="text-slate-500 font-normal text-xs"> ingresados</span>
+                      </span>
+                    );
+                  }
+                  return `Productos (${total})`;
+                })()}
               </h4>
               {modoEdicion && (
                 <button
@@ -916,12 +933,17 @@ const DetalleRecibo = ({
                           ) : (
                             <div>
                               <div>{item.item}</div>
+                              {item.caja_id && (
+                                <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                                  ✓ Ingresado · {item.importaciones_cajas?.numero_caja || item.caja_id}
+                                </span>
+                              )}
                               {item.link_producto && (
                                 <a
                                   href={item.link_producto}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                                  className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mt-0.5"
                                 >
                                   <ExternalLink size={12} />
                                   Ver link

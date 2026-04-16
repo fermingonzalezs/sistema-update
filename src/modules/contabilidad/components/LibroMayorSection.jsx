@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
+import { BookOpen, Search, Calendar, TrendingUp, DollarSign, FileText, Eye, RefreshCw, ChevronLeft, ChevronRight, Download, X, ArrowUpDown } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { formatearMonto, formatearMontoCompleto } from '../../../shared/utils/formatters';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import { descargarLibroMayorPDF } from './pdf/LibroMayorPDF';
 import { calcularSaldoCuenta } from '../utils/saldosUtils';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
 
 // Servicio para Libro Mayor
 const libroMayorService = {
@@ -93,8 +94,12 @@ const libroMayorService = {
     const { data: movimientos, error: errorMovimientos } = await movimientosQuery;
     if (errorMovimientos) throw errorMovimientos;
 
+    // Determinar si la cuenta opera en ARS
+    const esARS = cuenta.moneda_original === 'ARS' || !!cuenta.requiere_cotizacion;
+
     // Calcular saldo inicial (movimientos antes de fechaDesde)
     let saldoInicial = 0;
+    let saldoInicialARS = 0;
     if (fechaDesde) {
       // Obtener movimientos anteriores directamente con join
       const { data: movimientosAnteriores } = await supabase
@@ -102,29 +107,39 @@ const libroMayorService = {
         .select(`
           debe,
           haber,
+          debe_ars,
+          haber_ars,
           asientos_contables!inner (fecha)
         `)
         .eq('cuenta_id', cuentaId)
         .lt('asientos_contables.fecha', fechaDesde)
-        .limit(10000); // Límite alto para evitar restricción por defecto de 1000
+        .limit(10000);
 
       if (movimientosAnteriores && movimientosAnteriores.length > 0) {
-        // Calcular totales de debe y haber
         const totalDebeAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
         const totalHaberAnterior = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
-
-        // Usar función utilitaria para calcular saldo inicial
         saldoInicial = calcularSaldoCuenta(totalDebeAnterior, totalHaberAnterior, cuenta.tipo);
+
+        if (esARS) {
+          const totalDebeAntARS = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.debe_ars || 0), 0);
+          const totalHaberAntARS = movimientosAnteriores.reduce((acc, mov) => acc + parseFloat(mov.haber_ars || 0), 0);
+          saldoInicialARS = calcularSaldoCuenta(totalDebeAntARS, totalHaberAntARS, cuenta.tipo);
+        }
       }
     }
 
     // Calcular totales del período
     const totalDebe = movimientos.reduce((acc, mov) => acc + parseFloat(mov.debe || 0), 0);
     const totalHaber = movimientos.reduce((acc, mov) => acc + parseFloat(mov.haber || 0), 0);
+    const totalDebeARS = movimientos.reduce((acc, mov) => acc + parseFloat(mov.debe_ars || 0), 0);
+    const totalHaberARS = movimientos.reduce((acc, mov) => acc + parseFloat(mov.haber_ars || 0), 0);
 
     // Calcular saldo final
     const saldoMovimientos = calcularSaldoCuenta(totalDebe, totalHaber, cuenta.tipo);
     const saldoFinalCalculado = saldoInicial + saldoMovimientos;
+    const saldoFinalARS = esARS
+      ? saldoInicialARS + calcularSaldoCuenta(totalDebeARS, totalHaberARS, cuenta.tipo)
+      : 0;
 
     // Calcular saldos acumulados hacia adelante (orden ascendente: más antiguo primero)
     // Cada fila muestra el saldo acumulado DESPUÉS de ese movimiento
@@ -144,11 +159,16 @@ const libroMayorService = {
 
     return {
       cuenta,
+      esARS,
       saldoInicial,
+      saldoInicialARS,
       movimientos: movimientosConSaldo,
       saldoFinal: saldoFinalCalculado,
-      totalDebe: movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0),
-      totalHaber: movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0)
+      saldoFinalARS,
+      totalDebe,
+      totalHaber,
+      totalDebeARS,
+      totalHaberARS
     };
   },
 
@@ -158,29 +178,32 @@ const libroMayorService = {
     const { data: movimientos, error } = await supabase
       .from('movimientos_contables')
       .select(`
-        debe, haber,
+        debe, haber, debe_ars, haber_ars,
         asientos_contables (fecha)
       `)
       .eq('cuenta_id', cuentaId)
-      .limit(10000); // Límite alto para evitar restricción por defecto de 1000
+      .limit(10000);
 
     if (error) throw error;
 
-    // Obtener tipo de cuenta para cálculo correcto
     const { data: cuentaInfo } = await supabase
       .from('plan_cuentas')
-      .select('tipo')
+      .select('tipo, moneda_original, requiere_cotizacion')
       .eq('id', cuentaId)
       .single();
+
+    const tipo = cuentaInfo?.tipo || 'activo';
+    const esARS = cuentaInfo?.moneda_original === 'ARS' || !!cuentaInfo?.requiere_cotizacion;
 
     const totalMovimientos = movimientos.length;
     const totalDebe = movimientos.reduce((sum, m) => sum + parseFloat(m.debe || 0), 0);
     const totalHaber = movimientos.reduce((sum, m) => sum + parseFloat(m.haber || 0), 0);
+    const totalDebeARS = movimientos.reduce((sum, m) => sum + parseFloat(m.debe_ars || 0), 0);
+    const totalHaberARS = movimientos.reduce((sum, m) => sum + parseFloat(m.haber_ars || 0), 0);
 
-    // Usar función utilitaria para calcular saldo actual
-    const saldoActual = calcularSaldoCuenta(totalDebe, totalHaber, cuentaInfo?.tipo || 'activo');
+    const saldoActual = calcularSaldoCuenta(totalDebe, totalHaber, tipo);
+    const saldoActualARS = esARS ? calcularSaldoCuenta(totalDebeARS, totalHaberARS, tipo) : 0;
 
-    // Calcular actividad por mes
     const ahora = new Date();
     const hace30Dias = new Date(ahora);
     hace30Dias.setDate(ahora.getDate() - 30);
@@ -194,8 +217,10 @@ const libroMayorService = {
       totalDebe,
       totalHaber,
       saldoActual,
+      saldoActualARS,
+      esARS,
       movimientosUltimos30Dias: movimientosRecientes.length,
-      promedioMovimientoMensual: Math.round(totalMovimientos / 12) // Estimación
+      promedioMovimientoMensual: Math.round(totalMovimientos / 12)
     };
   }
 };
@@ -207,6 +232,7 @@ function useLibroMayor() {
   const [cuentaSeleccionada, setCuentaSeleccionada] = useState(null);
   const [libroMayor, setLibroMayor] = useState(null);
   const [estadisticas, setEstadisticas] = useState(null);
+  const [cotizacionActual, setCotizacionActual] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingSaldos, setLoadingSaldos] = useState(false);
   const [error, setError] = useState(null);
@@ -217,15 +243,28 @@ function useLibroMayor() {
       const data = await libroMayorService.getCuentasConMovimientos();
       setCuentas(data);
 
+      // Obtener cotización actual una sola vez para todas las cuentas ARS
+      let cotizacion = null;
+      try {
+        const cotizData = await cotizacionService.obtenerCotizacionActual();
+        cotizacion = cotizData?.valor || null;
+        if (cotizacion) setCotizacionActual(cotizacion);
+      } catch { /* si falla usamos saldo USD histórico */ }
+
       // Obtener saldos para cada cuenta
       setLoadingSaldos(true);
       const cuentasConSaldosData = await Promise.all(
         data.map(async (cuenta) => {
           try {
             const estadisticas = await libroMayorService.getEstadisticasCuenta(cuenta.id);
+            // Para cuentas ARS: mostrar saldoARS / cotizacion; para USD: saldo histórico
+            const saldoMostrado = estadisticas.esARS && cotizacion
+              ? estadisticas.saldoActualARS / cotizacion
+              : estadisticas.saldoActual;
             return {
               ...cuenta,
-              saldoActual: estadisticas.saldoActual
+              saldoActual: saldoMostrado,
+              esARS: estadisticas.esARS
             };
           } catch (err) {
             console.error(`Error obteniendo saldo para cuenta ${cuenta.codigo}:`, err);
@@ -251,9 +290,21 @@ function useLibroMayor() {
       const data = await libroMayorService.getLibroMayorCuenta(cuentaId, fechaDesde, fechaHasta);
       setLibroMayor(data);
 
-      // También obtener estadísticas
+      // También obtener estadísticas (para movimientos últimos 30 días)
       const stats = await libroMayorService.getEstadisticasCuenta(cuentaId);
       setEstadisticas(stats);
+
+      // Si la cuenta opera en ARS, obtener cotización actual
+      if (data.esARS) {
+        try {
+          const cotizData = await cotizacionService.obtenerCotizacionActual();
+          setCotizacionActual(cotizData?.valor || null);
+        } catch {
+          setCotizacionActual(null);
+        }
+      } else {
+        setCotizacionActual(null);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -267,6 +318,7 @@ function useLibroMayor() {
     cuentaSeleccionada,
     libroMayor,
     estadisticas,
+    cotizacionActual,
     loading,
     loadingSaldos,
     error,
@@ -284,6 +336,7 @@ const LibroMayorSection = () => {
     cuentaSeleccionada,
     libroMayor,
     estadisticas,
+    cotizacionActual,
     loading,
     loadingSaldos,
     error,
@@ -422,14 +475,12 @@ const LibroMayorSection = () => {
   };
 
   const formatearMonedaSinDecimales = (valor, moneda = 'USD') => {
-    // Formatear sin decimales para las tarjetas
     const numero = Math.round(parseFloat(valor || 0));
     const formatter = new Intl.NumberFormat('es-AR', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
-
-    const simbolo = moneda === 'USD' ? 'U$' : '$';
+    const simbolo = moneda === 'ARS' ? '$' : 'U$';
     return `${simbolo}${formatter.format(numero)}`;
   };
 
@@ -659,39 +710,99 @@ const LibroMayorSection = () => {
             </div>
 
             {/* Estadísticas de la cuenta */}
-            {estadisticas && (
+            {libroMayor && estadisticas && (
               <div className="bg-slate-50 p-4 border-b border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-
-
-                  <Tarjeta
-                    icon={FileText}
-                    titulo={'Total debitado'}
-                    valor={formatearMonedaSinDecimales(estadisticas.totalDebe)}
-                  />
-
-                  <Tarjeta
-                    icon={FileText}
-                    titulo={'Total acreditado'}
-                    valor={formatearMonedaSinDecimales(estadisticas.totalHaber)}
-                  />
-
-                  <Tarjeta
-                    icon={TrendingUp}
-                    titulo={`Saldo actual ${estadisticas.saldoActual >= 0 ? '(Deudor)' : '(Acreedor)'}`}
-                    valor={`${estadisticas.saldoActual >= 0 ? '+' : '-'} ${formatearMonedaSinDecimales(Math.abs(estadisticas.saldoActual))}`}
-                    className={estadisticas.saldoActual >= 0 ? 'text-emerald-600' : 'text-red-600'}
-                  />
-
-
-                  <Tarjeta
-                    icon={Calendar}
-                    titulo={'Movimientos últimos 30 días'}
-                    valor={estadisticas.movimientosUltimos30Dias}
-                  />
-
-                </div>
+                {libroMayor.esARS ? (
+                  /* ── Cuentas en PESOS ── */
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {/* Total debitado ARS + USD */}
+                    <div className="bg-slate-800 p-5 rounded border border-slate-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col justify-center text-start">
+                          <p className="text-slate-300 text-xs uppercase">Total debitado</p>
+                          <p className="text-2xl font-semibold text-white">{formatearMonedaSinDecimales(libroMayor.totalDebeARS, 'ARS')}</p>
+                          <p className="text-sm text-white mt-1">{formatearMonedaSinDecimales(libroMayor.totalDebe)}</p>
+                        </div>
+                        <div className="bg-slate-600 p-2 rounded-full"><FileText className="w-8 h-8 text-emerald-600" /></div>
+                      </div>
+                    </div>
+                    {/* Total acreditado ARS + USD */}
+                    <div className="bg-slate-800 p-5 rounded border border-slate-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col justify-center text-start">
+                          <p className="text-slate-300 text-xs uppercase">Total acreditado</p>
+                          <p className="text-2xl font-semibold text-white">{formatearMonedaSinDecimales(libroMayor.totalHaberARS, 'ARS')}</p>
+                          <p className="text-sm text-white mt-1">{formatearMonedaSinDecimales(libroMayor.totalHaber)}</p>
+                        </div>
+                        <div className="bg-slate-600 p-2 rounded-full"><FileText className="w-8 h-8 text-emerald-600" /></div>
+                      </div>
+                    </div>
+                    {/* Saldo actual ARS + equiv. USD actual */}
+                    <div className="bg-slate-800 p-5 rounded border border-slate-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col justify-center text-start">
+                          <p className="text-slate-300 text-xs uppercase">Saldo actual</p>
+                          <p className="text-2xl font-semibold text-white">
+                            {libroMayor.saldoFinalARS >= 0 ? '+' : '-'} {formatearMonedaSinDecimales(Math.abs(libroMayor.saldoFinalARS), 'ARS')}
+                          </p>
+                          {cotizacionActual && (
+                            <p className="text-sm text-white mt-1">
+                              ≈ {formatearMonedaSinDecimales(libroMayor.saldoFinalARS / cotizacionActual)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="bg-slate-600 p-2 rounded-full"><TrendingUp className="w-8 h-8 text-emerald-600" /></div>
+                      </div>
+                    </div>
+                    {/* Diferencia de cotización */}
+                    {cotizacionActual && (() => {
+                      const saldoUSDActual = libroMayor.saldoFinalARS / cotizacionActual;
+                      const difCotiz = saldoUSDActual - libroMayor.saldoFinal;
+                      return (
+                        <div className="bg-slate-800 p-5 rounded border border-slate-700">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col justify-center text-start">
+                              <p className="text-slate-300 text-xs uppercase">Dif. cotización</p>
+                              <p className={`text-2xl font-semibold ${difCotiz >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {difCotiz >= 0 ? '+' : ''}{formatearMoneda(difCotiz, 'USD')}
+                              </p>
+                              <p className="text-sm text-white mt-1">
+                                {formatearMonedaSinDecimales(saldoUSDActual)} actual — {formatearMonedaSinDecimales(libroMayor.saldoFinal)} reg.
+                              </p>
+                            </div>
+                            <div className="bg-slate-600 p-2 rounded-full"><ArrowUpDown className="w-8 h-8 text-emerald-600" /></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {/* Movimientos 30 días */}
+                    <Tarjeta icon={Calendar} titulo={'Movimientos últimos 30 días'} valor={estadisticas.movimientosUltimos30Dias} />
+                  </div>
+                ) : (
+                  /* ── Cuentas en USD ── */
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Tarjeta
+                      icon={FileText}
+                      titulo={'Total debitado'}
+                      valor={formatearMonedaSinDecimales(libroMayor.totalDebe)}
+                    />
+                    <Tarjeta
+                      icon={FileText}
+                      titulo={'Total acreditado'}
+                      valor={formatearMonedaSinDecimales(libroMayor.totalHaber)}
+                    />
+                    <Tarjeta
+                      icon={TrendingUp}
+                      titulo={`Saldo actual ${libroMayor.saldoFinal >= 0 ? '(Deudor)' : '(Acreedor)'}`}
+                      valor={`${libroMayor.saldoFinal >= 0 ? '+' : '-'} ${formatearMonedaSinDecimales(Math.abs(libroMayor.saldoFinal))}`}
+                    />
+                    <Tarjeta
+                      icon={Calendar}
+                      titulo={'Movimientos últimos 30 días'}
+                      valor={estadisticas.movimientosUltimos30Dias}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
