@@ -16,20 +16,22 @@ const NuevoTipoModal = ({ onClose, onSelectImportacion, onSelectCourierCliente, 
         {/* Body */}
         <div className="p-6">
           <p className="text-sm text-slate-500 mb-6">Seleccioná el tipo de operación a registrar</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
             {/* Importación */}
-            <button
-              onClick={onSelectImportacion}
-              className="flex flex-col items-center justify-center gap-3 p-6 border border-slate-200 rounded hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center group"
-            >
-              <div className="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded flex items-center justify-center transition-colors">
-                <ShoppingCart size={24} className="text-slate-600 group-hover:text-emerald-700 transition-colors" />
-              </div>
-              <p className="font-semibold text-slate-800">Importación</p>
-            </button>
+            <div className="border border-slate-200 rounded p-4 flex flex-col justify-center">
+              <button
+                onClick={onSelectImportacion}
+                className="w-full h-full min-h-[140px] flex flex-col items-center justify-center gap-4 p-6 border border-emerald-200 rounded hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group"
+              >
+                <div className="w-12 h-12 bg-emerald-50 group-hover:bg-emerald-100 rounded flex items-center justify-center transition-colors">
+                  <ShoppingCart size={24} className="text-emerald-600 transition-colors" />
+                </div>
+                <p className="font-semibold text-slate-800">Importación</p>
+              </button>
+            </div>
 
             {/* Servicio de Courier */}
-            <div className="border border-slate-200 rounded p-4">
+            <div className="border border-slate-200 rounded p-4 flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center">
                   <Truck size={20} className="text-slate-600" />
@@ -37,7 +39,7 @@ const NuevoTipoModal = ({ onClose, onSelectImportacion, onSelectCourierCliente, 
                 <p className="font-semibold text-slate-800">Servicio de Courier</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex-grow">
                 <button
                   onClick={onSelectCourierCliente}
                   className="w-full flex items-center gap-3 p-3 border border-blue-200 rounded hover:bg-blue-50 hover:border-blue-400 transition-all text-left group"
