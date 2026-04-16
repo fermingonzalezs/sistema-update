@@ -4,6 +4,7 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, X
 import { supabase } from '../../../lib/supabase';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
+import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
 
 // Servicio para Dashboard de Reportes
 const dashboardService = {
@@ -89,7 +90,7 @@ const dashboardService = {
                   .eq('id', item.producto_id)
                   .single();
                 precioCosto = parseFloat(cel?.precio_compra_usd || 0);
-              } else if (item.tipo_producto === 'otro') {
+              } else {
                 const { data: otro } = await supabase
                   .from('inventario_otros')
                   .select('precio_compra_usd')
@@ -182,6 +183,14 @@ const dashboardService = {
     // Estructuras para gráficos apilados
     const ventasPorSucursalDiaria = {};
     const ventasPorSemana = {}; // Nueva estructura para ventas semanales
+
+    // Nueva estructura para apilar subcategorías en "Otros"
+    const ventasPorCategoriaStackedTemp = {
+      Notebooks: { categoria: 'Notebooks', ventas: 0, costo: 0, ganancia: 0, cantidad: 0 },
+      Celulares: { categoria: 'Celulares', ventas: 0, costo: 0, ganancia: 0, cantidad: 0 },
+      Otros: { categoria: 'Otros', ventas: 0, costo: 0, ganancia: 0, cantidad: 0 }
+    };
+    const subcategoriasOtrosSet = new Set();
 
     let totalVentas = 0;
     let totalTransacciones = 0;
@@ -338,25 +347,24 @@ const dashboardService = {
           // Categorías detalladas (tipo_producto directo + desglose de otros si es necesario)
           // El usuario pidió: "las categorias tienen que ser las de la columna tipo_producto... ganancia y margen por categoria tienen que tener todas las categorias, que son notebooks, celulares y todas las categorias de otros"
 
-          let categoria = item.tipo_producto || 'Otros';
+          let subcategoria = item.tipo_producto || 'Otros';
 
-          // Normalizar nombres para visualización
-          if (categoria === 'computadora') {
-            categoria = 'Notebooks';
-          } else if (categoria === 'celular') {
-            categoria = 'Celulares';
+          if (subcategoria === 'computadora') {
+            subcategoria = 'Notebooks';
+          } else if (subcategoria === 'celular') {
+            subcategoria = 'Celulares';
           } else {
-            // Revertir a la lógica anterior: todo lo demás es 'Otros'
-            categoria = 'Otros';
+            subcategoria = getCategoriaLabel(subcategoria) || 'Otros';
           }
 
           const precioVenta = precioTotalItem;
           const precioCosto = parseFloat(item.precio_costo || 0);
           const ganancia = precioVenta - (precioCosto * cantidadItem);
 
-          if (!ventasPorCategoria[categoria]) {
-            ventasPorCategoria[categoria] = {
-              categoria,
+          // Lógica Plana (para Margen y PieChart opcional)
+          if (!ventasPorCategoria[subcategoria]) {
+            ventasPorCategoria[subcategoria] = {
+              categoria: subcategoria,
               ventas: 0,
               cantidad: 0,
               costo: 0,
@@ -364,10 +372,28 @@ const dashboardService = {
               margen: 0
             };
           }
-          ventasPorCategoria[categoria].ventas += precioVenta;
-          ventasPorCategoria[categoria].costo += costoItem;
-          ventasPorCategoria[categoria].ganancia += ganancia;
-          ventasPorCategoria[categoria].cantidad += cantidadItem;
+          ventasPorCategoria[subcategoria].ventas += precioVenta;
+          ventasPorCategoria[subcategoria].costo += costoItem;
+          ventasPorCategoria[subcategoria].ganancia += ganancia;
+          ventasPorCategoria[subcategoria].cantidad += cantidadItem;
+
+          // Lógica Apilada (para barras base)
+          let categoriaPrincipal = 'Otros';
+          if (subcategoria === 'Notebooks') categoriaPrincipal = 'Notebooks';
+          else if (subcategoria === 'Celulares') categoriaPrincipal = 'Celulares';
+          else subcategoriasOtrosSet.add(subcategoria);
+
+          ventasPorCategoriaStackedTemp[categoriaPrincipal].ventas += precioVenta;
+          ventasPorCategoriaStackedTemp[categoriaPrincipal].costo += costoItem;
+          ventasPorCategoriaStackedTemp[categoriaPrincipal].ganancia += ganancia;
+          ventasPorCategoriaStackedTemp[categoriaPrincipal].cantidad += cantidadItem;
+
+          // Guardar keys para apilar barras
+          ventasPorCategoriaStackedTemp[categoriaPrincipal][`${subcategoria}_ventas`] = 
+            (ventasPorCategoriaStackedTemp[categoriaPrincipal][`${subcategoria}_ventas`] || 0) + precioVenta;
+          
+          ventasPorCategoriaStackedTemp[categoriaPrincipal][`${subcategoria}_ganancia`] = 
+            (ventasPorCategoriaStackedTemp[categoriaPrincipal][`${subcategoria}_ganancia`] || 0) + ganancia;
         });
       }
     });
@@ -381,6 +407,12 @@ const dashboardService = {
       // Margen = (Ganancia / Costo) * 100
       categoria.margen = categoria.costo > 0 ? ((categoria.ganancia / categoria.costo) * 100) : 0;
       categoria.margenSobreVentas = categoria.ventas > 0 ? ((categoria.ganancia / categoria.ventas) * 100) : 0;
+    });
+
+    // Margen también para las categorías apiladas principales (necesario para el gráfico compuesto)
+    Object.values(ventasPorCategoriaStackedTemp).forEach(cat => {
+      cat.margen = cat.costo > 0 ? ((cat.ganancia / cat.costo) * 100) : 0;
+      cat.margenSobreVentas = cat.ventas > 0 ? ((cat.ganancia / cat.ventas) * 100) : 0;
     });
 
     // Procesar productos vendidos para ranking
@@ -409,6 +441,8 @@ const dashboardService = {
       ventasPorProcedencia: procesarObjetoPorCantidad(ventasPorProcedencia), // Ordenar por cantidad
       ventasPorVendedor: procesarObjetoPorTransacciones(ventasPorVendedor), // Ordenar por transacciones
       ventasPorCategoria: procesarObjeto(ventasPorCategoria), // Mantener por ventas para "Valor Venta Bruta" pero usaremos cantidad para "Ventas por Categoria"
+      ventasPorCategoriaStacked: Object.values(ventasPorCategoriaStackedTemp),
+      subcategoriasOtros: Array.from(subcategoriasOtrosSet),
       ventasPorSucursalDiaria: ventasSucursalDiariaArr,
       topProductos,
       metodosDePago: Object.entries(metodosDePago).map(([metodo, cantidad]) => ({
@@ -848,12 +882,20 @@ const useDashboardReportes = () => {
 const DashboardReportesSection = () => {
   const { ventasData, inventarioData, topClientes, loading, error, cargarDatos } = useDashboardReportes();
 
-  // Colores por categoría
+  // Colores por categoría principal
   const COLORES_CATEGORIAS = {
     'Notebooks': '#3b82f6',      // Azul
     'Celulares': '#f59e0b',       // Naranja
     'Otros': '#8b5cf6'            // Púrpura
   };
+
+  // Paleta extendida para subcategorías de "Otros"
+  const COLORES_SUBCATEGORIAS_OTROS = [
+    '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', 
+    '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', 
+    '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b',
+    '#f97316', '#ef4444'
+  ];
 
   // Colores para sucursales
   const COLORES_SUCURSALES = {
@@ -865,9 +907,15 @@ const DashboardReportesSection = () => {
   // Colores para vendedores (array cíclico)
   const COLORES_VENDEDORES = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-  // Función para obtener color por categoría
+  // Función para obtener color por categoría principal
   const getColorPorCategoria = (categoria) => {
     return COLORES_CATEGORIAS[categoria] || '#64748b'; // Gris por defecto
+  };
+
+  const getColorForSubcategory = (subcat, index = 0) => {
+    if (subcat === 'Notebooks') return COLORES_CATEGORIAS['Notebooks'];
+    if (subcat === 'Celulares') return COLORES_CATEGORIAS['Celulares'];
+    return COLORES_SUBCATEGORIAS_OTROS[index % COLORES_SUBCATEGORIAS_OTROS.length];
   };
 
   // Función para obtener color por sucursal
@@ -1068,19 +1116,20 @@ const DashboardReportesSection = () => {
                 <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Valor de Venta Bruta por Categoría</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={ventasData?.ventasPorCategoria}>
+                    <BarChart data={ventasData?.ventasPorCategoriaStacked}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
                       <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
                       <Tooltip
-                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ventas Brutas']}
+                        formatter={(value, name) => [formatearMonto(value, 'USD'), name]}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="ventas">
-                        {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
-                        ))}
-                      </Bar>
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      <Bar dataKey="Notebooks_ventas" name="Notebooks" stackId="a" fill={getColorForSubcategory('Notebooks')} />
+                      <Bar dataKey="Celulares_ventas" name="Celulares" stackId="a" fill={getColorForSubcategory('Celulares')} />
+                      {ventasData?.subcategoriasOtros?.map((subcat, idx) => (
+                        <Bar key={subcat} dataKey={`${subcat}_ventas`} name={subcat} stackId="a" fill={getColorForSubcategory(subcat, idx)} />
+                      ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1126,9 +1175,10 @@ const DashboardReportesSection = () => {
                         dataKey="cantidad"
                         nameKey="categoria"
                       >
-                        {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={'cell-' + index} fill={getColorPorCategoria(entry.categoria)} />
-                        ))}
+                        {ventasData?.ventasPorCategoria.map((entry, index) => {
+                          const subcatIdx = ventasData?.subcategoriasOtros?.indexOf(entry.categoria) || 0;
+                          return <Cell key={'cell-' + index} fill={getColorForSubcategory(entry.categoria, Math.max(0, subcatIdx))} />;
+                        })}
                       </Pie>
                       <Tooltip formatter={(value) => [value, 'Unidades']} />
                       <Legend
@@ -1228,19 +1278,20 @@ const DashboardReportesSection = () => {
                 <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ganancia por Categoría</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={ventasData?.ventasPorCategoria}>
+                    <BarChart data={ventasData?.ventasPorCategoriaStacked}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
                       <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `$${value.toFixed(0)}`} />
                       <Tooltip
-                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ganancia']}
+                        formatter={(value, name) => [formatearMonto(value, 'USD'), name]}
                         labelStyle={{ color: '#1e293b' }}
                       />
-                      <Bar dataKey="ganancia">
-                        {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
-                        ))}
-                      </Bar>
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      <Bar dataKey="Notebooks_ganancia" name="Notebooks" stackId="a" fill={getColorForSubcategory('Notebooks')} />
+                      <Bar dataKey="Celulares_ganancia" name="Celulares" stackId="a" fill={getColorForSubcategory('Celulares')} />
+                      {ventasData?.subcategoriasOtros.map((subcat, idx) => (
+                        <Bar key={subcat} dataKey={`${subcat}_ganancia`} name={subcat} stackId="a" fill={getColorForSubcategory(subcat, idx)} />
+                      ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1260,9 +1311,10 @@ const DashboardReportesSection = () => {
                         labelStyle={{ color: '#1e293b' }}
                       />
                       <Bar dataKey="margen">
-                        {ventasData?.ventasPorCategoria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={getColorPorCategoria(entry.categoria)} />
-                        ))}
+                        {ventasData?.ventasPorCategoria.map((entry, index) => {
+                          const subcatIdx = ventasData?.subcategoriasOtros?.indexOf(entry.categoria) || 0;
+                          return <Cell key={`cell-${index}`} fill={getColorForSubcategory(entry.categoria, Math.max(0, subcatIdx))} />;
+                        })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -1323,7 +1375,7 @@ const DashboardReportesSection = () => {
                 <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Relación Volumen de Ventas vs Margen de Ganancia</h3>
                 <div className="p-4">
                   <ResponsiveContainer width="100%" height={300}>
-                    <ComposedChart data={ventasData?.ventasPorCategoria}>
+                    <ComposedChart data={ventasData?.ventasPorCategoriaStacked}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
                       <YAxis yAxisId="left" orientation="left" stroke="#8884d8" tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
