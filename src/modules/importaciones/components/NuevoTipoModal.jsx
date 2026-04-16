@@ -20,27 +20,21 @@ const NuevoTipoModal = ({ onClose, onSelectImportacion, onSelectCourierCliente, 
             {/* Importación */}
             <button
               onClick={onSelectImportacion}
-              className="flex flex-col items-start gap-3 p-6 border-2 border-slate-200 rounded hover:border-emerald-500 hover:bg-emerald-50 transition-all text-left group"
+              className="flex flex-col items-center justify-center gap-3 p-6 border border-slate-200 rounded hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center group"
             >
               <div className="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded flex items-center justify-center transition-colors">
                 <ShoppingCart size={24} className="text-slate-600 group-hover:text-emerald-700 transition-colors" />
               </div>
-              <div>
-                <p className="font-semibold text-slate-800">Importación</p>
-                <p className="text-xs text-slate-500 mt-1">Compra de productos al exterior. La empresa registra ítems, pesos y costos para reventa o uso interno.</p>
-              </div>
+              <p className="font-semibold text-slate-800">Importación</p>
             </button>
 
             {/* Servicio de Courier */}
-            <div className="border-2 border-slate-200 rounded p-4">
+            <div className="border border-slate-200 rounded p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center">
                   <Truck size={20} className="text-slate-600" />
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-800">Servicio de Courier</p>
-                  <p className="text-xs text-slate-500">Gestión de envío sin compra propia</p>
-                </div>
+                <p className="font-semibold text-slate-800">Servicio de Courier</p>
               </div>
 
               <div className="space-y-2">
@@ -51,10 +45,7 @@ const NuevoTipoModal = ({ onClose, onSelectImportacion, onSelectCourierCliente, 
                   <div className="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded flex items-center justify-center transition-colors flex-shrink-0">
                     <User size={16} className="text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">A cargo del cliente</p>
-                    <p className="text-xs text-slate-500">El cliente compra y envía directo. Solo se registra el servicio prestado, sin ítems ni pesos.</p>
-                  </div>
+                  <p className="text-sm font-medium text-slate-800">A cargo del cliente</p>
                 </button>
 
                 <button
@@ -64,10 +55,7 @@ const NuevoTipoModal = ({ onClose, onSelectImportacion, onSelectCourierCliente, 
                   <div className="w-8 h-8 bg-purple-50 group-hover:bg-purple-100 rounded flex items-center justify-center transition-colors flex-shrink-0">
                     <Building2 size={16} className="text-purple-600" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">A cargo de Update</p>
-                    <p className="text-xs text-slate-500">La empresa gestiona el envío. Se cargan ítems, pesos y costos igual que una importación.</p>
-                  </div>
+                  <p className="text-sm font-medium text-slate-800">A cargo de Update</p>
                 </button>
               </div>
             </div>
