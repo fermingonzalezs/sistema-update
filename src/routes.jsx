@@ -25,6 +25,7 @@ const DefaultRedirect = () => {
         soporte:       '/reparaciones',
         contabilidad:  '/contabilidad/libro-diario',
         compras:       '/ingreso-equipos',
+        revendedor:    '/revendedores',
     };
     return <Navigate to={redirects[nivel] || '/contabilidad/libro-diario'} replace />;
 };
@@ -34,7 +35,7 @@ import { Clientes, Listas, Catalogo, RegistrarVentaSection } from './modules/ven
 import ListadoTotalSection from './modules/administracion/components/ListadoTotalSection';
 
 // Soporte
-import { ReparacionesMain, TesteoEquiposSection, AuditPanel } from './modules/soporte/components';
+import { ReparacionesMain, TesteoEquiposSection, AuditPanel, RevendedoresSection } from './modules/soporte/components';
 
 // Administración
 import {
@@ -137,6 +138,7 @@ const AppRoutes = () => {
                 <Route path="reparaciones" element={<ProtectedRoute section="soporte"><ReparacionesMain /></ProtectedRoute>} />
                 <Route path="testeo-equipos" element={<ProtectedRoute section="soporte"><TesteoEquiposSection /></ProtectedRoute>} />
                 <Route path="auditoria" element={<ProtectedRoute section="soporte"><AuditPanel /></ProtectedRoute>} />
+                <Route path="revendedores" element={<ProtectedRoute section="revendedores"><RevendedoresSection /></ProtectedRoute>} />
 
                 {/* Administración */}
                 <Route path="recuento-stock" element={<ProtectedRoute section="recuento-stock"><RecuentoStockSection /></ProtectedRoute>} />

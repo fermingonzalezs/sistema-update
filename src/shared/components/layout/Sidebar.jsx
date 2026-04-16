@@ -297,6 +297,14 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           label: 'Auditoría',
           icon: ClipboardList,
           description: 'Registro de operaciones del sistema'
+        },
+        {
+          id: 'revendedores',
+          path: '/revendedores',
+          label: 'Revendedores',
+          icon: ShoppingBag,
+          description: 'Catálogo con precios de revendedor',
+          section: 'revendedores'
         }
       ]
     }
