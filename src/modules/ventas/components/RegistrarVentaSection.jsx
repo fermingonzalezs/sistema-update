@@ -12,7 +12,8 @@ import {
   Smartphone,
   HardDrive,
   DollarSign,
-  ArrowRight
+  ArrowRight,
+  Truck
 } from 'lucide-react';
 import ClienteSelector from './ClienteSelector';
 import CarritoWidget from '../../../shared/components/layout/CarritoWidget';
@@ -26,6 +27,7 @@ import {
   CONDICIONES_LABELS,
   getCondicionColor
 } from '../../../shared/constants/productConstants';
+import { generateCopy } from '../../../shared/utils/copyGenerator';
 
 const RegistrarVentaSection = () => {
   // Estados principales
@@ -35,6 +37,13 @@ const RegistrarVentaSection = () => {
   // Estados para selector de productos
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
   const [busquedaProducto, setBusquedaProducto] = useState('');
+
+  // Estado para servicio courier
+  const [servicioCourier, setServicioCourier] = useState({
+    nombre: '',
+    precioCompra: '',
+    precioVenta: ''
+  });
 
   // Estados para producto custom (fuera de stock)
   const [productoCustom, setProductoCustom] = useState({
@@ -168,7 +177,8 @@ const RegistrarVentaSection = () => {
     { id: 'notebooks', nombre: 'Notebooks', icon: Laptop },
     { id: 'celulares', nombre: 'Celulares', icon: Smartphone },
     { id: 'otros', nombre: 'Otros', icon: HardDrive },
-    { id: 'custom', nombre: 'Item fuera de stock', icon: Tag }
+    { id: 'custom', nombre: 'Item fuera de stock', icon: Tag },
+    { id: 'courier', nombre: 'Courier', icon: Truck }
   ];
 
   // Datos reales de productos desde estado local (bypass de hooks problemáticos)
@@ -437,6 +447,71 @@ const RegistrarVentaSection = () => {
     }
   };
 
+  const generarSerialCourier = async () => {
+    const { data } = await supabase
+      .from('otros')
+      .select('serial')
+      .eq('categoria', 'COURIER');
+    let maxNum = 0;
+    (data || []).forEach(item => {
+      const match = item.serial?.match(/^COURIER-(\d+)$/);
+      if (match) maxNum = Math.max(maxNum, parseInt(match[1]));
+    });
+    return `COURIER-${String(maxNum + 1).padStart(3, '0')}`;
+  };
+
+  const agregarServicioCourier = async () => {
+    if (!servicioCourier.nombre) {
+      alert('El nombre del servicio es requerido');
+      return;
+    }
+    if (!servicioCourier.precioCompra || !servicioCourier.precioVenta) {
+      alert('Los precios son requeridos');
+      return;
+    }
+
+    setCreandoProducto(true);
+    try {
+      const serial = await generarSerialCourier();
+      const nuevoProducto = await crearProductoCustom({
+        nombre_producto: servicioCourier.nombre,
+        serial,
+        descripcion: servicioCourier.nombre,
+        categoria: 'COURIER',
+        condicion: 'nuevo',
+        precio_compra: parseFloat(servicioCourier.precioCompra),
+        precio_venta: parseFloat(servicioCourier.precioVenta),
+        cantidad: 1,
+        sucursal: 'mitre'
+      });
+
+      const precioUnitario = nuevoProducto.precio_venta_usd || 0;
+      setItemsVenta(prev => [...prev, {
+        id: nuevoProducto.id,
+        serial: nuevoProducto.nombre_producto,
+        descripcion: nuevoProducto.descripcion,
+        precio: precioUnitario,
+        stock: 1,
+        condicion: nuevoProducto.condicion,
+        tipo: 'otro',
+        categoria: 'COURIER',
+        cantidad: 1,
+        total: precioUnitario,
+        precio_unitario: precioUnitario,
+        producto: nuevoProducto
+      }]);
+
+      await recargarOtros();
+      setServicioCourier({ nombre: '', precioCompra: '', precioVenta: '' });
+      alert('✅ Servicio courier agregado al carrito');
+    } catch (error) {
+      console.error('❌ Error creando courier:', error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setCreandoProducto(false);
+    }
+  };
+
   const modificarCantidad = (itemId, tipo, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarItem(itemId, tipo);
@@ -610,7 +685,7 @@ const RegistrarVentaSection = () => {
 
             <div className="p-4 flex-1 flex flex-col overflow-hidden">
               {/* Categorías */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <div className="grid grid-cols-5 gap-3 mb-4">
                 {categorias.map((categoria) => {
                   const IconComponent = categoria.icon;
                   const isSelected = categoriaSeleccionada === categoria.id;
@@ -637,7 +712,7 @@ const RegistrarVentaSection = () => {
               </div>
 
               {/* Búsqueda */}
-              {categoriaSeleccionada && categoriaSeleccionada !== 'custom' && (
+              {categoriaSeleccionada && categoriaSeleccionada !== 'custom' && categoriaSeleccionada !== 'courier' && (
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <input
@@ -667,7 +742,7 @@ const RegistrarVentaSection = () => {
                       <p className="text-slate-400 text-sm mt-1">Elige una opción arriba para ver el catálogo disponible</p>
                     </div>
                   </div>
-                ) : loadingLocal && categoriaSeleccionada !== 'custom' ? (
+                ) : loadingLocal && categoriaSeleccionada !== 'custom' && categoriaSeleccionada !== 'courier' ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-emerald-600 mx-auto mb-4"></div>
                     <p className="text-slate-500 animate-pulse">Cargando inventario...</p>
@@ -822,7 +897,7 @@ const RegistrarVentaSection = () => {
                             step="0.01"
                             value={productoCustom.precioCompra}
                             onChange={(e) => setProductoCustom(prev => ({ ...prev, precioCompra: e.target.value }))}
-                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             placeholder="0.00"
                             required
                           />
@@ -839,7 +914,7 @@ const RegistrarVentaSection = () => {
                             step="0.01"
                             value={productoCustom.precioVenta}
                             onChange={(e) => setProductoCustom(prev => ({ ...prev, precioVenta: e.target.value }))}
-                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-900 font-bold placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-900 font-bold placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             placeholder="0.00"
                             required
                           />
@@ -865,65 +940,121 @@ const RegistrarVentaSection = () => {
                       )}
                     </button>
                   </div>
+                ) : categoriaSeleccionada === 'courier' ? (
+                  /* Formulario para servicio courier */
+                  <div className="space-y-5 bg-slate-50 p-6 rounded border border-slate-200">
+                    <div className="flex items-center space-x-2 text-slate-700 mb-2">
+                      <Truck className="w-4 h-4" />
+                      <span className="text-sm font-bold uppercase tracking-wider">Servicio de Courier</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Nombre del Servicio <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={servicioCourier.nombre}
+                        onChange={(e) => setServicioCourier(prev => ({ ...prev, nombre: e.target.value }))}
+                        className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                        placeholder=""
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Costo del Servicio USD <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={servicioCourier.precioCompra}
+                            onChange={(e) => setServicioCourier(prev => ({ ...prev, precioCompra: e.target.value }))}
+                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Precio de Venta USD <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600 w-4 h-4" />
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={servicioCourier.precioVenta}
+                            onChange={(e) => setServicioCourier(prev => ({ ...prev, precioVenta: e.target.value }))}
+                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-900 font-bold placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={agregarServicioCourier}
+                      disabled={creandoProducto}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded font-medium uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center space-x-2 mt-2"
+                    >
+                      {creandoProducto ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Agregando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Truck className="w-5 h-5" />
+                          <span>Agregar Courier</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 ) : productosFiltrados.length === 0 ? (
                   <div className="text-center py-4 text-slate-500">
                     <p>No se encontraron productos</p>
                   </div>
                 ) : (
                   productosFiltrados.map((producto) => {
-                    // Función para generar información específica por categoría
-                    const getInfoEspecifica = (prod, categoria) => {
-                      if (categoria === 'notebooks' || categoria === 'celulares') {
-                        // Para notebooks y celulares: solo mostrar SERIAL - CONDICIÓN
-                        const condicionLabel = CONDICIONES_LABELS[prod.condicion] || prod.condicion;
-                        return `${prod.serial} - ${condicionLabel}`;
-                      } else if (categoria === 'otros') {
-                        const specs = [];
-                        if (prod.categoria) specs.push(prod.categoria);
-                        if (prod.nombre_producto && prod.nombre_producto !== prod.descripcion) specs.push(prod.nombre_producto);
-                        return specs.length > 0 ? specs.slice(0, 2).join(' • ') : '';
-                      }
-                      return '';
-                    };
-
-                    const infoEspecifica = getInfoEspecifica(producto, categoriaSeleccionada);
+                    const tipoCopy = categoriaSeleccionada === 'notebooks' ? 'notebook_catalogo'
+                      : categoriaSeleccionada === 'celulares' ? 'celular_completo'
+                      : 'otro_completo';
+                    let copyProducto;
+                    try { copyProducto = generateCopy(producto, { tipo: tipoCopy }); }
+                    catch { copyProducto = producto.descripcion; }
 
                     return (
                       <div
                         key={producto.id}
                         className="group flex items-center justify-between bg-white p-4 rounded border border-slate-200 hover:border-emerald-500/50 hover:shadow-md transition-all duration-200 animate-in fade-in"
                       >
-                        <div className="flex-1">
-                          <div className="font-bold text-slate-700 text-sm group-hover:text-emerald-700 transition-colors">{producto.descripcion}</div>
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className="font-bold text-slate-700 text-sm group-hover:text-emerald-700 transition-colors truncate"
+                            title={copyProducto}
+                          >{copyProducto}</div>
 
-                          {/* Primera línea: Info específica */}
-                          {infoEspecifica && (
-                            <div className="text-xs text-slate-500 mt-1 font-mono">
-                              {infoEspecifica}
-                            </div>
-                          )}
-
-                          {/* Segunda línea: Info general (solo para "otros") */}
-                          {categoriaSeleccionada === 'otros' && (
-                            <div className="text-xs text-slate-500 mt-1 flex items-center space-x-2">
-                              <span className="font-mono bg-slate-100 px-1.5 rounded text-slate-600">{producto.serial}</span>
-                              <span>•</span>
-                              <span className={producto.stock > 0 ? "text-emerald-600" : "text-red-500"}>Stock: {producto.stock}</span>
-                              {producto.condicion && (
-                                <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${producto.condicion === 'nuevo' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                                  producto.condicion === 'como_nuevo' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                                    'bg-amber-100 text-amber-700 border border-amber-200'
-                                  }`}>
-                                  {CONDICIONES_LABELS[producto.condicion] || producto.condicion}
-                                </span>
-                              )}
-                              {producto.estado && <span className="text-slate-500">• {producto.estado}</span>}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-3 mt-1">
+                            {producto.color && (
+                              <span className="text-xs text-slate-500 font-mono">{producto.color}</span>
+                            )}
+                            {producto.serial && (
+                              <span className="text-xs text-slate-400 font-mono bg-slate-100 px-1.5 rounded">{producto.serial}</span>
+                            )}
+                            {categoriaSeleccionada === 'otros' && (
+                              <span className={`text-xs font-medium ${producto.stock > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                Stock: {producto.stock}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-3 ml-4">
                           <div className="text-right">
-                            <div className="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">${producto.precio}</div>
+                            <div className="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">U${(parseFloat(producto.precio_venta_usd || producto.precio) || 0).toFixed(2)}</div>
                           </div>
                           <button
                             onClick={() => agregarProductoStock(producto)}
@@ -960,7 +1091,7 @@ const RegistrarVentaSection = () => {
             </div>
           </div>
 
-          <div className="p-6 flex-1 flex flex-col">
+          <div className="p-3 flex-1 flex flex-col">
             {itemsVenta.length === 0 ? (
               <div className="text-center py-16 text-slate-500 flex flex-col items-center justify-center h-full border-2 border-dashed border-slate-200 rounded bg-slate-50">
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 text-slate-400 border border-slate-200 shadow-sm">
@@ -974,34 +1105,26 @@ const RegistrarVentaSection = () => {
                 <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
                   {itemsVenta.map((item) => (
                     <div key={`${item.id}-${item.tipo}`} className="flex items-center justify-between bg-white p-4 rounded border border-slate-200 hover:border-slate-300 transition-colors group shadow-sm">
-                      <div className="flex-1">
-                        <div className="font-bold text-slate-700 text-sm">{item.descripcion}</div>
-                        <div className="text-xs text-slate-500 mt-1 flex items-center space-x-2">
-                          <span className="font-mono">{item.serial}</span>
-                          <span className="text-slate-300">|</span>
-                          <span className="text-emerald-600 font-medium">${item.precio_unitario} c/u</span>
-                          {item.tipo === 'custom' && <span className="ml-2 bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">CUSTOM</span>}
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="font-bold text-slate-700 text-sm truncate"
+                          title={item.producto ? (() => { try { let t = item.tipo === 'computadora' ? 'notebook_catalogo' : item.tipo === 'celular' ? 'celular_completo' : 'otro_completo'; return generateCopy(item.producto, { tipo: t }); } catch { return item.descripcion; } })() : item.descripcion}
+                        >
+                          {item.producto ? (() => {
+                            try {
+                              let tipo = 'otro_completo';
+                              if (item.tipo === 'computadora') tipo = 'notebook_catalogo';
+                              else if (item.tipo === 'celular') tipo = 'celular_completo';
+                              return generateCopy(item.producto, { tipo });
+                            } catch { return item.descripcion; }
+                          })() : item.descripcion}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          {item.producto?.color && <span className="text-xs text-slate-500 font-mono">{item.producto.color}</span>}
+                          {(item.producto?.serial || item.serial) && <span className="text-xs text-slate-400 font-mono bg-slate-100 px-1.5 rounded">{item.producto?.serial || item.serial}</span>}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3 ml-4">
-                        <div className="flex items-center bg-slate-50 rounded p-1 border border-slate-200">
-                          <button
-                            onClick={() => modificarCantidad(item.id, item.tipo, item.cantidad - 1)}
-                            className="text-slate-400 hover:text-slate-600 hover:bg-white p-1 rounded transition-colors"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="w-8 text-center text-sm font-bold text-slate-700">{item.cantidad}</span>
-                          <button
-                            onClick={() => modificarCantidad(item.id, item.tipo, item.cantidad + 1)}
-                            className="text-slate-400 hover:text-slate-600 hover:bg-white p-1 rounded transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                        </div>
-                        <div className="text-right min-w-[80px]">
-                          <div className="font-bold text-emerald-700 text-lg">${item.total}</div>
-                        </div>
+                      <div className="flex items-center space-x-2 ml-2 shrink-0">
                         <button
                           onClick={() => eliminarItem(item.id, item.tipo)}
                           className="text-slate-400 hover:text-red-500 p-2 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
@@ -1009,23 +1132,24 @@ const RegistrarVentaSection = () => {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        <div className="font-medium text-emerald-700 text-sm min-w-[60px] text-right">U${Math.round(parseFloat(item.total) || 0)}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Total */}
-                <div className="bg-slate-900 p-6 rounded shadow-lg mt-6 text-white">
-                  <div className="flex justify-between items-end mb-4">
-                    <div className="text-sm font-medium text-slate-400 uppercase tracking-wider">Total Estimado</div>
-                    <div className="text-4xl font-bold tracking-tight text-emerald-400">${totalVenta}</div>
+                <div className="bg-white border border-slate-200 px-4 py-3 rounded mt-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total</div>
+                    <div className="text-xl font-bold text-emerald-700">U${(parseFloat(totalVenta) || 0).toFixed(2)}</div>
                   </div>
 
                   {/* Botón proceder */}
                   <button
                     onClick={handleProcederCarrito}
                     disabled={!clienteSeleccionado || itemsVenta.length === 0}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white px-6 py-4 rounded font-bold text-lg shadow-lg shadow-emerald-900/20 hover:shadow-emerald-600/30 transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center space-x-3"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium text-sm transition-colors flex items-center justify-center space-x-2"
                   >
                     <ShoppingCart className="w-6 h-6" />
                     <span>Procesar Pago</span>

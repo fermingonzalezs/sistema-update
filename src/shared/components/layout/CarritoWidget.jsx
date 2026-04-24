@@ -115,21 +115,15 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
   const [carritoAnterior, setCarritoAnterior] = useState([]);
   const [aperturaManual, setAperturaManual] = useState(false);
 
-  // Abrir automáticamente el widget cuando se agreguen items desde RegistrarVenta
-  // DESHABILITADO: El usuario prefiere que no se abra automáticamente
-  /*
+  // Abrir automáticamente el widget cuando llegan items desde RegistrarVenta
   useEffect(() => {
-    if (carrito && carrito.length > 0 && carritoAnterior.length === 0 && !isOpen && !procesandoVenta && !aperturaManual) {
+    if (carrito && carrito.length > 0 && carritoAnterior.length === 0 && !isOpen && !procesandoVenta) {
       setIsOpen(true);
       setMostrarFormulario(true);
-      console.log('🛒 CarritoWidget abierto automáticamente con', carrito.length, 'items');
+      if (clienteInicial) {
+        setClienteSeleccionado(clienteInicial);
+      }
     }
-    setCarritoAnterior(carrito || []);
-  }, [carrito]);
-  */
-
-  // Solo actualizamos el carritoAnterior para referencia futura si fuera necesario
-  useEffect(() => {
     setCarritoAnterior(carrito || []);
   }, [carrito]);
 

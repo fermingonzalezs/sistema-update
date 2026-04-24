@@ -37,6 +37,14 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false, t
   }, [fetchClientes]);
 
   useEffect(() => {
+    if (selectedCliente) {
+      setSearchTerm(`${selectedCliente.nombre} ${selectedCliente.apellido}`);
+    } else {
+      setSearchTerm('');
+    }
+  }, [selectedCliente]);
+
+  useEffect(() => {
     if (searchTerm.length === 0) {
       setFilteredClientes(clientes);
     }

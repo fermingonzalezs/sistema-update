@@ -434,7 +434,7 @@ export const otrosService = {
       cantidad_la_plata: sucursal === 'la_plata' ? cantidadProducto : 0,
       cantidad_mitre: sucursal === 'mitre' ? cantidadProducto : 0,
       garantia: '30 días', // Fijo según especificación
-      observaciones: datosCustom.observaciones || 'Producto custom creado para venta'
+      observaciones: datosCustom.observaciones || null
     };
 
     console.log('📦 Datos preparados para producto custom:', productoData);

@@ -2,6 +2,7 @@
 
 // Categorías normalizadas
 export const CATEGORIAS_OTROS = {
+  COURIER: 'COURIER',
   DESKTOP: 'DESKTOP',
   ACCESORIOS: 'ACCESORIOS',
   MONITORES: 'MONITORES',
@@ -27,6 +28,7 @@ export const CATEGORIAS_OTROS = {
 
 // Orden por frecuencia de uso (de mayor a menor)
 export const CATEGORIAS_OTROS_ARRAY = [
+  CATEGORIAS_OTROS.COURIER,
   // Fila 1: más usados
   CATEGORIAS_OTROS.ACCESORIOS,
   CATEGORIAS_OTROS.WATCHES,
@@ -55,6 +57,7 @@ export const CATEGORIAS_OTROS_ARRAY = [
 
 // Labels para mostrar en la UI
 export const CATEGORIAS_OTROS_LABELS = {
+  COURIER: 'Courier',
   DESKTOP: 'Desktop',
   ACCESORIOS: 'Accesorios',
   MONITORES: 'Monitores',
@@ -80,6 +83,7 @@ export const CATEGORIAS_OTROS_LABELS = {
 
 // Mapeo de categorías legacy a normalizadas
 const CATEGORIA_MAPPING = {
+  'courier': CATEGORIAS_OTROS.COURIER,
   // Minúsculas a mayúsculas
   'desktop': CATEGORIAS_OTROS.DESKTOP,
   'accesorios': CATEGORIAS_OTROS.ACCESORIOS,
