@@ -103,7 +103,7 @@ const CumpleanosProximos = ({ getProximosCumpleanosConHistorial }) => {
       </div>
 
       {!isCollapsed && (
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-48">
           <table className="min-w-full text-center">
             <thead>
               <tr className="border-b border-slate-200">

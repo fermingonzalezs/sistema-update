@@ -55,8 +55,8 @@ const DetalleRecibo = ({
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
         precio_por_kg_usd: recibo.precio_por_kg_usd || '',
-        pago_courier_usd: recibo.pago_courier_usd || '',
-        costo_picking_shipping_usd: recibo.costo_picking_shipping_usd || ''
+        pago_courier_usd: '',
+        costo_picking_shipping_usd: ''
       });
       setItemsEditados((recibo.importaciones_items || []).map(item => ({ ...item })));
       setItemsNuevos([]);
@@ -285,11 +285,7 @@ const DetalleRecibo = ({
         datosParaActualizar.peso_total_con_caja_kg = parseFloat(datosEditados.peso_total_con_caja_kg) || 0;
         datosParaActualizar.peso_sin_caja_kg = parseFloat(datosEditados.peso_sin_caja_kg) || 0;
         datosParaActualizar.precio_por_kg_usd = parseFloat(datosEditados.precio_por_kg_usd) || 0;
-        datosParaActualizar.pago_courier_usd = parseFloat(datosEditados.pago_courier_usd) || 0;
-        datosParaActualizar.costo_picking_shipping_usd = parseFloat(datosEditados.costo_picking_shipping_usd) || 0;
-        datosParaActualizar.costo_total_importacion_usd =
-          (parseFloat(datosEditados.pago_courier_usd) || 0) +
-          (parseFloat(datosEditados.costo_picking_shipping_usd) || 0);
+        datosParaActualizar.costo_total_importacion_usd = totalEnvioItems;
       }
 
       await onActualizarRecibo(recibo.id, datosParaActualizar);
@@ -307,8 +303,11 @@ const DetalleRecibo = ({
           if (parseFloat(item.precio_unitario_usd) !== itemOriginal.precio_unitario_usd) {
             cambios.precio_unitario_usd = parseFloat(item.precio_unitario_usd);
           }
-          if (parseFloat(item.peso_estimado_unitario_kg || 0) !== (itemOriginal.peso_estimado_unitario_kg || 0)) {
-            cambios.peso_estimado_unitario_kg = parseFloat(item.peso_estimado_unitario_kg || 0);
+          if (parseFloat(item.peso_estimado_total_kg || 0) !== (itemOriginal.peso_estimado_total_kg || 0)) {
+            const totalKg = parseFloat(item.peso_estimado_total_kg || 0);
+            const cantidad = parseInt(item.cantidad) || 1;
+            cambios.peso_estimado_total_kg = totalKg;
+            cambios.peso_estimado_unitario_kg = cantidad > 0 ? totalKg / cantidad : 0;
           }
 
           // Si está recepcionado, también actualizar peso real
@@ -337,8 +336,6 @@ const DetalleRecibo = ({
       // 5. Si está recepcionado y cambió peso/costos, recalcular
       if (recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO) {
         const costosCambiaron =
-          parseFloat(datosEditados.pago_courier_usd) !== (recibo.pago_courier_usd || 0) ||
-          parseFloat(datosEditados.costo_picking_shipping_usd) !== (recibo.costo_picking_shipping_usd || 0) ||
           itemsNuevos.length > 0 ||
           itemsEliminados.length > 0 ||
           itemsEditados.some(item => {
@@ -386,8 +383,8 @@ const DetalleRecibo = ({
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
         precio_por_kg_usd: recibo.precio_por_kg_usd || '',
-        pago_courier_usd: recibo.pago_courier_usd || '',
-        costo_picking_shipping_usd: recibo.costo_picking_shipping_usd || ''
+        pago_courier_usd: '',
+        costo_picking_shipping_usd: ''
       });
       setItemsEditados((recibo.importaciones_items || []).map(item => ({ ...item })));
       setItemsNuevos([]);
@@ -434,9 +431,9 @@ const DetalleRecibo = ({
   };
 
   const totalProductos = (recibo.importaciones_items || []).reduce((sum, item) => sum + (item.precio_total_usd || 0), 0);
-  const totalCostos = (recibo.costo_total_importacion_usd || 0);
-  const totalFinanciero = (recibo.importaciones_items || []).reduce((sum, item) => sum + (parseFloat(item.costo_financiero_usd) || 0), 0);
-  const totalGeneral = totalProductos + totalCostos + totalFinanciero;
+  const totalEnvioItems = (recibo.importaciones_items || []).reduce((sum, item) => sum + (parseFloat(item.costo_envio_usd) || 0) * (item.cantidad || 1), 0);
+  const totalFinanciero = (recibo.importaciones_items || []).reduce((sum, item) => sum + (parseFloat(item.costo_financiero_usd) || 0) * (item.cantidad || 0), 0);
+  const totalGeneral = totalProductos + totalEnvioItems + totalFinanciero;
 
   // Calcular totales para edición
   const itemsVisibles = itemsEditados.filter(i => !itemsEliminados.includes(i.id));
@@ -1016,8 +1013,8 @@ const DetalleRecibo = ({
                                   type="number"
                                   min="0"
                                   step="0.01"
-                                  value={item.peso_estimado_unitario_kg || ''}
-                                  onChange={(e) => handleItemChange(item.id, 'peso_estimado_unitario_kg', e.target.value)}
+                                  value={item.peso_estimado_total_kg || ''}
+                                  onChange={(e) => handleItemChange(item.id, 'peso_estimado_total_kg', e.target.value)}
                                   className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               ) : (
@@ -1260,38 +1257,18 @@ const DetalleRecibo = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+                  <div className={`grid grid-cols-1 ${recibo.costo_picking_shipping_usd > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-8 text-sm`}>
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Pago Courier</label>
-                      {modoEdicion ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={datosEditados.pago_courier_usd || ''}
-                          onChange={(e) => handleDatoChange('pago_courier_usd', e.target.value)}
-                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center mt-1"
-                        />
-                      ) : (
-                        <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(recibo.pago_courier_usd)}</p>
-                      )}
+                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Envío Total</label>
+                      <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(totalEnvioItems)}</p>
                     </div>
 
-                    <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Picking/Shipping</label>
-                      {modoEdicion ? (
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={datosEditados.costo_picking_shipping_usd || ''}
-                          onChange={(e) => handleDatoChange('costo_picking_shipping_usd', e.target.value)}
-                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center mt-1"
-                        />
-                      ) : (
+                    {recibo.costo_picking_shipping_usd > 0 && (
+                      <div className="text-center">
+                        <label className="text-xs font-semibold text-slate-500 uppercase block">Picking/Shipping</label>
                         <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(recibo.costo_picking_shipping_usd)}</p>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero Total</label>
@@ -1301,11 +1278,7 @@ const DetalleRecibo = ({
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Total Adicional</label>
                       <p className="font-medium text-slate-800 mt-1">
-                        USD ${formatNumber(
-                          modoEdicion
-                            ? (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
-                            : totalCostos + totalFinanciero
-                        )}
+                        USD ${formatNumber(totalEnvioItems + totalFinanciero)}
                       </p>
                     </div>
                   </div>
@@ -1321,7 +1294,7 @@ const DetalleRecibo = ({
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber(
                           modoEdicion
-                            ? totalProductosEdicion + (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
+                            ? totalProductosEdicion + totalEnvioItems + totalFinanciero
                             : totalGeneral
                         )}
                       </p>

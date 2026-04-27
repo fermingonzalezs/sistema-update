@@ -564,8 +564,19 @@ const ImportacionesSection = () => {
                           })()}
                         </td>
                         <td className="px-1 py-3 text-[15px] text-center text-slate-800 whitespace-nowrap">
-                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO && recibo.peso_total_con_caja_kg ? (
-                            <span className="font-semibold">{parseFloat(recibo.peso_total_con_caja_kg).toFixed(2)} kg</span>
+                          {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
+                            (() => {
+                              if (recibo.peso_total_con_caja_kg) {
+                                return <span className="font-semibold">{parseFloat(recibo.peso_total_con_caja_kg).toFixed(2)} kg</span>;
+                              }
+                              const pesoReal = (recibo.importaciones_items || []).reduce(
+                                (sum, item) => sum + (parseFloat(item.peso_real_unitario_kg) || 0) * (item.cantidad || 0),
+                                0
+                              );
+                              return pesoReal > 0
+                                ? <span className="font-semibold">{pesoReal.toFixed(2)} kg</span>
+                                : '-';
+                            })()
                           ) : (
                             (() => {
                               const pesoEstimado = (recibo.importaciones_items || []).reduce(
@@ -580,7 +591,7 @@ const ImportacionesSection = () => {
                         </td>
                         {(() => {
                           const fob = (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0);
-                          const costoFinancieroItems = (recibo.importaciones_items || []).reduce((sum, i) => sum + (parseFloat(i.costo_financiero_usd) || 0), 0);
+                          const costoFinancieroItems = (recibo.importaciones_items || []).reduce((sum, i) => sum + (parseFloat(i.costo_financiero_usd) || 0) * (i.cantidad || 0), 0);
                           const tieneCostoFinanciero = (recibo.importaciones_items || []).some(i => i.costo_financiero_usd != null);
                           const costoCourier = recibo.costo_total_importacion_usd != null ? parseFloat(recibo.costo_total_importacion_usd) : null;
                           const total = fob + costoFinancieroItems + (costoCourier || 0);
