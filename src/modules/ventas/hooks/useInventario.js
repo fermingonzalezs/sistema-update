@@ -443,6 +443,10 @@ export function useInventario() {
         ssd: parseInt(data.ssd) || 0,
         hdd: parseInt(data.hdd) || 0,
         pantalla: parseFloat(data.pantalla) || null,
+        refresh: data.refresh ? parseInt(data.refresh) || null : null,
+        vram: data.vram ? parseInt(data.vram) || null : null,
+        bateria: data.bateria ? parseInt(data.bateria) || null : null,
+        duracion: data.duracion ? parseInt(data.duracion) || null : null,
         // Validaciones y defaults
         sucursal: data.sucursal || 'la_plata',
         condicion: data.condicion || 'usado',
@@ -495,6 +499,10 @@ export function useInventario() {
       ssd: data.ssd !== undefined ? parseInt(data.ssd) || 0 : undefined,
       hdd: data.hdd !== undefined ? parseInt(data.hdd) || 0 : undefined,
       pantalla: data.pantalla !== undefined ? parseFloat(data.pantalla) || null : undefined,
+      refresh: data.refresh !== undefined ? (data.refresh ? parseInt(data.refresh) || null : null) : undefined,
+      vram: data.vram !== undefined ? (data.vram ? parseInt(data.vram) || null : null) : undefined,
+      bateria: data.bateria !== undefined ? (data.bateria ? parseInt(data.bateria) || null : null) : undefined,
+      duracion: data.duracion !== undefined ? (data.duracion ? parseInt(data.duracion) || null : null) : undefined,
       // Validar booleanos
       touchscreen: data.touchscreen !== undefined ? Boolean(data.touchscreen) : undefined,
     }),

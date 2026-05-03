@@ -18,6 +18,7 @@ import ClienteModal from './ClienteModal';
 import HistorialComprasModal from './HistorialComprasModal';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import CumpleanosProximos from './CumpleanosProximos';
+import GraficoEdadesClientes from './GraficoEdadesClientes';
 import { clienteMatchesSearch } from '../utils/stringUtils';
 import { parseFechaLocal } from '../../../shared/utils/formatters';
 
@@ -137,8 +138,6 @@ const Clientes = () => {
   return (
     <div className="p-0">
 
-
-
       <div className="flex justify-between items-start mb-6">
         {/* Estadísticas simples */}
         {estadisticas && (
@@ -169,9 +168,6 @@ const Clientes = () => {
 
       </div>
 
-      {/* Cumpleaños Próximos */}
-      <CumpleanosProximos getProximosCumpleanosConHistorial={getProximosCumpleanosConHistorial} />
-
       {/* Búsqueda */}
       <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
         <div className="relative max-w-md">
@@ -192,6 +188,16 @@ const Clientes = () => {
             <Plus className="w-4 h-4" />
             Nuevo Cliente
           </button>
+        </div>
+      </div>
+
+      {/* Gráfico + Cumpleaños lado a lado */}
+      <div className="flex gap-6 mb-6 h-72">
+        <div className="flex-1 min-w-0 min-h-0">
+          <GraficoEdadesClientes clientes={clientes} />
+        </div>
+        <div className="flex-1 min-w-0 min-h-0">
+          <CumpleanosProximos getProximosCumpleanosConHistorial={getProximosCumpleanosConHistorial} />
         </div>
       </div>
 

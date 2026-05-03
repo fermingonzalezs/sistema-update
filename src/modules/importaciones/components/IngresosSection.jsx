@@ -109,14 +109,14 @@ const IngresosSection = () => {
                 <thead className="bg-slate-800 text-white">
                   <tr>
                     <th className="w-8 py-3"></th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">N° Ingreso</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">F. Ingreso</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">N° Ingreso</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">F. Ingreso</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-16">Items</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Pedidos</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso s/ caja</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">FOB Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costo Courier</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Peso s/ caja</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">FOB Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Costo Courier</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-20">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -137,29 +137,46 @@ const IngresosSection = () => {
                               {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                             </button>
                           </td>
-                          <td className="px-4 py-3">
-                            <span className="font-mono text-sm font-semibold text-slate-800">{ingreso.numero_caja}</span>
+                          <td className="px-4 py-3 text-center">
+                            <span className="font-mono text-xs text-slate-800">{ingreso.numero_caja}</span>
                             {ingreso.descripcion && (
-                              <p className="text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">{ingreso.descripcion}</p>
+                              <span className="text-xs text-slate-400 ml-1">· {ingreso.descripcion}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-sm text-center text-slate-500">
+                          <td className="px-4 py-3 text-xs text-center text-slate-500">
                             {ingreso.fecha_recepcion ? formatearFechaDisplay(ingreso.fecha_recepcion) : '—'}
                           </td>
-                          <td className="px-4 py-3 text-sm text-center font-medium text-slate-800">{totalItems}</td>
-                          <td className="px-4 py-3 text-sm text-center text-slate-600">{grupos.length}</td>
-                          <td className="px-4 py-3 text-sm text-center text-slate-600">
+                          <td className="px-4 py-3 text-xs text-center text-slate-800">{totalItems}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600 max-w-0 overflow-hidden">
+                            <div className="flex flex-col gap-0.5 text-left w-full overflow-hidden">
+                              {grupos.map((grupo, gi) => {
+                                const fullText = [
+                                  grupo.recibo?.proveedores?.nombre ? `(${grupo.recibo.proveedores.nombre})` : null,
+                                  grupo.recibo?.observaciones
+                                ].filter(Boolean).join(' ');
+                                return (
+                                  <span key={gi} className="block truncate" title={fullText || undefined}>
+                                    {grupo.recibo?.proveedores?.nombre && (
+                                      <span className="text-slate-400">({grupo.recibo.proveedores.nombre}) </span>
+                                    )}
+                                    {grupo.recibo?.observaciones || '—'}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-center text-slate-600">
                             {ingreso.peso_sin_caja_kg
-                              ? <span className="font-medium">{parseFloat(ingreso.peso_sin_caja_kg).toFixed(2)} kg</span>
+                              ? `${parseFloat(ingreso.peso_sin_caja_kg).toFixed(2)} kg`
                               : '—'
                             }
                           </td>
-                          <td className="px-4 py-3 text-sm text-center font-medium text-slate-800">
-                            {fobTotal > 0 ? `$${Math.round(fobTotal).toLocaleString('es-AR')}` : '—'}
+                          <td className="px-4 py-3 text-xs text-center text-slate-800">
+                            {fobTotal > 0 ? `U$ ${Math.round(fobTotal).toLocaleString('es-AR')}` : '—'}
                           </td>
-                          <td className="px-4 py-3 text-sm text-center font-semibold text-emerald-700">
+                          <td className="px-4 py-3 text-xs text-center text-emerald-700">
                             {ingreso.costo_total_usd
-                              ? `$${parseFloat(ingreso.costo_total_usd).toFixed(2)}`
+                              ? `U$ ${Math.round(parseFloat(ingreso.costo_total_usd)).toLocaleString('es-AR')}`
                               : '—'}
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -187,31 +204,39 @@ const IngresosSection = () => {
                           <tr>
                             <td colSpan={9} className="bg-slate-50 px-0 py-0">
                               {grupos.length === 0 ? (
-                                <div className="px-8 py-4 text-sm text-slate-400 italic">Sin items</div>
+                                <div className="px-8 py-4 text-xs text-slate-400 italic">Sin items</div>
                               ) : (
                                 <div className="divide-y divide-slate-200">
                                   {grupos.map((grupo, gi) => (
                                     <div key={gi}>
-                                      <div className="flex items-center gap-3 px-8 py-2 bg-slate-100 border-t border-slate-200">
-                                        <span className="font-mono text-xs font-semibold text-slate-700">
-                                          {grupo.recibo?.numero_recibo || 'Pedido'}
+                                      <div className="flex items-center justify-center gap-8 px-6 py-2 bg-slate-800 text-white text-xs">
+                                        <span className="whitespace-nowrap">
+                                          <span className="text-slate-400 uppercase tracking-wider text-[10px] mr-1.5">Pedido</span>
+                                          {grupo.recibo?.numero_recibo || '—'}
                                         </span>
-                                        <span className="text-xs text-slate-500">{grupo.recibo?.proveedores?.nombre || ''}</span>
+                                        <span className="whitespace-nowrap">
+                                          <span className="text-slate-400 uppercase tracking-wider text-[10px] mr-1.5">Proveedor</span>
+                                          {grupo.recibo?.proveedores?.nombre || '—'}
+                                        </span>
+                                        <span className="truncate max-w-xs">
+                                          <span className="text-slate-400 uppercase tracking-wider text-[10px] mr-1.5">Descripción</span>
+                                          {grupo.recibo?.observaciones || '—'}
+                                        </span>
                                       </div>
                                       <table className="w-full">
-                                        <thead className="bg-slate-700 text-white text-xs">
+                                        <thead className="bg-slate-700 text-white">
                                           <tr>
-                                            <th className="w-10 pl-12 py-1.5"></th>
-                                            <th className="px-3 py-2 text-left font-medium uppercase tracking-wider">PRODUCTO</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">CANTIDAD</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">COLOR</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">ALMACENAMIENTO</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">PESO REAL</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">FOB</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">ENVÍO</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">COSTO FINANCIERO</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">PRECIO FINAL UNIT</th>
-                                            <th className="px-3 py-2 text-center font-medium uppercase tracking-wider">PRECIO FINAL TOTAL</th>
+                                            <th className="w-6 py-1"></th>
+                                            <th className="px-2 py-1 text-left text-[10px] font-medium uppercase tracking-wider">PRODUCTO</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">CANT.</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">COLOR</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">ALMAC.</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">PESO</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">FOB</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">ENVÍO</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">C. FINANCIERO</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">P. FINAL UNIT</th>
+                                            <th className="px-2 py-1 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">P. FINAL TOTAL</th>
                                           </tr>
                                         </thead>
                                         <tbody>
@@ -223,27 +248,29 @@ const IngresosSection = () => {
                                             const precioFinalTotal = precioFinalUnit * (item.cantidad || 1);
                                             return (
                                               <tr key={item.id} className="hover:bg-white transition-colors">
-                                                <td className="w-10 pl-12 py-2 text-slate-300 text-sm">↳</td>
-                                                <td className="px-3 py-2 text-sm text-slate-800">{item.item}</td>
-                                                <td className="px-3 py-2 text-sm text-center text-slate-600">{item.cantidad}</td>
-                                                <td className="px-3 py-2 text-sm text-center text-slate-500">{item.color || '—'}</td>
-                                                <td className="px-3 py-2 text-sm text-center text-slate-500">{item.almacenamiento || '—'}</td>
-                                                <td className="px-3 py-2 text-sm text-center text-slate-500">
+                                                <td className="w-6 py-1 text-slate-300 text-xs text-center">↳</td>
+                                                <td className="px-2 py-1 text-xs text-slate-600 max-w-0 overflow-hidden">
+                                                  <span className="block truncate" title={item.item}>{item.item}</span>
+                                                </td>
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">{item.cantidad}</td>
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">{item.color || '—'}</td>
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">{item.almacenamiento || '—'}</td>
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   {parseFloat(item.peso_real_unitario_kg || 0).toFixed(3)} kg
                                                 </td>
-                                                <td className="px-3 py-2 text-sm text-center text-slate-700">
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   U$ {parseFloat(item.precio_unitario_usd || 0).toFixed(1)}
                                                 </td>
-                                                <td className="px-3 py-2 text-sm text-center text-blue-700 font-medium">
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   {item.costo_envio_usd ? `U$ ${parseFloat(item.costo_envio_usd).toFixed(1)}` : '—'}
                                                 </td>
-                                                <td className="px-3 py-2 text-sm text-center text-purple-700 font-medium">
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   {item.costo_financiero_usd ? `U$ ${parseFloat(item.costo_financiero_usd).toFixed(1)}` : '—'}
                                                 </td>
-                                                <td className="px-3 py-2 text-sm text-center font-semibold text-emerald-700">
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   {precioFinalUnit > 0 ? `U$ ${precioFinalUnit.toFixed(1)}` : '—'}
                                                 </td>
-                                                <td className="px-3 py-2 text-sm text-center font-semibold text-emerald-700">
+                                                <td className="px-2 py-1 text-xs text-center text-slate-600 whitespace-nowrap">
                                                   {precioFinalTotal > 0 ? `U$ ${precioFinalTotal.toFixed(1)}` : '—'}
                                                 </td>
                                               </tr>

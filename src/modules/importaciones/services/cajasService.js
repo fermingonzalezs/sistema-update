@@ -26,11 +26,14 @@ const cajasService = {
               id,
               numero_recibo,
               estado,
+<<<<<<< HEAD
               fecha_compra,
               tipo,
               destino,
               tracking_number,
               empresa_logistica,
+=======
+>>>>>>> 3c6dc7e71d71cbbceab5e9411bad48c434f306c3
               observaciones,
               porcentaje_financiero,
               proveedores (nombre),
@@ -71,6 +74,7 @@ const cajasService = {
               numero_recibo,
               estado,
               fecha_compra,
+              observaciones,
               porcentaje_financiero,
               proveedores (nombre)
             )
@@ -209,7 +213,8 @@ const cajasService = {
       let totalPesoReal = 0;
       const pesosMap = {};
       for (const item of items) {
-        const pesoUnitario = parseFloat(pesosReales?.[item.id] ?? item.peso_estimado_unitario_kg ?? 0);
+        const pesoIngresado = parseFloat(pesosReales?.[item.id]);
+        const pesoUnitario = !isNaN(pesoIngresado) ? pesoIngresado : parseFloat(item.peso_estimado_unitario_kg || 0);
         pesosMap[item.id] = pesoUnitario;
         totalPesoReal += pesoUnitario * (item.cantidad || 1);
       }

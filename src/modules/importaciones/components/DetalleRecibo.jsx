@@ -54,8 +54,8 @@ const DetalleRecibo = ({
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
         precio_por_kg_usd: recibo.precio_por_kg_usd || '',
-        pago_courier_usd: recibo.pago_courier_usd || '',
-        costo_picking_shipping_usd: recibo.costo_picking_shipping_usd || ''
+        pago_courier_usd: '',
+        costo_picking_shipping_usd: ''
       });
       setItemsEditados((recibo.importaciones_items || []).map(item => ({ ...item })));
       setItemsNuevos([]);
@@ -292,11 +292,7 @@ const DetalleRecibo = ({
         datosParaActualizar.peso_total_con_caja_kg = parseFloat(datosEditados.peso_total_con_caja_kg) || 0;
         datosParaActualizar.peso_sin_caja_kg = parseFloat(datosEditados.peso_sin_caja_kg) || 0;
         datosParaActualizar.precio_por_kg_usd = parseFloat(datosEditados.precio_por_kg_usd) || 0;
-        datosParaActualizar.pago_courier_usd = parseFloat(datosEditados.pago_courier_usd) || 0;
-        datosParaActualizar.costo_picking_shipping_usd = parseFloat(datosEditados.costo_picking_shipping_usd) || 0;
-        datosParaActualizar.costo_total_importacion_usd =
-          (parseFloat(datosEditados.pago_courier_usd) || 0) +
-          (parseFloat(datosEditados.costo_picking_shipping_usd) || 0);
+        datosParaActualizar.costo_total_importacion_usd = totalEnvioItems;
       }
 
       await onActualizarRecibo(recibo.id, datosParaActualizar);
@@ -314,8 +310,11 @@ const DetalleRecibo = ({
           if (parseFloat(item.precio_unitario_usd) !== itemOriginal.precio_unitario_usd) {
             cambios.precio_unitario_usd = parseFloat(item.precio_unitario_usd);
           }
-          if (parseFloat(item.peso_estimado_unitario_kg || 0) !== (itemOriginal.peso_estimado_unitario_kg || 0)) {
-            cambios.peso_estimado_unitario_kg = parseFloat(item.peso_estimado_unitario_kg || 0);
+          if (parseFloat(item.peso_estimado_total_kg || 0) !== (itemOriginal.peso_estimado_total_kg || 0)) {
+            const totalKg = parseFloat(item.peso_estimado_total_kg || 0);
+            const cantidad = parseInt(item.cantidad) || 1;
+            cambios.peso_estimado_total_kg = totalKg;
+            cambios.peso_estimado_unitario_kg = cantidad > 0 ? totalKg / cantidad : 0;
           }
 
           // Si está recepcionado, también actualizar peso real
@@ -344,8 +343,6 @@ const DetalleRecibo = ({
       // 5. Si está recepcionado y cambió peso/costos, recalcular
       if (recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO) {
         const costosCambiaron =
-          parseFloat(datosEditados.pago_courier_usd) !== (recibo.pago_courier_usd || 0) ||
-          parseFloat(datosEditados.costo_picking_shipping_usd) !== (recibo.costo_picking_shipping_usd || 0) ||
           itemsNuevos.length > 0 ||
           itemsEliminados.length > 0 ||
           itemsEditados.some(item => {
@@ -393,8 +390,8 @@ const DetalleRecibo = ({
         peso_total_con_caja_kg: recibo.peso_total_con_caja_kg || '',
         peso_sin_caja_kg: recibo.peso_sin_caja_kg || '',
         precio_por_kg_usd: recibo.precio_por_kg_usd || '',
-        pago_courier_usd: recibo.pago_courier_usd || '',
-        costo_picking_shipping_usd: recibo.costo_picking_shipping_usd || ''
+        pago_courier_usd: '',
+        costo_picking_shipping_usd: ''
       });
       setItemsEditados((recibo.importaciones_items || []).map(item => ({ ...item })));
       setItemsNuevos([]);
@@ -1008,8 +1005,8 @@ const DetalleRecibo = ({
                                   type="number"
                                   min="0"
                                   step="0.01"
-                                  value={item.peso_estimado_unitario_kg || ''}
-                                  onChange={(e) => handleItemChange(item.id, 'peso_estimado_unitario_kg', e.target.value)}
+                                  value={item.peso_estimado_total_kg || ''}
+                                  onChange={(e) => handleItemChange(item.id, 'peso_estimado_total_kg', e.target.value)}
                                   className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               ) : (
