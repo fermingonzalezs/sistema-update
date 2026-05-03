@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { PackageCheck, Plus, Trash2, ChevronRight, ChevronDown, AlertCircle } from 'lucide-react';
+import { PackageCheck, Plus, Trash2, ChevronRight, ChevronDown, AlertCircle, Eye } from 'lucide-react';
 import { useCajas } from '../hooks/useCajas';
 import { useImportaciones } from '../hooks/useImportaciones';
 import NuevoIngresoModal from './NuevoIngresoModal';
+import DetalleIngresoModal from './DetalleIngresoModal';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 
 const IngresosSection = () => {
@@ -11,6 +12,7 @@ const IngresosSection = () => {
 
   const [expandedIngresos, setExpandedIngresos] = useState({});
   const [showNuevoIngreso, setShowNuevoIngreso] = useState(false);
+  const [ingresoDetalle, setIngresoDetalle] = useState(null);
 
   useEffect(() => {
     fetchCajas();
@@ -161,13 +163,22 @@ const IngresosSection = () => {
                               : '—'}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <button
-                              onClick={() => handleEliminar(ingreso)}
-                              className="text-red-400 hover:text-red-600 transition-colors"
-                              title="Eliminar ingreso"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="flex justify-center gap-3">
+                              <button
+                                onClick={() => setIngresoDetalle(ingreso)}
+                                className="text-emerald-600 hover:text-emerald-700 transition-colors"
+                                title="Ver detalles"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleEliminar(ingreso)}
+                                className="text-red-400 hover:text-red-600 transition-colors"
+                                title="Eliminar ingreso"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
 
@@ -205,7 +216,10 @@ const IngresosSection = () => {
                                         </thead>
                                         <tbody>
                                           {grupo.items.map(item => {
-                                            const precioFinalUnit = parseFloat(item.costo_final_unitario_usd || 0);
+                                            const precioFinalUnit =
+                                              parseFloat(item.precio_unitario_usd || 0) +
+                                              parseFloat(item.costo_envio_usd || 0) +
+                                              parseFloat(item.costo_financiero_usd || 0);
                                             const precioFinalTotal = precioFinalUnit * (item.cantidad || 1);
                                             return (
                                               <tr key={item.id} className="hover:bg-white transition-colors">
@@ -264,6 +278,13 @@ const IngresosSection = () => {
             await fetchCajas();
             await fetchRecibos();
           }}
+        />
+      )}
+
+      {ingresoDetalle && (
+        <DetalleIngresoModal
+          ingreso={ingresoDetalle}
+          onClose={() => setIngresoDetalle(null)}
         />
       )}
     </div>

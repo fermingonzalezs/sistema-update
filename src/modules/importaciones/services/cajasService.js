@@ -26,8 +26,15 @@ const cajasService = {
               id,
               numero_recibo,
               estado,
+              fecha_compra,
+              tipo,
+              destino,
+              tracking_number,
+              empresa_logistica,
+              observaciones,
               porcentaje_financiero,
-              proveedores (nombre)
+              proveedores (nombre),
+              clientes (nombre, apellido)
             )
           )
         `)

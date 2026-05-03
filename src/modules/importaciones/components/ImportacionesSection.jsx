@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
-import { useOutletContext } from 'react-router-dom';
 import { Plane, Plus, Eye, Truck, X, AlertCircle, TrendingUp, Package, DollarSign, Trash2, ChevronDown, ChevronRight, Home, Check, CheckCircle, Circle, Loader, ArrowRight, ArrowLeft, Weight } from 'lucide-react';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { supabase } from '../../../lib/supabase';
@@ -10,11 +9,9 @@ import { useClientes } from '../../ventas/hooks/useClientes';
 import NuevaImportacionModal from './NuevaImportacionModal';
 import NuevoTipoModal from './NuevoTipoModal';
 import NuevoCourierClienteModal from './NuevoCourierClienteModal';
-import RecepcionModal from './RecepcionModal';
 import DetalleRecibo from './DetalleRecibo';
 import FechaDepositoUSAModal from './FechaDepositoUSAModal';
 import IngresosSection from './IngresosSection';
-import { calculosImportacion } from '../utils/calculosImportacion';
 import {
   ESTADOS_IMPORTACION,
   LABELS_ESTADOS,
@@ -26,10 +23,8 @@ import {
   obtenerIconoEstadoAnterior,
   obtenerLabelEstadoAnterior
 } from '../constants/estadosImportacion';
-import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
 const ImportacionesSection = () => {
-  const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
   const {
     recibos,
     loading,
@@ -56,9 +51,7 @@ const ImportacionesSection = () => {
   const [showNewModal, setShowNewModal] = useState(false);
   const [tipoCourierModal, setTipoCourierModal] = useState(null);
   const [showCourierClienteModal, setShowCourierClienteModal] = useState(false);
-  const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [expandedRecibo, setExpandedRecibo] = useState(null);
-  const [reciboToReceive, setReciboToReceive] = useState(null);
   const [showFechaDepositoModal, setShowFechaDepositoModal] = useState(false);
   const [reciboToMarkDeposito, setReciboToMarkDeposito] = useState(null);
   const [isMarkingDeposito, setIsMarkingDeposito] = useState(false);
@@ -120,7 +113,7 @@ const ImportacionesSection = () => {
           return 0;
       }
     });
-  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta, filtroOrden, filtroProducto]);
+  }, [recibos, filtroEstado, filtroProveedor, filtroFechaDesde, filtroFechaHasta, filtroOrden, filtroProducto, filtroTipo, filtroDestino]);
 
   // Stats
   const stats = useMemo(() => {
@@ -143,11 +136,6 @@ const ImportacionesSection = () => {
 
   const formatNumber = (num) => {
     return Math.round(num).toLocaleString('es-AR');
-  };
-
-  const formatMetodoPago = (metodo) => {
-    const metodoPago = METODOS_PAGO.find(m => m.value === metodo);
-    return metodoPago ? metodoPago.label : metodo;
   };
 
   const limpiarFiltros = () => {
@@ -174,8 +162,7 @@ const ImportacionesSection = () => {
       setReciboToMarkDeposito(recibo);
       setShowFechaDepositoModal(true);
     } else if (siguienteEstado === ESTADOS_IMPORTACION.RECEPCIONADO) {
-      setReciboToReceive(recibo);
-      setShowReceiveModal(true);
+      alert('Para recepcionar mercadería, usá la pestaña "Ingresos".');
     } else {
       // Estados intermedios (EN_VUELO_INTERNACIONAL, EN_DEPOSITO_ARG): confirmar antes de actualizar
       if (window.confirm(`¿Estás seguro de avanzar al estado "${LABELS_ESTADOS[siguienteEstado]}"?`)) {
@@ -217,8 +204,7 @@ const ImportacionesSection = () => {
       setReciboToMarkDeposito(recibo);
       setShowFechaDepositoModal(true);
     } else if (nuevoEstado === ESTADOS_IMPORTACION.RECEPCIONADO) {
-      setReciboToReceive(recibo);
-      setShowReceiveModal(true);
+      alert('Para recepcionar mercadería, usá la pestaña "Ingresos".');
     } else {
       if (window.confirm(`¿Cambiar al estado "${LABELS_ESTADOS[nuevoEstado]}"?`)) {
         try {
@@ -627,7 +613,7 @@ const ImportacionesSection = () => {
                                   onClick={() => setDropdownEstadoAbierto(null)}
                                 />
                                 <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded shadow-lg min-w-[210px]">
-                                  {Object.values(ESTADOS_IMPORTACION).map((estado) => (
+                                  {Object.values(ESTADOS_IMPORTACION).filter(estado => estado !== ESTADOS_IMPORTACION.RECEPCIONADO).map((estado) => (
                                     <button
                                       key={estado}
                                       onClick={(e) => {
@@ -680,6 +666,7 @@ const ImportacionesSection = () => {
                             {recibo.estado !== ESTADOS_IMPORTACION.RECEPCIONADO && (() => {
                               const siguienteEstado = obtenerSiguienteEstado(recibo.estado);
                               if (!siguienteEstado) return null;
+                              if (siguienteEstado === ESTADOS_IMPORTACION.RECEPCIONADO) return null;
 
                               const IconoSiguiente = {
                                 'Package': Package,
@@ -777,21 +764,6 @@ const ImportacionesSection = () => {
           onSuccess={() => {
             setShowNewModal(false);
             setTipoCourierModal(null);
-            fetchRecibos();
-          }}
-        />
-      )}
-
-      {showReceiveModal && reciboToReceive && (
-        <RecepcionModal
-          recibo={reciboToReceive}
-          onClose={() => {
-            setShowReceiveModal(false);
-            setReciboToReceive(null);
-          }}
-          onSuccess={() => {
-            setShowReceiveModal(false);
-            setReciboToReceive(null);
             fetchRecibos();
           }}
         />

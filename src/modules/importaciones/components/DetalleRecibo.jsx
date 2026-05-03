@@ -35,7 +35,6 @@ const DetalleRecibo = ({
 
   // Estados para factura PDF (legacy)
   const [gestionandoPdf, setGestionandoPdf] = useState(false);
-  const fileInputPdfRef = useRef(null);
 
   // Inicializar datos cuando cambia el recibo o se activa edición
   useEffect(() => {
@@ -123,6 +122,14 @@ const DetalleRecibo = ({
   const formatNumber = (num) => {
     if (num === null || num === undefined || num === '') return '-';
     return Math.round(parseFloat(num)).toLocaleString('es-AR');
+  };
+
+  const formatNumberOneDecimal = (num) => {
+    if (num === null || num === undefined || num === '') return '-';
+    return parseFloat(num).toLocaleString('es-AR', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
   };
 
   const formatDate = (date) => {
@@ -226,7 +233,7 @@ const DetalleRecibo = ({
     }
 
     // Validar items existentes
-    itemsEditados.forEach((item, idx) => {
+    itemsEditados.forEach((item) => {
       if (!itemsEliminados.includes(item.id)) {
         if (!item.item?.trim()) {
           nuevosErrores[`item_${item.id}_nombre`] = 'Nombre requerido';
@@ -241,7 +248,7 @@ const DetalleRecibo = ({
     });
 
     // Validar items nuevos
-    itemsNuevos.forEach((item, idx) => {
+    itemsNuevos.forEach((item) => {
       if (!item.item?.trim()) {
         nuevosErrores[`nuevo_${item.tempId}_nombre`] = 'Nombre requerido';
       }
@@ -396,30 +403,6 @@ const DetalleRecibo = ({
     }
   };
 
-  // Handlers para PDF de factura
-  const handleSubirPdf = async (e) => {
-    const archivo = e.target.files[0];
-    if (!archivo) return;
-    if (archivo.type !== 'application/pdf') { alert('Solo se permiten archivos PDF'); return; }
-    if (archivo.size > 10 * 1024 * 1024) { alert('El archivo no puede superar los 10MB'); return; }
-
-    setGestionandoPdf(true);
-    try {
-      if (recibo.factura_pdf_url) {
-        await importacionesService.reemplazarFacturaPdf(recibo.id, archivo, recibo.factura_pdf_url);
-      } else {
-        await importacionesService.subirFacturaPdf(recibo.id, archivo);
-      }
-      if (onRefresh) await onRefresh();
-      alert('✅ Factura PDF actualizada correctamente');
-    } catch (err) {
-      alert('❌ Error: ' + err.message);
-    } finally {
-      setGestionandoPdf(false);
-      if (fileInputPdfRef.current) fileInputPdfRef.current.value = '';
-    }
-  };
-
   const handleEliminarPdf = async () => {
     if (!window.confirm('¿Eliminar el PDF de factura adjunto?')) return;
     setGestionandoPdf(true);
@@ -434,9 +417,14 @@ const DetalleRecibo = ({
   };
 
   const totalProductos = (recibo.importaciones_items || []).reduce((sum, item) => sum + (item.precio_total_usd || 0), 0);
-  const totalCostos = (recibo.costo_total_importacion_usd || 0);
-  const totalFinanciero = (recibo.importaciones_items || []).reduce((sum, item) => sum + (parseFloat(item.costo_financiero_usd) || 0), 0);
-  const totalGeneral = totalProductos + totalCostos + totalFinanciero;
+  const totalEnvioItems = (recibo.importaciones_items || []).reduce((sum, item) => {
+    return sum + (parseFloat(item.costo_envio_usd) || 0) * (parseInt(item.cantidad) || 0);
+  }, 0);
+  const totalFinanciero = (recibo.importaciones_items || []).reduce((sum, item) => {
+    return sum + (parseFloat(item.costo_financiero_usd) || 0) * (parseInt(item.cantidad) || 0);
+  }, 0);
+  const totalAdicionalItems = totalEnvioItems + totalFinanciero;
+  const totalGeneral = totalProductos + totalAdicionalItems;
 
   // Calcular totales para edición
   const itemsVisibles = itemsEditados.filter(i => !itemsEliminados.includes(i.id));
@@ -888,7 +876,7 @@ const DetalleRecibo = ({
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Peso Real</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Envío</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Financiero</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Total</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">C. Total/u</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">P. Unit. Total</th>
                         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Total USD</th>
                       </>
@@ -902,6 +890,10 @@ const DetalleRecibo = ({
                   {/* Items existentes */}
                   {(modoEdicion ? itemsEditados : (recibo.importaciones_items || [])).map((item, idx) => {
                     const estaEliminado = itemsEliminados.includes(item.id);
+                    const precioUnitarioTotal =
+                      (parseFloat(item.precio_unitario_usd) || 0) +
+                      (parseFloat(item.costo_envio_usd) || 0) +
+                      (parseFloat(item.costo_financiero_usd) || 0);
 
                     return (
                       <tr
@@ -1048,19 +1040,19 @@ const DetalleRecibo = ({
                               )}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-600">
-                              {item.costo_envio_usd != null ? `$${formatNumber(item.costo_envio_usd)}` : '-'}
+                              {item.costo_envio_usd != null ? `$${formatNumberOneDecimal(item.costo_envio_usd)}` : '-'}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-600">
                               {item.costo_financiero_usd != null ? `$${formatNumber(item.costo_financiero_usd)}` : '-'}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-emerald-700">
-                              {item.costos_adicionales_usd != null ? `$${formatNumber(item.costos_adicionales_usd)}` : '-'}
+                              {item.costos_adicionales_usd != null ? `$${formatNumberOneDecimal(item.costos_adicionales_usd)}` : '-'}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                              ${formatNumber(parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0) + (parseFloat(item.costo_financiero_usd) || 0))}
+                              ${formatNumberOneDecimal(precioUnitarioTotal)}
                             </td>
                             <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                              ${formatNumber((parseFloat(item.precio_unitario_usd) + (parseFloat(item.costos_adicionales_usd) || 0) + (parseFloat(item.costo_financiero_usd) || 0)) * item.cantidad)}
+                              ${formatNumberOneDecimal(precioUnitarioTotal * item.cantidad)}
                             </td>
                           </>
                         )}
@@ -1091,7 +1083,7 @@ const DetalleRecibo = ({
                   })}
 
                   {/* Items nuevos (en modo edición) */}
-                  {modoEdicion && itemsNuevos.map((item, idx) => (
+                  {modoEdicion && itemsNuevos.map((item) => (
                     <tr key={item.tempId} className="bg-emerald-50">
                       <td className="px-4 py-3 text-slate-800">
                         <input
@@ -1209,8 +1201,8 @@ const DetalleRecibo = ({
                 <h4 className="font-semibold text-slate-800 uppercase">Información de Recepción</h4>
               </div>
               <div className="border border-slate-300 border-t-0 rounded-b p-4">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                <div className="space-y-6 flex flex-col items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Peso con Caja</label>
                       {modoEdicion ? (
@@ -1260,7 +1252,7 @@ const DetalleRecibo = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Pago Courier</label>
                       {modoEdicion ? (
@@ -1297,20 +1289,9 @@ const DetalleRecibo = ({
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero Total</label>
                       <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(totalFinanciero)}</p>
                     </div>
-
-                    <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Total Adicional</label>
-                      <p className="font-medium text-slate-800 mt-1">
-                        USD ${formatNumber(
-                          modoEdicion
-                            ? (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
-                            : totalCostos + totalFinanciero
-                        )}
-                      </p>
-                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
                       <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Productos</label>
                       <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(modoEdicion ? totalProductosEdicion : totalProductos)}</p>
@@ -1321,7 +1302,7 @@ const DetalleRecibo = ({
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber(
                           modoEdicion
-                            ? totalProductosEdicion + (parseFloat(datosEditados.pago_courier_usd) || 0) + (parseFloat(datosEditados.costo_picking_shipping_usd) || 0) + totalFinanciero
+                            ? totalProductosEdicion + totalAdicionalItems
                             : totalGeneral
                         )}
                       </p>
