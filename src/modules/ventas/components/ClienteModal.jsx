@@ -1,8 +1,8 @@
-// src/components/ClienteModal.jsx
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { X, User, Mail, Phone, Calendar, MapPin, Briefcase, FileText } from 'lucide-react';
 import ClienteSelector from './ClienteSelector';
+import ProfesionSelector from '../../../shared/components/ui/ProfesionSelector';
 
 const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaReferido = [] }) => {
   const [formData, setFormData] = useState({
@@ -131,7 +131,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
   // Usar Portal para evitar conflictos de z-index
   return ReactDOM.createPortal(
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+      <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center space-x-2">
@@ -287,12 +287,9 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
               <Briefcase className="w-4 h-4 inline mr-1" />
               Profesión
             </label>
-            <input
-              type="text"
+            <ProfesionSelector
               value={formData.profesion}
-              onChange={(e) => handleChange('profesion', e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Ej: Ingeniero, Docente, Médico..."
+              onChange={(val) => handleChange('profesion', val)}
             />
           </div>
 

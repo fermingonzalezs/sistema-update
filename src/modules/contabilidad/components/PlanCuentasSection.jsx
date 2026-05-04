@@ -779,7 +779,7 @@ Esta acción no se puede deshacer.
       {/* Modal para crear/editar cuenta */}
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-start justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded p-8 w-full max-w-md my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 p-8 w-full max-w-md my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
               {selectedCuenta ? <Edit2 size={20} /> : <Plus size={20} />}
               {selectedCuenta ? 'Editar Cuenta' :

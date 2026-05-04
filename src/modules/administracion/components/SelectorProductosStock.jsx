@@ -168,7 +168,7 @@ const SelectorProductosStock = ({ onAgregarProducto }) => {
       {/* Modal de selector */}
       {modalOpen && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded border border-slate-300-lg shadow-xl w-full max-w-5xl max-h-[85vh] flex flex-col">
             {/* Header del modal */}
             <div className="p-6 border-b border-slate-200 flex justify-between items-center">
               <h3 className="text-lg font-semibold text-slate-800">

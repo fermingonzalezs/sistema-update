@@ -198,7 +198,7 @@ const Header = ({ activeSection, isSidebarCollapsed }) => {
 
     {/* Modal editar perfil */}
     {modalPerfil && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
         <div className="bg-white rounded border border-slate-200 w-full max-w-sm mx-4">
           <div className="bg-slate-800 text-white px-5 py-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Editar nombre de usuario</h3>

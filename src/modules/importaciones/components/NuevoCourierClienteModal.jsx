@@ -43,8 +43,8 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded border border-slate-200 w-full max-w-lg mx-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded border border-slate-300 w-full max-w-lg mx-4">
         {/* Header */}
         <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between rounded-t">
           <div className="flex items-center gap-3">

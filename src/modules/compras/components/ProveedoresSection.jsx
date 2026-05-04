@@ -337,7 +337,7 @@ const ProveedoresSection = () => {
       {/* MODAL: NUEVO/EDITAR PROVEEDOR */}
       {showNewModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4" style={{ zIndex: 9998 }}>
-          <div className="bg-white rounded border border-slate-200 max-w-3xl w-full max-h-[95vh] flex flex-col">
+          <div className="bg-white rounded border border-slate-300 max-w-3xl w-full max-h-[95vh] flex flex-col">
             <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
               <h3 className="text-xl font-semibold">
                 {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
@@ -468,7 +468,7 @@ const ProveedoresSection = () => {
       {/* MODAL: VER DETALLES PROVEEDOR */}
       {selectedProveedor && !isEditing && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
               <h3 className="text-xl font-semibold">Detalles del Proveedor</h3>
               <button onClick={() => setSelectedProveedor(null)} className="text-slate-300 hover:text-white">

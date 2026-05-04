@@ -3515,7 +3515,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       {/* Modal de edición */}
       {modalEdit.open && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200/50">
+          <div className="bg-white rounded border border-slate-300-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200/50">
             {/* Header */}
             <div className="sticky top-0 z-10 bg-slate-800 text-white p-5 rounded-t-xl">
               <div className="flex justify-between items-center">

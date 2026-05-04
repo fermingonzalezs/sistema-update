@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Edit2, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink, FileText, Upload, Trash, Image, Paperclip } from 'lucide-react';
+import { X, Save, XCircle, Plus, Trash2, AlertCircle, ExternalLink, FileText, Upload, Trash, Image, Paperclip } from 'lucide-react';
 import EmpresaLogisticaSelector from './EmpresaLogisticaSelector';
 import importacionesService from '../services/importacionesService';
 import { ESTADOS_IMPORTACION, LABELS_ESTADOS, COLORES_ESTADOS } from '../constants/estadosImportacion';
@@ -431,7 +431,7 @@ const DetalleRecibo = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-[78vw] w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded border border-slate-300 max-w-[78vw] w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
           <div>
@@ -441,15 +441,7 @@ const DetalleRecibo = ({
             <p className="text-slate-300 text-sm mt-1">{recibo.numero_recibo}</p>
           </div>
           <div className="flex items-center gap-3">
-            {!modoEdicion ? (
-              <button
-                onClick={() => setModoEdicion(true)}
-                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
-              >
-                <Edit2 size={16} />
-                Editar
-              </button>
-            ) : (
+            {modoEdicion ? (
               <>
                 <button
                   onClick={cancelarEdicion}
@@ -477,7 +469,7 @@ const DetalleRecibo = ({
                   )}
                 </button>
               </>
-            )}
+            ) : null}
             <button onClick={onClose} className="text-slate-300 hover:text-white">
               <X size={24} />
             </button>
@@ -1283,8 +1275,10 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero Total</label>
-                      <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(totalFinanciero)}</p>
+                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Envío Total</label>
+                      <p className="font-medium text-slate-800 mt-1">
+                        USD ${formatNumber((parseFloat(recibo.pago_courier_usd) || 0) + (parseFloat(recibo.costo_picking_shipping_usd) || 0))}
+                      </p>
                     </div>
                   </div>
 

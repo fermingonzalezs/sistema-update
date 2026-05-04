@@ -80,8 +80,8 @@ const AsignarCajaModal = ({ recibos, onClose, onSuccess, cajaPreseleccionada }) 
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded border border-slate-200 w-full max-w-3xl mx-4 flex flex-col max-h-[90vh]">
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded border border-slate-300 w-full max-w-3xl mx-4 flex flex-col max-h-[90vh]">
           {/* Header */}
           <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between rounded-t flex-shrink-0">
             <div className="flex items-center gap-3">

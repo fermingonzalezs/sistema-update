@@ -729,7 +729,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded border border-slate-300 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
           <div>
@@ -920,7 +920,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded border border-slate-300 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
           <div>

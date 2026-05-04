@@ -441,7 +441,7 @@ function TesteoEquiposSection() {
       {/* Modal Nuevo Equipo */}
       {modalNuevo && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded border border-slate-300 shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
               <h3 className="text-lg font-semibold flex items-center gap-3">
@@ -551,7 +551,7 @@ function TesteoEquiposSection() {
       {/* Modal Testeo */}
       {modalTesteo && equipoSeleccionado && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-slate-800">
                 Testeo: {equipoSeleccionado.marca} {equipoSeleccionado.modelo}

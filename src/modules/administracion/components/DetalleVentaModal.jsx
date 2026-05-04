@@ -27,7 +27,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded border border-slate-300 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-slate-800 p-6 text-white flex items-center justify-between sticky top-0">
           <div className="text-center w-full">

@@ -197,7 +197,7 @@ const ProductModal = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[60] p-4" style={{ cursor: 'default' }}>
-      <div className="bg-white rounded overflow-hidden flex flex-col w-300 max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
+      <div className="bg-white rounded border border-slate-300 overflow-hidden flex flex-col w-300 max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
 
         {/* Contenido principal con paneles */}
         <div className="flex flex-1 overflow-hidden">

@@ -695,8 +695,8 @@ const RecuentoStockSection = () => {
     const categoriasFaltantes = CATEGORIAS.filter(c => !categoriasContadas.has(c.id));
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded border border-slate-200 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+        <div className="bg-white rounded border border-slate-300 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           {/* Header modal */}
           <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -868,8 +868,8 @@ const RecuentoStockSection = () => {
         const totalProductos = recuentosSesionResumen.reduce((s, r) => s + (r.productos_contados || []).length, 0);
         const totalDiferencias = recuentosSesionResumen.reduce((s, r) => s + (r.diferencias_encontradas || []).length, 0);
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded border border-slate-200 w-full max-w-xl mx-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+            <div className="bg-white rounded border border-slate-300 w-full max-w-xl mx-4">
               <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Eye size={20} />
@@ -949,8 +949,8 @@ const RecuentoStockSection = () => {
 
       {/* Modal ver resolución */}
       {sesionVerResolucion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded border border-slate-200 w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
             <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <ClipboardList size={20} />
@@ -1015,8 +1015,8 @@ const RecuentoStockSection = () => {
 
       {/* Modal resolver diferencias */}
       {sesionResolviendo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded border border-slate-200 w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
             <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <AlertTriangle size={20} />
@@ -1118,8 +1118,8 @@ const RecuentoStockSection = () => {
 
       {/* Modal confirmar eliminar */}
       {confirmEliminar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded border border-slate-200 w-full max-w-md mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-md mx-4">
             <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="text-base font-semibold">Eliminar recuento</h3>
               <button onClick={() => setConfirmEliminar(null)} className="text-slate-400 hover:text-white transition-colors">

@@ -1,17 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { PackageCheck, Plus, Trash2, ChevronRight, ChevronDown, AlertCircle, Eye } from 'lucide-react';
+import { Trash2, ChevronRight, ChevronDown, AlertCircle, Eye } from 'lucide-react';
 import { useCajas } from '../hooks/useCajas';
 import { useImportaciones } from '../hooks/useImportaciones';
 import NuevoIngresoModal from './NuevoIngresoModal';
 import DetalleIngresoModal from './DetalleIngresoModal';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 
-const IngresosSection = () => {
+const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso }) => {
   const { cajas, loading, error, fetchCajas, eliminarIngreso } = useCajas();
   const { recibos, fetchRecibos } = useImportaciones();
 
   const [expandedIngresos, setExpandedIngresos] = useState({});
-  const [showNuevoIngreso, setShowNuevoIngreso] = useState(false);
   const [ingresoDetalle, setIngresoDetalle] = useState(null);
 
   useEffect(() => {
@@ -61,26 +60,6 @@ const IngresosSection = () => {
 
   return (
     <div>
-      {/* Header */}
-      <div className="bg-slate-800 p-6 text-white">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <PackageCheck size={28} />
-            <div>
-              <h2 className="text-2xl font-semibold">Ingresos</h2>
-              <p className="text-gray-300 mt-1">Mercadería recibida con distribución de costos de courier</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowNuevoIngreso(true)}
-            className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
-          >
-            <Plus size={18} />
-            Nuevo Ingreso
-          </button>
-        </div>
-      </div>
-
       {/* Loading / Error */}
       {loading && (
         <div className="flex items-center justify-center py-8">
@@ -96,7 +75,7 @@ const IngresosSection = () => {
 
       {/* Tabla de ingresos */}
       {!loading && !error && (
-        <div className="mx-4 mb-4 bg-white rounded border border-slate-200">
+        <div className="bg-white">
           {ingresos.length === 0 ? (
             <div className="p-8 text-center text-slate-500">
               <AlertCircle size={32} className="mx-auto mb-3 text-slate-300" />

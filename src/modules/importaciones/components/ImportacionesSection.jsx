@@ -57,6 +57,7 @@ const ImportacionesSection = () => {
   const [isMarkingDeposito, setIsMarkingDeposito] = useState(false);
   const [dropdownEstadoAbierto, setDropdownEstadoAbierto] = useState(null);
   const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
+  const [showNuevoIngreso, setShowNuevoIngreso] = useState(false);
 
   // Estados para filtros
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -253,15 +254,22 @@ const ImportacionesSection = () => {
                 <p className="text-slate-300 mt-1">Gestión de importaciones y servicios de courier</p>
               </div>
             </div>
-            {vistaActiva === 'pedidos' && (
+            <div className="flex gap-2">
               <button
-                onClick={() => setShowTipoModal(true)}
-                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+                onClick={() => { setVistaActiva('pedidos'); setShowTipoModal(true); }}
+                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors text-sm"
               >
-                <Plus size={18} />
-                Nuevo
+                <Plus size={16} />
+                Nueva Importación
               </button>
-            )}
+              <button
+                onClick={() => { setVistaActiva('ingresos'); setShowNuevoIngreso(true); }}
+                className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 flex items-center gap-2 font-medium transition-colors text-sm"
+              >
+                <Plus size={16} />
+                Nuevo Ingreso
+              </button>
+            </div>
           </div>
         </div>
 
@@ -289,7 +297,7 @@ const ImportacionesSection = () => {
       {/* VISTA INGRESOS */}
       {vistaActiva === 'ingresos' && (
         <div className="bg-white rounded border border-slate-200">
-          <IngresosSection />
+          <IngresosSection showNuevoIngreso={showNuevoIngreso} setShowNuevoIngreso={setShowNuevoIngreso} />
         </div>
       )}
 

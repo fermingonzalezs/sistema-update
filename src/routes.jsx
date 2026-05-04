@@ -46,7 +46,8 @@ import {
     GarantiasSection,
     IngresoEquiposSection,
     TableroGeneralSection,
-    RecibosSection
+    RecibosSection,
+    CuentasAPagarSection
 } from './modules/administracion/components';
 
 // Contabilidad
@@ -143,6 +144,7 @@ const AppRoutes = () => {
                 {/* Administración */}
                 <Route path="recuento-stock" element={<ProtectedRoute section="recuento-stock"><RecuentoStockSection /></ProtectedRoute>} />
                 <Route path="garantias" element={<ProtectedRoute section="administracion"><GarantiasSection /></ProtectedRoute>} />
+                <Route path="cuentas-a-pagar" element={<ProtectedRoute section="administracion"><CuentasAPagarSection /></ProtectedRoute>} />
 
                 {/* Ventas - Documentos */}
                 <Route path="recibos" element={<ProtectedRoute section="ventas"><RecibosSection /></ProtectedRoute>} />

@@ -631,8 +631,8 @@ Esta acción no se puede deshacer.`;
     };
 
     return (
-      <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-300">
           {/* Header */}
           <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
             <div className="flex items-center space-x-3">
@@ -1141,8 +1141,8 @@ Esta acción no se puede deshacer.`;
 
       {/* Modal de Nuevo Movimiento - Selector */}
       {showNuevoMovimiento && !tipoMovimiento && (
-        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-md w-full border border-slate-200">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded max-w-md w-full border border-slate-300">
             <div className="p-6 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-800">Nuevo Movimiento</h3>
@@ -1253,8 +1253,8 @@ Esta acción no se puede deshacer.`;
 
       {/* Modal de Edición de Movimiento */}
       {showEditarMovimiento && movimientoAEditar && (
-        <div className="fixed inset-0 bg-slate-800 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-md w-full border border-slate-200">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded max-w-md w-full border border-slate-300">
             <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
               <div className="flex items-center space-x-3">
                 <Edit3 className="w-5 h-5" />

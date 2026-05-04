@@ -152,6 +152,13 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           icon: Package,
           description: 'Contar inventario',
           section: 'recuento-stock'
+        },
+        {
+          id: 'cuentas-a-pagar',
+          path: '/cuentas-a-pagar',
+          label: 'Cuentas a Pagar',
+          icon: CreditCard,
+          description: 'Obligaciones de pago'
         }
       ]
     },

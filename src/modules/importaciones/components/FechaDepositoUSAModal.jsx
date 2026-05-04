@@ -15,7 +15,7 @@ const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => 
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-md w-full">
+      <div className="bg-white rounded border border-slate-300 max-w-md w-full">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
           <h3 className="text-lg font-semibold">Fecha de Ingreso a Depósito USA</h3>

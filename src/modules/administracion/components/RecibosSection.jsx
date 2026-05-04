@@ -460,7 +460,7 @@ const RecibosSection = () => {
       {/* Modal de Edición */}
       {modalEdicion && documentoEditando && editData && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header del modal */}
             <div className="p-4 bg-slate-800 text-white flex justify-between items-center sticky top-0">
               <div className="flex items-center gap-3">

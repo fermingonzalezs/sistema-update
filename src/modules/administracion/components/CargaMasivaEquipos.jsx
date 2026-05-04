@@ -195,7 +195,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
 
                 {/* Header */}
                 <div className="bg-slate-800 p-6 text-white flex-shrink-0">
@@ -516,7 +516,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
             {/* Paso 2.5: Lista de seriales (renderizado fuera del switch para simplificar) */}
             {paso === 2.5 && (
                 <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded border border-slate-200 w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+                    <div className="bg-white rounded border border-slate-300 w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
                         <div className="bg-slate-800 p-4 text-white">
                             <h3 className="text-lg font-semibold">Ingreso de Números de Serie</h3>
                             <p className="text-slate-300 text-sm">

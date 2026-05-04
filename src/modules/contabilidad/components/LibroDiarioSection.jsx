@@ -1636,7 +1636,7 @@ const LibroDiarioSection = () => {
       {/* Modal para nuevo asiento */}
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-8">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold flex items-center gap-2">

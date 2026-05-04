@@ -256,7 +256,7 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
       {/* Modal de vista previa */}
       {vistaPrevia && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded border border-slate-300 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header del modal */}
             <div className="flex items-center justify-between p-4 border-b">
               <h4 className="font-medium text-slate-800">

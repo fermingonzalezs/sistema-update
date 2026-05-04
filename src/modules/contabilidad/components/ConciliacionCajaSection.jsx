@@ -978,7 +978,7 @@ const ConciliacionCajaSection = () => {
       {/* Modal de detalle del asiento */}
       {modalAsiento.open && modalAsiento.asiento && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
               <div className="flex justify-between items-center">

@@ -34,7 +34,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded border border-slate-200 max-w-sm w-full">
+      <div className="bg-white rounded border border-slate-300 max-w-sm w-full">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
           <h3 className="text-lg font-semibold">Nuevo Producto</h3>
