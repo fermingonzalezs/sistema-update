@@ -1036,10 +1036,11 @@ const RecuentoStockSection = () => {
                   <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                     {recuento.categoria}
                   </h4>
-                  <table className="w-full">
+                      <table className="w-full">
                     <thead className="bg-slate-800 text-white">
                       <tr>
                         <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Serial</th>
                         <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Sis.</th>
                         <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Cont.</th>
                         <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Dif.</th>
@@ -1069,6 +1070,7 @@ const RecuentoStockSection = () => {
                         return (
                           <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                             <td className="px-3 py-2 text-sm text-slate-800">{d.nombre}</td>
+                            <td className="px-3 py-2 text-sm text-slate-500 font-mono">{d.serial || '-'}</td>
                             <td className="px-3 py-2 text-center text-sm text-slate-600">{d.stockSistema}</td>
                             <td className="px-3 py-2 text-center text-sm text-slate-800 font-medium">{d.stockContado}</td>
                             <td className="px-3 py-2 text-center text-sm font-bold">
