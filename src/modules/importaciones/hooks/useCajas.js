@@ -117,6 +117,21 @@ export const useCajas = () => {
     }
   }, [fetchCajas]);
 
+  const editarIngreso = useCallback(async (cajaId, datosEdicion) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await cajasService.editarIngreso(cajaId, datosEdicion);
+      await fetchCajas();
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCajas]);
+
   const eliminarIngreso = useCallback(async (cajaId) => {
     setLoading(true);
     setError(null);
@@ -144,6 +159,7 @@ export const useCajas = () => {
     desasignarItems,
     recepcionarCaja,
     crearIngreso,
+    editarIngreso,
     eliminarIngreso
   };
 };

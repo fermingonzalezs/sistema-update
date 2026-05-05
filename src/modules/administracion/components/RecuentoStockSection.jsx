@@ -869,7 +869,7 @@ const RecuentoStockSection = () => {
         const totalDiferencias = recuentosSesionResumen.reduce((s, r) => s + (r.diferencias_encontradas || []).length, 0);
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
-            <div className="bg-white rounded border border-slate-300 w-full max-w-xl mx-4">
+            <div className="bg-white rounded border border-slate-300 w-full max-w-2xl mx-4">
               <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Eye size={20} />

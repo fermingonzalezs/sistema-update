@@ -179,6 +179,59 @@ const cajasService = {
     }
   },
 
+  // 🔧 Método interno: distribuir costos entre items (reutilizable por recepcionarCaja y editarIngreso)
+  async _distribuirCostos(cajaId, datosRecepcion, items) {
+    const {
+      pago_courier_usd,
+      costo_picking_shipping_usd,
+      pesosReales
+    } = datosRecepcion;
+
+    const costoTotalImportacion =
+      parseFloat(pago_courier_usd || 0) + parseFloat(costo_picking_shipping_usd || 0);
+
+    // Calcular peso total real de TODOS los items de la caja
+    let totalPesoReal = 0;
+    const pesosMap = {};
+    for (const item of items) {
+      const pesoIngresado = parseFloat(pesosReales?.[item.id]);
+      const pesoUnitario = !isNaN(pesoIngresado) ? pesoIngresado : parseFloat(item.peso_estimado_unitario_kg || 0);
+      pesosMap[item.id] = pesoUnitario;
+      totalPesoReal += pesoUnitario * (item.cantidad || 1);
+    }
+
+    // Distribuir costos por peso entre TODOS los items de la caja
+    for (const item of items) {
+      const pesoUnitario = pesosMap[item.id];
+      const pesoTotalItem = pesoUnitario * (item.cantidad || 1);
+      const proporcionPeso = totalPesoReal > 0 ? pesoTotalItem / totalPesoReal : 0;
+
+      const costoEnvioTotal = proporcionPeso * costoTotalImportacion;
+      const costoEnvioUnitario = (item.cantidad || 1) > 0 ? costoEnvioTotal / item.cantidad : 0;
+
+      // Porcentaje financiero del recibo padre
+      const porcentajeFinanciero = parseFloat(item.importaciones_recibos?.porcentaje_financiero || 0);
+      const costoFinancieroUnitario = parseFloat(item.precio_unitario_usd || 0) * porcentajeFinanciero / 100;
+
+      const costoTotalUnitario = costoEnvioUnitario + costoFinancieroUnitario;
+      const costoFinalUnitario = parseFloat(item.precio_unitario_usd || 0) + costoTotalUnitario;
+
+      const { error } = await supabase
+        .from('importaciones_items')
+        .update({
+          peso_real_unitario_kg: parseFloat(pesoUnitario),
+          costo_envio_usd: parseFloat(costoEnvioUnitario),
+          costo_financiero_usd: parseFloat(costoFinancieroUnitario),
+          costos_adicionales_usd: parseFloat(costoTotalUnitario),
+          costo_final_unitario_usd: parseFloat(costoFinalUnitario)
+        })
+        .eq('id', item.id);
+      if (error) throw error;
+    }
+
+    return { costoTotalImportacion, totalPesoReal };
+  },
+
   // 🇦🇷 Recepcionar caja: distribuir costos de courier por peso entre TODOS los items de la caja
   async recepcionarCaja(cajaId, datosRecepcion) {
     try {
@@ -203,47 +256,7 @@ const cajasService = {
       const items = caja.importaciones_items || [];
       if (items.length === 0) throw new Error('La caja no tiene items');
 
-      const costoTotalImportacion =
-        parseFloat(pago_courier_usd || 0) + parseFloat(costo_picking_shipping_usd || 0);
-
-      // Calcular peso total real de TODOS los items de la caja
-      let totalPesoReal = 0;
-      const pesosMap = {};
-      for (const item of items) {
-        const pesoIngresado = parseFloat(pesosReales?.[item.id]);
-        const pesoUnitario = !isNaN(pesoIngresado) ? pesoIngresado : parseFloat(item.peso_estimado_unitario_kg || 0);
-        pesosMap[item.id] = pesoUnitario;
-        totalPesoReal += pesoUnitario * (item.cantidad || 1);
-      }
-
-      // Distribuir costos por peso entre TODOS los items de la caja
-      for (const item of items) {
-        const pesoUnitario = pesosMap[item.id];
-        const pesoTotalItem = pesoUnitario * (item.cantidad || 1);
-        const proporcionPeso = totalPesoReal > 0 ? pesoTotalItem / totalPesoReal : 0;
-
-        const costoEnvioTotal = proporcionPeso * costoTotalImportacion;
-        const costoEnvioUnitario = (item.cantidad || 1) > 0 ? costoEnvioTotal / item.cantidad : 0;
-
-        // Porcentaje financiero del recibo padre
-        const porcentajeFinanciero = parseFloat(item.importaciones_recibos?.porcentaje_financiero || 0);
-        const costoFinancieroUnitario = parseFloat(item.precio_unitario_usd || 0) * porcentajeFinanciero / 100;
-
-        const costoTotalUnitario = costoEnvioUnitario + costoFinancieroUnitario;
-        const costoFinalUnitario = parseFloat(item.precio_unitario_usd || 0) + costoTotalUnitario;
-
-        const { error } = await supabase
-          .from('importaciones_items')
-          .update({
-            peso_real_unitario_kg: parseFloat(pesoUnitario),
-            costo_envio_usd: parseFloat(costoEnvioUnitario),
-            costo_financiero_usd: parseFloat(costoFinancieroUnitario),
-            costos_adicionales_usd: parseFloat(costoTotalUnitario),
-            costo_final_unitario_usd: parseFloat(costoFinalUnitario)
-          })
-          .eq('id', item.id);
-        if (error) throw error;
-      }
+      const { costoTotalImportacion, totalPesoReal } = await this._distribuirCostos(cajaId, datosRecepcion, items);
 
       // Marcar como recepcionado solo los recibos donde TODOS sus items ya tienen caja asignada
       const reciboIds = [...new Set(items.map(i => i.recibo_id).filter(Boolean))];
@@ -342,6 +355,74 @@ const cajasService = {
       }
 
       return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ✏️ Editar ingreso recepcionado: recalcular distribución sin cambiar estados
+  async editarIngreso(cajaId, datosEdicion) {
+    try {
+      const {
+        fecha_recepcion,
+        peso_total_con_caja_kg,
+        precio_por_kg_usd,
+        pago_courier_usd,
+        costo_picking_shipping_usd,
+        pesosReales
+      } = datosEdicion;
+
+      if (!fecha_recepcion) {
+        throw new Error('La fecha de recepción es obligatoria');
+      }
+
+      const caja = await this.getById(cajaId);
+      if (!caja) throw new Error('Ingreso no encontrado');
+
+      const items = caja.importaciones_items || [];
+      if (items.length === 0) throw new Error('El ingreso no tiene items');
+
+      const { costoTotalImportacion, totalPesoReal } = await this._distribuirCostos(cajaId, datosEdicion, items);
+
+      // Actualizar fecha_recepcion_argentina en recibos afectados si cambió la fecha
+      if (fecha_recepcion !== caja.fecha_recepcion) {
+        const reciboIds = [...new Set(items.map(i => i.recibo_id).filter(Boolean))];
+        for (const reciboId of reciboIds) {
+          const { data: recibo, error: reciboError } = await supabase
+            .from('importaciones_recibos')
+            .select('estado')
+            .eq('id', reciboId)
+            .single();
+          if (reciboError) throw reciboError;
+          if (recibo && recibo.estado === 'recepcionado') {
+            const { error: updateError } = await supabase
+              .from('importaciones_recibos')
+              .update({ fecha_recepcion_argentina: fecha_recepcion })
+              .eq('id', reciboId);
+            if (updateError) throw updateError;
+          }
+        }
+      }
+
+      const { data: cajaActualizada, error: cajaError } = await supabase
+        .from('importaciones_cajas')
+        .update({
+          fecha_recepcion,
+          peso_total_con_caja_kg: parseFloat(peso_total_con_caja_kg || 0),
+          peso_sin_caja_kg: totalPesoReal > 0 ? parseFloat(totalPesoReal) : null,
+          precio_por_kg_usd: parseFloat(precio_por_kg_usd || 0),
+          pago_courier_usd: parseFloat(pago_courier_usd || 0),
+          costo_picking_shipping_usd: parseFloat(costo_picking_shipping_usd || 0),
+          costo_total_usd: parseFloat(costoTotalImportacion),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cajaId)
+        .select()
+        .single();
+      if (cajaError) throw cajaError;
+      if (!cajaActualizada) throw new Error('No se pudo actualizar el ingreso');
+
+      return await this.getById(cajaId);
     } catch (error) {
       throw error;
     }

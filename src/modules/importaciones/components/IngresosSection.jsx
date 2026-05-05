@@ -1,17 +1,19 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Trash2, ChevronRight, ChevronDown, AlertCircle, Eye } from 'lucide-react';
+import { Trash2, ChevronRight, ChevronDown, AlertCircle, Eye, Pencil } from 'lucide-react';
 import { useCajas } from '../hooks/useCajas';
 import { useImportaciones } from '../hooks/useImportaciones';
 import NuevoIngresoModal from './NuevoIngresoModal';
 import DetalleIngresoModal from './DetalleIngresoModal';
+import EditarIngresoModal from './EditarIngresoModal';
 import { formatearFechaDisplay } from '../../../shared/config/timezone';
 
-const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso }) => {
-  const { cajas, loading, error, fetchCajas, eliminarIngreso } = useCajas();
+const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdated }) => {
+  const { cajas, loading, error, fetchCajas, eliminarIngreso, editarIngreso } = useCajas();
   const { recibos, fetchRecibos } = useImportaciones();
 
   const [expandedIngresos, setExpandedIngresos] = useState({});
   const [ingresoDetalle, setIngresoDetalle] = useState(null);
+  const [ingresoEditar, setIngresoEditar] = useState(null);
 
   useEffect(() => {
     fetchCajas();
@@ -168,6 +170,13 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso }) => {
                                 <Eye size={16} />
                               </button>
                               <button
+                                onClick={() => setIngresoEditar(ingreso)}
+                                className="text-blue-500 hover:text-blue-700 transition-colors"
+                                title="Editar ingreso"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button
                                 onClick={() => handleEliminar(ingreso)}
                                 className="text-red-400 hover:text-red-600 transition-colors"
                                 title="Eliminar ingreso"
@@ -291,6 +300,20 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso }) => {
         <DetalleIngresoModal
           ingreso={ingresoDetalle}
           onClose={() => setIngresoDetalle(null)}
+          onEdit={(ing) => { setIngresoEditar(ing); }}
+        />
+      )}
+
+      {ingresoEditar && (
+        <EditarIngresoModal
+          ingreso={ingresoEditar}
+          onClose={() => setIngresoEditar(null)}
+          onSuccess={async (datos) => {
+            await editarIngreso(ingresoEditar.id, datos);
+            await fetchRecibos();
+            if (onIngresoUpdated) await onIngresoUpdated();
+            setIngresoEditar(null);
+          }}
         />
       )}
     </div>

@@ -297,7 +297,7 @@ const ImportacionesSection = () => {
       {/* VISTA INGRESOS */}
       {vistaActiva === 'ingresos' && (
         <div className="bg-white rounded border border-slate-200">
-          <IngresosSection showNuevoIngreso={showNuevoIngreso} setShowNuevoIngreso={setShowNuevoIngreso} />
+          <IngresosSection showNuevoIngreso={showNuevoIngreso} setShowNuevoIngreso={setShowNuevoIngreso} onIngresoUpdated={fetchRecibos} />
         </div>
       )}
 
