@@ -25,15 +25,25 @@ import {
 } from '../../../shared/constants/categoryConstants';
 import {
   RESOLUCIONES_ARRAY,
-  RESOLUCIONES_LABELS
+  RESOLUCIONES_LABELS,
+  MACBOOK_LEGACY_MAP
 } from '../../../shared/constants/resolutionConstants';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 import { useAuthContext } from '../../../context/AuthContext';
 
 // Select de resolución con opción "Otro" para valor libre
 const ResolucionSelect = ({ value, onChange, className }) => {
-  const esPersonalizado = value && !RESOLUCIONES_ARRAY.includes(value);
+  // Si el valor guardado es un nombre de modelo MacBook, lo normalizamos a resolución numérica
+  const effectiveValue = MACBOOK_LEGACY_MAP[value] || value;
+  const esPersonalizado = effectiveValue && !RESOLUCIONES_ARRAY.includes(effectiveValue);
   const [modo, setModo] = useState(esPersonalizado ? 'otro' : 'lista');
+
+  // Cuando se carga un dato antiguo con nombre de modelo, actualiza el estado del padre
+  React.useEffect(() => {
+    if (MACBOOK_LEGACY_MAP[value]) {
+      onChange(MACBOOK_LEGACY_MAP[value]);
+    }
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelectChange = (e) => {
     if (e.target.value === '__otro__') {
@@ -48,7 +58,7 @@ const ResolucionSelect = ({ value, onChange, className }) => {
   return (
     <div className="space-y-2">
       <select
-        value={modo === 'otro' ? '__otro__' : (value || '')}
+        value={modo === 'otro' ? '__otro__' : (effectiveValue || '')}
         onChange={handleSelectChange}
         className={className}
       >
@@ -61,7 +71,7 @@ const ResolucionSelect = ({ value, onChange, className }) => {
       {modo === 'otro' && (
         <input
           type="text"
-          value={value || ''}
+          value={effectiveValue || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Ej: 2560x1600"
           className={className}

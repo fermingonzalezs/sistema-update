@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { CONDICIONES, CONDICIONES_ARRAY, CONDICIONES_LABELS, ESTADOS_ARRAY, ESTADOS_LABELS, UBICACIONES_ARRAY, UBICACIONES_LABELS } from '../../../shared/constants/productConstants';
 import { CATEGORIAS_OTROS, CATEGORIAS_OTROS_ARRAY, CATEGORIAS_OTROS_LABELS } from '../../../shared/constants/categoryConstants';
-import { RESOLUCIONES_ARRAY, RESOLUCIONES_LABELS } from '../../../shared/constants/resolutionConstants';
+import { RESOLUCIONES_ARRAY, RESOLUCIONES_LABELS, MACBOOK_LEGACY_MAP } from '../../../shared/constants/resolutionConstants';
 import { obtenerFechaLocal } from '../../../shared/utils/formatters';
 import MarcaSelector from '../../../shared/components/ui/MarcaSelector';
 import { useProveedores } from '../../importaciones/hooks/useProveedores';
@@ -11,8 +11,17 @@ import NuevoProveedorModal from '../../importaciones/components/NuevoProveedorMo
 
 // Select de resolución con opción "Otro" para valor libre
 const ResolucionSelect = ({ value, onChange, className }) => {
-    const esPersonalizado = value && !RESOLUCIONES_ARRAY.includes(value);
+    // Si el valor guardado es un nombre de modelo MacBook, lo normalizamos a resolución numérica
+    const effectiveValue = MACBOOK_LEGACY_MAP[value] || value;
+    const esPersonalizado = effectiveValue && !RESOLUCIONES_ARRAY.includes(effectiveValue);
     const [modo, setModo] = useState(esPersonalizado ? 'otro' : 'lista');
+
+    // Cuando se carga un dato antiguo con nombre de modelo, actualiza el estado del padre
+    React.useEffect(() => {
+        if (MACBOOK_LEGACY_MAP[value]) {
+            onChange(MACBOOK_LEGACY_MAP[value]);
+        }
+    }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleSelectChange = (e) => {
         if (e.target.value === '__otro__') {
@@ -27,7 +36,7 @@ const ResolucionSelect = ({ value, onChange, className }) => {
     return (
         <div className="space-y-2">
             <select
-                value={modo === 'otro' ? '__otro__' : (value || '')}
+                value={modo === 'otro' ? '__otro__' : (effectiveValue || '')}
                 onChange={handleSelectChange}
                 className={className}
             >
@@ -40,7 +49,7 @@ const ResolucionSelect = ({ value, onChange, className }) => {
             {modo === 'otro' && (
                 <input
                     type="text"
-                    value={value || ''}
+                    value={effectiveValue || ''}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="Ej: 2560x1600"
                     className={className}

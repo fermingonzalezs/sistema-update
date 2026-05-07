@@ -50,7 +50,9 @@
       "Bash(ls -la /c/Users/Dell/Documents/sistema-update/migrations/*.sql)",
       "Bash(git stash *)",
       "Bash(git pull *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(dir)",
+      "Bash(findstr /I sql)"
     ],
     "deny": [],
     "ask": []

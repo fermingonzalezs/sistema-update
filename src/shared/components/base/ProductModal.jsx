@@ -130,13 +130,14 @@ const ProductModal = ({
 
     // Renderizado personalizado para resolución (mostrar números en MacBooks)
     if (campo.key === 'resolucion' && tipoProducto === 'notebook' && valor) {
-      // Para MacBooks, mostrar solo los números de resolución
+      // Para datos antiguos con nombre de modelo, mostrar la resolución numérica real
       if (valor.toLowerCase().includes('macbook')) {
         const RESOLUCIONES_NUMEROS = {
           'MacBook Air 13"': '2560x1664',
           'MacBook Air 15"': '2880x1864',
           'MacBook Pro 14"': '3024x1964',
-          'MacBook Pro 16"': '3456x2234'
+          'MacBook Pro 16"': '3456x2234',
+          'MacBook Neo 13"': '2408x1506'
         };
         displayValue = RESOLUCIONES_NUMEROS[valor] || valor;
       }
