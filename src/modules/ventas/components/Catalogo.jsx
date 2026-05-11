@@ -812,7 +812,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             : editForm.garantia_update,
           garantia_oficial: editForm.garantia_oficial,
           fallas: editForm.fallas,
-          fotos: editForm.fotos,
+          ...(editForm.fotos ? { fotos: editForm.fotos } : {}),
           ...camposReserva,
         };
       } else if (modalEdit.tipo === "celular") {
@@ -849,7 +849,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             ? `Garantía oficial con vencimiento (${new Date(garantiaOficialFecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })})`
             : editForm.garantia,
           fallas: editForm.fallas,
-          fotos: editForm.fotos,
+          ...(editForm.fotos ? { fotos: editForm.fotos } : {}),
           ...camposReserva,
         };
       } else {
@@ -886,7 +886,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             ? `Garantía oficial con vencimiento (${new Date(garantiaOficialFecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' })})`
             : editForm.garantia,
           observaciones: editForm.observaciones,
-          fotos: editForm.fotos,
+          ...(editForm.fotos ? { fotos: editForm.fotos } : {}),
           ...camposReserva,
         };
       }

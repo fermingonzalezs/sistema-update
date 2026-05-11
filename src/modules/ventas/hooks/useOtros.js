@@ -189,6 +189,11 @@ export const otrosService = {
     // ⚠️ Excluir costo_total_usd - se calcula automáticamente en BD
     delete cleanUpdates.costo_total_usd;
 
+    // No sobreescribir fotos con valor vacío - solo actualizar si viene con valor real
+    if (!cleanUpdates.fotos) {
+      delete cleanUpdates.fotos;
+    }
+
     const { data, error } = await supabase
       .from('otros')
       .update({

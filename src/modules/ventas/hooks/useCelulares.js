@@ -74,10 +74,12 @@ export function useCelulares() {
       ram: data.ram !== undefined ? parseInt(data.ram) || 0 : undefined,
       ciclos: data.ciclos !== undefined ? parseInt(data.ciclos) || 0 : undefined,
       // Mapear servicio_tecnico a rsn_idm_fixcenter (valor esperado por la DB)
-      sucursal: data.sucursal === 'servicio_tecnico' ? 'rsn_idm_fixcenter' : data.sucursal
+      sucursal: data.sucursal === 'servicio_tecnico' ? 'rsn_idm_fixcenter' : data.sucursal,
+      // No sobreescribir fotos con valor vacío - solo actualizar si viene con valor real
+      fotos: data.fotos || undefined
       // costo_total_usd se calcula automáticamente en la DB, no incluirlo
     }),
-    
+
     // Callbacks específicos
     onBeforeCreate: async (data) => {
       // Validar que no exista el serial

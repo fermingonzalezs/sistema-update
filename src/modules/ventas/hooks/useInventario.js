@@ -195,6 +195,11 @@ export const inventarioService = {
     // No incluir precio_costo_total ya que se calcula automáticamente
     delete cleanUpdates.precio_costo_total;
 
+    // No sobreescribir fotos con valor vacío - solo actualizar si viene con valor real
+    if (!cleanUpdates.fotos) {
+      delete cleanUpdates.fotos;
+    }
+
     const { data, error } = await supabase
       .from('inventario')
       .update({
