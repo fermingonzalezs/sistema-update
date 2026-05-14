@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Copy, Monitor, Smartphone, Box, Search,
-  Check, FileText, Edit2, Save, X, Filter, Zap, DollarSign
+  Check, FileText, Edit2, Save, X, Filter, Zap, DollarSign, Layers
 } from 'lucide-react';
 import { generateCopy } from '../../../shared/utils/copyGenerator';
 import { supabase } from '../../../lib/supabase';
@@ -59,6 +59,12 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
   const [condicionesUnicas, setCondicionesUnicas] = useState(new Set(['nuevo']));
   const [copiandoListaUnica, setCopiandoListaUnica] = useState(false);
   const [subcategoriaUnica, setSubcategoriaUnica] = useState('');
+
+  // Estado para lista personalizada (combinada cross-tipo)
+  const [categoriasSeleccionadas, setCategoriasSeleccionadas] = useState(new Set());
+  const [copiandoListaPersonalizada, setCopiandoListaPersonalizada] = useState(false);
+  const [mensajeInicialPersonalizado, setMensajeInicialPersonalizado] = useState('🔥 DISPONIBLES 🔥');
+  const [mensajeFinalPersonalizado, setMensajeFinalPersonalizado] = useState('');
 
   // Estados para filtros avanzados
   const [modoFiltros, setModoFiltros] = useState(false);
@@ -311,6 +317,90 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       (p.categoria || '').toLowerCase() === subcategoriaUnica.toLowerCase()
     );
   }, [listaUnica, subcategoriaUnica, tipoActivo]);
+
+  // Categorías disponibles para lista personalizada (derivadas de datos reales)
+  const categoriasDisponibles = useMemo(() => {
+    const condNuevo = ['nuevo', 'nueva'];
+    const condUsado = ['usado', 'usada', 'refurbished', 'reacondicionado', 'reacondicionada'];
+    const items = [];
+
+    // Computadoras: por categoría × condición
+    const catComp = [...new Set(computers.map(p => p.categoria).filter(Boolean))].sort();
+    catComp.forEach(cat => {
+      const nuevos = computers.filter(p => p.categoria === cat && condNuevo.includes((p.condicion || '').toLowerCase()));
+      const usados = computers.filter(p => p.categoria === cat && condUsado.includes((p.condicion || '').toLowerCase()));
+      const label = cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ');
+      if (nuevos.length) items.push({ key: `computadora||${cat}||nuevo`, tipo: 'computadora', categoria: cat, condicion: 'nuevo', label: `${label} Nuevas`, count: nuevos.length });
+      if (usados.length) items.push({ key: `computadora||${cat}||usado`, tipo: 'computadora', categoria: cat, condicion: 'usado', label: `${label} Usadas`, count: usados.length });
+    });
+
+    // Celulares: por categoría × condición
+    const catCel = [...new Set(celulares.map(p => p.categoria).filter(Boolean))].sort();
+    catCel.forEach(cat => {
+      const nuevos = celulares.filter(p => p.categoria === cat && condNuevo.includes((p.condicion || '').toLowerCase()));
+      const usados = celulares.filter(p => p.categoria === cat && condUsado.includes((p.condicion || '').toLowerCase()));
+      const label = cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ');
+      if (nuevos.length) items.push({ key: `celular||${cat}||nuevo`, tipo: 'celular', categoria: cat, condicion: 'nuevo', label: `${label} Nuevos`, count: nuevos.length });
+      if (usados.length) items.push({ key: `celular||${cat}||usado`, tipo: 'celular', categoria: cat, condicion: 'usado', label: `${label} Usados`, count: usados.length });
+    });
+
+    // Otros: por categoría (sin filtro de condición)
+    const catOtros = [...new Set(otros.map(p => p.categoria).filter(Boolean))].sort();
+    catOtros.forEach(cat => {
+      const count = otros.filter(p => p.categoria === cat).length;
+      items.push({ key: `otro||${cat}||`, tipo: 'otro', categoria: cat, condicion: '', label: cat.replace(/_/g, ' '), count });
+    });
+
+    return items;
+  }, [computers, celulares, otros]);
+
+  // Productos combinados de las categorías seleccionadas
+  const productosListaPersonalizada = useMemo(() => {
+    if (categoriasSeleccionadas.size === 0) return [];
+    const condNuevo = ['nuevo', 'nueva'];
+    const condUsado = ['usado', 'usada', 'refurbished', 'reacondicionado', 'reacondicionada'];
+    const productos = [];
+
+    categoriasSeleccionadas.forEach(key => {
+      const [tipo, categoria, condicion] = key.split('||');
+      let fuente = [];
+      if (tipo === 'computadora') fuente = computers;
+      else if (tipo === 'celular') fuente = celulares;
+      else if (tipo === 'otro') fuente = otros;
+
+      fuente.forEach(p => {
+        const matchCat = (p.categoria || '').toLowerCase() === categoria.toLowerCase();
+        let matchCond = true;
+        if (condicion === 'nuevo') matchCond = condNuevo.includes((p.condicion || '').toLowerCase());
+        else if (condicion === 'usado') matchCond = condUsado.includes((p.condicion || '').toLowerCase());
+        if (matchCat && matchCond) productos.push({ ...p, tipo });
+      });
+    });
+
+    return productos;
+  }, [categoriasSeleccionadas, computers, celulares, otros]);
+
+  // Lista personalizada deduplicada (mismo criterio que listaUnica)
+  const listaPersonalizadaUnica = useMemo(() => {
+    const grupos = new Map();
+    productosListaPersonalizada.forEach(producto => {
+      const precio = Math.round(producto.precio_venta_usd || 0);
+      let clave;
+      if (producto.tipo === 'celular') {
+        clave = `cel|${producto.modelo}|${producto.capacidad || ''}|${producto.color || ''}|${precio}`;
+      } else if (producto.tipo === 'computadora') {
+        clave = `comp|${producto.modelo}|${precio}`;
+      } else {
+        clave = `otro|${producto.nombre_producto || producto.modelo || ''}|${precio}`;
+      }
+      if (!grupos.has(clave)) {
+        grupos.set(clave, { ...producto, count: 1 });
+      } else {
+        grupos.get(clave).count++;
+      }
+    });
+    return Array.from(grupos.values());
+  }, [productosListaPersonalizada]);
 
   // Manejar selección de productos
   const toggleSeleccion = (productoId) => {
@@ -579,7 +669,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
     } else if (producto.tipo === 'computadora') {
       // 💻 MODELO - PROCESADOR - PANTALLA - MEMORIA - ALMACENAMIENTO [- BATERIA - CONDICION ESTADO] - PRECIO
-      const partes = ['💻', producto.modelo];
+      const partes = [producto.modelo];
       if (producto.procesador) partes.push(producto.procesador);
       if (producto.pantalla) {
         const p = String(producto.pantalla);
@@ -595,6 +685,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         const isTB = /tb/i.test(ssdStr);
         const cleanSsd = ssdStr.replace(/gb/gi, '').replace(/tb/gi, '').trim();
         partes.push(`${cleanSsd}${isTB ? 'TB' : 'GB'} SSD`);
+      }
+      if (producto.placa_video) {
+        const gpuStr = String(producto.placa_video).trim();
+        if (gpuStr) {
+          const vramStr = producto.vram ? ` ${String(producto.vram).replace(/GB/gi, '').trim()}GB` : '';
+          partes.push(`${gpuStr}${vramStr}`);
+        }
       }
       if (!esNuevo) {
         let bateriaInfo = '';
@@ -612,10 +709,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           partes.push(producto.estado ? `${condCap} ${producto.estado}` : condCap);
         }
       }
-      return partes.join(' - ') + ' - ' + precioStr;
+      return '💻 ' + partes.join(' - ') + ' - ' + precioStr;
 
     } else {
-      const nombre = producto.nombre_producto || producto.modelo || 'Producto';
+      const nombre = (producto.nombre_producto || producto.modelo || 'Producto').toUpperCase();
       return `📦 ${nombre} - ${precioStr}`;
     }
   };
@@ -656,6 +753,95 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
     if (copiado) {
       setCopiandoListaUnica(true);
       setTimeout(() => setCopiandoListaUnica(false), 2000);
+    }
+  };
+
+  // Lista personalizada: toggle de categoría
+  const toggleCategoriaPersonalizada = (key) => {
+    const nuevo = new Set(categoriasSeleccionadas);
+    if (nuevo.has(key)) nuevo.delete(key);
+    else nuevo.add(key);
+    setCategoriasSeleccionadas(nuevo);
+  };
+
+  // Lista personalizada: texto para preview y copia, agrupado por categoría
+  const getTextoListaPersonalizada = () => {
+    if (categoriasSeleccionadas.size === 0) return '';
+    const condNuevo = ['nuevo', 'nueva'];
+    const condUsado = ['usado', 'usada', 'refurbished', 'reacondicionado', 'reacondicionada'];
+    const partes = [];
+
+    if (mensajeInicialPersonalizado.trim()) {
+      partes.push(mensajeInicialPersonalizado);
+    }
+
+    Array.from(categoriasSeleccionadas).forEach(key => {
+      const [tipo, categoria, condicion] = key.split('||');
+      const catInfo = categoriasDisponibles.find(c => c.key === key);
+      const label = catInfo ? catInfo.label.toUpperCase() : categoria.toUpperCase();
+
+      let fuente = [];
+      if (tipo === 'computadora') fuente = computers;
+      else if (tipo === 'celular') fuente = celulares;
+      else if (tipo === 'otro') fuente = otros;
+
+      const productosGrupo = fuente.filter(p => {
+        const matchCat = (p.categoria || '').toLowerCase() === categoria.toLowerCase();
+        let matchCond = true;
+        if (condicion === 'nuevo') matchCond = condNuevo.includes((p.condicion || '').toLowerCase());
+        else if (condicion === 'usado') matchCond = condUsado.includes((p.condicion || '').toLowerCase());
+        return matchCat && matchCond;
+      }).map(p => ({ ...p, tipo }));
+
+      // Deduplicar dentro del grupo
+      const grupos = new Map();
+      productosGrupo.forEach(producto => {
+        const precio = Math.round(producto.precio_venta_usd || 0);
+        let clave;
+        if (tipo === 'celular') clave = `${producto.modelo}|${producto.capacidad || ''}|${producto.color || ''}|${precio}`;
+        else if (tipo === 'computadora') clave = `${producto.modelo}|${precio}`;
+        else clave = `${producto.nombre_producto || producto.modelo || ''}|${precio}`;
+        if (!grupos.has(clave)) grupos.set(clave, { ...producto, count: 1 });
+        else grupos.get(clave).count++;
+      });
+
+      const unicos = Array.from(grupos.values()).sort((a, b) => (a.precio_venta_usd || 0) - (b.precio_venta_usd || 0));
+      if (unicos.length === 0) return;
+
+      partes.push('');
+      partes.push(label);
+      partes.push('');
+      partes.push(unicos.map(p => generarCopyUnicoItem(p)).join(espaciadoDoble ? '\n\n' : '\n'));
+    });
+
+    if (mensajeFinalPersonalizado.trim()) {
+      partes.push('');
+      partes.push(mensajeFinalPersonalizado);
+    }
+
+    return partes.join('\n');
+  };
+
+  const copiarListaPersonalizada = async () => {
+    if (categoriasSeleccionadas.size === 0 || listaPersonalizadaUnica.length === 0) {
+      alert('No hay productos para generar la lista');
+      return;
+    }
+    const texto = getTextoListaPersonalizada();
+    let copiado = false;
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(texto);
+        copiado = true;
+      } catch {
+        copiado = copiarTextoFallback(texto);
+      }
+    } else {
+      copiado = copiarTextoFallback(texto);
+    }
+    if (copiado) {
+      setCopiandoListaPersonalizada(true);
+      setTimeout(() => setCopiandoListaPersonalizada(false), 2000);
     }
   };
 
@@ -1573,115 +1759,176 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
         </div>
       </div>
 
-    {/* Lista Única - Sección automática */}
-    <div className="bg-white rounded border border-slate-200">
-      <div className="px-4 py-3 bg-slate-800 text-white">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center space-x-3">
-            <Zap className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-base font-semibold">Lista Única</h3>
-          </div>
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-xs text-slate-400">Incluir:</span>
+    {/* Lista Única - Combinada cross-tipo */}
+    <div className="bg-white border border-slate-200 rounded mt-4">
+      {/* Header */}
+      <div className="bg-slate-800 p-4 text-white flex justify-between items-center rounded-t">
+        <div className="flex items-center space-x-3">
+          <Layers className="w-5 h-5 text-emerald-400" />
+          <h3 className="text-base font-semibold">Lista Única</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCategoriasSeleccionadas(new Set(categoriasDisponibles.map(c => c.key)))}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors"
+          >
+            <Check className="w-3 h-3" />
+            Seleccionar todos
+          </button>
+          {categoriasSeleccionadas.size > 0 && (
             <button
-              onClick={() => toggleCondicionUnica('nuevo')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                condicionesUnicas.has('nuevo')
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
-              }`}
+              onClick={() => setCategoriasSeleccionadas(new Set())}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors"
             >
-              Nuevo
+              <X className="w-3 h-3" />
+              Limpiar ({categoriasSeleccionadas.size})
             </button>
-            <button
-              onClick={() => toggleCondicionUnica('usado')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                condicionesUnicas.has('usado')
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
-              }`}
-            >
-              Usado
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
-      {listaUnicaFiltrada.length === 0 ? (
-        <div className="p-8 text-center text-slate-500">
-          <Zap className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-          <p className="text-sm">No hay productos con los filtros seleccionados</p>
-        </div>
-      ) : (
-        <div className="p-4">
-          {/* Selector de subcategoría para Otros */}
-          {tipoActivo === 'otro' && subcategoriasOtros.length > 0 && (
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-medium text-slate-500">Categoría:</span>
-              <select
-                value={subcategoriaUnica}
-                onChange={(e) => setSubcategoriaUnica(e.target.value)}
-                className="px-3 py-1.5 bg-slate-100 text-slate-800 rounded text-sm outline-none border border-slate-200 focus:outline-none focus:ring-0"
-              >
-                <option value="">Todas</option>
-                {subcategoriasOtros.map(cat => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ')}
-                  </option>
-                ))}
-              </select>
+      {/* Selector de categorías */}
+      <div className="p-4 border-b border-slate-200">
+        {/* Computadoras */}
+        {categoriasDisponibles.filter(c => c.tipo === 'computadora').length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Monitor className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Notebooks</span>
             </div>
-          )}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Preview */}
-            <div className="lg:col-span-2">
-              <div className="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-y-auto">
-                <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
-                  {getTextoListaUnica()}
-                </pre>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {categoriasDisponibles.filter(c => c.tipo === 'computadora').map(cat => (
+                <button
+                  key={cat.key}
+                  onClick={() => toggleCategoriaPersonalizada(cat.key)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    categoriasSeleccionadas.has(cat.key)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                  }`}
+                >
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
+                  {cat.label}
+                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                    ({cat.count})
+                  </span>
+                </button>
+              ))}
             </div>
+          </div>
+        )}
 
-            {/* Acción */}
-            <div className="space-y-3">
-              <div className="bg-slate-50 border border-slate-200 rounded p-3 text-sm">
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Modelos únicos</span>
-                    <span className="font-semibold text-slate-800">{listaUnicaFiltrada.length}</span>
-                  </div>
-                  {condicionesUnicas.has('nuevo') && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Nuevos</span>
-                      <span className="font-semibold text-emerald-600">
-                        {listaUnicaFiltrada.filter(p => ['nuevo', 'nueva'].includes((p.condicion || '').toLowerCase())).length}
-                      </span>
-                    </div>
-                  )}
-                  {condicionesUnicas.has('usado') && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Usados/Ref.</span>
-                      <span className="font-semibold text-slate-600">
-                        {listaUnicaFiltrada.filter(p => !['nuevo', 'nueva'].includes((p.condicion || '').toLowerCase())).length}
-                      </span>
-                    </div>
-                  )}
+        {/* Celulares */}
+        {categoriasDisponibles.filter(c => c.tipo === 'celular').length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Smartphone className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Celulares</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categoriasDisponibles.filter(c => c.tipo === 'celular').map(cat => (
+                <button
+                  key={cat.key}
+                  onClick={() => toggleCategoriaPersonalizada(cat.key)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    categoriasSeleccionadas.has(cat.key)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                  }`}
+                >
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
+                  {cat.label}
+                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                    ({cat.count})
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Otros */}
+        {categoriasDisponibles.filter(c => c.tipo === 'otro').length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Box className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Otros</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categoriasDisponibles.filter(c => c.tipo === 'otro').map(cat => (
+                <button
+                  key={cat.key}
+                  onClick={() => toggleCategoriaPersonalizada(cat.key)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    categoriasSeleccionadas.has(cat.key)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                  }`}
+                >
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
+                  {cat.label}
+                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                    ({cat.count})
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {categoriasDisponibles.length === 0 && (
+          <p className="text-sm text-slate-400 text-center py-4">Cargando categorías...</p>
+        )}
+      </div>
+
+      {/* Preview y acción (solo cuando hay categorías seleccionadas) */}
+      {categoriasSeleccionadas.size > 0 && (
+        <div className="p-4">
+          {listaPersonalizadaUnica.length === 0 ? (
+            <div className="py-6 text-center text-slate-400 text-sm">
+              <Layers className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+              No hay productos disponibles en las categorías seleccionadas
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Preview */}
+              <div className="lg:col-span-2">
+                <div className="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-y-auto">
+                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
+                    {getTextoListaPersonalizada()}
+                  </pre>
                 </div>
               </div>
 
-              <button
-                onClick={copiarListaUnica}
-                className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 ${
-                  copiandoListaUnica
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                }`}
-              >
-                {copiandoListaUnica ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                <span>{copiandoListaUnica ? '¡Lista Copiada!' : 'Copiar Lista Única'}</span>
-              </button>
+              {/* Acción */}
+              <div className="space-y-3">
+                <div className="bg-slate-50 border border-slate-200 rounded p-3 text-sm">
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Modelos únicos</span>
+                      <span className="font-semibold text-slate-800">{listaPersonalizadaUnica.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Categorías</span>
+                      <span className="font-semibold text-emerald-600">{categoriasSeleccionadas.size}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={copiarListaPersonalizada}
+                  className={`w-full py-3 px-4 rounded font-medium transition-colors flex items-center justify-center space-x-2 ${
+                    copiandoListaPersonalizada
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  }`}
+                >
+                  {copiandoListaPersonalizada ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  <span>{copiandoListaPersonalizada ? '¡Lista Copiada!' : 'Copiar Lista'}</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
