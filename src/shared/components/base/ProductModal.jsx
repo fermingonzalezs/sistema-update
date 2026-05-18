@@ -197,27 +197,27 @@ const ProductModal = ({
   const precioVenta = producto.precio_venta_usd || 0;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[60] p-4" style={{ cursor: 'default' }}>
-      <div className="bg-white rounded border border-slate-300 overflow-hidden flex flex-col w-300 max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-end sm:items-center justify-center z-[60] p-0 sm:p-4" style={{ cursor: 'default' }}>
+      <div className="bg-white rounded-t sm:rounded border border-slate-300 overflow-hidden flex flex-col w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
 
         {/* Contenido principal con paneles */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Panel izquierdo - Información clave */}
-          <div className="w-1/4 bg-slate-800 text-white p-6 border-r-4 border-slate-800 flex flex-col" style={{ userSelect: 'none', cursor: 'default' }}>
-            <div className="space-y-8">
+          <div className="md:w-1/4 bg-slate-800 text-white p-4 md:p-6 border-b-2 md:border-b-0 md:border-r-4 border-slate-600 flex flex-col" style={{ userSelect: 'none', cursor: 'default' }}>
+            <div className="grid grid-cols-2 gap-2 md:flex md:flex-col md:gap-0 md:space-y-8">
 
               {/* Condición */}
-              <div className='text-center bg-slate-700 p-3 rounded'>
-                <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">CONDICIÓN</h3>
-                <span className="font-semibold text-white">
+              <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
+                <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">CONDICIÓN</h3>
+                <span className="font-semibold text-white text-sm">
                   {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
                 </span>
               </div>
 
               {/* Serial - Solo para notebooks y celulares */}
               {(tipoProducto === 'notebook' || tipoProducto === 'celular') && producto.serial && (
-                <div className='text-center bg-slate-700 p-3 rounded'>
-                  <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">SERIAL</h3>
+                <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">SERIAL</h3>
                   <span className="font-semibold text-white text-sm break-all">
                     {producto.serial}
                   </span>
@@ -226,9 +226,9 @@ const ProductModal = ({
 
               {/* Ubicación (Oculto para 'otro') */}
               {tipoProducto !== 'otro' && (
-                <div className='text-center bg-slate-700 p-3 rounded'>
-                  <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">UBICACIÓN</h3>
-                  <span className="font-semibold text-white">
+                <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">UBICACIÓN</h3>
+                  <span className="font-semibold text-white text-sm">
                     {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')
                       .replace('_', ' ').toUpperCase()}
                   </span>
@@ -237,9 +237,9 @@ const ProductModal = ({
 
               {/* Cantidad - Solo para 'otro' */}
               {tipoProducto === 'otro' && (
-                <div className='text-center bg-slate-700 p-3 rounded'>
-                  <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">CANTIDAD</h3>
-                  <span className="font-semibold text-white">
+                <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">CANTIDAD</h3>
+                  <span className="font-semibold text-white text-sm">
                     {`${(producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0)} unidades`}
                   </span>
                 </div>
@@ -247,9 +247,9 @@ const ProductModal = ({
 
               {/* Garantía (si existe) */}
               {(producto.garantia_update || producto.garantia_oficial || producto.garantia) && (
-                <div className='text-center bg-slate-700 p-3 rounded'>
-                  <h3 className="text-sm font-semibold mb-1 bg-slate-600 rounded-full p-1 mb-2 text-slate-200 text-center">GARANTÍA</h3>
-                  <span className="font-semibold text-white">
+                <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">GARANTÍA</h3>
+                  <span className="font-semibold text-white text-sm">
                     {producto.garantia_update || producto.garantia_oficial || producto.garantia}
                   </span>
                 </div>
@@ -279,7 +279,7 @@ const ProductModal = ({
             </div>
 
             {/* Botones inferiores barra lateral */}
-            <div className="mt-auto space-y-2">
+            <div className="hidden md:block mt-auto space-y-2">
               {onMarcarReservado && producto.condicion !== 'reservado' && producto.condicion !== 'consignacion' && (
                 <button
                   onClick={(e) => {
@@ -306,11 +306,11 @@ const ProductModal = ({
           </div>
 
           {/* Panel derecho - Detalles y precios */}
-          <div className="p-6 overflow-y-auto flex-1" style={{ userSelect: 'none', cursor: 'default' }}>
+          <div className="p-4 md:p-6 overflow-y-auto flex-1" style={{ userSelect: 'none', cursor: 'default' }}>
 
             {/* Header con título y botón cerrar */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-semibold text-slate-800 ${tipoProducto === 'otro' ? 'uppercase' : ''}`}>
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className={`text-lg md:text-2xl font-semibold text-slate-800 leading-tight ${tipoProducto === 'otro' ? 'uppercase' : ''}`}>
                 {nombreProducto}
               </h2>
               <button
@@ -322,7 +322,7 @@ const ProductModal = ({
             </div>
 
             {/* Información detallada */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
 
               {/* Columna Información */}
               <div className="space-y-4">
@@ -404,52 +404,52 @@ const ProductModal = ({
             </div>
 
             {/* Sección de precios */}
-            <div className="space-y-4 text-center mb-6">
-              <h3 className="text-lg font-semibold text-white bg-emerald-600 px-3 py-2 rounded">
+            <div className="space-y-3 text-center mb-4 md:mb-6">
+              <h3 className="text-sm md:text-lg font-semibold text-white bg-emerald-600 px-3 py-2 rounded">
                 PRECIOS
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-2 md:gap-4">
 
                 {/* Tarjeta Compra */}
-                <div className="rounded bg-slate-800 py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 m-3">
-                    <h4 className="text-sm text-slate-200 font-semibold">COMPRA</h4>
+                <div className="rounded bg-slate-800 py-3 md:py-4">
+                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                    <h4 className="text-xs md:text-sm text-slate-200 font-semibold">COMPRA</h4>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-semibold text-white">
+                    <p className="text-base md:text-2xl font-semibold text-white">
                       {formatPriceUSD(precioCompra)}
                     </p>
-                    <p className="text-sm text-slate-300 mt-1">
+                    <p className="text-xs md:text-sm text-slate-300 mt-1">
                       {formatPriceARS(precioCompra, cotizacionDolar)}
                     </p>
                   </div>
                 </div>
 
                 {/* Tarjeta Venta */}
-                <div className="rounded bg-slate-800 py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 m-3">
-                    <h4 className="text-sm text-slate-200 font-semibold">VENTA</h4>
+                <div className="rounded bg-slate-800 py-3 md:py-4">
+                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                    <h4 className="text-xs md:text-sm text-slate-200 font-semibold">VENTA</h4>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-semibold text-white">
+                    <p className="text-base md:text-2xl font-semibold text-white">
                       {formatPriceUSD(precioVenta)}
                     </p>
-                    <p className="text-sm text-slate-300 mt-1">
+                    <p className="text-xs md:text-sm text-slate-300 mt-1">
                       {formatPriceARS(precioVenta, cotizacionDolar)}
                     </p>
                   </div>
                 </div>
 
                 {/* Tarjeta Ganancia */}
-                <div className="rounded bg-slate-800 py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 m-3">
-                    <h4 className="text-sm text-slate-200 font-semibold">GANANCIA</h4>
+                <div className="rounded bg-slate-800 py-3 md:py-4">
+                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                    <h4 className="text-xs md:text-sm text-slate-200 font-semibold">GANANCIA</h4>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-semibold text-white">
+                    <p className="text-base md:text-2xl font-semibold text-white">
                       {formatPriceUSD(precioVenta - precioCompra)}
                     </p>
-                    <p className="text-sm text-slate-300 mt-1">
+                    <p className="text-xs md:text-sm text-slate-300 mt-1">
                       {formatPriceARS(precioVenta - precioCompra, cotizacionDolar)}
                     </p>
                   </div>
@@ -459,9 +459,9 @@ const ProductModal = ({
             </div>
 
             {/* Botones de Acciones */}
-            <div className="mt-6">
+            <div className="mt-4 md:mt-6">
 
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
 
                 {/* Copiar Pesos */}
                 {onCopyPesos && (

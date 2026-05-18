@@ -166,6 +166,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [garantiaOficialFecha, setGarantiaOficialFecha] = useState('');
   const [modalReservar, setModalReservar] = useState({ open: false, producto: null, nombre: '', tipo: '' });
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
+  const [otrosExpanded, setOtrosExpanded] = useState(false);
 
   // Función para contar productos por subcategoría
   // Usa datosSinFiltroSubcategoria que tiene todos los filtros aplicados
@@ -2296,20 +2297,20 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
         </div>
 
-        <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-4">
+        <div className="flex gap-1.5 sm:flex-wrap sm:gap-2 mb-4">
           {Object.values(categorias).map((cat) => (
             <button
               key={cat.id}
               onClick={() => cambiarCategoria(cat.id)}
-              className={`flex flex-col sm:flex-row items-center sm:space-x-2 gap-1 px-2 py-2 sm:px-4 rounded transition-colors text-center ${categoriaActiva === cat.id
+              className={`flex-1 sm:flex-none min-w-0 flex flex-col sm:flex-row sm:items-center sm:space-x-2 items-center gap-0.5 px-1 sm:px-4 py-1.5 sm:py-2 rounded transition-colors ${categoriaActiva === cat.id
                 ? "bg-emerald-600 text-white"
                 : "bg-slate-700 text-white hover:bg-slate-600"
                 }`}
             >
-              <span className="text-xl sm:text-lg">{cat.icon}</span>
-              <span className="font-medium text-xs sm:text-sm leading-tight">{cat.label}</span>
+              <span className="text-base sm:text-base leading-none">{cat.icon}</span>
+              <span className="font-medium text-[10px] sm:text-sm leading-tight truncate w-full text-center sm:w-auto">{cat.label}</span>
               <span
-                className={`text-xs px-1.5 py-0.5 rounded ${categoriaActiva === cat.id
+                className={`text-[10px] sm:text-xs px-1 sm:px-2 sm:py-1 rounded flex-shrink-0 ${categoriaActiva === cat.id
                   ? "bg-slate-200 text-slate-800"
                   : "bg-slate-300 text-slate-800"
                   }`}
@@ -2324,96 +2325,28 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         {categoriaActiva === "notebooks" && (
           <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>📦</span>
-                <span>Todos</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "macbook")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "macbook"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>🍎</span>
-                <span>Macbook</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "macbook"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("macbook")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "windows")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "windows"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>🪟</span>
-                <span>Windows</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "windows"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("windows")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "2-en-1")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "2-en-1"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>🔄</span>
-                <span>2-en-1</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "2-en-1"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("2-en-1")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "gaming")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "gaming"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>🎮</span>
-                <span>Gaming</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "gaming"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("gaming")}
-                </span>
-              </button>
+              {[
+                { value: "", icon: "📦", label: "Todos" },
+                { value: "macbook", icon: "🍎", label: "Macbook" },
+                { value: "windows", icon: "🪟", label: "Windows" },
+                { value: "2-en-1", icon: "🔄", label: "2-en-1" },
+                { value: "gaming", icon: "🎮", label: "Gaming" },
+              ].map(({ value, icon, label }) => {
+                const activo = filtros.categoria === value || (!value && !filtros.categoria);
+                return (
+                  <button
+                    key={value}
+                    onClick={() => actualizarFiltro("categoria", value)}
+                    className={`flex flex-col sm:flex-row sm:items-center sm:space-x-2 items-center px-2 sm:px-3 py-1.5 rounded transition-colors min-w-[48px] sm:min-w-0 ${activo ? "bg-emerald-600 text-white" : "bg-slate-700 text-white hover:bg-slate-600"}`}
+                  >
+                    <span className="text-base sm:text-sm leading-none">{icon}</span>
+                    <span className="text-[10px] sm:text-sm leading-tight mt-0.5 sm:mt-0">{label}</span>
+                    <span className={`text-[10px] sm:text-xs px-1 sm:px-2 sm:py-1 rounded mt-0.5 sm:mt-0 ${activo ? "bg-slate-200 text-slate-800" : "bg-slate-300 text-slate-800"}`}>
+                      {contarPorSubcategoria(value)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -2422,187 +2355,98 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         {categoriaActiva === "celulares" && (
           <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>📦</span>
-                <span>Todos</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "iphone")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "iphone"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>📱</span>
-                <span>iPhone</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "iphone"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("iphone")}
-                </span>
-              </button>
-              <button
-                onClick={() => actualizarFiltro("categoria", "android")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === "android"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>🤖</span>
-                <span>Android</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${filtros.categoria === "android"
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("android")}
-                </span>
-              </button>
+              {[
+                { value: "", icon: "📦", label: "Todos" },
+                { value: "iphone", icon: "📱", label: "iPhone" },
+                { value: "android", icon: "🤖", label: "Android" },
+              ].map(({ value, icon, label }) => {
+                const activo = filtros.categoria === value || (!value && !filtros.categoria);
+                return (
+                  <button
+                    key={value}
+                    onClick={() => actualizarFiltro("categoria", value)}
+                    className={`flex flex-col sm:flex-row sm:items-center sm:space-x-2 items-center px-2 sm:px-3 py-1.5 rounded transition-colors min-w-[48px] sm:min-w-0 ${activo ? "bg-emerald-600 text-white" : "bg-slate-700 text-white hover:bg-slate-600"}`}
+                  >
+                    <span className="text-base sm:text-sm leading-none">{icon}</span>
+                    <span className="text-[10px] sm:text-sm leading-tight mt-0.5 sm:mt-0">{label}</span>
+                    <span className={`text-[10px] sm:text-xs px-1 sm:px-2 sm:py-1 rounded mt-0.5 sm:mt-0 ${activo ? "bg-slate-200 text-slate-800" : "bg-slate-300 text-slate-800"}`}>
+                      {contarPorSubcategoria(value)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Subcategorías de Otros productos */}
-        {categoriaActiva === "otros" && (
-          <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => actualizarFiltro("categoria", "")}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${!filtros.categoria
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-700 text-white hover:bg-slate-600"
-                  }`}
-              >
-                <span>📦</span>
-                <span>Todos</span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${!filtros.categoria
-                    ? "bg-slate-200 text-slate-800"
-                    : "bg-slate-300 text-slate-800"
-                    }`}
-                >
-                  {contarPorSubcategoria("")}
-                </span>
-              </button>
-              {CATEGORIAS_OTROS_ARRAY.filter((categoria) => contarPorSubcategoria(categoria) > 0).map((categoria) => (
+        {categoriaActiva === "otros" && (() => {
+          const otrosIconos = {
+            DESKTOP: "💻", ACCESORIOS: "🔧", MONITORES: "🖥️", COMPONENTES: "⚡",
+            FUNDAS_TEMPLADOS: "🛡️", TABLETS: "📱", MOUSE_TECLADOS: "⌨️", AUDIO: "🎧",
+            ALMACENAMIENTO: "💾", CAMARAS: "📷", CONSOLAS: "🎮", GAMING: "🎯",
+            DRONES: "🚁", WATCHES: "⌚", PLACAS_VIDEO: "🎨", STREAMING: "📡",
+            REDES: "🌐", BAGS_CASES: "💼", CABLES_CARGADORES: "🔌", REPUESTOS: "🔩",
+          };
+          const categoriasConStock = CATEGORIAS_OTROS_ARRAY.filter(c => contarPorSubcategoria(c) > 0);
+          const categoriaActivaOtros = filtros.categoria;
+          const subcatBtn = (categoria, onClick) => (
+            <button
+              key={categoria}
+              onClick={onClick}
+              className={`flex flex-col sm:flex-row sm:items-center sm:space-x-2 items-center px-2 sm:px-3 py-1.5 rounded transition-colors min-w-[48px] sm:min-w-0 ${filtros.categoria === categoria || (!categoria && !categoriaActivaOtros) ? "bg-emerald-600 text-white" : "bg-slate-700 text-white hover:bg-slate-600"}`}
+            >
+              <span className="text-base sm:text-sm leading-none">{otrosIconos[categoria] || "📦"}</span>
+              <span className="text-[10px] sm:text-sm leading-tight mt-0.5 sm:mt-0 text-center sm:text-left">{categoria ? getCategoriaLabel(categoria) : "Todos"}</span>
+              <span className={`text-[10px] sm:text-xs px-1 sm:px-2 sm:py-1 rounded mt-0.5 sm:mt-0 ${filtros.categoria === categoria || (!categoria && !categoriaActivaOtros) ? "bg-slate-200 text-slate-800" : "bg-slate-300 text-slate-800"}`}>
+                {contarPorSubcategoria(categoria)}
+              </span>
+            </button>
+          );
+          return (
+            <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
+              {/* Mobile: toggle desplegable */}
+              <div className="flex flex-wrap gap-2 items-start sm:hidden">
+                {subcatBtn("", () => actualizarFiltro("categoria", ""))}
                 <button
-                  key={categoria}
-                  onClick={() => actualizarFiltro("categoria", categoria)}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.categoria === categoria
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-700 text-white hover:bg-slate-600"
-                    }`}
+                  onClick={() => setOtrosExpanded(v => !v)}
+                  className="flex flex-col items-center px-2 py-1.5 rounded transition-colors min-w-[48px] bg-slate-600 hover:bg-slate-500 text-white"
                 >
-                  <span>
-                    {categoria === "DESKTOP"
-                      ? "💻"
-                      : categoria === "ACCESORIOS"
-                        ? "🔧"
-                        : categoria === "MONITORES"
-                          ? "🖥️"
-                          : categoria === "COMPONENTES"
-                            ? "⚡"
-                            : categoria === "FUNDAS_TEMPLADOS"
-                              ? "🛡️"
-                              : categoria === "TABLETS"
-                                ? "📱"
-                                : categoria === "MOUSE_TECLADOS"
-                                  ? "⌨️"
-                                  : categoria === "AUDIO"
-                                    ? "🎧"
-                                    : categoria === "ALMACENAMIENTO"
-                                      ? "💾"
-                                      : categoria === "CAMARAS"
-                                        ? "📷"
-                                        : categoria === "CONSOLAS"
-                                          ? "🎮"
-                                          : categoria === "GAMING"
-                                            ? "🎯"
-                                            : categoria === "DRONES"
-                                              ? "🚁"
-                                              : categoria === "WATCHES"
-                                                ? "⌚"
-                                                : categoria === "PLACAS_VIDEO"
-                                                  ? "🎨"
-                                                  : categoria === "STREAMING"
-                                                    ? "📡"
-                                                    : categoria === "REDES"
-                                                      ? "🌐"
-                                                      : categoria === "BAGS_CASES"
-                                                        ? "💼"
-                                                        : categoria === "CABLES_CARGADORES"
-                                                          ? "🔌"
-                                                          : categoria === "REPUESTOS"
-                                                            ? "🔩"
-                                                            : "📦"}
-                  </span>
-                  <span>{getCategoriaLabel(categoria)}</span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${filtros.categoria === categoria
-                      ? "bg-slate-200 text-slate-800"
-                      : "bg-slate-300 text-slate-800"
-                      }`}
-                  >
-                    {contarPorSubcategoria(categoria)}
-                  </span>
+                  <span className="text-base leading-none">{otrosExpanded ? "▲" : "▼"}</span>
+                  <span className="text-[10px] leading-tight mt-0.5">{otrosExpanded ? "Menos" : "Más"}</span>
+                  <span className="text-[10px] px-1 rounded mt-0.5 bg-slate-500 text-white">{categoriasConStock.length}</span>
                 </button>
-              ))}
+                {categoriaActivaOtros && !otrosExpanded && subcatBtn(categoriaActivaOtros, () => {})}
+                {otrosExpanded && categoriasConStock.map(c => subcatBtn(c, () => { actualizarFiltro("categoria", c); setOtrosExpanded(false); }))}
+              </div>
+              {/* Desktop: lista completa siempre visible */}
+              <div className="hidden sm:flex flex-wrap gap-2">
+                {subcatBtn("", () => actualizarFiltro("categoria", ""))}
+                {categoriasConStock.map(c => subcatBtn(c, () => actualizarFiltro("categoria", c)))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Subcategorías de Apple */}
         {categoriaActiva === "apple" && categoriaConfig?.subcategorias && (
           <div className="mt-3 pt-3 border-t border-slate-600 mb-3">
             <div className="flex flex-wrap gap-2">
               {categoriaConfig.subcategorias.map((subcat) => {
-                // Usar la función unificada de conteo que considera filtros activos
                 const count = contarPorSubcategoria(subcat.value);
+                const icon = subcat.value === "notebooks" ? "💻" : subcat.value === "celulares" ? "📱" : "📦";
                 return (
                   <button
                     key={subcat.value}
-                    onClick={() =>
-                      actualizarFiltro("subcategoria", subcat.value)
-                    }
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded text-sm transition-colors ${filtros.subcategoria === subcat.value
+                    onClick={() => actualizarFiltro("subcategoria", subcat.value)}
+                    className={`flex flex-col sm:flex-row sm:items-center sm:space-x-2 items-center px-2 sm:px-3 py-1.5 rounded transition-colors min-w-[48px] sm:min-w-0 ${filtros.subcategoria === subcat.value
                       ? "bg-emerald-600 text-white"
                       : "bg-slate-700 text-white hover:bg-slate-600"
                       }`}
                   >
-                    <span>
-                      {subcat.value === "notebooks"
-                        ? "💻"
-                        : subcat.value === "celulares"
-                          ? "📱"
-                          : subcat.value === "otros"
-                            ? "📦"
-                            : ""}
-                    </span>
-                    <span>{subcat.label}</span>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${filtros.subcategoria === subcat.value
-                        ? "bg-slate-200 text-slate-800"
-                        : "bg-slate-300 text-slate-800"
-                        }`}
-                    >
+                    <span className="text-base sm:text-sm leading-none">{icon}</span>
+                    <span className="text-[10px] sm:text-sm leading-tight mt-0.5 sm:mt-0">{subcat.label}</span>
+                    <span className={`text-[10px] sm:text-xs px-1 sm:px-2 sm:py-1 rounded mt-0.5 sm:mt-0 ${filtros.subcategoria === subcat.value ? "bg-slate-200 text-slate-800" : "bg-slate-300 text-slate-800"}`}>
                       {count}
                     </span>
                   </button>
@@ -3508,116 +3352,112 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             return (
               <div
                 key={producto.id}
-                className="bg-white border border-slate-200 rounded p-3 cursor-pointer active:bg-slate-50"
+                className="bg-white border border-slate-200 rounded p-3 cursor-pointer active:bg-slate-50 flex flex-col gap-3"
                 onClick={() => setModalDetalle({ open: true, producto })}
               >
-                {/* Fila 1: nombre + precio */}
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800 uppercase leading-tight truncate">
-                      {nombreProducto}
+                {/* Nombre - ancho completo */}
+                <div className="text-sm font-medium text-slate-800 uppercase leading-snug line-clamp-2">
+                  {nombreProducto}
+                </div>
+                {!esOtros && producto.stock > 0 && (
+                  <span className="text-xs text-emerald-600">Stock: {producto.stock}</span>
+                )}
+
+                {/* Fila inferior: etiquetas+botones a la izquierda, precio a la derecha */}
+                <div className="flex items-center gap-3">
+                  {/* Izquierda: etiquetas y botones */}
+                  <div className="flex-1 min-w-0 flex flex-col gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {condicion && (
+                        <span className={`text-sm px-2.5 py-1 rounded font-medium ${condicionColor}`}>
+                          {condicionLabel}
+                        </span>
+                      )}
+                      {producto.color && (
+                        <span className="text-sm text-slate-600 bg-slate-100 px-2.5 py-1 rounded">
+                          {producto.color}
+                        </span>
+                      )}
+                      {!esOtros && producto.sucursal && (
+                        <span className="text-sm text-slate-600 bg-slate-100 px-2.5 py-1 rounded">
+                          {getUbicacionLabel(producto.sucursal) || producto.sucursal}
+                        </span>
+                      )}
+                      {esOtros && (
+                        <>
+                          {(producto.cantidad_mitre || 0) > 0 && (
+                            <span className="text-sm text-green-700 bg-green-100 px-2.5 py-1 rounded">
+                              Mitre: {producto.cantidad_mitre}
+                            </span>
+                          )}
+                          {(producto.cantidad_la_plata || 0) > 0 && (
+                            <span className="text-sm text-green-700 bg-green-100 px-2.5 py-1 rounded">
+                              LP: {producto.cantidad_la_plata}
+                            </span>
+                          )}
+                        </>
+                      )}
                     </div>
-                    {!esOtros && producto.stock > 0 && (
-                      <span className="text-xs text-emerald-600">Stock: {producto.stock}</span>
-                    )}
+                    <div
+                      className="flex gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const copyText = generateCopyWithPrice(producto, false);
+                            if (navigator.clipboard?.writeText) {
+                              await navigator.clipboard.writeText(copyText);
+                            } else {
+                              copiarTextoFallback(copyText);
+                            }
+                          } catch {
+                            copiarTextoFallback(generateCopyWithPrice(producto, false));
+                          }
+                        }}
+                        className="w-14 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="Copiar USD"
+                      >
+                        U$
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const copyText = generateCopyWithPrice(producto, true);
+                            if (navigator.clipboard?.writeText) {
+                              await navigator.clipboard.writeText(copyText);
+                            } else {
+                              copiarTextoFallback(copyText);
+                            }
+                          } catch {
+                            copiarTextoFallback(generateCopyWithPrice(producto, true));
+                          }
+                        }}
+                        className="w-14 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="Copiar ARS"
+                      >
+                        $
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(producto);
+                        }}
+                        className="w-14 h-8 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                        title="Agregar al carrito"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-base font-bold text-slate-800">{precioUSD}</div>
-                    <div className="text-xs text-slate-500">${precioARS}</div>
+
+                  {/* Derecha: precio centrado verticalmente */}
+                  <div className="flex-shrink-0 text-right">
+                    <div className="text-xl font-bold text-slate-800">{precioUSD}</div>
+                    <div className="text-sm text-slate-500">${precioARS}</div>
                   </div>
-                </div>
-
-                {/* Fila 2: condicion + info secundaria */}
-                <div className="flex flex-wrap gap-1.5 items-center mb-2">
-                  {condicion && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${condicionColor}`}>
-                      {condicionLabel}
-                    </span>
-                  )}
-                  {producto.color && (
-                    <span className="text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                      {producto.color}
-                    </span>
-                  )}
-                  {!esOtros && (producto.sucursal) && (
-                    <span className="text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                      {getUbicacionLabel(producto.sucursal) || producto.sucursal}
-                    </span>
-                  )}
-                  {esOtros && (
-                    <>
-                      {(producto.cantidad_mitre || 0) > 0 && (
-                        <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
-                          Mitre: {producto.cantidad_mitre}
-                        </span>
-                      )}
-                      {(producto.cantidad_la_plata || 0) > 0 && (
-                        <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
-                          LP: {producto.cantidad_la_plata}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {(producto.serial || producto.imei) && (
-                    <span className="text-xs font-mono text-slate-500">
-                      {producto.serial || producto.imei}
-                    </span>
-                  )}
-                </div>
-
-                {/* Fila 3: acciones */}
-                <div
-                  className="flex gap-1 justify-end"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const copyText = generateCopyWithPrice(producto, false);
-                        if (navigator.clipboard?.writeText) {
-                          await navigator.clipboard.writeText(copyText);
-                        } else {
-                          copiarTextoFallback(copyText);
-                        }
-                      } catch {
-                        copiarTextoFallback(generateCopyWithPrice(producto, false));
-                      }
-                    }}
-                    className="px-3 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                    title="Copiar USD"
-                  >
-                    U$
-                  </button>
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const copyText = generateCopyWithPrice(producto, true);
-                        if (navigator.clipboard?.writeText) {
-                          await navigator.clipboard.writeText(copyText);
-                        } else {
-                          copiarTextoFallback(copyText);
-                        }
-                      } catch {
-                        copiarTextoFallback(generateCopyWithPrice(producto, true));
-                      }
-                    }}
-                    className="px-3 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
-                    title="Copiar ARS"
-                  >
-                    $
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(producto);
-                    }}
-                    className="px-3 h-8 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                    title="Agregar al carrito"
-                  >
-                    +
-                  </button>
                 </div>
               </div>
             );

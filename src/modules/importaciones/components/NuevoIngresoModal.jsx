@@ -26,7 +26,8 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
     costo_picking_shipping_usd: ''
   });
   const [pesosReales, setPesosReales] = useState({});          // { [itemId]: kg } — items normales
-  const [pesosCourierCliente, setPesosCourierCliente] = useState({});  // { [reciboId]: kg } — pedidos courier cliente
+  const [pesosCourierCliente, setPesosCourierCliente] = useState({});  // { [reciboId]: kg }
+  const [montosCourierCliente, setMontosCourierCliente] = useState({});  // { [reciboId]: usd }
 
   // ── Separar tipos de recibos ──
   const pedidosConItems = useMemo(() =>
@@ -86,11 +87,14 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
       pesos[item.id] = item.peso_estimado_unitario_kg ?? '';
     });
     const pesosCli = {};
+    const montosCli = {};
     courierClientesCompletos.forEach(r => {
       pesosCli[r.id] = '';
+      montosCli[r.id] = r.monto_cobrado_usd ?? '';
     });
     setPesosReales(pesos);
     setPesosCourierCliente(pesosCli);
+    setMontosCourierCliente(montosCli);
     setPaso(2);
   };
 
@@ -155,7 +159,8 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
         pesosReales,
         courierClienteRecibos: courierClientesCompletos.map(r => ({
           reciboId: r.id,
-          peso: pesosCourierCliente[r.id] || null
+          peso: pesosCourierCliente[r.id] || null,
+          monto_cobrado_usd: montosCourierCliente[r.id] || null
         }))
       });
       onSuccess();
@@ -588,6 +593,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase">Cliente</th>
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase">Descripción</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Peso Pedido (kg)</th>
+                        <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Cobrado (USD)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -611,6 +617,15 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                               onChange={e => setPesosCourierCliente(prev => ({ ...prev, [recibo.id]: e.target.value }))}
                               className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="0.000"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <input
+                              type="number" step="0.01" min="0"
+                              value={montosCourierCliente[recibo.id] ?? ''}
+                              onChange={e => setMontosCourierCliente(prev => ({ ...prev, [recibo.id]: e.target.value }))}
+                              className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              placeholder="0.00"
                             />
                           </td>
                         </tr>

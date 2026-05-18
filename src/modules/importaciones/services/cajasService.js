@@ -343,15 +343,23 @@ const cajasService = {
       // — Servicios courier a cargo del cliente —
       if (courierClienteRecibos && courierClienteRecibos.length > 0) {
         const fecha = datosRecepcion?.fecha_recepcion || new Date().toISOString().split('T')[0];
-        const reciboIds = courierClienteRecibos.map(r => r.reciboId);
-        const { error: courierError } = await supabase
-          .from('importaciones_recibos')
-          .update({
+        for (const cc of courierClienteRecibos) {
+          const updateData = {
             estado: 'recepcionado',
             fecha_recepcion_argentina: fecha
-          })
-          .in('id', reciboIds);
-        if (courierError) throw courierError;
+          };
+          if (cc.peso != null && cc.peso !== '') {
+            updateData.peso_sin_caja_kg = parseFloat(cc.peso);
+          }
+          if (cc.monto_cobrado_usd != null && cc.monto_cobrado_usd !== '') {
+            updateData.monto_cobrado_usd = parseFloat(cc.monto_cobrado_usd);
+          }
+          const { error: courierError } = await supabase
+            .from('importaciones_recibos')
+            .update(updateData)
+            .eq('id', cc.reciboId);
+          if (courierError) throw courierError;
+        }
       }
 
       return result;

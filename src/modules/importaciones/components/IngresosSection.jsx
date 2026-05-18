@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Trash2, ChevronRight, ChevronDown, AlertCircle, Eye, Pencil } from 'lucide-react';
+import { Trash2, ChevronRight, ChevronDown, AlertCircle, Eye, Pencil, User } from 'lucide-react';
 import { useCajas } from '../hooks/useCajas';
 import { useImportaciones } from '../hooks/useImportaciones';
 import NuevoIngresoModal from './NuevoIngresoModal';
@@ -28,6 +28,11 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
   const ingresos = useMemo(() => {
     return cajas.filter(c => c.estado === 'recepcionada');
   }, [cajas]);
+
+  // Servicios courier_cliente recepcionados (no crean caja, van aparte)
+  const courierClientesRecepcionados = useMemo(() => {
+    return recibos.filter(r => r.tipo === 'courier_cliente' && r.estado === 'recepcionado');
+  }, [recibos]);
 
   const handleEliminar = async (ingreso) => {
     const totalItems = (ingreso.importaciones_items || []).length;
@@ -280,6 +285,64 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Servicios Courier Cliente recepcionados */}
+      {courierClientesRecepcionados.length > 0 && (
+        <div className="bg-white mt-4">
+          <div className="px-4 py-2 bg-blue-50 border-y border-blue-200 flex items-center gap-2">
+            <User size={14} className="text-blue-600" />
+            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
+              Servicios Courier — A cargo del cliente ({courierClientesRecepcionados.length})
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ minWidth: '600px' }}>
+              <thead className="bg-slate-800 text-white">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">N° Servicio</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">F. Ingreso</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cliente</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Peso (kg)</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Cobrado (USD)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {courierClientesRecepcionados.map((recibo, idx) => (
+                  <tr key={recibo.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-mono text-xs text-slate-800">{recibo.numero_recibo}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-center text-slate-500">
+                      {recibo.fecha_recepcion_argentina
+                        ? formatearFechaDisplay(recibo.fecha_recepcion_argentina)
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-700">
+                      {recibo.clientes
+                        ? `${recibo.clientes.nombre} ${recibo.clientes.apellido || ''}`
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500 max-w-xs truncate">
+                      {recibo.observaciones || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-center text-slate-600">
+                      {recibo.peso_sin_caja_kg
+                        ? `${parseFloat(recibo.peso_sin_caja_kg).toFixed(3)} kg`
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-center text-emerald-700 font-medium">
+                      {recibo.monto_cobrado_usd
+                        ? `U$ ${parseFloat(recibo.monto_cobrado_usd).toFixed(2)}`
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

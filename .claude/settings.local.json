@@ -54,7 +54,10 @@
       "Bash(dir)",
       "Bash(findstr /I sql)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Dell\\\\Documents\\\\sistema-update\\\\src\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Dell\\\\Documents\\\\sistema-update\\\\src\\\\modules\\\\importaciones\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(ConvertTo-Json)"
     ],
     "deny": [],
     "ask": []
