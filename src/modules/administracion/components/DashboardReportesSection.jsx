@@ -6,10 +6,20 @@ import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { formatearMonto, obtenerFechaLocal } from '../../../shared/utils/formatters';
 import { getCategoriaLabel } from '../../../shared/constants/categoryConstants';
 
+// Calcula el día siguiente a fechaFin para usar .lt() en lugar de .lte(),
+// evitando que PostgreSQL interprete una fecha sin hora como "00:00:00 UTC"
+// y excluya transacciones del último día.
+const nextDayString = (fecha) => {
+  const d = new Date(fecha + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+};
+
 // Servicio para Dashboard de Reportes
 const dashboardService = {
   async getVentasEnPeriodo(fechaInicio, fechaFin) {
     console.log('📊 Obteniendo ventas del período:', fechaInicio, 'al', fechaFin);
+    const fechaFinExclusivo = nextDayString(fechaFin);
 
     // Primero obtenemos los vendedores para mapear los IDs
     const { data: vendedoresData } = await supabase
@@ -53,7 +63,7 @@ const dashboardService = {
         )
       `)
       .gte('fecha_venta', fechaInicio)
-      .lte('fecha_venta', fechaFin)
+      .lt('fecha_venta', fechaFinExclusivo)
       .order('fecha_venta', { ascending: true });
 
     if (error) {
@@ -510,6 +520,7 @@ const dashboardService = {
 
   async analizarAdquisicionClientes(fechaInicio, fechaFin) {
     console.log('👥 Analizando adquisición de clientes...', { fechaInicio, fechaFin });
+    const fechaFinExclusivo = nextDayString(fechaFin);
 
     try {
       // 1. Obtener todas las transacciones del período con cliente y procedencia
@@ -530,7 +541,7 @@ const dashboardService = {
           )
         `)
         .gte('fecha_venta', fechaInicio)
-        .lte('fecha_venta', fechaFin)
+        .lt('fecha_venta', fechaFinExclusivo)
         .not('cliente_id', 'is', null); // Solo ventas con cliente
 
       if (errorVentas) {
@@ -633,6 +644,7 @@ const dashboardService = {
 
   async obtenerTopClientes(fechaInicio, fechaFin, limite = 10) {
     console.log('🏆 Obteniendo top clientes...', { fechaInicio, fechaFin, limite });
+    const fechaFinExclusivo = nextDayString(fechaFin);
 
     try {
       // 1. Obtener todas las transacciones del período con items
@@ -650,7 +662,7 @@ const dashboardService = {
           )
         `)
         .gte('fecha_venta', fechaInicio)
-        .lte('fecha_venta', fechaFin)
+        .lt('fecha_venta', fechaFinExclusivo)
         .not('cliente_id', 'is', null); // Solo ventas con cliente
 
       if (error) {
@@ -717,6 +729,7 @@ const dashboardService = {
 
   async obtenerDetalleNuevosClientesPorProcedencia(fechaInicio, fechaFin, procedencia) {
     console.log('🔍 Obteniendo detalle de nuevos clientes...', { fechaInicio, fechaFin, procedencia });
+    const fechaFinExclusivo = nextDayString(fechaFin);
 
     try {
       // 1. Obtener todas las transacciones del período con cliente y procedencia
@@ -738,7 +751,7 @@ const dashboardService = {
           )
         `)
         .gte('fecha_venta', fechaInicio)
-        .lte('fecha_venta', fechaFin)
+        .lt('fecha_venta', fechaFinExclusivo)
         .not('cliente_id', 'is', null);
 
       if (errorVentas) {
@@ -854,7 +867,8 @@ const useDashboardReportes = () => {
         dashboardService.obtenerTopClientes(fechaInicio, fechaFin, 10)
       ]);
 
-      const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventas);
+      const ventasConItems = ventas.filter(v => v.venta_items?.length > 0);
+      const ventasProcessed = dashboardService.procesarVentasParaGraficos(ventasConItems);
       const inventarioProcessed = dashboardService.procesarInventario(inventario);
 
       console.log('📊 Datos procesados:', {

@@ -161,6 +161,9 @@ const AppRoutes = () => {
                 <Route path="importaciones" element={<ProtectedRoute section="compras"><ImportacionesSection /></ProtectedRoute>} />
                 <Route path="tabla-pesajes" element={<ProtectedRoute section="compras"><TablaPesajesSection /></ProtectedRoute>} />
 
+                {/* Reset Password - ruta dummy para que no haga match con el 404 */}
+                <Route path="reset-password" element={null} />
+
                 {/* Contabilidad */}
                 <Route path="cuentas-corrientes" element={<ProtectedRoute section="contabilidad"><CuentasCorrientesSection /></ProtectedRoute>} />
                 <Route path="contabilidad">

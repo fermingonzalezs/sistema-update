@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import Login from './components/auth/Login';
 import SetupPassword from './components/auth/SetupPassword';
+import RecuperarPassword from './components/auth/RecuperarPassword';
+import ResetPassword from './components/auth/ResetPassword';
 import AppRoutes from './routes';
 import { CarritoWidget } from './shared/components/layout';
 import { useAppContext } from './context/AppContext';
@@ -46,7 +49,17 @@ const App = () => {
 // Componente que maneja login vs contenido principal
 const AppWithAuth = () => {
   const { isAuthenticated, loading, error, login } = useAuthContext();
+  const location = useLocation();
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(null);
+  const [authView, setAuthView] = useState('login'); // 'login' | 'forgot' | 'reset'
+
+  // Detectar si venimos de un link de recuperación de contraseña
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (location.pathname === '/reset-password' && (params.get('code') || params.get('error_description'))) {
+      setAuthView('reset');
+    }
+  }, [location]);
 
   // Manejar resultado del login
   const handleLogin = async (username, password) => {
@@ -108,13 +121,31 @@ const AppWithAuth = () => {
           </div>
         )}
 
-        {/* Login Overlay */}
-        {!isAuthenticated && !loading && (
-          <Login
-            onLogin={handleLogin}
-            error={error}
-            loading={loading}
+        {/* Auth Overlays (login, forgot, reset) */}
+        {/* Reset password se muestra independientemente de isAuthenticated porque
+            exchangeCodeForSession crea una sesión temporal que haría desaparecer el overlay */}
+        {authView === 'reset' && (
+          <ResetPassword
+            onSuccess={() => setAuthView('login')}
           />
+        )}
+
+        {!isAuthenticated && !loading && authView !== 'reset' && (
+          <>
+            {authView === 'login' && (
+              <Login
+                onLogin={handleLogin}
+                error={error}
+                loading={loading}
+                onForgotPassword={() => setAuthView('forgot')}
+              />
+            )}
+            {authView === 'forgot' && (
+              <RecuperarPassword
+                onBack={() => setAuthView('login')}
+              />
+            )}
+          </>
         )}
       </div>
     </AppProvider>

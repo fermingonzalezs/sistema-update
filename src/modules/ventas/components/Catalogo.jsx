@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Trash2,
   Plus,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useCatalogoUnificado } from "../hooks/useCatalogoUnificado";
 import { cotizacionService } from "../../../shared/services/cotizacionService";
@@ -164,6 +165,7 @@ const Catalogo = ({ onAddToCart, onNavigate }) => {
   const [categoriasOtros, setCategoriasOtros] = useState([]);
   const [garantiaOficialFecha, setGarantiaOficialFecha] = useState('');
   const [modalReservar, setModalReservar] = useState({ open: false, producto: null, nombre: '', tipo: '' });
+  const [filtrosVisibles, setFiltrosVisibles] = useState(false);
 
   // Función para contar productos por subcategoría
   // Usa datosSinFiltroSubcategoria que tiene todos los filtros aplicados
@@ -2266,11 +2268,19 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
     <div className="p-0">
       {/* Selector de categorías con filtros integrados */}
       <div className="mb-4 bg-slate-800 rounded border border-slate-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">
-            Categorías de Productos
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <h3 className="text-base md:text-lg font-semibold text-white">
+            Catálogo
           </h3>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2">
+            {/* Botón toggle filtros - solo mobile */}
+            <button
+              onClick={() => setFiltrosVisibles(!filtrosVisibles)}
+              className="md:hidden flex items-center gap-1 px-3 py-1.5 bg-slate-600 text-white text-xs rounded hover:bg-slate-500 transition-colors"
+            >
+              <SlidersHorizontal size={12} />
+              {filtrosVisibles ? 'Ocultar' : `Filtros${hayFiltrosActivos ? ' ●' : ''}`}
+            </button>
             {hayFiltrosActivos && (
               <button
                 onClick={limpiarFiltros}
@@ -2281,25 +2291,25 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </button>
             )}
             <div className="text-sm text-white">
-              {productosFiltrados} de {totalProductos} productos
+              {productosFiltrados} de {totalProductos}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-4">
           {Object.values(categorias).map((cat) => (
             <button
               key={cat.id}
               onClick={() => cambiarCategoria(cat.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded transition-colors ${categoriaActiva === cat.id
+              className={`flex flex-col sm:flex-row items-center sm:space-x-2 gap-1 px-2 py-2 sm:px-4 rounded transition-colors text-center ${categoriaActiva === cat.id
                 ? "bg-emerald-600 text-white"
-                : "bg-slate-700 text-white hover:bg-slate-200"
+                : "bg-slate-700 text-white hover:bg-slate-600"
                 }`}
             >
-              <span className="text-lg">{cat.icon}</span>
-              <span className="font-medium">{cat.label}</span>
+              <span className="text-xl sm:text-lg">{cat.icon}</span>
+              <span className="font-medium text-xs sm:text-sm leading-tight">{cat.label}</span>
               <span
-                className={`text-xs px-2 py-1 rounded ${categoriaActiva === cat.id
+                className={`text-xs px-1.5 py-0.5 rounded ${categoriaActiva === cat.id
                   ? "bg-slate-200 text-slate-800"
                   : "bg-slate-300 text-slate-800"
                   }`}
@@ -2603,7 +2613,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         )}
 
         {/* Filtros en una sola fila */}
-        <div className="border-t border-slate-600 pt-3">
+        <div className={`border-t border-slate-600 pt-3 ${filtrosVisibles ? '' : 'hidden md:block'}`}>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {/* Búsqueda */}
             <div>
@@ -2889,7 +2899,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       )}
 
       {!loading && !error && (
-        <div className="overflow-x-auto w-full">
+        <div className="hidden md:block overflow-x-auto w-full">
           <div className="space-y-1 inline-block min-w-full">
             {/* Header */}
             {(() => {
@@ -3444,6 +3454,174 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Mobile: cards */}
+      {!loading && !error && (
+        <div className="md:hidden space-y-2 mt-2">
+          {datos.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              No se encontraron productos con los filtros aplicados
+            </div>
+          )}
+          {datos.map((producto) => {
+            const esOtros =
+              categoriaActiva === "otros" ||
+              categoriaActiva.startsWith("otros-") ||
+              (categoriaActiva === "apple" && producto._tipoProducto === "otros");
+
+            const condicion = producto.condicion || producto.estado || "";
+            const condicionColor = (() => {
+              const c = condicion.toLowerCase().trim();
+              if (c === "nuevo") return "bg-emerald-100 text-emerald-700";
+              if (c === "refurbished" || c === "reacondicionado") return "bg-blue-100 text-blue-700";
+              if (c === "usado") return "bg-yellow-100 text-yellow-700";
+              if (c === "reparacion" || c === "reparación") return "bg-red-100 text-red-700";
+              if (c === "reservado") return "bg-purple-100 text-purple-700";
+              if (c === "prestado") return "bg-cyan-100 text-cyan-700";
+              if (c === "sin_reparacion") return "bg-gray-100 text-gray-700";
+              if (c === "uso_oficina") return "bg-orange-100 text-orange-700";
+              if (c === "consignacion") return "bg-slate-500 text-white";
+              return "bg-slate-100 text-slate-700";
+            })();
+            const condicionLabel = (() => {
+              const c = condicion.toLowerCase();
+              if (c === "uso_oficina") return "USO OFICINA";
+              if (c === "consignacion") return "CONSIGNACIÓN";
+              return condicion.toUpperCase();
+            })();
+
+            const precioUSD = formatearMonto(producto.precio_venta_usd, "USD");
+            const precioARS = Math.round(producto.precio_venta_usd * cotizacionDolar).toLocaleString("es-AR");
+
+            const nombreProducto = esOtros
+              ? `${producto.nombre_producto || "SIN NOMBRE"}${producto.descripcion ? ` - ${producto.descripcion}` : ""}`
+              : generateCopy(producto, {
+                  tipo: (() => {
+                    if (categoriaActiva === "celulares") return "celular_completo";
+                    if (categoriaActiva === "apple" && producto._tipoProducto === "celulares") return "celular_completo";
+                    return "notebook_catalogo";
+                  })()
+                });
+
+            return (
+              <div
+                key={producto.id}
+                className="bg-white border border-slate-200 rounded p-3 cursor-pointer active:bg-slate-50"
+                onClick={() => setModalDetalle({ open: true, producto })}
+              >
+                {/* Fila 1: nombre + precio */}
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-800 uppercase leading-tight truncate">
+                      {nombreProducto}
+                    </div>
+                    {!esOtros && producto.stock > 0 && (
+                      <span className="text-xs text-emerald-600">Stock: {producto.stock}</span>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-base font-bold text-slate-800">{precioUSD}</div>
+                    <div className="text-xs text-slate-500">${precioARS}</div>
+                  </div>
+                </div>
+
+                {/* Fila 2: condicion + info secundaria */}
+                <div className="flex flex-wrap gap-1.5 items-center mb-2">
+                  {condicion && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${condicionColor}`}>
+                      {condicionLabel}
+                    </span>
+                  )}
+                  {producto.color && (
+                    <span className="text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                      {producto.color}
+                    </span>
+                  )}
+                  {!esOtros && (producto.sucursal) && (
+                    <span className="text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                      {getUbicacionLabel(producto.sucursal) || producto.sucursal}
+                    </span>
+                  )}
+                  {esOtros && (
+                    <>
+                      {(producto.cantidad_mitre || 0) > 0 && (
+                        <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                          Mitre: {producto.cantidad_mitre}
+                        </span>
+                      )}
+                      {(producto.cantidad_la_plata || 0) > 0 && (
+                        <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                          LP: {producto.cantidad_la_plata}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {(producto.serial || producto.imei) && (
+                    <span className="text-xs font-mono text-slate-500">
+                      {producto.serial || producto.imei}
+                    </span>
+                  )}
+                </div>
+
+                {/* Fila 3: acciones */}
+                <div
+                  className="flex gap-1 justify-end"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const copyText = generateCopyWithPrice(producto, false);
+                        if (navigator.clipboard?.writeText) {
+                          await navigator.clipboard.writeText(copyText);
+                        } else {
+                          copiarTextoFallback(copyText);
+                        }
+                      } catch {
+                        copiarTextoFallback(generateCopyWithPrice(producto, false));
+                      }
+                    }}
+                    className="px-3 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                    title="Copiar USD"
+                  >
+                    U$
+                  </button>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const copyText = generateCopyWithPrice(producto, true);
+                        if (navigator.clipboard?.writeText) {
+                          await navigator.clipboard.writeText(copyText);
+                        } else {
+                          copiarTextoFallback(copyText);
+                        }
+                      } catch {
+                        copiarTextoFallback(generateCopyWithPrice(producto, true));
+                      }
+                    }}
+                    className="px-3 h-8 text-white text-xs rounded bg-slate-600 hover:bg-slate-700 transition-colors"
+                    title="Copiar ARS"
+                  >
+                    $
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(producto);
+                    }}
+                    className="px-3 h-8 text-white text-xs rounded bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                    title="Agregar al carrito"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

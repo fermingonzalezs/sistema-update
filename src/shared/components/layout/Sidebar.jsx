@@ -33,11 +33,12 @@ import {
   LayoutDashboard,
   Mail,
   ChevronLeft,
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuthContext } from '../../../context/AuthContext';
 
-const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
+const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOpen = false, onCloseMobile }) => {
   const { user, hasAccess, getAllowedSections } = useAuthContext();
 
   // Estado para controlar qué secciones están expandidas
@@ -96,16 +97,14 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           path: '/tablero',
           label: 'Tablero General',
           icon: LayoutDashboard,
-          description: 'Resumen financiero mensual',
-          excludeRoles: ['contabilidad']
+          description: 'Resumen financiero mensual'
         },
         {
           id: 'dashboard-reportes',
           path: '/reportes',
           label: 'Dashboard',
           icon: BarChart3,
-          description: 'Reportes visuales',
-          excludeRoles: ['contabilidad']
+          description: 'Reportes visuales'
         },
         {
           id: 'cuentas-corrientes',
@@ -127,23 +126,20 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           label: 'Comisiones',
           icon: Calculator,
           description: 'Calc. de comisiones',
-          excludeRoles: ['contabilidad']
         },
         {
           id: 'garantias',
           path: '/garantias',
           label: 'Garantías',
           icon: Shield,
-          description: 'Gestión de garantías',
-          excludeRoles: ['contabilidad']
+          description: 'Gestión de garantías'
         },
         {
           id: 'listado-total',
           path: '/stock',
           label: 'Listado Total',
           icon: Package,
-          description: 'Vista unificada de inventario',
-          excludeRoles: ['contabilidad']
+          description: 'Vista unificada de inventario'
         },
         {
           id: 'recuento-stock',
@@ -352,8 +348,22 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
   };
 
   return (
-    <div className={`h-screen text-white shadow-2xl flex flex-col relative bg-slate-800 ${isCollapsed ? 'w-16' : 'w-60'
-      }`}>
+    <>
+      {/* Mobile overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={onCloseMobile}
+        />
+      )}
+
+    <div className={`
+      h-screen text-white shadow-2xl flex flex-col bg-slate-800
+      fixed top-0 left-0 z-50 transition-transform duration-300 ease-in-out
+      md:relative md:top-auto md:left-auto md:z-auto md:translate-x-0 md:transition-none
+      ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      ${isCollapsed ? 'w-16' : 'w-60'}
+    `}>
       {/* Header con Logo y Toggle */}
       <div className={`flex flex-col items-center justify-center ${isCollapsed ? "p-2 py-4 gap-4" : "p-4 relative"} border-b border-slate-700 bg-slate-800 z-10`}>
         <div className="flex items-center justify-center">
@@ -364,15 +374,22 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
           />
         </div>
 
-        {/* Toggle Button */}
+        {/* Toggle Button - desktop only */}
         <button
           onClick={toggleSidebar}
           className={`
-            text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700
+            hidden md:block text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700
             ${isCollapsed ? '' : 'absolute right-4 top-1/2 -translate-y-1/2'}
           `}
         >
           {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
+        {/* Close Button - mobile only */}
+        <button
+          onClick={onCloseMobile}
+          className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
+        >
+          <X size={20} />
         </button>
       </div>
 
@@ -547,6 +564,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar }) => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 

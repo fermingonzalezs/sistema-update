@@ -216,6 +216,30 @@ export const useAuth = () => {
     if (data?.user) setUser(data.user);
   };
 
+  // Cambiar contraseña (requiere contraseña actual para verificar identidad)
+  const cambiarPassword = async (passwordActual, passwordNueva) => {
+    if (!user?.email) {
+      throw new Error('No se pudo determinar el usuario actual');
+    }
+
+    // Verificar identidad re-autenticando
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passwordActual
+    });
+
+    if (authError) {
+      throw new Error('La contraseña actual es incorrecta');
+    }
+
+    // Actualizar contraseña
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: passwordNueva
+    });
+
+    if (updateError) throw updateError;
+  };
+
   return {
     user,
     loading,
@@ -225,6 +249,7 @@ export const useAuth = () => {
     hasAccess,
     getAllowedSections,
     updateNombre,
+    cambiarPassword,
     isAuthenticated: !!user
   };
 };

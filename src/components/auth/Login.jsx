@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
-const Login = ({ onLogin, error, loading }) => {
+const Login = ({ onLogin, error, loading, onForgotPassword }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -133,6 +133,18 @@ const Login = ({ onLogin, error, loading }) => {
                 </>
               )}
             </button>
+
+            {/* Forgot Password */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                disabled={loading}
+                className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
           </form>
         </div>
       </div>

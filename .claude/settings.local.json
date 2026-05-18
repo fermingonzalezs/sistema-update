@@ -52,7 +52,9 @@
       "Bash(git pull *)",
       "Bash(git add *)",
       "Bash(dir)",
-      "Bash(findstr /I sql)"
+      "Bash(findstr /I sql)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Dell\\\\Documents\\\\sistema-update\\\\src\" -Directory)",
+      "Bash(Select-Object Name)"
     ],
     "deny": [],
     "ask": []
