@@ -199,11 +199,11 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
                         {user?.user_metadata?.nombre?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <div className="hidden sm:block text-left">
+                    <div className="text-left">
                       <div className="text-xs font-medium text-white">
                         {user?.user_metadata?.nombre || 'Usuario'}
                       </div>
-                      <div className="text-[10px] text-slate-300 capitalize leading-none">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
+                      <div className="text-[10px] text-slate-300 capitalize leading-none hidden sm:block">{user?.user_metadata?.nivel || 'Sin nivel'}</div>
                     </div>
                   </button>
                   <button
@@ -237,7 +237,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
             </div>
 
             {/* Fecha y hora */}
-            <div className="text-right bg-white rounded-lg px-3 py-2 border border-slate-200 font-semibold">
+            <div className="text-right bg-white rounded-lg px-3 py-2 border border-slate-200 font-semibold hidden sm:block">
               <div className="text-xs md:text-sm text-slate-800">
                 <span className="hidden md:inline">
                   {currentDate.toLocaleDateString('es-AR', {

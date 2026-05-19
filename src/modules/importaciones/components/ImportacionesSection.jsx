@@ -480,6 +480,7 @@ const ImportacionesSection = () => {
                     <tr>
                       <th className="py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '30px' }}>Cont.</th>
                       <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '70px' }}>Tipo</th>
+                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '100px' }}>Invoice</th>
                       <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
                       <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recep.</th>
                       <th className="px-2 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '160px' }}>Descripción</th>
@@ -514,17 +515,18 @@ const ImportacionesSection = () => {
                           </button>
                         </td>
                         <td className="px-1 py-3 text-center">
-                          <div className="flex flex-col gap-0.5 items-center">
-                            {recibo.tipo === 'courier_cliente' && (
-                              <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>CLIENTE</span>
-                            )}
-                            {recibo.tipo === 'courier_empresa' && (
-                              <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>EMPRESA</span>
-                            )}
-                            {(!recibo.tipo || recibo.tipo === 'importacion') && (
-                              <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded font-medium">IMPORT</span>
-                            )}
-                          </div>
+                          {recibo.tipo === 'courier_cliente' && (
+                            <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>CLIENTE</span>
+                          )}
+                          {recibo.tipo === 'courier_empresa' && (
+                            <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-medium leading-tight">COURIER<br/>EMPRESA</span>
+                          )}
+                          {(!recibo.tipo || recibo.tipo === 'importacion') && (
+                            <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded font-medium">IMPORT</span>
+                          )}
+                        </td>
+                        <td className="px-1 py-3 text-center text-[11px] font-mono text-slate-600 truncate" title={recibo.numero_invoice || ''}>
+                          {recibo.numero_invoice || '-'}
                         </td>
                         <td className="px-1 py-3 text-[15px] text-center text-slate-600 whitespace-nowrap">
                           {formatearFechaDisplay(recibo.fecha_compra)}

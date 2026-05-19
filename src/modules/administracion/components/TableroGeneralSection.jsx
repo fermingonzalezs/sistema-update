@@ -425,26 +425,24 @@ const TableroGeneralSection = () => {
   return (
     <div className="bg-white rounded border border-slate-200">
       {/* Header */}
-      <div className="bg-slate-800 p-6 text-white">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <LayoutDashboard size={28} />
-            <div>
-              <h2 className="text-2xl font-semibold">Tablero General</h2>
-              <p className="text-slate-300 mt-1">Estado de Resultados mensual - Estructura contable</p>
+      <div className="bg-slate-800 p-4 sm:p-6 text-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
+            <LayoutDashboard size={24} className="shrink-0" />
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-2xl font-semibold truncate">Tablero General</h2>
+              <p className="text-slate-300 mt-1 text-xs sm:text-sm truncate">Estado de Resultados mensual</p>
             </div>
           </div>
-          <div>
-            <select
-              value={añoSeleccionado}
-              onChange={(e) => setAñoSeleccionado(Number(e.target.value))}
-              className="bg-white text-slate-800 px-4 py-2 rounded border border-slate-200 font-medium"
-            >
-              {añosDisponibles.map(año => (
-                <option key={año} value={año}>{año}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={añoSeleccionado}
+            onChange={(e) => setAñoSeleccionado(Number(e.target.value))}
+            className="bg-white text-slate-800 px-3 sm:px-4 py-2 rounded border border-slate-200 font-medium text-sm shrink-0"
+          >
+            {añosDisponibles.map(año => (
+              <option key={año} value={año}>{año}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -467,17 +465,18 @@ const TableroGeneralSection = () => {
 
         {!loading && !error && (
         <>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        {/* Tabla */}
+        <div className="overflow-x-auto -mx-4 sm:-mx-6">
+          <table className="w-full min-w-max">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sticky left-0 bg-slate-800">Categoría</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sticky left-0 z-10 bg-slate-800 w-[130px] min-w-[130px] max-w-[130px]">Categoría</th>
                 {datos.map((dato) => (
-                  <th key={dato.mes} className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap">
+                  <th key={dato.mes} className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap min-w-[95px]">
                     {dato.mes}
                   </th>
                 ))}
-                <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider bg-slate-700">Total {añoSeleccionado}</th>
+                <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider bg-slate-700 min-w-[110px] whitespace-nowrap">Total {añoSeleccionado}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -498,7 +497,7 @@ const TableroGeneralSection = () => {
                     {/* Header de sección - centrado */}
                     {showSectionHeader && (
                       <tr className="bg-slate-700">
-                        <td colSpan={14} className="px-4 py-3 text-sm font-bold text-white uppercase tracking-wider text-center">
+                        <td colSpan={datos.length + 2} className="px-4 py-3 text-sm font-bold text-white uppercase tracking-wider text-center">
                           {categoria.section}
                         </td>
                       </tr>
@@ -514,18 +513,18 @@ const TableroGeneralSection = () => {
                       className={`${catIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${isExpandable ? 'cursor-pointer hover:bg-slate-100' : ''}`}
                     >
                       {/* Columna Categoría */}
-                      <td className={`px-4 py-3 sticky left-0 ${catIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${isExpandable ? 'hover:bg-slate-100' : ''}`}>
-                        <div className="flex items-center gap-2">
+                      <td className={`px-4 py-3 sticky left-0 z-10 max-w-[130px] ${catIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${isExpandable ? 'hover:bg-slate-100' : ''}`}>
+                        <div className="flex items-center gap-2 min-w-0">
                           {isExpandable && (
                             <>
                               {(isIngresosRow && ingresosExpanded) || (isCostosRow && costosExpanded) || (isGastosRow && gastosExpanded) ? (
-                                <ChevronDown className="w-4 h-4" />
+                                <ChevronDown className="w-4 h-4 shrink-0" />
                               ) : (
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRight className="w-4 h-4 shrink-0" />
                               )}
                             </>
                           )}
-                          <div className={`text-sm ${categoria.bold ? 'font-semibold' : ''} ${categoria.color}`}>
+                          <div className={`text-sm truncate ${categoria.bold ? 'font-semibold' : ''} ${categoria.color}`} title={categoria.label}>
                             {categoria.label}
                           </div>
                         </div>
@@ -533,12 +532,12 @@ const TableroGeneralSection = () => {
                       {datos.map((dato) => (
                         <td
                           key={dato.mes}
-                          className={`px-3 py-3 text-sm text-center ${categoria.color} ${categoria.bold ? 'font-semibold' : ''}`}
+                          className={`px-3 py-3 text-sm text-center whitespace-nowrap ${categoria.color} ${categoria.bold ? 'font-semibold' : ''}`}
                         >
                           {formatCurrencyCompact(dato[categoria.id] || 0)}
                         </td>
                       ))}
-                      <td className={`px-3 py-3 text-sm text-center ${isUtilidadNeta ? (totales.utilidadNeta >= 0 ? 'text-emerald-700' : 'text-red-600') : categoria.color} font-bold bg-slate-100`}>
+                      <td className={`px-3 py-3 text-sm text-center whitespace-nowrap ${isUtilidadNeta ? (totales.utilidadNeta >= 0 ? 'text-emerald-700' : 'text-red-600') : categoria.color} font-bold bg-slate-100`}>
                         {formatCurrency(totales[categoria.id] || 0)}
                       </td>
                     </tr>
@@ -546,18 +545,17 @@ const TableroGeneralSection = () => {
                     {/* Filas expandidas - Ingresos */}
                     {isIngresosRow && ingresosExpanded && filasIngresos.map((fila, idx) => (
                       <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                        {/* Columna Categoría */}
-                        <td className={`px-4 py-2 pl-8 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
-                          <div className={`text-sm ${fila.color}`}>
+                        <td className={`px-4 py-2 pl-8 sticky left-0 z-10 max-w-[130px] ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className={`text-sm truncate ${fila.color}`} title={fila.label}>
                             {fila.label}
                           </div>
                         </td>
                         {datos.map((dato) => (
-                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center ${fila.color}`}>
+                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color}`}>
                             {formatCurrencyCompact(dato[fila.id] || 0)}
                           </td>
                         ))}
-                        <td className={`px-3 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                        <td className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color} bg-slate-100`}>
                           {formatCurrency(totales[fila.id] || 0)}
                         </td>
                       </tr>
@@ -566,18 +564,17 @@ const TableroGeneralSection = () => {
                     {/* Filas expandidas - Costos */}
                     {isCostosRow && costosExpanded && filasCostos.map((fila, idx) => (
                       <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                        {/* Columna Categoría */}
-                        <td className={`px-4 py-2 pl-8 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
-                          <div className={`text-sm ${fila.color}`}>
+                        <td className={`px-4 py-2 pl-8 sticky left-0 z-10 max-w-[130px] ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className={`text-sm truncate ${fila.color}`} title={fila.label}>
                             {fila.label}
                           </div>
                         </td>
                         {datos.map((dato) => (
-                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center ${fila.color}`}>
+                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color}`}>
                             {formatCurrencyCompact(dato[fila.id] || 0)}
                           </td>
                         ))}
-                        <td className={`px-3 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                        <td className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color} bg-slate-100`}>
                           {formatCurrency(totales[fila.id] || 0)}
                         </td>
                       </tr>
@@ -586,18 +583,17 @@ const TableroGeneralSection = () => {
                     {/* Filas expandidas - Gastos */}
                     {isGastosRow && gastosExpanded && filasGastos.map((fila, idx) => (
                       <tr key={fila.id} className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
-                        {/* Columna Categoría */}
-                        <td className={`px-4 py-2 pl-8 sticky left-0 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
-                          <div className={`text-sm ${fila.color}`}>
+                        <td className={`px-4 py-2 pl-8 sticky left-0 z-10 max-w-[130px] ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                          <div className={`text-sm truncate ${fila.color}`} title={fila.label}>
                             {fila.label}
                           </div>
                         </td>
                         {datos.map((dato) => (
-                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center ${fila.color}`}>
+                          <td key={dato.mes} className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color}`}>
                             {formatCurrencyCompact(dato[fila.id] || 0)}
                           </td>
                         ))}
-                        <td className={`px-3 py-2 text-sm text-center ${fila.color} bg-slate-100`}>
+                        <td className={`px-3 py-2 text-sm text-center whitespace-nowrap ${fila.color} bg-slate-100`}>
                           {formatCurrency(totales[fila.id] || 0)}
                         </td>
                       </tr>
@@ -610,8 +606,8 @@ const TableroGeneralSection = () => {
         </div>
 
         {/* Gráfico */}
-        <div className="mt-8">
-          <ResponsiveContainer width="100%" height={400}>
+        <div className="mt-8 h-64 sm:h-80 lg:h-96">
+          <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={datos}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis

@@ -231,7 +231,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                   {/* Header de la lista de pedidos */}
                   <div className="flex items-center gap-3 px-4 py-2 bg-slate-200 border-y border-slate-300 sticky top-0 z-10">
                     <div className="w-[44px] shrink-0"></div>
-                    <span className="text-xs font-semibold text-slate-600 uppercase w-24 shrink-0">Pedido</span>
+                    <span className="text-xs font-semibold text-slate-600 uppercase w-24 shrink-0">Invoice</span>
                     <span className="text-xs font-semibold text-slate-600 uppercase w-24 shrink-0">Logística</span>
                     <span className="text-xs font-semibold text-slate-600 uppercase flex-1 text-center">Descripción</span>
                     <div className="flex gap-4 ml-auto items-center shrink-0">
@@ -269,18 +269,18 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                               />
                             </div>
                             <div className="w-24 flex flex-col shrink-0">
-                              <span className="font-mono text-sm font-semibold text-slate-700 truncate" title={recibo.numero_recibo}>{recibo.numero_recibo}</span>
+                              <span className="font-mono text-sm font-semibold text-slate-700 truncate" title={recibo.numero_invoice || recibo.numero_recibo}>{recibo.numero_invoice || recibo.numero_recibo}</span>
                               <span className="text-[10px] text-slate-400">{formatearFechaDisplay(recibo.fecha_compra)}</span>
                             </div>
-                            <span className="text-sm text-slate-500 w-24 shrink-0 truncate" title={recibo.proveedores?.nombre || 'Sin proveedor'}>
-                              {recibo.proveedores?.nombre || 'Sin proveedor'}
+                            <span className="text-sm text-slate-500 w-24 shrink-0 truncate" title={recibo.empresa_logistica || 'Sin logística'}>
+                              {recibo.empresa_logistica || 'Sin logística'}
                             </span>
                             <span className="text-sm text-slate-600 truncate flex-1 text-center" title={recibo.observaciones || 'Sin descripción'}>
                               {recibo.observaciones || 'Sin descripción'}
                             </span>
                             
                             <div className="flex gap-4 ml-auto items-center shrink-0">
-                              <span className="text-sm font-medium text-slate-600 w-20 text-center">{items.length}</span>
+                              <span className="text-sm font-medium text-slate-600 w-20 text-center">{items.reduce((sum, i) => sum + (i.cantidad || 1), 0)}</span>
                               <span className="text-sm font-medium text-slate-700 w-20 text-center" title="Precio total">
                                 U$ {Math.round(precioTotal)}
                               </span>

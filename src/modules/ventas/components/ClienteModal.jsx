@@ -130,198 +130,160 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
   // Usar Portal para evitar conflictos de z-index
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-300">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-end sm:items-center justify-center z-[9999] sm:p-4">
+      <div className="bg-white w-full sm:max-w-2xl sm:rounded border border-slate-300 flex flex-col max-h-[95vh] sm:max-h-[90vh] rounded-t-xl sm:rounded">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-800 flex items-center space-x-2">
-            <User className="w-6 h-6 text-emerald-600" />
-            <span>{cliente ? 'Editar Cliente' : 'Nuevo Cliente'}</span>
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
+        <div className="bg-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between shrink-0 rounded-t-xl sm:rounded-t">
+          <div className="flex items-center gap-2 text-white">
+            <User className="w-5 h-5" />
+            <h2 className="text-base font-semibold">{cliente ? 'Editar Cliente' : 'Nuevo Cliente'}</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Nombre y Apellido */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <User className="w-4 h-4 inline mr-1" />
-                Nombre *
-              </label>
-              <input
-                type="text"
-                value={formData.nombre}
-                onChange={(e) => handleChange('nombre', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.nombre ? 'border-red-500' : 'border-slate-200'
-                  }`}
-                placeholder="Ingresa el nombre"
-              />
-              {errors.nombre && (
-                <p className="text-red-500 text-sm mt-1">{errors.nombre}</p>
-              )}
+        {/* Form — scrollable */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="overflow-y-auto flex-1 px-4 sm:px-6 py-4 space-y-4">
+
+            {/* Nombre y Apellido — siempre 2 columnas */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => handleChange('nombre', e.target.value)}
+                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.nombre ? 'border-red-500' : 'border-slate-200'}`}
+                  placeholder="Nombre"
+                />
+                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Apellido *</label>
+                <input
+                  type="text"
+                  value={formData.apellido}
+                  onChange={(e) => handleChange('apellido', e.target.value)}
+                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.apellido ? 'border-red-500' : 'border-slate-200'}`}
+                  placeholder="Apellido"
+                />
+                {errors.apellido && <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>}
+              </div>
             </div>
 
+            {/* Email y Teléfono */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <Mail className="w-3.5 h-3.5 inline mr-1" />Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.email ? 'border-red-500' : 'border-slate-200'}`}
+                  placeholder="ejemplo@email.com"
+                />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <Phone className="w-3.5 h-3.5 inline mr-1" />Teléfono
+                </label>
+                <input
+                  type="tel"
+                  value={formData.telefono}
+                  onChange={(e) => handleChange('telefono', e.target.value)}
+                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.telefono ? 'border-red-500' : 'border-slate-200'}`}
+                  placeholder="+54 221 123-4567"
+                />
+                {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
+              </div>
+            </div>
+
+            {/* Cumpleaños y Procedencia */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <Calendar className="w-3.5 h-3.5 inline mr-1" />Cumpleaños
+                </label>
+                <input
+                  type="date"
+                  value={formData.cumpleanos}
+                  onChange={(e) => handleChange('cumpleanos', e.target.value)}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <MapPin className="w-3.5 h-3.5 inline mr-1" />Procedencia
+                </label>
+                <select
+                  value={formData.procedencia}
+                  onChange={(e) => handleChange('procedencia', e.target.value)}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  {procedenciaOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label} {option.icon}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Referidor */}
+            {formData.procedencia === 'referidos' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">¿Quién lo refirió? *</label>
+                <ClienteSelector
+                  selectedCliente={clienteReferidor}
+                  onSelectCliente={(c) => { setClienteReferidor(c); handleChange('referido_por', c?.id || null); }}
+                  required={true}
+                />
+                {errors.referido_por && <p className="text-red-500 text-xs mt-1">{errors.referido_por}</p>}
+              </div>
+            )}
+
+            {/* Profesión */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <User className="w-4 h-4 inline mr-1" />
-                Apellido *
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                <Briefcase className="w-3.5 h-3.5 inline mr-1" />Profesión
               </label>
-              <input
-                type="text"
-                value={formData.apellido}
-                onChange={(e) => handleChange('apellido', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.apellido ? 'border-red-500' : 'border-slate-200'
-                  }`}
-                placeholder="Ingresa el apellido"
+              <ProfesionSelector value={formData.profesion} onChange={(val) => handleChange('profesion', val)} />
+            </div>
+
+            {/* Notas */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                <FileText className="w-3.5 h-3.5 inline mr-1" />Notas
+              </label>
+              <textarea
+                value={formData.notas}
+                onChange={(e) => handleChange('notas', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Notas adicionales..."
               />
-              {errors.apellido && (
-                <p className="text-red-500 text-sm mt-1">{errors.apellido}</p>
-              )}
             </div>
           </div>
 
-          {/* Email y Teléfono */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.email ? 'border-red-500' : 'border-slate-200'
-                  }`}
-                placeholder="ejemplo@email.com"
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <Phone className="w-4 h-4 inline mr-1" />
-                Teléfono
-              </label>
-              <input
-                type="tel"
-                value={formData.telefono}
-                onChange={(e) => handleChange('telefono', e.target.value)}
-                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.telefono ? 'border-red-500' : 'border-slate-200'
-                  }`}
-                placeholder="+54 221 123-4567"
-              />
-              {errors.telefono && (
-                <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Cumpleaños y Procedencia */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                Cumpleaños
-              </label>
-              <input
-                type="date"
-                value={formData.cumpleanos}
-                onChange={(e) => handleChange('cumpleanos', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" />
-                Procedencia
-              </label>
-              <select
-                value={formData.procedencia}
-                onChange={(e) => handleChange('procedencia', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Seleccionar...</option>
-                {procedenciaOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label} {option.icon}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Selector de Cliente Referidor - Solo visible cuando procedencia es 'referidos' */}
-          {formData.procedencia === 'referidos' && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                🤝 ¿Quién lo refirió? *
-              </label>
-              <ClienteSelector
-                selectedCliente={clienteReferidor}
-                onSelectCliente={(cliente) => {
-                  setClienteReferidor(cliente);
-                  handleChange('referido_por', cliente?.id || null);
-                }}
-                required={true}
-              />
-              {errors.referido_por && (
-                <p className="text-red-500 text-sm mt-1">{errors.referido_por}</p>
-              )}
-            </div>
-          )}
-
-          {/* Profesión */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <Briefcase className="w-4 h-4 inline mr-1" />
-              Profesión
-            </label>
-            <ProfesionSelector
-              value={formData.profesion}
-              onChange={(val) => handleChange('profesion', val)}
-            />
-          </div>
-
-          {/* Notas */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              <FileText className="w-4 h-4 inline mr-1" />
-              Notas
-            </label>
-            <textarea
-              value={formData.notas}
-              onChange={(e) => handleChange('notas', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder="Notas adicionales sobre el cliente..."
-            />
-          </div>
-
-          {/* Botones */}
-          <div className="flex space-x-3 pt-4 border-t border-slate-200">
+          {/* Footer sticky */}
+          <div className="shrink-0 px-4 sm:px-6 py-3 border-t border-slate-200 flex gap-3 bg-white">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded hover:bg-slate-50 transition-colors"
               disabled={loading}
+              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Guardando...' : cliente ? 'Actualizar' : 'Crear Cliente'}
             </button>

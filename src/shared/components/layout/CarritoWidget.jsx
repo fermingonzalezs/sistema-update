@@ -948,9 +948,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <thead className="bg-slate-800 text-white">
                           <tr>
                             <th className="px-4 py-2 text-left font-semibold uppercase w-1/3">Modelo</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Categoría</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Serial</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Color</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase hidden sm:table-cell">Categoría</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase hidden md:table-cell">Serial</th>
+                            <th className="px-4 py-2 text-center font-semibold uppercase hidden md:table-cell">Color</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Cant.</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Precio</th>
                             <th className="px-4 py-2 text-center font-semibold uppercase">Subtotal</th>
@@ -976,11 +976,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                     </span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-center text-slate-700 capitalize">{obtenerCategoria()}</td>
-                                <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs">
+                                <td className="px-4 py-3 text-center text-slate-700 capitalize hidden sm:table-cell">{obtenerCategoria()}</td>
+                                <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs hidden md:table-cell">
                                   {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-center text-slate-600 capitalize">{item.producto.color || '-'}</td>
+                                <td className="px-4 py-3 text-center text-slate-600 capitalize hidden md:table-cell">{item.producto.color || '-'}</td>
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center space-x-1">
                                     <button
@@ -1022,15 +1022,10 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               </tr>
                             );
                           })}
-                          {/* Fila de Total alineada con subtotales */}
+                          {/* Fila de Total */}
                           <tr className="bg-slate-100 border-t-2 border-slate-300">
-                            <td colSpan="5" className="px-4 py-3 text-right font-bold text-slate-600 uppercase">
-                            </td>
-                            <td className="px-4 py-3 text-center font-bold text-slate-800 uppercase">
-                              Total
-                            </td>
-                            <td className="px-4 py-3 text-center font-bold text-lg text-emerald-700">
-                              U${Math.round(calcularTotal())}
+                            <td colSpan="7" className="px-4 py-3 text-right font-bold text-slate-800 uppercase">
+                              Total: <span className="text-emerald-700 text-lg ml-2">U${Math.round(calcularTotal())}</span>
                             </td>
                             <td></td>
                           </tr>
@@ -1083,7 +1078,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   </button>
                 </div>
 
-                <form onSubmit={handleProcesarVenta} className="p-6 space-y-6">
+                <form onSubmit={handleProcesarVenta} className="p-4 md:p-6 space-y-6">
                   {/* ✅ Selector de cliente */}
                   <div className="space-y-4">
                     <div className="bg-slate-800 rounded p-3 mb-4">
@@ -1113,12 +1108,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     ) : (
                       <>
                         <div className="border border-slate-200 rounded overflow-hidden">
+                          <div className="overflow-x-auto">
                           <table className="w-full">
                             <thead className="bg-slate-600 text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
-                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Color</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider hidden md:table-cell">Serial</th>
+                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider hidden md:table-cell">Color</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-16">Cant.</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Precio Unit.</th>
                                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Subtotal</th>
@@ -1136,12 +1132,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   </td>
 
                                   {/* Serial */}
-                                  <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs">
+                                  <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs hidden md:table-cell">
                                     {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
                                   </td>
 
                                   {/* Color */}
-                                  <td className="px-4 py-3 text-center text-slate-600 capitalize text-sm">
+                                  <td className="px-4 py-3 text-center text-slate-600 capitalize text-sm hidden md:table-cell">
                                     {item.producto.color || '-'}
                                   </td>
 
@@ -1257,6 +1253,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                               ))}
                             </tbody>
                           </table>
+                          </div>
                         </div>
 
                       </>
@@ -1272,7 +1269,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
 
                     {/* Resumen de Cotización */}
-                    <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-3 gap-4 mb-4">
+                    <div className="bg-slate-100 border border-slate-200 rounded p-3 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <p className="text-xs text-slate-600 font-medium uppercase mb-1">Total USD</p>
                         <p className="text-lg font-bold text-slate-800">U${Math.round(calcularTotal())}</p>
@@ -1728,7 +1725,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     </div>
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       {/* Primera fila: Cliente, Productos, Vendedor */}
-                      <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
                         <div className="text-center">
                           <p className="text-xs text-slate-600 font-medium uppercase mb-1">Cliente</p>
                           {clienteSeleccionado && (
@@ -1746,7 +1743,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       {/* Segunda fila: Sucursal, Fecha, Total USD */}
-                      <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
                         <div className="text-center">
                           <p className="text-xs text-slate-600 font-medium uppercase mb-1">Sucursal</p>
                           <p className="text-sm font-medium text-slate-800">{datosCliente.sucursal.replace('_', ' ').toUpperCase()}</p>
