@@ -169,34 +169,33 @@ const Clientes = () => {
       </div>
 
       {/* Búsqueda */}
-      <div className="flex justify-between items-center bg-white p-6 rounded border border-slate-200 mb-6">
-        <div className="relative max-w-md">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-6 rounded border border-slate-200 mb-6">
+        <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Buscar por nombre, email, teléfono..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-100 pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
           />
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded flex items-center gap-2 font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nuevo Cliente
-          </button>
-        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded flex items-center gap-2 font-medium transition-colors whitespace-nowrap w-full sm:w-auto justify-center"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Nuevo Cliente</span>
+          <span className="sm:hidden">Nuevo</span>
+        </button>
       </div>
 
-      {/* Gráfico + Cumpleaños lado a lado */}
-      <div className="flex gap-6 mb-6 h-72">
-        <div className="flex-1 min-w-0 min-h-0">
+      {/* Gráfico + Cumpleaños */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6">
+        <div className="flex-1 min-w-0 min-h-0 h-64 sm:h-72">
           <GraficoEdadesClientes clientes={clientes} />
         </div>
-        <div className="flex-1 min-w-0 min-h-0">
+        <div className="flex-1 min-w-0 min-h-0 h-64 sm:h-72">
           <CumpleanosProximos getProximosCumpleanosConHistorial={getProximosCumpleanosConHistorial} />
         </div>
       </div>
@@ -233,13 +232,13 @@ const Clientes = () => {
               return (
                 <div
                   key={cliente.id}
-                  className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="p-3 sm:p-4 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => handleVerHistorial(cliente)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-slate-800">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h4 className="font-semibold text-slate-800 text-sm sm:text-base">
                           {cliente.nombre} {cliente.apellido}
                         </h4>
                         {cliente.procedencia && (
@@ -249,18 +248,18 @@ const Clientes = () => {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm text-slate-600">
                         <div className="space-y-1">
                           {cliente.telefono && (
                             <div className="flex items-center space-x-1">
-                              <Phone className="w-4 h-4" />
-                              <span>{cliente.telefono}</span>
+                              <Phone className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{cliente.telefono}</span>
                             </div>
                           )}
                           {cliente.email && (
                             <div className="flex items-center space-x-1">
-                              <Mail className="w-4 h-4" />
-                              <span>{cliente.email}</span>
+                              <Mail className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{cliente.email}</span>
                             </div>
                           )}
                         </div>
@@ -268,13 +267,13 @@ const Clientes = () => {
                         <div className="space-y-1">
                           {cliente.profesion && (
                             <div className="flex items-center space-x-1">
-                              <Briefcase className="w-4 h-4" />
-                              <span>{cliente.profesion}</span>
+                              <Briefcase className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{cliente.profesion}</span>
                             </div>
                           )}
                           {cliente.cumpleanos && (
                             <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
+                              <Calendar className="w-4 h-4 shrink-0" />
                               <span>Cumple: {formatFecha(cliente.cumpleanos)}</span>
                             </div>
                           )}
@@ -283,13 +282,13 @@ const Clientes = () => {
                         <div className="text-xs text-slate-500">
                           <p>Creado: {formatFecha(cliente.fecha_creacion)}</p>
                           {cliente.notas && (
-                            <p className="mt-1 italic">"{cliente.notas}"</p>
+                            <p className="mt-1 italic truncate">"{cliente.notas}"</p>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center space-x-2 sm:ml-4 shrink-0 self-end sm:self-start">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

@@ -1155,7 +1155,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
       {/* Tabs para tipos de productos */}
       <div className="bg-white rounded border border-slate-200">
         <div className="p-4">
-          <div className="flex space-x-1 bg-slate-100 p-1 rounded">
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded">
             {['computadora', 'celular', 'otro'].map((tipo) => {
               const config = getTipoConfig(tipo);
               const Icon = config.icon;
@@ -1163,14 +1163,14 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                 <button
                   key={tipo}
                   onClick={() => setTipoActivo(tipo)}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded transition-colors ${tipoActivo === tipo
+                  className={`flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-4 rounded transition-colors ${tipoActivo === tipo
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-700 hover:bg-slate-200'
                     }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{config.label}</span>
-                  <span className={`text-sm px-2 py-0.5 rounded ${tipoActivo === tipo
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span className="font-medium text-xs sm:text-sm truncate">{config.label}</span>
+                  <span className={`text-xs px-1 sm:px-2 py-0.5 rounded shrink-0 ${tipoActivo === tipo
                     ? 'bg-emerald-700 text-white'
                     : 'bg-slate-200 text-slate-600'
                     }`}>
@@ -1213,7 +1213,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
         <div className="p-4 bg-slate-50 border-b border-slate-200">
           {/* Botones de filtros rápidos */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-4">
             <button
               onClick={aplicarFiltroiPhoneUsado}
               className="px-3 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
@@ -1628,23 +1628,26 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           {/* Búsqueda y controles */}
           <div className="bg-white rounded border border-slate-200">
             <div className="px-4 py-3 bg-slate-800 text-white border-b border-slate-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold flex items-center space-x-2">
-                  <span>{tipoConfig.label} Disponibles</span>
-                  <span className="bg-emerald-600 px-2 py-0.5 rounded text-xs">
+              <div className="flex flex-row items-center justify-between gap-2">
+                <h3 className="text-sm sm:text-base font-semibold flex items-center space-x-2 min-w-0">
+                  <span className="truncate">
+                    {tipoConfig.label}
+                    <span className="hidden sm:inline"> Disponibles</span>
+                  </span>
+                  <span className="bg-emerald-600 px-2 py-0.5 rounded text-xs shrink-0">
                     {productosFiltradosYOrdenados.length}
                   </span>
                 </h3>
                 <button
                   onClick={seleccionarTodos}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
                     ? 'bg-slate-700 text-white hover:bg-slate-600'
                     : 'bg-emerald-600 text-white hover:bg-emerald-700'
                     }`}
                 >
                   {seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0
-                    ? 'Deseleccionar Todos'
-                    : 'Seleccionar Todos'
+                    ? <><span className="hidden sm:inline">Deseleccionar</span><span className="sm:hidden">Desel.</span></>
+                    : <><span className="hidden sm:inline">Seleccionar todos</span><span className="sm:hidden">Sel. todos</span></>
                   }
                 </button>
               </div>
@@ -1695,8 +1698,8 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
             </div>
           </div>
 
-          {/* Tabla de productos */}
-          <div className="bg-white rounded border border-slate-200 overflow-hidden">
+          {/* Tabla de productos — DESKTOP */}
+          <div className="hidden lg:block bg-white rounded border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
               <table className="w-full">
                 <thead className="bg-slate-800 text-white sticky top-0 z-10">
@@ -1756,29 +1759,74 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
             )}
           </div>
+
+          {/* Vista de tarjetas — MÓVIL */}
+          <div className="lg:hidden space-y-3">
+            {productosFiltradosYOrdenados.map((producto) => (
+              <div key={producto.id} className="bg-white border border-slate-200 rounded p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.has(producto.id)}
+                      onChange={() => toggleSeleccion(producto.id)}
+                      className="rounded border-slate-300 shrink-0 mt-0.5"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">
+                        {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono truncate">
+                        {producto.tipo === 'otro' ? `ID: ${producto.id}` : (producto.serial || 'Sin serial')}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-emerald-700 shrink-0">
+                    {monedaPrecio === 'USD'
+                      ? `USD ${Math.round(producto.precio_venta_usd || 0)}`
+                      : `$${Math.round((producto.precio_venta_usd || 0) * cotizacionDolar).toLocaleString('es-AR')}`
+                    }
+                  </p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded p-2.5">
+                  <p className="text-xs text-slate-700 font-mono whitespace-pre-wrap break-words leading-relaxed">
+                    {convertirPrecioEnCopy(producto.copy, producto)}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {productosFiltradosYOrdenados.length === 0 && (
+              <div className="text-center py-12 bg-white border border-slate-200 rounded">
+                {React.createElement(tipoConfig.icon, { className: "w-12 h-12 text-slate-300 mx-auto mb-4" })}
+                <p className="text-slate-500">No se encontraron {tipoConfig.label.toLowerCase()}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
     {/* Lista Única - Combinada cross-tipo */}
     <div className="bg-white border border-slate-200 rounded mt-4">
       {/* Header */}
-      <div className="bg-slate-800 p-4 text-white flex justify-between items-center rounded-t">
-        <div className="flex items-center space-x-3">
-          <Layers className="w-5 h-5 text-emerald-400" />
-          <h3 className="text-base font-semibold">Lista Única</h3>
+      <div className="bg-slate-800 p-4 text-white flex flex-row items-center justify-between gap-2 rounded-t">
+        <div className="flex items-center space-x-3 min-w-0">
+          <Layers className="w-5 h-5 text-emerald-400 shrink-0" />
+          <h3 className="text-sm sm:text-base font-semibold truncate">Lista Única</h3>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setCategoriasSeleccionadas(new Set(categoriasDisponibles.map(c => c.key)))}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors whitespace-nowrap"
           >
             <Check className="w-3 h-3" />
-            Seleccionar todos
+            <span className="hidden sm:inline">Seleccionar todos</span>
+            <span className="sm:hidden">Todos</span>
           </button>
           {categoriasSeleccionadas.size > 0 && (
             <button
               onClick={() => setCategoriasSeleccionadas(new Set())}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors"
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded text-xs transition-colors whitespace-nowrap"
             >
               <X className="w-3 h-3" />
               Limpiar ({categoriasSeleccionadas.size})
@@ -1796,20 +1844,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <Monitor className="w-4 h-4 text-slate-500" />
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Notebooks</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'computadora').map(cat => (
                 <button
                   key={cat.key}
                   onClick={() => toggleCategoriaPersonalizada(cat.key)}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 min-w-0 ${
                     categoriasSeleccionadas.has(cat.key)
                       ? 'bg-emerald-600 text-white'
                       : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
-                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
-                  {cat.label}
-                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3 shrink-0" />}
+                  <span className="truncate uppercase">{cat.label}</span>
+                  <span className={`text-xs shrink-0 ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
                     ({cat.count})
                   </span>
                 </button>
@@ -1825,20 +1873,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <Smartphone className="w-4 h-4 text-slate-500" />
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Celulares</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'celular').map(cat => (
                 <button
                   key={cat.key}
                   onClick={() => toggleCategoriaPersonalizada(cat.key)}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 min-w-0 ${
                     categoriasSeleccionadas.has(cat.key)
                       ? 'bg-emerald-600 text-white'
                       : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
-                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
-                  {cat.label}
-                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3 shrink-0" />}
+                  <span className="truncate uppercase">{cat.label}</span>
+                  <span className={`text-xs shrink-0 ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
                     ({cat.count})
                   </span>
                 </button>
@@ -1854,20 +1902,20 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <Box className="w-4 h-4 text-slate-500" />
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Otros</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'otro').map(cat => (
                 <button
                   key={cat.key}
                   onClick={() => toggleCategoriaPersonalizada(cat.key)}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 min-w-0 ${
                     categoriasSeleccionadas.has(cat.key)
                       ? 'bg-emerald-600 text-white'
                       : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
-                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3" />}
-                  {cat.label}
-                  <span className={`text-xs ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
+                  {categoriasSeleccionadas.has(cat.key) && <Check className="w-3 h-3 shrink-0" />}
+                  <span className="truncate uppercase">{cat.label}</span>
+                  <span className={`text-xs shrink-0 ${categoriasSeleccionadas.has(cat.key) ? 'text-emerald-200' : 'text-slate-400'}`}>
                     ({cat.count})
                   </span>
                 </button>

@@ -639,30 +639,11 @@ const RegistrarVentaSection = () => {
   };
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white rounded border border-slate-200 mb-6 shadow-sm">
-        <div className="p-6 bg-slate-800 text-white rounded-t">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <ShoppingCart className="w-6 h-6 text-white" />
-              <div>
-                <h2 className="text-2xl font-semibold">Registrar Venta</h2>
-                <p className="text-slate-300 mt-1">Seleccionar productos y proceder al carrito</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-slate-300 font-medium uppercase tracking-wider mb-1">Items seleccionados</div>
-              <div className="text-3xl font-bold text-white">{itemsVenta.length}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-220px)]">
+    <div className="p-4 sm:p-6 bg-slate-50 min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
         {/* COLUMNA IZQUIERDA: Selectores y Productos */}
-        <div className="lg:col-span-2 flex flex-col gap-6 h-full overflow-hidden">
+        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
 
           {/* Selector de Cliente */}
           <div className="bg-white p-4 rounded border border-slate-200 shadow-sm relative z-10">
@@ -675,7 +656,7 @@ const RegistrarVentaSection = () => {
           </div>
 
           {/* Selector de Productos */}
-          <div className="bg-white rounded border border-slate-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm flex-1 flex flex-col lg:overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center space-x-3">
                 <Package className="w-5 h-5 text-slate-600" />
@@ -683,9 +664,9 @@ const RegistrarVentaSection = () => {
               </div>
             </div>
 
-            <div className="p-4 flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 flex-1 flex flex-col lg:overflow-hidden">
               {/* Categorías */}
-              <div className="grid grid-cols-5 gap-3 mb-4">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-4">
                 {categorias.map((categoria) => {
                   const IconComponent = categoria.icon;
                   const isSelected = categoriaSeleccionada === categoria.id;
@@ -696,16 +677,16 @@ const RegistrarVentaSection = () => {
                         setCategoriaSeleccionada(categoria.id);
                         setBusquedaProducto('');
                       }}
-                      className={`p-3 rounded border transition-all duration-200 flex flex-col items-center justify-center ${isSelected
+                      className={`p-2 sm:p-3 rounded border transition-all duration-200 flex flex-col items-center justify-center min-w-0 ${isSelected
                         ? 'bg-slate-100 border-slate-400 text-slate-800 shadow-sm'
                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                         }`}
                     >
-                      <div className={`w-8 h-8 mb-2 rounded-full flex items-center justify-center ${isSelected ? 'bg-white' : 'bg-slate-100'
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 rounded-full flex items-center justify-center ${isSelected ? 'bg-white' : 'bg-slate-100'
                         }`}>
-                        <IconComponent className={`w-4 h-4 ${isSelected ? 'text-slate-800' : 'text-slate-500'}`} />
+                        <IconComponent className={`w-3 h-3 sm:w-4 sm:h-4 ${isSelected ? 'text-slate-800' : 'text-slate-500'}`} />
                       </div>
-                      <span className="text-xs font-semibold">{categoria.nombre}</span>
+                      <span className="text-[10px] sm:text-xs font-semibold truncate w-full text-center">{categoria.nombre}</span>
                     </button>
                   );
                 })}
@@ -731,7 +712,7 @@ const RegistrarVentaSection = () => {
               )}
 
               {/* Lista de productos o formulario custom */}
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/30">
+              <div className="space-y-3 lg:max-h-[600px] lg:overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/30">
                 {!categoriaSeleccionada ? (
                   <div className="text-center py-16 px-4 rounded border border-slate-200 border-dashed bg-slate-50">
                     <div className="text-center">
@@ -1030,15 +1011,15 @@ const RegistrarVentaSection = () => {
                     return (
                       <div
                         key={producto.id}
-                        className="group flex items-center justify-between bg-white p-4 rounded border border-slate-200 hover:border-emerald-500/50 hover:shadow-md transition-all duration-200 animate-in fade-in"
+                        className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white p-3 sm:p-4 rounded border border-slate-200 hover:border-emerald-500/50 hover:shadow-md transition-all duration-200 animate-in fade-in gap-2 sm:gap-0"
                       >
                         <div className="flex-1 min-w-0">
                           <div
-                            className="font-bold text-slate-700 text-sm group-hover:text-emerald-700 transition-colors truncate"
+                            className="font-bold text-slate-700 text-xs sm:text-sm group-hover:text-emerald-700 transition-colors truncate"
                             title={copyProducto}
                           >{copyProducto}</div>
 
-                          <div className="flex items-center gap-3 mt-1">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
                             {producto.color && (
                               <span className="text-xs text-slate-500 font-mono">{producto.color}</span>
                             )}
@@ -1052,17 +1033,17 @@ const RegistrarVentaSection = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3 ml-4">
+                        <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3 sm:ml-4 mt-1 sm:mt-0">
                           <div className="text-right">
-                            <div className="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">U${(parseFloat(producto.precio_venta_usd || producto.precio) || 0).toFixed(2)}</div>
+                            <div className="font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 text-xs sm:text-sm">U${(parseFloat(producto.precio_venta_usd || producto.precio) || 0).toFixed(2)}</div>
                           </div>
                           <button
                             onClick={() => agregarProductoStock(producto)}
                             disabled={producto.stock <= 0}
-                            className="bg-white hover:bg-emerald-600 border border-slate-200 hover:border-emerald-600 text-slate-600 hover:text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed p-2 rounded transition-all shadow-sm group-hover:scale-105"
+                            className="bg-white hover:bg-emerald-600 border border-slate-200 hover:border-emerald-600 text-slate-600 hover:text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed p-1.5 sm:p-2 rounded transition-all shadow-sm group-hover:scale-105"
                             title={producto.stock > 0 ? "Agregar al carrito" : "Sin stock"}
                           >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                         </div>
                       </div>
@@ -1076,17 +1057,17 @@ const RegistrarVentaSection = () => {
         </div>
 
         {/* COLUMNA DERECHA: Items Seleccionados */}
-        <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
-          <div className="p-5 border-b border-slate-200 bg-slate-50">
+        <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="p-3 sm:p-5 border-b border-slate-200 bg-slate-50">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-white rounded border border-slate-200 shadow-sm">
-                  <ShoppingCart className="w-5 h-5 text-emerald-600" />
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                <div className="p-1.5 sm:p-2 bg-white rounded border border-slate-200 shadow-sm shrink-0">
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                 </div>
-                <h3 className="font-bold text-slate-700 text-lg">Items Seleccionados</h3>
+                <h3 className="font-bold text-slate-700 text-sm sm:text-lg truncate">Items Seleccionados</h3>
               </div>
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
-                {itemsVenta.length} item{itemsVenta.length !== 1 ? 's' : ''}
+              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 sm:px-3 py-1 rounded-full border border-emerald-200 shrink-0">
+                {itemsVenta.length}
               </span>
             </div>
           </div>
@@ -1102,12 +1083,12 @@ const RegistrarVentaSection = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px] pr-2 custom-scrollbar">
+                <div className="space-y-3 flex-1 overflow-y-auto lg:max-h-[500px] pr-2 custom-scrollbar">
                   {itemsVenta.map((item) => (
-                    <div key={`${item.id}-${item.tipo}`} className="flex items-center justify-between bg-white p-4 rounded border border-slate-200 hover:border-slate-300 transition-colors group shadow-sm">
+                    <div key={`${item.id}-${item.tipo}`} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-3 sm:p-4 rounded border border-slate-200 hover:border-slate-300 transition-colors group shadow-sm gap-1 sm:gap-0">
                       <div className="flex-1 min-w-0">
                         <div
-                          className="font-bold text-slate-700 text-sm truncate"
+                          className="font-bold text-slate-700 text-xs sm:text-sm truncate"
                           title={item.producto ? (() => { try { let t = item.tipo === 'computadora' ? 'notebook_catalogo' : item.tipo === 'celular' ? 'celular_completo' : 'otro_completo'; return generateCopy(item.producto, { tipo: t }); } catch { return item.descripcion; } })() : item.descripcion}
                         >
                           {item.producto ? (() => {
@@ -1119,41 +1100,41 @@ const RegistrarVentaSection = () => {
                             } catch { return item.descripcion; }
                           })() : item.descripcion}
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
                           {item.producto?.color && <span className="text-xs text-slate-500 font-mono">{item.producto.color}</span>}
                           {(item.producto?.serial || item.serial) && <span className="text-xs text-slate-400 font-mono bg-slate-100 px-1.5 rounded">{item.producto?.serial || item.serial}</span>}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2 ml-2 shrink-0">
+                      <div className="flex items-center justify-between sm:justify-end space-x-2 sm:ml-2 mt-1 sm:mt-0 shrink-0">
                         <button
                           onClick={() => eliminarItem(item.id, item.tipo)}
-                          className="text-slate-400 hover:text-red-500 p-2 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                          className="text-slate-400 hover:text-red-500 p-1.5 sm:p-2 hover:bg-red-50 rounded transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <div className="font-medium text-emerald-700 text-sm min-w-[60px] text-right">U${Math.round(parseFloat(item.total) || 0)}</div>
+                        <div className="font-medium text-emerald-700 text-xs sm:text-sm min-w-[60px] text-right">U${Math.round(parseFloat(item.total) || 0)}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Total */}
-                <div className="bg-white border border-slate-200 px-4 py-3 rounded mt-4">
+                <div className="bg-white border border-slate-200 px-3 sm:px-4 py-3 rounded mt-4">
                   <div className="flex justify-between items-center mb-3">
                     <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total</div>
-                    <div className="text-xl font-bold text-emerald-700">U${(parseFloat(totalVenta) || 0).toFixed(2)}</div>
+                    <div className="text-lg sm:text-xl font-bold text-emerald-700">U${(parseFloat(totalVenta) || 0).toFixed(2)}</div>
                   </div>
 
                   {/* Botón proceder */}
                   <button
                     onClick={handleProcederCarrito}
                     disabled={!clienteSeleccionado || itemsVenta.length === 0}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium text-sm transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 sm:py-2.5 rounded font-medium text-sm transition-colors flex items-center justify-center space-x-2"
                   >
-                    <ShoppingCart className="w-6 h-6" />
+                    <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Procesar Pago</span>
-                    <ArrowRight className="w-5 h-5 ml-1 opacity-70" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
                   </button>
                 </div>
               </div>
