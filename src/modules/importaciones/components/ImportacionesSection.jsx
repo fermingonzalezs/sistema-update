@@ -560,6 +560,9 @@ const ImportacionesSection = () => {
                         <td className="px-1 py-3 text-[15px] text-center text-slate-800 whitespace-nowrap">
                           {recibo.estado === ESTADOS_IMPORTACION.RECEPCIONADO ? (
                             (() => {
+                              if (recibo.tipo === 'courier_cliente' && recibo.peso_sin_caja_kg) {
+                                return <span className="font-semibold">{parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg</span>;
+                              }
                               if (recibo.peso_total_con_caja_kg) {
                                 return <span className="font-semibold">{parseFloat(recibo.peso_total_con_caja_kg).toFixed(2)} kg</span>;
                               }
@@ -584,10 +587,35 @@ const ImportacionesSection = () => {
                           )}
                         </td>
                         {(() => {
+                          if (recibo.tipo === 'courier_cliente') {
+                            const costoCourier = recibo.costo_courier_usd != null ? parseFloat(recibo.costo_courier_usd) : null;
+                            return (
+                              <>
+                                <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                  <span className="text-slate-400">-</span>
+                                </td>
+                                <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                  <span className="text-slate-400">-</span>
+                                </td>
+                                <td className="px-1 py-3 text-[15px] text-center font-semibold text-slate-800 whitespace-nowrap">
+                                  {costoCourier !== null ? `U$ ${formatNumber(costoCourier)}` : <span className="text-slate-400">-</span>}
+                                </td>
+                                <td className="px-1 py-3 text-[15px] text-center font-semibold text-emerald-700 whitespace-nowrap">
+                                  {costoCourier !== null ? `U$ ${formatNumber(costoCourier)}` : <span className="text-slate-400">-</span>}
+                                </td>
+                              </>
+                            );
+                          }
                           const fob = (recibo.importaciones_items || []).reduce((sum, i) => sum + (i.precio_total_usd || 0), 0);
                           const costoFinancieroItems = (recibo.importaciones_items || []).reduce((sum, i) => sum + (parseFloat(i.costo_financiero_usd) || 0) * (i.cantidad || 0), 0);
                           const tieneCostoFinanciero = (recibo.importaciones_items || []).some(i => i.costo_financiero_usd != null);
-                          const costoCourier = recibo.costo_total_importacion_usd != null ? parseFloat(recibo.costo_total_importacion_usd) : null;
+                          // Calcular courier desde items (refleja ediciones de ingreso); fallback al campo legacy del recibo
+                          const hasCostoEnvioItems = (recibo.importaciones_items || []).some(i => i.costo_envio_usd != null);
+                          const costoEnvioItemsTotal = hasCostoEnvioItems
+                            ? (recibo.importaciones_items || []).reduce((sum, i) => sum + (parseFloat(i.costo_envio_usd) || 0) * (i.cantidad || 0), 0)
+                            : null;
+                          const costoCourier = costoEnvioItemsTotal !== null ? costoEnvioItemsTotal
+                            : (recibo.costo_total_importacion_usd != null ? parseFloat(recibo.costo_total_importacion_usd) : null);
                           const total = fob + costoFinancieroItems + (costoCourier || 0);
                           return (
                             <>

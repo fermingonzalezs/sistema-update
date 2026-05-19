@@ -57,7 +57,9 @@
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Dell\\\\Documents\\\\sistema-update\\\\src\\\\modules\\\\importaciones\" -Recurse -File)",
       "Bash(Select-Object FullName)",
-      "Bash(ConvertTo-Json)"
+      "Bash(ConvertTo-Json)",
+      "Bash(Get-ChildItem *)",
+      "Bash(xargs ls -lh)"
     ],
     "deny": [],
     "ask": []

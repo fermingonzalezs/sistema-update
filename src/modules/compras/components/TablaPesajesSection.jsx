@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Weight, Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Weight, Plus, Pencil, Trash2, Check, X, Search } from 'lucide-react';
 import { usePesajes } from '../hooks/usePesajes';
 
 const TablaPesajesSection = () => {
@@ -12,6 +12,11 @@ const TablaPesajesSection = () => {
   const [editNombre, setEditNombre] = useState('');
   const [editPeso, setEditPeso] = useState('');
   const [guardandoEdit, setGuardandoEdit] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+
+  const pesajesFiltrados = pesajes.filter(p =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   const handleCrear = async (e) => {
     e.preventDefault();
@@ -122,6 +127,19 @@ const TablaPesajesSection = () => {
 
         {/* Tabla */}
         <div className="bg-white border border-slate-200 rounded">
+          {/* Buscador */}
+          <div className="p-3 border-b border-slate-200">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar producto..."
+                className="w-full border border-slate-200 rounded pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              />
+            </div>
+          </div>
           {loading ? (
             <div className="p-8 text-center text-slate-500 text-sm">Cargando...</div>
           ) : error ? (
@@ -140,7 +158,13 @@ const TablaPesajesSection = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {pesajes.map((p, index) => (
+                {pesajesFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-slate-400 text-sm">
+                      No se encontraron productos para "{busqueda}"
+                    </td>
+                  </tr>
+                ) : pesajesFiltrados.map((p, index) => (
                   <tr key={p.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                     {editandoId === p.id ? (
                       <>
@@ -214,7 +238,11 @@ const TablaPesajesSection = () => {
               </tbody>
               <tfoot className="bg-slate-800 text-white">
                 <tr>
-                  <td className="px-4 py-3 text-sm font-semibold">{pesajes.length} productos registrados</td>
+                  <td className="px-4 py-3 text-sm font-semibold">
+                    {busqueda
+                      ? `${pesajesFiltrados.length} de ${pesajes.length} productos`
+                      : `${pesajes.length} productos registrados`}
+                  </td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>

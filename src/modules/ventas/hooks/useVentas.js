@@ -193,6 +193,7 @@ export const ventasService = {
         observaciones: datosCliente.observaciones,
         vendedor: nombreVendedor,
         sucursal: datosCliente.sucursal,
+        tipo_venta: datosCliente.tipo_venta || 'minorista',
         fecha_venta: fechaVenta || new Date().toISOString(),
         // Destinos de pago (caja ID o alias/wallet)
         destino_pago_1: datosCliente.destino_pago_1 || null,

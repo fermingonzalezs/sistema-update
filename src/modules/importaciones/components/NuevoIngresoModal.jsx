@@ -28,6 +28,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
   const [pesosReales, setPesosReales] = useState({});          // { [itemId]: kg } — items normales
   const [pesosCourierCliente, setPesosCourierCliente] = useState({});  // { [reciboId]: kg }
   const [montosCourierCliente, setMontosCourierCliente] = useState({});  // { [reciboId]: usd }
+  const [costosCourierCliente, setCostosCourierCliente] = useState({});  // { [reciboId]: usd }
 
   // ── Separar tipos de recibos ──
   const pedidosConItems = useMemo(() =>
@@ -88,13 +89,16 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
     });
     const pesosCli = {};
     const montosCli = {};
+    const costosCli = {};
     courierClientesCompletos.forEach(r => {
       pesosCli[r.id] = '';
       montosCli[r.id] = r.monto_cobrado_usd ?? '';
+      costosCli[r.id] = r.costo_courier_usd ?? '';
     });
     setPesosReales(pesos);
     setPesosCourierCliente(pesosCli);
     setMontosCourierCliente(montosCli);
+    setCostosCourierCliente(costosCli);
     setPaso(2);
   };
 
@@ -160,7 +164,8 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
         courierClienteRecibos: courierClientesCompletos.map(r => ({
           reciboId: r.id,
           peso: pesosCourierCliente[r.id] || null,
-          monto_cobrado_usd: montosCourierCliente[r.id] || null
+          monto_cobrado_usd: montosCourierCliente[r.id] || null,
+          costo_courier_usd: costosCourierCliente[r.id] || null
         }))
       });
       onSuccess();
@@ -455,7 +460,15 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Peso c/ caja (kg)</label>
                     <input type="number" step="0.01" min="0" value={form.peso_total_con_caja_kg}
-                      onChange={e => setForm(p => ({ ...p, peso_total_con_caja_kg: e.target.value }))}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setForm(p => ({ ...p, peso_total_con_caja_kg: val }));
+                        setPesosCourierCliente(prev => {
+                          const updated = { ...prev };
+                          Object.keys(updated).forEach(id => { updated[id] = val; });
+                          return updated;
+                        });
+                      }}
                       placeholder="0.00"
                       className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     />
@@ -481,6 +494,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                         </p>
                     )}
                   </div>
+                  {itemsCompletos.length > 0 && (
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Picking / Shipping (USD)</label>
                     <input type="number" step="0.01" min="0" value={form.costo_picking_shipping_usd}
@@ -489,6 +503,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                       className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     />
                   </div>
+                  )}
                 </div>
                 {costoTotal > 0 && itemsCompletos.length > 0 && (
                   <div className="mt-4 flex items-center gap-6 text-sm">
@@ -593,6 +608,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase">Cliente</th>
                         <th className="px-4 py-2 text-left text-xs font-medium uppercase">Descripción</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Peso Pedido (kg)</th>
+                        <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Pago Courier (USD)</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Cobrado (USD)</th>
                       </tr>
                     </thead>
@@ -614,9 +630,18 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                             <input
                               type="number" step="0.001" min="0"
                               value={pesosCourierCliente[recibo.id] ?? ''}
-                              onChange={e => setPesosCourierCliente(prev => ({ ...prev, [recibo.id]: e.target.value }))}
-                              className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              disabled
+                              className="w-28 border border-slate-200 bg-slate-50 rounded px-2 py-1 text-sm text-center text-slate-500 cursor-not-allowed"
                               placeholder="0.000"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <input
+                              type="number" step="0.01" min="0"
+                              value={costosCourierCliente[recibo.id] ?? ''}
+                              onChange={e => setCostosCourierCliente(prev => ({ ...prev, [recibo.id]: e.target.value }))}
+                              className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="0.00"
                             />
                           </td>
                           <td className="px-4 py-3 text-center">

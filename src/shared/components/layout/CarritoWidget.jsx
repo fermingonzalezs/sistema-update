@@ -53,6 +53,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
     observaciones: '',
     vendedor: '',
     sucursal: 'la_plata',
+    tipo_venta: 'minorista',
     cotizacion_dolar: 1000,
     sena_monto: 0,
     sena_monto_ars: null,
@@ -713,6 +714,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
       observaciones: '',
       vendedor: '',
       sucursal: 'la_plata',
+      tipo_venta: 'minorista',
       cotizacion_dolar: datosCliente.cotizacion_dolar,
       sena_monto: 0,
       sena_monto_ars: null,
@@ -801,6 +803,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
         vendedor: datosCliente.vendedor,
         vendedor_nombre: nombreVendedor,
         sucursal: datosCliente.sucursal,
+        tipo_venta: datosCliente.tipo_venta,
         numeroTransaccion,
         fecha_venta: fechaVentaCompleta,
         sena_monto: datosCliente.sena_monto || 0,
@@ -1628,7 +1631,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </h4>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Vendedor *</label>
                         <select
@@ -1673,7 +1676,35 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
 
-                      <div className="md:col-span-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Tipo de Venta</label>
+                        <div className="flex rounded-lg overflow-hidden border border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => setDatosCliente(prev => ({ ...prev, tipo_venta: 'minorista' }))}
+                            className={`flex-1 p-3 text-sm font-medium transition-colors ${
+                              datosCliente.tipo_venta === 'minorista'
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-white text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            Minorista
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDatosCliente(prev => ({ ...prev, tipo_venta: 'mayorista' }))}
+                            className={`flex-1 p-3 text-sm font-medium transition-colors ${
+                              datosCliente.tipo_venta === 'mayorista'
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-white text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            Mayorista
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-4">
                         <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Observaciones</label>
                         <textarea
                           name="observaciones"

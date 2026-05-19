@@ -354,6 +354,9 @@ const cajasService = {
           if (cc.monto_cobrado_usd != null && cc.monto_cobrado_usd !== '') {
             updateData.monto_cobrado_usd = parseFloat(cc.monto_cobrado_usd);
           }
+          if (cc.costo_courier_usd != null && cc.costo_courier_usd !== '') {
+            updateData.costo_courier_usd = parseFloat(cc.costo_courier_usd);
+          }
           const { error: courierError } = await supabase
             .from('importaciones_recibos')
             .update(updateData)

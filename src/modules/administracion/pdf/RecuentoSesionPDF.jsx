@@ -99,7 +99,8 @@ const styles = StyleSheet.create({
 
 // Column widths
 const C = {
-  producto:    { flex: 3 },
+  producto:    { flex: 2.5 },
+  serial:      { width: 55, textAlign: 'center' },
   sis:         { width: 35, textAlign: 'center' },
   cont:        { width: 35, textAlign: 'center' },
   dif:         { width: 35, textAlign: 'center' },
@@ -112,6 +113,7 @@ const C = {
 const TableColHeader = () => (
   <View style={styles.tableHeader}>
     <Text style={[styles.tableHeaderCell, C.producto]}>Producto</Text>
+    <Text style={[styles.tableHeaderCell, C.serial]}>Serial</Text>
     <Text style={[styles.tableHeaderCell, C.sis]}>Sis.</Text>
     <Text style={[styles.tableHeaderCell, C.cont]}>Cont.</Text>
     <Text style={[styles.tableHeaderCell, C.dif]}>Dif.</Text>
@@ -140,6 +142,7 @@ const ItemRow = ({ item, index, useSistema = false }) => {
           </Text>
         ) : null}
       </View>
+      <Text style={[styles.tableCell, C.serial]}>{item.serial || '—'}</Text>
       <Text style={[styles.tableCell, C.sis]}>{item.stockSistema}</Text>
       <Text style={[styles.tableCell, C.cont]}>{item.stockContado}</Text>
       <Text style={[difStyle, C.dif]}>{difText}</Text>
@@ -154,6 +157,7 @@ const ItemRow = ({ item, index, useSistema = false }) => {
 const SubtotalRow = ({ label, totalStock, totalDifs, totalCompra, totalVenta }) => (
   <View style={styles.subtotalRow}>
     <Text style={[styles.subtotalCell, C.producto]}>SUBTOTAL {label}</Text>
+    <Text style={[styles.subtotalCell, C.serial]}></Text>
     <Text style={[styles.subtotalCell, C.sis]}></Text>
     <Text style={[styles.subtotalCell, C.cont]}>{totalStock}</Text>
     <Text style={[styles.subtotalCell, C.dif]}>{totalDifs !== 0 ? (totalDifs > 0 ? `+${totalDifs}` : `${totalDifs}`) : '—'}</Text>
@@ -167,6 +171,7 @@ const SubtotalRow = ({ label, totalStock, totalDifs, totalCompra, totalVenta }) 
 const CatTotalRow = ({ label, totalStock, totalDifs, totalCompra, totalVenta }) => (
   <View style={styles.catTotalRow}>
     <Text style={[styles.catTotalCell, C.producto]}>TOTAL {label}</Text>
+    <Text style={[styles.catTotalCell, C.serial]}></Text>
     <Text style={[styles.catTotalCell, C.sis]}></Text>
     <Text style={[styles.catTotalCell, C.cont]}>{totalStock}</Text>
     <Text style={[styles.catTotalCell, C.dif]}>{totalDifs !== 0 ? (totalDifs > 0 ? `+${totalDifs}` : `${totalDifs}`) : '—'}</Text>
@@ -333,6 +338,7 @@ const RecuentoSesionDocument = ({ secciones, resumenGeneral, sesion, fechaGenera
         {/* Grand total */}
         <View style={styles.grandTotalRow}>
           <Text style={[styles.grandTotalCell, C.producto]}>TOTAL GENERAL</Text>
+          <Text style={[styles.grandTotalCell, C.serial]}></Text>
           <Text style={[styles.grandTotalCell, C.sis]}></Text>
           <Text style={[styles.grandTotalCell, C.cont]}>{resumenGeneral.totalContado}</Text>
           <Text style={[styles.grandTotalCell, C.dif]}>{resumenGeneral.totalDifs !== 0 ? (resumenGeneral.totalDifs > 0 ? `+${resumenGeneral.totalDifs}` : `${resumenGeneral.totalDifs}`) : '—'}</Text>
@@ -363,6 +369,7 @@ const RecuentoSesionDocument = ({ secciones, resumenGeneral, sesion, fechaGenera
 
           <View style={{ flexDirection: 'row', backgroundColor: '#b45309', paddingVertical: 7, paddingHorizontal: 8, marginTop: 8 }}>
             <Text style={[styles.grandTotalCell, C.producto]}>TOTAL DIFERENCIAS</Text>
+            <Text style={[styles.grandTotalCell, C.serial]}></Text>
             <Text style={[styles.grandTotalCell, C.sis]}></Text>
             <Text style={[styles.grandTotalCell, C.cont]}>{todasLasDiferencias.reduce((s, i) => s + i.stockContado, 0)}</Text>
             <Text style={[styles.grandTotalCell, C.dif]}>{todasLasDiferencias.reduce((s, i) => s + (i.stockContado - i.stockSistema), 0)}</Text>

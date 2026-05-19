@@ -43,6 +43,7 @@ const dashboardService = {
         cliente_id,
         vendedor,
         sucursal,
+        tipo_venta,
         total_venta,
         monto_pago_1,
         monto_pago_2,
@@ -193,6 +194,8 @@ const dashboardService = {
     // Estructuras para gráficos apilados
     const ventasPorSucursalDiaria = {};
     const ventasPorSemana = {}; // Nueva estructura para ventas semanales
+    const gananciaPorSucursal = {}; // Nueva estructura para ganancia por sucursal
+    const ventasPorTipoVenta = { mayorista: 0, minorista: 0 };
 
     // Nueva estructura para apilar subcategorías en "Otros"
     const ventasPorCategoriaStackedTemp = {
@@ -267,6 +270,19 @@ const dashboardService = {
       }
       ventasPorSemana[semanaInicio][sucursalKey] += ventaAmount;
       ventasPorSemana[semanaInicio].total += ventaAmount;
+
+      // Ganancia por Sucursal (calculada desde venta_items porque margen_total no está en el SELECT)
+      const margenTotal = (transaccion.venta_items || []).reduce(
+        (sum, item) => sum + parseFloat(item.ganancia_item || 0), 0
+      );
+      if (!gananciaPorSucursal[sucursal]) {
+        gananciaPorSucursal[sucursal] = { sucursal, ganancia: 0 };
+      }
+      gananciaPorSucursal[sucursal].ganancia += margenTotal;
+
+      // Tipo de venta (mayorista / minorista)
+      const tipoVenta = transaccion.tipo_venta || 'minorista';
+      ventasPorTipoVenta[tipoVenta] = (ventasPorTipoVenta[tipoVenta] || 0) + 1;
 
       // Ventas por día de semana (Agrupado por sucursal)
       if (!ventasPorDiaSemana[diaSemanaCap]) {
@@ -440,6 +456,9 @@ const dashboardService = {
     // Procesar ventas semanales
     const ventasPorSemanaArr = Object.values(ventasPorSemana).sort((a, b) => new Date(a.semana) - new Date(b.semana));
 
+    // Procesar ganancia por sucursal
+    const gananciaPorSucursalArr = Object.values(gananciaPorSucursal).sort((a, b) => b.ganancia - a.ganancia);
+
     // Procesar ventas por día de semana (ordenar por día lunes-domingo)
     const ventasPorDiaSemanaArr = Object.values(ventasPorDiaSemana).sort((a, b) => a.orden - b.orden);
 
@@ -447,6 +466,8 @@ const dashboardService = {
       ventasPorDia: Object.values(ventasPorDia).sort((a, b) => new Date(a.fecha) - new Date(b.fecha)),
       ventasPorDiaSemana: ventasPorDiaSemanaArr,
       ventasPorSemana: ventasPorSemanaArr, // Nuevo
+      gananciaPorSucursal: gananciaPorSucursalArr, // Nuevo
+      ventasPorTipoVenta: Object.entries(ventasPorTipoVenta).map(([tipo, cantidad]) => ({ tipo, cantidad })),
       ventasPorSucursal: procesarObjetoPorTransacciones(ventasPorSucursal), // Ordenar por transacciones
       ventasPorProcedencia: procesarObjetoPorCantidad(ventasPorProcedencia), // Ordenar por cantidad
       ventasPorVendedor: procesarObjetoPorTransacciones(ventasPorVendedor), // Ordenar por transacciones
@@ -1172,6 +1193,29 @@ const DashboardReportesSection = () => {
                 </div>
               </div>
 
+              {/* Ganancia por Sucursal */}
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ganancia por Sucursal</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={ventasData?.gananciaPorSucursal}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="sucursal" tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v) => String(v).toUpperCase()} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => formatearMonto(value, 'USD', true)} />
+                      <Tooltip
+                        formatter={(value) => [formatearMonto(value, 'USD'), 'Ganancia']}
+                        labelStyle={{ color: '#1e293b' }}
+                      />
+                      <Bar dataKey="ganancia">
+                        {ventasData?.gananciaPorSucursal.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getColorPorSucursal(entry.sucursal)} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
               {/* Ventas por Categoría (Cantidad) */}
               <div className="bg-white border border-slate-200 rounded">
                 <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Ventas por Categoría (Cantidad)</h3>
@@ -1229,6 +1273,42 @@ const DashboardReportesSection = () => {
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => [value, 'Clientes']} />
+                      <Legend
+                        layout="vertical"
+                        align="right"
+                        verticalAlign="middle"
+                        formatter={(value) => String(value).toUpperCase()}
+                        wrapperStyle={{ fontSize: '10px', lineHeight: '18px' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Tipo de Venta (Mayorista / Minorista) */}
+              <div className="bg-white border border-slate-200 rounded">
+                <h3 className="text-sm font-semibold text-slate-800 py-2 text-center uppercase border-b border-slate-200">Tipo de Venta</h3>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie
+                        data={ventasData?.ventasPorTipoVenta}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        label={({ tipo, cantidad }) => `${String(tipo).toUpperCase()}: ${cantidad}`}
+                        outerRadius={80}
+                        dataKey="cantidad"
+                        nameKey="tipo"
+                      >
+                        {ventasData?.ventasPorTipoVenta.map((entry) => (
+                          <Cell
+                            key={entry.tipo}
+                            fill={entry.tipo === 'mayorista' ? '#1e293b' : '#10b981'}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [value + ' ventas', String(name).charAt(0).toUpperCase() + String(name).slice(1)]} />
                       <Legend
                         layout="vertical"
                         align="right"

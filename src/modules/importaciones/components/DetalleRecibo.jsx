@@ -816,7 +816,7 @@ const DetalleRecibo = ({
           <div className="space-y-3">
             <div className="bg-slate-200 p-4 rounded-t border border-slate-300 flex justify-between items-center">
               <h4 className="font-semibold text-slate-800 uppercase">
-                {(() => {
+                {recibo.tipo === 'courier_cliente' ? 'Servicio' : (() => {
                   if (modoEdicion) {
                     return `Productos (${itemsVisibles.length + itemsNuevos.length})`;
                   }
@@ -835,7 +835,7 @@ const DetalleRecibo = ({
                   return `Productos (${total})`;
                 })()}
               </h4>
-              {modoEdicion && (
+              {modoEdicion && recibo.tipo !== 'courier_cliente' && (
                 <button
                   onClick={agregarItemNuevo}
                   className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 flex items-center gap-1 text-sm font-medium transition-colors"
@@ -845,6 +845,34 @@ const DetalleRecibo = ({
                 </button>
               )}
             </div>
+            {recibo.tipo === 'courier_cliente' ? (
+              <div className="border border-slate-300 border-t-0 rounded-b overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción del Servicio</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Peso (kg)</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Pago Courier</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Cobrado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-white">
+                      <td className="px-4 py-3 text-slate-800">{recibo.observaciones || '—'}</td>
+                      <td className="px-4 py-3 text-center text-slate-600">
+                        {recibo.peso_sin_caja_kg != null ? `${parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-slate-800">
+                        {recibo.costo_courier_usd != null ? `U$ ${Math.round(parseFloat(recibo.costo_courier_usd))}` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-emerald-700">
+                        {recibo.monto_cobrado_usd != null ? `U$ ${Math.round(parseFloat(recibo.monto_cobrado_usd))}` : '—'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
             <div className="border border-slate-300 border-t-0 rounded-b overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
@@ -1181,6 +1209,7 @@ const DetalleRecibo = ({
                 </tfoot>
               </table>
             </div>
+            )}
           </div>
 
           {/* INFORMACIÓN DE RECEPCIÓN (si está recepcionada) */}
@@ -1190,6 +1219,30 @@ const DetalleRecibo = ({
                 <h4 className="font-semibold text-slate-800 uppercase">Información de Recepción</h4>
               </div>
               <div className="border border-slate-300 border-t-0 rounded-b p-4">
+                {recibo.tipo === 'courier_cliente' ? (
+                  <div className="flex justify-center">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm max-w-3xl w-full">
+                      <div className="text-center">
+                        <label className="text-xs font-semibold text-slate-500 uppercase block">Peso con Caja</label>
+                        <p className="font-medium text-slate-800 mt-1">
+                          {recibo.peso_sin_caja_kg != null ? `${parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg` : '-'}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <label className="text-xs font-semibold text-slate-500 uppercase block">Courier a Pagar</label>
+                        <p className="font-medium text-slate-800 mt-1">
+                          {recibo.costo_courier_usd != null ? `U$ ${Math.round(parseFloat(recibo.costo_courier_usd))}` : '-'}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <label className="text-xs font-semibold text-slate-500 uppercase block">Cobrado al Cliente</label>
+                        <p className="font-medium text-slate-800 mt-1">
+                          {recibo.monto_cobrado_usd != null ? `U$ ${Math.round(parseFloat(recibo.monto_cobrado_usd))}` : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="space-y-6 flex flex-col items-center">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
@@ -1243,7 +1296,7 @@ const DetalleRecibo = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Pago Courier</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase block">Courier a Pagar</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1317,6 +1370,7 @@ const DetalleRecibo = ({
                     </div>
                   )}
                 </div>
+                )}
               </div>
             </div>
           )}
