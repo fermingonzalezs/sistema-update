@@ -982,13 +982,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           className="space-y-6"
         >
           {/* Información básica */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Información Básica
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Modelo *
                 </label>
                 <input
@@ -997,13 +997,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("modelo", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: ThinkPad E14"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Serial
                 </label>
                 <input
@@ -1012,12 +1012,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("serial", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Número de serie"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Marca *
                 </label>
                 <MarcaSelector
@@ -1028,7 +1028,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Categoría *
                 </label>
                 <select
@@ -1036,7 +1036,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("categoria", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   required
                 >
                   <option value="">Seleccionar...</option>
@@ -1048,7 +1048,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Color
                 </label>
                 <input
@@ -1057,12 +1057,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("color", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Color del equipo"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Condición
                 </label>
                 <select
@@ -1074,7 +1074,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       handleEditFormChange("reservado_para", "");
                     }
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {CONDICIONES_ARRAY.map((condicion) => (
@@ -1099,7 +1099,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Sucursal
                 </label>
                 <select
@@ -1107,7 +1107,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("sucursal", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {UBICACIONES_ARRAY.map((ubicacion) => (
@@ -1121,13 +1121,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Precios y costos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Precios y Costos
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Costo USD
                 </label>
                 <input
@@ -1137,12 +1137,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_costo_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Costo Total
                   <span className="text-xs text-slate-500">
                     (Calculado automáticamente)
@@ -1159,7 +1159,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Venta USD *
                 </label>
                 <input
@@ -1169,13 +1169,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_venta_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Envíos y Repuestos
                 </label>
                 <input
@@ -1185,7 +1185,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("envios_repuestos", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
@@ -1193,13 +1193,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Especificaciones técnicas */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Especificaciones Técnicas
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Procesador
                 </label>
                 <input
@@ -1208,24 +1208,24 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("procesador", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Intel Core i5-1135G7"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   RAM
                 </label>
                 <input
                   type="text"
                   value={editForm.ram}
                   onChange={(e) => handleEditFormChange("ram", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 8GB"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Tipo RAM
                 </label>
                 <input
@@ -1234,12 +1234,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("tipo_ram", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: DDR4, DDR5"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Slots
                 </label>
                 <input
@@ -1248,48 +1248,48 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("slots", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 2x4GB"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   SSD
                 </label>
                 <input
                   type="text"
                   value={editForm.ssd}
                   onChange={(e) => handleEditFormChange("ssd", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 256GB NVMe"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   HDD
                 </label>
                 <input
                   type="text"
                   value={editForm.hdd}
                   onChange={(e) => handleEditFormChange("hdd", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 1TB"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Sistema Operativo
                 </label>
                 <input
                   type="text"
                   value={editForm.so}
                   onChange={(e) => handleEditFormChange("so", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Windows 11 Pro"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Placa de Video
                 </label>
                 <input
@@ -1298,19 +1298,19 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("placa_video", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: NVIDIA GTX 1650"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   VRAM
                 </label>
                 <input
                   type="text"
                   value={editForm.vram}
                   onChange={(e) => handleEditFormChange("vram", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 4GB GDDR6"
                 />
               </div>
@@ -1318,13 +1318,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Pantalla y display */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Pantalla y Display
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Pantalla
                 </label>
                 <input
@@ -1333,22 +1333,22 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("pantalla", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 14 pulgadas"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Resolución
                 </label>
                 <ResolucionSelect
                   value={editForm.resolucion}
                   onChange={(val) => handleEditFormChange("resolucion", val)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Refresh Rate
                 </label>
                 <input
@@ -1357,12 +1357,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("refresh", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 60Hz"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Touchscreen
                 </label>
                 <select
@@ -1373,7 +1373,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       e.target.value === "true"
                     )
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value={false}>No</option>
                   <option value={true}>Sí</option>
@@ -1383,13 +1383,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Características adicionales */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Características Adicionales
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Teclado Retroiluminado
                 </label>
                 <input
@@ -1398,12 +1398,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("teclado_retro", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Sí/No"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Idioma Teclado
                 </label>
                 <input
@@ -1412,12 +1412,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("idioma_teclado", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Español, Inglés"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Batería
                 </label>
                 <input
@@ -1426,14 +1426,14 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("bateria", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 85"
                   min="0"
                   max="100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Duración
                 </label>
                 <input
@@ -1442,7 +1442,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("duracion", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 6 horas"
                 />
               </div>
@@ -1450,13 +1450,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Estado y garantía */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Estado y Garantía
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Fecha Ingreso
                 </label>
                 <input
@@ -1465,11 +1465,11 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("ingreso", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Garantía
                 </label>
                 <select
@@ -1477,7 +1477,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("garantia_update", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   {GARANTIAS_OPTIONS.map((opcion) => (
                     <option key={opcion} value={opcion}>{opcion}</option>
@@ -1486,19 +1486,19 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia_update === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                     Fecha de vencimiento
                   </label>
                   <input
                     type="date"
                     value={garantiaOficialFecha}
                     onChange={(e) => setGarantiaOficialFecha(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               )}
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Observaciones
                 </label>
                 <textarea
@@ -1507,7 +1507,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     handleEditFormChange("fallas", e.target.value)
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Descripción de fallas conocidas..."
                 />
               </div>
@@ -1515,12 +1515,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Link de Fotos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 URL de Fotos
               </label>
               <input
@@ -1529,7 +1529,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="https://..."
               />
             </div>
@@ -1559,13 +1559,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           className="space-y-6"
         >
           {/* Información básica */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Información Básica
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Modelo *
                 </label>
                 <input
@@ -1574,13 +1574,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("modelo", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: iPhone 13"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Serial
                 </label>
                 <input
@@ -1589,12 +1589,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("serial", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Número de serie"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   IMEI
                 </label>
                 <input
@@ -1603,12 +1603,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("imei", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="IMEI del celular"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Marca *
                 </label>
                 <MarcaSelector
@@ -1619,7 +1619,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Categoría *
                 </label>
                 <select
@@ -1627,7 +1627,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("categoria", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   required
                 >
                   <option value="">Seleccionar...</option>
@@ -1639,7 +1639,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Color
                 </label>
                 <input
@@ -1648,12 +1648,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("color", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Color del dispositivo"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Condición
                 </label>
                 <select
@@ -1665,7 +1665,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       handleEditFormChange("reservado_para", "");
                     }
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {CONDICIONES_ARRAY.map((condicion) => (
@@ -1690,7 +1690,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Sucursal
                 </label>
                 <select
@@ -1698,7 +1698,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("sucursal", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {UBICACIONES_ARRAY.map((ubicacion) => (
@@ -1712,13 +1712,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Precios */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Precios
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Compra USD
                 </label>
                 <input
@@ -1728,12 +1728,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_compra_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Costos Adicionales (Envíos/Repuestos)
                 </label>
                 <input
@@ -1743,12 +1743,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("costos_adicionales", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Venta USD *
                 </label>
                 <input
@@ -1758,14 +1758,14 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_venta_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                   required
                 />
               </div>
               {editForm.costo_total_usd && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                     Costo Total USD (Calculado)
                   </label>
                   <input
@@ -1782,13 +1782,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Especificaciones técnicas */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Especificaciones Técnicas
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Capacidad
                 </label>
                 <input
@@ -1797,12 +1797,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("capacidad", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 128GB, 256GB"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Estado
                 </label>
                 <input
@@ -1811,12 +1811,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("estado", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Estado general del dispositivo"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Batería
                 </label>
                 <input
@@ -1825,14 +1825,14 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("bateria", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 85"
                   min="0"
                   max="100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Ciclos
                 </label>
                 <input
@@ -1841,7 +1841,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("ciclos", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: 500 ciclos"
                 />
               </div>
@@ -1849,13 +1849,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Estado y garantía */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Estado y Garantía
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Garantía
                 </label>
                 <select
@@ -1863,7 +1863,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("garantia", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   {GARANTIAS_OPTIONS.map((opcion) => (
                     <option key={opcion} value={opcion}>{opcion}</option>
@@ -1872,19 +1872,19 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                     Fecha de vencimiento
                   </label>
                   <input
                     type="date"
                     value={garantiaOficialFecha}
                     onChange={(e) => setGarantiaOficialFecha(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               )}
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Observaciones
                 </label>
                 <textarea
@@ -1893,7 +1893,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     handleEditFormChange("fallas", e.target.value)
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Descripción de fallas conocidas..."
                 />
               </div>
@@ -1901,12 +1901,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Link de Fotos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 URL de Fotos
               </label>
               <input
@@ -1915,7 +1915,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="https://..."
               />
             </div>
@@ -1944,13 +1944,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           className="space-y-6"
         >
           {/* Información básica */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Información Básica
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Nombre del Producto *
                 </label>
                 <input
@@ -1959,13 +1959,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("nombre_producto", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Mouse Logitech"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Serial (Opcional)
                 </label>
                 <input
@@ -1974,12 +1974,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("serial", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: SN123456"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Categoría
                 </label>
                 <select
@@ -1987,7 +1987,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("categoria", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar categoría...</option>
                   {categoriasOtros.length > 0 ? (
@@ -2002,7 +2002,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Marca
                 </label>
                 <MarcaSelector
@@ -2013,7 +2013,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Color
                 </label>
                 <input
@@ -2022,12 +2022,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("color", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Ej: Negro, Blanco"
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Descripción
                 </label>
                 <textarea
@@ -2036,12 +2036,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                     handleEditFormChange("descripcion", e.target.value)
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="Descripción detallada del producto..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Cantidad La Plata
                 </label>
                 <input
@@ -2051,12 +2051,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("cantidad_la_plata", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Cantidad Mitre
                 </label>
                 <input
@@ -2066,12 +2066,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("cantidad_mitre", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Condición
                 </label>
                 <select
@@ -2083,7 +2083,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                       handleEditFormChange("reservado_para", "");
                     }
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {CONDICIONES_ARRAY.map((condicion) => (
@@ -2108,7 +2108,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Garantía
                 </label>
                 <select
@@ -2116,7 +2116,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("garantia", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   {GARANTIAS_OPTIONS.map((opcion) => (
                     <option key={opcion} value={opcion}>{opcion}</option>
@@ -2125,14 +2125,14 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                     Fecha de vencimiento
                   </label>
                   <input
                     type="date"
                     value={garantiaOficialFecha}
                     onChange={(e) => setGarantiaOficialFecha(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               )}
@@ -2140,13 +2140,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Precios */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Precios
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Compra USD
                 </label>
                 <input
@@ -2156,12 +2156,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_compra_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Costos Adicionales USD
                 </label>
                 <input
@@ -2171,12 +2171,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("costos_adicionales", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Costo Total USD (Calculado)
                 </label>
                 <input
@@ -2188,7 +2188,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Precio Venta USD *
                 </label>
                 <input
@@ -2198,7 +2198,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   onChange={(e) =>
                     handleEditFormChange("precio_venta_usd", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                   required
                 />
@@ -2207,12 +2207,12 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
           </div>
 
           {/* Link de Fotos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 URL de Fotos
               </label>
               <input
@@ -2221,19 +2221,19 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 onChange={(e) =>
                   handleEditFormChange("fotos", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="https://..."
               />
             </div>
           </div>
 
           {/* Observaciones */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">
               Observaciones
             </h3>
             <div className="p-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Observaciones
               </label>
               <textarea
@@ -2242,7 +2242,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   handleEditFormChange("observaciones", e.target.value)
                 }
                 rows={3}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Observaciones adicionales sobre el producto..."
               />
             </div>
@@ -2268,33 +2268,24 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
   return (
     <div className="p-0">
       {/* Selector de categorías con filtros integrados */}
-      <div className="mb-4 bg-slate-800 rounded border border-slate-200 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-          <h3 className="text-base md:text-lg font-semibold text-white">
-            Catálogo
-          </h3>
-          <div className="flex items-center gap-2">
-            {/* Botón toggle filtros - solo mobile */}
+      <div className="mb-4 bg-slate-800 p-6 text-white">
+        <div className="flex items-center justify-end gap-2 mb-2">
+          <button
+            onClick={() => setFiltrosVisibles(!filtrosVisibles)}
+            className="md:hidden flex items-center gap-1 px-3 py-1.5 bg-slate-600 text-white text-xs rounded hover:bg-slate-500 transition-colors"
+          >
+            <SlidersHorizontal size={12} />
+            {filtrosVisibles ? 'Ocultar' : `Filtros${hayFiltrosActivos ? ' ●' : ''}`}
+          </button>
+          {hayFiltrosActivos && (
             <button
-              onClick={() => setFiltrosVisibles(!filtrosVisibles)}
-              className="md:hidden flex items-center gap-1 px-3 py-1.5 bg-slate-600 text-white text-xs rounded hover:bg-slate-500 transition-colors"
+              onClick={limpiarFiltros}
+              className="flex items-center space-x-1 px-2 py-1 bg-slate-600 text-white text-xs rounded hover:bg-slate-700 transition-colors"
             >
-              <SlidersHorizontal size={12} />
-              {filtrosVisibles ? 'Ocultar' : `Filtros${hayFiltrosActivos ? ' ●' : ''}`}
+              <X size={12} />
+              <span>Limpiar</span>
             </button>
-            {hayFiltrosActivos && (
-              <button
-                onClick={limpiarFiltros}
-                className="flex items-center space-x-1 px-2 py-1 bg-slate-600 text-white text-xs rounded hover:bg-slate-700 transition-colors"
-              >
-                <X size={12} />
-                <span>Limpiar</span>
-              </button>
-            )}
-            <div className="text-sm text-white">
-              {productosFiltrados} de {totalProductos}
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-1.5 sm:flex-wrap sm:gap-2 mb-4">
@@ -2458,10 +2449,10 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
         {/* Filtros en una sola fila */}
         <div className={`border-t border-slate-600 pt-3 ${filtrosVisibles ? '' : 'hidden md:block'}`}>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+          <div className="flex gap-2">
             {/* Búsqueda */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
+            <div className="min-w-0 flex-1">
+              <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                 Búsqueda
               </label>
               <div className="relative">
@@ -2477,8 +2468,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
 
             {/* Ordenamiento */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
+            <div className="min-w-0 flex-1">
+              <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                 Ordenar
               </label>
               <select
@@ -2500,8 +2491,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
 
             {/* Marca */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
+            <div className="min-w-0 flex-1">
+              <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                 Marca
               </label>
               <select
@@ -2519,8 +2510,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </div>
 
             {/* Condición */}
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">
+            <div className="min-w-0 flex-1">
+              <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                 Condición
               </label>
               <select
@@ -2539,8 +2530,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Color - Solo para otros */}
             {categoriaActiva === 'otros' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Color
                 </label>
                 <select
@@ -2560,8 +2551,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Almacenamiento - Solo para celulares */}
             {categoriaActiva === 'celulares' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Almacenamiento
                 </label>
                 <select
@@ -2581,8 +2572,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* RAM - Solo para notebooks */}
             {categoriaActiva === 'notebooks' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   RAM
                 </label>
                 <select
@@ -2602,8 +2593,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Almacenamiento - Para notebooks */}
             {categoriaActiva === 'notebooks' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Almacenamiento
                 </label>
                 <select
@@ -2623,8 +2614,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Pantalla con rangos - Solo para notebooks */}
             {categoriaActiva === 'notebooks' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Pantalla
                 </label>
                 <select
@@ -2648,8 +2639,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Teclado - Solo para notebooks */}
             {categoriaActiva === 'notebooks' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Teclado
                 </label>
                 <select
@@ -2669,8 +2660,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
 
             {/* Estado - Ocultar para "otros" */}
             {categoriaActiva !== 'otros' && (
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">
+              <div className="min-w-0 flex-1">
+                <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                   Estado
                 </label>
                 <select
@@ -2699,8 +2690,8 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               if (esOtros) return null;
 
               return (
-                <div>
-                  <label className="block text-xs font-medium text-slate-200 mb-1">
+                <div className="min-w-0 flex-1">
+                  <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
                     Ubicación
                   </label>
                   <select
@@ -3535,10 +3526,10 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
         <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-300-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200/50">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-slate-800 text-white p-5 rounded-t-xl">
+            <div className="sticky top-0 z-10 bg-slate-800 p-6 text-white rounded-t">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-white/10 rounded flex items-center justify-center">
                     <Edit size={18} />
                   </div>
                   <div>
@@ -3550,7 +3541,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </div>
                 <button
                   onClick={closeEditModal}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/10 rounded transition-colors"
                   disabled={editLoading}
                 >
                   <X size={20} />
@@ -3561,7 +3552,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             {/* Contenido */}
             <div className="p-6 bg-slate-50/50">
               {editError && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="mb-4 bg-red-50 border border-red-200 rounded p-4">
                   <div className="flex items-center space-x-2">
                     <AlertCircle size={16} className="text-red-600" />
                     <span className="text-red-800 text-sm">{editError}</span>
@@ -3570,7 +3561,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               )}
 
               {editSuccess && (
-                <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded p-4">
                   <div className="flex items-center space-x-2">
                     <CheckCircle size={16} className="text-emerald-600" />
                     <span className="text-emerald-800 text-sm">
@@ -3590,7 +3581,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <button
                   onClick={handleDelete}
                   disabled={editLoading}
-                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium shadow-sm"
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium"
                 >
                   <Trash2 size={15} />
                   <span>Eliminar</span>
@@ -3604,7 +3595,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 <button
                   onClick={closeEditModal}
                   disabled={editLoading}
-                  className="px-4 py-2.5 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 text-sm font-medium"
+                  className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors disabled:opacity-50 text-sm font-medium"
                 >
                   Cancelar
                 </button>
@@ -3612,7 +3603,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                   type="submit"
                   form="edit-product-form"
                   disabled={editLoading}
-                  className="px-5 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium shadow-sm"
+                  className="px-6 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center space-x-2 text-sm font-medium"
                 >
                   {editLoading ? (
                     <>
@@ -3636,13 +3627,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
       {modalReservar.open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm bg-black/50">
           <div className="bg-white rounded shadow-xl w-full max-w-sm mx-4">
-            <div className="bg-slate-800 text-white px-5 py-4 rounded-t">
+            <div className="bg-slate-800 p-6 text-white rounded-t">
               <h3 className="font-semibold text-base">
                 {modalReservar.tipo === 'reservado' ? 'Reservar producto' : 'Consignación'}
               </h3>
             </div>
             <div className="p-5">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 {modalReservar.tipo === 'reservado' ? 'A nombre de quién se reserva *' : 'A nombre de quién se pone en consignación *'}
               </label>
               <input
@@ -3652,13 +3643,13 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 onKeyDown={(e) => e.key === 'Enter' && modalReservar.nombre.trim() && confirmarReserva()}
                 placeholder="Nombre de la persona..."
                 autoFocus
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div className="px-5 pb-5 flex justify-end gap-3">
               <button
                 onClick={() => setModalReservar({ open: false, producto: null, nombre: '', tipo: '' })}
-                className="px-4 py-2 text-sm border border-slate-200 rounded text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 bg-slate-600 text-white rounded text-sm hover:bg-slate-700 transition-colors"
               >
                 Cancelar
               </button>

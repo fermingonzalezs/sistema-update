@@ -6,7 +6,7 @@ const Tarjeta = ({ icon: Icon, titulo, valor }) => (
         <p className="text-3xl font-semibold text-white">{valor}</p>
       </div>
       {Icon && (
-        <div className="bg-slate-600 p-2 rounded-full">
+        <div className="bg-slate-600 p-2 rounded">
           <Icon className="w-8 h-8 text-emerald-600" />
         </div>
       )}

@@ -177,12 +177,12 @@ const Clientes = () => {
             placeholder="Buscar por nombre, email, teléfono..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            className="w-full h-9 border border-slate-200 rounded pl-10 pr-4 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           />
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded flex items-center gap-2 font-medium transition-colors whitespace-nowrap w-full sm:w-auto justify-center"
+          className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Nuevo Cliente</span>

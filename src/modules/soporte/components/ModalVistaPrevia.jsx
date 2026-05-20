@@ -45,15 +45,15 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+      <div className="bg-white rounded shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
         {/* Header del modal */}
-        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="flex items-center justify-between p-4 border-b bg-slate-800 text-white">
           <h3 className="text-xl font-semibold">Vista Previa del Presupuesto</h3>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDescargarPDF}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded flex items-center gap-2 transition-colors"
               title="Generar PDF"
             >
               <FileDown size={16} />
@@ -61,7 +61,7 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded transition-colors"
             >
               <X size={20} />
             </button>
@@ -241,7 +241,7 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
             </div>
 
             {presupuestoData.observaciones && (
-              <div className="bg-red-50 p-4 rounded border-l-4 border-red-500 mb-4">
+              <div className="bg-slate-50 p-4 rounded border-l-4 border-slate-500 mb-4">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2 uppercase tracking-wide">Observaciones Adicionales</h4>
                 <p className="text-sm text-gray-700">{presupuestoData.observaciones}</p>
               </div>
@@ -273,21 +273,21 @@ function ModalVistaPrevia({ open, onClose, presupuestoData }) {
         <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
           <button
             onClick={handleDescargarPDF}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
           >
             <FileDown size={16} />
             Generar PDF
           </button>
           <button
             onClick={handleEnviarEmail}
-            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-700 transition-colors"
           >
             <Send size={16} />
             Enviar por Email
           </button>
           <button
             onClick={handleAprobar}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition-colors"
           >
             <ThumbsUp size={16} />
             Aprobar Presupuesto

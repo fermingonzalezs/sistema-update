@@ -139,7 +139,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
@@ -159,15 +159,15 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Unit. (kg)</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Total (kg)</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Envío Unit.</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Financiero Unit.</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">C. Total Unit.</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">P. Unit. USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Total USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Unit. (kg)</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Total (kg)</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">C. Envío Unit.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">C. Financiero Unit.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">C. Total Unit.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -186,7 +186,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                             step="0.01"
                             value={pesosReales[item.id] !== '' ? pesosReales[item.id] : item.peso_estimado_unitario_kg}
                             onChange={(e) => setPesosReales({ ...pesosReales, [item.id]: e.target.value })}
-                            className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full border border-slate-200 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           />
                         </td>
                         <td className="px-4 py-3 text-center text-slate-600">{pesoTotalReal.toFixed(2)} kg</td>
@@ -215,34 +215,34 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Recepción *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Recepción *</label>
                   <input
                     type="date"
                     value={formDatos.fecha_recepcion}
                     onChange={(e) => setFormDatos({ ...formDatos, fecha_recepcion: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Peso Total con Caja (kg) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso Total con Caja (kg) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formDatos.peso_total_con_caja_kg}
                     onChange={(e) => setFormDatos({ ...formDatos, peso_total_con_caja_kg: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Peso sin Caja (kg) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso sin Caja (kg) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formDatos.peso_sin_caja_kg}
                     onChange={(e) => setFormDatos({ ...formDatos, peso_sin_caja_kg: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                   <p className="text-xs text-slate-500 mt-1">
                     Referencia items: {totalPesoReal.toFixed(2)} kg
@@ -250,24 +250,24 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Precio por KG (USD) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio por KG (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formDatos.precio_por_kg_usd}
                     onChange={(e) => setFormDatos({ ...formDatos, precio_por_kg_usd: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Pago Courier (USD)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formDatos.pago_courier_usd}
                     onChange={(e) => setFormDatos({ ...formDatos, pago_courier_usd: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                   <p className="text-xs text-slate-500 mt-1">
                     Estimado: ${formatNumber(
@@ -277,13 +277,13 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Costo Picking/Shipping (USD)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo Picking/Shipping (USD)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formDatos.costo_picking_shipping_usd}
                     onChange={(e) => setFormDatos({ ...formDatos, costo_picking_shipping_usd: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               </div>

@@ -1276,11 +1276,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               {/* Filtro de Categoría */}
               {tipoActivo === 'computadora' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
                   <select
                     value={filtros.categoria}
                     onChange={(e) => handleFiltroChange('categoria', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="">Todas</option>
                     <option value="macbook">MacBook</option>
@@ -1293,11 +1293,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
               {tipoActivo === 'celular' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
                   <select
                     value={filtros.categoria}
                     onChange={(e) => handleFiltroChange('categoria', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="">Todas</option>
                     <option value="iphone">iPhone</option>
@@ -1307,11 +1307,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Marca</label>
                 <select
                   value={filtros.marca}
                   onChange={(e) => handleFiltroChange('marca', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Todas</option>
                   {getUniqueValues().marcas.map(marca => (
@@ -1321,11 +1321,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Condición</label>
                 <select
                   value={filtros.condicion}
                   onChange={(e) => handleFiltroChange('condicion', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Todas</option>
                   {getUniqueValues().condiciones.map(condicion => (
@@ -1336,11 +1336,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
 
               {(tipoActivo === 'computadora' || tipoActivo === 'celular') && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
                   <select
                     value={filtros.estado}
                     onChange={(e) => handleFiltroChange('estado', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="">Todos</option>
                     {(tipoActivo === 'computadora' ? estadosDisponibles.notebooks : estadosDisponibles.celulares).map(estado => (
@@ -1351,13 +1351,13 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Precio Max USD</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio Max USD</label>
                 <input
                   type="number"
                   value={filtros.precioMax}
                   onChange={(e) => handleFiltroChange('precioMax', e.target.value)}
                   placeholder="999999"
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
             </div>
@@ -1367,11 +1367,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           {modoFiltros && tipoActivo === 'otro' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
                 <select
                   value={filtros.categoria}
                   onChange={(e) => handleFiltroChange('categoria', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Todas las categorías</option>
                   {getUniqueValues().categoriasOtros.map(categoria => (
@@ -1383,11 +1383,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Marca</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Marca</label>
                 <select
                   value={filtros.marca}
                   onChange={(e) => handleFiltroChange('marca', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Todas</option>
                   {getUniqueValues().marcas.map(marca => (
@@ -1397,11 +1397,11 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Condición</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Condición</label>
                 <select
                   value={filtros.condicion}
                   onChange={(e) => handleFiltroChange('condicion', e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Todas</option>
                   {getUniqueValues().condiciones.map(condicion => (
@@ -1664,7 +1664,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                       placeholder={`Buscar ${tipoConfig.label.toLowerCase()}...`}
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                      className="w-full h-9 border border-slate-200 rounded pl-9 pr-3 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                 </div>
@@ -1683,7 +1683,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         actualizarOrdenamiento(valor);
                       }
                     }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="">Sin ordenar</option>
                     <option value="modelo">Modelo</option>
@@ -1704,7 +1704,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-12">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-12">
                       <input
                         type="checkbox"
                         checked={seleccionados.size === productosFiltradosYOrdenados.length && productosFiltradosYOrdenados.length > 0}
@@ -1712,10 +1712,10 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                         className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[100px]">Serial</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[150px]">Modelo</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[80px]">Precio</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[500px]">COPY</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider min-w-[100px]">Serial</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider min-w-[150px]">Modelo</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider min-w-[80px]">Precio</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider min-w-[500px]">COPY</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -1729,19 +1729,19 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
                           className="rounded border-slate-300"
                         />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-700 text-center">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-slate-800">
                         {producto.tipo === 'otro' ? producto.id : (producto.serial || 'N/A')}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-800 text-left">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-left text-slate-600">
                         {producto.tipo === 'otro' ? (producto.nombre_producto || 'N/A') : (producto.modelo || producto.descripcion_producto)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-center font-semibold text-emerald-700">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-slate-800">
                         {monedaPrecio === 'USD'
                           ? `USD ${Math.round(producto.precio_venta_usd || 0)}`
                           : `$${Math.round((producto.precio_venta_usd || 0) * cotizacionDolar).toLocaleString('es-AR')}`
                         }
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-700 font-mono text-left">
+                      <td className="px-4 py-3 text-sm text-left text-slate-600">
                         <div className="whitespace-pre-wrap break-words">
                           {convertirPrecioEnCopy(producto.copy, producto)}
                         </div>
@@ -1842,7 +1842,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Monitor className="w-4 h-4 text-slate-500" />
-              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Notebooks</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Notebooks</span>
             </div>
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'computadora').map(cat => (
@@ -1871,7 +1871,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Smartphone className="w-4 h-4 text-slate-500" />
-              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Celulares</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Celulares</span>
             </div>
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'celular').map(cat => (
@@ -1900,7 +1900,7 @@ const Listas = ({ computers, celulares, otros, loading, error }) => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Box className="w-4 h-4 text-slate-500" />
-              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Otros</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Otros</span>
             </div>
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categoriasDisponibles.filter(c => c.tipo === 'otro').map(cat => (

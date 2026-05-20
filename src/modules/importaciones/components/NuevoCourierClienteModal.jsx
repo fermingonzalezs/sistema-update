@@ -51,7 +51,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
             <Truck size={20} />
             <div>
               <h3 className="text-lg font-semibold">Servicio de Courier</h3>
-              <p className="text-slate-300 text-xs mt-0.5">A cargo del cliente</p>
+              <p className="text-slate-300 text-xs mt-1">A cargo del cliente</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-300 hover:text-white transition-colors">
@@ -62,7 +62,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
         {/* Body */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Cliente <span className="text-red-500">*</span>
             </label>
             <ClienteSelector
@@ -73,7 +73,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Descripción del Servicio <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -81,34 +81,34 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
               onChange={e => handleChange('descripcion', e.target.value)}
               rows={3}
               placeholder="Ej: Courier para compra personal de iPhone 15, aprox 2kg..."
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha</label>
               <input
                 type="date"
                 value={form.fecha}
                 onChange={e => handleChange('fecha', e.target.value)}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tracking Number</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tracking Number</label>
               <input
                 type="text"
                 value={form.tracking_number}
                 onChange={e => handleChange('tracking_number', e.target.value)}
                 placeholder="Número de seguimiento"
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Empresa Logística</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Empresa Logística</label>
             <EmpresaLogisticaSelector
               value={form.empresa_logistica}
               onChange={val => handleChange('empresa_logistica', val)}
@@ -120,7 +120,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
         <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-sm bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
           >
             Cancelar
           </button>

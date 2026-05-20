@@ -106,13 +106,13 @@ const CajasSection = () => {
             <Package size={28} />
             <div>
               <h2 className="text-2xl font-semibold">Cajas de Envío</h2>
-              <p className="text-gray-300 mt-1">Agrupación de items para distribución de costos de courier</p>
+              <p className="text-slate-300 mt-1">Agrupación de items para distribución de costos de courier</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => { setCajaParaAsignar(null); setShowAsignarModal(true); }}
-              className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 flex items-center gap-2 text-sm font-medium transition-colors"
+              className="bg-slate-600 text-white px-4 py-3 rounded hover:bg-slate-500 transition-colors flex items-center gap-2"
             >
               <Package size={16} />
               Asignar Items
@@ -186,15 +186,15 @@ const CajasSection = () => {
                 <thead className="bg-slate-800 text-white">
                   <tr>
                     <th className="w-8 py-3"></th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">N° Caja</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Pedidos</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Est.</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">FOB Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costo Courier</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">F. Recepción</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">N° Caja</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Items</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Pedidos</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Est.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">FOB Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Costo Courier</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">F. Recepción</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -309,13 +309,13 @@ const CajasSection = () => {
                                         <thead className="bg-slate-700 text-white text-xs">
                                           <tr>
                                             <th className="w-10 pl-12 py-1.5 text-left"></th>
-                                            <th className="px-3 py-1.5 text-left">Producto</th>
-                                            <th className="px-3 py-1.5 text-center">Cant.</th>
-                                            <th className="px-3 py-1.5 text-center">Color</th>
-                                            <th className="px-3 py-1.5 text-center">Almacenamiento</th>
-                                            <th className="px-3 py-1.5 text-center">Peso u.</th>
-                                            <th className="px-3 py-1.5 text-center">FOB u.</th>
-                                            {estaRecepcionada && <th className="px-3 py-1.5 text-center">Precio Final u.</th>}
+                                            <th className="px-3 py-1.5 text-left font-bold uppercase tracking-wider">Producto</th>
+                                            <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">Cant.</th>
+                                            <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">Color</th>
+                                            <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">Almacenamiento</th>
+                                            <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">Peso u.</th>
+                                            <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">FOB u.</th>
+                                            {estaRecepcionada && <th className="px-3 py-1.5 text-center font-bold uppercase tracking-wider">Precio Final u.</th>}
                                             <th className="px-3 py-1.5 text-center"></th>
                                           </tr>
                                         </thead>

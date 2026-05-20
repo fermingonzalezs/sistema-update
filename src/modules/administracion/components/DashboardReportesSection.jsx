@@ -1053,7 +1053,7 @@ const DashboardReportesSection = () => {
         </div>
 
         {/* Filtros de fecha */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50">
+        <div className="bg-gray-50 p-4 border-b border-slate-200">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex items-center gap-2 mr-2 self-end pb-2">
               <Calendar size={15} className="text-slate-500" />
@@ -1078,26 +1078,26 @@ const DashboardReportesSection = () => {
             ))}
             <div className="flex items-end gap-2 ml-2 pl-2 border-l border-slate-300">
               <div>
-                <label className="block text-xs text-slate-500 mb-1 uppercase tracking-wider text-center">Desde</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider text-center">Desde</label>
                 <input
                   type="date"
                   value={fechaInicio}
                   onChange={(e) => { setFechaInicio(e.target.value); setPeriodoActivo('personalizado'); }}
-                  className="border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1 uppercase tracking-wider text-center">Hasta</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider text-center">Hasta</label>
                 <input
                   type="date"
                   value={fechaFin}
                   onChange={(e) => { setFechaFin(e.target.value); setPeriodoActivo('personalizado'); }}
-                  className="border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
                 />
               </div>
               <button
                 onClick={aplicarFiltros}
-                className="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded hover:bg-emerald-700 transition-colors"
+                className="px-4 py-2 h-9 bg-emerald-600 text-white text-xs font-semibold rounded hover:bg-emerald-700 transition-colors"
               >
                 APLICAR
               </button>
@@ -1507,22 +1507,22 @@ const DashboardReportesSection = () => {
                     <table className="w-full">
                       <thead className="bg-slate-800 text-white">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                             #
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">
                             Cliente
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">
                             Total Bruto
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">
                             Ganancia
                           </th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                             Items
                           </th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                             Compras
                           </th>
                         </tr>

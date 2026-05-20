@@ -251,7 +251,7 @@ function ReparacionesMain() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-3 items-center mb-6">
+      <div className="bg-gray-50 p-4 border-b border-slate-200 flex flex-wrap gap-3 items-center mb-6">
         <div className="flex gap-1">
           {filtrosEstados.map(est => (
             <button
@@ -260,7 +260,7 @@ function ReparacionesMain() {
               className={`px-3 py-1 rounded font-medium text-sm border transition-all ${
                 filtroEstado === est
                   ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-emerald-50'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
               }`}
             >
               {est === 'todos' ? 'Todos' : estados[est]?.label}
@@ -272,13 +272,13 @@ function ReparacionesMain() {
           placeholder="Buscar cliente..."
           value={filtroCliente}
           onChange={e => setFiltroCliente(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm"
+          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
         />
         <input
           type="date"
           value={filtroFecha}
           onChange={e => setFiltroFecha(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm"
+          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
         />
       </div>
 
@@ -294,7 +294,7 @@ function ReparacionesMain() {
       {!loading && (
         <div className="overflow-x-auto bg-white rounded border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-800">
+            <thead className="bg-slate-800 text-white">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Número</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha Ingreso</th>
@@ -305,9 +305,9 @@ function ReparacionesMain() {
                 <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-100">
+            <tbody className="bg-white divide-y divide-slate-200">
               {reparacionesFiltradas.map((r, idx) => (
-                <tr key={r.id || idx} className="hover:bg-emerald-50 transition-all">
+                <tr key={r.id || idx} className={idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-slate-100'}>
                   <td className="px-4 py-3 font-mono text-sm text-emerald-700">
                     {r.numero || 'Sin número'}
                   </td>
@@ -341,7 +341,7 @@ function ReparacionesMain() {
                       onChange={(e) => handleCambiarEstado(r.id, e.target.value)}
                       className={`px-3 py-1 rounded text-xs font-bold border-0 cursor-pointer ${
                         estados[r.estado]?.color || 'bg-slate-100 text-slate-700'
-                      } focus:ring-2 focus:ring-emerald-600`}
+                      } focus:ring-2 focus:ring-gray-600`}
                     >
                       {filtrosEstados.slice(1).map(estado => (
                         <option key={estado} value={estado}>
@@ -385,14 +385,14 @@ function ReparacionesMain() {
                       <button
                         title="Recibo de ingreso"
                         onClick={() => handleGenerarReciboIngreso(r)}
-                        className="p-2 rounded hover:bg-blue-200 text-blue-600 transition-colors"
+                        className="p-2 rounded hover:bg-slate-200 text-slate-600 transition-colors"
                       >
                         <FileInput className="w-5 h-5" />
                       </button>
                       <button
                         title="Eliminar reparación"
                         onClick={() => handleEliminarReparacion(r.id)}
-                        className="p-2 rounded hover:bg-red-200 text-red-600 transition-colors"
+                        className="p-2 rounded hover:bg-slate-200 text-slate-600 transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -403,7 +403,7 @@ function ReparacionesMain() {
               
               {/* Fila expandible */}
               {expand !== null && reparacionesFiltradas[expand] && (
-                <tr className="bg-slate-25">
+                <tr className="bg-slate-50">
                   <td colSpan={7} className="px-4 py-6">
                     <div className="bg-slate-50 rounded p-6">
                       <h4 className="font-semibold text-slate-800 mb-4">Detalles de la Reparación</h4>

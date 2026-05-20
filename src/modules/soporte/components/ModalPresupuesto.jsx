@@ -152,7 +152,7 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
   const renderCatalogo = (items, tipo) => (
     <div className="space-y-2 h-48 overflow-y-auto p-1">
       {items.map(item => (
-        <div key={item.id} onClick={() => agregarItem(item, tipo)} className="flex justify-between items-center p-2 border border-slate-200 rounded hover:bg-emerald-50 hover:border-emerald-300 cursor-pointer transition-colors">
+        <div key={item.id} onClick={() => agregarItem(item, tipo)} className="flex justify-between items-center p-2 border border-slate-200 rounded hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-colors">
           <div>
             <p className="text-sm font-medium text-slate-800">{item.nombre}</p>
             <p className="text-xs text-slate-500">{item.categoria} {tipo === 'repuesto' && `(Stock: ${item.stock})`}</p>
@@ -167,19 +167,19 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
     <div className="bg-slate-100 p-3 rounded border border-slate-200">
       <p className="text-sm font-medium text-slate-700 mb-2">Agregar {tipo} personalizado</p>
       <div className="flex gap-2">
-        <input type="text" placeholder="Nombre" value={item.nombre} onChange={e => setItem({ ...item, nombre: e.target.value })} className="w-full text-sm p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500" />
-        <input type="number" placeholder="Precio" value={item.precio} onChange={e => setItem({ ...item, precio: e.target.value })} className="w-24 text-sm p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500" />
+        <input type="text" placeholder="Nombre" value={item.nombre} onChange={e => setItem({ ...item, nombre: e.target.value })} className="w-full h-9 text-sm border border-slate-200 rounded px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
+        <input type="number" placeholder="Precio" value={item.precio} onChange={e => setItem({ ...item, precio: e.target.value })} className="w-24 h-9 text-sm border border-slate-200 rounded px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
         <button onClick={() => agregarItemPersonalizado(tipo)} className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"><Plus className="w-4 h-4" /></button>
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50 p-4">
       <div className="bg-white rounded shadow-xl w-full max-w-6xl max-h-[95vh] flex flex-col">
-        <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
+        <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded">
           <h2 className="text-lg font-semibold flex items-center gap-3"><FileText className="w-6 h-6 text-slate-300" />{reparacion?.presupuesto_json ? 'Editar' : 'Crear'} Presupuesto</h2>
-          <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:bg-slate-600 transition-colors"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:bg-slate-600 transition-colors"><X className="w-5 h-5" /></button>
         </div>
 
         {reparacion && <div className="p-3 bg-slate-100 border-b border-slate-200 text-sm text-slate-600"><b>Reparación #{reparacion.numero}:</b> {reparacion.cliente_nombre} - {reparacion.equipo_tipo} {reparacion.equipo_modelo}</div>}
@@ -235,17 +235,17 @@ function ModalPresupuesto({ open, onClose, reparacion }) {
             <div className="border-t border-slate-200 pt-3 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-slate-600">Subtotal Servicios:</span> <span className="font-medium">{formatearMonto(subtotalServicios)}</span></div>
               <div className="flex justify-between"><span className="text-slate-600">Subtotal Repuestos:</span> <span className="font-medium">{formatearMonto(subtotalRepuestos)}</span></div>
-              <div className="flex justify-between text-base font-semibold text-slate-800 border-t border-slate-300 pt-2 mt-2"><span >TOTAL:</span> <span>{formatearMonto(total)}</span></div>
+              <div className="flex justify-between text-base font-semibold text-slate-800 border-t border-slate-200 pt-2 mt-2"><span >TOTAL:</span> <span>{formatearMonto(total)}</span></div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
-              <textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} placeholder="Condiciones, notas, etc." rows="2" className="w-full text-sm p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500"></textarea>
+              <textarea value={observaciones} onChange={e => setObservaciones(e.target.value)} placeholder="Condiciones, notas, etc." rows="2" className="w-full text-sm border border-slate-200 rounded px-3 py-2 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"></textarea>
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-100 p-4 flex justify-end gap-4 border-t border-slate-200 rounded-b">
-          <button type="button" onClick={onClose} className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-200 transition-colors">Cancelar</button>
+        <div className="bg-slate-100 p-4 flex justify-end gap-4 border-t border-slate-200 rounded">
+          <button type="button" onClick={onClose} className="px-6 py-2 rounded bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-200 transition-colors">Cancelar</button>
           <button onClick={handleGuardarPresupuesto} disabled={loading} className="px-6 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 flex items-center gap-2">
             {loading ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FileText className="w-4 h-4" />} {loading ? 'Guardando...' : 'Guardar Presupuesto'}
           </button>

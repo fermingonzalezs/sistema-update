@@ -216,7 +216,7 @@ const EstadoSituacionPatrimonialSection = () => {
             {!loading && !error && balance.activos && (
               <button
                 onClick={handleGenerarPDF}
-                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
+                className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Descargar PDF</span>
@@ -245,7 +245,7 @@ const EstadoSituacionPatrimonialSection = () => {
             <button
               onClick={aplicarFecha}
               disabled={loading}
-              className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 font-medium transition-colors"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -260,7 +260,7 @@ const EstadoSituacionPatrimonialSection = () => {
           <button
             onClick={refrescarConFechaActual}
             disabled={loading}
-            className="bg-slate-700 text-white py-2 px-4 rounded hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
+            className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black disabled:opacity-50 flex items-center gap-2 text-sm transition-colors"
             title="Recargar con fecha actual"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

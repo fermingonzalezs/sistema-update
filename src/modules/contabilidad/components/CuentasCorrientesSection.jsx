@@ -861,7 +861,7 @@ Esta acción no se puede deshacer.`;
             </div>
             <button
               onClick={() => setShowNuevoMovimiento(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-medium flex items-center space-x-2"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus className="w-5 h-5" />
               <span>Nuevo Movimiento</span>
@@ -924,7 +924,7 @@ Esta acción no se puede deshacer.`;
                   placeholder="Buscar cliente..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
 
@@ -932,7 +932,7 @@ Esta acción no se puede deshacer.`;
               <select
                 value={filtroSaldo}
                 onChange={(e) => setFiltroSaldo(e.target.value)}
-                className="w-full p-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="todos">Todos</option>
                 <option value="deudores">Deudores (nos deben)</option>
@@ -943,7 +943,7 @@ Esta acción no se puede deshacer.`;
               {clienteSeleccionadoFiltro && (
                 <button
                   onClick={() => setClienteSeleccionadoFiltro(null)}
-                  className="w-full px-3 py-2 text-sm bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+                  className="w-full px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm transition-colors"
                 >
                   Mostrar todos los movimientos
                 </button>
@@ -1040,7 +1040,7 @@ Esta acción no se puede deshacer.`;
                       movimientos: movimientosConSaldo,
                       fechaEmision: new Date()
                     })}
-                    className="ml-4 px-3 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+                    className="ml-4 px-6 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>Generar PDF</span>
@@ -1074,13 +1074,13 @@ Esta acción no se puede deshacer.`;
                   <table className="w-full border-separate" style={{ borderSpacing: 0, minWidth: '700px' }}>
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Cliente</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Fecha</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Concepto</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Débito</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Crédito</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Saldo</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider border-b-0">Acciones</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cliente</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Concepto</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Débito</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Crédito</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">

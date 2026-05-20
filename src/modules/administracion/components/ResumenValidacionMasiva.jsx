@@ -41,11 +41,11 @@ const ResumenValidacionMasiva = ({
                     <table className="w-full">
                         <thead className="bg-slate-800 text-white">
                             <tr>
-                                <th className="px-4 py-2 text-left text-xs font-medium uppercase">Serial</th>
-                                <th className="px-4 py-2 text-left text-xs font-medium uppercase">Modelo</th>
-                                <th className="px-4 py-2 text-right text-xs font-medium uppercase">Compra</th>
-                                <th className="px-4 py-2 text-right text-xs font-medium uppercase">Venta</th>
-                                <th className="px-4 py-2 text-left text-xs font-medium uppercase">Color</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Serial</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Modelo</th>
+                                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Compra</th>
+                                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Venta</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Color</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">

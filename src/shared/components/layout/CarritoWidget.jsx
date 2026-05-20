@@ -909,7 +909,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
           }}
         >
           <div
-            className="bg-white rounded max-w-7xl w-full max-h-[95vh] overflow-y-auto border border-slate-300 shadow-2xl"
+            className="bg-white rounded max-w-7xl w-full max-h-[95vh] overflow-y-auto border border-slate-200 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {!mostrarFormulario ? (
@@ -919,7 +919,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   <div className="flex items-center space-x-3">
                     <ShoppingCart className="w-6 h-6" />
                     <div className="flex items-baseline space-x-3">
-                      <h2 className="text-xl font-semibold">CARRITO</h2>
+                      <h2 className="text-2xl font-semibold">CARRITO</h2>
                       <span className="text-slate-300 text-sm">({calcularCantidadTotal()} items)</span>
                     </div>
                   </div>
@@ -947,13 +947,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       <table className="w-full text-sm">
                         <thead className="bg-slate-800 text-white">
                           <tr>
-                            <th className="px-4 py-2 text-left font-semibold uppercase w-1/3">Modelo</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase hidden sm:table-cell">Categoría</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase hidden md:table-cell">Serial</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase hidden md:table-cell">Color</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Cant.</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Precio</th>
-                            <th className="px-4 py-2 text-center font-semibold uppercase">Subtotal</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider w-1/3">Modelo</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden md:table-cell">Serial</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden md:table-cell">Color</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant.</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Precio</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Subtotal</th>
                             <th className="px-2 py-2 text-center font-semibold uppercase"></th>
                           </tr>
                         </thead>
@@ -968,7 +968,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                             return (
                               <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                <td className="px-4 py-3 text-left">
+                                <td className="px-4 py-3 text-sm text-left text-slate-600">
                                   <div className="flex items-center justify-start space-x-2">
                                     {getIconoTipo(item.tipo)}
                                     <span className="text-slate-800 font-medium" title={item.producto.modelo || item.producto.nombre_producto}>
@@ -976,11 +976,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                     </span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-center text-slate-700 capitalize hidden sm:table-cell">{obtenerCategoria()}</td>
+                                <td className="px-4 py-3 text-sm text-center text-slate-800 capitalize hidden sm:table-cell">{obtenerCategoria()}</td>
                                 <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs hidden md:table-cell">
                                   {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-center text-slate-600 capitalize hidden md:table-cell">{item.producto.color || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-center text-slate-800 capitalize hidden md:table-cell">{item.producto.color || '-'}</td>
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center space-x-1">
                                     <button
@@ -1000,17 +1000,17 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                     </button>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                <td className="px-4 py-3 text-sm text-center text-slate-800">
                                   <div className="flex items-center justify-center space-x-1">
                                     <span className="text-slate-800">
-                                      U${Math.round(item.precio_unitario)}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 text-center font-semibold text-slate-800">
+                                       U${Math.round(item.precio_unitario)}
+                                     </span>
+                                   </div>
+                                 </td>
+                                 <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">
                                   U${Math.round(item.precio_unitario * item.cantidad)}
                                 </td>
-                                <td className="px-2 py-3 text-center">
+                                <td className="px-4 py-3 text-sm text-center">
                                   <button
                                     onClick={() => onRemover(item.id)}
                                     className="text-slate-400 hover:text-red-600"
@@ -1023,9 +1023,9 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             );
                           })}
                           {/* Fila de Total */}
-                          <tr className="bg-slate-100 border-t-2 border-slate-300">
-                            <td colSpan="7" className="px-4 py-3 text-right font-bold text-slate-800 uppercase">
-                              Total: <span className="text-emerald-700 text-lg ml-2">U${Math.round(calcularTotal())}</span>
+                          <tr className="bg-slate-800 text-white">
+                            <td colSpan="7" className="px-4 py-3 text-sm font-bold text-center uppercase">
+                              Total: <span className="text-emerald-500 text-lg ml-2">U${Math.round(calcularTotal())}</span>
                             </td>
                             <td></td>
                           </tr>
@@ -1046,7 +1046,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                         <button
                           onClick={() => setMostrarFormulario(true)}
-                          className="bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 shadow-sm"
+                          className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
                         >
                           <ShoppingCart className="w-5 h-5" />
                           <span>Procesar Venta</span>
@@ -1063,7 +1063,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                   <div className="flex items-center space-x-3">
                     <CreditCard className="w-6 h-6" />
                     <div>
-                      <h2 className="text-xl font-semibold">PROCESAR VENTA</h2>
+                      <h2 className="text-2xl font-semibold">PROCESAR VENTA</h2>
                       <p className="text-slate-300 text-sm mt-1">Complete la información para procesar</p>
                     </div>
                   </div>
@@ -1110,39 +1110,39 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         <div className="border border-slate-200 rounded overflow-hidden">
                           <div className="overflow-x-auto">
                           <table className="w-full">
-                            <thead className="bg-slate-600 text-white">
+                            <thead className="bg-slate-800 text-white">
                               <tr>
-                                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider hidden md:table-cell">Serial</th>
-                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider hidden md:table-cell">Color</th>
-                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-16">Cant.</th>
-                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Precio Unit.</th>
-                                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider w-24">Subtotal</th>
-                                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-16">Acciones</th>
+                                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden md:table-cell">Serial</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider hidden md:table-cell">Color</th>
+                                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider w-16">Cant.</th>
+                                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider w-24">Precio Unit.</th>
+                                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider w-24">Subtotal</th>
+                                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-16">Acciones</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200">
                               {carrito.map((item, index) => (
                                 <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                   {/* Producto */}
-                                  <td className="px-4 py-3">
+                                  <td className="px-4 py-3 text-sm text-left text-slate-600">
                                     <p className="text-sm font-medium text-slate-800 truncate">
                                       {item.producto.modelo || item.producto.nombre_producto}
                                     </p>
                                   </td>
 
                                   {/* Serial */}
-                                  <td className="px-4 py-3 text-center text-slate-600 font-mono text-xs hidden md:table-cell">
+                                  <td className="px-4 py-3 text-sm text-center text-slate-800 font-mono text-xs hidden md:table-cell">
                                     {item.producto.serial && item.producto.serial.trim() !== '' ? item.producto.serial : '-'}
                                   </td>
 
                                   {/* Color */}
-                                  <td className="px-4 py-3 text-center text-slate-600 capitalize text-sm hidden md:table-cell">
+                                  <td className="px-4 py-3 text-sm text-center text-slate-800 capitalize hidden md:table-cell">
                                     {item.producto.color || '-'}
                                   </td>
 
                                   {/* Cantidad */}
-                                  <td className="px-4 py-3">
+                                  <td className="px-4 py-3 text-sm text-center text-slate-800">
                                     <div className="flex items-center justify-center space-x-1">
                                       <button
                                         onClick={() => onUpdateCantidad(item.id, item.cantidad - 1)}
@@ -1165,7 +1165,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   </td>
 
                                   {/* Precio Unitario */}
-                                  <td className="px-4 py-3">
+                                  <td className="px-4 py-3 text-sm text-center text-slate-800">
                                     <div className="flex items-center justify-center space-x-1">
                                       {editandoPrecio === item.id ? (
                                         <div className="flex items-center space-x-1">
@@ -1232,14 +1232,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                                   </td>
 
                                   {/* Subtotal */}
-                                  <td className="px-4 py-3 text-center">
+                                  <td className="px-4 py-3 text-sm text-center text-slate-800">
                                     <span className="text-sm font-semibold text-slate-800">
                                       U${Math.round(item.precio_unitario * item.cantidad)}
                                     </span>
                                   </td>
 
                                   {/* Acciones */}
-                                  <td className="px-4 py-3 text-center">
+                                  <td className="px-4 py-3 text-sm text-center">
                                     <button
                                       onClick={() => onRemover(item.id)}
                                       className="p-1 text-slate-400 hover:text-red-600 transition-colors"
@@ -1313,7 +1313,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Primer método de pago */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Pago 1 *
                         </label>
                         <MetodoPagoSelector
@@ -1321,11 +1321,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           value={datosCliente.metodo_pago_1}
                           onChange={(e) => handleMetodoPagoChange(1, e.target.value)}
                           exclude={['cliente_abona']}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
                         </label>
                         <input
@@ -1333,19 +1333,19 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           inputMode="decimal"
                           value={inputMontoBase1}
                           onChange={(e) => handleMontoBaseChange(1, e.target.value)}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Monto a cobrar"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? 'Caja *' : necesitaInputAlias(datosCliente.metodo_pago_1) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? (
                           <select
                             value={datosCliente.destino_pago_1}
                             onChange={(e) => handleDestinoPagoChange(1, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           >
                             <option value="">Seleccionar caja</option>
                             {cajas.map((caja) => (
@@ -1359,7 +1359,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.destino_pago_1}
                             onChange={(e) => handleDestinoPagoChange(1, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder={datosCliente.metodo_pago_1 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
                         ) : (
@@ -1367,7 +1367,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.metodo_pago_1 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_1 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
-                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-500"
                           />
                         )}
                       </div>
@@ -1377,7 +1377,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Segundo método de pago (opcional) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Pago 2
                         </label>
                         <MetodoPagoSelector
@@ -1387,11 +1387,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           exclude={['cliente_abona']}
                           showEmpty={true}
                           emptyLabel="Seleccionar método"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Monto {datosCliente.metodo_pago_2 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_2)})` : ''}
                         </label>
                         <input
@@ -1399,20 +1399,20 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           inputMode="decimal"
                           value={inputMontoBase2}
                           onChange={(e) => handleMontoBaseChange(2, e.target.value)}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Monto a cobrar"
                           disabled={!datosCliente.metodo_pago_2}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? 'Caja *' : datosCliente.metodo_pago_2 && necesitaInputAlias(datosCliente.metodo_pago_2) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? (
                           <select
                             value={datosCliente.destino_pago_2}
                             onChange={(e) => handleDestinoPagoChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           >
                             <option value="">Seleccionar caja</option>
                             {cajas.map((caja) => (
@@ -1426,7 +1426,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.destino_pago_2}
                             onChange={(e) => handleDestinoPagoChange(2, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder={datosCliente.metodo_pago_2 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
                         ) : (
@@ -1434,7 +1434,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.metodo_pago_2 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_2 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
-                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-500"
                           />
                         )}
                       </div>
@@ -1443,7 +1443,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Tercer método de pago (opcional) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Pago 3
                         </label>
                         <MetodoPagoSelector
@@ -1453,11 +1453,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           exclude={['cliente_abona']}
                           showEmpty={true}
                           emptyLabel="Seleccionar método"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Monto {datosCliente.metodo_pago_3 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_3)})` : ''}
                         </label>
                         <input
@@ -1465,20 +1465,20 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           inputMode="decimal"
                           value={inputMontoBase3}
                           onChange={(e) => handleMontoBaseChange(3, e.target.value)}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Monto a cobrar"
                           disabled={!datosCliente.metodo_pago_3}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? 'Caja *' : datosCliente.metodo_pago_3 && necesitaInputAlias(datosCliente.metodo_pago_3) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? (
                           <select
                             value={datosCliente.destino_pago_3}
                             onChange={(e) => handleDestinoPagoChange(3, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           >
                             <option value="">Seleccionar caja</option>
                             {cajas.map((caja) => (
@@ -1492,7 +1492,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.destino_pago_3}
                             onChange={(e) => handleDestinoPagoChange(3, e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder={datosCliente.metodo_pago_3 === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
                         ) : (
@@ -1500,7 +1500,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.metodo_pago_3 === 'cuenta_corriente' ? 'Cuenta Corriente' : datosCliente.metodo_pago_3 === 'mercaderia' ? 'Mercadería' : '-'}
                             disabled
-                            className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-500"
                           />
                         )}
                       </div>
@@ -1509,18 +1509,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* ── Seña ── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Método seña</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método seña</label>
                         <MetodoPagoSelector
                           value={datosCliente.sena_metodo}
                           onChange={(e) => handleSenaMetodoChange(e.target.value)}
                           exclude={['cliente_abona']}
                           showEmpty={true}
                           emptyLabel="Sin seña"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Monto {datosCliente.sena_metodo ? `(${obtenerMonedaMetodo(datosCliente.sena_metodo)})` : ''}
                         </label>
                         <input
@@ -1529,19 +1529,19 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           value={inputSena}
                           onChange={(e) => handleSenaMontoChange(e.target.value)}
                           disabled={!datosCliente.sena_metodo}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-100"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 disabled:bg-slate-100"
                           placeholder="0"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? 'Caja *' : datosCliente.sena_metodo && necesitaInputAlias(datosCliente.sena_metodo) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? (
                           <select
                             value={datosCliente.sena_caja}
                             onChange={(e) => setDatosCliente(prev => ({ ...prev, sena_caja: e.target.value }))}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           >
                             <option value="">Seleccionar caja</option>
                             {cajas.map((caja) => (
@@ -1553,11 +1553,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.sena_caja}
                             onChange={(e) => setDatosCliente(prev => ({ ...prev, sena_caja: e.target.value }))}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder={datosCliente.sena_metodo === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
                         ) : (
-                          <input type="text" disabled value="-" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-400" />
+                          <input type="text" disabled value="-" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-400" />
                         )}
                       </div>
                     </div>
@@ -1565,18 +1565,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* ── Vuelto ── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Método vuelto</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método vuelto</label>
                         <MetodoPagoSelector
                           value={datosCliente.vuelto_metodo}
                           onChange={(e) => handleVueltoMetodoChange(e.target.value)}
                           exclude={['cliente_abona']}
                           showEmpty={true}
                           emptyLabel="Sin vuelto"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Monto {datosCliente.vuelto_metodo ? `(${obtenerMonedaMetodo(datosCliente.vuelto_metodo)})` : ''}
                         </label>
                         <input
@@ -1585,19 +1585,19 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                           value={inputVuelto}
                           onChange={(e) => handleVueltoMontoChange(e.target.value)}
                           disabled={!datosCliente.vuelto_metodo}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-100"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 disabled:bg-slate-100"
                           placeholder="0"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? 'Caja *' : datosCliente.vuelto_metodo && necesitaInputAlias(datosCliente.vuelto_metodo) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? (
                           <select
                             value={datosCliente.vuelto_caja}
                             onChange={(e) => setDatosCliente(prev => ({ ...prev, vuelto_caja: e.target.value }))}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           >
                             <option value="">Seleccionar caja</option>
                             {cajas.map((caja) => (
@@ -1609,11 +1609,11 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                             type="text"
                             value={datosCliente.vuelto_caja}
                             onChange={(e) => setDatosCliente(prev => ({ ...prev, vuelto_caja: e.target.value }))}
-                            className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder={datosCliente.vuelto_metodo === 'transferencia' ? 'Alias CBU/CVU' : 'Wallet address'}
                           />
                         ) : (
-                          <input type="text" disabled value="-" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-100 text-slate-400" />
+                          <input type="text" disabled value="-" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-slate-100 text-slate-400" />
                         )}
                       </div>
                     </div>
@@ -1630,13 +1630,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Vendedor *</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Vendedor *</label>
                         <select
                           name="vendedor"
                           value={datosCliente.vendedor}
                           onChange={handleInputChange}
                           disabled={loadingVendedores}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none disabled:bg-slate-200"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 disabled:bg-slate-200"
                           required
                         >
                           <option value="">
@@ -1651,12 +1651,12 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Sucursal *</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sucursal *</label>
                         <select
                           name="sucursal"
                           value={datosCliente.sucursal}
                           onChange={handleInputChange}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         >
                           <option value="la_plata">La Plata </option>
                           <option value="mitre">Mitre </option>
@@ -1664,18 +1664,18 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Fecha de Venta *</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Venta *</label>
                         <input
                           type="date"
                           value={fechaVenta}
                           onChange={(e) => setFechaVenta(e.target.value)}
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Tipo de Venta</label>
-                        <div className="flex rounded-lg overflow-hidden border border-slate-200">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo de Venta</label>
+                        <div className="flex rounded overflow-hidden border border-slate-200">
                           <button
                             type="button"
                             onClick={() => setDatosCliente(prev => ({ ...prev, tipo_venta: 'minorista' }))}
@@ -1702,13 +1702,13 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div className="md:col-span-4">
-                        <label className="block text-sm font-medium text-slate-800 mb-2 text-center">Observaciones</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
                         <textarea
                           name="observaciones"
                           value={datosCliente.observaciones}
                           onChange={handleInputChange}
                           rows="2"
-                          className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Observaciones adicionales..."
                         />
                       </div>
@@ -1723,7 +1723,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         Resumen de la venta
                       </h4>
                     </div>
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div className="bg-slate-50 p-4 rounded border border-slate-200">
                       {/* Primera fila: Cliente, Productos, Vendedor */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 pb-4 border-b border-slate-200">
                         <div className="text-center">
@@ -1826,7 +1826,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                       {/* Aviso de cuenta corriente */}
                       {(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente' || datosCliente.metodo_pago_3 === 'cuenta_corriente') && (
-                        <div className="p-2 bg-slate-800 text-white rounded-lg text-xs">
+                        <div className="p-2 bg-slate-800 text-white rounded text-xs">
                           💡 Parte de esta venta se registrará como deuda en la cuenta corriente del cliente
                         </div>
                       )}
@@ -1859,14 +1859,14 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         setMostrarFormulario(false);
                         setAperturaManual(false);
                       }}
-                      className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
+                      className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded font-medium transition-colors"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={!clienteSeleccionado || !datosCliente.vendedor}
-                      className={`px-6 py-2 rounded font-semibold transition-colors flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
+                      className={`px-6 py-3 rounded font-medium transition-colors flex items-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500 ${(datosCliente.metodo_pago_1 === 'cuenta_corriente' || datosCliente.metodo_pago_2 === 'cuenta_corriente')
                         ? 'bg-slate-800 text-white hover:bg-slate-700'
                         : 'bg-emerald-600 text-white hover:bg-emerald-700'
                         }`}

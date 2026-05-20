@@ -321,12 +321,12 @@ function TesteoEquiposSection() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-4 rounded border border-slate-200 mb-6">
+      <div className="bg-gray-50 p-4 border-b border-slate-200 mb-6">
         <div className="flex gap-4">
           <select
             value={filtroTipo}
             onChange={(e) => setFiltroTipo(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           >
             <option value="todos">Todos los tipos</option>
             <option value="notebook">Notebooks</option>
@@ -336,7 +336,7 @@ function TesteoEquiposSection() {
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           >
             <option value="todos">Todos los estados</option>
             <option value="pendiente">Pendiente</option>
@@ -351,36 +351,36 @@ function TesteoEquiposSection() {
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-800">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Equipo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Proveedor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Estado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase">Testeo</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase">Acciones</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Equipo</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Proveedor</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Testeo</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-3 text-center text-slate-500">
                   Cargando equipos...
                 </td>
               </tr>
             ) : equiposFiltrados.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-3 text-center text-slate-500">
                   No hay equipos para mostrar
                 </td>
               </tr>
             ) : (
-              equiposFiltrados.map((equipo) => {
+              equiposFiltrados.map((equipo, index) => {
                 const TipoIcon = tiposEquipo[equipo.tipo]?.icon || Monitor;
                 return (
-                  <tr key={equipo.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4">
+                  <tr key={equipo.id} className={index % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-slate-100'}>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <TipoIcon className="w-5 h-5 text-slate-400" />
                         <div>
-                          <div className="font-medium text-slate-900">
+                          <div className="font-medium text-slate-800">
                             {equipo.marca} {equipo.modelo}
                           </div>
                           <div className="text-sm text-slate-500">
@@ -389,17 +389,17 @@ function TesteoEquiposSection() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
+                    <td className="px-4 py-3 text-sm text-slate-800">
                       {equipo.proveedor || 'Sin especificar'}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(equipo.estado_testeo)}`}>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${getEstadoColor(equipo.estado_testeo)}`}>
                         {equipo.estado_testeo === 'pendiente' ? 'Pendiente' :
                           equipo.estado_testeo === 'aprobado' ? 'Aprobado' :
                             equipo.estado_testeo === 'rechazado' ? 'Rechazado' : 'Sin testear'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3">
                       {equipo.checklist_completado ? (
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -412,11 +412,11 @@ function TesteoEquiposSection() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-3 text-center">
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => abrirTesteo(equipo)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded"
+                          className="p-2 text-emerald-600 hover:bg-slate-50 rounded"
                           title="Realizar/Ver testeo"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -440,15 +440,15 @@ function TesteoEquiposSection() {
 
       {/* Modal Nuevo Equipo */}
       {modalNuevo && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded border border-slate-300 shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded border border-slate-200 shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t">
+            <div className="bg-slate-800 text-white p-4 flex justify-between items-center rounded">
               <h3 className="text-lg font-semibold flex items-center gap-3">
                 <Plus className="w-5 h-5" />
                 Nuevo Equipo para Testeo
               </h3>
-              <button onClick={() => setModalNuevo(false)} className="p-1 rounded-full text-slate-400 hover:bg-slate-600 transition-colors">
+              <button onClick={() => setModalNuevo(false)} className="p-1 rounded text-slate-400 hover:bg-slate-600 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -462,7 +462,7 @@ function TesteoEquiposSection() {
                   <select
                     value={formNuevo.tipo}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, tipo: e.target.value }))}
-                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="notebook">Notebook</option>
                     <option value="celular">Celular</option>
@@ -477,7 +477,7 @@ function TesteoEquiposSection() {
                       value={formNuevo.marca}
                       onChange={(e) => setFormNuevo(prev => ({ ...prev, marca: e.target.value }))}
                       placeholder="Ej: Apple, HP, Dell"
-                      className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                       required
                     />
                   </div>
@@ -488,7 +488,7 @@ function TesteoEquiposSection() {
                       value={formNuevo.modelo}
                       onChange={(e) => setFormNuevo(prev => ({ ...prev, modelo: e.target.value }))}
                       placeholder="Ej: MacBook Pro 14"
-                      className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                       required
                     />
                   </div>
@@ -500,7 +500,7 @@ function TesteoEquiposSection() {
                     type="text"
                     value={formNuevo.serial}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, serial: e.target.value }))}
-                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
@@ -510,7 +510,7 @@ function TesteoEquiposSection() {
                     type="text"
                     value={formNuevo.proveedor}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, proveedor: e.target.value }))}
-                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
@@ -521,7 +521,7 @@ function TesteoEquiposSection() {
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, observaciones: e.target.value }))}
                     rows={3}
                     placeholder="Cualquier detalle inicial relevante"
-                    className="w-full p-2 border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               </div>
@@ -531,7 +531,7 @@ function TesteoEquiposSection() {
                 <button
                   type="button"
                   onClick={() => setModalNuevo(false)}
-                  className="px-6 py-2 rounded bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
+                  className="px-6 py-2 rounded bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -550,8 +550,8 @@ function TesteoEquiposSection() {
 
       {/* Modal Testeo */}
       {modalTesteo && equipoSeleccionado && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded border border-slate-300 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-slate-800">
                 Testeo: {equipoSeleccionado.marca} {equipoSeleccionado.modelo}
@@ -584,7 +584,7 @@ function TesteoEquiposSection() {
                           className="w-4 h-4 text-emerald-600"
                         />
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${estado.color}`}></div>
+                          <div className={`w-3 h-3 rounded ${estado.color}`}></div>
                           <span className="text-sm">{estado.label}</span>
                         </div>
                       </label>
@@ -599,7 +599,7 @@ function TesteoEquiposSection() {
                     onChange={(e) => setTesteoData(prev => ({ ...prev, observaciones_testeo: e.target.value }))}
                     rows={4}
                     placeholder="Detalles adicionales del testeo..."
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-gray-600 text-sm"
                   />
                 </div>
 

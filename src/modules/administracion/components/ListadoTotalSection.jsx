@@ -860,7 +860,7 @@ const ListadoTotalSection = () => {
   if (loading) {
     return (
       <div className="p-0">
-        <div className="bg-slate-800 p-4 text-white rounded border border-slate-200 mb-4">
+        <div className="bg-slate-800 p-6 text-white rounded border border-slate-200 mb-4">
           <div className="flex items-center space-x-3">
             <Package className="w-5 h-5" />
             <h2 className="text-xl font-semibold">Listado Stock Total</h2>
@@ -880,7 +880,7 @@ const ListadoTotalSection = () => {
   if (error) {
     return (
       <div className="p-0">
-        <div className="bg-slate-800 p-4 text-white rounded border border-slate-200 mb-4">
+        <div className="bg-slate-800 p-6 text-white rounded border border-slate-200 mb-4">
           <div className="flex items-center space-x-3">
             <Package className="w-5 h-5" />
             <h2 className="text-xl font-semibold">Listado Stock Total</h2>
@@ -897,7 +897,7 @@ const ListadoTotalSection = () => {
   return (
     <div className="bg-slate-50 h-[calc(100vh-6rem)] w-full flex flex-col p-0">
       {/* Header */}
-      <div className="flex-shrink-0 bg-slate-800 p-4 text-white rounded-t border border-slate-200">
+      <div className="flex-shrink-0 bg-slate-800 p-6 text-white rounded-t border border-slate-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Package className="w-5 h-5" />
@@ -1087,7 +1087,7 @@ const ListadoTotalSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Búsqueda */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Búsqueda
               </label>
               <div className="relative">
@@ -1097,20 +1097,20 @@ const ListadoTotalSection = () => {
                   value={filtros.busqueda}
                   onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
                   placeholder="Buscar producto..."
-                  className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 pl-10 pr-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
             </div>
 
             {/* Categoría */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Categoría
               </label>
               <select
                 value={filtros.categoria}
                 onChange={(e) => setFiltros(prev => ({ ...prev, categoria: e.target.value }))}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="">Todas las categorías</option>
                 <option value="NOTEBOOKS">Notebooks</option>
@@ -1144,13 +1144,13 @@ const ListadoTotalSection = () => {
 
             {/* Condición */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Condición
               </label>
               <select
                 value={filtros.condicion}
                 onChange={(e) => setFiltros(prev => ({ ...prev, condicion: e.target.value }))}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="">Todas las condiciones</option>
                 <option value="nuevo">Nuevo</option>
@@ -1165,13 +1165,13 @@ const ListadoTotalSection = () => {
 
             {/* Ordenamiento */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Ordenar por
               </label>
               <select
                 value={filtros.ordenamiento}
                 onChange={(e) => setFiltros(prev => ({ ...prev, ordenamiento: e.target.value }))}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="categoria-asc">Categoría (A-Z)</option>
                 <option value="categoria-desc">Categoría (Z-A)</option>
@@ -1192,48 +1192,48 @@ const ListadoTotalSection = () => {
             <table className="w-full min-w-[1400px]">
               <thead className="bg-slate-800 text-white whitespace-nowrap sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">
                     Información del Producto
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Serial
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Categoría
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Condición
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Días
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Stock
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Costo
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Envio/Repu
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     PC Unitario
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     PC Total
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Margen %
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     PV
                   </th>
                   {modoEdicionMasiva && (
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider bg-emerald-700">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-emerald-700">
                       Nuevo Precio
                     </th>
                   )}
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>

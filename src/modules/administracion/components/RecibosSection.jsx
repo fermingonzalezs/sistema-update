@@ -459,7 +459,7 @@ const RecibosSection = () => {
     <div className="h-full w-full">
       {/* Modal de Edición */}
       {modalEdicion && documentoEditando && editData && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header del modal */}
             <div className="p-4 bg-slate-800 text-white flex justify-between items-center sticky top-0">
@@ -779,12 +779,12 @@ const RecibosSection = () => {
 
       <div className="bg-white rounded border border-slate-200 mb-4">
         {/* Header */}
-        <div className="p-4 sm:p-6 bg-slate-800 text-white">
+        <div className="p-6 bg-slate-800 text-white">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="flex items-center space-x-3 min-w-0">
               <FileText size={24} className="shrink-0" />
               <div className="min-w-0">
-                <h2 className="text-lg sm:text-2xl font-semibold truncate">Recibos, Remitos y Presupuestos</h2>
+                <h2 className="text-2xl font-semibold truncate">Recibos, Remitos y Presupuestos</h2>
                 <p className="text-slate-300 mt-1 text-xs sm:text-sm truncate">Generación de comprobantes y cotizaciones</p>
               </div>
             </div>
@@ -1208,14 +1208,14 @@ const RecibosSection = () => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Tipo</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Número</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Fecha</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Cliente</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Items</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Ver Como</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Acciones</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Tipo</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Número</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cliente</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Items</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Ver Como</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

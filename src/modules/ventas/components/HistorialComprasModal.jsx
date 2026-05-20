@@ -106,19 +106,19 @@ const HistorialComprasModal = ({ isOpen, onClose, cliente, compras = [] }) => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                       Fecha
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                       Productos
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                       Garantía
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                       Total USD
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                       Vendedor
                     </th>
                   </tr>
@@ -135,13 +135,13 @@ const HistorialComprasModal = ({ isOpen, onClose, cliente, compras = [] }) => {
                         </td>
 
                         {/* Productos */}
-                        <td className="px-4 py-3 text-center text-xs text-slate-700">
+                        <td className="px-4 py-3 text-sm text-left text-slate-600">
                           {compra.venta_items && compra.venta_items.length > 0 ? (
                             <div className="space-y-0.5">
                               {compra.venta_items.map((item, idx) => (
                                 <div
                                   key={item.id}
-                                  className="text-xs text-slate-600"
+                                  className="text-sm text-slate-600"
                                   title={item.copy}
                                 >
                                   <div className="font-medium text-slate-800 line-clamp-2">
@@ -151,24 +151,24 @@ const HistorialComprasModal = ({ isOpen, onClose, cliente, compras = [] }) => {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-slate-500 text-xs">Sin detalles</span>
+                            <span className="text-slate-500 text-sm">Sin detalles</span>
                           )}
                         </td>
 
                         {/* Garantía */}
-                        <td className="px-4 py-3 text-center text-xs text-slate-700">
+                        <td className="px-4 py-3 text-sm text-left text-slate-600">
                           {compra.venta_items && compra.venta_items.length > 0 ? (
                             <div className="space-y-0.5">
                               {compra.venta_items.map((item) => (
                                 item.garantia && (
-                                  <div key={item.id} className="text-slate-800 text-xs font-medium">
+                                  <div key={item.id} className="text-slate-800 text-sm font-medium">
                                     {item.garantia}
                                   </div>
                                 )
                               ))}
                             </div>
                           ) : (
-                            <span className="text-slate-500 text-xs">-</span>
+                            <span className="text-slate-500 text-sm">-</span>
                           )}
                         </td>
 

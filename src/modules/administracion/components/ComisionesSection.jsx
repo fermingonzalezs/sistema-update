@@ -325,7 +325,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 items-end">
             {/* Fecha Inicio */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 Fecha Inicio
               </label>
@@ -333,13 +333,13 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                 type="date"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
 
             {/* Fecha Fin */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 Fecha Fin
               </label>
@@ -347,20 +347,20 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
 
             {/* Vendedor */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <User className="w-4 h-4 inline mr-1" />
                 Vendedor
               </label>
               <select
                 value={vendedorSeleccionado}
                 onChange={(e) => setVendedorSeleccionado(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="todos">Todos los vendedores</option>
                 {getVendedores().map(vendedor => (
@@ -371,7 +371,7 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
 
             {/* Porcentaje de comisión */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <TrendingUp className="w-4 h-4 inline mr-1" />
                 Comisión %
               </label>
@@ -475,17 +475,17 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Notebooks</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Celulares</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Otros</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total Comisión</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-white uppercase">Total Ganancia</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Vendedor</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Notebooks</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Celulares</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Otros</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Comisión</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total Ganancia</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {comisionesCalculadas.map((vendedorData, index) => (
-                  <tr key={index} className="hover:bg-slate-50">
+                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <User className="w-4 h-4 text-slate-400 mr-2" />
@@ -596,21 +596,21 @@ const ComisionesSection = ({ ventas, loading, error, onLoadStats }) => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-800">
                 <tr>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Vendedor</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Equipo</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Serial/IMEI</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Tipo</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Condición</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Cant.</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">P. Venta</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Ganancia</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-white uppercase">Comisión</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Fecha</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Vendedor</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Equipo</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Serial/IMEI</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Tipo</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Condición</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Cant.</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">P. Venta</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Ganancia</th>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Comisión</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
                 {detalleEquipos.map((equipo, index) => (
-                  <tr key={index} className="hover:bg-slate-50">
+                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                     <td className="px-3 py-3 whitespace-nowrap text-sm text-slate-700">
                       {formatearFechaReporte(equipo.fecha_venta.split('T')[0])}
                     </td>

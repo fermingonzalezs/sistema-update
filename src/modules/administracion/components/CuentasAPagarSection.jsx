@@ -349,13 +349,13 @@ const CuentasAPagarSection = () => {
               <CreditCard size={28} />
               <div>
                 <h2 className="text-2xl font-semibold">Cuentas a Pagar</h2>
-                <p className="text-gray-300 mt-1">Gestión de obligaciones de pago por sucursal</p>
+                <p className="text-slate-300 mt-1">Gestión de obligaciones de pago por sucursal</p>
               </div>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setModalNuevoServicio(true)}
-                className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors text-sm font-medium"
+                className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors text-sm font-medium"
               >
                 <Building2 size={16} />
                 Nuevo Servicio
@@ -402,7 +402,7 @@ const CuentasAPagarSection = () => {
 
       {/* Filtros + Tabla */}
       <div className="bg-white rounded border border-slate-200">
-        <div className="bg-gray-50 p-4 border-b">
+        <div className="bg-gray-50 p-4 border-b border-slate-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
               <Filter size={14} /> Filtros
@@ -413,15 +413,15 @@ const CuentasAPagarSection = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-              <label className={labelCls}>Sucursal</label>
-              <select value={filtroSucursal} onChange={(e) => setFiltroSucursal(e.target.value)} className={inputCls}>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sucursal</label>
+              <select value={filtroSucursal} onChange={(e) => setFiltroSucursal(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                 <option value="todas">Todas</option>
                 {SUCURSALES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Estado</label>
-              <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className={inputCls}>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
+              <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                 <option value="todos">Todos</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="vencida">Vencida</option>
@@ -429,19 +429,19 @@ const CuentasAPagarSection = () => {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Categoría</label>
-              <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)} className={inputCls}>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
+              <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                 <option value="todas">Todas</option>
                 {CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Desde</label>
-              <input type="date" value={filtroDesde} onChange={(e) => setFiltroDesde(e.target.value)} className={inputCls} />
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
+              <input type="date" value={filtroDesde} onChange={(e) => setFiltroDesde(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
             </div>
             <div>
-              <label className={labelCls}>Hasta</label>
-              <input type="date" value={filtroHasta} onChange={(e) => setFiltroHasta(e.target.value)} className={inputCls} />
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
+              <input type="date" value={filtroHasta} onChange={(e) => setFiltroHasta(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
             </div>
           </div>
         </div>
@@ -450,13 +450,13 @@ const CuentasAPagarSection = () => {
           <table className="w-full">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Servicio</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Sucursal</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Categoría</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Vencimiento</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Servicio</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Sucursal</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Vencimiento</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Monto</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">

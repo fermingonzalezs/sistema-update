@@ -733,11 +733,11 @@ const RecuentoStockSection = () => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Categoría</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Productos</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Sin diferencias</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Con diferencias</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
+                    <th className="px-4 py-2 text-left text-xs font-bold uppercase tracking-wider">Categoría</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Productos</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Sin diferencias</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Con diferencias</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -806,11 +806,11 @@ const RecuentoStockSection = () => {
                   <table className="w-full">
                     <thead className="bg-slate-800 text-white sticky top-0">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase">Categoría</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Sis.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cont.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Dif.</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase">Categoría</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Sis.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cont.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Dif.</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -898,10 +898,10 @@ const RecuentoStockSection = () => {
                 <table className="w-full">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Categoría</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Productos</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Diferencias</th>
-                      <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
+                      <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
+                      <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Productos</th>
+                      <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Diferencias</th>
+                      <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -979,8 +979,8 @@ const RecuentoStockSection = () => {
                     <table className="w-full">
                       <thead className="bg-slate-800 text-white">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                          <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider">Acción tomada</th>
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                          <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Acción tomada</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -1039,12 +1039,12 @@ const RecuentoStockSection = () => {
                       <table className="w-full">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Serial</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Sis.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Cont.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider w-16">Dif.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider">Acción</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Serial</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider w-16">Sis.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider w-16">Cont.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider w-16">Dif.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -1195,12 +1195,12 @@ const RecuentoStockSection = () => {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Sucursal</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Resumen</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Usuario</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Sucursal</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Resumen</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Usuario</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -1434,11 +1434,11 @@ const RecuentoStockSection = () => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase">Categoría</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase">Sis.</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase">Cont.</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase">Dif.</th>
+                    <th className="px-4 py-2 text-left text-xs font-bold uppercase">Categoría</th>
+                    <th className="px-4 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase">Sis.</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase">Cont.</th>
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase">Dif.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

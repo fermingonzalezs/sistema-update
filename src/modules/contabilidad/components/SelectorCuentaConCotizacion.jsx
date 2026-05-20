@@ -161,8 +161,8 @@ const SelectorCuentaConCotizacion = ({
         <select
           value={cuentaSeleccionada?.id || ''}
           onChange={handleCuentaChange}
-          className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            required && !cuentaSeleccionada ? 'border-red-300 bg-red-50' : 'border-gray-300'
+          className={`w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${
+            required && !cuentaSeleccionada ? 'border-red-300 bg-red-50' : 'border-slate-200'
           }`}
           required={required}
           disabled={loading}
@@ -200,7 +200,7 @@ const SelectorCuentaConCotizacion = ({
                 value={monto || ''}
                 onChange={handleMontoChange}
                 placeholder={`0.00 ${requiereCotizacion ? 'ARS' : 'USD'}`}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full h-9 border border-slate-200 rounded pl-8 pr-4 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 required
               />
             </div>
@@ -246,7 +246,7 @@ const SelectorCuentaConCotizacion = ({
                   value={cotizacion || ''}
                   onChange={handleCotizacionChange}
                   placeholder="Ej: 1200.00"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full h-9 border border-slate-200 rounded pl-8 pr-4 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   required
                 />
               </div>
@@ -260,7 +260,7 @@ const SelectorCuentaConCotizacion = ({
 
       {/* Mostrar Conversión Automática */}
       {requiereCotizacion && cotizacion && monto && cotizacion >= 500 && cotizacion <= 5000 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Calculator className="w-4 h-4 text-blue-600" />
             <span className="font-medium text-blue-800">Conversión Automática</span>
@@ -286,7 +286,7 @@ const SelectorCuentaConCotizacion = ({
 
       {/* Mostrar errores de validación */}
       {(error || errorValidacion) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+        <div className="bg-red-50 border border-red-200 rounded p-3">
           <div className="flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 text-red-600" />
             <span className="text-sm text-red-800">{error || errorValidacion}</span>

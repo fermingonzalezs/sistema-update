@@ -430,7 +430,7 @@ const DetalleRecibo = ({
   }, 0);
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-[78vw] w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
@@ -850,7 +850,7 @@ const DetalleRecibo = ({
                 <table className="w-full text-sm">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción del Servicio</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción del Servicio</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Peso (kg)</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Pago Courier</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-32">Cobrado</th>
@@ -877,7 +877,7 @@ const DetalleRecibo = ({
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ minWidth: '220px' }}>Producto</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ minWidth: '220px' }}>Producto</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Color</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Almacenamiento</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-20">Cant.</th>
@@ -1378,12 +1378,12 @@ const DetalleRecibo = ({
           {/* BOTÓN CERRAR */}
           {!modoEdicion && (
             <div className="flex gap-3 justify-end pt-4 border-t border-slate-200">
-              <button
-                onClick={onClose}
-                className="px-6 py-2 bg-slate-700 text-white rounded hover:bg-black transition-colors font-medium"
-              >
-                Cerrar
-              </button>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors font-medium"
+            >
+              Cerrar
+            </button>
             </div>
           )}
         </div>

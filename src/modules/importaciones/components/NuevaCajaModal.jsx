@@ -34,23 +34,23 @@ const NuevaCajaModal = ({ onClose, onSuccess }) => {
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
             <input
               type="text"
               value={form.descripcion}
               onChange={e => setForm(prev => ({ ...prev, descripcion: e.target.value }))}
               placeholder="Ej: Celulares enero, Notebooks batch 3..."
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
             <textarea
               value={form.observaciones}
               onChange={e => setForm(prev => ({ ...prev, observaciones: e.target.value }))}
               rows={2}
               placeholder="Notas adicionales..."
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 resize-none"
             />
           </div>
         </div>
@@ -58,7 +58,7 @@ const NuevaCajaModal = ({ onClose, onSuccess }) => {
         <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-sm bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
           >
             Cancelar
           </button>

@@ -103,7 +103,7 @@ const EmpresaLogisticaSelector = ({ value, onChange, className = '', placeholder
                         <input
                             ref={searchInputRef}
                             type="text"
-                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:border-emerald-500"
+                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:border-gray-600"
                             placeholder="Buscar o escribir nueva empresa..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -148,7 +148,7 @@ const EmpresaLogisticaSelector = ({ value, onChange, className = '', placeholder
                     <div className="flex space-x-2">
                         <input
                             type="text"
-                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-emerald-500"
+                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-gray-600"
                             placeholder="Nombre de la empresa"
                             value={newEmpresa}
                             onChange={(e) => setNewEmpresa(e.target.value)}

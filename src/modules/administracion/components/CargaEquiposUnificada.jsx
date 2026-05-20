@@ -410,7 +410,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {/* Sección: Información Básica */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -425,7 +425,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.serial}
                   onChange={handleChange}
                   placeholder="Ej: ABC123456789"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -439,7 +439,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 >
                   {CATEGORIAS_NOTEBOOKS_ARRAY.map(categoria => (
@@ -472,7 +472,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="condicion"
                   value={formData.condicion}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {CONDICIONES_ARRAY.map(condicion => (
                     <option key={condicion} value={condicion}>
@@ -508,7 +508,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.modelo}
                   onChange={handleChange}
                   placeholder="Ej: ThinkPad X1 Carbon"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -524,7 +524,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.color}
                   onChange={handleChange}
                   placeholder="Ej: Negro, Plata, Gris"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -538,7 +538,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     name="estado"
                     value={formData.estado || ''}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Seleccionar...</option>
                     {ESTADOS_ARRAY.map(estado => (
@@ -561,7 +561,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                     value={formData.proveedor_id}
                     onChange={handleChange}
                     disabled={proveedoresLoading}
-                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="flex-1 p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Sin especificar</option>
                     {proveedores.map(prov => (
@@ -601,7 +601,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Precios y Costos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Precios y Costos</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -633,7 +633,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Especificaciones Técnicas */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Especificaciones Técnicas</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -644,7 +644,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.procesador}
                   onChange={handleChange}
                   placeholder="Ej: Intel i5-12400H"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -658,7 +658,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   placeholder="Ej: 8, 16, 32"
                   min="0"
                   step="1"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -668,7 +668,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="tipo_ram"
                   value={formData.tipo_ram}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   <option value="DDR3">DDR3</option>
                   <option value="DDR4">DDR4</option>
@@ -685,7 +685,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   onChange={handleChange}
                   placeholder="Ej: 2"
                   min="1"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -699,7 +699,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   placeholder="Ej: 256, 512, 1024"
                   min="0"
                   step="1"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -713,7 +713,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   placeholder="Ej: 1000, 2000 o vacío"
                   min="0"
                   step="1"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -723,7 +723,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   name="so"
                   value={formData.so}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   <option value="">Seleccionar...</option>
                   <option value="WIN11">Windows 11</option>
@@ -742,7 +742,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.placa_video}
                   onChange={handleChange}
                   placeholder="Ej: RTX 4060, Integrada"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -754,7 +754,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
                   value={formData.vram}
                   onChange={handleChange}
                   placeholder="Ej: 4GB, 8GB, 16GB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -762,7 +762,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Pantalla y Display */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Pantalla y Display</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -788,7 +788,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Características Adicionales */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Características Adicionales</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -818,7 +818,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Garantía y Observaciones */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Garantía y Observaciones</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -847,7 +847,7 @@ const FormularioNotebook = ({ onAdd, loading, modoCompra = false, onReturnData }
           </div>
 
           {/* Link de Fotos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Link de Fotos</h3>
             <div className="p-5">
               <label className="block text-sm font-medium text-slate-700 mb-2">URL de Fotos (Opcional)</label>
@@ -1101,7 +1101,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {/* Sección: Información Básica */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -1116,7 +1116,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.serial}
                   onChange={handleChange}
                   placeholder="Ej: A12BC34567DEF"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -1132,7 +1132,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.imei}
                   onChange={handleChange}
                   placeholder="Ej: 123456789012345"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -1145,7 +1145,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 >
                   {CATEGORIAS_CELULARES_ARRAY.map(categoria => (
@@ -1178,7 +1178,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="condicion"
                   value={formData.condicion}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   {CONDICIONES_ARRAY.map(condicion => (
                     <option key={condicion} value={condicion}>
@@ -1214,7 +1214,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.modelo}
                   onChange={handleChange}
                   placeholder="Ej: iPhone 14 Pro"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   required
                 />
               </div>
@@ -1230,7 +1230,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.color}
                   onChange={handleChange}
                   placeholder="Ej: Negro, Blanco, Azul"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -1244,7 +1244,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     name="estado"
                     value={formData.estado || ''}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Seleccionar...</option>
                     {ESTADOS_ARRAY.map(estado => (
@@ -1267,7 +1267,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     value={formData.proveedor_id}
                     onChange={handleChange}
                     disabled={proveedoresLoading}
-                    className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="flex-1 p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   >
                     <option value="">Sin especificar</option>
                     {proveedores.map(prov => (
@@ -1307,7 +1307,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           </div>
 
           {/* Precios y Costos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Precios y Costos</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -1339,7 +1339,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           </div>
 
           {/* Especificaciones Técnicas */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Especificaciones Técnicas</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -1354,7 +1354,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   value={formData.capacidad}
                   onChange={handleChange}
                   placeholder="Ej: 128GB, 256GB, 1TB"
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
 
@@ -1367,7 +1367,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="sim_esim"
                   value={formData.sim_esim}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   <option value="SIM">SIM Físico</option>
                   <option value="ESIM">eSIM</option>
@@ -1389,7 +1389,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     placeholder="Ej: 4, 6, 8, 12"
                     min="0"
                     step="1"
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               )}
@@ -1407,7 +1407,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                       value={formData.bateria}
                       onChange={handleChange}
                       placeholder="Ej: 85%, 92%"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                   <div>
@@ -1420,7 +1420,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                       value={formData.ciclos}
                       onChange={handleChange}
                       placeholder="Ej: 150, 300"
-                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                      className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                     />
                   </div>
                 </>
@@ -1429,7 +1429,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
           </div>
 
           {/* Garantía y Observaciones */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Garantía y Observaciones</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -1440,7 +1440,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   name="garantia"
                   value={formData.garantia}
                   onChange={handleChange}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 >
                   <option value="1 mes">1 mes</option>
                   <option value="3 meses">3 meses</option>
@@ -1463,7 +1463,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                     name="garantia_oficial_fecha"
                     value={formData.garantia_oficial_fecha}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                    className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                   />
                 </div>
               )}
@@ -1478,14 +1478,14 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                   onChange={handleChange}
                   placeholder="Ej: Ninguna, pantalla con rayones menores, etc."
                   rows={3}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                  className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
                 />
               </div>
             </div>
           </div>
 
           {/* Fotos adicionales */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Fotos y Enlaces</h3>
             <div className="p-5">
               <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1497,7 +1497,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
                 value={formData.fotos}
                 onChange={handleChange}
                 placeholder="https://drive.google.com/... o cualquier enlace"
-                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
+                className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors"
               />
               <p className="text-xs text-slate-500 mt-1">
                 Google Drive, Dropbox, OneDrive o cualquier servicio en la nube
@@ -1509,7 +1509,7 @@ const FormularioCelular = ({ onAdd, loading, modoCompra = false, onReturnData })
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center min-w-[200px]"
+              className="bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center min-w-[200px]"
             >
               {isSubmitting ? (
                 <>
@@ -1869,16 +1869,16 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           {/* Información básica - DESKTOP */}
           {isDesktop ? (
             <div className="space-y-4">
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Serial *</label>
-                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       <option value="">Seleccionar...</option>
                       {opcionesCategorias.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                     </select>
@@ -1889,7 +1889,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
                     {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
@@ -1910,21 +1910,21 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
-                    <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ej: Pavilion 15" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ej: Pavilion 15" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
-                    <input type="text" name="color" value={formData.color || ''} onChange={handleChange} placeholder="Ej: Negro, Blanco" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="color" value={formData.color || ''} onChange={handleChange} placeholder="Ej: Negro, Blanco" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
-                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   {/* ESTADO ESTETICO */}
                   {formData.condicion !== CONDICIONES.NUEVO && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
-                      <select name="estado" value={formData.estado || ''} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                      <select name="estado" value={formData.estado || ''} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                         <option value="">Seleccionar...</option>
                         {ESTADOS_ARRAY.map(estado => (<option key={estado} value={estado}>{ESTADOS_LABELS[estado]}</option>))}
                       </select>
@@ -1933,63 +1933,63 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Especificaciones Técnicas</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
-                    <input type="text" name="procesador" value={formData.procesador} onChange={handleChange} placeholder="Ej: Intel i5-12400" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="procesador" value={formData.procesador} onChange={handleChange} placeholder="Ej: Intel i5-12400" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Motherboard</label>
-                    <input type="text" name="motherboard" value={formData.motherboard} onChange={handleChange} placeholder="Ej: ASUS ROG STRIX" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="motherboard" value={formData.motherboard} onChange={handleChange} placeholder="Ej: ASUS ROG STRIX" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM</label>
-                    <input type="text" name="memoria" value={formData.memoria} onChange={handleChange} placeholder="Ej: 16GB DDR4" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="memoria" value={formData.memoria} onChange={handleChange} placeholder="Ej: 16GB DDR4" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">GPU/Tarjeta Gráfica</label>
-                    <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} placeholder="Ej: RTX 3060 Ti" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} placeholder="Ej: RTX 3060 Ti" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">SSD</label>
-                    <input type="text" name="ssd" value={formData.ssd} onChange={handleChange} placeholder="Ej: 500GB NVMe" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="ssd" value={formData.ssd} onChange={handleChange} placeholder="Ej: 500GB NVMe" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">HDD</label>
-                    <input type="text" name="hdd" value={formData.hdd} onChange={handleChange} placeholder="Ej: 1TB, Sin HDD" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="hdd" value={formData.hdd} onChange={handleChange} placeholder="Ej: 1TB, Sin HDD" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Gabinete</label>
-                    <input type="text" name="gabinete" value={formData.gabinete} onChange={handleChange} placeholder="Ej: NZXT H510 Flow" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="gabinete" value={formData.gabinete} onChange={handleChange} placeholder="Ej: NZXT H510 Flow" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Fuente de Poder</label>
-                    <input type="text" name="fuente" value={formData.fuente} onChange={handleChange} placeholder="Ej: 650W Modular" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="fuente" value={formData.fuente} onChange={handleChange} placeholder="Ej: 650W Modular" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Observaciones</h3>
                 <div className="p-5">
-                  <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" rows="3" placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc." />
+                  <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" rows="3" placeholder="Notas adicionales sobre el equipo, accesorios incluidos, estado específico, etc." />
                 </div>
               </div>
             </div>
           ) : isTablet ? (
             <div className="space-y-4">
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Serial *</label>
-                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       <option value="">Seleccionar...</option>
                       {opcionesCategorias.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                     </select>
@@ -2000,7 +2000,7 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
                     {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
@@ -2021,20 +2021,20 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Modelo *</label>
-                    <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ej: iPad Pro 11, Galaxy Tab S9" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ej: iPad Pro 11, Galaxy Tab S9" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
-                    <input type="text" name="color" value={formData.color} onChange={handleChange} placeholder="Ej: Space Gray, Silver, Black" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="color" value={formData.color} onChange={handleChange} placeholder="Ej: Space Gray, Silver, Black" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
-                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   {formData.condicion !== CONDICIONES.NUEVO && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Estado Estético</label>
-                      <select name="estado" value={formData.estado || ''} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                      <select name="estado" value={formData.estado || ''} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                         <option value="">Seleccionar...</option>
                         {ESTADOS_ARRAY.map(estado => (<option key={estado} value={estado}>{ESTADOS_LABELS[estado]}</option>))}
                       </select>
@@ -2043,12 +2043,12 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Especificaciones Técnicas</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad/Almacenamiento</label>
-                    <select name="capacidad_almacenamiento" value={formData.capacidad_almacenamiento} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                    <select name="capacidad_almacenamiento" value={formData.capacidad_almacenamiento} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                       <option value="">Seleccionar...</option>
                       <option value="64GB">64GB</option>
                       <option value="128GB">128GB</option>
@@ -2060,11 +2060,11 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Tamaño de Pantalla</label>
-                    <input type="text" name="tamano_pantalla" value={formData.tamano_pantalla} onChange={handleChange} placeholder='Ej: 10.2", 11", 12.9"' className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="tamano_pantalla" value={formData.tamano_pantalla} onChange={handleChange} placeholder='Ej: 10.2", 11", 12.9"' className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Conectividad</label>
-                    <select name="conectividad" value={formData.conectividad} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                    <select name="conectividad" value={formData.conectividad} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                       <option value="WiFi only">WiFi only</option>
                       <option value="WiFi + Cellular">WiFi + Cellular</option>
                       <option value="WiFi + 5G">WiFi + 5G</option>
@@ -2073,26 +2073,26 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Observaciones</h3>
                 <div className="p-5">
-                  <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" rows="3" placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc." />
+                  <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" rows="3" placeholder="Notas adicionales sobre la tablet, accesorios incluidos, estado específico, etc." />
                 </div>
               </div>
             </div>
           ) : (
             // Formulario genérico para otros productos
             <div className="space-y-4">
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Información Básica</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Producto *</label>
-                    <input type="text" name="nombre_producto" value={formData.nombre_producto} onChange={handleChange} placeholder="Ej: Mouse Logitech MX Master 3" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="text" name="nombre_producto" value={formData.nombre_producto} onChange={handleChange} placeholder="Ej: Mouse Logitech MX Master 3" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="categoria" value={formData.categoria} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       <option value="">Seleccionar...</option>
                       {opcionesCategorias.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                     </select>
@@ -2103,11 +2103,11 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
-                    <input type="text" name="color" value={formData.color || ''} onChange={handleChange} placeholder="Ej: Negro, Blanco" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="color" value={formData.color || ''} onChange={handleChange} placeholder="Ej: Negro, Blanco" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Condición *</label>
-                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
+                    <select name="condicion" value={formData.condicion} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required>
                       {CONDICIONES_ARRAY.map(condicion => (<option key={condicion} value={condicion}>{CONDICIONES_LABELS[condicion]}</option>))}
                     </select>
                     {(formData.condicion === 'reservado' || formData.condicion === 'consignacion') && (
@@ -2128,18 +2128,18 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Ingreso *</label>
-                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                    <input type="date" name="ingreso" value={formData.ingreso} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Serial (Opcional)</label>
-                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456 (solo para productos únicos)" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <input type="text" name="serial" value={formData.serial} onChange={handleChange} placeholder="Ej: SN123456 (solo para productos únicos)" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                     <p className="text-xs text-slate-500 mt-1">Solo úsalo si la cantidad es 1</p>
                   </div>
                   {/* PROVEEDOR */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
                     <div className="flex gap-2">
-                      <select name="proveedor_id" value={formData.proveedor_id} onChange={handleChange} disabled={proveedoresLoading} className="flex-1 p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                      <select name="proveedor_id" value={formData.proveedor_id} onChange={handleChange} disabled={proveedoresLoading} className="flex-1 p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                         <option value="">Sin especificar</option>
                         {proveedores.map(prov => (<option key={prov.id} value={prov.id}>{prov.nombre}</option>))}
                       </select>
@@ -2150,17 +2150,17 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   </div>
                   <div className="md:col-span-2 lg:col-span-3">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Descripción del Producto</label>
-                    <textarea name="descripcion" value={formData.descripcion} onChange={handleChange} placeholder="Descripción adicional del producto..." rows={2} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <textarea name="descripcion" value={formData.descripcion} onChange={handleChange} placeholder="Descripción adicional del producto..." rows={2} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Garantía y Observaciones</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
-                    <select name="garantia" value={formData.garantia} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
+                    <select name="garantia" value={formData.garantia} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors">
                       <option value="1 mes">1 mes</option>
                       <option value="3 meses">3 meses</option>
                       <option value="6 meses">6 meses</option>
@@ -2173,12 +2173,12 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
                   {formData.garantia === 'Garantía oficial con vencimiento' && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de vencimiento</label>
-                      <input type="date" name="garantia_oficial_fecha" value={formData.garantia_oficial_fecha} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                      <input type="date" name="garantia_oficial_fecha" value={formData.garantia_oficial_fecha} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                     </div>
                   )}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
-                    <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} placeholder="Comentarios adicionales sobre el producto..." rows={2} className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                    <textarea name="observaciones" value={formData.observaciones} onChange={handleChange} placeholder="Comentarios adicionales sobre el producto..." rows={2} className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                   </div>
                 </div>
               </div>
@@ -2186,66 +2186,66 @@ const FormularioOtro = ({ onAdd, loading, modoCompra = false, onReturnData }) =>
           )}
 
           {/* Inventario por sucursal */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Inventario por Sucursal</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad La Plata</label>
-                <input type="number" name="cantidad_la_plata" value={formData.cantidad_la_plata} onChange={handleChange} min="0" placeholder="0" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                <input type="number" name="cantidad_la_plata" value={formData.cantidad_la_plata} onChange={handleChange} min="0" placeholder="0" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad Mitre</label>
-                <input type="number" name="cantidad_mitre" value={formData.cantidad_mitre} onChange={handleChange} min="0" placeholder="0" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                <input type="number" name="cantidad_mitre" value={formData.cantidad_mitre} onChange={handleChange} min="0" placeholder="0" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
               </div>
             </div>
           </div>
 
           {/* Información comercial */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Precios y Costos</h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Precio de Compra USD *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
-                  <input type="number" name="precio_compra_usd" value={formData.precio_compra_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                  <input type="number" name="precio_compra_usd" value={formData.precio_compra_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Precio de Venta USD *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
-                  <input type="number" name="precio_venta_usd" value={formData.precio_venta_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
+                  <input type="number" name="precio_venta_usd" value={formData.precio_venta_usd} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" required />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Costos Adicionales USD</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-slate-500 font-medium">U$</span>
-                  <input type="number" name="costos_adicionales" value={formData.costos_adicionales} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+                  <input type="number" name="costos_adicionales" value={formData.costos_adicionales} onChange={handleChange} step="0.01" placeholder="0.00" className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Envíos, reparaciones u otros costos adicionales</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD</label>
-                <input type="text" value={`U$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`} disabled className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed font-medium" title="Campo calculado automáticamente" />
+                <input type="text" value={`U$${((parseFloat(formData.precio_compra_usd) || 0) + (parseFloat(formData.costos_adicionales) || 0)).toFixed(2)}`} disabled className="w-full px-3 py-2.5 border border-slate-200 rounded bg-slate-100 text-slate-600 cursor-not-allowed font-medium" title="Campo calculado automáticamente" />
               </div>
             </div>
           </div>
 
           {/* Sección: Fotos */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
             <h3 className="bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center">Link de Fotos</h3>
             <div className="p-5">
               <label className="block text-sm font-medium text-slate-700 mb-2">URL de Fotos (Opcional)</label>
-              <input type="url" name="fotos" value={formData.fotos} onChange={handleChange} placeholder="https://drive.google.com/... o cualquier enlace" className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
+              <input type="url" name="fotos" value={formData.fotos} onChange={handleChange} placeholder="https://drive.google.com/... o cualquier enlace" className="w-full p-2.5 border border-slate-200 rounded focus:ring-1 focus:ring-slate-300 focus:border-slate-300 transition-colors" />
               <p className="text-xs text-slate-500 mt-1">Google Drive, Dropbox, OneDrive o cualquier servicio en la nube</p>
             </div>
           </div>
 
           {/* Botón de envío */}
           <div className="flex justify-end pt-4">
-            <button type="submit" disabled={isSubmitting || loading || !formData.categoria || ((isDesktop || isTablet) ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())} className="bg-slate-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-slate-700 focus:ring-2 focus:ring-offset-2 focus:ring-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-sm">
+            <button type="submit" disabled={isSubmitting || loading || !formData.categoria || ((isDesktop || isTablet) ? !formData.modelo?.trim() : !formData.nombre_producto?.trim())} className="bg-slate-800 text-white px-8 py-3 rounded font-semibold hover:bg-slate-700 focus:ring-2 focus:ring-offset-2 focus:ring-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-sm">
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

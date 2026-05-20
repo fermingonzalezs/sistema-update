@@ -169,8 +169,8 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg border border-slate-300 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded border border-slate-200 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div>
@@ -205,7 +205,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
 
           {/* Resultado preliminar */}
           {itemsCompletados === checklistActual.length && (
-            <div className={`mt-4 p-3 rounded-lg ${resultado === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
+            <div className={`mt-4 p-3 rounded ${resultado === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
               resultado === 'condicional' ? 'bg-yellow-100 text-yellow-800' :
                 'bg-red-100 text-red-800'
               }`}>
@@ -237,16 +237,16 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
                     const estado = checklist[item.id];
 
                     return (
-                      <div key={item.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                      <div key={item.id} className="flex items-center justify-between p-3 border border-slate-200 rounded">
                         <span className="text-slate-800 font-medium">{item.label}</span>
 
                         <div className="flex space-x-2">
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'si')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'si'
+                            className={`px-4 py-2 rounded border-2 transition-colors ${estado === 'si'
                               ? 'border-emerald-600 bg-emerald-600 text-white'
-                              : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
+                              : 'border-emerald-600 text-emerald-600 hover:bg-slate-50'
                               }`}
                           >
                             <CheckCircle className="w-4 h-4 inline mr-1" />
@@ -256,7 +256,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'no')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'no'
+                            className={`px-4 py-2 rounded border-2 transition-colors ${estado === 'no'
                               ? 'border-red-600 bg-red-600 text-white'
                               : 'border-red-600 text-red-600 hover:bg-red-50'
                               }`}
@@ -268,7 +268,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
                           <button
                             type="button"
                             onClick={() => handleCheckChange(item.id, 'parcial')}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${estado === 'parcial'
+                            className={`px-4 py-2 rounded border-2 transition-colors ${estado === 'parcial'
                               ? 'border-yellow-600 bg-yellow-600 text-white'
                               : 'border-yellow-600 text-yellow-600 hover:bg-yellow-50'
                               }`}
@@ -293,7 +293,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
             <textarea
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               rows="4"
               placeholder="Detalles sobre problemas encontrados, condiciones especiales, etc."
             />

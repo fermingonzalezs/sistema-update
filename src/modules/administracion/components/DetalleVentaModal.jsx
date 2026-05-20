@@ -26,7 +26,7 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded border border-slate-300 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-slate-800 p-6 text-white flex items-center justify-between sticky top-0">
@@ -49,14 +49,14 @@ const DetalleVentaModal = ({ transaccion, onClose, onEditar, onEliminar }) => {
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">PRODUCTO</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">SERIAL</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">COLOR</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">CONDICIÓN</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">CANT.</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">COSTO UNIT.</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">PRECIO UNIT.</th>
-                    <th className="px-4 py-2 text-center font-semibold uppercase">SUBTOTAL</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">PRODUCTO</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">SERIAL</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">COLOR</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">CONDICIÓN</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">CANT.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">COSTO UNIT.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">PRECIO UNIT.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">SUBTOTAL</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

@@ -196,10 +196,10 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
-        <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
+        <div className="bg-slate-800 p-6 text-white flex justify-between items-center sticky top-0 z-10">
           <div>
             <h3 className="text-xl font-semibold">
               {tipoRegistro === 'courier_empresa' ? 'Nuevo Servicio de Courier — A cargo de Update' : 'Nueva Importación'}
@@ -223,12 +223,12 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
               <div className="grid grid-cols-2 gap-4">
                 {/* PROVEEDOR */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor *</label>
                   <div className="flex gap-2">
                     <select
                       value={formRecibo.proveedor_id}
                       onChange={(e) => setFormRecibo({ ...formRecibo, proveedor_id: e.target.value })}
-                      className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="flex-1 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     >
                       <option value="">Seleccionar proveedor</option>
                       {proveedores.map(prov => (
@@ -250,7 +250,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                 {/* CLIENTE — solo para courier_empresa */}
                 {tipoRegistro === 'courier_empresa' && (
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Cliente <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cliente <span className="text-red-500">*</span></label>
                     <ClienteSelector
                       selectedCliente={clienteSeleccionado}
                       onSelectCliente={setClienteSeleccionado}
@@ -261,22 +261,22 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* FECHA */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Compra *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Compra *</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_compra}
                     onChange={(e) => setFormRecibo({ ...formRecibo, fecha_compra: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 {/* MÉTODO DE PAGO */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Método de Pago *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago *</label>
                   <select
                     value={formRecibo.metodo_pago}
                     onChange={(e) => setFormRecibo({ ...formRecibo, metodo_pago: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     {METODOS_PAGO.map(metodo => (
                       <option key={metodo.value} value={metodo.value}>
@@ -288,19 +288,19 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* NÚMERO DE INVOICE */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Invoice</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Número de Invoice</label>
                   <input
                     type="text"
                     value={formRecibo.numero_invoice}
                     onChange={(e) => setFormRecibo({ ...formRecibo, numero_invoice: e.target.value })}
                     placeholder="Ej: INV-2024-001"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 {/* EMPRESA LOGÍSTICA */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Empresa Logística</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Empresa Logística</label>
                   <EmpresaLogisticaSelector
                     value={formRecibo.empresa_logistica}
                     onChange={(valor) => setFormRecibo({ ...formRecibo, empresa_logistica: valor })}
@@ -310,30 +310,30 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* TRACKING */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Tracking</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Número de Tracking</label>
                   <input
                     type="text"
                     value={formRecibo.tracking_number}
                     onChange={(e) => setFormRecibo({ ...formRecibo, tracking_number: e.target.value })}
                     placeholder="Ej: SZ123456789CN"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 {/* FECHA ESTIMADA */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">F. Estimada Ingreso</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">F. Estimada Ingreso</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_estimada_ingreso}
                     onChange={(e) => setFormRecibo({ ...formRecibo, fecha_estimada_ingreso: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
                 {/* COSTO FINANCIERO */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Costo Financiero (%)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo Financiero (%)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -342,14 +342,14 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                     placeholder="Ej: 1.5"
                     value={formRecibo.porcentaje_financiero}
                     onChange={(e) => setFormRecibo({ ...formRecibo, porcentaje_financiero: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                   <p className="text-xs text-slate-500 mt-1">% sobre el precio FOB de cada equipo</p>
                 </div>
 
                 {/* ARCHIVOS ADJUNTOS */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Archivos adjuntos (opcional)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Archivos adjuntos (opcional)</label>
                   <div
                     className="border border-dashed border-slate-300 rounded px-3 py-2 flex items-center gap-2 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
@@ -391,13 +391,13 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* DESCRIPCIÓN */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Descripción <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción <span className="text-red-500">*</span></label>
                   <textarea
                     value={formRecibo.observaciones}
                     onChange={(e) => setFormRecibo({ ...formRecibo, observaciones: e.target.value })}
                     rows="2"
                     required
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               </div>
@@ -412,7 +412,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Producto *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Producto *</label>
                   <PesajeCombobox
                     value={formItem.item}
                     onSelect={({ nombre, peso_kg }) =>
@@ -423,17 +423,17 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Cantidad *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cantidad *</label>
                   <input
                     type="number"
                     value={formItem.cantidad}
                     onChange={(e) => setFormItem({ ...formItem, cantidad: e.target.value })}
                     min="1"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Precio Unit. (USD) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio Unit. (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -441,11 +441,11 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                     placeholder="0.00"
                     value={formItem.precio_unitario_usd}
                     onChange={(e) => setFormItem({ ...formItem, precio_unitario_usd: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Peso Est. Unit. (kg) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso Est. Unit. (kg) *</label>
                   <input
                     type="number"
                     step="0.001"
@@ -453,38 +453,38 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                     placeholder="0.000"
                     value={formItem.peso_estimado_unitario_kg}
                     onChange={(e) => setFormItem({ ...formItem, peso_estimado_unitario_kg: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Color</label>
                   <input
                     type="text"
                     placeholder="Ej: Negro, Plata..."
                     value={formItem.color}
                     onChange={(e) => setFormItem({ ...formItem, color: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Almacenamiento</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Almacenamiento</label>
                   <input
                     type="text"
                     placeholder="Ej: 256GB, 1TB..."
                     value={formItem.almacenamiento}
                     onChange={(e) => setFormItem({ ...formItem, almacenamiento: e.target.value })}
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Link del Producto (opcional)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Link del Producto (opcional)</label>
                 <input
                   type="url"
                   value={formItem.link_producto}
                   onChange={(e) => setFormItem({ ...formItem, link_producto: e.target.value })}
                   placeholder="https://..."
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <button
@@ -507,15 +507,15 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Color</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Almacenamiento</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Unit. (kg)</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Total (kg)</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acción</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Color</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Almacenamiento</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant.</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">P. Unit. USD</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Total USD</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Unit. (kg)</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Total (kg)</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -565,7 +565,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
           <div className="flex gap-3 justify-end pt-4 border-t border-slate-200">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition-colors"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
               disabled={isSubmitting}
             >
               Cancelar

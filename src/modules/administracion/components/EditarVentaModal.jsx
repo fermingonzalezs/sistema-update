@@ -350,7 +350,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
   const diferencia = Math.abs(sumaPagosUSD - totalVenta);
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded border border-slate-300 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-slate-800 p-6 text-white flex items-center justify-between sticky top-0 z-10">
@@ -378,11 +378,11 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
               <table className="w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase">Producto</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Cant</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Precio Unit (USD)</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Subtotal</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase">Eliminar</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Precio Unit (USD)</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Subtotal</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Eliminar</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

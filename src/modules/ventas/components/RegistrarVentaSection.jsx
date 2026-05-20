@@ -701,7 +701,7 @@ const RegistrarVentaSection = () => {
                     placeholder="Buscar producto..."
                     value={busquedaProducto}
                     onChange={(e) => setBusquedaProducto(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded pl-9 pr-3 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                   {busquedaProducto && (
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-slate-500">
@@ -740,27 +740,27 @@ const RegistrarVentaSection = () => {
                     {/* Primera fila: Nombre - Serial */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Nombre del Producto <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={productoCustom.nombre}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, nombre: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Ej: Mouse Logitech"
                           required
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Serial/Código <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={productoCustom.serial}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, serial: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Ej: SN123456"
                           required
                         />
@@ -770,26 +770,26 @@ const RegistrarVentaSection = () => {
                     {/* Segunda fila: Descripción - Categoría */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Descripción <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={productoCustom.descripcion}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, descripcion: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="Descripción detallada"
                           required
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Categoría <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={productoCustom.categoria}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, categoria: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           required
                         >
                           <option value="ACCESORIOS">Accesorios</option>
@@ -819,13 +819,13 @@ const RegistrarVentaSection = () => {
                     {/* Tercera fila: Condición - Cantidad - Sucursal */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Condición <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={productoCustom.condicion}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, condicion: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           required
                         >
                           {CONDICIONES_ARRAY.map(condicion => (
@@ -836,7 +836,7 @@ const RegistrarVentaSection = () => {
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Cantidad <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -844,19 +844,19 @@ const RegistrarVentaSection = () => {
                           min="1"
                           value={productoCustom.cantidad}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, cantidad: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           placeholder="1"
                           required
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Sucursal <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={productoCustom.sucursal}
                           onChange={(e) => setProductoCustom(prev => ({ ...prev, sucursal: e.target.value }))}
-                          className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                          className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                           required
                         >
                           <option value="mitre">MITRE</option>
@@ -868,7 +868,7 @@ const RegistrarVentaSection = () => {
                     {/* Cuarta fila: Precio Compra - Precio Venta */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Precio Compra USD <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -878,14 +878,14 @@ const RegistrarVentaSection = () => {
                             step="0.01"
                             value={productoCustom.precioCompra}
                             onChange={(e) => setProductoCustom(prev => ({ ...prev, precioCompra: e.target.value }))}
-                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="w-full h-9 border border-slate-200 rounded pl-9 pr-3 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             placeholder="0.00"
                             required
                           />
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Precio Venta USD <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -906,7 +906,7 @@ const RegistrarVentaSection = () => {
                     <button
                       onClick={agregarProductoCustom}
                       disabled={creandoProducto}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded font-medium uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center space-x-2 mt-2"
+                      className="w-full bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed mt-2"
                     >
                       {creandoProducto ? (
                         <>
@@ -930,21 +930,21 @@ const RegistrarVentaSection = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                         Nombre del Servicio <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={servicioCourier.nombre}
                         onChange={(e) => setServicioCourier(prev => ({ ...prev, nombre: e.target.value }))}
-                        className="w-full bg-white border border-slate-300 rounded px-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none"
+                        className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         placeholder=""
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Costo del Servicio USD <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -954,13 +954,13 @@ const RegistrarVentaSection = () => {
                             step="0.01"
                             value={servicioCourier.precioCompra}
                             onChange={(e) => setServicioCourier(prev => ({ ...prev, precioCompra: e.target.value }))}
-                            className="w-full bg-white border border-slate-300 rounded pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="w-full h-9 border border-slate-200 rounded pl-9 pr-3 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-gray-600 focus:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             placeholder="0.00"
                           />
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                           Precio de Venta USD <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -980,7 +980,7 @@ const RegistrarVentaSection = () => {
                     <button
                       onClick={agregarServicioCourier}
                       disabled={creandoProducto}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded font-medium uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center space-x-2 mt-2"
+                      className="w-full bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed mt-2"
                     >
                       {creandoProducto ? (
                         <>
@@ -1130,7 +1130,7 @@ const RegistrarVentaSection = () => {
                   <button
                     onClick={handleProcederCarrito}
                     disabled={!clienteSeleccionado || itemsVenta.length === 0}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-4 py-2 sm:py-2.5 rounded font-medium text-sm transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Procesar Pago</span>

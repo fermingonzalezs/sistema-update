@@ -570,7 +570,7 @@ const ConciliacionCajaSection = () => {
                   setCuentaSeleccionada(null);
                   setSaldoContable(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-3 bg-slate-600 text-white rounded hover:bg-slate-500 transition-colors text-sm font-medium"
               >
                 <ArrowLeft size={18} />
                 Volver
@@ -718,11 +718,11 @@ const ConciliacionCajaSection = () => {
                     <table className="w-full">
                       <thead className="bg-slate-800 text-white">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Asiento</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Debe</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Haber</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Asiento</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Descripción</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Debe</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Haber</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -741,7 +741,7 @@ const ConciliacionCajaSection = () => {
                                 N° {mov.asientos_contables.numero}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-700 max-w-xs">
+                            <td className="px-4 py-3 text-sm text-left text-slate-600 max-w-xs">
                               <div className="truncate" title={mov.asientos_contables.descripcion}>
                                 {mov.asientos_contables.descripcion}
                               </div>
@@ -900,7 +900,7 @@ const ConciliacionCajaSection = () => {
                 </div>
                 <button
                   onClick={realizarConciliacion}
-                  className="w-full bg-emerald-600 text-white px-4 py-3 rounded hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-semibold text-base"
+                  className="w-full bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-semibold text-base"
                 >
                   <Save size={18} />
                   Guardar Conciliación
@@ -927,12 +927,12 @@ const ConciliacionCajaSection = () => {
                     <table className="w-full text-sm table-fixed">
                       <thead className="bg-slate-800 text-white">
                         <tr>
-                          <th className="w-[15%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Fecha</th>
-                          <th className="w-[12%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Hora</th>
-                          <th className="w-[18%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Saldo Contable</th>
-                          <th className="w-[18%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Saldo Físico</th>
-                          <th className="w-[18%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Diferencia</th>
-                          <th className="w-[19%] text-center px-4 py-3 text-xs font-medium uppercase tracking-wider">Estado</th>
+                          <th className="w-[15%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Fecha</th>
+                          <th className="w-[12%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Hora</th>
+                          <th className="w-[18%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Saldo Contable</th>
+                          <th className="w-[18%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Saldo Físico</th>
+                          <th className="w-[18%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Diferencia</th>
+                          <th className="w-[19%] text-center px-4 py-3 text-xs font-bold uppercase tracking-wider">Estado</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -977,7 +977,7 @@ const ConciliacionCajaSection = () => {
 
       {/* Modal de detalle del asiento */}
       {modalAsiento.open && modalAsiento.asiento && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="sticky top-0 bg-slate-800 text-white p-6 border-b border-slate-200">
@@ -1031,10 +1031,10 @@ const ConciliacionCajaSection = () => {
                 <table className="w-full">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cuenta</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Debe</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Haber</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Cuenta</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Debe</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Haber</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -1057,11 +1057,11 @@ const ConciliacionCajaSection = () => {
                   </tbody>
                   <tfoot className="bg-slate-800 text-white">
                     <tr>
-                      <td colSpan="2" className="px-4 py-3 text-sm font-semibold">TOTALES</td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold">
+                      <td colSpan="2" className="px-4 py-3 text-sm font-bold text-center">TOTALES</td>
+                      <td className="px-4 py-3 text-right text-sm font-bold">
                         {formatearMonto(modalAsiento.asiento.total_debe || 0, 'USD')}
                       </td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold">
+                      <td className="px-4 py-3 text-right text-sm font-bold">
                         {formatearMonto(modalAsiento.asiento.total_haber || 0, 'USD')}
                       </td>
                     </tr>

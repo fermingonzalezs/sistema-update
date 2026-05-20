@@ -98,8 +98,8 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg border border-slate-300 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded border border-slate-200 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-slate-800">
@@ -127,7 +127,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                     type="text"
                     value={formData.serial}
                     onChange={(e) => setFormData(prev => ({ ...prev, serial: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
@@ -139,7 +139,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                     type="text"
                     value={formData.modelo}
                     onChange={(e) => setFormData(prev => ({ ...prev, modelo: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
 
@@ -163,7 +163,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                       type="text"
                       value={formData.proveedor}
                       onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                 </div>
@@ -179,7 +179,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                   <select
                     value={formData.estado_estetico}
                     onChange={(e) => setFormData(prev => ({ ...prev, estado_estetico: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="excelente">Excelente</option>
                     <option value="muy_bueno">Muy Bueno</option>
@@ -196,7 +196,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                   <select
                     value={formData.estado_testeo}
                     onChange={(e) => setFormData(prev => ({ ...prev, estado_testeo: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   >
                     <option value="pendiente">Pendiente</option>
                     <option value="aprobado">Aprobado</option>
@@ -212,7 +212,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                 <textarea
                   value={formData.observaciones}
                   onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   rows="3"
                   placeholder="Notas sobre el estado del equipo, problemas encontrados, etc."
                 />

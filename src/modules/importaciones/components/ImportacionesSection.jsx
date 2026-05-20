@@ -244,11 +244,11 @@ const ImportacionesSection = () => {
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div className="bg-white rounded border border-slate-200">
-        <div className="p-6 bg-slate-800 text-white">
+      <div className="bg-white border border-slate-200 rounded">
+        <div className="bg-slate-800 p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <Plane className="w-8 h-8" />
+              <Plane size={28} />
               <div>
                 <h2 className="text-2xl font-semibold">Importaciones</h2>
                 <p className="text-slate-300 mt-1">Gestión de importaciones y servicios de courier</p>
@@ -257,14 +257,14 @@ const ImportacionesSection = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => { setVistaActiva('pedidos'); setShowTipoModal(true); }}
-                className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors text-sm"
+                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
               >
                 <Plus size={16} />
                 Nueva Importación
               </button>
               <button
                 onClick={() => { setVistaActiva('ingresos'); setShowNuevoIngreso(true); }}
-                className="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 flex items-center gap-2 font-medium transition-colors text-sm"
+                className="bg-slate-600 text-white px-4 py-3 rounded hover:bg-slate-500 transition-colors"
               >
                 <Plus size={16} />
                 Nuevo Ingreso
@@ -334,14 +334,14 @@ const ImportacionesSection = () => {
       </div>
 
       {/* FILTROS */}
-      <div className="bg-white rounded border border-slate-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
+      <div className="bg-gray-50 p-4 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-9 gap-3">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Orden</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Orden</label>
             <select
               value={filtroOrden}
               onChange={(e) => setFiltroOrden(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="fecha_compra_desc">Fecha Compra (Mas recientes)</option>
               <option value="fecha_compra_asc">Fecha Compra (Mas antiguos)</option>
@@ -352,11 +352,11 @@ const ImportacionesSection = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
             <select
               value={filtroEstado}
               onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
               <option value={ESTADOS_IMPORTACION.EN_TRANSITO_USA}>En Tránsito USA</option>
@@ -367,11 +367,11 @@ const ImportacionesSection = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor</label>
             <select
               value={filtroProveedor}
               onChange={(e) => setFiltroProveedor(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
               {proveedoresEnUso
@@ -387,39 +387,39 @@ const ImportacionesSection = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Desde</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
             <input
               type="date"
               value={filtroFechaDesde}
               onChange={(e) => setFiltroFechaDesde(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Hasta</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
             <input
               type="date"
               value={filtroFechaHasta}
               onChange={(e) => setFiltroFechaHasta(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Producto</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Producto</label>
             <input
               type="text"
               value={filtroProducto}
               onChange={(e) => setFiltroProducto(e.target.value)}
               placeholder="Buscar producto..."
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo</label>
             <select
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
               <option value="importacion">Importaciones</option>
@@ -428,11 +428,11 @@ const ImportacionesSection = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Destino</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Destino</label>
             <select
               value={filtroDestino}
               onChange={(e) => setFiltroDestino(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
               <option value="reventa">Reventa</option>
@@ -442,7 +442,7 @@ const ImportacionesSection = () => {
           <div className="flex items-end">
             <button
               onClick={limpiarFiltros}
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm font-medium transition-colors"
+              className="w-full px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
             >
               Limpiar Filtros
             </button>
@@ -466,7 +466,7 @@ const ImportacionesSection = () => {
 
       {/* TABLA DE RECIBOS */}
       {!loading && !error && (
-        <div className="bg-white rounded border border-slate-200">
+        <div className="bg-white border border-slate-200 rounded">
           {recibosFiltrados.length === 0 ? (
             <div className="p-8 text-center text-slate-600">
               <AlertCircle size={32} className="mx-auto mb-3 text-slate-400" />
@@ -478,21 +478,21 @@ const ImportacionesSection = () => {
                 <table style={{ minWidth: '1280px', width: '100%', tableLayout: 'fixed' }}>
                   <thead className="bg-slate-800 text-white sticky top-0 z-10">
                     <tr>
-                      <th className="py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '30px' }}>Cont.</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '70px' }}>Tipo</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '100px' }}>Invoice</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '85px' }}>F. Recep.</th>
-                      <th className="px-2 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '160px' }}>Descripción</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Prov.</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '35px' }}>Its.</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '60px' }}>Peso</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>FOB</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>C. Fin.</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Courier</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '75px' }}>Total</th>
-                      <th className="px-2 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '200px' }}>Estado</th>
-                      <th className="px-1 py-3 text-center text-xs font-medium uppercase bg-slate-800" style={{ width: '185px' }}>Acciones</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '30px' }}>Cont.</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '70px' }}>Tipo</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '100px' }}>Invoice</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '80px' }}>F. Compra</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '85px' }}>F. Recep.</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '160px' }}>Descripción</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Prov.</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '35px' }}>Its.</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '60px' }}>Peso</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '75px' }}>FOB</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '75px' }}>C. Fin.</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 overflow-hidden" style={{ width: '75px' }}>Courier</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '75px' }}>Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '200px' }}>Estado</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800" style={{ width: '185px' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">

@@ -551,9 +551,9 @@ const LibroMayorSection = () => {
 
   return (
     <div className="p-0">
-      <div className="bg-white rounded border border-slate-200 mb-4">
+      <div className="bg-white rounded border border-slate-200">
         {/* Header */}
-        <div className="p-6 bg-slate-800 text-white">
+        <div className="bg-slate-800 p-6 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div>
@@ -649,65 +649,65 @@ const LibroMayorSection = () => {
         {/* Vista del libro mayor */}
         {cuentaSeleccionada && (
           <>
-            {/* Filtros y botón volver */}
-            <div className="bg-slate-50 p-4 border-b border-slate-200 ">
-              <div className="flex flex-col md:flex-row flex-wrap items-center justify-center md:justify-between gap-4">
-                <button
-                  onClick={() => {
-                    setCuentaSeleccionada(null);
-                  }}
-                  className="flex items-center space-x-2 text-slate-800 hover:text-slate-600 transition-colors"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Volver a lista de cuentas</span>
-                </button>
+        {/* Filtros y botón volver */}
+        <div className="bg-slate-50 p-4 border-b border-slate-200">
+          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center md:justify-between gap-4">
+            <button
+              onClick={() => {
+                setCuentaSeleccionada(null);
+              }}
+              className="flex items-center space-x-2 text-slate-800 hover:text-slate-600 transition-colors"
+            >
+              <ChevronLeft size={16} />
+              <span>Volver a lista de cuentas</span>
+            </button>
 
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Desde</label>
-                    <input
-                      type="date"
-                      value={filtros.fechaDesde}
-                      onChange={(e) => setFiltros({ ...filtros, fechaDesde: e.target.value })}
-                      className="w-60 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Hasta</label>
-                    <input
-                      type="date"
-                      value={filtros.fechaHasta}
-                      onChange={(e) => setFiltros({ ...filtros, fechaHasta: e.target.value })}
-                      className="w-60 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    />
-                  </div>
-                  <div className="flex items-end space-x-2">
-                    <button
-                      onClick={aplicarFiltros}
-                      className="px-4 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm flex items-center gap-2 transition-colors"
-                    >
-                      <Search size={16} />
-                      Filtrar
-                    </button>
-                    <button
-                      onClick={limpiarFiltros}
-                      className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 text-sm transition-colors"
-                    >
-                      <RefreshCw size={16} />
-                    </button>
-                    <button
-                      onClick={handleDescargarPDF}
-                      disabled={!libroMayor || !libroMayor.movimientos || libroMayor.movimientos.length === 0}
-                      className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm flex items-center gap-2 transition-colors"
-                      title="Descargar PDF"
-                    >
-                      <Download size={16} />
-                      PDF
-                    </button>
-                  </div>
-                </div>
+            <div className="flex items-center space-x-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
+                <input
+                  type="date"
+                  value={filtros.fechaDesde}
+                  onChange={(e) => setFiltros({ ...filtros, fechaDesde: e.target.value })}
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
+                <input
+                  type="date"
+                  value={filtros.fechaHasta}
+                  onChange={(e) => setFiltros({ ...filtros, fechaHasta: e.target.value })}
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                />
+              </div>
+              <div className="flex items-end space-x-2">
+                <button
+                  onClick={aplicarFiltros}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm flex items-center gap-2 transition-colors"
+                >
+                  <Search size={16} />
+                  Filtrar
+                </button>
+                <button
+                  onClick={limpiarFiltros}
+                  className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm transition-colors"
+                >
+                  <RefreshCw size={16} />
+                </button>
+                <button
+                  onClick={handleDescargarPDF}
+                  disabled={!libroMayor || !libroMayor.movimientos || libroMayor.movimientos.length === 0}
+                  className="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 disabled:bg-slate-400 disabled:cursor-not-allowed text-sm flex items-center gap-2 transition-colors"
+                  title="Descargar PDF"
+                >
+                  <Download size={16} />
+                  PDF
+                </button>
               </div>
             </div>
+          </div>
+        </div>
 
             {/* Estadísticas de la cuenta */}
             {libroMayor && estadisticas && (
@@ -834,12 +834,12 @@ const LibroMayorSection = () => {
                   <table className="w-full">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Fecha</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Asiento</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Descripción</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Debe</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Haber</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium uppercase tracking-wider">Saldo</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Asiento</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Debe</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Haber</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -899,7 +899,7 @@ const LibroMayorSection = () => {
 
                                 {mov.debe_ars && (
 
-                                  <span className="text-xs text-gray-500 mt-1">
+                                  <span className="text-xs text-slate-500 mt-1">
 
                                     ({formatearMoneda(mov.debe_ars, 'ARS')})
 
@@ -923,7 +923,7 @@ const LibroMayorSection = () => {
 
                                 {mov.haber_ars && (
 
-                                  <span className="text-xs text-gray-500 mt-1">
+                                  <span className="text-xs text-slate-500 mt-1">
 
                                     ({formatearMoneda(mov.haber_ars, 'ARS')})
 
@@ -957,21 +957,21 @@ const LibroMayorSection = () => {
 
                       <tr className="font-bold">
 
-                        <td colSpan="3" className="py-3 px-4 text-sm font-semibold">TOTALES DEL PERÍODO</td>
+                        <td colSpan="3" className="px-4 py-3 text-sm font-bold text-center">TOTALES DEL PERÍODO</td>
 
-                        <td className="text-center py-3 px-4 text-sm font-semibold">
+                        <td className="px-4 py-3 text-sm font-bold text-center">
 
                           {formatearMoneda(libroMayor.totalDebe)}
 
                         </td>
 
-                        <td className="text-center py-3 px-4 text-sm font-semibold">
+                        <td className="px-4 py-3 text-sm font-bold text-center">
 
                           {formatearMoneda(libroMayor.totalHaber)}
 
                         </td>
 
-                        <td className="text-center py-3 px-4 text-sm font-semibold">
+                        <td className="px-4 py-3 text-sm font-bold text-center">
 
                           {formatearMonedaConSigno(libroMayor.saldoFinal)}
 
@@ -1057,7 +1057,7 @@ const LibroMayorSection = () => {
 
       {modalAsiento.open && modalAsiento.asiento && (
 
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
 
           <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
 

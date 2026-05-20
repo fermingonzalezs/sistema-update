@@ -425,19 +425,19 @@ const TableroGeneralSection = () => {
   return (
     <div className="bg-white rounded border border-slate-200">
       {/* Header */}
-      <div className="bg-slate-800 p-4 sm:p-6 text-white">
+      <div className="bg-slate-800 p-6 text-white">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="flex items-center space-x-3 min-w-0">
             <LayoutDashboard size={24} className="shrink-0" />
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-2xl font-semibold truncate">Tablero General</h2>
+              <h2 className="text-2xl font-semibold truncate">Tablero General</h2>
               <p className="text-slate-300 mt-1 text-xs sm:text-sm truncate">Estado de Resultados mensual</p>
             </div>
           </div>
           <select
             value={añoSeleccionado}
             onChange={(e) => setAñoSeleccionado(Number(e.target.value))}
-            className="bg-white text-slate-800 px-3 sm:px-4 py-2 rounded border border-slate-200 font-medium text-sm shrink-0"
+            className="bg-white text-slate-800 px-3 py-2 h-9 rounded border border-slate-200 font-medium text-sm shrink-0 focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           >
             {añosDisponibles.map(año => (
               <option key={año} value={año}>{año}</option>
@@ -470,13 +470,13 @@ const TableroGeneralSection = () => {
           <table className="w-full min-w-max">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sticky left-0 z-10 bg-slate-800 w-[130px] min-w-[130px] max-w-[130px]">Categoría</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider sticky left-0 z-10 bg-slate-800 w-[130px] min-w-[130px] max-w-[130px]">Categoría</th>
                 {datos.map((dato) => (
-                  <th key={dato.mes} className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap min-w-[95px]">
+                  <th key={dato.mes} className="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap min-w-[95px]">
                     {dato.mes}
                   </th>
                 ))}
-                <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider bg-slate-700 min-w-[110px] whitespace-nowrap">Total {añoSeleccionado}</th>
+                <th className="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider bg-slate-800 min-w-[110px] whitespace-nowrap">Total {añoSeleccionado}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">

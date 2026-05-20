@@ -62,7 +62,7 @@ const DetalleIngresoModal = ({ ingreso, onClose, onEdit }) => {
   }, [ingreso.importaciones_items]);
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-[82vw] w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -225,17 +225,17 @@ const DetalleIngresoModal = ({ ingreso, onClose, onEdit }) => {
                       <table className="w-full text-sm min-w-[980px]">
                         <thead className="bg-slate-800 text-white">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Color</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Almac.</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cant.</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso Real/u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso Total</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">FOB/u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Envío/u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Fin./u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Final/u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Final Total</th>
+                            <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Color</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Almac.</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cant.</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso Real/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso Total</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">FOB/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Envío/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Fin./u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Final/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Final Total</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -274,7 +274,7 @@ const DetalleIngresoModal = ({ ingreso, onClose, onEdit }) => {
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition-colors"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
             >
               Cerrar
             </button>

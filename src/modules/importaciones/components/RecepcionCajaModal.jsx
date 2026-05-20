@@ -123,62 +123,62 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Datos de Recepción</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Fecha Recepción *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha Recepción *</label>
                 <input
                   type="date"
                   value={form.fecha_recepcion}
                   onChange={e => handleFormChange('fecha_recepcion', e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Peso c/ caja (kg)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso c/ caja (kg)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.peso_total_con_caja_kg}
                   onChange={e => handleFormChange('peso_total_con_caja_kg', e.target.value)}
                   placeholder="0.00"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Peso s/ caja (kg) *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso s/ caja (kg) *</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.peso_sin_caja_kg}
                   onChange={e => handleFormChange('peso_sin_caja_kg', e.target.value)}
                   placeholder="0.00"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Precio / kg (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.precio_por_kg_usd}
                   onChange={e => handleFormChange('precio_por_kg_usd', e.target.value)}
                   placeholder="0.00"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Pago Courier (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.pago_courier_usd}
                   onChange={e => handleFormChange('pago_courier_usd', e.target.value)}
                   placeholder="0.00"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Picking / Shipping (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / Shipping (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.costo_picking_shipping_usd}
                   onChange={e => handleFormChange('costo_picking_shipping_usd', e.target.value)}
                   placeholder="0.00"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
             </div>
@@ -218,14 +218,14 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 <table className="w-full border border-slate-200 border-t-0 rounded-b overflow-hidden">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cant.</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">Precio FOB</th>
+                      <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cant.</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">Precio FOB</th>
                       <th className="px-3 py-2 text-center text-xs font-medium uppercase w-28">Peso Real (kg/u)</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso Total</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">C. Envío/u</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">C. Financiero/u</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase">Precio Final/u</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso Total</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">C. Envío/u</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">C. Financiero/u</th>
+                      <th className="px-3 py-2 text-center text-xs font-bold uppercase">Precio Final/u</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -251,7 +251,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                               min="0"
                               value={pesosReales[item.id]}
                               onChange={e => handlePesoChange(item.id, e.target.value)}
-                              className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                               placeholder="0.000"
                             />
                           </td>

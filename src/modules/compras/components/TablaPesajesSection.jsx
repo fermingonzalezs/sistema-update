@@ -71,11 +71,13 @@ const TablaPesajesSection = () => {
     <div className="bg-white">
       {/* Header */}
       <div className="bg-slate-800 p-6 text-white">
-        <div className="flex items-center space-x-3">
-          <Weight size={28} />
-          <div>
-            <h2 className="text-2xl font-semibold">Tabla de Pesajes</h2>
-            <p className="text-gray-300 mt-1">Pesos unitarios de productos para importaciones</p>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Weight size={28} />
+            <div>
+              <h2 className="text-2xl font-semibold">Tabla de Pesajes</h2>
+              <p className="text-slate-300 mt-1">Pesos unitarios de productos para importaciones</p>
+            </div>
           </div>
         </div>
       </div>
@@ -92,17 +94,17 @@ const TablaPesajesSection = () => {
           <form onSubmit={handleCrear} className="p-4">
             <div className="flex gap-3 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del producto</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre del producto</label>
                 <input
                   type="text"
                   value={nuevoNombre}
                   onChange={(e) => setNuevoNombre(e.target.value)}
                   placeholder="Ej: iPhone 15 Pro Max"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div className="w-40">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso (kg)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -110,7 +112,7 @@ const TablaPesajesSection = () => {
                   value={nuevoPeso}
                   onChange={(e) => setNuevoPeso(e.target.value)}
                   placeholder="0.000"
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <button
@@ -128,7 +130,7 @@ const TablaPesajesSection = () => {
         {/* Tabla */}
         <div className="bg-white border border-slate-200 rounded">
           {/* Buscador */}
-          <div className="p-3 border-b border-slate-200">
+          <div className="bg-gray-50 p-4 border-b border-slate-200">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -136,7 +138,7 @@ const TablaPesajesSection = () => {
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar producto..."
-                className="w-full border border-slate-200 rounded pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
           </div>
@@ -152,9 +154,9 @@ const TablaPesajesSection = () => {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Peso Unitario (kg)</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Acciones</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Peso Unitario (kg)</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-28">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -209,11 +211,11 @@ const TablaPesajesSection = () => {
                       </>
                     ) : (
                       <>
-                        <td className="px-4 py-3 text-sm text-slate-800">{p.nombre}</td>
-                        <td className="px-4 py-3 text-sm text-slate-800 text-center font-medium">
+                        <td className="px-4 py-3 text-sm text-left text-slate-600">{p.nombre}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800 font-medium">
                           {parseFloat(p.peso_kg).toFixed(3)} kg
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => iniciarEdicion(p)}
@@ -238,12 +240,11 @@ const TablaPesajesSection = () => {
               </tbody>
               <tfoot className="bg-slate-800 text-white">
                 <tr>
-                  <td className="px-4 py-3 text-sm font-semibold">
+                  <td colSpan={3} className="px-4 py-3 text-sm font-bold text-center">
                     {busqueda
                       ? `${pesajesFiltrados.length} de ${pesajes.length} productos`
                       : `${pesajes.length} productos registrados`}
                   </td>
-                  <td colSpan={2} />
                 </tr>
               </tfoot>
             </table>

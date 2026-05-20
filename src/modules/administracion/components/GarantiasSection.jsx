@@ -298,11 +298,11 @@ const GarantiasSection = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Tipo de búsqueda */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Buscar por</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Buscar por</label>
               <select
                 value={filtros.tipoBusqueda}
                 onChange={(e) => setFiltros(prev => ({ ...prev, tipoBusqueda: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
               >
                 <option value="serial">Número de Serie</option>
                 <option value="cliente">Nombre Cliente</option>
@@ -311,7 +311,7 @@ const GarantiasSection = () => {
 
             {/* Campo de búsqueda */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 {filtros.tipoBusqueda === 'serial' ? 'Serial' : 'Cliente'}
               </label>
               <input
@@ -319,18 +319,18 @@ const GarantiasSection = () => {
                 value={filtros.busqueda}
                 onChange={(e) => setFiltros(prev => ({ ...prev, busqueda: e.target.value }))}
                 placeholder={filtros.tipoBusqueda === 'serial' ? 'Ej: DL123456' : 'Ej: Juan Pérez'}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 onKeyPress={(e) => e.key === 'Enter' && handleBuscar()}
               />
             </div>
 
             {/* Filtro por tipo de producto */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Tipo Producto</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo Producto</label>
               <select
                 value={filtros.tipoProducto}
                 onChange={(e) => setFiltros(prev => ({ ...prev, tipoProducto: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
               >
                 <option value="todos">Todos</option>
                 <option value="computadora">Computadoras</option>
@@ -341,11 +341,11 @@ const GarantiasSection = () => {
 
             {/* Filtro por estado */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Estado</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
               <select
                 value={filtros.estadoGarantia}
                 onChange={(e) => setFiltros(prev => ({ ...prev, estadoGarantia: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
               >
                 <option value="todos">Todos</option>
                 <option value="Activa">Activas</option>
@@ -370,13 +370,13 @@ const GarantiasSection = () => {
           <table className="w-full">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Cliente</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Producto</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Serial</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Fecha</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Garantía</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Estado</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">Acción</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cliente</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Producto</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Serial</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Garantía</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">

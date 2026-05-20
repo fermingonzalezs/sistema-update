@@ -39,7 +39,7 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
   }, 0);
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
@@ -135,12 +135,12 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Total USD</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Serial</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">P. Unit. USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Costos Adic. USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Precio Total USD</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -148,12 +148,12 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
                     const precioUnitarioConCostos = parseFloat(item.precio_unitario) + parseFloat(item.costos_adicionales || 0);
                     return (
                       <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-4 py-3 text-slate-800">{item.producto}</td>
-                        <td className="px-4 py-3 text-center text-slate-600">{item.cantidad}</td>
-                        <td className="px-4 py-3 text-center text-slate-600">{item.serial || '-'}</td>
-                        <td className="px-4 py-3 text-center text-slate-600">U$ {formatNumber(item.precio_unitario)}</td>
-                        <td className="px-4 py-3 text-center text-slate-600">U$ {formatNumber(item.costos_adicionales || 0)}</td>
-                        <td className="px-4 py-3 text-center font-semibold text-slate-800">U$ {formatNumber(precioUnitarioConCostos * item.cantidad)}</td>
+                        <td className="px-4 py-3 text-sm text-left text-slate-600">{item.producto}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800">{item.cantidad}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800">{item.serial || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800">U$ {formatNumber(item.precio_unitario)}</td>
+                        <td className="px-4 py-3 text-sm text-center text-slate-800">U$ {formatNumber(item.costos_adicionales || 0)}</td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">U$ {formatNumber(precioUnitarioConCostos * item.cantidad)}</td>
                       </tr>
                     );
                   })}

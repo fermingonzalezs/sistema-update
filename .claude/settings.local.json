@@ -59,7 +59,10 @@
       "Bash(Select-Object FullName)",
       "Bash(ConvertTo-Json)",
       "Bash(Get-ChildItem *)",
-      "Bash(xargs ls -lh)"
+      "Bash(xargs ls -lh)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(ls src/modules/)",
+      "Bash(dir src\\\\modules /b)"
     ],
     "deny": [],
     "ask": []

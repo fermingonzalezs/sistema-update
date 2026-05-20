@@ -37,7 +37,7 @@ const LoadingSpinner = ({
         {/* Spinner animado */}
         <div 
           className={`
-            animate-spin rounded-full 
+            animate-spin rounded 
             border-2 border-slate-200 border-t-emerald-600
             ${sizeClasses[size]}
           `}

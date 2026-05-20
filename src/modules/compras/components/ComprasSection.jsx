@@ -165,7 +165,7 @@ const ComprasSection = () => {
               onClick={() => {
                 setShowNuevaCompra(true);
               }}
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               Nueva Compra
@@ -203,14 +203,14 @@ const ComprasSection = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-gray-50 p-4 border-b rounded border border-slate-200">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="bg-gray-50 p-4 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
             <select
               value={filtroEstado}
               onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="todos">Todos</option>
               <option value="en_camino">En Camino</option>
@@ -219,40 +219,40 @@ const ComprasSection = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor</label>
             <input
               type="text"
               value={filtroBusqueda}
               onChange={(e) => setFiltroBusqueda(e.target.value)}
               placeholder="Buscar proveedor..."
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
             <input
               type="date"
               value={filtroFechaDesde}
               onChange={(e) => setFiltroFechaDesde(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
             <input
               type="date"
               value={filtroFechaHasta}
               onChange={(e) => setFiltroFechaHasta(e.target.value)}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div className="flex items-end">
             <button
               onClick={limpiarFiltros}
-              className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm w-full"
+              className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm w-full"
             >
               Limpiar Filtros
             </button>
@@ -283,15 +283,15 @@ const ComprasSection = () => {
               </colgroup>
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cont.</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Recibo</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Proveedor</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Items</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total USD</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cont.</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Recibo</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Proveedor</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Items</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Total USD</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -324,10 +324,10 @@ const ComprasSection = () => {
                         </button>
                       </td>
                       <td className="px-4 py-3 text-sm text-center font-medium text-slate-800">{recibo.numero_recibo || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.proveedores?.nombre || recibo.proveedor || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.descripcion || <span className="italic text-slate-400">-</span>}</td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-600">{recibo.compras_items?.length || 0}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-800">{new Date(recibo.fecha).toLocaleDateString('es-AR')}</td>
+                      <td className="px-4 py-3 text-sm text-left text-slate-600">{recibo.proveedores?.nombre || recibo.proveedor || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-left text-slate-600">{recibo.descripcion || <span className="italic text-slate-400">-</span>}</td>
+                      <td className="px-4 py-3 text-sm text-center text-slate-800">{recibo.compras_items?.length || 0}</td>
                       <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">U$ {Math.round(total).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
                       <td className="px-4 py-3 text-center">{estadoBadge}</td>
                       <td className="px-4 py-3 text-center">

@@ -130,7 +130,7 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={subiendo}
-            className={`px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors ${subiendo
+            className={`px-3 py-2 rounded text-sm flex items-center space-x-1 transition-colors ${subiendo
                 ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                 : 'bg-emerald-600 text-white hover:bg-emerald-700'
               }`}
@@ -208,7 +208,7 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
                   <div className="opacity-0 group-hover:opacity-100 flex space-x-2">
                     <button
                       onClick={() => setVistaPrevia(foto)}
-                      className="p-2 bg-white text-slate-700 rounded hover:bg-slate-100"
+                      className="p-2 bg-white text-slate-700 rounded hover:bg-slate-100 transition-colors"
                       title="Ver"
                     >
                       <Eye className="w-4 h-4" />
@@ -238,10 +238,10 @@ const GestionFotosAsiento = ({ asientoId, readOnly = false }) => {
           <Image className="w-8 h-8 text-slate-400 mx-auto mb-2" />
           <p className="text-sm text-slate-500">No hay archivos adjuntos</p>
           {!readOnly && (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="mt-2 text-emerald-600 hover:text-emerald-800 text-sm"
-            >
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-2 text-emerald-600 hover:text-emerald-800 text-sm font-medium transition-colors"
+              >
               Haz clic para adjuntar
             </button>
           )}

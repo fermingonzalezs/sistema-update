@@ -308,6 +308,13 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
           icon: ShoppingBag,
           description: 'Catálogo con precios de revendedor',
           section: 'revendedores'
+        },
+        {
+          id: 'catalogo-proveedor',
+          path: '/hubx',
+          label: 'HUBX',
+          icon: FileText,
+          description: 'Lista de precios HUBX'
         }
       ]
     }
@@ -378,7 +385,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
         <button
           onClick={toggleSidebar}
           className={`
-            hidden md:block text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700
+            hidden md:block text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700
             ${isCollapsed ? '' : 'absolute right-4 top-1/2 -translate-y-1/2'}
           `}
         >
@@ -387,7 +394,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
         {/* Close Button - mobile only */}
         <button
           onClick={onCloseMobile}
-          className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
+          className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700"
         >
           <X size={20} />
         </button>
@@ -407,7 +414,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                   {!isCollapsed ? (
                     <button
                       onClick={() => toggleSection(group.title)}
-                      className={`w-full bg-emerald-600 p-3 rounded-lg mb-3 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
+                      className={`w-full bg-emerald-600 p-2 rounded mb-2 relative focus:outline-none ${isGroupDisabled ? 'opacity-60' : ''
                         } hover:bg-emerald-600/80`}
                     >
                       <div className="relative flex items-center justify-center">
@@ -416,7 +423,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                           {isGroupDisabled && (
                             <div className="relative group">
                               <Settings className="w-4 h-4 opacity-50" />
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 border border-slate-200 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 border border-slate-200 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                 En desarrollo
                               </div>
                             </div>
@@ -434,7 +441,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                   ) : (
                     /* Icono de separación cuando está colapsado */
                     <div className="flex justify-center mb-3">
-                      <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center" title={group.title}>
+                      <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center" title={group.title}>
                         <span className="text-white text-xs font-bold">
                           {group.title.charAt(0)}
                         </span>
@@ -456,20 +463,20 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                           return (
                             <div
                               key={item.id}
-                              className={`w-full group relative overflow-hidden rounded-lg opacity-50 cursor-not-allowed ${isCollapsed ? 'p-2' : 'p-3'
+                              className={`w-full group relative overflow-hidden rounded opacity-50 cursor-not-allowed ${isCollapsed ? 'p-1.5' : 'p-2'
                                 } border border-transparent`}
                               title={isCollapsed ? item.label : undefined}
                             >
                               {isCollapsed ? (
                                 <div className="flex items-center justify-center">
-                                  <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200">
+                                  <div className="p-2 rounded bg-slate-200/10 text-slate-200">
                                     <Icon className="w-4 h-4" />
                                   </div>
                                 </div>
                               ) : (
                                 <div className="relative flex items-center justify-between w-full min-w-0">
                                   <div className="flex items-center space-x-3 w-full min-w-0">
-                                    <div className="p-2 rounded-lg bg-slate-200/10 text-slate-200 flex-shrink-0">
+                                    <div className="p-2 rounded bg-slate-200/10 text-slate-200 flex-shrink-0">
                                       <Icon className="w-4 h-4" />
                                     </div>
                                     <div className="text-left w-full min-w-0 overflow-hidden">
@@ -492,7 +499,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                           <NavLink
                             key={item.id}
                             to={item.path}
-                            className={({ isActive }) => `w-full group relative overflow-hidden rounded-lg focus:outline-none block ${isCollapsed ? 'p-2' : 'p-3'
+                            className={({ isActive }) => `w-full group relative overflow-hidden rounded focus:outline-none block ${isCollapsed ? 'p-1.5' : 'p-2'
                               } ${isActive
                                 ? 'bg-white border border-slate-200 shadow-lg'
                                 : 'hover:bg-slate-200/20 border border-transparent'
@@ -502,7 +509,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                             {({ isActive }) => (
                               isCollapsed ? (
                                 <div className="flex items-center justify-center">
-                                  <div className={`p-2 rounded-lg ${isActive
+                                  <div className={`p-2 rounded ${isActive
                                     ? 'bg-emerald-600 text-white shadow-sm'
                                     : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                     }`}>
@@ -512,7 +519,7 @@ const Sidebar = ({ activeSection, isCollapsed = false, toggleSidebar, isMobileOp
                               ) : (
                                 <div className="relative flex items-center justify-between w-full min-w-0">
                                   <div className="flex items-center space-x-3 w-full min-w-0">
-                                    <div className={`p-2 rounded-lg flex-shrink-0 ${isActive
+                                    <div className={`p-2 rounded flex-shrink-0 ${isActive
                                       ? 'bg-emerald-600 text-white shadow-sm'
                                       : 'bg-slate-200/10 text-slate-200 group-hover:bg-emerald-600 group-hover:text-white'
                                       }`}>

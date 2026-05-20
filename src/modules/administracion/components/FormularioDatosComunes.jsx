@@ -102,7 +102,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
     const esNuevo = datos.condicion === 'nuevo' || datos.condicion === 'nueva';
 
     // Clases comunes para inputs y headers de sección
-    const ic = "w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm transition-colors";
+    const ic = "w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm transition-colors";
     const sh = "bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 uppercase tracking-wider text-center";
 
     // ===== FORMULARIO CELULARES =====
@@ -110,7 +110,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
         return (
             <div className="space-y-4">
                 {/* Información Básica */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Información Básica</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -191,7 +191,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                         <option key={prov.id} value={prov.id}>{prov.nombre}</option>
                                     ))}
                                 </select>
-                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
                                     <Plus size={16} />
                                 </button>
                             </div>
@@ -204,7 +204,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Precios y Costos */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Precios y Costos</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -224,7 +224,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
-                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
@@ -238,7 +238,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Especificaciones Técnicas */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Especificaciones Técnicas</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -272,7 +272,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Garantía y Observaciones */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Garantía y Observaciones</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -316,7 +316,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             <div className="space-y-4">
 
                 {/* Información Básica */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Información Básica</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -410,7 +410,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Precios y Costos */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Precios y Costos</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -435,7 +435,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Especificaciones Técnicas */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Especificaciones Técnicas</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -493,7 +493,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Pantalla y Display */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Pantalla y Display</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -526,7 +526,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Características Adicionales */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Características Adicionales</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -556,7 +556,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Garantía y Observaciones */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Garantía y Observaciones</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -602,7 +602,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
         return (
             <div className="space-y-4">
                 {/* Información Básica */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Información Básica</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -679,7 +679,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                         <option key={prov.id} value={prov.id}>{prov.nombre}</option>
                                     ))}
                                 </select>
-                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
                                     <Plus size={16} />
                                 </button>
                             </div>
@@ -692,7 +692,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Precios y Costos */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Precios y Costos</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -712,7 +712,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
-                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
@@ -726,7 +726,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Especificaciones Técnicas */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Especificaciones Técnicas</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -765,7 +765,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Garantía y Observaciones */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Garantía y Observaciones</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -808,7 +808,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
         return (
             <div className="space-y-4">
                 {/* Información Básica */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Información Básica</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -885,7 +885,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                                         <option key={prov.id} value={prov.id}>{prov.nombre}</option>
                                     ))}
                                 </select>
-                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
+                                <button type="button" onClick={() => setShowNuevoProveedorModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors" title="Nuevo Proveedor" disabled={proveedoresLoading}>
                                     <Plus size={16} />
                                 </button>
                             </div>
@@ -898,7 +898,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Precios y Costos */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Precios y Costos</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -918,7 +918,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
-                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                            <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
@@ -932,7 +932,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Especificaciones Técnicas */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Especificaciones Técnicas</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -966,7 +966,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                 </div>
 
                 {/* Garantía y Observaciones */}
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                     <h3 className={sh}>Garantía y Observaciones</h3>
                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -1008,7 +1008,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
     return (
         <div className="space-y-4">
             {/* Producto */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className={sh}>Producto</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1038,7 +1038,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             </div>
 
             {/* Precios y Costos */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className={sh}>Precios y Costos</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1058,7 +1058,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Costo Total USD <span className="text-xs text-slate-500">(calculado)</span></label>
-                        <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
+                        <input type="text" value={`U$${((parseFloat(datos.precio_compra_usd) || 0) + (parseFloat(datos.costos_adicionales) || 0)).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-600 cursor-not-allowed text-sm font-medium" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Precio Venta USD *</label>
@@ -1072,7 +1072,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             </div>
 
             {/* Condición y Ubicación */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className={sh}>Condición y Ubicación</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -1101,7 +1101,7 @@ const FormularioDatosComunes = ({ tipoEquipo, datos, onChange, errores }) => {
             </div>
 
             {/* Garantía y Observaciones */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
                 <h3 className={sh}>Garantía y Observaciones</h3>
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

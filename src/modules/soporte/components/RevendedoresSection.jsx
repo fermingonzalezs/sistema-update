@@ -271,10 +271,10 @@ const RevendedoresSection = () => {
   };
 
   const inputClasses =
-    "w-full py-1.5 px-2 bg-slate-700 border border-slate-600 rounded text-white text-xs focus:outline-none focus:border-slate-400";
+    "w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600";
 
-  const thClass = "px-3 py-2 text-center text-xs font-bold text-white uppercase tracking-wider";
-  const thGreen = "px-3 py-2 text-center text-xs font-bold text-emerald-300 uppercase tracking-wider";
+  const thClass = "px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider";
+  const thGreen = "px-4 py-3 text-center text-xs font-bold text-emerald-300 uppercase tracking-wider";
 
   if (loading) {
     return (
@@ -315,7 +315,7 @@ const RevendedoresSection = () => {
       </div>
 
       {/* Selector de categorías y filtros */}
-      <div className="bg-slate-800 rounded border border-slate-200 p-4">
+      <div className="bg-gray-50 p-4 border-b border-slate-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">Categorías de Productos</h3>
           {hayFiltrosActivos && (
@@ -422,10 +422,10 @@ const RevendedoresSection = () => {
         )}
 
         {/* Filtros */}
-        <div className="border-t border-slate-600 pt-3">
+        <div className="border-t border-slate-200 pt-3">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Búsqueda</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Búsqueda</label>
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-300 w-4 h-4" />
                 <input type="text" value={filtros.busqueda} onChange={(e) => actualizarFiltro("busqueda", e.target.value)} placeholder="Buscar..." className={`${inputClasses} pl-8`} />
@@ -433,7 +433,7 @@ const RevendedoresSection = () => {
             </div>
             {valoresUnicos?.marcas?.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1">Marca</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Marca</label>
                 <select value={filtros.marca} onChange={(e) => actualizarFiltro("marca", e.target.value)} className={inputClasses}>
                   <option value="">Todas</option>
                   {valoresUnicos.marcas.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -441,7 +441,7 @@ const RevendedoresSection = () => {
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Condición</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Condición</label>
               <select value={filtros.condicion} onChange={(e) => actualizarFiltro("condicion", e.target.value)} className={inputClasses}>
                 <option value="">Todas</option>
                 <option value="nuevo">Nuevo</option>
@@ -450,17 +450,17 @@ const RevendedoresSection = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Precio mín (USD)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio mín (USD)</label>
               <input type="number" value={filtros.precioMin} onChange={(e) => actualizarFiltro("precioMin", e.target.value)} placeholder="0"
                 className={`${inputClasses} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Precio máx (USD)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio máx (USD)</label>
               <input type="number" value={filtros.precioMax} onChange={(e) => actualizarFiltro("precioMax", e.target.value)} placeholder="Sin límite"
                 className={`${inputClasses} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1">Ordenar por</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Ordenar por</label>
               <select value={`${ordenamiento.campo}-${ordenamiento.direccion}`}
                 onChange={(e) => { const [campo, direccion] = e.target.value.split("-"); actualizarOrdenamiento(campo, direccion); }}
                 className={inputClasses}>
@@ -575,7 +575,7 @@ const RevendedoresSection = () => {
                     </tr>
                   )}
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200">
                   {datosFiltrados.map((producto, index) => {
                     const esFilaOtros =
                       categoriaActiva === "otros" ||
@@ -610,14 +610,14 @@ const RevendedoresSection = () => {
                     const keyUSD = `${producto.id}-usd`;
                     const keyARS = `${producto.id}-ars`;
 
-                    const tdBase = `px-3 py-2 text-sm text-slate-800`;
-                    const tdCenter = `px-3 py-2 text-sm text-center`;
+                    const tdBase = `px-4 py-3 text-sm text-slate-800`;
+                    const tdCenter = `px-4 py-3 text-sm text-center`;
 
                     return (
                       <tr
                         key={producto.id}
                         onClick={() => setModalDetalle({ open: true, producto })}
-                        className={`cursor-pointer hover:bg-emerald-50 transition-colors ${rowBg}`}
+                        className={`cursor-pointer hover:bg-slate-50 transition-colors ${rowBg}`}
                       >
                         {/* Checkbox */}
                         <td className="px-2 py-2 text-center" onClick={(e) => handleToggleSeleccion(e, producto.id)}>

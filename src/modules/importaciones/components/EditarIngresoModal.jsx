@@ -139,36 +139,36 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Datos del ingreso</h4>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Fecha recepción</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha recepción</label>
                 <input
                   type="date"
                   value={fechaRecepcion}
                   onChange={e => setFechaRecepcion(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Peso total c/ caja (kg)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso total c/ caja (kg)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={pesoTotalConCaja}
                   onChange={e => handlePesoConCajaChange(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Precio / kg (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={precioPorKg}
                   onChange={e => handlePrecioPorKgChange(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   Pago courier (USD)
                   {parseFloat(pesoTotalConCaja) > 0 && parseFloat(precioPorKg) > 0 && (
                     <span className="text-slate-400 font-normal ml-1">(auto: {parseFloat(pesoTotalConCaja)} × {parseFloat(precioPorKg)})</span>
@@ -179,17 +179,17 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                   step="0.01"
                   value={pagoCourier}
                   onChange={e => setPagoCourier(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Picking / shipping (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / shipping (USD)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={costoPickingShipping}
                   onChange={e => setCostoPickingShipping(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
             </div>
@@ -207,12 +207,12 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                   <table className="w-full min-w-[900px]">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Color</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Almac.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cant.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso actual (kg)</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Nuevo peso/u (kg)</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Color</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Almac.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cant.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso actual (kg)</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Nuevo peso/u (kg)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -231,7 +231,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                               step="0.001"
                               value={pesosReales[item.id] ?? ''}
                               onChange={e => setPesosReales(prev => ({ ...prev, [item.id]: e.target.value }))}
-                              className="w-28 border border-slate-200 rounded px-2 py-1 text-xs text-center focus:ring-2 focus:ring-emerald-500"
+                              className="w-28 border border-slate-200 rounded px-2 py-1 text-xs text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             />
                           </td>
                         </tr>
@@ -261,12 +261,12 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                   <table className="w-full min-w-[1100px]">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cant.</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso total item</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Proporción %</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Nuevo envío/u</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium uppercase">Nuevo final/u</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cant.</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso total item</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Proporción %</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Nuevo envío/u</th>
+                        <th className="px-3 py-2 text-center text-xs font-bold uppercase">Nuevo final/u</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">

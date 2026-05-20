@@ -267,10 +267,10 @@ const IngresoEquiposSection = () => {
         </div>
 
         {/* Filtros */}
-        <div className="bg-gray-50 p-4 border-b">
+        <div className="bg-gray-50 p-4 border-b border-slate-200">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Buscar en Historial
               </label>
               <div className="relative">
@@ -280,19 +280,19 @@ const IngresoEquiposSection = () => {
                   value={busquedaHistorial}
                   onChange={(e) => setBusquedaHistorial(e.target.value)}
                   placeholder="Buscar por modelo, serial o proveedor..."
-                  className="w-full border border-slate-200 rounded pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Ordenar por
               </label>
               <div className="relative">
                 <select
                   value={ordenHistorial}
                   onChange={(e) => setOrdenHistorial(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 appearance-none bg-white"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 appearance-none bg-white"
                 >
                   <option value="fecha_desc">Más recientes primero</option>
                   <option value="fecha_asc">Más antiguos primero</option>
@@ -315,28 +315,28 @@ const IngresoEquiposSection = () => {
           <table className="w-full">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Fecha
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Serial
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Color
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Producto
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Categoría
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Precio Compra
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Proveedor
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Usuario
                 </th>
               </tr>

@@ -447,7 +447,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-7xl w-full max-h-[95vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0 z-10">
@@ -467,7 +467,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* PROVEEDOR */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor *</label>
                   <div className="flex gap-2">
                     <select
                       value={formRecibo.proveedor_id}
@@ -479,7 +479,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                           proveedor: proveedorSeleccionado?.nombre || ''
                         });
                       }}
-                      className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                      className="flex-1 h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                       required
                     >
                       <option value="">Seleccionar proveedor</option>
@@ -499,23 +499,23 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* FECHA */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_compra}
                     onChange={(e) => setFormRecibo({ ...formRecibo, fecha_compra: e.target.value })}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     required
                   />
                 </div>
 
                 {/* MÉTODO DE PAGO */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Método de Pago *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago *</label>
                   <select
                     value={formRecibo.metodo_pago}
                     onChange={(e) => setFormRecibo({ ...formRecibo, metodo_pago: e.target.value })}
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     required
                   >
                     {METODOS_PAGO.map(metodo => (
@@ -526,7 +526,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* COSTOS ADICIONALES */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Costos Adicionales (USD)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costos Adicionales (USD)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -543,20 +543,20 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                       setFormRecibo({ ...formRecibo, costos_adicionales: numValue.toFixed(2) });
                     }}
                     placeholder="0.00"
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                   <p className="text-xs text-slate-500 mt-1">Se distribuirán proporcionalmente</p>
                 </div>
 
                 {/* OBSERVACIONES */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
                   <textarea
                     value={formRecibo.observaciones}
                     onChange={(e) => setFormRecibo({ ...formRecibo, observaciones: e.target.value })}
                     placeholder="Notas adicionales..."
                     rows="2"
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
               </div>
@@ -629,14 +629,14 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
                   <table className="w-full">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Descripción</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Serial</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cant.</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Precio Unit.</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Subtotal</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic.</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Total</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Serial</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cant.</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Precio Unit.</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Subtotal</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Costos Adic.</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Total</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -647,11 +647,11 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                         return (
                           <tr key={item.id} className="bg-white">
-                            <td className="px-4 py-3 text-sm text-center text-slate-800">{item.descripcion}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600 font-mono">{item.datos_completos.serial || 'N/A'}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600">{item.cantidad}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600">${Math.round(item.precio_unitario)}</td>
-                            <td className="px-4 py-3 text-sm text-center text-slate-600">${Math.round(item.precio_total)}</td>
+                            <td className="px-4 py-3 text-sm text-left text-slate-600">{item.descripcion}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800 font-mono">{item.datos_completos.serial || 'N/A'}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">{item.cantidad}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">${Math.round(item.precio_unitario)}</td>
+                            <td className="px-4 py-3 text-sm text-center text-slate-800">${Math.round(item.precio_total)}</td>
                             <td className="px-4 py-3 text-sm text-center text-emerald-600 font-medium">${Math.round(itemConCostos.costos_adicionales || 0)}</td>
                             <td className="px-4 py-3 text-sm text-center font-semibold text-slate-800">${Math.round(itemConCostos.precio_final)}</td>
                             <td className="px-4 py-3 text-center">
@@ -701,11 +701,11 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                             return (
                               <tr key={item.id} className="bg-emerald-50">
-                                <td className="px-4 py-2 text-sm text-center text-slate-600">{item.descripcion}</td>
-                                <td className="px-4 py-2 text-sm text-center text-slate-600 font-mono">{item.datos_completos.serial}</td>
-                                <td className="px-4 py-2 text-sm text-center text-slate-600">{item.cantidad}</td>
-                                <td className="px-4 py-2 text-sm text-center text-slate-600">${Math.round(item.precio_unitario)}</td>
-                                <td className="px-4 py-2 text-sm text-center text-slate-600">${Math.round(item.precio_total)}</td>
+                                <td className="px-4 py-2 text-sm text-left text-slate-600">{item.descripcion}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-800 font-mono">{item.datos_completos.serial}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-800">{item.cantidad}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-800">${Math.round(item.precio_unitario)}</td>
+                                <td className="px-4 py-2 text-sm text-center text-slate-800">${Math.round(item.precio_total)}</td>
                                 <td className="px-4 py-2 text-sm text-center text-emerald-600 font-medium">${Math.round(itemConCostos.costos_adicionales || 0)}</td>
                                 <td className="px-4 py-2 text-sm text-center font-semibold text-slate-800">${Math.round(itemConCostos.precio_final)}</td>
                                 <td className="px-4 py-2 text-center">

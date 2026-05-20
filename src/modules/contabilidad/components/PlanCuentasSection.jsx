@@ -703,7 +703,7 @@ Esta acción no se puede deshacer.
               <div className="flex items-center gap-2">
                 <button
                   onClick={expandirTodas}
-                  className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                  className="bg-slate-600 text-white px-4 py-3 rounded hover:bg-slate-500 flex items-center gap-2 transition-colors text-sm"
                   title="Expandir todas las categorías"
                 >
                   <ChevronDown size={14} />
@@ -711,7 +711,7 @@ Esta acción no se puede deshacer.
                 </button>
                 <button
                   onClick={colapsarTodas}
-                  className="bg-slate-600 text-white px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2 transition-colors text-sm"
+                  className="bg-slate-600 text-white px-4 py-3 rounded hover:bg-slate-500 flex items-center gap-2 transition-colors text-sm"
                   title="Colapsar todas las categorías"
                 >
                   <ChevronUp size={14} />
@@ -1073,14 +1073,14 @@ Esta acción no se puede deshacer.
             <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-3 text-slate-800 border border-slate-200 rounded hover:bg-slate-200 transition-colors"
+                className="px-6 py-3 text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors"
               >
                 <X size={16} className="inline mr-2" />
                 Cancelar
               </button>
               <button
                 onClick={guardarCuenta}
-                className="px-6 py-3 bg-slate-800 text-white rounded hover:bg-slate-800/90 transition-colors"
+                className="px-6 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
               >
                 <Save size={16} className="inline mr-2" />
                 Guardar

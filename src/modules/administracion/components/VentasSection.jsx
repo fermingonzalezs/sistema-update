@@ -345,11 +345,11 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           <div className="flex flex-wrap items-end gap-3">
             {/* Categoría unificada con optgroup */}
             <div className="min-w-[240px]">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Categoría</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
               <select
                 value={filtroSeleccionado}
                 onChange={(e) => { setFiltroSeleccionado(e.target.value); setPaginaActual(1); }}
-                className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm"
               >
                 <option value="todos">Todos</option>
                 <optgroup label="NOTEBOOKS">
@@ -374,21 +374,21 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
             </div>
             {/* Buscar */}
             <div className="flex-1 min-w-[150px]">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Buscar</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Buscar</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <input type="text" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }} placeholder="Producto, serial, cliente..." className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm" />
+                <input type="text" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }} placeholder="Producto, serial, cliente..." className="w-full h-9 pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
               </div>
             </div>
             {/* Desde */}
             <div className="min-w-[160px]">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Desde</label>
-              <input type="date" value={fechaDesde} onChange={(e) => { setFechaDesde(e.target.value); setPaginaActual(1); }} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm" />
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
+              <input type="date" value={fechaDesde} onChange={(e) => { setFechaDesde(e.target.value); setPaginaActual(1); }} className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
             </div>
             {/* Hasta */}
             <div className="min-w-[160px]">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Hasta</label>
-              <input type="date" value={fechaHasta} onChange={(e) => { setFechaHasta(e.target.value); setPaginaActual(1); }} className="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm" />
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
+              <input type="date" value={fechaHasta} onChange={(e) => { setFechaHasta(e.target.value); setPaginaActual(1); }} className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
             </div>
             {/* Limpiar */}
             {(filtroSeleccionado !== 'todos' || busqueda || fechaDesde || fechaHasta) && (
@@ -432,14 +432,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
               <table className="w-full divide-y divide-slate-200 table-fixed">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-10">Contab.</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Fecha</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase">Productos</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-48">Cliente</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Total</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Ganancia</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Vendedor</th>
-                    <th className="px-4 py-2 text-center text-xs font-medium uppercase w-24">Acciones</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-10">Contab.</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Productos</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-48">Cliente</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Ganancia</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Vendedor</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">

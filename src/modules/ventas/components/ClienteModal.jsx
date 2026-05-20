@@ -131,10 +131,10 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
   // Usar Portal para evitar conflictos de z-index
   return ReactDOM.createPortal(
     <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-end sm:items-center justify-center z-[9999] sm:p-4">
-      <div className="bg-white w-full sm:max-w-2xl sm:rounded border border-slate-300 flex flex-col max-h-[95vh] sm:max-h-[90vh] rounded-t-xl sm:rounded">
+      <div className="bg-white w-full sm:max-w-2xl rounded border border-slate-300 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
 
         {/* Header */}
-        <div className="bg-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between shrink-0 rounded-t-xl sm:rounded-t">
+        <div className="bg-slate-800 p-6 text-white flex items-center justify-between shrink-0 rounded-t">
           <div className="flex items-center gap-2 text-white">
             <User className="w-5 h-5" />
             <h2 className="text-base font-semibold">{cliente ? 'Editar Cliente' : 'Nuevo Cliente'}</h2>
@@ -151,23 +151,23 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Nombre y Apellido — siempre 2 columnas */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre *</label>
                 <input
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => handleChange('nombre', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.nombre ? 'border-red-500' : 'border-slate-200'}`}
+                  className={`w-full h-9 border rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.nombre ? 'border-red-500' : 'border-slate-200'}`}
                   placeholder="Nombre"
                 />
                 {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Apellido *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Apellido *</label>
                 <input
                   type="text"
                   value={formData.apellido}
                   onChange={(e) => handleChange('apellido', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.apellido ? 'border-red-500' : 'border-slate-200'}`}
+                  className={`w-full h-9 border rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.apellido ? 'border-red-500' : 'border-slate-200'}`}
                   placeholder="Apellido"
                 />
                 {errors.apellido && <p className="text-red-500 text-xs mt-1">{errors.apellido}</p>}
@@ -177,27 +177,27 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Email y Teléfono */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   <Mail className="w-3.5 h-3.5 inline mr-1" />Email
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.email ? 'border-red-500' : 'border-slate-200'}`}
+                  className={`w-full h-9 border rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-red-500' : 'border-slate-200'}`}
                   placeholder="ejemplo@email.com"
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   <Phone className="w-3.5 h-3.5 inline mr-1" />Teléfono
                 </label>
                 <input
                   type="tel"
                   value={formData.telefono}
                   onChange={(e) => handleChange('telefono', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${errors.telefono ? 'border-red-500' : 'border-slate-200'}`}
+                  className={`w-full h-9 border rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.telefono ? 'border-red-500' : 'border-slate-200'}`}
                   placeholder="+54 221 123-4567"
                 />
                 {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
@@ -207,24 +207,24 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Cumpleaños y Procedencia */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   <Calendar className="w-3.5 h-3.5 inline mr-1" />Cumpleaños
                 </label>
                 <input
                   type="date"
                   value={formData.cumpleanos}
                   onChange={(e) => handleChange('cumpleanos', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 inline mr-1" />Procedencia
                 </label>
                 <select
                   value={formData.procedencia}
                   onChange={(e) => handleChange('procedencia', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full h-9 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 >
                   <option value="">Seleccionar...</option>
                   {procedenciaOptions.map(option => (
@@ -237,7 +237,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Referidor */}
             {formData.procedencia === 'referidos' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">¿Quién lo refirió? *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">¿Quién lo refirió? *</label>
                 <ClienteSelector
                   selectedCliente={clienteReferidor}
                   onSelectCliente={(c) => { setClienteReferidor(c); handleChange('referido_por', c?.id || null); }}
@@ -249,7 +249,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
             {/* Profesión */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <Briefcase className="w-3.5 h-3.5 inline mr-1" />Profesión
               </label>
               <ProfesionSelector value={formData.profesion} onChange={(val) => handleChange('profesion', val)} />
@@ -257,14 +257,14 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
             {/* Notas */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 <FileText className="w-3.5 h-3.5 inline mr-1" />Notas
               </label>
               <textarea
                 value={formData.notas}
                 onChange={(e) => handleChange('notas', e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Notas adicionales..."
               />
             </div>
@@ -276,14 +276,14 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+              className="flex-1 px-4 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Guardando...' : cliente ? 'Actualizar' : 'Crear Cliente'}
             </button>

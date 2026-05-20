@@ -199,7 +199,7 @@ const CuentasAuxiliaresSection = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={handleNuevaCuenta}
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
             >
               <Plus size={18} />
               Nueva Cuenta Auxiliar
@@ -210,10 +210,10 @@ const CuentasAuxiliaresSection = () => {
 
 
       {/* Filtros */}
-      <div className="bg-gray-50 p-4 border-b">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-gray-50 p-4 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Buscar Cuenta
             </label>
             <div className="relative">
@@ -223,25 +223,25 @@ const CuentasAuxiliaresSection = () => {
                 placeholder="Buscar por cuenta, código..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Estado
             </label>
-            <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+            <select className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
               <option value="">Todos los estados</option>
               <option value="balanceado">Balanceado</option>
               <option value="desbalanceado">Desbalanceado</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Tipo
             </label>
-            <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+            <select className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
               <option value="">Todos los tipos</option>
               <option value="activo">Activos</option>
               <option value="pasivo">Pasivos</option>
@@ -249,7 +249,7 @@ const CuentasAuxiliaresSection = () => {
             </select>
           </div>
           <div className="flex items-end">
-            <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
+            <button className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
               Limpiar Filtros
             </button>
           </div>
@@ -284,28 +284,28 @@ const CuentasAuxiliaresSection = () => {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">
                     Cuenta
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Saldo Contable
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Total Ingresos
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Total Egresos
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Saldo Auxiliar
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Diferencia
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Movimientos
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -314,7 +314,7 @@ const CuentasAuxiliaresSection = () => {
                 {cuentas.map((cuenta, index) => {
                   return (
                     <tr key={cuenta.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-4 py-3 text-sm text-slate-800">
+                      <td className="px-4 py-3 text-sm text-left text-slate-600">
                         <div>
                           <div className="font-medium">{cuenta.cuenta?.codigo || 'Sin código'}</div>
                           <div className="text-xs text-slate-500 mt-1">
@@ -450,32 +450,32 @@ const CuentasAuxiliaresSection = () => {
             </div>
 
             {/* Filtros de movimientos */}
-            <div className="bg-gray-50 p-4 rounded border border-slate-200 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 p-4 border-b border-slate-200 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
                   <input
                     type="date"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
                   <input
                     type="date"
-                    className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                    className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                  <select className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
+                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo</label>
+                  <select className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                     <option value="">Todos</option>
                     <option value="ingreso">Solo Ingresos</option>
                     <option value="egreso">Solo Egresos</option>
                   </select>
                 </div>
                 <div className="flex items-end gap-2">
-                  <button className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
+                  <button className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm">
                     Filtrar
                   </button>
                   <button
@@ -501,12 +501,12 @@ const CuentasAuxiliaresSection = () => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   <table className="w-full">
-                    <thead className="bg-slate-700 text-white sticky top-0">
+                    <thead className="bg-slate-800 text-white sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Monto</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -565,7 +565,7 @@ const CuentasAuxiliaresSection = () => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   <table className="w-full">
-                    <thead className="bg-slate-700 text-white sticky top-0">
+                    <thead className="bg-slate-800 text-white sticky top-0">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
                         <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Descripción</th>
@@ -728,7 +728,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -919,7 +919,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">

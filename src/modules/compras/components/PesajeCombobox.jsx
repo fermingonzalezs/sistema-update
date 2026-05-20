@@ -76,7 +76,7 @@ const PesajeCombobox = ({ value, onSelect }) => {
             onChange={handleChange}
             onFocus={() => setOpen(true)}
             placeholder="Buscar producto"
-            className="w-full border border-slate-200 rounded pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           />
         </div>
 

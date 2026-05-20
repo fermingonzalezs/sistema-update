@@ -187,13 +187,13 @@ const ProveedoresSection = () => {
       {/* FILTROS */}
       <div className="bg-white rounded border border-slate-200">
         <div className="bg-gray-50 p-4 border-b border-slate-200">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">País</label>
               <select
                 value={filtroPais}
                 onChange={(e) => setFiltroPais(e.target.value)}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="">Todos</option>
                 {paises.map(pais => (
@@ -202,19 +202,19 @@ const ProveedoresSection = () => {
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Buscar</label>
               <input
                 type="text"
                 value={filtroBusqueda}
                 onChange={(e) => setFiltroBusqueda(e.target.value)}
                 placeholder="Nombre, email, teléfono, barrio..."
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div className="flex items-end">
               <button
                 onClick={limpiarFiltros}
-                className="w-full px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm font-medium transition-colors"
+                className="w-full px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
               >
                 Limpiar Filtros
               </button>
@@ -244,13 +244,13 @@ const ProveedoresSection = () => {
           <table className="w-full">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Nombre</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">País</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Teléfono</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Email</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Barrio</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cliente C.C.</th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Nombre</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">País</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Teléfono</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Email</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Barrio</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cliente C.C.</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -269,22 +269,22 @@ const ProveedoresSection = () => {
               ) : (
                 proveedoresFiltrados.map((proveedor, idx) => (
                   <tr key={proveedor.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="px-4 py-3 text-sm font-medium text-center text-slate-800">
+                    <td className="px-4 py-3 text-sm text-left text-slate-600">
                       {proveedor.nombre}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       {proveedor.pais}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       {proveedor.telefono}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       {proveedor.email}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       {proveedor.barrio}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       {proveedor.cliente_id ? (
                         <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-bold">
                           #{proveedor.cliente_id}

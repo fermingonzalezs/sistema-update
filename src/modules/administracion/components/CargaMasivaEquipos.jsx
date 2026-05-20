@@ -194,7 +194,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
     };
 
     return (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
 
                 {/* Header */}
@@ -493,8 +493,8 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
 
                 {/* Overlay de guardando */}
                 {guardando && (
-                    <div className="absolute inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-8 text-center max-w-sm">
+                    <div className="absolute inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded p-8 text-center max-w-sm">
                             <Loader2 className="animate-spin w-12 h-12 text-emerald-600 mx-auto mb-4" />
                             <p className="text-lg font-semibold text-slate-800">
                                 Guardando equipos...
@@ -515,7 +515,7 @@ const CargaMasivaEquipos = ({ isOpen, onClose, onSuccess, tipoDefault = null }) 
 
             {/* Paso 2.5: Lista de seriales (renderizado fuera del switch para simplificar) */}
             {paso === 2.5 && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded border border-slate-300 w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
                         <div className="bg-slate-800 p-4 text-white">
                             <h3 className="text-lg font-semibold">Ingreso de Números de Serie</h3>

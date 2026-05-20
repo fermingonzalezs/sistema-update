@@ -271,7 +271,7 @@ function TesteoEquiposSection() {
             <div className="flex items-center space-x-2">
               <Clock className="w-5 h-5 text-orange-600" />
               <h3 className="text-lg font-semibold text-slate-800">INGRESOS DE ADMINISTRACIÓN</h3>
-              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">
+              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm font-medium">
                 {ingresosPendientes.length}
               </span>
             </div>
@@ -281,25 +281,25 @@ function TesteoEquiposSection() {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Fecha</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Tipo</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Descripción</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Estado</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase">Acciones</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Tipo</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Descripción</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Estado</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {ingresosPendientes.map((ingreso) => (
-                  <tr key={ingreso.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
+                {ingresosPendientes.map((ingreso, index) => (
+                  <tr key={ingreso.id} className={index % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-slate-100'}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-800 text-center">
                       {formatearFecha(ingreso.fecha)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 capitalize">
                         {ingreso.tipo_producto}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900 max-w-xs text-center">
+                    <td className="px-4 py-3 text-sm text-slate-800 max-w-xs text-center">
                       <div className="space-y-2">
                         <div className="truncate">
                           {ingreso.descripcion_completa}
@@ -316,15 +316,15 @@ function TesteoEquiposSection() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ingreso.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${ingreso.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'
                         }`}>
                         {ingreso.estado === 'pendiente' ? 'Pendiente' :
                           ingreso.estado === 'en_testeo' ? 'En Testeo' :
                             ingreso.estado}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2 justify-end">
                         <button
                           onClick={() => procesarIngresoATesteo(ingreso)}
@@ -334,7 +334,7 @@ function TesteoEquiposSection() {
                         </button>
                         <button
                           onClick={() => descartarIngreso(ingreso)}
-                          className="bg-red-800 hover:bg-red-900 text-white px-3 py-1 rounded text-sm transition-colors"
+                          className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm transition-colors"
                           title="Descartar este ingreso"
                         >
                           <Trash2 className="w-3 h-3 inline mr-1" />
@@ -356,7 +356,7 @@ function TesteoEquiposSection() {
           <div className="flex items-center space-x-2">
             <AlertCircle className="w-5 h-5 text-orange-600" />
             <h3 className="text-lg font-semibold text-slate-800">EQUIPOS PENDIENTES DE TESTEO</h3>
-            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">
+            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm font-medium">
               {equipos.filter(e => e.estado_testeo === 'pendiente').length}
             </span>
           </div>
@@ -371,10 +371,10 @@ function TesteoEquiposSection() {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Equipo</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Categoría</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Detalles</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase">Acciones</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Equipo</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Detalles</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -382,12 +382,12 @@ function TesteoEquiposSection() {
                   const TipoIcon = tiposEquipo[equipo.tipo]?.icon || Monitor;
 
                   return (
-                    <tr key={equipo.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-6 py-4 text-center">
+                    <tr key={equipo.id} className={index % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-slate-100'}>
+                      <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-3">
                           <TipoIcon className="w-5 h-5 text-slate-500" />
                           <div>
-                            <div className="font-medium text-slate-900">
+                            <div className="font-medium text-slate-800">
                               {equipo.marca} {equipo.modelo}
                             </div>
                             <div className="text-sm text-slate-500">
@@ -397,13 +397,13 @@ function TesteoEquiposSection() {
                         </div>
                       </td>
                       {/* Categoría */}
-                      <td className="px-6 py-4 text-sm text-slate-900 text-center">
+                      <td className="px-4 py-3 text-sm text-slate-800 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
                           }`}>
                           {equipo.categoria || 'Sin categoría'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-900 max-w-xs text-center">
+                      <td className="px-4 py-3 text-sm text-slate-800 max-w-xs text-center">
                         <div className="space-y-2">
                           <div className="truncate">
                             {equipo.observaciones_testeo || 'Sin detalles'}
@@ -426,7 +426,7 @@ function TesteoEquiposSection() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium">
+                      <td className="px-4 py-3 text-sm font-medium">
                         <div className="flex flex-wrap gap-2 items-center justify-end">
                           {/* Editar datos básicos */}
                           <button
@@ -448,7 +448,7 @@ function TesteoEquiposSection() {
                                 setEquipoActual(equipo);
                                 setMostrarChecklist(true);
                               }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                              className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm transition-colors"
                             >
                               <Clipboard className="w-3 h-3 inline mr-1" />
                               Iniciar Checklist
@@ -461,7 +461,7 @@ function TesteoEquiposSection() {
                                   setEquipoActual(equipo);
                                   setMostrarChecklist(true);
                                 }}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                                className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm transition-colors"
                               >
                                 <Eye className="w-3 h-3 inline mr-1" />
                                 Ver Checklist
@@ -499,7 +499,7 @@ function TesteoEquiposSection() {
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
               <h3 className="text-lg font-semibold text-slate-800">EQUIPOS TESTEADOS - LISTOS PARA STOCK</h3>
-              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-sm font-medium">
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-medium">
                 {equipos.filter(e => ['aprobado', 'rechazado', 'condicional'].includes(e.estado_testeo)).length}
               </span>
             </div>
@@ -509,11 +509,11 @@ function TesteoEquiposSection() {
             <table className="w-full">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Equipo</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Categoría</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Resultado Testeo</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase">Condición</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase">Acciones</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Equipo</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Resultado Testeo</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Condición</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -521,12 +521,12 @@ function TesteoEquiposSection() {
                   const TipoIcon = tiposEquipo[equipo.tipo]?.icon || Monitor;
 
                   return (
-                    <tr key={equipo.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-6 py-4 text-center">
+                    <tr key={equipo.id} className={index % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50 hover:bg-slate-100'}>
+                      <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-3">
                           <TipoIcon className="w-5 h-5 text-slate-500" />
                           <div>
-                            <div className="font-medium text-slate-900">
+                            <div className="font-medium text-slate-800">
                               {equipo.marca} {equipo.modelo}
                             </div>
                             <div className="text-sm text-slate-500">
@@ -535,14 +535,14 @@ function TesteoEquiposSection() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-900 text-center">
+                      <td className="px-4 py-3 text-sm text-slate-800 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${equipo.categoria ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
                           }`}>
                           {formatCategoria(equipo.categoria)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${equipo.estado_testeo === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${equipo.estado_testeo === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
                           equipo.estado_testeo === 'rechazado' ? 'bg-red-100 text-red-800' :
                             equipo.estado_testeo === 'condicional' ? 'bg-yellow-100 text-yellow-800' :
                               'bg-slate-100 text-slate-800'
@@ -553,13 +553,13 @@ function TesteoEquiposSection() {
                                 equipo.estado_testeo}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium ${estadosEsteticos.find(e => e.value === equipo.estado_estetico)?.color || 'bg-slate-100'
                           } text-white`}>
                           {estadosEsteticos.find(e => e.value === equipo.estado_estetico)?.label || equipo.estado_estetico}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium">
+                      <td className="px-4 py-3 text-sm font-medium">
                         <div className="flex gap-2 items-center justify-end">
                           <button
                             onClick={() => {
@@ -582,7 +582,7 @@ function TesteoEquiposSection() {
 
                           <button
                             onClick={() => eliminarEquipoTesteado(equipo)}
-                            className="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded transition-colors"
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded transition-colors"
                             title="Eliminar equipo testeado"
                           >
                             <Trash2 className="w-4 h-4" />

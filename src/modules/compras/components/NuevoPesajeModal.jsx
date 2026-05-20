@@ -33,7 +33,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-[60] p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-[60] p-4">
       <div className="bg-white rounded border border-slate-300 max-w-sm w-full">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -46,7 +46,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del producto *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre del producto *</label>
             <input
               type="text"
               value={formData.nombre}
@@ -54,12 +54,12 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
               placeholder="Ej: iPhone 15 Pro Max"
               autoFocus
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Peso unitario (kg) *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso unitario (kg) *</label>
             <input
               type="number"
               step="0.001"
@@ -69,7 +69,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
               placeholder="0.000"
               disabled={isSubmitting}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
         </div>

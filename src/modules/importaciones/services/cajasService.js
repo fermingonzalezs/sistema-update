@@ -25,6 +25,7 @@ const cajasService = {
             importaciones_recibos (
               id,
               numero_recibo,
+              numero_invoice,
               estado,
               fecha_compra,
               tipo,

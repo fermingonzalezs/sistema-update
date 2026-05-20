@@ -110,7 +110,7 @@ const EstadoResultadosSection = () => {
             {!loading && !error && (resultadoPositivo.length > 0 || resultadoNegativo.length > 0) && (
               <button
                 onClick={handleDescargarPDF}
-                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
+                className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Descargar PDF</span>
@@ -146,7 +146,7 @@ const EstadoResultadosSection = () => {
           <button
             onClick={aplicarFiltros}
             disabled={loading}
-            className="bg-emerald-600 text-white py-2 px-4 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 font-medium transition-colors"
           >
             {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Filter className="w-4 h-4" />}
             {loading ? 'Calculando...' : 'Aplicar'}
@@ -168,7 +168,7 @@ const EstadoResultadosSection = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Columna Izquierda: Resultado Positivo */}
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-lg">
+          <div className="bg-white border border-slate-200 rounded">
             <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
               <h3 className="font-semibold flex items-center"><TrendingUp className="w-5 h-5 mr-2" /> Resultado Positivo</h3>
             </div>
@@ -186,7 +186,7 @@ const EstadoResultadosSection = () => {
 
         {/* Columna Derecha: Resultado Negativo */}
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-lg">
+          <div className="bg-white border border-slate-200 rounded">
             <div className="p-4 bg-slate-800 text-white border-b border-slate-200">
               <h3 className="font-semibold flex items-center"><TrendingDown className="w-5 h-5 mr-2" /> Resultado Negativo</h3>
             </div>
@@ -204,7 +204,7 @@ const EstadoResultadosSection = () => {
       </div>
 
       {/* Resumen Final */}
-      <div className="mt-6 bg-white border border-slate-200 rounded-lg p-6">
+      <div className="mt-6 bg-white border border-slate-200 rounded p-6">
         <h3 className="font-semibold text-lg mb-4 text-center">Resumen del Período</h3>
         <div className="space-y-3 max-w-md mx-auto">
           <div className="flex justify-between text-lg">

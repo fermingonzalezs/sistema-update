@@ -72,22 +72,22 @@ const ListaSerialesEquipos = ({
             {/* Tabla de equipos */}
             <div className="overflow-x-auto border border-slate-200 rounded">
                 <table className="w-full text-sm">
-                    <thead className="bg-slate-100">
+                    <thead className="bg-slate-800 text-white">
                         <tr>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-48">Producto</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-36">Serial</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">P. Compra</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Costos Ad.</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Total</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">P. Venta</th>
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-24">Color</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-48">Producto</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-36">Serial</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">P. Compra</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Costos Ad.</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Total</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">P. Venta</th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Color</th>
                             {tipoEquipo === 'celular' && (
-                                <th className="px-2 py-2 text-center font-medium text-slate-700 w-32">IMEI</th>
+                                <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-32">IMEI</th>
                             )}
                             {tipoEquipo === 'celular' && (
-                                <th className="px-2 py-2 text-center font-medium text-slate-700 w-20">Batería %</th>
+                                <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-20">Batería %</th>
                             )}
-                            <th className="px-2 py-2 text-center font-medium text-slate-700 w-8"></th>
+                            <th className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider w-8"></th>
                         </tr>
                     </thead>
                     <tbody>

@@ -84,14 +84,13 @@ button {
 }
 
 
-/* Foco global sutil para todos los campos */
+/* Sin resaltado de foco en campos */
 input:focus,
 select:focus,
 textarea:focus,
 button:focus,
 button:focus-visible {
-  outline: 1px solid #cbd5e1;
-  outline-offset: 0;
+  outline: none;
   box-shadow: none;
 }
 

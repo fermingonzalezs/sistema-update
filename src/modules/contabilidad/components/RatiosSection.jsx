@@ -810,7 +810,7 @@ const RatiosSection = () => {
             </div>
             <button
               onClick={handleRefrescar}
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm flex items-center gap-2 transition-colors"
+              className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
             >
               <RefreshCw size={16} />
               Refrescar
@@ -819,7 +819,7 @@ const RatiosSection = () => {
         </div>
 
         {/* Selector de Período Global */}
-        <div className="p-4 bg-gray-50 border-b border-slate-200">
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-gray-700">
               Período de Análisis:
@@ -1138,7 +1138,7 @@ const RatiosSection = () => {
             </h3>
 
             {/* Selector de categoría */}
-            <div className="mb-4 p-4 bg-gray-50 rounded border border-slate-200">
+            <div className="mb-4 p-4 bg-slate-50 rounded border border-slate-200">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Seleccionar Categoría para Analizar:
               </label>
@@ -1194,12 +1194,12 @@ const RatiosSection = () => {
                 <table className="w-full">
                   <thead className="bg-slate-800 text-white">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre Cuenta</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tipo</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Débitos</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Créditos</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">Saldo</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Nombre Cuenta</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Tipo</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Débitos</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Créditos</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Saldo</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -1528,7 +1528,7 @@ const RatiosEficienciaSection = ({ ratiosEficiencia, loadingPeriodo }) => {
 
           <div className="flex items-center justify-center mb-4">
             <div
-              className="px-6 py-3 rounded-lg inline-flex items-baseline space-x-2"
+              className="px-6 py-3 rounded inline-flex items-baseline space-x-2"
               style={{ backgroundColor: `${ratiosEficiencia.cicloCaja.indicador.color}20` }}
             >
               <span className="text-3xl">{ratiosEficiencia.cicloCaja.indicador.emoji}</span>

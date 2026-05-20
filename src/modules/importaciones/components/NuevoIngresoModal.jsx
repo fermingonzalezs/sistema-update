@@ -186,7 +186,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
             <PackageCheck size={22} />
             <div>
               <h3 className="text-lg font-semibold">Nuevo Ingreso</h3>
-              <p className="text-slate-300 text-xs mt-0.5">
+              <p className="text-slate-300 text-xs mt-1">
                 {paso === 1 ? 'Paso 1 — Seleccioná los pedidos o servicios a ingresar' : 'Paso 2 — Pesos y costos de courier'}
               </p>
             </div>
@@ -213,13 +213,13 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
         {paso === 1 && (
           <>
             <div className="px-6 pt-4 pb-2 flex-shrink-0">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Descripción del ingreso (opcional)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción del ingreso (opcional)</label>
               <input
                 type="text"
                 value={descripcion}
                 onChange={e => setDescripcion(e.target.value)}
                 placeholder="Ej: Celulares enero, Notebooks batch 3..."
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
 
@@ -417,7 +417,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                 }
               </span>
               <div className="flex gap-3">
-                <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
+                <button onClick={onClose} className="px-4 py-2 text-sm bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors">
                   Cancelar
                 </button>
                 <button
@@ -442,14 +442,14 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                 <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Datos del Ingreso</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Fecha Ingreso *</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha Ingreso *</label>
                     <input type="date" value={form.fecha_recepcion}
                       onChange={e => setForm(p => ({ ...p, fecha_recepcion: e.target.value }))}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1" title="Suma de los pesos reales de los items">Peso s/ caja (kg)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider" title="Suma de los pesos reales de los items">Peso s/ caja (kg)</label>
                     <input type="number" 
                       disabled 
                       value={totalPesoReal > 0 ? totalPesoReal.toFixed(2) : ''}
@@ -458,7 +458,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Peso c/ caja (kg)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso c/ caja (kg)</label>
                     <input type="number" step="0.01" min="0" value={form.peso_total_con_caja_kg}
                       onChange={e => {
                         const val = e.target.value;
@@ -470,23 +470,23 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                         });
                       }}
                       placeholder="0.00"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Precio / kg (USD)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
                     <input type="number" step="0.01" min="0" value={form.precio_por_kg_usd}
                       onChange={e => setForm(p => ({ ...p, precio_por_kg_usd: e.target.value }))}
                       placeholder="0.00"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Pago Courier (USD)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
                     <input type="number" step="0.01" min="0" value={form.pago_courier_usd}
                       onChange={e => setForm(p => ({ ...p, pago_courier_usd: e.target.value }))}
                       placeholder="0.00"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                     {parseFloat(form.peso_total_con_caja_kg) > 0 && parseFloat(form.precio_por_kg_usd) > 0 && (
                         <p className="text-[10px] text-slate-400 mt-1">
@@ -496,11 +496,11 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                   </div>
                   {itemsCompletos.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Picking / Shipping (USD)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / Shipping (USD)</label>
                     <input type="number" step="0.01" min="0" value={form.costo_picking_shipping_usd}
                       onChange={e => setForm(p => ({ ...p, costo_picking_shipping_usd: e.target.value }))}
                       placeholder="0.00"
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                   )}
@@ -537,14 +537,14 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                       <table className="w-full border border-slate-200 border-t-0 rounded-b overflow-hidden">
                         <thead className="bg-slate-800 text-white">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium uppercase">Producto</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Cant.</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">FOB/u</th>
+                            <th className="px-3 py-2 text-left text-xs font-bold uppercase">Producto</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Cant.</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">FOB/u</th>
                             <th className="px-3 py-2 text-center text-xs font-medium uppercase w-28">Peso Real (kg/u)</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Peso Total</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">C. Envío/u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">C. Fin./u</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium uppercase">Final/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Peso Total</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">C. Envío/u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">C. Fin./u</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold uppercase">Final/u</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -568,7 +568,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                                     type="number" step="0.001" min="0"
                                     value={pesosReales[item.id] ?? ''}
                                     onChange={e => setPesosReales(prev => ({ ...prev, [item.id]: e.target.value }))}
-                                    className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-24 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                                     placeholder="0.000"
                                   />
                                 </td>
@@ -604,9 +604,9 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                   <table className="w-full border border-slate-200 rounded overflow-hidden">
                     <thead className="bg-slate-800 text-white">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium uppercase">N° Servicio</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium uppercase">Cliente</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium uppercase">Descripción</th>
+                        <th className="px-4 py-2 text-left text-xs font-bold uppercase">N° Servicio</th>
+                        <th className="px-4 py-2 text-left text-xs font-bold uppercase">Cliente</th>
+                        <th className="px-4 py-2 text-left text-xs font-bold uppercase">Descripción</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Peso Pedido (kg)</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Pago Courier (USD)</th>
                         <th className="px-4 py-2 text-center text-xs font-medium uppercase w-36">Cobrado (USD)</th>
@@ -649,7 +649,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                               type="number" step="0.01" min="0"
                               value={montosCourierCliente[recibo.id] ?? ''}
                               onChange={e => setMontosCourierCliente(prev => ({ ...prev, [recibo.id]: e.target.value }))}
-                              className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-28 border border-slate-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                               placeholder="0.00"
                             />
                           </td>
@@ -672,7 +672,7 @@ const NuevoIngresoModal = ({ recibos, onClose, onSuccess }) => {
                 )}
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setPaso(1)} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
+                <button onClick={() => setPaso(1)} className="px-4 py-2 text-sm bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors">
                   Volver
                 </button>
                 <button

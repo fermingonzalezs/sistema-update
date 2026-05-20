@@ -157,7 +157,7 @@ const BalanceSumasYSaldosSection = () => {
             {!loading && !error && balanceFiltrado.length > 0 && (
               <button
                 onClick={handleDescargarPDF}
-                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded transition-colors"
+                className="flex items-center space-x-2 bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Descargar PDF</span>
@@ -211,25 +211,25 @@ const BalanceSumasYSaldosSection = () => {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => establecerPeriodo('mes_actual')}
-              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+              className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 transition-colors text-sm"
             >
               Mes Actual
             </button>
             <button
               onClick={() => establecerPeriodo('mes_anterior')}
-              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+              className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 transition-colors text-sm"
             >
               Mes Anterior
             </button>
             <button
               onClick={() => establecerPeriodo('trimestre')}
-              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+              className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 transition-colors text-sm"
             >
               Trimestre
             </button>
             <button
               onClick={() => establecerPeriodo('año')}
-              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
+              className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-500 transition-colors text-sm"
             >
               Año
             </button>
@@ -301,18 +301,18 @@ const BalanceSumasYSaldosSection = () => {
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-800 text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Código</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Cuenta</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Saldo Inicial</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Debe</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Haber</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Saldo Deudor</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Saldo Acreedor</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Movs.</th>
-                </tr>
-              </thead>
+                  <thead className="bg-slate-800 text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Código</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Cuenta</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo Inicial</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Debe</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Haber</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo Deudor</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo Acreedor</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Movs.</th>
+                    </tr>
+                  </thead>
               <tbody className="divide-y divide-slate-200">
                 {balanceFiltrado.map((item, index) => (
                   <tr key={item.cuenta.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
@@ -355,23 +355,23 @@ const BalanceSumasYSaldosSection = () => {
               {resumen && (
                 <tfoot className="bg-slate-800 text-white">
                   <tr>
-                    <td colSpan="2" className="px-4 py-3 text-sm font-semibold">TOTALES</td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td colSpan="2" className="px-4 py-3 text-sm font-bold text-center">TOTALES</td>
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {formatearMoneda(resumen.totalDebeInicial)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {formatearMoneda(resumen.totalDebe)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {formatearMoneda(resumen.totalHaber)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {formatearMoneda(resumen.totalSaldosDeudores)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {formatearMoneda(resumen.totalSaldosAcreedores)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center font-semibold">
+                    <td className="px-4 py-3 text-sm font-bold text-center">
                       {resumen.cantidadMovimientos}
                     </td>
                   </tr>

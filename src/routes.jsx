@@ -36,6 +36,7 @@ import ListadoTotalSection from './modules/administracion/components/ListadoTota
 
 // Soporte
 import { ReparacionesMain, TesteoEquiposSection, AuditPanel, RevendedoresSection } from './modules/soporte/components';
+import CatalogoProveedorSection from './modules/soporte/components/CatalogoProveedorSection';
 
 // Administración
 import {
@@ -140,6 +141,7 @@ const AppRoutes = () => {
                 <Route path="testeo-equipos" element={<ProtectedRoute section="soporte"><TesteoEquiposSection /></ProtectedRoute>} />
                 <Route path="auditoria" element={<ProtectedRoute section="soporte"><AuditPanel /></ProtectedRoute>} />
                 <Route path="revendedores" element={<ProtectedRoute section="revendedores"><RevendedoresSection /></ProtectedRoute>} />
+                <Route path="hubx" element={<ProtectedRoute section="soporte"><CatalogoProveedorSection /></ProtectedRoute>} />
 
                 {/* Administración */}
                 <Route path="recuento-stock" element={<ProtectedRoute section="recuento-stock"><RecuentoStockSection /></ProtectedRoute>} />

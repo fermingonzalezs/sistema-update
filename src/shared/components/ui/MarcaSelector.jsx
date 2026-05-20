@@ -99,7 +99,7 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
     const dropdownContent = (
         <div
             id="marca-selector-dropdown"
-            className="fixed z-[9999] bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto"
+            className="fixed z-[9999] bg-white border border-slate-200 rounded shadow-lg max-h-60 overflow-auto"
             style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -112,7 +112,7 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
                         <input
                             ref={searchInputRef}
                             type="text"
-                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder="Buscar o escribir nueva marca..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -158,7 +158,7 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
                     <div className="flex space-x-2">
                         <input
                             type="text"
-                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-emerald-500"
+                            className="flex-1 h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                             placeholder="Nombre de la marca"
                             value={newMarca}
                             onChange={(e) => setNewMarca(e.target.value)}
@@ -169,13 +169,13 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
                             }}
                         />
                         <button
-                            className="px-2 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700"
+                            className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm transition-colors"
                             onClick={handleAddMarca}
                         >
                             <Check className="w-4 h-4" />
                         </button>
                         <button
-                            className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-sm hover:bg-slate-300"
+                            className="px-3 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 text-sm transition-colors"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsAdding(false);
@@ -192,7 +192,7 @@ const MarcaSelector = ({ value, onChange, className = '', placeholder = 'Selecci
     return (
         <div className={`relative ${className}`} ref={wrapperRef}>
             <div
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white flex items-center justify-between cursor-pointer select-none"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm bg-white flex items-center justify-between cursor-pointer select-none"
                 onClick={(e) => {
                     e.preventDefault();
                     setIsOpen(!isOpen);

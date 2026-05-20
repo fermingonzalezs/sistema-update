@@ -40,7 +40,7 @@ const Layout = () => {
           isSidebarCollapsed={isCollapsed}
           onToggleMobileSidebar={() => setIsMobileOpen(true)}
         />
-        <main className="flex-1 p-3 md:p-8 overflow-auto bg-slate-200">
+        <main className="flex-1 p-2 md:p-3 overflow-auto bg-slate-200">
           <Outlet context={{ isSidebarCollapsed: isCollapsed }} />
         </main>
       </div>

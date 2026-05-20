@@ -153,7 +153,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false, t
           onChange={handleInputChange}
           onFocus={() => !showModal && setIsOpen(true)}
           placeholder="Buscar cliente por nombre, teléfono, email..."
-          className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 transition-all focus:outline-none ${inputBg} ${inputBorder} ${inputText} ${inputFocus}`}
+          className={`w-full h-9 pl-10 pr-10 border rounded focus:ring-2 transition-all focus:outline-none ${inputBg} ${inputBorder} ${inputText} ${inputFocus}`}
           disabled={creatingClient}
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -166,7 +166,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false, t
       )}
 
       {creatingClient && (
-        <div className="mt-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-400 flex items-center">
+        <div className="mt-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-sm text-emerald-400 flex items-center">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500 mr-2"></div>
           Creando cliente... Por favor espere.
         </div>
@@ -174,7 +174,7 @@ const ClienteSelector = ({ selectedCliente, onSelectCliente, required = false, t
 
       {/* DROPDOWN */}
       {isOpen && !showModal && (
-        <div className={`absolute z-40 mt-2 w-full rounded-xl shadow-xl max-h-80 overflow-y-auto backdrop-blur-md ${dropdownBg}`}>
+        <div className={`absolute z-40 mt-2 w-full rounded shadow-xl max-h-80 overflow-y-auto backdrop-blur-md ${dropdownBg}`}>
           <button
             type="button"
             onClick={handleOpenModal}

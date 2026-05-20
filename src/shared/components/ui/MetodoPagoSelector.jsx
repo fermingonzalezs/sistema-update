@@ -19,7 +19,7 @@ const MetodoPagoSelector = ({
     onChange,
     showEmpty = false,
     exclude = [],
-    className = 'w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500',
+    className = 'w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600',
     disabled = false,
     name,
     required,

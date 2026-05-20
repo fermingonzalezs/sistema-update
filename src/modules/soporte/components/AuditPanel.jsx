@@ -123,7 +123,7 @@ const AuditPanel = () => {
         const config = OPERATION_ICONS[operation] || { icon: AlertCircle, color: 'text-gray-600', bg: 'bg-gray-100' };
         const Icon = config.icon;
         return (
-            <div className={`p-1.5 rounded-lg ${config.bg}`}>
+            <div className={`p-1.5 rounded ${config.bg}`}>
                 <Icon className={`w-4 h-4 ${config.color}`} />
             </div>
         );
@@ -197,14 +197,14 @@ const AuditPanel = () => {
             </div>
 
             {/* FILTROS */}
-            <div className="bg-white rounded border border-slate-200 p-4">
+            <div className="bg-gray-50 p-4 border-b border-slate-200">
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
                         <select
                             value={filtros.categoria}
                             onChange={(e) => handleFiltroChange('categoria', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         >
                             {CATEGORIAS.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.label}</option>
@@ -212,11 +212,11 @@ const AuditPanel = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Operación</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Operación</label>
                         <select
                             value={filtros.operacion}
                             onChange={(e) => handleFiltroChange('operacion', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         >
                             {OPERACIONES.map(op => (
                                 <option key={op.id} value={op.id}>{op.label}</option>
@@ -224,37 +224,37 @@ const AuditPanel = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Usuario</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Usuario</label>
                         <input
                             type="text"
                             value={filtros.usuario}
                             onChange={(e) => handleFiltroChange('usuario', e.target.value)}
                             placeholder="Email..."
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Desde</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
                         <input
                             type="date"
                             value={filtros.fechaDesde}
                             onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Hasta</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
                         <input
                             type="date"
                             value={filtros.fechaHasta}
                             onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-                            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                     </div>
                     <div className="flex items-end">
                         <button
                             onClick={limpiarFiltros}
-                            className="w-full px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm font-medium transition-colors"
+                            className="w-full h-9 px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm transition-colors"
                         >
                             Limpiar Filtros
                         </button>
@@ -265,7 +265,7 @@ const AuditPanel = () => {
                 <div className="mt-4 pt-4 border-t border-slate-100">
                     <div className="flex gap-4">
                         <div className="flex-1">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
+                            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Buscar</label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <input
@@ -273,14 +273,14 @@ const AuditPanel = () => {
                                     value={filtros.busqueda}
                                     onChange={(e) => handleFiltroChange('busqueda', e.target.value)}
                                     placeholder="Serial, modelo, transacción..."
-                                    className="w-full pl-10 pr-4 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-full h-9 pl-10 pr-4 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                                 />
                             </div>
                         </div>
                         <div className="flex items-end">
                             <button
                                 onClick={() => cargarLogs({ ...filtros, pagina, porPagina })}
-                                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm font-medium transition-colors flex items-center gap-2"
+                                className="px-3 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm font-medium transition-colors flex items-center gap-2"
                             >
                                 <RefreshCw className="w-4 h-4" />
                                 Actualizar
@@ -318,13 +318,13 @@ const AuditPanel = () => {
                             <table className="w-full min-w-[1000px]">
                                 <thead className="bg-slate-800 text-white">
                                     <tr>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fecha</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Operación</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Categoría</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Usuario</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Tabla</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Detalle</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Fecha</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Operación</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Usuario</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Tabla</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Detalle</th>
+                                        <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200">
@@ -422,8 +422,8 @@ const AuditPanel = () => {
 
             {/* Modal de detalle */}
             {modalDetalle && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded border border-slate-300 shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+                <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded border border-slate-200 shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
                         <div className="px-6 py-4 bg-slate-800 text-white flex items-center justify-between">
                             <h3 className="text-lg font-semibold">Detalle del Registro</h3>
                             <button

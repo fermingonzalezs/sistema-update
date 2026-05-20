@@ -198,7 +198,7 @@ const ProductModal = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-end sm:items-center justify-center z-[60] p-0 sm:p-4" style={{ cursor: 'default' }}>
-      <div className="bg-white rounded-t sm:rounded border border-slate-300 overflow-hidden flex flex-col w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
+      <div className="bg-white rounded border border-slate-200 overflow-hidden flex flex-col w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[90vh]" style={{ userSelect: 'none', cursor: 'default' }}>
 
         {/* Contenido principal con paneles */}
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
@@ -208,7 +208,7 @@ const ProductModal = ({
 
               {/* Condición */}
               <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
-                <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">CONDICIÓN</h3>
+                <h3 className="text-xs font-semibold bg-slate-600 rounded p-1 mb-1 text-slate-200 text-center">CONDICIÓN</h3>
                 <span className="font-semibold text-white text-sm">
                   {(producto.condicion || producto.estado || 'N/A').toUpperCase()}
                 </span>
@@ -217,7 +217,7 @@ const ProductModal = ({
               {/* Serial - Solo para notebooks y celulares */}
               {(tipoProducto === 'notebook' || tipoProducto === 'celular') && producto.serial && (
                 <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
-                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">SERIAL</h3>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded p-1 mb-1 text-slate-200 text-center">SERIAL</h3>
                   <span className="font-semibold text-white text-sm break-all">
                     {producto.serial}
                   </span>
@@ -227,7 +227,7 @@ const ProductModal = ({
               {/* Ubicación (Oculto para 'otro') */}
               {tipoProducto !== 'otro' && (
                 <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
-                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">UBICACIÓN</h3>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded p-1 mb-1 text-slate-200 text-center">UBICACIÓN</h3>
                   <span className="font-semibold text-white text-sm">
                     {(producto.sucursal || producto.ubicacion || producto.ubicacion_otro || 'N/A')
                       .replace('_', ' ').toUpperCase()}
@@ -238,7 +238,7 @@ const ProductModal = ({
               {/* Cantidad - Solo para 'otro' */}
               {tipoProducto === 'otro' && (
                 <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
-                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">CANTIDAD</h3>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded p-1 mb-1 text-slate-200 text-center">CANTIDAD</h3>
                   <span className="font-semibold text-white text-sm">
                     {`${(producto.cantidad_la_plata || 0) + (producto.cantidad_mitre || 0)} unidades`}
                   </span>
@@ -248,7 +248,7 @@ const ProductModal = ({
               {/* Garantía (si existe) */}
               {(producto.garantia_update || producto.garantia_oficial || producto.garantia) && (
                 <div className='text-center bg-slate-700 p-2 md:p-3 rounded'>
-                  <h3 className="text-xs font-semibold bg-slate-600 rounded-full p-1 mb-1 text-slate-200 text-center">GARANTÍA</h3>
+                  <h3 className="text-xs font-semibold bg-slate-600 rounded p-1 mb-1 text-slate-200 text-center">GARANTÍA</h3>
                   <span className="font-semibold text-white text-sm">
                     {producto.garantia_update || producto.garantia_oficial || producto.garantia}
                   </span>
@@ -258,7 +258,7 @@ const ProductModal = ({
               {/* Tarjeta de reserva/consignación */}
               {producto.reservado_para && (
                 <div className='text-center bg-emerald-700 p-3 rounded'>
-                  <h3 className="text-sm font-semibold bg-emerald-600 rounded-full p-1 mb-2 text-white text-center uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold bg-emerald-600 rounded p-1 mb-2 text-white text-center uppercase tracking-wider">
                     {(producto.condicion === 'consignacion') ? 'Consignación' : 'Reservado'}
                   </h3>
                   <p className="text-white font-semibold text-sm">{producto.reservado_para}</p>
@@ -412,7 +412,7 @@ const ProductModal = ({
 
                 {/* Tarjeta Compra */}
                 <div className="rounded bg-slate-800 py-3 md:py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                  <div className="rounded bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
                     <h4 className="text-xs md:text-sm text-slate-200 font-semibold">COMPRA</h4>
                   </div>
                   <div className="text-center">
@@ -427,7 +427,7 @@ const ProductModal = ({
 
                 {/* Tarjeta Venta */}
                 <div className="rounded bg-slate-800 py-3 md:py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                  <div className="rounded bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
                     <h4 className="text-xs md:text-sm text-slate-200 font-semibold">VENTA</h4>
                   </div>
                   <div className="text-center">
@@ -442,7 +442,7 @@ const ProductModal = ({
 
                 {/* Tarjeta Ganancia */}
                 <div className="rounded bg-slate-800 py-3 md:py-4">
-                  <div className="rounded-full bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
+                  <div className="rounded bg-slate-700 text-center p-1 mx-2 md:mx-3 mb-2">
                     <h4 className="text-xs md:text-sm text-slate-200 font-semibold">GANANCIA</h4>
                   </div>
                   <div className="text-center">

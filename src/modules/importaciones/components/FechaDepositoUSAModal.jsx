@@ -14,7 +14,7 @@ const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => 
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-md w-full">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -27,18 +27,18 @@ const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => 
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Recibo: {recibo.numero_recibo}</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Recibo: {recibo.numero_recibo}</label>
             <p className="text-xs text-slate-500">Selecciona la fecha en que la importación llegó al depósito USA</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Fecha *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
             <input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
         </div>
@@ -47,7 +47,7 @@ const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => 
         <div className="flex gap-3 justify-end p-6 border-t border-slate-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition-colors"
+            className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
             disabled={isSubmitting}
           >
             Cancelar

@@ -112,8 +112,8 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
+         <div className="bg-white rounded border border-slate-300 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-slate-800 p-6 text-white flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -197,7 +197,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                   <div
                     key={foto.id}
                     onClick={() => setVistaPrevia(foto)}
-                    className="relative group border-2 border-slate-200 rounded-lg overflow-hidden bg-white hover:border-emerald-500 hover:shadow-lg transition-all cursor-pointer"
+                    className="relative group border-2 border-slate-200 rounded overflow-hidden bg-white hover:border-emerald-500 hover:shadow-lg transition-all cursor-pointer"
                   >
                     {/* Ícono de archivo (sin preview) */}
                     <div className="h-32 bg-gradient-to-br from-slate-50 to-slate-100 relative flex items-center justify-center p-4">
@@ -237,7 +237,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                         e.stopPropagation();
                         eliminarFoto(foto.id);
                       }}
-                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-700 transition-all"
+                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded opacity-0 group-hover:opacity-100 hover:bg-red-700 transition-all"
                       title="Eliminar"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -251,13 +251,13 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50">
+              <div className="text-center py-12 border-2 border-dashed border-slate-300 rounded bg-slate-50">
                 <div className="text-6xl mb-4">📎</div>
                 <p className="text-slate-600 font-medium mb-1">No hay archivos adjuntos</p>
                 <p className="text-sm text-slate-500 mb-4">Adjunta facturas, recibos o documentos relacionados</p>
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-emerald-600 hover:text-emerald-800 text-sm font-medium"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-emerald-600 hover:text-emerald-800 text-sm font-medium transition-colors"
                 >
                   Haz clic aquí para adjuntar el primer archivo
                 </button>
@@ -280,7 +280,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
       {/* Modal de vista previa (segundo nivel) */}
       {vistaPrevia && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-lg max-w-5xl max-h-[95vh] overflow-hidden flex flex-col w-full">
+           <div className="bg-white rounded max-w-5xl max-h-[95vh] overflow-hidden flex flex-col w-full">
             {/* Header del modal de vista previa */}
             <div className="flex items-center justify-between p-4 border-b">
               <h4 className="font-medium text-slate-800">
@@ -345,7 +345,7 @@ const ModalFotosAsiento = ({ isOpen, onClose, asientoId, numeroAsiento }) => {
                     href={vistaPrevia.url_foto}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+                    className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 transition-colors"
                   >
                     Abrir PDF en nueva pestaña
                   </a>

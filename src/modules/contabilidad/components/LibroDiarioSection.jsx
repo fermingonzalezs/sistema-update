@@ -1054,17 +1054,17 @@ const LibroDiarioSection = () => {
       return (
         <div className="space-y-2 font-mono">
           {asientosPaginados.map(asiento => (
-            <div key={asiento.id} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div key={asiento.id} className="border border-slate-200 rounded overflow-hidden">
               {/* Fila principal del asiento - COLAPSADA */}
               <div
-                className="flex items-center justify-between p-1 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="flex items-center justify-between p-1 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                 onClick={() => toggleAsiento(asiento.id)}
               >
                 <div className="flex items-center space-x-4">
                   <button className="p-1 hover:bg-gray-200 rounded transition-colors">
                     {expandedAsientos[asiento.id] ?
-                      <ChevronDown size={16} className="text-gray-600" /> :
-                      <ChevronRight size={16} className="text-gray-600" />
+                      <ChevronDown size={16} className="text-slate-600" /> :
+                      <ChevronRight size={16} className="text-slate-600" />
                     }
                   </button>
 
@@ -1072,12 +1072,12 @@ const LibroDiarioSection = () => {
                     N°{asiento.numero}
                   </div>
 
-                  <div className="flex items-center space-x-2 text-md text-gray-600 w-28 shrink-0">
+                  <div className="flex items-center space-x-2 text-md text-slate-600 w-28 shrink-0">
                     <Calendar size={14} />
                     <span>{new Date(asiento.fecha + 'T00:00:00').toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</span>
                   </div>
 
-                  <div className="font-medium text-lg text-gray-900 flex items-center gap-2">
+                  <div className="font-medium text-lg text-slate-800 flex items-center gap-2">
                     {asiento.descripcion}
                     {asiento.tipo_asiento === 'cierre' && (
                       <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded border border-red-300">
@@ -1122,7 +1122,7 @@ const LibroDiarioSection = () => {
                       e.stopPropagation();
                       confirmarEliminar(asiento);
                     }}
-                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400"
+                    className="p-2 text-slate-700 hover:bg-slate-200 rounded transition-colors border border-slate-400"
                     title="Eliminar asiento"
                   >
                     <Trash2 size={16} />
@@ -1135,18 +1135,18 @@ const LibroDiarioSection = () => {
                 <div className="border-t bg-white">
                   <div className="overflow-x-auto">
                     {/* Headers */}
-                    <div className="flex bg-gray-100">
+                    <div className="flex bg-slate-100">
                       <div className="w-[55%] text-lg">
                         <div className="grid grid-cols-2 gap-6 p-1">
-                          <div className="text-center font-medium text-gray-700">Debe</div>
-                          <div className="text-center font-medium text-gray-700">Haber</div>
+                          <div className="text-center font-medium text-slate-700">Debe</div>
+                          <div className="text-center font-medium text-slate-700">Haber</div>
                         </div>
                       </div>
                       <div className="flex-1"></div>
                       <div className="w-1/3">
                         <div className="grid grid-cols-2 gap-6 text-lg p-1">
-                          <div className="text-center font-medium text-gray-700">Debe</div>
-                          <div className="text-center font-medium text-gray-700">Haber</div>
+                          <div className="text-center font-medium text-slate-700">Debe</div>
+                          <div className="text-center font-medium text-slate-700">Haber</div>
                         </div>
                       </div>
                     </div>
@@ -1155,7 +1155,7 @@ const LibroDiarioSection = () => {
                       {[...asiento.movimientos_contables]
                         .sort((a, b) => (b.debe > 0 ? 1 : 0) - (a.debe > 0 ? 1 : 0))
                         .map((mov, index) => (
-                        <div key={index} className="flex hover:bg-gray-50 py-3">
+                        <div key={index} className="flex hover:bg-slate-50 py-3">
                           {/* Cuentas */}
                           <div className="w-[55%] text-lg px-2">
                             <div className="grid grid-cols-2 gap-6 h-full items-center">
@@ -1165,7 +1165,7 @@ const LibroDiarioSection = () => {
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-slate-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -1175,7 +1175,7 @@ const LibroDiarioSection = () => {
                                     <code className="text-xs text-black font-mono bg-slate-200 px-1 py-1">
                                       {mov.plan_cuentas.codigo}
                                     </code>
-                                    <div className="text-gray-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
+                                    <div className="text-slate-700 text-xs text-center">{mov.plan_cuentas.nombre}</div>
                                   </div>
                                 )}
                               </div>
@@ -1191,7 +1191,7 @@ const LibroDiarioSection = () => {
                                   <div className="flex flex-col items-center">
                                     <div className="font-medium">{formatearMonto(mov.debe, 'USD')}</div>
                                     {mov.debe_ars && (
-                                      <div className="text-xs text-gray-500 mt-1">
+                                      <div className="text-xs text-slate-500 mt-1">
                                         (ARS {formatearMonto(mov.debe_ars, 'ARS')})
                                       </div>
                                     )}
@@ -1203,7 +1203,7 @@ const LibroDiarioSection = () => {
                                   <div className="flex flex-col items-center">
                                     <div className="font-medium">{formatearMonto(mov.haber, 'USD')}</div>
                                     {mov.haber_ars && (
-                                      <div className="text-xs text-gray-500 mt-1">
+                                      <div className="text-xs text-slate-500 mt-1">
                                         (ARS {formatearMonto(mov.haber_ars, 'ARS')})
                                       </div>
                                     )}
@@ -1301,7 +1301,7 @@ const LibroDiarioSection = () => {
                       e.stopPropagation();
                       confirmarEliminar(asiento);
                     }}
-                    className="p-2 text-gray-700 hover:bg-gray-200 rounded transition-colors border border-gray-400 inline-block"
+                    className="p-2 text-slate-700 hover:bg-slate-200 rounded transition-colors border border-slate-400 inline-block"
                     title="Eliminar asiento"
                   >
                     <Trash2 size={16} />
@@ -1337,7 +1337,7 @@ const LibroDiarioSection = () => {
                       <div className="pl-4 pr-2">
                         {mov.debe > 0 ? (
                           <div>
-                            <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                            <div className="text-xs font-mono text-slate-500">{mov.plan_cuentas.codigo}</div>
                             <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           </div>
                         ) : ''}
@@ -1346,7 +1346,7 @@ const LibroDiarioSection = () => {
                       <div className="pl-4 pr-2">
                         {mov.haber > 0 ? (
                           <div>
-                            <div className="text-xs font-mono text-gray-500">{mov.plan_cuentas.codigo}</div>
+                            <div className="text-xs font-mono text-slate-500">{mov.plan_cuentas.codigo}</div>
                             <div className="font-medium">{mov.plan_cuentas.nombre}</div>
                           </div>
                         ) : ''}
@@ -1364,7 +1364,7 @@ const LibroDiarioSection = () => {
                               {formatearMonto(mov.debe, 'USD')}
                             </div>
                             {mov.debe_ars && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-slate-500 mt-1">
                                 (ARS {formatearMonto(mov.debe_ars, 'ARS')})
                               </div>
                             )}
@@ -1379,7 +1379,7 @@ const LibroDiarioSection = () => {
                               {formatearMonto(mov.haber, 'USD')}
                             </div>
                             {mov.haber_ars && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-slate-500 mt-1">
                                 (ARS {formatearMonto(mov.haber_ars, 'ARS')})
                               </div>
                             )}
@@ -1426,17 +1426,17 @@ const LibroDiarioSection = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex border border-gray-500 rounded-lg overflow-hidden">
+              <div className="flex border border-slate-500 rounded overflow-hidden">
                 <button
                   onClick={() => setViewMode('tarjeta')}
-                  className={`p-2 transition-colors ${viewMode === 'tarjeta' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-gray-700'}`}
+                  className={`p-2 transition-colors ${viewMode === 'tarjeta' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-slate-700'}`}
                   title="Vista de Tarjetas"
                 >
                   <LayoutGrid size={18} />
                 </button>
                 <button
                   onClick={() => setViewMode('lista')}
-                  className={`p-2 transition-colors ${viewMode === 'lista' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-gray-700'}`}
+                  className={`p-2 transition-colors ${viewMode === 'lista' ? 'bg-emerald-600 text-white' : 'text-white hover:bg-slate-700'}`}
                   title="Vista de Lista"
                 >
                   <List size={18} />
@@ -1445,7 +1445,7 @@ const LibroDiarioSection = () => {
               <button
                 onClick={handleDescargarPDF}
                 disabled={asientosFiltrados.length === 0}
-                className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-colors"
+                className="bg-slate-600 text-white px-4 py-3 rounded hover:bg-slate-500 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-colors"
                 title="Descargar PDF"
               >
                 <Download size={18} />
@@ -1453,7 +1453,7 @@ const LibroDiarioSection = () => {
               </button>
               <button
                 onClick={nuevoAsiento}
-                className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
+                className="bg-emerald-600 text-white px-6 py-3 rounded hover:bg-emerald-700 flex items-center gap-2 font-medium transition-colors"
               >
                 <Plus size={18} />
                 Nuevo Asiento
@@ -1463,32 +1463,32 @@ const LibroDiarioSection = () => {
         </div>
 
         {/* Filtros */}
-        <div className="bg-gray-50 p-4 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+         <div className="bg-slate-50 p-4 border-b border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Desde
               </label>
               <input
                 type="date"
                 value={filtros.fechaDesde}
                 onChange={(e) => setFiltros({ ...filtros, fechaDesde: e.target.value })}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Hasta
               </label>
               <input
                 type="date"
                 value={filtros.fechaHasta}
                 onChange={(e) => setFiltros({ ...filtros, fechaHasta: e.target.value })}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Descripción
               </label>
               <input
@@ -1496,17 +1496,17 @@ const LibroDiarioSection = () => {
                 value={filtros.descripcion}
                 onChange={(e) => setFiltros({ ...filtros, descripcion: e.target.value })}
                 placeholder="Buscar en descripción..."
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Ordenar por
               </label>
               <select
                 value={ordenarPor}
                 onChange={(e) => setOrdenarPor(e.target.value)}
-                className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="numero_desc">N° Asiento (mayor a menor)</option>
                 <option value="numero_asc">N° Asiento (menor a mayor)</option>
@@ -1517,7 +1517,7 @@ const LibroDiarioSection = () => {
             <div className="flex items-end">
               <button
                 onClick={() => { setFiltros({ fechaDesde: '', fechaHasta: '', descripcion: '' }); setOrdenarPor('numero_desc'); }}
-                className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
+                className="px-3 py-2 bg-slate-700 text-white rounded hover:bg-black text-sm"
               >
                 Limpiar Filtros
               </button>
@@ -1527,10 +1527,10 @@ const LibroDiarioSection = () => {
 
         {/* Estado de error */}
         {error && (
-          <div className="bg-gray-100 border-l-4 border-gray-800 p-4 m-6">
+          <div className="bg-slate-50 border-l-4 border-slate-600 p-4 m-6">
             <div className="flex items-center">
-              <AlertCircle className="text-gray-800 mr-2" size={20} />
-              <span className="text-gray-900">{error}</span>
+              <AlertCircle className="text-slate-800 mr-2" size={20} />
+              <span className="text-slate-800">{error}</span>
             </div>
           </div>
         )}
@@ -1543,12 +1543,12 @@ const LibroDiarioSection = () => {
 
               {/* Controles de paginación */}
               {totalPaginas > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6 py-4 border-t border-gray-200">
+                <div className="flex items-center justify-center gap-2 mt-6 py-4 border-t border-slate-200">
                   {/* Ir a primera página */}
                   <button
                     onClick={() => setPaginaActual(1)}
                     disabled={paginaActual === 1}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Primera página"
                   >
                     <ChevronsLeft size={18} />
@@ -1558,16 +1558,16 @@ const LibroDiarioSection = () => {
                   <button
                     onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
                     disabled={paginaActual === 1}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Página anterior"
                   >
                     <ChevronLeft size={18} />
                   </button>
 
                   {/* Info de página */}
-                  <div className="px-4 py-2 text-sm text-gray-700">
+                  <div className="px-4 py-2 text-sm text-slate-700">
                     Página <span className="font-bold">{paginaActual}</span> de <span className="font-bold">{totalPaginas}</span>
-                    <span className="text-gray-500 ml-2">
+                    <span className="text-slate-500 ml-2">
                       (Mostrando {indiceInicio + 1}-{Math.min(indiceFin, asientosFiltrados.length)} de {asientosFiltrados.length} asientos)
                     </span>
                   </div>
@@ -1576,7 +1576,7 @@ const LibroDiarioSection = () => {
                   <button
                     onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
                     disabled={paginaActual === totalPaginas}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Página siguiente"
                   >
                     <ChevronRight size={18} />
@@ -1586,7 +1586,7 @@ const LibroDiarioSection = () => {
                   <button
                     onClick={() => setPaginaActual(totalPaginas)}
                     disabled={paginaActual === totalPaginas}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Última página"
                   >
                     <ChevronsRight size={18} />
@@ -1597,12 +1597,12 @@ const LibroDiarioSection = () => {
           ) : (
             <div className="text-center py-12">
               <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500 mb-4">
+              <p className="text-slate-500 mb-4">
                 {asientos.length === 0 ? 'No hay asientos registrados' : 'No se encontraron asientos con los filtros aplicados'}
               </p>
               <button
                 onClick={nuevoAsiento}
-                className="text-gray-800 hover:text-black hover:underline"
+                className="text-slate-800 hover:text-slate-600 hover:underline transition-colors"
               >
                 Crear primer asiento
               </button>
@@ -1612,21 +1612,21 @@ const LibroDiarioSection = () => {
 
         {/* Estadísticas */}
         {asientos.length > 0 && (
-          <div className="bg-gray-100 p-4 border-t border-gray-300">
+          <div                   className="bg-slate-50 p-4 border-t border-slate-200">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-gray-800">{asientos.length}</div>
-                <div className="text-sm text-gray-600">Asientos Totales</div>
+                <div className="text-2xl font-bold text-slate-800">{asientos.length}</div>
+                <div className="text-sm text-slate-600">Asientos Totales</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-2xl font-bold text-slate-800">
                   {formatearMonto(asientos.reduce((sum, a) => sum + a.total_debe, 0), 'USD')}
                 </div>
-                <div className="text-sm text-gray-600">Movimiento Total</div>
+                <div className="text-sm text-slate-600">Movimiento Total</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">{asientosFiltrados.length}</div>
-                <div className="text-sm text-gray-600">Asientos Filtrados</div>
+                <div className="text-2xl font-bold text-slate-800">{asientosFiltrados.length}</div>
+                <div className="text-sm text-slate-600">Asientos Filtrados</div>
               </div>
             </div>
           </div>
@@ -1635,7 +1635,7 @@ const LibroDiarioSection = () => {
 
       {/* Modal para nuevo asiento */}
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded border border-slate-300 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-8">
               <div className="flex justify-between items-center">
@@ -1769,7 +1769,7 @@ const LibroDiarioSection = () => {
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h4 className="font-medium text-lg flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-gray-700" />
+                      <TrendingUp className="w-5 h-5 text-slate-700" />
                       Movimientos Contables
                     </h4>
                   </div>
@@ -1895,7 +1895,7 @@ const LibroDiarioSection = () => {
                 </div>
 
                 {/* Resumen de Totales */}
-                <div className="mt-8 bg-slate-200 border border-slate-200 rounded p-6">
+                <div className="mt-8 bg-slate-50 border border-slate-200 rounded p-6">
                   <div className="flex items-center space-x-3 mb-4">
                     <Calculator className="w-5 h-5 text-slate-800" />
                     <h5 className="font-medium text-slate-800">Resumen del Asiento</h5>
@@ -1961,7 +1961,7 @@ const LibroDiarioSection = () => {
                 onClick={modoEdicion ? guardarEdicion : guardarAsiento}
                 disabled={!totales.balanceado || cuentasImputables.length === 0}
                 className={`px-6 py-3 rounded transition-colors flex items-center gap-2 ${totales.balanceado && cuentasImputables.length > 0
-                  ? 'bg-slate-800 text-white hover:bg-slate-800/90'
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                   : 'bg-slate-200 text-slate-800/60 cursor-not-allowed'
                   }`}
               >

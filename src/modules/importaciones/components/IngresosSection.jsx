@@ -156,10 +156,10 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                   <tr>
                     <th className="w-8 py-3"></th>
                     <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider w-24">Tipo</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">N° Ingreso</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Invoice</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">F. Ingreso</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-16">Items</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Pedidos / Cliente</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Pedidos / Cliente</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Peso c/ caja</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">FOB</th>
                     <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider w-28">Costo Courier</th>
@@ -191,7 +191,7 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                               </span>
                             </td>
                             <td className="px-4 py-3 text-center">
-                              <span className="font-mono text-xs text-slate-800">{recibo.numero_recibo}</span>
+                              <span className="font-mono text-xs text-slate-800">{recibo.numero_invoice || recibo.numero_recibo}</span>
                             </td>
                             <td className="px-4 py-3 text-xs text-center text-slate-500">
                               {recibo.fecha_recepcion_argentina ? formatearFechaDisplay(recibo.fecha_recepcion_argentina) : '—'}
@@ -320,11 +320,21 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                               <Package size={10} />Caja
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="font-mono text-xs text-slate-800">{ingreso.numero_caja}</span>
-                            {ingreso.descripcion && (
-                              <span className="text-xs text-slate-400 ml-1">· {ingreso.descripcion}</span>
-                            )}
+                          <td className="px-4 py-3 text-center max-w-0 overflow-hidden">
+                            {(() => {
+                              const invoices = [...new Set((ingreso.importaciones_items || [])
+                                .map(i => i.importaciones_recibos?.numero_invoice)
+                                .filter(Boolean))];
+                              return invoices.length > 0 ? (
+                                <span className="font-mono text-xs text-slate-800 block truncate" title={invoices.join(', ')}>
+                                  {invoices.join(', ')}
+                                </span>
+                              ) : (
+                                <span className="font-mono text-xs text-slate-400 block truncate" title={ingreso.numero_caja}>
+                                  {ingreso.numero_caja}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-3 text-xs text-center text-slate-500">
                             {ingreso.fecha_recepcion ? formatearFechaDisplay(ingreso.fecha_recepcion) : '—'}
@@ -398,10 +408,17 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                                   {grupos.map((grupo, gi) => (
                                     <div key={gi}>
                                       <div className="flex items-center justify-center gap-8 px-6 py-2 bg-slate-800 text-white text-xs">
-                                        <span className="whitespace-nowrap">
+                                      <span className="whitespace-nowrap flex flex-col leading-tight">
+                                        <span>
                                           <span className="text-slate-400 uppercase tracking-wider text-[10px] mr-1.5">Pedido</span>
                                           {grupo.recibo?.numero_recibo || '—'}
                                         </span>
+                                        {grupo.recibo?.numero_invoice && (
+                                          <span className="text-[10px] text-slate-400 pl-[38px]">
+                                            {grupo.recibo.numero_invoice}
+                                          </span>
+                                        )}
+                                      </span>
                                         <span className="whitespace-nowrap">
                                           <span className="text-slate-400 uppercase tracking-wider text-[10px] mr-1.5">Proveedor</span>
                                           {grupo.recibo?.proveedores?.nombre || '—'}
@@ -485,44 +502,44 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
 
       {/* Modal editar courier */}
       {courierEditando && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded border border-slate-200 w-80 p-6">
             <h3 className="font-semibold text-slate-800 mb-1">Editar Courier</h3>
             <p className="text-xs text-slate-500 mb-4 font-mono">{courierEditando.numero_recibo}</p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Peso total (kg)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso total (kg)</label>
                 <input
                   type="number"
                   step="0.001"
                   min="0"
                   value={courierEditPeso}
                   onChange={e => setCourierEditPeso(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Costo courier (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo courier (USD)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={courierEditCosto}
                   onChange={e => setCourierEditCosto(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto cobrado (USD)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Monto cobrado (USD)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={courierEditMonto}
                   onChange={e => setCourierEditMonto(e.target.value)}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                  className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                   placeholder="0.00"
                 />
               </div>

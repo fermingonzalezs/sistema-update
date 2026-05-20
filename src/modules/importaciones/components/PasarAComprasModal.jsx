@@ -83,7 +83,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center sticky top-0">
@@ -106,44 +106,44 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Proveedor</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor</label>
                     <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-50 text-slate-600">
                       {reciboEditado.proveedor}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Fecha *</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
                     <input
                       type="date"
                       value={reciboEditado.fecha}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, fecha: e.target.value })}
                       disabled={isSubmitting}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago</label>
                     <MetodoPagoSelector
                       value={reciboEditado.metodo_pago}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, metodo_pago: e.target.value })}
                       disabled={isSubmitting}
                       showEmpty={true}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
                     <textarea
                       value={reciboEditado.descripcion}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, descripcion: e.target.value })}
                       disabled={isSubmitting}
                       rows={2}
-                      className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                     />
                   </div>
                 </div>
@@ -160,12 +160,12 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
               <table className="w-full text-sm">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Producto</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. Original USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Costos Adic. USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">P. Unit. Final USD</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Monto Total USD</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cantidad</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">P. Unit. Original USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Costos Adic. USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">P. Unit. Final USD</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Monto Total USD</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -177,7 +177,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
                           value={item.item}
                           onChange={(e) => handleItemChange(idx, 'item', e.target.value)}
                           disabled={isSubmitting}
-                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                         {item.link_producto && (
                           <a
@@ -198,7 +198,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
                           disabled={isSubmitting}
                           min="0"
                           step="0.01"
-                          className="w-20 border border-slate-200 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="w-20 border border-slate-200 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </td>
                       <td className="px-4 py-3 text-center bg-slate-50 text-slate-600">
@@ -214,7 +214,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
                           onChange={(e) => handleItemChange(idx, 'precio_unitario_final', e.target.value)}
                           disabled={isSubmitting}
                           step="1"
-                          className="w-24 border border-slate-200 rounded px-2 py-1 text-sm text-center font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="w-24 border border-slate-200 rounded px-2 py-1 text-sm text-center font-semibold focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                         />
                       </td>
                       <td className="px-4 py-3 text-center font-semibold text-slate-800">

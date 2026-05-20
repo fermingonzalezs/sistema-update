@@ -295,7 +295,7 @@ const ModalProducto = ({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded border border-slate-300 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded border border-slate-200 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div>
@@ -361,14 +361,14 @@ const ModalProducto = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded transition-colors"
+              className="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Guardando...' : 'Guardar'}</span>
@@ -386,14 +386,14 @@ const ModalProducto = ({
         {/* Serial - Solo para notebooks y celulares */}
         {tipo !== 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Serial * {tipo === 'celular' && '(Único)'}
             </label>
             <input
               type="text"
               value={formData.serial || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, serial: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder={tipo === 'notebook' ? 'Ej: NB123456' : 'Ej: CEL123456'}
               required
             />
@@ -403,12 +403,12 @@ const ModalProducto = ({
         {/* Nombre del producto - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Producto *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre del Producto *</label>
             <input
               type="text"
               value={formData.nombre_producto || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, nombre_producto: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder="Ej: Mouse Logitech"
               required
             />
@@ -418,14 +418,14 @@ const ModalProducto = ({
         {/* Modelo - Para notebooks y celulares */}
         {tipo !== 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Modelo {configuracion.camposObligatorios.includes('modelo') ? '*' : ''}
             </label>
             <input
               type="text"
               value={formData.modelo || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, modelo: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder={tipo === 'notebook' ? 'Ej: ThinkPad X1' : 'Ej: iPhone 14 Pro'}
               required={configuracion.camposObligatorios.includes('modelo')}
             />
@@ -434,7 +434,7 @@ const ModalProducto = ({
 
         {/* Marca */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Marca</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Marca</label>
           <MarcaSelector
             value={formData.marca || ''}
             onChange={(valor) => setFormData(prev => ({ ...prev, marca: valor }))}
@@ -445,13 +445,13 @@ const ModalProducto = ({
 
         {/* Condición */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
             Condición {configuracion.camposObligatorios.includes('condicion') ? '*' : ''}
           </label>
           <select
             value={formData.condicion || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, condicion: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             required={configuracion.camposObligatorios.includes('condicion')}
           >
             <option value="">Seleccionar...</option>
@@ -463,13 +463,13 @@ const ModalProducto = ({
 
         {/* Sucursal */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
             Sucursal {configuracion.camposObligatorios.includes('sucursal') ? '*' : ''}
           </label>
           <select
             value={formData.sucursal || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, sucursal: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             required={configuracion.camposObligatorios.includes('sucursal')}
           >
             <option value="">Seleccionar...</option>
@@ -481,23 +481,23 @@ const ModalProducto = ({
 
         {/* Color */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Color</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Color</label>
           <input
             type="text"
             value={formData.color || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             placeholder="Ej: Negro, Plata, Azul"
           />
         </div>
 
         {/* Estado */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
           <select
             value={formData.estado || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, estado: e.target.value }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
           >
             <option value="">Seleccionar...</option>
             {OPCIONES.estado.map(opcion => (
@@ -509,12 +509,12 @@ const ModalProducto = ({
         {/* Cantidad - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cantidad *</label>
             <input
               type="number"
               value={formData.cantidad || 1}
               onChange={(e) => setFormData(prev => ({ ...prev, cantidad: parseInt(e.target.value) || 1 }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               min="1"
               required
             />
@@ -524,11 +524,11 @@ const ModalProducto = ({
         {/* Categoría - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría *</label>
             <select
               value={formData.categoria || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               required
             >
               <option value="">Seleccionar...</option>
@@ -547,7 +547,7 @@ const ModalProducto = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Precio de compra */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
             {tipo === 'notebook' ? 'Precio Costo USD' : 'Precio Compra USD'}
             {configuracion.camposObligatorios.includes('precio_compra_usd') || configuracion.camposObligatorios.includes('precio_costo_usd') ? ' *' : ''}
           </label>
@@ -558,7 +558,7 @@ const ModalProducto = ({
               ...prev,
               [tipo === 'notebook' ? 'precio_costo_usd' : 'precio_compra_usd']: parseFloat(e.target.value) || 0
             }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             step="0.01"
             min="0"
             placeholder="0.00"
@@ -569,12 +569,12 @@ const ModalProducto = ({
         {/* Envíos/Repuestos - Solo para notebooks */}
         {tipo === 'notebook' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Envíos/Repuestos USD</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Envíos/Repuestos USD</label>
             <input
               type="number"
               value={formData.envios_repuestos || 0}
               onChange={(e) => setFormData(prev => ({ ...prev, envios_repuestos: parseFloat(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               step="0.01"
               min="0"
               placeholder="0.00"
@@ -584,7 +584,7 @@ const ModalProducto = ({
 
         {/* Precio de venta USD */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
             Precio Venta USD
             {configuracion.camposObligatorios.includes('precio_venta_usd') ? ' *' : ''}
           </label>
@@ -592,7 +592,7 @@ const ModalProducto = ({
             type="number"
             value={formData.precio_venta_usd || 0}
             onChange={(e) => setFormData(prev => ({ ...prev, precio_venta_usd: parseFloat(e.target.value) || 0 }))}
-            className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             step="0.01"
             min="0"
             placeholder="0.00"
@@ -603,7 +603,7 @@ const ModalProducto = ({
         {/* Precio de venta en pesos - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
               Precio Venta Pesos
               {configuracion.camposObligatorios.includes('precio_venta_pesos') ? ' *' : ''}
             </label>
@@ -611,7 +611,7 @@ const ModalProducto = ({
               type="number"
               value={formData.precio_venta_pesos || 0}
               onChange={(e) => setFormData(prev => ({ ...prev, precio_venta_pesos: parseFloat(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               step="0.01"
               min="0"
               placeholder="0.00"
@@ -630,22 +630,22 @@ const ModalProducto = ({
           {/* Especificaciones técnicas de notebook */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Procesador</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Procesador</label>
               <input
                 type="text"
                 value={formData.procesador || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, procesador: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: Intel i5-12400H"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Línea de Procesador</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Línea de Procesador</label>
               <select
                 value={formData.linea_procesador || 'otro'}
                 onChange={(e) => setFormData(prev => ({ ...prev, linea_procesador: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <optgroup label="Intel">
                   <option value="i3">{LINEAS_PROCESADOR_LABELS.i3}</option>
@@ -671,12 +671,12 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">RAM (GB)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">RAM (GB)</label>
               <input
                 type="number"
                 value={formData.ram || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, ram: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 16"
                 min="0"
                 max="256"
@@ -685,11 +685,11 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Tipo RAM</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo RAM</label>
               <select
                 value={formData.tipo_ram || 'DDR4'}
                 onChange={(e) => setFormData(prev => ({ ...prev, tipo_ram: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 {OPCIONES.tipo_ram.map(tipo => (
                   <option key={tipo} value={tipo}>{tipo}</option>
@@ -698,12 +698,12 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Slots RAM</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Slots RAM</label>
               <input
                 type="number"
                 value={formData.slots || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, slots: parseInt(e.target.value) || null }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 2"
                 min="1"
                 max="4"
@@ -712,12 +712,12 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">SSD (GB)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">SSD (GB)</label>
               <input
                 type="number"
                 value={formData.ssd || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, ssd: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 512"
                 min="0"
                 step="1"
@@ -725,12 +725,12 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">HDD (GB)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">HDD (GB)</label>
               <input
                 type="number"
                 value={formData.hdd || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, hdd: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 1000 (para 1TB)"
                 min="0"
                 step="1"
@@ -738,11 +738,11 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Sistema Operativo</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sistema Operativo</label>
               <select
                 value={formData.so || 'WIN11'}
                 onChange={(e) => setFormData(prev => ({ ...prev, so: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 {OPCIONES.so.map(so => (
                   <option key={so} value={so}>{so}</option>
@@ -751,12 +751,12 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Pantalla (pulgadas)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pantalla (pulgadas)</label>
               <input
                 type="number"
                 value={formData.pantalla || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, pantalla: parseFloat(e.target.value) || null }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 15.6"
                 min="10"
                 max="20"
@@ -765,45 +765,45 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Resolución</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Resolución</label>
               <input
                 type="text"
                 value={formData.resolucion || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, resolucion: e.target.value }))}
                 placeholder="Ej: FHD, 2K, 4K, 1920x1080, 2560x1600"
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Refresh (Hz)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Refresh (Hz)</label>
               <input
                 type="text"
                 value={formData.refresh || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, refresh: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 60Hz, 120Hz"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Placa de Video</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Placa de Video</label>
               <input
                 type="text"
                 value={formData.placa_video || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, placa_video: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: RTX 4060"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">VRAM (GB)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">VRAM (GB)</label>
               <input
                 type="number"
                 value={formData.vram || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, vram: parseInt(e.target.value) || null }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 4, 8, 16"
                 min="0"
                 step="1"
@@ -821,17 +821,17 @@ const ModalProducto = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, touchscreen: e.target.checked }))}
                 className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
               />
-              <label htmlFor="touchscreen" className="text-sm font-medium text-slate-700">
+              <label htmlFor="touchscreen" className="text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Pantalla Táctil
               </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Teclado Retroiluminado</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Teclado Retroiluminado</label>
               <select
                 value={formData.teclado_retro || 'SI'}
                 onChange={(e) => setFormData(prev => ({ ...prev, teclado_retro: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="SI">Sí</option>
                 <option value="NO">No</option>
@@ -839,11 +839,11 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Idioma Teclado</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Idioma Teclado</label>
               <select
                 value={formData.idioma_teclado || 'Español'}
                 onChange={(e) => setFormData(prev => ({ ...prev, idioma_teclado: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               >
                 <option value="Español">Español</option>
                 <option value="Inglés">Inglés</option>
@@ -851,23 +851,23 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Batería</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Batería</label>
               <input
                 type="text"
                 value={formData.bateria || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, bateria: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: Li-ion 53Wh"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Duración Batería</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Duración Batería</label>
               <input
                 type="text"
                 value={formData.duracion || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, duracion: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: 8 horas"
               />
             </div>
@@ -880,12 +880,12 @@ const ModalProducto = ({
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad (GB)</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Capacidad (GB)</label>
             <input
               type="number"
               value={formData.capacidad || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, capacidad: parseInt(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder="Ej: 128, 256, 512"
               min="0"
               step="1"
@@ -893,7 +893,7 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Batería (%)</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Batería (%)</label>
             <input
               type="number"
               value={formData.bateria || ''}
@@ -901,7 +901,7 @@ const ModalProducto = ({
                 const val = parseInt(e.target.value);
                 setFormData(prev => ({ ...prev, bateria: isNaN(val) ? null : Math.min(100, Math.max(0, val)) }));
               }}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder="Ej: 85, 100"
               min="0"
               max="100"
@@ -910,23 +910,23 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Ciclos</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Ciclos</label>
             <input
               type="number"
               value={formData.ciclos || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, ciclos: parseInt(e.target.value) || null }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               min="0"
               placeholder="Número de ciclos"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de SIM</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo de SIM</label>
             <select
               value={formData.sim_esim || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, sim_esim: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="">Seleccionar...</option>
               <option value="SIM">SIM Físico</option>
@@ -936,12 +936,12 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Memoria RAM (GB)</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Memoria RAM (GB)</label>
             <input
               type="number"
               value={formData.ram || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, ram: parseInt(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder="Ej: 4, 6, 8"
               min="0"
               max="64"
@@ -956,11 +956,11 @@ const ModalProducto = ({
       return (
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
             <textarea
               value={formData.descripcion || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               rows="3"
               placeholder="Descripción detallada del producto"
             />
@@ -969,23 +969,23 @@ const ModalProducto = ({
           {/* Campos específicos para DESKTOP */}
           {formData.categoria === 'DESKTOP' && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Modelo Procesador</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Modelo Procesador</label>
               <input
                 type="text"
                 value={formData.procesador || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, procesador: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: Intel i5-12400, AMD Ryzen 5 5600X"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
             <textarea
               value={formData.observaciones || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               rows="3"
               placeholder="Notas adicionales sobre el producto, estado, accesorios incluidos, etc."
             />
@@ -1005,14 +1005,14 @@ const ModalProducto = ({
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Garantía</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Garantía</label>
             <select
               value={valorGarantia}
               onChange={(e) => setFormData(prev => ({
                 ...prev,
                 [campoGarantia]: e.target.value
               }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             >
               <option value="1 mes">1 mes</option>
               <option value="3 meses">3 meses</option>
@@ -1027,26 +1027,26 @@ const ModalProducto = ({
           {/* Mostrar campo de fecha si se selecciona "Garantía oficial con vencimiento" */}
           {valorGarantia === 'Garantía oficial con vencimiento' && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
                 Fecha de vencimiento
               </label>
               <input
                 type="date"
                 value={garantiaOficialFecha}
                 onChange={(e) => setGarantiaOficialFecha(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               />
             </div>
           )}
 
           {tipo === 'notebook' && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Fallas</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fallas</label>
               <input
                 type="text"
                 value={formData.fallas || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, fallas: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 placeholder="Ej: Ninguna, Pantalla rayada"
               />
             </div>
@@ -1056,12 +1056,12 @@ const ModalProducto = ({
         {/* Fallas para celular y otros - en una fila separada */}
         {tipo !== 'notebook' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Fallas / Observaciones</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fallas / Observaciones</label>
             <input
               type="text"
               value={formData.fallas || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, fallas: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
               placeholder="Ej: Ninguna, Pantalla rayada"
             />
           </div>

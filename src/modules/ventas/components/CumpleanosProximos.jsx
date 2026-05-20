@@ -104,18 +104,19 @@ const CumpleanosProximos = ({ getProximosCumpleanosConHistorial }) => {
 
       {!isCollapsed && (
         <div className="overflow-auto max-h-48">
-          <table className="min-w-full text-center">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="py-2 px-3 text-sm font-medium text-slate-600">Cliente</th>
-                <th className="py-2 px-3 text-sm font-medium text-slate-600">Cumpleaños</th>
-                <th className="py-2 px-3 text-sm font-medium text-slate-600">Proximidad</th>
-                <th className="py-2 px-3 text-sm font-medium text-slate-600">Acciones</th>
+          <table className="min-w-full">
+            <thead className="bg-slate-800 text-white">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cliente</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Cumpleaños</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Proximidad</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              {cumpleanos.map((cliente) => {
+            <tbody className="divide-y divide-slate-200">
+              {cumpleanos.map((cliente, index) => {
                 const { diasParaCumple } = cliente;
+                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
 
                 const whatsappNumber = formatForWhatsApp(cliente.telefono);
                 const nuevoMensaje = `Hola ${cliente.nombre}! Como andas? El equipo de Update Tech te desea un feliz cumpleaños 🥳🥳`;
@@ -123,29 +124,29 @@ const CumpleanosProximos = ({ getProximosCumpleanosConHistorial }) => {
                 const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(nuevoMensaje)}`;
 
                 return (
-                  <tr key={cliente.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-3 px-3">
-                      <div className="font-medium text-slate-800">
+                  <tr key={cliente.id} className={`${rowClass} hover:bg-slate-50 transition-colors`}>
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
+                      <div className="font-medium">
                         {cliente.nombre} {cliente.apellido}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
+                      <div>
                         {parseFechaLocal(cliente.cumpleanos)?.toLocaleDateString('es-AR', {
                           day: 'numeric',
                           month: 'short'
                         })}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       <div className="flex items-center justify-center space-x-1">
                         <Calendar className="w-4 h-4 text-emerald-600" />
-                        <span className="text-sm font-medium text-emerald-600">
+                        <span className="font-medium text-emerald-600">
                           {formatearDiasParaCumple(diasParaCumple)}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="px-4 py-3 text-sm text-center text-slate-800">
                       <div className="flex items-center justify-center space-x-1">
                         {cliente.email && (
                           <a href={mailtoLink} target="_blank" rel="noopener noreferrer" className="p-1.5 group rounded transition-colors hover:bg-gray-100" title="Enviar Email">

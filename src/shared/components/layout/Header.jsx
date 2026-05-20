@@ -187,14 +187,14 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
             {/* Tarjetas de información */}
             <div className="flex items-stretch space-x-2 md:space-x-4">
               {/* Info del usuario */}
-              <div className="bg-slate-700 rounded-lg px-3 py-2 border border-slate-600">
+              <div className="bg-slate-700 rounded px-3 py-2 border border-slate-600">
                 <div className="flex items-center justify-between gap-3">
                   <button
                     onClick={abrirModalPerfil}
                     className="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity"
                     title="Editar perfil"
                   >
-                    <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+                    <div className="w-5 h-5 md:w-6 md:h-6 bg-emerald-600 rounded flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
                         {user?.user_metadata?.nombre?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
@@ -218,7 +218,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
 
 
               {/* Cotización USD/ARS */}
-              <div className="bg-slate-700 rounded-lg px-3 py-2 border border-slate-600">
+              <div className="bg-slate-700 rounded px-3 py-2 border border-slate-600">
                 {cotizacion ? (
                   <div className="flex flex-col items-center justify-center w-full">
                     <div className="text-sm md:text-base font-bold text-emerald-500 leading-none text-center">
@@ -237,7 +237,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
             </div>
 
             {/* Fecha y hora */}
-            <div className="text-right bg-white rounded-lg px-3 py-2 border border-slate-200 font-semibold hidden sm:block">
+            <div className="text-right bg-white rounded px-3 py-2 border border-slate-200 font-semibold hidden sm:block">
               <div className="text-xs md:text-sm text-slate-800">
                 <span className="hidden md:inline">
                   {currentDate.toLocaleDateString('es-AR', {
@@ -282,7 +282,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
           <div className="p-5 space-y-4">
             {/* Info usuario */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-emerald-600 rounded flex items-center justify-center shrink-0">
                 <span className="text-white text-base font-bold">
                   {(user?.user_metadata?.nombre || 'U')?.charAt(0)?.toUpperCase()}
                 </span>
@@ -396,7 +396,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
                       { key: 'especial', label: 'Un carácter especial' }
                     ].map(({ key, label }) => (
                       <div key={key} className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${validacionPass[key] ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                        <div className={`w-1.5 h-1.5 rounded ${validacionPass[key] ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                         <span className={`text-xs ${validacionPass[key] ? 'text-emerald-700' : 'text-slate-500'}`}>{label}</span>
                       </div>
                     ))}

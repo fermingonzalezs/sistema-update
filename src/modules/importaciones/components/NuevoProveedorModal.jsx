@@ -33,7 +33,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded border border-slate-300 max-w-md w-full">
         {/* HEADER */}
         <div className="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -46,74 +46,74 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nombre *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre *</label>
             <input
               type="text"
               value={formData.nombre}
               onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               placeholder="Nombre del proveedor"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="email@ejemplo.com"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Teléfono</label>
             <input
               type="text"
               value={formData.telefono}
               onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
               placeholder="Teléfono"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">País</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">País</label>
             <input
               type="text"
               value={formData.pais}
               onChange={(e) => setFormData({ ...formData, pais: e.target.value })}
               placeholder="País"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Dirección</label>
             <input
               type="text"
               value={formData.direccion}
               onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
               placeholder="Dirección"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Barrio</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Barrio</label>
             <input
               type="text"
               value={formData.barrio}
               onChange={(e) => setFormData({ ...formData, barrio: e.target.value })}
               placeholder="Barrio"
               disabled={isSubmitting}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
             />
           </div>
         </div>
@@ -122,7 +122,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
         <div className="flex gap-3 justify-end p-6 border-t border-slate-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition-colors"
+            className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded transition-colors"
             disabled={isSubmitting}
           >
             Cancelar

@@ -213,7 +213,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* Sección: Información Básica */}
-          <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
+          <div className="bg-slate-50 rounded p-6 border border-slate-200">
             <h4 className="text-lg font-semibold text-slate-800 mb-6 flex items-center">
               <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
               Información Básica
@@ -231,7 +231,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.serial}
                   onChange={handleChange}
                   placeholder="Ej: ABC123456789"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   required
                 />
               </div>
@@ -247,7 +247,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.modelo}
                   onChange={handleChange}
                   placeholder="Ej: ThinkPad X1 Carbon"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   required
                 />
               </div>
@@ -263,7 +263,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.marca}
                   onChange={handleChange}
                   placeholder="Ej: Lenovo, HP, Dell"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
 
@@ -277,7 +277,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   name="ingreso"
                   value={formData.ingreso}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   required
                 />
               </div>
@@ -291,7 +291,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   name="condicion"
                   value={formData.condicion}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
                   <option value="nuevo">Nuevo</option>
                   <option value="usado">Usado</option>
@@ -316,7 +316,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   name="sucursal"
                   value={formData.sucursal}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
                   <option value="LA PLATA">La Plata</option>
                   <option value="MITRE">Mitre</option>
@@ -333,7 +333,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   name="estado"
                   value={formData.estado}
                   onChange={handleChange}
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 >
                   <option value="A+">A+ (Excelente)</option>
                   <option value="A">A (Muy Bueno)</option>
@@ -348,7 +348,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           </div>
 
           {/* Sección: Información Comercial */}
-          <div className="bg-emerald-50 rounded-lg p-6 border border-emerald-200">
+          <div className="bg-emerald-50 rounded p-6 border border-emerald-200">
             <h4 className="text-lg font-semibold text-slate-800 mb-6 flex items-center">
               <div className="w-2 h-2 bg-emerald-600 rounded-full mr-3"></div>
               Información Comercial
@@ -369,7 +369,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -389,7 +389,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                   />
                 </div>
               </div>
@@ -408,7 +408,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                     onChange={handleChange}
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                    className="w-full pl-8 pr-3 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                     required
                   />
                 </div>
@@ -417,7 +417,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           </div>
 
           {/* Sección: Especificaciones Técnicas */}
-          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+          <div className="bg-blue-50 rounded p-6 border border-blue-200">
             <h4 className="text-lg font-semibold text-slate-800 mb-6 flex items-center">
               <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
               Especificaciones Técnicas
@@ -435,7 +435,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.procesador}
                   onChange={handleChange}
                   placeholder="Ej: Intel Core i7-1165G7"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
 
@@ -679,7 +679,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
           </div>
 
           {/* Sección: Garantía y Observaciones */}
-          <div className="bg-amber-50 rounded-lg p-6 border border-amber-200">
+          <div className="bg-amber-50 rounded p-6 border border-amber-200">
             <h4 className="text-lg font-semibold text-slate-800 mb-6 flex items-center">
               <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
               Garantía y Observaciones
@@ -697,7 +697,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.garantia_update}
                   onChange={handleChange}
                   placeholder="Ej: 6 meses"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
 
@@ -712,7 +712,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.garantia_oficial}
                   onChange={handleChange}
                   placeholder="Ej: Apple, Lenovo"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
 
@@ -727,7 +727,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
                   value={formData.fallas}
                   onChange={handleChange}
                   placeholder="Ej: Ninguna"
-                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors"
                 />
               </div>
             </div>
@@ -738,7 +738,7 @@ const FormularioNotebook = ({ onAdd, loading }) => {
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
+              className="bg-emerald-600 text-white px-8 py-3 rounded font-semibold hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>
