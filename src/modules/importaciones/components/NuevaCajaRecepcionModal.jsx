@@ -180,7 +180,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Datos de Recepción</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
                 <input
                   type="text"
                   value={form.descripcion}
@@ -190,7 +190,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha Recepción *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha Recepción *</label>
                 <input
                   type="date"
                   value={form.fecha_recepcion}
@@ -199,7 +199,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso c/ caja (kg)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso c/ caja (kg)</label>
                 <input type="number" step="0.01" min="0" value={form.peso_total_con_caja_kg}
                   onChange={e => handleFormChange('peso_total_con_caja_kg', e.target.value)}
                   placeholder="0.00"
@@ -207,7 +207,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso s/ caja (kg) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso s/ caja (kg) *</label>
                 <input type="number" step="0.01" min="0" value={form.peso_sin_caja_kg}
                   onChange={e => handleFormChange('peso_sin_caja_kg', e.target.value)}
                   placeholder="0.00"
@@ -215,7 +215,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio / kg (USD)</label>
                 <input type="number" step="0.01" min="0" value={form.precio_por_kg_usd}
                   onChange={e => handleFormChange('precio_por_kg_usd', e.target.value)}
                   placeholder="0.00"
@@ -223,7 +223,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pago Courier (USD)</label>
                 <input type="number" step="0.01" min="0" value={form.pago_courier_usd}
                   onChange={e => handleFormChange('pago_courier_usd', e.target.value)}
                   placeholder="0.00"
@@ -231,7 +231,7 @@ const NuevaCajaRecepcionModal = ({ recibos, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / Shipping</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Picking / Shipping</label>
                 <input type="number" step="0.01" min="0" value={form.costo_picking_shipping_usd}
                   onChange={e => handleFormChange('costo_picking_shipping_usd', e.target.value)}
                   placeholder="0.00"

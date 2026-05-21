@@ -139,7 +139,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Datos del ingreso</h4>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha recepción</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha recepción</label>
                 <input
                   type="date"
                   value={fechaRecepcion}
@@ -148,7 +148,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso total c/ caja (kg)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso total c/ caja (kg)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -158,7 +158,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio / kg (USD)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -168,7 +168,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Pago courier (USD)
                   {parseFloat(pesoTotalConCaja) > 0 && parseFloat(precioPorKg) > 0 && (
                     <span className="text-slate-400 font-normal ml-1">(auto: {parseFloat(pesoTotalConCaja)} × {parseFloat(precioPorKg)})</span>
@@ -183,7 +183,7 @@ const EditarIngresoModal = ({ ingreso, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / shipping (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Picking / shipping (USD)</label>
                 <input
                   type="number"
                   step="0.01"

@@ -467,7 +467,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* PROVEEDOR */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor *</label>
                   <div className="flex gap-2">
                     <select
                       value={formRecibo.proveedor_id}
@@ -499,7 +499,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* FECHA */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha *</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_compra}
@@ -511,7 +511,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* MÉTODO DE PAGO */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método de Pago *</label>
                   <select
                     value={formRecibo.metodo_pago}
                     onChange={(e) => setFormRecibo({ ...formRecibo, metodo_pago: e.target.value })}
@@ -526,7 +526,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* COSTOS ADICIONALES */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costos Adicionales (USD)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costos Adicionales (USD)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -550,7 +550,7 @@ const NuevaCompraModal = ({ isOpen, onClose, onSave, isLoading = false, isEditin
 
                 {/* OBSERVACIONES */}
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                   <textarea
                     value={formRecibo.observaciones}
                     onChange={(e) => setFormRecibo({ ...formRecibo, observaciones: e.target.value })}

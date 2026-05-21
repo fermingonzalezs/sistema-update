@@ -62,7 +62,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
         {/* Body */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Cliente <span className="text-red-500">*</span>
             </label>
             <ClienteSelector
@@ -73,7 +73,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Descripción del Servicio <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -87,7 +87,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha</label>
               <input
                 type="date"
                 value={form.fecha}
@@ -96,7 +96,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tracking Number</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tracking Number</label>
               <input
                 type="text"
                 value={form.tracking_number}
@@ -108,7 +108,7 @@ const NuevoCourierClienteModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Empresa Logística</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Empresa Logística</label>
             <EmpresaLogisticaSelector
               value={form.empresa_logistica}
               onChange={val => handleChange('empresa_logistica', val)}

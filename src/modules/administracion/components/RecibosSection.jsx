@@ -482,7 +482,7 @@ const RecibosSection = () => {
               {/* Datos generales */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Emisión</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Emisión</label>
                   <input
                     type="date"
                     value={editData.fecha}
@@ -492,7 +492,7 @@ const RecibosSection = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Cliente</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre del Cliente</label>
                   <input
                     type="text"
                     value={editData.cliente_nombre}
@@ -502,7 +502,7 @@ const RecibosSection = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Teléfono</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Teléfono</label>
                   <input
                     type="text"
                     value={editData.cliente_telefono}
@@ -512,7 +512,7 @@ const RecibosSection = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Dirección</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Dirección</label>
                   <input
                     type="text"
                     value={editData.cliente_direccion}
@@ -522,7 +522,7 @@ const RecibosSection = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Email</label>
                   <input
                     type="email"
                     value={editData.cliente_email}
@@ -536,7 +536,7 @@ const RecibosSection = () => {
               {documentoEditando.tipo_documento === 'recibo' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método de Pago</label>
                     <MetodoPagoSelector
                       value={editData.metodo_pago}
                       onChange={(e) => setEditData({ ...editData, metodo_pago: e.target.value })}
@@ -545,7 +545,7 @@ const RecibosSection = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Moneda</label>
                     <select
                       value={editData.moneda}
                       onChange={(e) => setEditData({ ...editData, moneda: e.target.value })}
@@ -556,7 +556,7 @@ const RecibosSection = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descuento</label>
                     <input
                       type="number"
                       value={editData.descuento}
@@ -572,7 +572,7 @@ const RecibosSection = () => {
               {documentoEditando.tipo_documento === 'remito' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Entrega</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Entrega</label>
                     <input
                       type="date"
                       value={editData.fecha_entrega}
@@ -581,7 +581,7 @@ const RecibosSection = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Quién Retira</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Quién Retira</label>
                     <input
                       type="text"
                       value={editData.quien_retira}
@@ -595,7 +595,7 @@ const RecibosSection = () => {
               {documentoEditando.tipo_documento === 'presupuesto' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Vigencia (Horas)</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Vigencia (Horas)</label>
                     <input
                       type="number"
                       value={editData.vigencia_horas}
@@ -605,7 +605,7 @@ const RecibosSection = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Moneda</label>
                     <select
                       value={editData.moneda}
                       onChange={(e) => setEditData({ ...editData, moneda: e.target.value })}
@@ -616,7 +616,7 @@ const RecibosSection = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descuento</label>
                     <input
                       type="number"
                       value={editData.descuento}
@@ -627,7 +627,7 @@ const RecibosSection = () => {
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Condiciones</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Condiciones</label>
                     <textarea
                       value={editData.condiciones}
                       onChange={(e) => setEditData({ ...editData, condiciones: e.target.value })}
@@ -640,7 +640,7 @@ const RecibosSection = () => {
 
               {/* Observaciones */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                 <textarea
                   value={editData.observaciones}
                   onChange={(e) => setEditData({ ...editData, observaciones: e.target.value })}
@@ -667,7 +667,7 @@ const RecibosSection = () => {
                   {editData.items.map((item, index) => (
                     <div key={index} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:gap-3 bg-slate-50 p-3 rounded">
                       <div className={documentoEditando.tipo_documento === 'remito' ? 'sm:col-span-6' : 'sm:col-span-4'}>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Descripción</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
                         <input
                           type="text"
                           value={item.descripcion}
@@ -678,7 +678,7 @@ const RecibosSection = () => {
 
                       {documentoEditando.tipo_documento !== 'presupuesto' && (
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Serial</label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Serial</label>
                           <input
                             type="text"
                             value={item.serial}
@@ -689,7 +689,7 @@ const RecibosSection = () => {
                       )}
 
                       <div className="sm:col-span-1">
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Cant.</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cant.</label>
                         <input
                           type="number"
                           value={item.cantidad}
@@ -702,7 +702,7 @@ const RecibosSection = () => {
                       {documentoEditando.tipo_documento !== 'remito' && (
                         <>
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Precio Unit.</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio Unit.</label>
                             <input
                               type="number"
                               value={item.precio_unitario}
@@ -714,7 +714,7 @@ const RecibosSection = () => {
                           </div>
 
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Total</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Total</label>
                             <div className="px-3 py-2 bg-slate-100 border border-slate-200 rounded text-sm font-semibold text-slate-800">
                               {formatearMonto((item.cantidad || 0) * (item.precio_unitario || 0), editData.moneda)}
                             </div>
@@ -848,7 +848,7 @@ const RecibosSection = () => {
               {/* Cliente y detalles específicos */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Cliente *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cliente *</label>
                   <ClienteSelector
                     selectedCliente={clienteSeleccionado}
                     onSelectCliente={setClienteSeleccionado}
@@ -857,7 +857,7 @@ const RecibosSection = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Fecha</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha</label>
                   <input
                     type="date"
                     value={formData.fecha}
@@ -870,7 +870,7 @@ const RecibosSection = () => {
                 {tipoDocumento === 'recibo' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Método de Pago</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método de Pago</label>
                       <MetodoPagoSelector
                         value={formData.metodo_pago}
                         onChange={(e) => setFormData({ ...formData, metodo_pago: e.target.value })}
@@ -880,7 +880,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Moneda</label>
                       <select
                         value={formData.moneda}
                         onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
@@ -892,7 +892,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descuento</label>
                       <input
                         type="number"
                         value={formData.descuento}
@@ -909,7 +909,7 @@ const RecibosSection = () => {
                 {tipoDocumento === 'presupuesto' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Vigencia (Horas)</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Vigencia (Horas)</label>
                       <input
                         type="number"
                         value={formData.vigencia_horas}
@@ -920,7 +920,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Moneda</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Moneda</label>
                       <select
                         value={formData.moneda}
                         onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
@@ -932,7 +932,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descuento</label>
                       <input
                         type="number"
                         value={formData.descuento}
@@ -944,7 +944,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">IVA</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">IVA</label>
                       <select
                         value={formData.iva_porcentaje ?? ''}
                         onChange={(e) => setFormData({ ...formData, iva_porcentaje: e.target.value === '' ? null : parseFloat(e.target.value) })}
@@ -962,7 +962,7 @@ const RecibosSection = () => {
                 {tipoDocumento === 'remito' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Fecha de Entrega</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Entrega</label>
                       <input
                         type="date"
                         value={formData.fecha_entrega}
@@ -972,7 +972,7 @@ const RecibosSection = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Quién Retira</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Quién Retira</label>
                       <input
                         type="text"
                         value={formData.quien_retira}
@@ -987,7 +987,7 @@ const RecibosSection = () => {
                 {/* Campo de observaciones común para todos */}
                 <div className="md:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={tipoDocumento === 'presupuesto' ? '' : 'md:col-span-2'}>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                     <textarea
                       value={formData.observaciones}
                       onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
@@ -999,7 +999,7 @@ const RecibosSection = () => {
 
                   {tipoDocumento === 'presupuesto' && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Condiciones / Aclaraciones</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Condiciones / Aclaraciones</label>
                       <textarea
                         value={formData.condiciones}
                         onChange={(e) => setFormData({ ...formData, condiciones: e.target.value })}
@@ -1039,7 +1039,7 @@ const RecibosSection = () => {
                           tipoDocumento === 'remito' ? 'sm:col-span-5' :
                             'sm:col-span-4'
                       }>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Descripción *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción *</label>
                         <input
                           type="text"
                           value={item.descripcion}
@@ -1052,7 +1052,7 @@ const RecibosSection = () => {
 
                       {tipoDocumento !== 'presupuesto' && (
                         <div className="sm:col-span-2">
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Serial</label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Serial</label>
                           <input
                             type="text"
                             value={item.serial}
@@ -1064,7 +1064,7 @@ const RecibosSection = () => {
                       )}
 
                       <div className="sm:col-span-1">
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Cant. *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cant. *</label>
                         <input
                           type="number"
                           value={item.cantidad}
@@ -1078,7 +1078,7 @@ const RecibosSection = () => {
                       {tipoDocumento !== 'remito' && (
                         <>
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Precio Unit. *</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio Unit. *</label>
                             <input
                               type="number"
                               value={item.precio_unitario}
@@ -1091,7 +1091,7 @@ const RecibosSection = () => {
                           </div>
 
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Total</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Total</label>
                             <div className="px-3 py-2 bg-slate-100 border border-slate-200 rounded text-sm font-semibold text-slate-800 truncate">
                               {formatearMonto(calcularPrecioTotalItem(item), formData.moneda)}
                             </div>

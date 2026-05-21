@@ -272,7 +272,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
     return (
       <div key={num} className="grid grid-cols-2 gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Método {num}{!esOpcional ? ' *' : ''}
           </label>
           <MetodoPagoSelector
@@ -285,7 +285,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Monto ({monedaLabel}){!esOpcional ? ' *' : ''}
             {enPesos && cotizacion > 0 && parsearMonto(monto) > 0 && (
               <span className="text-xs text-slate-500 ml-2">
@@ -314,7 +314,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
     return (
       <div className="grid grid-cols-2 gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">{label}</label>
           <MetodoPagoSelector
             value={metodo}
             onChange={(e) => handleMetodoChange(setMetodo, setMonto, e.target.value)}
@@ -325,7 +325,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Monto{monedaLabel ? ` (${monedaLabel})` : ''}
             {enPesos && cotizacion > 0 && parsearMonto(monto) > 0 && (
               <span className="text-xs text-slate-500 ml-2">
@@ -453,7 +453,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-800">MÉTODOS DE PAGO</h3>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600">Cotización U$:</label>
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Cotización U$:</label>
                 <input
                   type="text"
                   value={cotizacion}
@@ -485,7 +485,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
             <h3 className="text-lg font-semibold text-slate-800 mb-3">INFORMACIÓN ADICIONAL</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Vendedor *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Vendedor *</label>
                 <select
                   value={vendedor}
                   onChange={(e) => setVendedor(e.target.value)}
@@ -500,7 +500,7 @@ const EditarVentaModal = ({ transaccion, onClose, onSave }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha *</label>
                 <input
                   type="date"
                   value={fechaVenta}

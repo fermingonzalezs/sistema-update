@@ -988,7 +988,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Modelo *
                 </label>
                 <input
@@ -1003,7 +1003,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Serial
                 </label>
                 <input
@@ -1017,7 +1017,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Marca *
                 </label>
                 <MarcaSelector
@@ -1028,7 +1028,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Categoría *
                 </label>
                 <select
@@ -1048,7 +1048,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Color
                 </label>
                 <input
@@ -1062,7 +1062,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Condición
                 </label>
                 <select
@@ -1085,7 +1085,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
                 {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
                     </label>
                     <input
@@ -1099,7 +1099,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Sucursal
                 </label>
                 <select
@@ -1127,7 +1127,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Costo USD
                 </label>
                 <input
@@ -1142,7 +1142,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Costo Total
                   <span className="text-xs text-slate-500">
                     (Calculado automáticamente)
@@ -1159,7 +1159,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Venta USD *
                 </label>
                 <input
@@ -1175,7 +1175,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Envíos y Repuestos
                 </label>
                 <input
@@ -1199,7 +1199,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Procesador
                 </label>
                 <input
@@ -1213,7 +1213,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   RAM
                 </label>
                 <input
@@ -1225,7 +1225,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Tipo RAM
                 </label>
                 <input
@@ -1239,7 +1239,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Slots
                 </label>
                 <input
@@ -1253,7 +1253,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   SSD
                 </label>
                 <input
@@ -1265,7 +1265,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   HDD
                 </label>
                 <input
@@ -1277,7 +1277,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Sistema Operativo
                 </label>
                 <input
@@ -1289,7 +1289,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Placa de Video
                 </label>
                 <input
@@ -1303,7 +1303,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   VRAM
                 </label>
                 <input
@@ -1324,7 +1324,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Pantalla
                 </label>
                 <input
@@ -1338,7 +1338,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Resolución
                 </label>
                 <ResolucionSelect
@@ -1348,7 +1348,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Refresh Rate
                 </label>
                 <input
@@ -1362,7 +1362,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Touchscreen
                 </label>
                 <select
@@ -1389,7 +1389,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Teclado Retroiluminado
                 </label>
                 <input
@@ -1403,7 +1403,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Idioma Teclado
                 </label>
                 <input
@@ -1417,7 +1417,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Batería
                 </label>
                 <input
@@ -1433,7 +1433,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Duración
                 </label>
                 <input
@@ -1456,7 +1456,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Fecha Ingreso
                 </label>
                 <input
@@ -1469,7 +1469,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Garantía
                 </label>
                 <select
@@ -1486,7 +1486,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia_update === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Fecha de vencimiento
                   </label>
                   <input
@@ -1498,7 +1498,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </div>
               )}
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Observaciones
                 </label>
                 <textarea
@@ -1520,7 +1520,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 URL de Fotos
               </label>
               <input
@@ -1565,7 +1565,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Modelo *
                 </label>
                 <input
@@ -1580,7 +1580,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Serial
                 </label>
                 <input
@@ -1594,7 +1594,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   IMEI
                 </label>
                 <input
@@ -1608,7 +1608,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Marca *
                 </label>
                 <MarcaSelector
@@ -1619,7 +1619,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Categoría *
                 </label>
                 <select
@@ -1639,7 +1639,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Color
                 </label>
                 <input
@@ -1653,7 +1653,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Condición
                 </label>
                 <select
@@ -1676,7 +1676,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
                 {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
                     </label>
                     <input
@@ -1690,7 +1690,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Sucursal
                 </label>
                 <select
@@ -1718,7 +1718,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Compra USD
                 </label>
                 <input
@@ -1733,7 +1733,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Costos Adicionales (Envíos/Repuestos)
                 </label>
                 <input
@@ -1748,7 +1748,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Venta USD *
                 </label>
                 <input
@@ -1765,7 +1765,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.costo_total_usd && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Costo Total USD (Calculado)
                   </label>
                   <input
@@ -1788,7 +1788,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Capacidad
                 </label>
                 <input
@@ -1802,7 +1802,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Estado
                 </label>
                 <input
@@ -1816,7 +1816,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Batería
                 </label>
                 <input
@@ -1832,7 +1832,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Ciclos
                 </label>
                 <input
@@ -1855,7 +1855,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Garantía
                 </label>
                 <select
@@ -1872,7 +1872,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Fecha de vencimiento
                   </label>
                   <input
@@ -1884,7 +1884,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </div>
               )}
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Observaciones
                 </label>
                 <textarea
@@ -1906,7 +1906,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 URL de Fotos
               </label>
               <input
@@ -1950,7 +1950,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Nombre del Producto *
                 </label>
                 <input
@@ -1965,7 +1965,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Serial (Opcional)
                 </label>
                 <input
@@ -1979,7 +1979,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Categoría
                 </label>
                 <select
@@ -2002,7 +2002,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Marca
                 </label>
                 <MarcaSelector
@@ -2013,7 +2013,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Color
                 </label>
                 <input
@@ -2027,7 +2027,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Descripción
                 </label>
                 <textarea
@@ -2041,7 +2041,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Cantidad La Plata
                 </label>
                 <input
@@ -2056,7 +2056,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Cantidad Mitre
                 </label>
                 <input
@@ -2071,7 +2071,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Condición
                 </label>
                 <select
@@ -2094,7 +2094,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 </select>
                 {(editForm.condicion === 'reservado' || editForm.condicion === 'consignacion') && (
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       {editForm.condicion === 'reservado' ? 'Reservado para *' : 'Consignación para *'}
                     </label>
                     <input
@@ -2108,7 +2108,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Garantía
                 </label>
                 <select
@@ -2125,7 +2125,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </div>
               {editForm.garantia === 'Garantía oficial con vencimiento' && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Fecha de vencimiento
                   </label>
                   <input
@@ -2146,7 +2146,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             </h3>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Compra USD
                 </label>
                 <input
@@ -2161,7 +2161,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Costos Adicionales USD
                 </label>
                 <input
@@ -2176,7 +2176,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Costo Total USD (Calculado)
                 </label>
                 <input
@@ -2188,7 +2188,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Precio Venta USD *
                 </label>
                 <input
@@ -2212,7 +2212,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               Link de Fotos
             </h3>
             <div className="p-5">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 URL de Fotos
               </label>
               <input
@@ -2233,7 +2233,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               Observaciones
             </h3>
             <div className="p-5">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Observaciones
               </label>
               <textarea
@@ -2553,7 +2553,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             {categoriaActiva === 'celulares' && (
               <div className="min-w-0 flex-1">
                 <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
-                  Almacenamiento
+                  SSD
                 </label>
                 <select
                   value={filtros.almacenamiento}
@@ -2595,7 +2595,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
             {categoriaActiva === 'notebooks' && (
               <div className="min-w-0 flex-1">
                 <label className="block text-xs font-medium text-slate-200 mb-1 uppercase tracking-wider">
-                  Almacenamiento
+                  SSD
                 </label>
                 <select
                   value={filtros.almacenamiento}
@@ -3633,7 +3633,7 @@ ${producto.garantia ? 'Garantía: ' + producto.garantia : ''}`;
               </h3>
             </div>
             <div className="p-5">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 {modalReservar.tipo === 'reservado' ? 'A nombre de quién se reserva *' : 'A nombre de quién se pone en consignación *'}
               </label>
               <input

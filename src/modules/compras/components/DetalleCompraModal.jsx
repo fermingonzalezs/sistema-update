@@ -83,41 +83,41 @@ const DetalleCompraModal = ({ isOpen, onClose, recibo = null, onEdit, onDelete, 
             <div className="border border-slate-300 border-t-0 rounded-b p-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Recibo</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Recibo</label>
                   <p className="font-medium text-slate-800 mt-1">{recibo.numero_recibo}</p>
                 </div>
 
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Proveedor</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor</label>
                   <p className="font-medium text-slate-800 mt-1">{recibo.proveedor || '-'}</p>
                 </div>
 
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Estado</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Estado</label>
                   <span className={`px-3 py-1 rounded text-xs font-semibold ${getEstadoColor(recibo.estado)} inline-block mt-1`}>
                     {getEstadoLabel(recibo.estado)}
                   </span>
                 </div>
 
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Fecha Compra</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha Compra</label>
                   <p className="font-medium text-slate-800 mt-1">{formatDate(recibo.fecha)}</p>
                 </div>
 
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Método Pago</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método Pago</label>
                   <p className="font-medium text-slate-800 mt-1 text-xs">{getMetodoPagoLabel(recibo.metodo_pago)}</p>
                 </div>
 
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Costos Adic.</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costos Adic.</label>
                   <p className="font-medium text-slate-800 mt-1">U$ {formatNumber(recibo.costos_adicionales)}</p>
                 </div>
               </div>
 
               {recibo.observaciones && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Observaciones</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                   <p className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded p-3">
                     {recibo.observaciones}
                   </p>

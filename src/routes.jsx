@@ -27,7 +27,7 @@ const DefaultRedirect = () => {
         compras:       '/ingreso-equipos',
         revendedor:    '/revendedores',
     };
-    return <Navigate to={redirects[nivel] || '/contabilidad/libro-diario'} replace />;
+    return <Navigate to={redirects[nivel] || '/catalogo'} replace />;
 };
 
 // Ventas

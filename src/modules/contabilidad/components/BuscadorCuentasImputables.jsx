@@ -120,7 +120,7 @@ const BuscadorCuentasImputables = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
+      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
         Cuenta {required && '*'}
       </label>
 

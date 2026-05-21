@@ -85,51 +85,51 @@ const DetalleIngresoModal = ({ ingreso, onClose, onEdit }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Ingreso</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Ingreso</label>
                   <p className="font-medium text-slate-800 mt-1">{ingreso.numero_caja}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Estado</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Estado</label>
                   <p className="font-medium text-emerald-700 mt-1 uppercase">{ingreso.estado || '-'}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Fecha Ingreso</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha Ingreso</label>
                   <p className="font-medium text-slate-800 mt-1">
                     {ingreso.fecha_recepcion ? formatearFechaDisplay(ingreso.fecha_recepcion) : '-'}
                   </p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Pedidos</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pedidos</label>
                   <p className="font-medium text-slate-800 mt-1">{gruposPorRecibo.length}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Items</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Items</label>
                   <p className="font-medium text-slate-800 mt-1">{resumen.items}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Unidades</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Unidades</label>
                   <p className="font-medium text-slate-800 mt-1">{resumen.unidades}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Peso s/ caja</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso s/ caja</label>
                   <p className="font-medium text-slate-800 mt-1">{formatWeight(ingreso.peso_sin_caja_kg)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Peso c/ caja</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso c/ caja</label>
                   <p className="font-medium text-slate-800 mt-1">{formatWeight(ingreso.peso_total_con_caja_kg)}</p>
                 </div>
               </div>
 
               {ingreso.descripcion && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Descripción</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
                   <p className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded p-3">{ingreso.descripcion}</p>
                 </div>
               )}
 
               {ingreso.observaciones && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Observaciones</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                   <p className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded p-3">{ingreso.observaciones}</p>
                 </div>
               )}
@@ -143,38 +143,38 @@ const DetalleIngresoModal = ({ ingreso, onClose, onEdit }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Precio / kg</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio / kg</label>
                   <p className="font-medium text-slate-800 mt-1">{formatMoney(ingreso.precio_por_kg_usd)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Pago Courier</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pago Courier</label>
                   <p className="font-medium text-slate-800 mt-1">{formatMoney(ingreso.pago_courier_usd)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Picking / Shipping</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Picking / Shipping</label>
                   <p className="font-medium text-slate-800 mt-1">{formatMoney(ingreso.costo_picking_shipping_usd)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Courier Total</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Courier Total</label>
                   <p className="font-semibold text-emerald-700 mt-1">{formatMoney(ingreso.costo_total_usd)}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-200 text-sm">
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">FOB Total</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">FOB Total</label>
                   <p className="font-semibold text-slate-800 mt-1">{formatMoney(resumen.fob)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Envío Distribuido</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Envío Distribuido</label>
                   <p className="font-semibold text-blue-700 mt-1">{formatMoney(resumen.envio)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Financiero</label>
                   <p className="font-semibold text-purple-700 mt-1">{formatMoney(resumen.financiero)}</p>
                 </div>
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Final Total</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Final Total</label>
                   <p className="font-semibold text-emerald-700 mt-1">{formatMoney(resumen.final)}</p>
                 </div>
               </div>

@@ -287,7 +287,7 @@ const ModalChecklistEquipo = ({ equipo, isOpen, onClose, onComplete }) => {
 
           {/* Observaciones */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Observaciones del Testeo
             </label>
             <textarea

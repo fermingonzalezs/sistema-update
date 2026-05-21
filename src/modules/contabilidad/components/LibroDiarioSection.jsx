@@ -1669,7 +1669,7 @@ const LibroDiarioSection = () => {
               {/* Datos del asiento */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Fecha *
                   </label>
                   <input
@@ -1680,7 +1680,7 @@ const LibroDiarioSection = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Descripción *
                   </label>
                   <input
@@ -1692,7 +1692,7 @@ const LibroDiarioSection = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     <div className="flex items-center space-x-2">
                       <DollarSign className="w-4 h-4 text-blue-600" />
                       <span>Cotización USD/ARS</span>
@@ -1726,7 +1726,7 @@ const LibroDiarioSection = () => {
                 />
                 <label
                   htmlFor="asiento_cierre_checkbox"
-                  className="text-sm font-medium text-red-800 cursor-pointer select-none"
+                  className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center"
                 >
                   Este es un asiento de cierre de mes (no será incluido en análisis financieros)
                 </label>
@@ -1734,7 +1734,7 @@ const LibroDiarioSection = () => {
 
               {/* Campo de Notas */}
               <div>
-                <label className="block text-sm font-medium text-slate-800 mb-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   <div className="flex items-center space-x-2">
                     <FileText className="w-4 h-4 text-slate-600" />
                     <span>Notas (opcional)</span>
@@ -1834,7 +1834,7 @@ const LibroDiarioSection = () => {
                           required
                         />
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                             Monto {mov.cuenta?.requiere_cotizacion ? '(ARS)' : '(USD)'}
                           </label>
                           <input

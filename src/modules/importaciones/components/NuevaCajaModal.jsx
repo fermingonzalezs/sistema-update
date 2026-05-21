@@ -34,7 +34,7 @@ const NuevaCajaModal = ({ onClose, onSuccess }) => {
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
             <input
               type="text"
               value={form.descripcion}
@@ -44,7 +44,7 @@ const NuevaCajaModal = ({ onClose, onSuccess }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
             <textarea
               value={form.observaciones}
               onChange={e => setForm(prev => ({ ...prev, observaciones: e.target.value }))}

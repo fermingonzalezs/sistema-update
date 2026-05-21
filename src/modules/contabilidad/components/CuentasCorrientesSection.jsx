@@ -26,6 +26,571 @@ import { cotizacionService } from '../../../shared/services/cotizacionService';
 import { generarYDescargarResumenCuenta } from './pdf/CuentaCorrientePDF';
 import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 
+// 🔧 Componente Formulario para Editar Movimiento
+const EditarMovimientoForm = ({ movimiento, onClose, onSuccess, editarMovimiento }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    monto: movimiento.monto || '',
+    concepto: movimiento.concepto || '',
+    observaciones: movimiento.observaciones || '',
+    fecha_operacion: movimiento.fecha_operacion || ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.monto || !formData.concepto) {
+      alert('Monto y concepto son requeridos');
+      return;
+    }
+
+    if (parseFloat(formData.monto) <= 0) {
+      alert('El monto debe ser mayor a 0');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await editarMovimiento(movimiento.id, {
+        monto: parseFloat(formData.monto),
+        concepto: formData.concepto.trim(),
+        observaciones: formData.observaciones?.trim() || null,
+        fecha_operacion: formData.fecha_operacion
+      });
+
+      alert('✅ Movimiento editado exitosamente');
+      onSuccess();
+    } catch (error) {
+      console.error('Error editando movimiento:', error);
+      alert('❌ Error editando movimiento: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-6">
+      <div className="space-y-4">
+        {/* Información no editable */}
+        <div className="bg-slate-50 p-3 rounded">
+          <p className="text-sm text-slate-600">
+            <strong>Cliente:</strong> {movimiento.nombre_cliente} {movimiento.apellido_cliente}
+          </p>
+          <p className="text-sm text-slate-600">
+            <strong>Tipo:</strong> {movimiento.tipo_movimiento === 'debe' ? 'Debe (Cliente nos debe)' : 'Haber (Nosotros debemos)'}
+          </p>
+          <p className="text-sm text-slate-600">
+            <strong>Operación:</strong> {movimiento.tipo_operacion?.replace(/_/g, ' ')}
+          </p>
+        </div>
+
+        {/* Campo Monto */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+            Monto USD *
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            value={formData.monto}
+            onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Concepto */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+            Concepto *
+          </label>
+          <input
+            type="text"
+            value={formData.concepto}
+            onChange={(e) => setFormData(prev => ({ ...prev, concepto: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Fecha */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+            Fecha de Operación
+          </label>
+          <input
+            type="date"
+            value={formData.fecha_operacion}
+            onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            disabled={loading}
+          />
+        </div>
+
+        {/* Campo Observaciones */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+            Observaciones
+          </label>
+          <textarea
+            value={formData.observaciones}
+            onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
+            className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
+            rows={3}
+            disabled={loading}
+          />
+        </div>
+      </div>
+
+      {/* Botones */}
+      <div className="flex gap-3 pt-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 px-4 py-2 border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          disabled={loading}
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="flex-1 px-4 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
+        >
+          {loading ? 'Guardando...' : 'Guardar Cambios'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// 🔧 Componente Modal Unificado para Movimientos
+const MovimientoModal = ({
+  tipo,
+  onClose,
+  onSuccess,
+  clientePreseleccionado = null,
+  saldos,
+  handleRegistrarPago,
+  registrarNuevaDeuda,
+  registrarPagoRealizado,
+  registrarDeudaUpdate
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [personaSeleccionada, setPersonaSeleccionada] = useState(clientePreseleccionado);
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState('');
+  const [cotizacionDolar, setCotizacionDolar] = useState(1000);
+  const [formData, setFormData] = useState({
+    monto: '',
+    concepto: '',
+    observaciones: '',
+    fecha_operacion: obtenerFechaLocal()
+
+  });
+
+  // Métodos de pago disponibles (desde constantes compartidas)
+  const metodosPagoDisponibles = METODOS_PAGO.filter(m => m.value !== 'cliente_abona');
+
+  const tipoConfig = {
+    cobro: {
+      titulo: 'Registrar Pago',
+      descripcion: 'Un cliente nos paga (reducir su deuda con nosotros)',
+      icon: TrendingDown,
+      conceptoPlaceholder: 'Pago recibido',
+      filtroClientes: 'deudores' // Solo clientes que nos deben
+    },
+    agregar_deuda: {
+      titulo: 'Agregar Deuda',
+      descripcion: 'Registrar deuda que un cliente tiene con nosotros',
+      icon: Plus,
+      conceptoPlaceholder: 'Deuda agregada',
+      filtroClientes: 'todos' // Todos los clientes
+    },
+    pago_realizado: {
+      titulo: 'Pago Realizado',
+      descripcion: 'Update paga a un proveedor o tercero',
+      icon: TrendingUp,
+      conceptoPlaceholder: 'Pago realizado por Update',
+      filtroClientes: 'todos' // Todos los proveedores/terceros
+    },
+    tomar_deuda: {
+      titulo: 'Tomar Deuda',
+      descripcion: 'Registrar deuda que Update tiene con un proveedor',
+      icon: Minus,
+      conceptoPlaceholder: 'Deuda contraída por Update',
+      filtroClientes: 'todos' // Todos los proveedores
+    }
+  };
+
+  const config = tipoConfig[tipo];
+  const Icon = config.icon;
+
+  // Cargar cotización al montar el componente
+  useEffect(() => {
+    const cargarCotizacion = async () => {
+      try {
+        const cotizacionData = await cotizacionService.obtenerCotizacionActual();
+        setCotizacionDolar(cotizacionData.valor || cotizacionData.promedio || 1000);
+      } catch (error) {
+        console.error('Error cargando cotización:', error);
+        setCotizacionDolar(1000); // Valor por defecto
+      }
+    };
+    cargarCotizacion();
+  }, []);
+
+  // Actualizar cliente seleccionado cuando cambie el preseleccionado
+  useEffect(() => {
+    if (clientePreseleccionado) {
+      setPersonaSeleccionada(clientePreseleccionado);
+    }
+  }, [clientePreseleccionado]);
+
+  // Determinar si un método de pago es en pesos (ARS)
+  const esMetodoEnPesos = (metodoPago) => {
+    return metodoPago === 'efectivo_pesos' || metodoPago === 'transferencia' || metodoPago === 'tarjeta_credito';
+  };
+
+  // Convertir monto a USD si es necesario
+  const convertirMontoAUSD = (monto, metodoPago) => {
+    const montoNumerico = parseFloat(monto) || 0;
+    if (esMetodoEnPesos(metodoPago)) {
+      return montoNumerico / cotizacionDolar;
+    }
+    return montoNumerico;
+  };
+
+  // Filtrar clientes según el tipo de movimiento
+  const clientesFiltrados = saldos.filter(cliente => {
+    const saldo = parseFloat(cliente.saldo_total || 0);
+
+    switch (config.filtroClientes) {
+      case 'acreedores':
+        return saldo < 0; // Solo clientes a los que les debemos (saldo negativo)
+      case 'deudores':
+        return saldo > 0; // Solo clientes que nos deben (saldo positivo)
+      case 'todos':
+      default:
+        return true; // Todos los clientes
+    }
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!personaSeleccionada) {
+      alert('Debe seleccionar una persona');
+      return;
+    }
+
+    if (!formData.monto || parseFloat(formData.monto) <= 0) {
+      alert('Debe ingresar un monto válido');
+      return;
+    }
+
+    // Validar método de pago solo para tipos que lo requieren
+    if ((tipo === 'cobro' || tipo === 'pago_realizado') && !cuentaSeleccionada) {
+      alert('Debe seleccionar un método de pago');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Obtener ID del cliente según el tipo de selector usado
+      const clienteId = tipo === 'cobro'
+        ? personaSeleccionada.cliente_id  // Dropdown simple
+        : personaSeleccionada.id;         // ClienteSelector
+
+      // Para agregar deuda y tomar deuda, el monto siempre es en USD (no necesita conversión)
+      const montoEnUSD = (tipo === 'agregar_deuda' || tipo === 'tomar_deuda')
+        ? parseFloat(formData.monto)
+        : convertirMontoAUSD(formData.monto, cuentaSeleccionada);
+
+      const movimientoData = {
+        persona_id: clienteId,
+        metodo_pago: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cuentaSeleccionada,
+        monto: montoEnUSD, // Monto convertido a USD
+        monto_original: parseFloat(formData.monto), // Monto original en la moneda ingresada
+        moneda_original: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? 'USD' : (esMetodoEnPesos(cuentaSeleccionada) ? 'ARS' : 'USD'),
+        cotizacion_usada: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cotizacionDolar,
+        concepto: formData.concepto || config.conceptoPlaceholder,
+        observaciones: formData.observaciones,
+        fecha: formData.fecha_operacion,
+        tipo: tipo,
+        created_by: 'Usuario' // TODO: Obtener del contexto de usuario
+      };
+
+      console.log('Movimiento a registrar:', movimientoData);
+
+      if (tipo === 'cobro') {
+        await handleRegistrarPago(
+          clienteId,
+          montoEnUSD, // Usar monto convertido a USD
+          formData.concepto || 'Pago recibido',
+          formData.observaciones,
+          formData.fecha_operacion
+        );
+      } else if (tipo === 'agregar_deuda') {
+        // Implementar agregar deuda
+        await registrarNuevaDeuda(
+          clienteId,
+          montoEnUSD,
+          formData.concepto || 'Deuda agregada',
+          formData.observaciones,
+          formData.fecha_operacion
+        );
+      } else if (tipo === 'pago_realizado') {
+        // Update paga a un proveedor o tercero
+        await registrarPagoRealizado(
+          clienteId,
+          montoEnUSD,
+          formData.concepto || 'Pago realizado por Update',
+          formData.observaciones,
+          formData.fecha_operacion
+        );
+      } else if (tipo === 'tomar_deuda') {
+        // Update toma deuda con un proveedor
+        await registrarDeudaUpdate(
+          clienteId,
+          montoEnUSD,
+          formData.concepto || 'Deuda contraída por Update',
+          formData.observaciones,
+          formData.fecha_operacion
+        );
+      } else {
+        alert(`✅ ${config.titulo} registrado exitosamente (funcionalidad no implementada)`);
+      }
+
+      onSuccess();
+      onClose();
+
+    } catch (error) {
+      console.error('Error registrando movimiento:', error);
+      alert('❌ Error: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-300">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
+          <div className="flex items-center space-x-3">
+            <Icon className="w-6 h-6" />
+            <div>
+              <h3 className="text-lg font-semibold">{config.titulo}</h3>
+              <p className="text-sm text-slate-300">{config.descripcion}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-700 rounded transition-colors"
+            disabled={loading}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Cliente */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+              Cliente * {config.filtroClientes === 'deudores' && '(que nos debe)'}
+            </label>
+
+            {/* Para Registrar Pago usar dropdown simple con clientes que tienen deuda */}
+            {tipo === 'cobro' ? (
+              clientesFiltrados.length === 0 ? (
+                <div className="w-full p-3 border border-slate-200 rounded bg-slate-50 text-slate-500 text-center">
+                  No hay clientes con deuda pendiente
+                </div>
+              ) : (
+                <select
+                  value={personaSeleccionada?.cliente_id || ''}
+                  onChange={(e) => {
+                    const clienteId = parseInt(e.target.value);
+                    const cliente = clientesFiltrados.find(c => c.cliente_id === clienteId);
+                    setPersonaSeleccionada(cliente);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  disabled={loading}
+                  required
+                >
+                  <option value="">Seleccionar cliente...</option>
+                  {clientesFiltrados.map((cliente) => (
+                    <option key={cliente.cliente_id} value={cliente.cliente_id}>
+                      {cliente.nombre} {cliente.apellido} - Debe: ${Math.abs(parseFloat(cliente.saldo_total || 0)).toFixed(2)}
+                    </option>
+                  ))}
+                </select>
+              )
+            ) : (
+              /* Para Agregar Deuda usar ClienteSelector completo para crear o seleccionar */
+              <ClienteSelector
+                selectedCliente={personaSeleccionada}
+                onSelectCliente={setPersonaSeleccionada}
+                required={true}
+                placeholder="Seleccionar cliente o crear nuevo..."
+              />
+            )}
+          </div>
+
+          {/* Método de Pago - Solo para tipos que requieren pago físico */}
+          {(tipo === 'cobro' || tipo === 'pago_realizado') && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+                Método de Pago *
+              </label>
+              <select
+                value={cuentaSeleccionada}
+                onChange={(e) => setCuentaSeleccionada(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                required
+              >
+                <option value="">Seleccionar método de pago...</option>
+                {metodosPagoDisponibles.map(metodo => (
+                  <option key={metodo.value} value={metodo.value}>
+                    {metodo.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Monto */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+              Monto * {(tipo === 'agregar_deuda' || tipo === 'tomar_deuda')
+                ? '(en USD)'
+                : cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada)
+                  ? '(en Pesos ARS)'
+                  : '(en USD)'}
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.monto}
+                onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
+                className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            {/* Cotización y conversión - Solo para tipos con métodos de pago en pesos */}
+            {(tipo === 'cobro' || tipo === 'pago_realizado') && cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && (
+              <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-slate-600 whitespace-nowrap">Cotización USD:</label>
+                  <div className="relative flex-1">
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                    <input
+                      type="number"
+                      step="1"
+                      value={cotizacionDolar}
+                      onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 1)}
+                      className="w-full pl-6 pr-3 py-1.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                </div>
+                {formData.monto && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Equivalente en USD:</span>
+                    <span className="font-medium text-emerald-600">
+                      ${convertirMontoAUSD(formData.monto, cuentaSeleccionada).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Concepto */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+              Concepto
+            </label>
+            <input
+              type="text"
+              value={formData.concepto}
+              onChange={(e) => setFormData(prev => ({ ...prev, concepto: e.target.value }))}
+              className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder={config.conceptoPlaceholder}
+            />
+          </div>
+
+          {/* Observaciones */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+              Observaciones
+            </label>
+            <textarea
+              value={formData.observaciones}
+              onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
+              rows={3}
+              className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Observaciones adicionales..."
+            />
+          </div>
+
+          {/* Selector de Fecha */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
+              Fecha del Movimiento *
+            </label>
+            <input
+              type="date"
+              value={formData.fecha_operacion}
+              onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
+              className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+              disabled={loading}
+            />
+          </div>
+
+
+          {/* Botones */}
+          <div className="flex space-x-4 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border border-slate-200 text-slate-700 rounded hover:bg-slate-50 transition-colors"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !personaSeleccionada || ((tipo === 'cobro' || tipo === 'pago_realizado') && !cuentaSeleccionada)}
+              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <>
+                  <Icon className="w-4 h-4" />
+                  <span>Registrar {tipo === 'cobro' ? 'Pago' : 'Deuda'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const CuentasCorrientesSection = () => {
   const { isSidebarCollapsed } = useOutletContext() || { isSidebarCollapsed: false };
   const [searchTerm, setSearchTerm] = useState('');
@@ -291,561 +856,6 @@ Esta acción no se puede deshacer.`;
     }
   };
 
-  // 🔧 Componente Formulario para Editar Movimiento
-  const EditarMovimientoForm = ({ movimiento, onClose, onSuccess, editarMovimiento }) => {
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-      monto: movimiento.monto || '',
-      concepto: movimiento.concepto || '',
-      observaciones: movimiento.observaciones || '',
-      fecha_operacion: movimiento.fecha_operacion || ''
-    });
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-
-      if (!formData.monto || !formData.concepto) {
-        alert('Monto y concepto son requeridos');
-        return;
-      }
-
-      if (parseFloat(formData.monto) <= 0) {
-        alert('El monto debe ser mayor a 0');
-        return;
-      }
-
-      setLoading(true);
-      try {
-        await editarMovimiento(movimiento.id, {
-          monto: parseFloat(formData.monto),
-          concepto: formData.concepto.trim(),
-          observaciones: formData.observaciones?.trim() || null,
-          fecha_operacion: formData.fecha_operacion
-        });
-
-        alert('✅ Movimiento editado exitosamente');
-        onSuccess();
-      } catch (error) {
-        console.error('Error editando movimiento:', error);
-        alert('❌ Error editando movimiento: ' + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="p-6">
-        <div className="space-y-4">
-          {/* Información no editable */}
-          <div className="bg-slate-50 p-3 rounded">
-            <p className="text-sm text-slate-600">
-              <strong>Cliente:</strong> {movimiento.nombre_cliente} {movimiento.apellido_cliente}
-            </p>
-            <p className="text-sm text-slate-600">
-              <strong>Tipo:</strong> {movimiento.tipo_movimiento === 'debe' ? 'Debe (Cliente nos debe)' : 'Haber (Nosotros debemos)'}
-            </p>
-            <p className="text-sm text-slate-600">
-              <strong>Operación:</strong> {movimiento.tipo_operacion?.replace(/_/g, ' ')}
-            </p>
-          </div>
-
-          {/* Campo Monto */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Monto USD *
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.monto}
-              onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          {/* Campo Concepto */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Concepto *
-            </label>
-            <input
-              type="text"
-              value={formData.concepto}
-              onChange={(e) => setFormData(prev => ({ ...prev, concepto: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          {/* Campo Fecha */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Fecha de Operación
-            </label>
-            <input
-              type="date"
-              value={formData.fecha_operacion}
-              onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
-              disabled={loading}
-            />
-          </div>
-
-          {/* Campo Observaciones */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Observaciones
-            </label>
-            <textarea
-              value={formData.observaciones}
-              onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
-              className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-600 focus:border-slate-600"
-              rows={3}
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        {/* Botones */}
-        <div className="flex gap-3 pt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            disabled={loading}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="flex-1 px-4 py-2 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
-        </div>
-      </form>
-    );
-  };
-
-  // 🔧 Componente Modal Unificado para Movimientos
-  const MovimientoModal = ({ tipo, onClose, onSuccess, clientePreseleccionado = null }) => {
-    const [loading, setLoading] = useState(false);
-    const [personaSeleccionada, setPersonaSeleccionada] = useState(clientePreseleccionado);
-    const [cuentaSeleccionada, setCuentaSeleccionada] = useState('');
-    const [cotizacionDolar, setCotizacionDolar] = useState(1000);
-    const [formData, setFormData] = useState({
-      monto: '',
-      concepto: '',
-      observaciones: '',
-      fecha_operacion: obtenerFechaLocal()
-
-    });
-
-    // Métodos de pago disponibles (desde constantes compartidas)
-    const metodosPagoDisponibles = METODOS_PAGO.filter(m => m.value !== 'cliente_abona');
-
-    const tipoConfig = {
-      cobro: {
-        titulo: 'Registrar Pago',
-        descripcion: 'Un cliente nos paga (reducir su deuda con nosotros)',
-        icon: TrendingDown,
-        conceptoPlaceholder: 'Pago recibido',
-        filtroClientes: 'deudores' // Solo clientes que nos deben
-      },
-      agregar_deuda: {
-        titulo: 'Agregar Deuda',
-        descripcion: 'Registrar deuda que un cliente tiene con nosotros',
-        icon: Plus,
-        conceptoPlaceholder: 'Deuda agregada',
-        filtroClientes: 'todos' // Todos los clientes
-      },
-      pago_realizado: {
-        titulo: 'Pago Realizado',
-        descripcion: 'Update paga a un proveedor o tercero',
-        icon: TrendingUp,
-        conceptoPlaceholder: 'Pago realizado por Update',
-        filtroClientes: 'todos' // Todos los proveedores/terceros
-      },
-      tomar_deuda: {
-        titulo: 'Tomar Deuda',
-        descripcion: 'Registrar deuda que Update tiene con un proveedor',
-        icon: Minus,
-        conceptoPlaceholder: 'Deuda contraída por Update',
-        filtroClientes: 'todos' // Todos los proveedores
-      }
-    };
-
-    const config = tipoConfig[tipo];
-    const Icon = config.icon;
-
-    // Cargar cotización al montar el componente
-    useEffect(() => {
-      const cargarCotizacion = async () => {
-        try {
-          const cotizacionData = await cotizacionService.obtenerCotizacionActual();
-          setCotizacionDolar(cotizacionData.valor || cotizacionData.promedio || 1000);
-        } catch (error) {
-          console.error('Error cargando cotización:', error);
-          setCotizacionDolar(1000); // Valor por defecto
-        }
-      };
-      cargarCotizacion();
-    }, []);
-
-    // Actualizar cliente seleccionado cuando cambie el preseleccionado
-    useEffect(() => {
-      if (clientePreseleccionado) {
-        setPersonaSeleccionada(clientePreseleccionado);
-      }
-    }, [clientePreseleccionado]);
-
-    // Determinar si un método de pago es en pesos (ARS)
-    const esMetodoEnPesos = (metodoPago) => {
-      return metodoPago === 'efectivo_pesos' || metodoPago === 'transferencia' || metodoPago === 'tarjeta_credito';
-    };
-
-    // Convertir monto a USD si es necesario
-    const convertirMontoAUSD = (monto, metodoPago) => {
-      const montoNumerico = parseFloat(monto) || 0;
-      if (esMetodoEnPesos(metodoPago)) {
-        return montoNumerico / cotizacionDolar;
-      }
-      return montoNumerico;
-    };
-
-    // Filtrar clientes según el tipo de movimiento
-    const clientesFiltrados = saldos.filter(cliente => {
-      const saldo = parseFloat(cliente.saldo_total || 0);
-
-      switch (config.filtroClientes) {
-        case 'acreedores':
-          return saldo < 0; // Solo clientes a los que les debemos (saldo negativo)
-        case 'deudores':
-          return saldo > 0; // Solo clientes que nos deben (saldo positivo)
-        case 'todos':
-        default:
-          return true; // Todos los clientes
-      }
-    });
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-
-      if (!personaSeleccionada) {
-        alert('Debe seleccionar una persona');
-        return;
-      }
-
-      if (!formData.monto || parseFloat(formData.monto) <= 0) {
-        alert('Debe ingresar un monto válido');
-        return;
-      }
-
-      // Validar método de pago solo para tipos que lo requieren
-      if ((tipo === 'cobro' || tipo === 'pago_realizado') && !cuentaSeleccionada) {
-        alert('Debe seleccionar un método de pago');
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        // Obtener ID del cliente según el tipo de selector usado
-        const clienteId = tipo === 'cobro'
-          ? personaSeleccionada.cliente_id  // Dropdown simple
-          : personaSeleccionada.id;         // ClienteSelector
-
-        // Para agregar deuda y tomar deuda, el monto siempre es en USD (no necesita conversión)
-        const montoEnUSD = (tipo === 'agregar_deuda' || tipo === 'tomar_deuda')
-          ? parseFloat(formData.monto)
-          : convertirMontoAUSD(formData.monto, cuentaSeleccionada);
-
-        const movimientoData = {
-          persona_id: clienteId,
-          metodo_pago: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cuentaSeleccionada,
-          monto: montoEnUSD, // Monto convertido a USD
-          monto_original: parseFloat(formData.monto), // Monto original en la moneda ingresada
-          moneda_original: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? 'USD' : (esMetodoEnPesos(cuentaSeleccionada) ? 'ARS' : 'USD'),
-          cotizacion_usada: (tipo === 'agregar_deuda' || tipo === 'tomar_deuda') ? null : cotizacionDolar,
-          concepto: formData.concepto || config.conceptoPlaceholder,
-          observaciones: formData.observaciones,
-          fecha: formData.fecha_operacion,
-          tipo: tipo,
-          created_by: 'Usuario' // TODO: Obtener del contexto de usuario
-        };
-
-        console.log('Movimiento a registrar:', movimientoData);
-
-        if (tipo === 'cobro') {
-          await handleRegistrarPago(
-            clienteId,
-            montoEnUSD, // Usar monto convertido a USD
-            formData.concepto || 'Pago recibido',
-            formData.observaciones,
-            formData.fecha_operacion
-          );
-        } else if (tipo === 'agregar_deuda') {
-          // Implementar agregar deuda
-          await registrarNuevaDeuda(
-            clienteId,
-            montoEnUSD,
-            formData.concepto || 'Deuda agregada',
-            formData.observaciones,
-            formData.fecha_operacion
-          );
-        } else if (tipo === 'pago_realizado') {
-          // Update paga a un proveedor o tercero
-          await registrarPagoRealizado(
-            clienteId,
-            montoEnUSD,
-            formData.concepto || 'Pago realizado por Update',
-            formData.observaciones,
-            formData.fecha_operacion
-          );
-        } else if (tipo === 'tomar_deuda') {
-          // Update toma deuda con un proveedor
-          await registrarDeudaUpdate(
-            clienteId,
-            montoEnUSD,
-            formData.concepto || 'Deuda contraída por Update',
-            formData.observaciones,
-            formData.fecha_operacion
-          );
-        } else {
-          alert(`✅ ${config.titulo} registrado exitosamente (funcionalidad no implementada)`);
-        }
-
-        onSuccess();
-        onClose();
-
-      } catch (error) {
-        console.error('Error registrando movimiento:', error);
-        alert('❌ Error: ' + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <div className="fixed inset-0 backdrop-blur-sm bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-300">
-          {/* Header */}
-          <div className="flex justify-between items-center p-4 bg-slate-800 text-white rounded-t">
-            <div className="flex items-center space-x-3">
-              <Icon className="w-6 h-6" />
-              <div>
-                <h3 className="text-lg font-semibold">{config.titulo}</h3>
-                <p className="text-sm text-slate-300">{config.descripcion}</p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-slate-700 rounded transition-colors"
-              disabled={loading}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Cliente */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Cliente * {config.filtroClientes === 'deudores' && '(que nos debe)'}
-              </label>
-
-              {/* Para Registrar Pago usar dropdown simple con clientes que tienen deuda */}
-              {tipo === 'cobro' ? (
-                clientesFiltrados.length === 0 ? (
-                  <div className="w-full p-3 border border-slate-200 rounded bg-slate-50 text-slate-500 text-center">
-                    No hay clientes con deuda pendiente
-                  </div>
-                ) : (
-                  <select
-                    value={personaSeleccionada?.cliente_id || ''}
-                    onChange={(e) => {
-                      const clienteId = parseInt(e.target.value);
-                      const cliente = clientesFiltrados.find(c => c.cliente_id === clienteId);
-                      setPersonaSeleccionada(cliente);
-                    }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    disabled={loading}
-                    required
-                  >
-                    <option value="">Seleccionar cliente...</option>
-                    {clientesFiltrados.map((cliente) => (
-                      <option key={cliente.cliente_id} value={cliente.cliente_id}>
-                        {cliente.nombre} {cliente.apellido} - Debe: ${Math.abs(parseFloat(cliente.saldo_total || 0)).toFixed(2)}
-                      </option>
-                    ))}
-                  </select>
-                )
-              ) : (
-                /* Para Agregar Deuda usar ClienteSelector completo para crear o seleccionar */
-                <ClienteSelector
-                  selectedCliente={personaSeleccionada}
-                  onSelectCliente={setPersonaSeleccionada}
-                  required={true}
-                  placeholder="Seleccionar cliente o crear nuevo..."
-                />
-              )}
-            </div>
-
-            {/* Método de Pago - Solo para tipos que requieren pago físico */}
-            {(tipo === 'cobro' || tipo === 'pago_realizado') && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Método de Pago *
-                </label>
-                <select
-                  value={cuentaSeleccionada}
-                  onChange={(e) => setCuentaSeleccionada(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                >
-                  <option value="">Seleccionar método de pago...</option>
-                  {metodosPagoDisponibles.map(metodo => (
-                    <option key={metodo.value} value={metodo.value}>
-                      {metodo.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Monto */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Monto * {(tipo === 'agregar_deuda' || tipo === 'tomar_deuda')
-                  ? '(en USD)'
-                  : cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada)
-                    ? '(en Pesos ARS)'
-                    : '(en USD)'}
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.monto}
-                  onChange={(e) => setFormData(prev => ({ ...prev, monto: e.target.value }))}
-                  className="w-full pl-8 pr-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              {/* Cotización y conversión - Solo para tipos con métodos de pago en pesos */}
-              {(tipo === 'cobro' || tipo === 'pago_realizado') && cuentaSeleccionada && esMetodoEnPesos(cuentaSeleccionada) && (
-                <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
-                  <div className="flex items-center gap-3">
-                    <label className="text-sm text-slate-600 whitespace-nowrap">Cotización USD:</label>
-                    <div className="relative flex-1">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
-                      <input
-                        type="number"
-                        step="1"
-                        value={cotizacionDolar}
-                        onChange={(e) => setCotizacionDolar(parseFloat(e.target.value) || 1)}
-                        className="w-full pl-6 pr-3 py-1.5 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                    </div>
-                  </div>
-                  {formData.monto && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-600">Equivalente en USD:</span>
-                      <span className="font-medium text-emerald-600">
-                        ${convertirMontoAUSD(formData.monto, cuentaSeleccionada).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Concepto */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Concepto
-              </label>
-              <input
-                type="text"
-                value={formData.concepto}
-                onChange={(e) => setFormData(prev => ({ ...prev, concepto: e.target.value }))}
-                className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder={config.conceptoPlaceholder}
-              />
-            </div>
-
-            {/* Observaciones */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Observaciones
-              </label>
-              <textarea
-                value={formData.observaciones}
-                onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
-                rows={3}
-                className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Observaciones adicionales..."
-              />
-            </div>
-
-            {/* Selector de Fecha */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Fecha del Movimiento *
-              </label>
-              <input
-                type="date"
-                value={formData.fecha_operacion}
-                onChange={(e) => setFormData(prev => ({ ...prev, fecha_operacion: e.target.value }))}
-                className="w-full px-4 py-3 border border-slate-200 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                required
-                disabled={loading}
-              />
-            </div>
-
-
-            {/* Botones */}
-            <div className="flex space-x-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-3 border border-slate-200 text-slate-700 rounded hover:bg-slate-50 transition-colors"
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={loading || !personaSeleccionada || ((tipo === 'cobro' || tipo === 'pago_realizado') && !cuentaSeleccionada)}
-                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Procesando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon className="w-4 h-4" />
-                    <span>Registrar {tipo === 'cobro' ? 'Pago' : 'Deuda'}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="p-6 bg-slate-50">
       {/* Header */}
@@ -1095,8 +1105,8 @@ Esta acción no se puede deshacer.`;
                           <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
                             {formatFecha(movimiento.fecha_operacion)}
                           </td>
-                          <td className="px-4 py-3 text-center text-sm text-slate-800">
-                            {movimiento.concepto}
+                          <td className="px-4 py-3 text-center text-sm text-slate-800 max-w-[200px]">
+                            <div className="truncate" title={movimiento.concepto}>{movimiento.concepto}</div>
                           </td>
                           <td className="px-4 py-3 text-center text-sm font-semibold text-slate-800 whitespace-nowrap">
                             {movimiento.tipo_movimiento === 'debe' ? formatearMonto(movimiento.monto, 'USD') : '-'}
@@ -1248,6 +1258,11 @@ Esta acción no se puede deshacer.`;
             await cargarTodosMovimientos();
           }}
           clientePreseleccionado={clientePreseleccionado}
+          saldos={saldos}
+          handleRegistrarPago={handleRegistrarPago}
+          registrarNuevaDeuda={registrarNuevaDeuda}
+          registrarPagoRealizado={registrarPagoRealizado}
+          registrarDeudaUpdate={registrarDeudaUpdate}
         />
       )}
 

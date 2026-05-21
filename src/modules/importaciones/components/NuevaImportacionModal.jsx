@@ -223,7 +223,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
               <div className="grid grid-cols-2 gap-4">
                 {/* PROVEEDOR */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor *</label>
                   <div className="flex gap-2">
                     <select
                       value={formRecibo.proveedor_id}
@@ -250,7 +250,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                 {/* CLIENTE — solo para courier_empresa */}
                 {tipoRegistro === 'courier_empresa' && (
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cliente <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cliente <span className="text-red-500">*</span></label>
                     <ClienteSelector
                       selectedCliente={clienteSeleccionado}
                       onSelectCliente={setClienteSeleccionado}
@@ -261,7 +261,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* FECHA */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Compra *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Compra *</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_compra}
@@ -272,7 +272,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* MÉTODO DE PAGO */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método de Pago *</label>
                   <select
                     value={formRecibo.metodo_pago}
                     onChange={(e) => setFormRecibo({ ...formRecibo, metodo_pago: e.target.value })}
@@ -288,7 +288,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* NÚMERO DE INVOICE */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Número de Invoice</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Número de Invoice</label>
                   <input
                     type="text"
                     value={formRecibo.numero_invoice}
@@ -300,7 +300,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* EMPRESA LOGÍSTICA */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Empresa Logística</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Empresa Logística</label>
                   <EmpresaLogisticaSelector
                     value={formRecibo.empresa_logistica}
                     onChange={(valor) => setFormRecibo({ ...formRecibo, empresa_logistica: valor })}
@@ -310,7 +310,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* TRACKING */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Número de Tracking</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Número de Tracking</label>
                   <input
                     type="text"
                     value={formRecibo.tracking_number}
@@ -322,7 +322,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* FECHA ESTIMADA */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">F. Estimada Ingreso</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">F. Estimada Ingreso</label>
                   <input
                     type="date"
                     value={formRecibo.fecha_estimada_ingreso}
@@ -333,7 +333,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* COSTO FINANCIERO */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo Financiero (%)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Financiero (%)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -349,7 +349,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* ARCHIVOS ADJUNTOS */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Archivos adjuntos (opcional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Archivos adjuntos (opcional)</label>
                   <div
                     className="border border-dashed border-slate-300 rounded px-3 py-2 flex items-center gap-2 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
@@ -391,7 +391,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
 
                 {/* DESCRIPCIÓN */}
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción <span className="text-red-500">*</span></label>
                   <textarea
                     value={formRecibo.observaciones}
                     onChange={(e) => setFormRecibo({ ...formRecibo, observaciones: e.target.value })}
@@ -412,7 +412,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4 space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Producto *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Producto *</label>
                   <PesajeCombobox
                     value={formItem.item}
                     onSelect={({ nombre, peso_kg }) =>
@@ -423,7 +423,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cantidad *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cantidad *</label>
                   <input
                     type="number"
                     value={formItem.cantidad}
@@ -433,7 +433,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio Unit. (USD) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio Unit. (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -445,7 +445,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso Est. Unit. (kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso Est. Unit. (kg) *</label>
                   <input
                     type="number"
                     step="0.001"
@@ -457,7 +457,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Color</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Color</label>
                   <input
                     type="text"
                     placeholder="Ej: Negro, Plata..."
@@ -467,7 +467,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Almacenamiento</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Almacenamiento</label>
                   <input
                     type="text"
                     placeholder="Ej: 256GB, 1TB..."
@@ -478,7 +478,7 @@ const NuevaImportacionModal = ({ onClose, onSuccess, tipoCourier }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Link del Producto (opcional)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Link del Producto (opcional)</label>
                 <input
                   type="url"
                   value={formItem.link_producto}

@@ -151,7 +151,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Nombre y Apellido — siempre 2 columnas */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre *</label>
                 <input
                   type="text"
                   value={formData.nombre}
@@ -162,7 +162,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
                 {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Apellido *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Apellido *</label>
                 <input
                   type="text"
                   value={formData.apellido}
@@ -177,7 +177,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Email y Teléfono */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   <Mail className="w-3.5 h-3.5 inline mr-1" />Email
                 </label>
                 <input
@@ -190,7 +190,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   <Phone className="w-3.5 h-3.5 inline mr-1" />Teléfono
                 </label>
                 <input
@@ -207,7 +207,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Cumpleaños y Procedencia */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   <Calendar className="w-3.5 h-3.5 inline mr-1" />Cumpleaños
                 </label>
                 <input
@@ -218,7 +218,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   <MapPin className="w-3.5 h-3.5 inline mr-1" />Procedencia
                 </label>
                 <select
@@ -237,7 +237,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
             {/* Referidor */}
             {formData.procedencia === 'referidos' && (
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">¿Quién lo refirió? *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">¿Quién lo refirió? *</label>
                 <ClienteSelector
                   selectedCliente={clienteReferidor}
                   onSelectCliente={(c) => { setClienteReferidor(c); handleChange('referido_por', c?.id || null); }}
@@ -249,7 +249,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
             {/* Profesión */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 <Briefcase className="w-3.5 h-3.5 inline mr-1" />Profesión
               </label>
               <ProfesionSelector value={formData.profesion} onChange={(val) => handleChange('profesion', val)} />
@@ -257,7 +257,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente = null, clientesParaRef
 
             {/* Notas */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 <FileText className="w-3.5 h-3.5 inline mr-1" />Notas
               </label>
               <textarea

@@ -46,7 +46,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre *</label>
             <input
               type="text"
               value={formData.nombre}
@@ -58,7 +58,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Email</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Email</label>
             <input
               type="email"
               value={formData.email}
@@ -70,7 +70,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Teléfono</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Teléfono</label>
             <input
               type="text"
               value={formData.telefono}
@@ -82,7 +82,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">País</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">País</label>
             <input
               type="text"
               value={formData.pais}
@@ -94,7 +94,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Dirección</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Dirección</label>
             <input
               type="text"
               value={formData.direccion}
@@ -106,7 +106,7 @@ const NuevoProveedorModal = ({ onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Barrio</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Barrio</label>
             <input
               type="text"
               value={formData.barrio}

@@ -46,7 +46,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre del producto *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre del producto *</label>
             <input
               type="text"
               value={formData.nombre}
@@ -59,7 +59,7 @@ const NuevoPesajeModal = ({ nombreInicial = '', crearPesaje, onClose, onSuccess 
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso unitario (kg) *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso unitario (kg) *</label>
             <input
               type="number"
               step="0.001"

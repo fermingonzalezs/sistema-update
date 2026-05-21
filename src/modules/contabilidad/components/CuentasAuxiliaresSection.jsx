@@ -755,7 +755,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
 
           {/* Selector de Cuenta */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Cuenta del Plan de Cuentas *
             </label>
             {loadingPlanCuentas ? (
@@ -787,7 +787,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
 
           {/* Nombre de la Cuenta Auxiliar */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Nombre de la Cuenta Auxiliar *
             </label>
             <input
@@ -803,7 +803,7 @@ const ModalNuevaCuentaAuxiliar = ({ isOpen, onClose, planCuentas, loadingPlanCue
 
           {/* Descripción */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Descripción (Opcional)
             </label>
             <textarea
@@ -949,7 +949,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Fecha */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Fecha *
               </label>
               <input
@@ -963,7 +963,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
             {/* Tipo */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Tipo de Movimiento *
               </label>
               <select
@@ -980,7 +980,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
             {/* Descripción */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Descripción *
               </label>
               <input
@@ -996,7 +996,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
             {/* Monto */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Monto (USD) *
               </label>
               <input
@@ -1012,7 +1012,7 @@ const ModalNuevoMovimiento = ({ isOpen, onClose, cuenta, onAgregar }) => {
 
             {/* Referencia */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Referencia (Opcional)
               </label>
               <input

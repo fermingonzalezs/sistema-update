@@ -77,7 +77,7 @@ function ModalNuevaReparacion({ open, onClose, onSave }) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tipo</label>
                   <select name="tipo" value={form.tipo} onChange={handleInputChange} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                     <option>Notebook</option>
                     <option>PC Escritorio</option>
@@ -88,19 +88,19 @@ function ModalNuevaReparacion({ open, onClose, onSave }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Marca</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Marca</label>
                   <input type="text" name="marca" value={form.marca} onChange={handleInputChange} placeholder="Ej: Apple, HP, Dell" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Modelo</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Modelo</label>
                   <input type="text" name="modelo" value={form.modelo} onChange={handleInputChange} placeholder="Ej: MacBook Air M1" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Serie</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Número de Serie</label>
                   <input type="text" name="serial" value={form.serial} onChange={handleInputChange} placeholder="Opcional" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Accesorios</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Accesorios</label>
                   <input type="text" name="accesorios" value={form.accesorios} onChange={handleInputChange} placeholder="Ej: cargador, funda" className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
                 </div>
               </div>
@@ -114,11 +114,11 @@ function ModalNuevaReparacion({ open, onClose, onSave }) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Problema Reportado *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Problema Reportado *</label>
                   <textarea name="problema" value={form.problema} onChange={handleInputChange} required placeholder="Describe el problema principal que reporta el cliente" rows="4" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"></textarea>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Prioridad</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Prioridad</label>
                   <select name="prioridad" value={form.prioridad} onChange={handleInputChange} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
                     <option value="baja">Baja</option>
                     <option value="media">Media</option>
@@ -127,7 +127,7 @@ function ModalNuevaReparacion({ open, onClose, onSave }) {
                   </select>
                 </div>
                 <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones Internas</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones Internas</label>
                   <textarea name="observaciones" value={form.observaciones} onChange={handleInputChange} placeholder="Notas adicionales para el técnico (ej: estado estético, contraseñas, etc.)" rows="2" className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"></textarea>
                 </div>
               </div>

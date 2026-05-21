@@ -16,6 +16,30 @@ import {
 import {
   CATEGORIAS_OTROS_LABELS
 } from '../../../shared/constants/categoryConstants';
+import {
+  obtenerFechaArgentina,
+  parsearFechaLocal,
+  formatearFechaLocal
+} from '../../../shared/config/timezone';
+
+const calcularPeriodo = (periodo) => {
+  const hoyStr = obtenerFechaArgentina();
+  const hoy = parsearFechaLocal(hoyStr);
+  if (!hoy) return null;
+
+  if (periodo === 'este_mes') {
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return { inicio: formatearFechaLocal(inicio), fin: hoyStr };
+  }
+
+  if (periodo === 'ultimo_mes') {
+    const hace30 = new Date(hoy);
+    hace30.setDate(hoy.getDate() - 30);
+    return { inicio: formatearFechaLocal(hace30), fin: hoyStr };
+  }
+
+  return null;
+};
 
 const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   // Filtro unificado: 'todos', 'notebooks', 'notebooks:macbook', 'celulares:iphone', 'otros:WATCHES', etc.
@@ -23,6 +47,8 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
   const [busqueda, setBusqueda] = useState('');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
+  const [periodoActivo, setPeriodoActivo] = useState(null);
+  const [filtroVendedor, setFiltroVendedor] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [actualizandoContabilizado, setActualizandoContabilizado] = useState({});
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
@@ -39,6 +65,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       filtroSubcategoria: parts[1] || 'todos'
     };
   }, [filtroSeleccionado]);
+
+  const seleccionarPeriodo = (periodo) => {
+    const rango = calcularPeriodo(periodo);
+    setPeriodoActivo(periodo);
+    setFechaDesde(rango.inicio);
+    setFechaHasta(rango.fin);
+    setPaginaActual(1);
+  };
 
   const ventasFiltradas = useMemo(() => ventas.filter(transaccion => {
     if (!transaccion.venta_items?.length) return false;
@@ -77,6 +111,8 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
       if (!tieneProducto) return false;
     }
 
+    if (filtroVendedor && transaccion.vendedor !== filtroVendedor) return false;
+
     if (busqueda.trim()) {
       const buscar = busqueda.toLowerCase();
       const camposTransaccion = [transaccion.cliente_nombre, transaccion.vendedor].filter(Boolean);
@@ -89,7 +125,12 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
     }
 
     return true;
-  }), [ventas, fechaDesde, fechaHasta, filtroCategoria, filtroSubcategoria, busqueda]);
+  }), [ventas, fechaDesde, fechaHasta, filtroCategoria, filtroSubcategoria, busqueda, filtroVendedor]);
+
+  const vendedoresUnicos = useMemo(() => {
+    const set = new Set(ventas.map(v => v.vendedor).filter(Boolean));
+    return Array.from(set).sort();
+  }, [ventas]);
 
   const estadisticasFiltradas = useMemo(() => {
     const totalIngresos = ventasFiltradas.reduce((acc, v) => acc + (parseFloat(v.monto_pago_1) || 0) + (parseFloat(v.monto_pago_2) || 0), 0);
@@ -341,10 +382,10 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
           <Tarjeta icon={TrendingUp} titulo="Margen Promedio" valor={`${estadisticasFiltradas.margenPromedio}%`} />
         </div>
 
-        <div className="bg-white p-4 rounded border border-slate-200">
-          <div className="flex flex-wrap items-end gap-3">
+        <div className="bg-white p-4 rounded border border-slate-200 overflow-x-auto">
+          <div className="flex flex-nowrap items-end gap-2">
             {/* Categoría unificada con optgroup */}
-            <div className="min-w-[240px]">
+            <div className="min-w-[180px]">
               <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría</label>
               <select
                 value={filtroSeleccionado}
@@ -373,38 +414,78 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
               </select>
             </div>
             {/* Buscar */}
-            <div className="flex-1 min-w-[150px]">
+            <div className="min-w-[120px]" style={{ flex: '0 1 180px' }}>
               <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Buscar</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input type="text" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }} placeholder="Producto, serial, cliente..." className="w-full h-9 pl-9 pr-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
               </div>
             </div>
-            {/* Desde */}
-            <div className="min-w-[160px]">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Desde</label>
-              <input type="date" value={fechaDesde} onChange={(e) => { setFechaDesde(e.target.value); setPaginaActual(1); }} className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
+            <div className="flex items-end gap-2">
+              <div className="w-[130px]">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider text-left">Desde</label>
+                <input
+                  type="date"
+                  value={fechaDesde}
+                  onChange={(e) => { setFechaDesde(e.target.value); setPeriodoActivo('personalizado'); setPaginaActual(1); }}
+                  className="w-full h-9 border border-slate-200 rounded px-2 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
+                />
+              </div>
+              <div className="w-[130px]">
+                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider text-left">Hasta</label>
+                <input
+                  type="date"
+                  value={fechaHasta}
+                  onChange={(e) => { setFechaHasta(e.target.value); setPeriodoActivo('personalizado'); setPaginaActual(1); }}
+                  className="w-full h-9 border border-slate-200 rounded px-2 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
+                />
+              </div>
             </div>
-            {/* Hasta */}
-            <div className="min-w-[160px]">
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
-              <input type="date" value={fechaHasta} onChange={(e) => { setFechaHasta(e.target.value); setPaginaActual(1); }} className="w-full h-9 px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm" />
-            </div>
-            {/* Limpiar */}
-            {(filtroSeleccionado !== 'todos' || busqueda || fechaDesde || fechaHasta) && (
-              <button
-                onClick={() => {
-                  setFiltroSeleccionado('todos');
-                  setBusqueda('');
-                  setFechaDesde('');
-                  setFechaHasta('');
-                  setPaginaActual(1);
-                }}
-                className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors whitespace-nowrap"
+            <div className="w-[160px]">
+              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider text-left">Vendedor</label>
+              <select
+                value={filtroVendedor}
+                onChange={(e) => { setFiltroVendedor(e.target.value); setPaginaActual(1); }}
+                className="w-full h-9 border border-slate-200 rounded px-2 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600 bg-white"
               >
-                Limpiar
-              </button>
-            )}
+                <option value="">Todos</option>
+                {vendedoresUnicos.map(v => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end gap-2">
+              {[
+                { key: 'este_mes', label: 'ESTE MES' },
+                { key: 'ultimo_mes', label: 'ÚLTIMO MES' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => seleccionarPeriodo(key)}
+                  className={`h-9 px-4 flex items-center justify-center text-xs font-medium rounded border transition-colors whitespace-nowrap ${
+                    periodoActivo === key
+                      ? 'bg-slate-800 text-white border-slate-800'
+                      : 'bg-slate-100 text-slate-600 border-slate-300 hover:border-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => {
+                setFiltroSeleccionado('todos');
+                setBusqueda('');
+                setFechaDesde('');
+                setFechaHasta('');
+                setPeriodoActivo(null);
+                setFiltroVendedor('');
+                setPaginaActual(1);
+              }}
+              className="ml-auto h-9 px-3 flex items-center text-sm text-slate-500 hover:text-slate-800 border border-slate-200 rounded bg-white whitespace-nowrap transition-colors underline"
+            >
+              LIMPIAR
+            </button>
           </div>
         </div>
       </div>
@@ -432,14 +513,14 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
               <table className="w-full divide-y divide-slate-200 table-fixed">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-10">Contab.</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Fecha</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Productos</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-48">Cliente</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Ganancia</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Vendedor</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-24">Acciones</th>
+                    <th className="pl-0 pr-0 py-3 text-center text-xs font-bold uppercase tracking-wider w-3"></th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-7">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-56">Productos</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-9">Cliente</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-9">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-9">Ganancia</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-9">Vendedor</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-9">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
@@ -450,7 +531,7 @@ const VentasSection = ({ ventas, loading, error, onLoadStats }) => {
                       className={`hover:bg-slate-50 transition-colors cursor-pointer ${transaccion.contabilizado ? 'bg-emerald-50' : ''}`}
                     >
                       {/* Contabilizado */}
-                      <td className="px-4 py-3 text-center">
+                      <td className="pl-0 pr-0 py-3 text-center">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

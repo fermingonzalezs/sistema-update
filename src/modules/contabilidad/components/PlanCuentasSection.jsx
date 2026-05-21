@@ -806,7 +806,7 @@ Esta acción no se puede deshacer.
               {/* Cuenta Padre - solo mostrar si no estamos creando subcuenta */}
               {!creatingSubcuenta && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Cuenta Padre
                   </label>
                   <select
@@ -846,7 +846,7 @@ Esta acción no se puede deshacer.
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-800 mb-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   {creatingSubcuenta ? 'Código de Subcuenta (generado automáticamente)' : 'Código de Cuenta *'}
                 </label>
                 <div className="flex gap-2">
@@ -885,7 +885,7 @@ Esta acción no se puede deshacer.
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-800 mb-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Nombre de la Cuenta *
                 </label>
                 <input
@@ -900,7 +900,7 @@ Esta acción no se puede deshacer.
               {/* Selector de Tipo de Cuenta - solo mostrar cuando estamos creando subcuenta */}
               {creatingSubcuenta && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Tipo de Cuenta
                   </label>
                   <div className="space-y-3">
@@ -914,7 +914,7 @@ Esta acción no se puede deshacer.
                           onChange={(e) => handleTipoChange(e.target.value)}
                           className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
                         />
-                        <span className="ml-2 text-sm text-slate-700">Automático (por nivel)</span>
+                        <span className="ml-2 text-xs font-semibold text-slate-700 uppercase tracking-wider">Automático (por nivel)</span>
                       </label>
                       <label className="flex items-center cursor-pointer">
                         <input
@@ -925,7 +925,7 @@ Esta acción no se puede deshacer.
                           onChange={(e) => handleTipoChange(e.target.value)}
                           className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
                         />
-                        <span className="ml-2 text-sm text-slate-700">Categoría</span>
+                        <span className="ml-2 text-xs font-semibold text-slate-700 uppercase tracking-wider">Categoría</span>
                       </label>
                       <label className="flex items-center cursor-pointer">
                         <input
@@ -936,7 +936,7 @@ Esta acción no se puede deshacer.
                           onChange={(e) => handleTipoChange(e.target.value)}
                           className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
                         />
-                        <span className="ml-2 text-sm text-slate-700">Cuenta Imputable</span>
+                        <span className="ml-2 text-xs font-semibold text-slate-700 uppercase tracking-wider">Cuenta Imputable</span>
                       </label>
                     </div>
 
@@ -979,7 +979,7 @@ Esta acción no se puede deshacer.
               {/* Tipo - solo mostrar si no estamos creando subcuenta */}
               {!creatingSubcuenta && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-800 mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Tipo (automático)
                   </label>
                   <div className="w-full px-4 py-3 rounded border-2 border-dashed border-slate-200 bg-slate-200">
@@ -1001,7 +1001,7 @@ Esta acción no se puede deshacer.
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-800 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       Moneda Original *
                     </label>
                     <select
@@ -1036,7 +1036,7 @@ Esta acción no se puede deshacer.
                         disabled={formData.moneda_original === 'ARS'} // ARS siempre requiere cotización
                         className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded"
                       />
-                      <span className="text-sm font-medium text-slate-800">
+<span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                         Requiere cotización para conversión
                       </span>
                     </label>

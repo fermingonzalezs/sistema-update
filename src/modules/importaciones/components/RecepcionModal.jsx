@@ -215,7 +215,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
             <div className="border border-slate-300 border-t-0 rounded-b p-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Recepción *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Recepción *</label>
                   <input
                     type="date"
                     value={formDatos.fecha_recepcion}
@@ -225,7 +225,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso Total con Caja (kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso Total con Caja (kg) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -236,7 +236,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso sin Caja (kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso sin Caja (kg) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -250,7 +250,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio por KG (USD) *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio por KG (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -261,7 +261,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pago Courier (USD)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -277,7 +277,7 @@ const RecepcionModal = ({ recibo, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo Picking/Shipping (USD)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Picking/Shipping (USD)</label>
                   <input
                     type="number"
                     step="0.01"

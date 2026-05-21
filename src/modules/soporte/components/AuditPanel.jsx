@@ -436,45 +436,45 @@ const AuditPanel = () => {
                         <div className="p-6 overflow-y-auto max-h-[60vh]">
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Fecha</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha</label>
                                     <p className="text-sm text-slate-800">{formatearFecha(modalDetalle.created_at)}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Operación</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Operación</label>
                                     <div className="flex items-center gap-2 mt-1">
                                         {getOperationIcon(modalDetalle.operation)}
                                         <span className="text-sm font-medium">{modalDetalle.operation}</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Usuario</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Usuario</label>
                                     <p className="text-sm text-slate-800">{modalDetalle.user_email || '-'}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Rol</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Rol</label>
                                     <p className="text-sm text-slate-800">{modalDetalle.user_role || '-'}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Sucursal</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Sucursal</label>
                                     <p className="text-sm text-slate-800">{modalDetalle.user_branch || '-'}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Tabla</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tabla</label>
                                     <p className="text-sm text-slate-800 font-mono">{modalDetalle.table_name}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Categoría</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Categoría</label>
                                     <p className="text-sm text-slate-800">{modalDetalle.categoria}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase">Razón</label>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Razón</label>
                                     <p className="text-sm text-slate-800">{modalDetalle.razon_operacion || '-'}</p>
                                 </div>
                             </div>
 
                             {modalDetalle.old_values && Object.keys(modalDetalle.old_values).length > 0 && (
                                 <div className="mb-4">
-                                    <label className="text-xs font-medium text-slate-500 uppercase block mb-2">
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                                         Valores Anteriores
                                     </label>
                                     <pre className="bg-red-50 border border-red-200 rounded p-3 text-xs text-slate-700 overflow-x-auto">
@@ -485,7 +485,7 @@ const AuditPanel = () => {
 
                             {modalDetalle.new_values && Object.keys(modalDetalle.new_values).length > 0 && (
                                 <div className="mb-4">
-                                    <label className="text-xs font-medium text-slate-500 uppercase block mb-2">
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                                         Valores Nuevos
                                     </label>
                                     <pre className="bg-green-50 border border-green-200 rounded p-3 text-xs text-slate-700 overflow-x-auto">
@@ -496,7 +496,7 @@ const AuditPanel = () => {
 
                             {modalDetalle.changed_fields && modalDetalle.changed_fields.length > 0 && (
                                 <div>
-                                    <label className="text-xs font-medium text-slate-500 uppercase block mb-2">
+                                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                                         Campos Modificados
                                     </label>
                                     <div className="flex flex-wrap gap-2">

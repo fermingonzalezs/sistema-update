@@ -106,14 +106,14 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Proveedor</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor</label>
                     <div className="w-full border border-slate-200 rounded px-3 py-2 text-sm bg-slate-50 text-slate-600">
                       {reciboEditado.proveedor}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha *</label>
                     <input
                       type="date"
                       value={reciboEditado.fecha}
@@ -126,7 +126,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método de Pago</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método de Pago</label>
                     <MetodoPagoSelector
                       value={reciboEditado.metodo_pago}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, metodo_pago: e.target.value })}
@@ -137,7 +137,7 @@ const PasarAComprasModal = ({ recibo, onClose, onConfirm, isSubmitting }) => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
                     <textarea
                       value={reciboEditado.descripcion}
                       onChange={(e) => setReciboEditado({ ...reciboEditado, descripcion: e.target.value })}

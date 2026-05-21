@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { Plus, CreditCard, Filter, X, Check, Edit2, Trash2, Building2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Plus, CreditCard, X, Check, Edit2, Trash2, Building2 } from 'lucide-react';
 import { useCuentasAPagar } from '../hooks/useCuentasAPagar';
 import Tarjeta from '../../../shared/components/layout/Tarjeta';
 import { METODOS_PAGO } from '../../../shared/constants/paymentMethods';
 import { obtenerFechaArgentina } from '../../../shared/config/timezone';
+import { cotizacionService } from '../../../shared/services/cotizacionService';
+import { supabase } from '../../../lib/supabase';
+import LoadingSpinner from '../../../shared/components/base/LoadingSpinner';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
@@ -33,10 +36,28 @@ const CATEGORIA_LABELS = {
 const SUCURSAL_COLORES = { la_plata: '#10b981', mitre: '#475569' };
 
 const inputCls = 'w-full border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
-const labelCls = 'block text-sm font-medium text-slate-700 mb-1';
+const labelCls = 'block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center';
 
 const CuentasAPagarSection = () => {
   const { servicios, cuentas, loading, addServicio, updateServicio, addCuenta, updateCuenta, deleteCuenta, marcarPagada } = useCuentasAPagar();
+
+  const [cotizacionBlue, setCotizacionBlue] = useState(null);
+  const [cajas, setCajas] = useState([]);
+  const [cajaPago, setCajaPago] = useState('');
+
+  useEffect(() => {
+    cotizacionService.obtenerCotizacionActual()
+      .then(data => setCotizacionBlue(data?.valor || null))
+      .catch(() => {});
+
+    supabase
+      .from('plan_cuentas')
+      .select('id, codigo, nombre')
+      .like('codigo', '1.1.01%')
+      .eq('imputable', true)
+      .order('codigo')
+      .then(({ data }) => setCajas(data || []));
+  }, []);
 
   const [modalNuevoServicio, setModalNuevoServicio] = useState(false);
   const [modalEditarServicio, setModalEditarServicio] = useState(null);
@@ -75,25 +96,32 @@ const CuentasAPagarSection = () => {
     });
   }, [cuentas, filtroSucursal, filtroEstado, filtroCategoria, filtroDesde, filtroHasta, hoy]);
 
+  const efectivoUSD = (c) => {
+    if (c.moneda === 'ARS') {
+      const ars = parseFloat(c.monto_original || c.monto_ars || 0);
+      if (ars && cotizacionBlue) return ars / cotizacionBlue;
+      return parseFloat(c.monto_usd || 0);
+    }
+    return parseFloat(c.monto_usd || 0);
+  };
+
   const stats = useMemo(() => {
-    let totalPendienteUSD = 0;
-    let vencidas = 0;
-    let pagadoMes = 0;
-    let cantidadPendientes = 0;
     const mesActual = hoy.substring(0, 7);
+    let pendientesMitre = 0, totalMesMitre = 0;
+    let pendientesLaPlata = 0, totalMesLaPlata = 0;
     cuentas.forEach(c => {
       const estadoReal = getEstadoReal(c);
-      if (estadoReal !== 'pagada') {
-        cantidadPendientes++;
-        totalPendienteUSD += parseFloat(c.monto_usd || 0);
-      }
-      if (estadoReal === 'vencida') vencidas++;
-      if (c.estado === 'pagada' && c.fecha_pago?.startsWith(mesActual)) {
-        pagadoMes += parseFloat(c.monto_usd || 0);
+      const usd = efectivoUSD(c);
+      if (c.sucursal === 'mitre') {
+        if (estadoReal !== 'pagada') pendientesMitre += usd;
+        if (c.fecha_vencimiento?.startsWith(mesActual)) totalMesMitre += usd;
+      } else if (c.sucursal === 'la_plata') {
+        if (estadoReal !== 'pagada') pendientesLaPlata += usd;
+        if (c.fecha_vencimiento?.startsWith(mesActual)) totalMesLaPlata += usd;
       }
     });
-    return { totalPendienteUSD, vencidas, pagadoMes, cantidadPendientes };
-  }, [cuentas, hoy]);
+    return { pendientesMitre, totalMesMitre, pendientesLaPlata, totalMesLaPlata };
+  }, [cuentas, hoy, cotizacionBlue]);
 
   const datosGrafico = useMemo(() => {
     const meses = [];
@@ -149,6 +177,13 @@ const CuentasAPagarSection = () => {
   const montoDisplay = (cuenta) => {
     const monto = parseFloat(cuenta.monto_original || cuenta.monto_usd || 0);
     return cuenta.moneda === 'ARS' ? formatearARS(monto) : formatearUSD(monto);
+  };
+
+  const montoUSDEstimado = (cuenta) => {
+    if (cuenta.moneda !== 'ARS') return null;
+    const monto = parseFloat(cuenta.monto_original || cuenta.monto_ars || 0);
+    if (!monto || !cotizacionBlue) return null;
+    return monto / cotizacionBlue;
   };
 
   const limpiarFiltros = () => {
@@ -225,17 +260,11 @@ const CuentasAPagarSection = () => {
       return;
     }
 
-    let montoUSD = 0, montoARS = 0, cotizacion = null;
+    let montoUSD = 0, montoARS = 0;
     if (monedaNueva === 'USD') {
       montoUSD = montoOriginal;
     } else {
-      cotizacion = parseFloat(form.cotizacion_usd?.value);
-      if (!cotizacion || cotizacion <= 0) {
-        alert('La cotización del USD es obligatoria para cuentas en ARS');
-        return;
-      }
       montoARS = montoOriginal;
-      montoUSD = Math.round((montoOriginal / cotizacion) * 100) / 100;
     }
 
     const data = {
@@ -248,7 +277,7 @@ const CuentasAPagarSection = () => {
       monto_original: montoOriginal,
       monto_usd: montoUSD,
       monto_ars: montoARS,
-      cotizacion_creacion: cotizacion,
+      cotizacion_creacion: null,
       fecha_vencimiento: form.fecha_vencimiento.value,
       observaciones: form.observaciones.value.trim() || null,
       estado: 'pendiente'
@@ -274,24 +303,18 @@ const CuentasAPagarSection = () => {
     e.preventDefault();
     const form = e.target;
     const montoOriginal = parseFloat(form.monto.value) || 0;
-    let montoUSD = 0, montoARS = 0, cotizacion = null;
+    let montoUSD = 0, montoARS = 0;
     if (monedaEditar === 'USD') {
       montoUSD = montoOriginal;
     } else {
-      cotizacion = parseFloat(form.cotizacion_usd?.value);
-      if (!cotizacion || cotizacion <= 0) {
-        alert('La cotización del USD es obligatoria para cuentas en ARS');
-        return;
-      }
       montoARS = montoOriginal;
-      montoUSD = Math.round((montoOriginal / cotizacion) * 100) / 100;
     }
     const data = {
       moneda: monedaEditar,
       monto_original: montoOriginal,
       monto_usd: montoUSD,
       monto_ars: montoARS,
-      cotizacion_creacion: cotizacion,
+      cotizacion_creacion: null,
       fecha_vencimiento: form.fecha_vencimiento.value,
       observaciones: form.observaciones.value.trim() || null
     };
@@ -313,7 +336,7 @@ const CuentasAPagarSection = () => {
     const data = {
       fecha_pago: fechaPago,
       metodo_pago: form.metodo_pago.value || null,
-      cuenta_contable: form.cuenta_contable.value.trim() || null
+      cuenta_contable: cajaPago || null
     };
 
     if (modalPagar.moneda === 'ARS') {
@@ -327,7 +350,7 @@ const CuentasAPagarSection = () => {
     }
 
     const result = await marcarPagada(modalPagar.id, data);
-    if (result.success) setModalPagar(null);
+    if (result.success) { setModalPagar(null); setCajaPago(''); }
     else alert('Error: ' + result.error);
   };
 
@@ -338,6 +361,15 @@ const CuentasAPagarSection = () => {
   };
 
   const serviciosActivos = servicios.filter(s => s.activo !== false);
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-10 h-10 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
+        <span className="text-slate-500 text-sm font-medium">Cargando cuentas a pagar...</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -374,10 +406,10 @@ const CuentasAPagarSection = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Tarjeta titulo="Pendiente (USD)" valor={formatearUSD(stats.totalPendienteUSD)} />
-        <Tarjeta titulo="Vencidas" valor={stats.vencidas} />
-        <Tarjeta titulo="Pagado este mes" valor={formatearUSD(stats.pagadoMes)} />
-        <Tarjeta titulo="Servicios activos" valor={serviciosActivos.length} />
+        <Tarjeta titulo="Pendientes Mitre" valor={formatearUSD(Math.round(stats.pendientesMitre))} />
+        <Tarjeta titulo="Total Mes Mitre" valor={formatearUSD(Math.round(stats.totalMesMitre))} />
+        <Tarjeta titulo="Pendientes La Plata" valor={formatearUSD(Math.round(stats.pendientesLaPlata))} />
+        <Tarjeta titulo="Total Mes La Plata" valor={formatearUSD(Math.round(stats.totalMesLaPlata))} />
       </div>
 
       {/* Gráfico */}
@@ -402,16 +434,9 @@ const CuentasAPagarSection = () => {
 
       {/* Filtros + Tabla */}
       <div className="bg-white rounded border border-slate-200">
-        <div className="bg-gray-50 p-4 border-b border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-              <Filter size={14} /> Filtros
-            </div>
-            <button onClick={limpiarFiltros} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
-              Limpiar
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="bg-gray-50 px-4 py-3 border-b border-slate-200">
+          <div className="flex items-end gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 flex-1">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sucursal</label>
               <select value={filtroSucursal} onChange={(e) => setFiltroSucursal(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600">
@@ -443,6 +468,10 @@ const CuentasAPagarSection = () => {
               <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Hasta</label>
               <input type="date" value={filtroHasta} onChange={(e) => setFiltroHasta(e.target.value)} className="w-full h-9 border border-slate-200 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600" />
             </div>
+            </div>
+            <button onClick={limpiarFiltros} className="h-9 px-3 text-xs text-slate-600 hover:text-slate-800 border border-slate-200 rounded bg-white whitespace-nowrap shrink-0">
+              Limpiar
+            </button>
           </div>
         </div>
 
@@ -450,7 +479,7 @@ const CuentasAPagarSection = () => {
           <table className="w-full">
             <thead className="bg-slate-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Servicio</th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Servicio</th>
                 <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Sucursal</th>
                 <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Categoría</th>
                 <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Vencimiento</th>
@@ -460,9 +489,7 @@ const CuentasAPagarSection = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {loading ? (
-                <tr><td colSpan="7" className="px-4 py-8 text-center text-slate-500">Cargando...</td></tr>
-              ) : cuentasFiltradas.length === 0 ? (
+              {cuentasFiltradas.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
                     {cuentas.length === 0 ? 'No hay cuentas registradas' : 'Sin resultados para los filtros aplicados'}
@@ -473,7 +500,7 @@ const CuentasAPagarSection = () => {
                   const estadoReal = getEstadoReal(cuenta);
                   return (
                     <tr key={cuenta.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="px-4 py-3 text-sm text-slate-800 font-medium max-w-[220px]">
+                      <td className="px-4 py-3 text-sm text-slate-800 font-medium max-w-[220px] text-center">
                         <div className="truncate" title={cuenta.descripcion}>{cuenta.descripcion}</div>
                         {cuenta.proveedor && (
                           <div className="text-xs text-slate-400 truncate">{cuenta.proveedor}</div>
@@ -491,16 +518,19 @@ const CuentasAPagarSection = () => {
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 text-center whitespace-nowrap">
                         {montoDisplay(cuenta)}
-                        <div className="text-xs text-slate-400">
-                          {cuenta.moneda === 'ARS' ? `≈ ${formatearUSD(cuenta.monto_usd)}` : ''}
-                        </div>
+                        {(() => {
+                          const est = montoUSDEstimado(cuenta);
+                          return est != null
+                            ? <div className="text-xs text-slate-400">≈ {formatearUSD(est)}</div>
+                            : null;
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-center">{getEstadoBadge(estadoReal)}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           {estadoReal !== 'pagada' && (
                             <button
-                              onClick={() => setModalPagar(cuenta)}
+                              onClick={() => { setModalPagar(cuenta); setCajaPago(''); }}
                               className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                               title="Marcar como pagada"
                             >
@@ -688,17 +718,9 @@ const CuentasAPagarSection = () => {
                 </div>
                 <div>
                   <label className={labelCls}>Monto ({monedaNueva}) *</label>
-                  <input name="monto" type="number" step="0.01" min="0" required className={inputCls} placeholder="0.00" />
+                  <input name="monto" type="number" step="0.01" min="0" required className={`${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`} placeholder="0.00" />
                 </div>
               </div>
-
-              {monedaNueva === 'ARS' && (
-                <div className="bg-orange-50 border border-orange-200 rounded p-3">
-                  <label className={labelCls}>Cotización USD *</label>
-                  <input name="cotizacion_usd" type="number" step="0.01" min="0" required className={inputCls} placeholder="Ej: 1200.00" />
-                  <p className="text-xs text-slate-500 mt-1">Valor del dólar en pesos</p>
-                </div>
-              )}
 
               <div>
                 <label className={labelCls}>Fecha de vencimiento *</label>
@@ -754,12 +776,6 @@ const CuentasAPagarSection = () => {
                   />
                 </div>
               </div>
-              {monedaEditar === 'ARS' && (
-                <div className="bg-orange-50 border border-orange-200 rounded p-3">
-                  <label className={labelCls}>Cotización USD *</label>
-                  <input name="cotizacion_usd" type="number" step="0.01" min="0" required defaultValue={modalEditar.cotizacion_creacion || ''} className={inputCls} placeholder="Ej: 1200.00" />
-                </div>
-              )}
               <div>
                 <label className={labelCls}>Fecha de vencimiento *</label>
                 <input name="fecha_vencimiento" type="date" required defaultValue={modalEditar.fecha_vencimiento} className={inputCls} />
@@ -815,8 +831,17 @@ const CuentasAPagarSection = () => {
                 </div>
               )}
               <div>
-                <label className={labelCls}>Cuenta contable</label>
-                <input name="cuenta_contable" type="text" className={inputCls} placeholder="Ej: 4.1 Alquileres" />
+                <label className={labelCls}>Caja</label>
+                <select
+                  value={cajaPago}
+                  onChange={(e) => setCajaPago(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">Seleccionar caja...</option>
+                  {cajas.map(c => (
+                    <option key={c.id} value={c.nombre}>{c.nombre}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex gap-3 pt-3 border-t border-slate-200">
                 <button type="button" onClick={() => setModalPagar(null)} className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded hover:bg-slate-50 text-sm">Cancelar</button>

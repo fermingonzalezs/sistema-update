@@ -458,7 +458,7 @@ function TesteoEquiposSection() {
               {/* Contenido del formulario (scrollable) */}
               <div className="flex-grow p-6 space-y-4 overflow-y-auto">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Equipo</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tipo de Equipo</label>
                   <select
                     value={formNuevo.tipo}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, tipo: e.target.value }))}
@@ -471,7 +471,7 @@ function TesteoEquiposSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Marca *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Marca *</label>
                     <input
                       type="text"
                       value={formNuevo.marca}
@@ -482,7 +482,7 @@ function TesteoEquiposSection() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Modelo *</label>
                     <input
                       type="text"
                       value={formNuevo.modelo}
@@ -495,7 +495,7 @@ function TesteoEquiposSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número de Serie (Opcional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Número de Serie (Opcional)</label>
                   <input
                     type="text"
                     value={formNuevo.serial}
@@ -505,7 +505,7 @@ function TesteoEquiposSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor (Opcional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor (Opcional)</label>
                   <input
                     type="text"
                     value={formNuevo.proveedor}
@@ -515,7 +515,7 @@ function TesteoEquiposSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Observaciones (Opcional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones (Opcional)</label>
                   <textarea
                     value={formNuevo.observaciones}
                     onChange={(e) => setFormNuevo(prev => ({ ...prev, observaciones: e.target.value }))}

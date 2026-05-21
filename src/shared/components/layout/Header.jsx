@@ -218,13 +218,13 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
 
 
               {/* Cotización USD/ARS */}
-              <div className="bg-slate-700 rounded px-3 py-2 border border-slate-600">
+              <div className="bg-slate-700 rounded px-3 py-2 border border-slate-600 flex items-center justify-center">
                 {cotizacion ? (
-                  <div className="flex flex-col items-center justify-center w-full">
+                  <div className="flex flex-col items-center justify-center">
                     <div className="text-sm md:text-base font-bold text-emerald-500 leading-none text-center">
                       ${cotizacion.valor || 'N/A'}
                     </div>
-                    <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wide text-center">
+                    <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wide text-center mt-0.5">
                       Dolar Blue
                     </div>
                   </div>
@@ -297,7 +297,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
             {!mostrarCambioPass && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre</label>
                   <input
                     type="text"
                     value={nuevoNombre}
@@ -345,7 +345,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
             {mostrarCambioPass && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña actual</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Contraseña actual</label>
                   <div className="relative">
                     <input
                       type={showPassActual ? 'text' : 'password'}
@@ -366,7 +366,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nueva contraseña</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nueva contraseña</label>
                   <div className="relative">
                     <input
                       type={showPassNueva ? 'text' : 'password'}
@@ -404,7 +404,7 @@ const Header = ({ activeSection, isSidebarCollapsed, onToggleMobileSidebar }) =>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar nueva contraseña</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Confirmar nueva contraseña</label>
                   <div className="relative">
                     <input
                       type={showPassConfirmar ? 'text' : 'password'}

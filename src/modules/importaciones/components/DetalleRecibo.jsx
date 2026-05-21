@@ -496,13 +496,13 @@ const DetalleRecibo = ({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 {/* Número de Recibo (no editable) */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Recibo</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Recibo</label>
                   <p className="font-medium text-slate-800 mt-1">{recibo.numero_recibo}</p>
                 </div>
 
                 {/* Proveedor */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Proveedor</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Proveedor</label>
                   {modoEdicion ? (
                     <select
                       value={datosEditados.proveedor_id || ''}
@@ -521,7 +521,7 @@ const DetalleRecibo = ({
 
                 {/* Estado (no editable) */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Estado</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Estado</label>
                   <span className={`px-3 py-1 rounded text-xs font-semibold ${getEstadoColor(recibo.estado)} inline-block mt-1`}>
                     {getEstadoLabel(recibo.estado)}
                   </span>
@@ -529,7 +529,7 @@ const DetalleRecibo = ({
 
                 {/* Fecha Compra */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Fecha Compra</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha Compra</label>
                   {modoEdicion ? (
                     <input
                       type="date"
@@ -544,7 +544,7 @@ const DetalleRecibo = ({
 
                 {/* Método Pago */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Método Pago</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método Pago</label>
                   {modoEdicion ? (
                     <select
                       value={datosEditados.metodo_pago || ''}
@@ -563,7 +563,7 @@ const DetalleRecibo = ({
 
                 {/* Empresa Logística */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Empresa Logística</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Empresa Logística</label>
                   {modoEdicion ? (
                     <div className="mt-1">
                       <EmpresaLogisticaSelector
@@ -579,7 +579,7 @@ const DetalleRecibo = ({
 
                 {/* Número de Invoice */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Número de Invoice</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Número de Invoice</label>
                   {modoEdicion ? (
                     <input
                       type="text"
@@ -595,7 +595,7 @@ const DetalleRecibo = ({
 
                 {/* Tracking Number */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Tracking Number</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tracking Number</label>
                   {modoEdicion ? (
                     <input
                       type="text"
@@ -611,7 +611,7 @@ const DetalleRecibo = ({
 
                 {/* Fecha Estimada Ingreso */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">F. Est. Ingreso</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">F. Est. Ingreso</label>
                   {modoEdicion ? (
                     <input
                       type="date"
@@ -626,7 +626,7 @@ const DetalleRecibo = ({
 
                 {/* Fecha Ingreso Depósito USA */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">F. Ingreso Depósito USA</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">F. Ingreso Depósito USA</label>
                   {modoEdicion ? (
                     <input
                       type="date"
@@ -641,13 +641,13 @@ const DetalleRecibo = ({
 
                 {/* Fecha Recepción Argentina (no editable) */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">F. Recepción Argentina</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">F. Recepción Argentina</label>
                   <p className="font-medium text-slate-800 mt-1">{formatDate(recibo.fecha_recepcion_argentina)}</p>
                 </div>
 
                 {/* Costo Financiero */}
                 <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Financiero</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Financiero</label>
                   <p className="font-medium text-slate-800 mt-1">
                     {recibo.porcentaje_financiero != null ? `${recibo.porcentaje_financiero}%` : '-'}
                   </p>
@@ -655,7 +655,7 @@ const DetalleRecibo = ({
 
                 {/* Cliente */}
                 <div className="text-center md:col-span-3">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block">Cliente (Opcional)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cliente (Opcional)</label>
                   {modoEdicion ? (
                     <select
                       value={datosEditados.cliente_id || ''}
@@ -681,7 +681,7 @@ const DetalleRecibo = ({
 
               {/* Observaciones */}
               <div className="mt-4 pt-4 border-t border-slate-200">
-                <label className="text-xs font-semibold text-slate-500 uppercase block mb-2">Observaciones</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                 {modoEdicion ? (
                   <textarea
                     value={datosEditados.observaciones || ''}
@@ -704,7 +704,7 @@ const DetalleRecibo = ({
               {/* Archivos adjuntos */}
               <div className="mt-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                     <Paperclip size={12} />
                     Archivos adjuntos {archivos.length > 0 && `(${archivos.length})`}
                   </label>
@@ -1223,19 +1223,19 @@ const DetalleRecibo = ({
                   <div className="flex justify-center">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm max-w-3xl w-full">
                       <div className="text-center">
-                        <label className="text-xs font-semibold text-slate-500 uppercase block">Peso con Caja</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso con Caja</label>
                         <p className="font-medium text-slate-800 mt-1">
                           {recibo.peso_sin_caja_kg != null ? `${parseFloat(recibo.peso_sin_caja_kg).toFixed(2)} kg` : '-'}
                         </p>
                       </div>
                       <div className="text-center">
-                        <label className="text-xs font-semibold text-slate-500 uppercase block">Courier a Pagar</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Courier a Pagar</label>
                         <p className="font-medium text-slate-800 mt-1">
                           {recibo.costo_courier_usd != null ? `U$ ${Math.round(parseFloat(recibo.costo_courier_usd))}` : '-'}
                         </p>
                       </div>
                       <div className="text-center">
-                        <label className="text-xs font-semibold text-slate-500 uppercase block">Cobrado al Cliente</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cobrado al Cliente</label>
                         <p className="font-medium text-slate-800 mt-1">
                           {recibo.monto_cobrado_usd != null ? `U$ ${Math.round(parseFloat(recibo.monto_cobrado_usd))}` : '-'}
                         </p>
@@ -1246,7 +1246,7 @@ const DetalleRecibo = ({
                 <div className="space-y-6 flex flex-col items-center">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Peso con Caja</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso con Caja</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1262,7 +1262,7 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Peso sin Caja</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso sin Caja</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1278,7 +1278,7 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Precio por KG</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio por KG</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1296,7 +1296,7 @@ const DetalleRecibo = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Courier a Pagar</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Courier a Pagar</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1312,7 +1312,7 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Picking/Shipping</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Picking/Shipping</label>
                       {modoEdicion ? (
                         <input
                           type="number"
@@ -1328,7 +1328,7 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Envío Total</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Envío Total</label>
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber((parseFloat(recibo.pago_courier_usd) || 0) + (parseFloat(recibo.costo_picking_shipping_usd) || 0))}
                       </p>
@@ -1337,12 +1337,12 @@ const DetalleRecibo = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-sm w-full max-w-5xl">
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Productos</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Productos</label>
                       <p className="font-medium text-slate-800 mt-1">USD ${formatNumber(modoEdicion ? totalProductosEdicion : totalProductos)}</p>
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Costo Total Final</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo Total Final</label>
                       <p className="font-medium text-slate-800 mt-1">
                         USD ${formatNumber(
                           modoEdicion
@@ -1353,7 +1353,7 @@ const DetalleRecibo = ({
                     </div>
 
                     <div className="text-center">
-                      <label className="text-xs font-semibold text-slate-500 uppercase block">Cantidad de Productos</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cantidad de Productos</label>
                       <p className="font-medium text-slate-800 mt-1">
                         {modoEdicion
                           ? [...itemsVisibles, ...itemsNuevos].reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0)

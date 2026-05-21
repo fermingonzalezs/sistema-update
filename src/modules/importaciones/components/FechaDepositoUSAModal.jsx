@@ -27,12 +27,12 @@ const FechaDepositoUSAModal = ({ recibo, onClose, onConfirm, isSubmitting }) => 
         {/* CONTENIDO */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Recibo: {recibo.numero_recibo}</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Recibo: {recibo.numero_recibo}</label>
             <p className="text-xs text-slate-500">Selecciona la fecha en que la importación llegó al depósito USA</p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha *</label>
             <input
               type="date"
               value={fecha}

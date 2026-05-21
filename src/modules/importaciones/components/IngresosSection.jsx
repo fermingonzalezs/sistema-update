@@ -508,7 +508,7 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
             <p className="text-xs text-slate-500 mb-4 font-mono">{courierEditando.numero_recibo}</p>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso total (kg)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso total (kg)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -520,7 +520,7 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Costo courier (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Costo courier (USD)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -532,7 +532,7 @@ const IngresosSection = ({ showNuevoIngreso, setShowNuevoIngreso, onIngresoUpdat
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Monto cobrado (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Monto cobrado (USD)</label>
                 <input
                   type="number"
                   step="0.01"

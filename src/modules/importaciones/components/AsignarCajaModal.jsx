@@ -95,7 +95,7 @@ const AsignarCajaModal = ({ recibos, onClose, onSuccess, cajaPreseleccionada }) 
 
           {/* Selector de caja */}
           <div className="px-6 py-4 border-b border-slate-200 flex-shrink-0">
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Caja destino</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Caja destino</label>
             <div className="flex gap-3">
               <select
                 value={cajaSeleccionada}

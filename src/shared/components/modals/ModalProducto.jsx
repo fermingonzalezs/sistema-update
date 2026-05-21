@@ -386,7 +386,7 @@ const ModalProducto = ({
         {/* Serial - Solo para notebooks y celulares */}
         {tipo !== 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Serial * {tipo === 'celular' && '(Único)'}
             </label>
             <input
@@ -403,7 +403,7 @@ const ModalProducto = ({
         {/* Nombre del producto - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Nombre del Producto *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre del Producto *</label>
             <input
               type="text"
               value={formData.nombre_producto || ''}
@@ -418,7 +418,7 @@ const ModalProducto = ({
         {/* Modelo - Para notebooks y celulares */}
         {tipo !== 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Modelo {configuracion.camposObligatorios.includes('modelo') ? '*' : ''}
             </label>
             <input
@@ -434,7 +434,7 @@ const ModalProducto = ({
 
         {/* Marca */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Marca</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Marca</label>
           <MarcaSelector
             value={formData.marca || ''}
             onChange={(valor) => setFormData(prev => ({ ...prev, marca: valor }))}
@@ -445,7 +445,7 @@ const ModalProducto = ({
 
         {/* Condición */}
         <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Condición {configuracion.camposObligatorios.includes('condicion') ? '*' : ''}
           </label>
           <select
@@ -463,7 +463,7 @@ const ModalProducto = ({
 
         {/* Sucursal */}
         <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Sucursal {configuracion.camposObligatorios.includes('sucursal') ? '*' : ''}
           </label>
           <select
@@ -481,7 +481,7 @@ const ModalProducto = ({
 
         {/* Color */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Color</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Color</label>
           <input
             type="text"
             value={formData.color || ''}
@@ -493,7 +493,7 @@ const ModalProducto = ({
 
         {/* Estado */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Estado</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Estado</label>
           <select
             value={formData.estado || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, estado: e.target.value }))}
@@ -509,7 +509,7 @@ const ModalProducto = ({
         {/* Cantidad - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Cantidad *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Cantidad *</label>
             <input
               type="number"
               value={formData.cantidad || 1}
@@ -524,7 +524,7 @@ const ModalProducto = ({
         {/* Categoría - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Categoría *</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Categoría *</label>
             <select
               value={formData.categoria || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
@@ -547,7 +547,7 @@ const ModalProducto = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Precio de compra */}
         <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             {tipo === 'notebook' ? 'Precio Costo USD' : 'Precio Compra USD'}
             {configuracion.camposObligatorios.includes('precio_compra_usd') || configuracion.camposObligatorios.includes('precio_costo_usd') ? ' *' : ''}
           </label>
@@ -569,7 +569,7 @@ const ModalProducto = ({
         {/* Envíos/Repuestos - Solo para notebooks */}
         {tipo === 'notebook' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Envíos/Repuestos USD</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Envíos/Repuestos USD</label>
             <input
               type="number"
               value={formData.envios_repuestos || 0}
@@ -584,7 +584,7 @@ const ModalProducto = ({
 
         {/* Precio de venta USD */}
         <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
             Precio Venta USD
             {configuracion.camposObligatorios.includes('precio_venta_usd') ? ' *' : ''}
           </label>
@@ -603,7 +603,7 @@ const ModalProducto = ({
         {/* Precio de venta en pesos - Solo para otros */}
         {tipo === 'otros' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
               Precio Venta Pesos
               {configuracion.camposObligatorios.includes('precio_venta_pesos') ? ' *' : ''}
             </label>
@@ -630,7 +630,7 @@ const ModalProducto = ({
           {/* Especificaciones técnicas de notebook */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Procesador</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Procesador</label>
               <input
                 type="text"
                 value={formData.procesador || ''}
@@ -641,7 +641,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Línea de Procesador</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Línea de Procesador</label>
               <select
                 value={formData.linea_procesador || 'otro'}
                 onChange={(e) => setFormData(prev => ({ ...prev, linea_procesador: e.target.value }))}
@@ -671,7 +671,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">RAM (GB)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">RAM (GB)</label>
               <input
                 type="number"
                 value={formData.ram || ''}
@@ -685,7 +685,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo RAM</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tipo RAM</label>
               <select
                 value={formData.tipo_ram || 'DDR4'}
                 onChange={(e) => setFormData(prev => ({ ...prev, tipo_ram: e.target.value }))}
@@ -698,7 +698,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Slots RAM</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Slots RAM</label>
               <input
                 type="number"
                 value={formData.slots || ''}
@@ -712,7 +712,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">SSD (GB)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">SSD (GB)</label>
               <input
                 type="number"
                 value={formData.ssd || ''}
@@ -725,7 +725,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">HDD (GB)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">HDD (GB)</label>
               <input
                 type="number"
                 value={formData.hdd || ''}
@@ -738,7 +738,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sistema Operativo</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Sistema Operativo</label>
               <select
                 value={formData.so || 'WIN11'}
                 onChange={(e) => setFormData(prev => ({ ...prev, so: e.target.value }))}
@@ -751,7 +751,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pantalla (pulgadas)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pantalla (pulgadas)</label>
               <input
                 type="number"
                 value={formData.pantalla || ''}
@@ -765,7 +765,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Resolución</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Resolución</label>
               <input
                 type="text"
                 value={formData.resolucion || ''}
@@ -776,7 +776,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Refresh (Hz)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Refresh (Hz)</label>
               <input
                 type="text"
                 value={formData.refresh || ''}
@@ -787,7 +787,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Placa de Video</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Placa de Video</label>
               <input
                 type="text"
                 value={formData.placa_video || ''}
@@ -798,7 +798,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">VRAM (GB)</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">VRAM (GB)</label>
               <input
                 type="number"
                 value={formData.vram || ''}
@@ -821,13 +821,13 @@ const ModalProducto = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, touchscreen: e.target.checked }))}
                 className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
               />
-              <label htmlFor="touchscreen" className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <label htmlFor="touchscreen" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 Pantalla Táctil
               </label>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Teclado Retroiluminado</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Teclado Retroiluminado</label>
               <select
                 value={formData.teclado_retro || 'SI'}
                 onChange={(e) => setFormData(prev => ({ ...prev, teclado_retro: e.target.value }))}
@@ -839,7 +839,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Idioma Teclado</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Idioma Teclado</label>
               <select
                 value={formData.idioma_teclado || 'Español'}
                 onChange={(e) => setFormData(prev => ({ ...prev, idioma_teclado: e.target.value }))}
@@ -851,7 +851,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Batería</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Batería</label>
               <input
                 type="text"
                 value={formData.bateria || ''}
@@ -862,7 +862,7 @@ const ModalProducto = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Duración Batería</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Duración Batería</label>
               <input
                 type="text"
                 value={formData.duracion || ''}
@@ -880,7 +880,7 @@ const ModalProducto = ({
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Capacidad (GB)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Capacidad (GB)</label>
             <input
               type="number"
               value={formData.capacidad || ''}
@@ -893,7 +893,7 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Batería (%)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Batería (%)</label>
             <input
               type="number"
               value={formData.bateria || ''}
@@ -910,7 +910,7 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Ciclos</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Ciclos</label>
             <input
               type="number"
               value={formData.ciclos || ''}
@@ -922,7 +922,7 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo de SIM</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tipo de SIM</label>
             <select
               value={formData.sim_esim || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, sim_esim: e.target.value }))}
@@ -936,7 +936,7 @@ const ModalProducto = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Memoria RAM (GB)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Memoria RAM (GB)</label>
             <input
               type="number"
               value={formData.ram || ''}
@@ -956,7 +956,7 @@ const ModalProducto = ({
       return (
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Descripción</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Descripción</label>
             <textarea
               value={formData.descripcion || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
@@ -969,7 +969,7 @@ const ModalProducto = ({
           {/* Campos específicos para DESKTOP */}
           {formData.categoria === 'DESKTOP' && (
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Modelo Procesador</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Modelo Procesador</label>
               <input
                 type="text"
                 value={formData.procesador || ''}
@@ -981,7 +981,7 @@ const ModalProducto = ({
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
             <textarea
               value={formData.observaciones || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, observaciones: e.target.value }))}
@@ -1005,7 +1005,7 @@ const ModalProducto = ({
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Garantía</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Garantía</label>
             <select
               value={valorGarantia}
               onChange={(e) => setFormData(prev => ({
@@ -1027,7 +1027,7 @@ const ModalProducto = ({
           {/* Mostrar campo de fecha si se selecciona "Garantía oficial con vencimiento" */}
           {valorGarantia === 'Garantía oficial con vencimiento' && (
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                 Fecha de vencimiento
               </label>
               <input
@@ -1041,7 +1041,7 @@ const ModalProducto = ({
 
           {tipo === 'notebook' && (
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fallas</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fallas</label>
               <input
                 type="text"
                 value={formData.fallas || ''}
@@ -1056,7 +1056,7 @@ const ModalProducto = ({
         {/* Fallas para celular y otros - en una fila separada */}
         {tipo !== 'notebook' && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fallas / Observaciones</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fallas / Observaciones</label>
             <input
               type="text"
               value={formData.fallas || ''}

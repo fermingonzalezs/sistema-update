@@ -356,7 +356,7 @@ const ProveedoresSection = () => {
                 <div className="p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Nombre</label>
                       <input
                         type="text"
                         value={formProveedor.nombre}
@@ -366,7 +366,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">País</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">País</label>
                       <input
                         type="text"
                         value={formProveedor.pais}
@@ -376,7 +376,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Teléfono</label>
                       <input
                         type="tel"
                         value={formProveedor.telefono}
@@ -386,7 +386,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Email</label>
                       <input
                         type="email"
                         value={formProveedor.email}
@@ -396,7 +396,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Dirección</label>
                       <input
                         type="text"
                         value={formProveedor.direccion}
@@ -406,7 +406,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Barrio</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Barrio</label>
                       <input
                         type="text"
                         value={formProveedor.barrio}
@@ -416,7 +416,7 @@ const ProveedoresSection = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Notas</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Notas</label>
                       <textarea
                         value={formProveedor.notas}
                         onChange={(e) => setFormProveedor({ ...formProveedor, notas: e.target.value })}

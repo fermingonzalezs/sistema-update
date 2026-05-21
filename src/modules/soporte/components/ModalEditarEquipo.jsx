@@ -120,7 +120,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Número de Serie
                   </label>
                   <input
@@ -132,7 +132,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Modelo
                   </label>
                   <input
@@ -145,7 +145,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       Marca
                     </label>
                     <MarcaSelector
@@ -156,7 +156,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                       Proveedor
                     </label>
                     <input
@@ -173,7 +173,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Estado Estético
                   </label>
                   <select
@@ -190,7 +190,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                     Estado del Testeo
                   </label>
                   <select
@@ -206,7 +206,7 @@ const ModalEditarEquipo = ({ equipo, isOpen, onClose, onSave, modo = 'editar' })
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                   Observaciones
                 </label>
                 <textarea

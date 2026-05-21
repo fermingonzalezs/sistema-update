@@ -54,8 +54,13 @@ export const useAuth = () => {
           if (now - lastAuthChange < THROTTLE_MS) return;
         }
 
-        // Evitar procesamiento duplicado del mismo evento
-        if (event === lastEventType && now - lastAuthChange < THROTTLE_MS * 2) return;
+        // Nunca throttlear eventos explícitos del usuario
+        const isUserAction = event === 'SIGNED_IN' || event === 'SIGNED_OUT';
+
+        if (!isUserAction) {
+          // Evitar procesamiento duplicado del mismo evento
+          if (event === lastEventType && now - lastAuthChange < THROTTLE_MS * 2) return;
+        }
 
         lastAuthChange = now;
         lastEventType = event;
@@ -141,6 +146,7 @@ export const useAuth = () => {
       await setAuditContext(userForAudit);
       await logLoginEvent(userForAudit);
 
+      setUser(data.user);
       return data.user;
     } catch (err) {
       const errorMessage = err.message || 'Error al iniciar sesión';

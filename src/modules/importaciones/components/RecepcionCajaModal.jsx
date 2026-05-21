@@ -123,7 +123,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Datos de Recepción</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha Recepción *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha Recepción *</label>
                 <input
                   type="date"
                   value={form.fecha_recepcion}
@@ -132,7 +132,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso c/ caja (kg)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso c/ caja (kg)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.peso_total_con_caja_kg}
@@ -142,7 +142,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Peso s/ caja (kg) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Peso s/ caja (kg) *</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.peso_sin_caja_kg}
@@ -152,7 +152,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Precio / kg (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Precio / kg (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.precio_por_kg_usd}
@@ -162,7 +162,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Pago Courier (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Pago Courier (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.pago_courier_usd}
@@ -172,7 +172,7 @@ const RecepcionCajaModal = ({ caja, onClose, onSuccess }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Picking / Shipping (USD)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Picking / Shipping (USD)</label>
                 <input
                   type="number" step="0.01" min="0"
                   value={form.costo_picking_shipping_usd}

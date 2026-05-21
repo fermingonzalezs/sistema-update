@@ -1313,7 +1313,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Primer método de pago */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Pago 1 *
                         </label>
                         <MetodoPagoSelector
@@ -1325,7 +1325,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Monto ({obtenerMonedaMetodo(datosCliente.metodo_pago_1)})
                         </label>
                         <input
@@ -1338,7 +1338,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? 'Caja *' : necesitaInputAlias(datosCliente.metodo_pago_1) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {necesitaSelectorCaja(datosCliente.metodo_pago_1) ? (
@@ -1377,7 +1377,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Segundo método de pago (opcional) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Pago 2
                         </label>
                         <MetodoPagoSelector
@@ -1391,7 +1391,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Monto {datosCliente.metodo_pago_2 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_2)})` : ''}
                         </label>
                         <input
@@ -1405,7 +1405,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? 'Caja *' : datosCliente.metodo_pago_2 && necesitaInputAlias(datosCliente.metodo_pago_2) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.metodo_pago_2 && necesitaSelectorCaja(datosCliente.metodo_pago_2) ? (
@@ -1443,7 +1443,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* Tercer método de pago (opcional) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Pago 3
                         </label>
                         <MetodoPagoSelector
@@ -1457,7 +1457,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Monto {datosCliente.metodo_pago_3 ? `(${obtenerMonedaMetodo(datosCliente.metodo_pago_3)})` : ''}
                         </label>
                         <input
@@ -1471,7 +1471,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? 'Caja *' : datosCliente.metodo_pago_3 && necesitaInputAlias(datosCliente.metodo_pago_3) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.metodo_pago_3 && necesitaSelectorCaja(datosCliente.metodo_pago_3) ? (
@@ -1509,7 +1509,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* ── Seña ── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método seña</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método seña</label>
                         <MetodoPagoSelector
                           value={datosCliente.sena_metodo}
                           onChange={(e) => handleSenaMetodoChange(e.target.value)}
@@ -1520,7 +1520,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Monto {datosCliente.sena_metodo ? `(${obtenerMonedaMetodo(datosCliente.sena_metodo)})` : ''}
                         </label>
                         <input
@@ -1534,7 +1534,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? 'Caja *' : datosCliente.sena_metodo && necesitaInputAlias(datosCliente.sena_metodo) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.sena_metodo && necesitaSelectorCaja(datosCliente.sena_metodo) ? (
@@ -1565,7 +1565,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                     {/* ── Vuelto ── */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Método vuelto</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Método vuelto</label>
                         <MetodoPagoSelector
                           value={datosCliente.vuelto_metodo}
                           onChange={(e) => handleVueltoMetodoChange(e.target.value)}
@@ -1576,7 +1576,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           Monto {datosCliente.vuelto_metodo ? `(${obtenerMonedaMetodo(datosCliente.vuelto_metodo)})` : ''}
                         </label>
                         <input
@@ -1590,7 +1590,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">
                           {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? 'Caja *' : datosCliente.vuelto_metodo && necesitaInputAlias(datosCliente.vuelto_metodo) ? 'Alias/Wallet *' : 'Destino'}
                         </label>
                         {datosCliente.vuelto_metodo && necesitaSelectorCaja(datosCliente.vuelto_metodo) ? (
@@ -1630,7 +1630,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Vendedor *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Vendedor *</label>
                         <select
                           name="vendedor"
                           value={datosCliente.vendedor}
@@ -1651,7 +1651,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Sucursal *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Sucursal *</label>
                         <select
                           name="sucursal"
                           value={datosCliente.sucursal}
@@ -1664,7 +1664,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Fecha de Venta *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Fecha de Venta *</label>
                         <input
                           type="date"
                           value={fechaVenta}
@@ -1674,7 +1674,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Tipo de Venta</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Tipo de Venta</label>
                         <div className="flex rounded overflow-hidden border border-slate-200">
                           <button
                             type="button"
@@ -1702,7 +1702,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       </div>
 
                       <div className="md:col-span-4">
-                        <label className="block text-xs font-medium text-gray-700 mb-1 uppercase tracking-wider">Observaciones</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider text-center">Observaciones</label>
                         <textarea
                           name="observaciones"
                           value={datosCliente.observaciones}
@@ -1844,7 +1844,7 @@ const CarritoWidget = ({ carrito, onUpdateCantidad, onUpdatePrecio, onRemover, o
                       />
                       <div className="flex items-center space-x-2">
                         <Mail className="w-5 h-5 text-slate-800" />
-                        <span className="text-sm text-slate-800">
+                        <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                           Enviar email al cliente (puede aparecer como spam)
                         </span>
                       </div>
